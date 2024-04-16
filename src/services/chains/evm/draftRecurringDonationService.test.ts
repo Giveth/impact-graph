@@ -86,9 +86,7 @@ function matchDraftRecurringDonationsTests() {
 
     expect(draftRecurringDonation).to.be.ok;
 
-    await matchDraftRecurringDonations({
-      [user.walletAddress!]: [draftRecurringDonation!],
-    });
+    await matchDraftRecurringDonations([draftRecurringDonation!]);
 
     const recurringDonation = await RecurringDonation.findOne({
       where: {
@@ -156,9 +154,7 @@ function matchDraftRecurringDonationsTests() {
 
     expect(draftRecurringDonation).to.be.ok;
 
-    await matchDraftRecurringDonations({
-      [user.walletAddress!]: [draftRecurringDonation!],
-    });
+    await matchDraftRecurringDonations([draftRecurringDonation!]);
 
     const recurringDonation = await RecurringDonation.findOne({
       where: {
@@ -190,10 +186,10 @@ function matchDraftRecurringDonationsTests() {
   });
 
   // TODO batch is not yet supported
-  it.skip('should create a recurring donation based on the draft donation OP Sepholia  #2 batch', async () => {
+  it('should create a recurring donation based on the draft donation OP Sepholia  #2 batch', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x1833603bc894448b54cf9c03483fa361508fa101abcfa6c3b6ef51425cab533f
     const user = await saveUserDirectlyToDb(
-      '0x871cd6353b803ceceb090bb827ecb2f361db81ab',
+      '0xa1179f64638adb613ddaac32d918eb6beb824104',
     );
     const txHash =
       '0x1833603bc894448b54cf9c03483fa361508fa101abcfa6c3b6ef51425cab533f';
@@ -216,9 +212,7 @@ function matchDraftRecurringDonationsTests() {
 
     expect(draftRecurringDonation).to.be.ok;
 
-    await matchDraftRecurringDonations({
-      [user.walletAddress!]: [draftRecurringDonation!],
-    });
+    await matchDraftRecurringDonations([draftRecurringDonation!]);
 
     const recurringDonation = await RecurringDonation.findOne({
       where: {

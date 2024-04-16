@@ -220,63 +220,6 @@ export async function getListOfTransactionsByAddress(input: {
   };
 }
 
-export async function getListOfSuperFluidContractTxs(input: {
-  networkId: number;
-  address: string;
-  page?: number;
-  offset?: number;
-}): Promise<{
-  userRecentTransactions: IContractCallTxInfo[];
-  lastPage: boolean;
-}> {
-  const contractAddresses = {};
-  contractAddresses[NETWORK_IDS.OPTIMISM_SEPOLIA] =
-    '0xda6db863cb2EE39b196edB8159c38A1ed5c55344';
-  contractAddresses[NETWORK_IDS.OPTIMISTIC] =
-    '0xfb2b126660be2fdeba254b1f6e4348644e8482e7';
-
-  const { address, page = 1, offset = 1000, networkId } = input;
-
-  // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
-  // https://blockscout.com/xdai/mainnet/api-docs#account
-  const params = {
-    module: 'account',
-    action: 'tokennfttx',
-    contractaddress: contractAddresses[networkId],
-    page,
-    offset,
-    address,
-    sort: 'desc',
-  };
-
-  const result = await axios.get(getBlockExplorerApiUrl(networkId), {
-    params,
-  });
-
-  if (result?.data?.status === '0') {
-    /**
-     * sample of these errors
-       {
-         "status": "0",
-         "message": "Query Timeout occured. Please select a smaller result dataset",
-         "result": null
-       }
-     */
-    throw new Error(
-      result.data?.message ||
-        `Error while fetching transactions networkId: ${networkId}`,
-    );
-  }
-  const userRecentTransactions = result.data.result.filter(tx => {
-    return tx.to.toLowerCase() === input.address.toLowerCase();
-  });
-
-  return {
-    userRecentTransactions,
-    lastPage: result.data.result.length < offset,
-  };
-}
-
 export async function getEvmTransactionTimestamp(input: {
   txHash: string;
   networkId: number;

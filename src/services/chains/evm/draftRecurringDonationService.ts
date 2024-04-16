@@ -2,8 +2,6 @@ import _ from 'lodash';
 import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { WorkerModule } from 'threads/dist/types/worker';
 import { DRAFT_DONATION_STATUS } from '../../../entities/draftDonation';
-import { getListOfSuperFluidContractTxs } from './transactionService';
-import { IContractCallTxInfo } from '../../../types/etherscan';
 import { ApolloContext } from '../../../types/ApolloContext';
 import { logger } from '../../../utils/logger';
 import {
@@ -17,155 +15,57 @@ import {
 } from '../../../entities/recurringDonation';
 import { RecurringDonationResolver } from '../../../resolvers/recurringDonationResolver';
 import { findUserById } from '../../../repositories/userRepository';
-import { getRecurringDonationTxInfo } from '../../recurringDonationService';
 import { findActiveAnchorAddress } from '../../../repositories/anchorContractAddressRepository';
 import { findRecurringDonationById } from '../../../repositories/recurringDonationRepository';
+import { getSuperFluidAdapter } from '../../../adapters/adaptersFactory';
+import { FlowUpdatedEvent } from '../../../adapters/superFluid/superFluidAdapterInterface';
+import { convertTimeStampToSeconds } from '../../../utils/utils';
 
 type DraftRecurringDonationWorkerFunctions = 'matchDraftRecurringDonations';
 export type DraftRecurringDonationWorker =
   WorkerModule<DraftRecurringDonationWorkerFunctions>;
 
 export async function matchDraftRecurringDonations(
-  userDraftRecurringDonationsMap: Record<string, DraftRecurringDonation[]>,
+  draftRecurringDonations: DraftRecurringDonation[],
 ) {
-  for (const user of Object.keys(userDraftRecurringDonationsMap)) {
-    // group by networkId
-    const userDraftRecurringDonations = userDraftRecurringDonationsMap[user];
-    logger.debug(
-      `Match ${userDraftRecurringDonations.length} draft donations for ${user}`,
-    );
-    const userDraftRecurringDonationsByNetwork: Record<
-      number,
-      DraftRecurringDonation[]
-    > = _.groupBy(userDraftRecurringDonations, 'networkId');
+  logger.debug(
+    'matchDraftRecurringDonations() has been called draftDonation.length',
+    draftRecurringDonations.length,
+  );
+  for (const draftRecurringDonation of draftRecurringDonations) {
+    try {
+      const anchorContractAddress = await findActiveAnchorAddress({
+        networkId: draftRecurringDonation.networkId,
+        projectId: draftRecurringDonation.projectId,
+      });
+      const donor = await findUserById(draftRecurringDonation.donorId);
+      const superFluidAdapter = getSuperFluidAdapter();
 
-    // Iterate over networks
-    for (const networkId of Object.keys(
-      userDraftRecurringDonationsByNetwork,
-    ).map(_networkId => +_networkId)) {
-      // The earliest time we need to check for transactions of this user
-      let minCreatedAt = Number.MAX_SAFE_INTEGER;
-      // Map of target to address, token address in ERC721 case, designated native token address in native token case
-      const targetTxAddrToDraftDonationMap = new Map<
-        string,
-        DraftRecurringDonation[]
-      >();
-
-      for (const draftRecurringDonation of userDraftRecurringDonationsByNetwork[
-        networkId
-      ]) {
-        const userWalletAddress = (await findUserById(
-          draftRecurringDonation.donorId,
-        ))!.walletAddress?.toLowerCase() as string;
-
-        const _array = targetTxAddrToDraftDonationMap.get(userWalletAddress);
-        if (!_array) {
-          targetTxAddrToDraftDonationMap.set(userWalletAddress, [
-            draftRecurringDonation,
-          ]);
-        } else {
-          _array.push(draftRecurringDonation);
-        }
-
-        if (draftRecurringDonation.createdAt.getTime() < minCreatedAt) {
-          minCreatedAt = draftRecurringDonation.createdAt.getTime();
-        }
+      const flow = await superFluidAdapter.getFlowByReceiverSenderFlowRate({
+        flowRate: draftRecurringDonation.flowRate,
+        receiver: anchorContractAddress?.address?.toLowerCase() as string,
+        sender: donor?.walletAddress?.toLowerCase() as string,
+        timestamp_gt: convertTimeStampToSeconds(
+          draftRecurringDonation.createdAt.getTime(),
+        ),
+      });
+      if (flow) {
+        logger.debug('matchDraftRecurringDonations flow: ', flow);
+        await submitMatchedDraftRecurringDonation(draftRecurringDonation, flow);
       }
-
-      minCreatedAt = Math.floor(minCreatedAt / 1000); // convert to seconds
-
-      let _exit = false;
-      let _page = 1;
-      while (_exit === false) {
-        const { userRecentTransactions, lastPage } =
-          await getListOfSuperFluidContractTxs({
-            address: user,
-            networkId: Number(networkId),
-            page: _page,
-          });
-
-        for (const transaction of userRecentTransactions) {
-          if (+transaction.timeStamp < minCreatedAt) {
-            // We have reached to TXs that are older than the oldest draft donation
-            _exit = true;
-            break;
-          }
-
-          const fromAddress = transaction.to.toLowerCase();
-          const draftDonations =
-            targetTxAddrToDraftDonationMap.get(fromAddress);
-
-          let txDataArray: {
-            receiver: string;
-            flowRate: string;
-            tokenAddress: string;
-          }[] = [];
-          try {
-            txDataArray = await getRecurringDonationTxInfo({
-              networkId,
-              txHash: transaction?.hash,
-              isBatch: false,
-            });
-          } catch (e) {
-            logger.error(
-              `Error getting tx data for ${transaction.hash} when isBatch: false`,
-              e,
-            );
-          }
-          if (txDataArray.length === 0) {
-            try {
-              txDataArray = await getRecurringDonationTxInfo({
-                networkId,
-                txHash: transaction.hash,
-                isBatch: true,
-              });
-            } catch (e) {
-              logger.error(
-                `Error getting tx data for ${transaction.hash} when isBatch: true`,
-                e,
-              );
-            }
-          }
-
-          if (txDataArray.length === 0) {
-            continue;
-          }
-
-          if (draftDonations) {
-            // donations with same target address
-            for (const draftDonation of draftDonations!) {
-              const anchorContractAddress = await findActiveAnchorAddress({
-                networkId: draftDonation.networkId,
-                projectId: draftDonation.projectId,
-              });
-              for (const txData of txDataArray) {
-                if (
-                  txData.receiver.toLowerCase() ===
-                    anchorContractAddress?.address.toLowerCase() &&
-                  txData.flowRate === draftDonation.flowRate
-                ) {
-                  await submitMatchedDraftRecurringDonation(
-                    draftDonation,
-                    transaction,
-                  );
-                  break;
-                }
-              }
-            }
-          }
-        }
-
-        if (lastPage) break;
-
-        _page++;
-      }
+    } catch (e) {
+      logger.error('error validating draftRecurringDonation', {
+        draftRecurringDonationId:
+          draftRecurringDonation.matchedRecurringDonationId,
+        flowRate: draftRecurringDonation?.flowRate,
+      });
     }
   }
 }
 
 async function submitMatchedDraftRecurringDonation(
   draftRecurringDonation: DraftRecurringDonation,
-  tx: IContractCallTxInfo,
+  tx: FlowUpdatedEvent,
 ) {
   logger.debug(
     'submitMatchedDraftRecurringDonation() has been called',
@@ -176,7 +76,7 @@ async function submitMatchedDraftRecurringDonation(
   const existingRecurringDonation = await RecurringDonation.findOne({
     where: {
       networkId: draftRecurringDonation.networkId,
-      txHash: tx.hash,
+      txHash: tx.transactionHash,
       projectId: draftRecurringDonation.projectId,
     },
   });
@@ -204,7 +104,7 @@ async function submitMatchedDraftRecurringDonation(
     matchedRecurringDonationId,
     isForUpdate,
   } = draftRecurringDonation;
-  const txHash = tx.hash;
+  const txHash = tx.transactionHash;
   try {
     logger.debug(
       `Creating donation for draftDonation with ID ${draftRecurringDonation.id}`,

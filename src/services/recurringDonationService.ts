@@ -370,62 +370,18 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
   }
 
   try {
-    const txData = await getRecurringDonationTxInfo({
-      txHash: recurringDonation!.txHash,
-      networkId: recurringDonation!.networkId,
-      isBatch: recurringDonation!.isBatch,
+    const superFluidAdapter = getSuperFluidAdapter();
+    const txData = await superFluidAdapter.getFlowByTxHash({
+      receiver:
+        recurringDonation?.anchorContractAddress?.address?.toLowerCase() as string,
+      flowRate: recurringDonation.flowRate,
+      sender: recurringDonation?.donor?.walletAddress?.toLowerCase() as string,
+      transactionHash: recurringDonation.txHash,
     });
-
-    let flowRate = '';
-    let receiver = '';
-
-    if (!recurringDonation.isBatch) {
-      flowRate = txData[0].flowRate;
-      receiver = txData[0].receiver;
-    } else {
-      const txDataFiltered = txData.filter(
-        item =>
-          item.receiver.toLowerCase() ===
-          recurringDonation?.anchorContractAddress?.address?.toLowerCase(),
+    if (!txData) {
+      throw new Error(
+        `SuperFluid tx not found in the subgraph txHash:${recurringDonation.txHash}`,
       );
-      if (txDataFiltered.length === 0) {
-        logger.debug(
-          'Recurring donation receiver address not found in the transaction data.',
-          {
-            recurringDonationId: recurringDonation?.id,
-            txHash: recurringDonation?.txHash,
-          },
-        );
-        recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
-        recurringDonation.finished = true;
-        return recurringDonation.save();
-      }
-      flowRate = txDataFiltered[0].flowRate;
-      receiver = txDataFiltered[0].receiver;
-    }
-
-    if (
-      recurringDonation?.anchorContractAddress?.address?.toLowerCase() !==
-      receiver
-    ) {
-      recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
-      recurringDonation.finished = true;
-      return recurringDonation.save();
-    }
-
-    if (recurringDonation?.flowRate !== flowRate) {
-      logger.debug(
-        'Recurring donation flowRate does not match the receiver address of the transaction data.',
-        {
-          recurringDonationId: recurringDonation?.id,
-          donationFlowRate: recurringDonation?.flowRate,
-          flowRate: flowRate,
-          txHash: recurringDonation?.txHash,
-        },
-      );
-      recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
-      recurringDonation.finished = true;
-      return recurringDonation.save();
     }
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation.save();
