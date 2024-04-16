@@ -342,6 +342,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: donation.id,
           projectId: project.id,
           networkId: donation.networkId,
           currency: donation.currency,
@@ -364,6 +365,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: donation.id,
           projectId: project.id,
           networkId: donation.networkId,
           currency: donation.currency,
@@ -425,6 +427,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: donation.id,
           projectId: project.id,
           networkId: donation.networkId,
           currency: donation.currency,
@@ -485,6 +488,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: donation.id,
           projectId: project.id,
           networkId: donation.networkId,
           currency: donation.currency,
@@ -544,6 +548,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: donation.id,
           projectId: project.id,
           networkId: donation.networkId,
           currency: donation.currency,
@@ -606,6 +611,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: donation.id,
           projectId: project.id,
           flowRate,
           currency,
@@ -673,6 +679,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: donation.id,
           projectId: project.id,
           flowRate,
           currency,
@@ -749,6 +756,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: donation.id,
           projectId: project.id,
           currency,
           networkId: NETWORK_IDS.OPTIMISTIC,
@@ -819,6 +827,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: donation.id,
           projectId: project.id,
           flowRate,
           currency,
@@ -864,7 +873,7 @@ function updateRecurringDonationTestCases() {
         projectId: project.id,
       },
     });
-    await saveRecurringDonationDirectlyToDb({
+    const recurringDonation = await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
       },
@@ -879,6 +888,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: recurringDonation.id,
           projectId: project.id,
           flowRate: '10',
           networkId: NETWORK_IDS.OPTIMISTIC,
@@ -921,6 +931,7 @@ function updateRecurringDonationTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: updateRecurringDonationQuery,
       variables: {
+        recurringDonationId: 1,
         projectId: project.id,
         networkId: NETWORK_IDS.OPTIMISTIC,
         txHash: generateRandomEvmTxHash(),
@@ -945,6 +956,7 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
+          recurringDonationId: 1,
           projectId: 99999,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
