@@ -79,7 +79,7 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
     };
   }
 
-  getFlowByReceiverSenderFlowRate(params: {
+  getFlowByReceiverSenderFlowRate(_params: {
     receiver: string;
     sender: string;
     flowRate: string;
@@ -88,14 +88,12 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  getFlowByTxHash(params: {
+  getFlowByTxHash(_params: {
     receiver: string;
     sender: string;
     flowRate: string;
     transactionHash: string;
   }): Promise<FlowUpdatedEvent | undefined> {
-    console.log('getFlowByReceiverSenderFlowRate MOCK has been called', params);
-
     return Promise.resolve(undefined);
   }
 }
