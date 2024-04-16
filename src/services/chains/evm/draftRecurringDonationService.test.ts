@@ -26,25 +26,18 @@ describe('matchDraftRecurringDonations', matchDraftRecurringDonationsTests);
 
 function matchDraftRecurringDonationsTests() {
   let project1: Project;
-  let project2: Project;
   let anchorContractAddress1: AnchorContractAddress;
   let user1: User;
-  let user2: User;
 
   beforeEach(async () => {
     project1 = await saveProjectDirectlyToDb(createProjectData());
-    project2 = await saveProjectDirectlyToDb(createProjectData());
 
     user1 = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
-    user2 = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
+
     anchorContractAddress1 = await addNewAnchorAddress({
       project: project1,
       owner: user1,

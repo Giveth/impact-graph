@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { WorkerModule } from 'threads/dist/types/worker';
 import { DRAFT_DONATION_STATUS } from '../../../entities/draftDonation';

@@ -85,8 +85,6 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
     flowRate: string;
     timestamp_gt: number;
   }): Promise<FlowUpdatedEvent | undefined> {
-    console.log('getFlowByTxHash MOCK has been called', params);
-
     return Promise.resolve(undefined);
   }
 

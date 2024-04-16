@@ -22,7 +22,7 @@ import { gnosisSafeL2ABI } from '../../../assets/gnosisSafeL2ABI';
 import { NetworkTransactionInfo, TransactionDetailInput } from '../index';
 import { normalizeAmount } from '../../../utils/utils';
 import { ONE_HOUR, validateTransactionWithInputData } from '../index';
-import { IContractCallTxInfo, ITxInfo } from '../../../types/etherscan';
+import { ITxInfo } from '../../../types/etherscan';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ethers = require('ethers');

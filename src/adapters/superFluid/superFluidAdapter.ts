@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { logger } from '../../utils/logger';
-import { isProduction, isStaging, isTestEnv } from '../../utils/utils';
+import { isProduction } from '../../utils/utils';
 import {
   FlowUpdatedEvent,
   SuperFluidAdapterInterface,
