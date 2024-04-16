@@ -28,7 +28,6 @@ function matchDraftRecurringDonationsTests() {
   let project1: Project;
   let project2: Project;
   let anchorContractAddress1: AnchorContractAddress;
-  let anchorContractAddress2: AnchorContractAddress;
   let user1: User;
   let user2: User;
 
@@ -50,14 +49,6 @@ function matchDraftRecurringDonationsTests() {
       project: project1,
       owner: user1,
       creator: user1,
-      address: generateRandomEtheriumAddress(),
-      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
-      txHash: generateRandomEvmTxHash(),
-    });
-    anchorContractAddress2 = await addNewAnchorAddress({
-      project: project2,
-      owner: user2,
-      creator: user2,
       address: generateRandomEtheriumAddress(),
       networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
       txHash: generateRandomEvmTxHash(),

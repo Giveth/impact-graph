@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import { ModuleThread, Pool, spawn, Worker } from 'threads';
+import { WorkerModule } from 'threads/dist/types/worker';
 import { DRAFT_DONATION_STATUS } from '../../../entities/draftDonation';
 import { getListOfSuperFluidContractTxs } from './transactionService';
 import { IContractCallTxInfo } from '../../../types/etherscan';
 import { ApolloContext } from '../../../types/ApolloContext';
 import { logger } from '../../../utils/logger';
-import { WorkerModule } from 'threads/dist/types/worker';
 import {
   DRAFT_RECURRING_DONATION_STATUS,
   DraftRecurringDonation,
@@ -167,7 +167,7 @@ async function submitMatchedDraftRecurringDonation(
   draftRecurringDonation: DraftRecurringDonation,
   tx: IContractCallTxInfo,
 ) {
-  console.log(
+  logger.debug(
     'submitMatchedDraftRecurringDonation() has been called',
     draftRecurringDonation,
     tx,

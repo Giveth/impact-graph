@@ -45,6 +45,7 @@ import {
 import { sleep } from '../utils/utils';
 import SentryLogger from '../sentryLogger';
 import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
+import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
 
 @InputType()
 class RecurringDonationSortBy {
@@ -189,8 +190,7 @@ export class RecurringDonationResolver {
         ),
       );
     }
-
-    return createNewRecurringDonation({
+    const recurringDonation = await createNewRecurringDonation({
       donor,
       project,
       anchorContractAddress: currentAnchorProjectAddress,
@@ -201,6 +201,16 @@ export class RecurringDonationResolver {
       anonymous,
       isBatch,
     });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate,
+    });
+
+    return recurringDonation;
   }
 
   @Mutation(_returns => RecurringDonation, { nullable: true })
@@ -248,7 +258,7 @@ export class RecurringDonationResolver {
       );
     }
 
-    return updateRecurringDonation({
+    const updatedRecurringDonation = await updateRecurringDonation({
       recurringDonation,
       txHash,
       flowRate,
@@ -256,6 +266,16 @@ export class RecurringDonationResolver {
       status,
       isArchived,
     });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate: updatedRecurringDonation.flowRate,
+    });
+
+    return updatedRecurringDonation;
   }
 
   @Query(_returns => PaginateRecurringDonations, { nullable: true })
