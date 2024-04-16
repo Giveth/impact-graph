@@ -4,24 +4,11 @@ import {
   createProjectData,
   saveUserDirectlyToDb,
   generateRandomEtheriumAddress,
-  generateTestAccessToken,
   generateRandomEvmTxHash,
   saveRecurringDonationDirectlyToDb,
 } from '../../../../test/testUtils';
-import {
-  DRAFT_DONATION_STATUS,
-  DraftDonation,
-} from '../../../entities/draftDonation';
 import { NETWORK_IDS } from '../../../provider';
-import { ProjectAddress } from '../../../entities/projectAddress';
-import { matchDraftDonations } from './draftDonationService';
-import { findUserByWalletAddress } from '../../../repositories/userRepository';
-import {
-  DONATION_ORIGINS,
-  DONATION_STATUS,
-  Donation,
-} from '../../../entities/donation';
-import { Project, ProjectUpdate } from '../../../entities/project';
+import { Project } from '../../../entities/project';
 import { User } from '../../../entities/user';
 import {
   DraftRecurringDonation,

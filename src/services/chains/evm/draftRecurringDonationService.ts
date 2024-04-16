@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import { ethers } from 'ethers';
 import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { DRAFT_DONATION_STATUS } from '../../../entities/draftDonation';
 import { getListOfSuperFluidContractTxs } from './transactionService';
