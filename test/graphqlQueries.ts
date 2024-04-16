@@ -2330,6 +2330,7 @@ export const createRecurringDonationQuery = `
 
 export const updateRecurringDonationQuery = `
        mutation (
+        $recurringDonationId: Int!,
         $projectId: Int!,
         $networkId: Int!,
         $currency: String!,
@@ -2340,6 +2341,7 @@ export const updateRecurringDonationQuery = `
         $status: String
         ) {
           updateRecurringDonationParams(
+            recurringDonationId: $recurringDonationId
             projectId: $projectId
             networkId: $networkId
             currency:$currency

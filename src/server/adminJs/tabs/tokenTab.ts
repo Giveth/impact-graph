@@ -253,6 +253,14 @@ export const generateTokenTab = async () => {
         },
       },
       actions: {
+        list: {
+          isAccessible: ({ currentAdmin }) =>
+            canAccessTokenAction({ currentAdmin }, ResourceActions.LIST),
+        },
+        show: {
+          isAccessible: ({ currentAdmin }) =>
+            canAccessTokenAction({ currentAdmin }, ResourceActions.SHOW),
+        },
         bulkDelete: {
           isVisible: false,
           isAccessible: ({ currentAdmin }) =>

@@ -12,11 +12,7 @@ import {
   ReviewStatus,
   RevokeSteps,
 } from '../../../entities/project';
-import {
-  canAccessProjectAction,
-  canAccessQfRoundAction,
-  ResourceActions,
-} from '../adminJsPermissions';
+import { canAccessProjectAction, ResourceActions } from '../adminJsPermissions';
 import {
   findProjectById,
   findProjectsByIdArray,
@@ -1229,7 +1225,7 @@ export const projectsTab = {
         actionType: 'record',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction(
+          canAccessProjectAction(
             { currentAdmin },
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),
@@ -1244,7 +1240,7 @@ export const projectsTab = {
         actionType: 'record',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction(
+          canAccessProjectAction(
             { currentAdmin },
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),
@@ -1260,7 +1256,7 @@ export const projectsTab = {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction(
+          canAccessProjectAction(
             { currentAdmin },
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),
@@ -1273,7 +1269,7 @@ export const projectsTab = {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction(
+          canAccessProjectAction(
             { currentAdmin },
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),
