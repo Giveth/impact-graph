@@ -105,6 +105,12 @@ export const qfRoundTab = {
           edit: true,
         },
       },
+      title: {
+        isVisible: true,
+      },
+      description: {
+        isVisible: true,
+      },
       name: {
         isVisible: true,
       },
