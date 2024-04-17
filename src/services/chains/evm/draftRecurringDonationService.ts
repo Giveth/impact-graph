@@ -40,17 +40,21 @@ export async function matchDraftRecurringDonations(
       const donor = await findUserById(draftRecurringDonation.donorId);
       const superFluidAdapter = getSuperFluidAdapter();
 
-      const flow = await superFluidAdapter.getFlowByReceiverSenderFlowRate({
+      const getFlowParams = {
         flowRate: draftRecurringDonation.flowRate,
         receiver: anchorContractAddress?.address?.toLowerCase() as string,
         sender: donor?.walletAddress?.toLowerCase() as string,
         timestamp_gt: convertTimeStampToSeconds(
           draftRecurringDonation.createdAt.getTime(),
         ),
-      });
+      };
+      const flow =
+        await superFluidAdapter.getFlowByReceiverSenderFlowRate(getFlowParams);
       if (flow) {
         logger.debug('matchDraftRecurringDonations flow: ', flow);
         await submitMatchedDraftRecurringDonation(draftRecurringDonation, flow);
+      } else {
+        logger.error('matchDraftRecurringDonations flow is undefined', flow);
       }
     } catch (e) {
       logger.error('error validating draftRecurringDonation', {
