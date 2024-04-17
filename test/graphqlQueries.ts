@@ -2304,6 +2304,41 @@ export const createRecurringDonationQuery = `
   }
 `;
 
+export const updateRecurringDonationQueryById = `
+       mutation (
+        $recurringDonationId: Int!,
+        $projectId: Int!,
+        $networkId: Int!,
+        $currency: String!,
+        $txHash: String
+        $flowRate: String
+        $anonymous: Boolean
+        $isArchived: Boolean
+        $status: String
+        ) {
+          updateRecurringDonationParamsById(
+            recurringDonationId: $recurringDonationId
+            projectId: $projectId
+            networkId: $networkId
+            currency:$currency
+            txHash:$txHash
+            anonymous:$anonymous
+            flowRate:$flowRate
+            status:$status
+            isArchived:$isArchived
+        ) {
+            txHash
+            networkId
+            currency
+            flowRate
+            anonymous
+            status
+            isArchived
+            finished
+          }
+      }
+`;
+
 export const updateRecurringDonationQuery = `
        mutation (
         $projectId: Int!,
