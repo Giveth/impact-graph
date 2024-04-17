@@ -21,6 +21,7 @@ import { DonationSaveBackupAdapter } from './donationSaveBackup/donationSaveBack
 import { DonationSaveBackupMockAdapter } from './donationSaveBackup/DonationSaveBackupMockAdapter';
 import { SuperFluidAdapter } from './superFluid/superFluidAdapter';
 import { SuperFluidMockAdapter } from './superFluid/superFluidMockAdapter';
+import { SuperFluidAdapterInterface } from './superFluid/superFluidAdapterInterface';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -136,7 +137,7 @@ export const getDonationSaveBackupAdapter = () => {
 const superFluidAdapter = new SuperFluidAdapter();
 const superFluidMockAdapter = new SuperFluidMockAdapter();
 
-export const getSuperFluidAdapter = () => {
+export const getSuperFluidAdapter = (): SuperFluidAdapterInterface => {
   switch (process.env.SUPER_FLUID_ADAPTER) {
     case 'superfluid':
       return superFluidAdapter;

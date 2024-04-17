@@ -54,6 +54,30 @@ export const createDraftDonationMutation = `
   }
 `;
 
+export const createDraftRecurringDonationMutation = `
+  mutation (
+    $networkId: Float!
+    $currency: String!
+    $projectId: Float!
+    $recurringDonationId: Float
+    $anonymous: Boolean
+    $isBatch: Boolean
+    $isForUpdate: Boolean
+    $flowRate: String!
+  ) {
+    createDraftRecurringDonation(
+      networkId: $networkId
+      currency: $currency
+      recurringDonationId: $recurringDonationId
+      projectId: $projectId
+      anonymous: $anonymous
+      isBatch: $isBatch
+      isForUpdate: $isForUpdate
+      flowRate: $flowRate
+    )
+  }
+`;
+
 export const updateDonationStatusMutation = `
   mutation (
     $status: String
@@ -2306,6 +2330,7 @@ export const createRecurringDonationQuery = `
 
 export const updateRecurringDonationQuery = `
        mutation (
+        $recurringDonationId: Int!,
         $projectId: Int!,
         $networkId: Int!,
         $currency: String!,
@@ -2316,6 +2341,7 @@ export const updateRecurringDonationQuery = `
         $status: String
         ) {
           updateRecurringDonationParams(
+            recurringDonationId: $recurringDonationId
             projectId: $projectId
             networkId: $networkId
             currency:$currency

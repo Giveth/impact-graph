@@ -1,14 +1,20 @@
 import axios from 'axios';
 import { logger } from '../../utils/logger';
-import { isStaging, isTestEnv } from '../../utils/utils';
-import { SuperFluidAdapterInterface } from './superFluidAdapterInterface';
+import { isProduction } from '../../utils/utils';
+import {
+  FlowUpdatedEvent,
+  SuperFluidAdapterInterface,
+} from './superFluidAdapterInterface';
 
 const superFluidGraphqlUrl =
   'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet';
 const superFluidGraphqlStagingUrl =
   'https://optimism-sepolia.subgraph.x.superfluid.dev';
-const superFluidTestGraphUrl =
-  'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-goerli';
+
+const subgraphUrl = isProduction
+  ? superFluidGraphqlUrl
+  : superFluidGraphqlStagingUrl;
+
 // Define your GraphQL query as a string and prepare your variables
 const accountQuery = `
   query getAccountBalances($id: ID!) {
@@ -24,6 +30,21 @@ const accountQuery = `
       }
     }
   }
+`;
+
+const getFlowsQuery = `
+    query FlowUpdatedEvents($where: FlowUpdatedEvent_filter) {
+      flowUpdatedEvents(where: $where) {
+        id
+        flowOperator
+        flowRate
+        transactionHash
+        receiver
+        sender
+        token
+        timestamp
+      }
+    }
 `;
 
 /* EXAMPLE PAYLOAD
@@ -146,16 +167,11 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
                 }
             },
     */
+
   // Optimism works
   async accountBalance(accountId: string) {
     try {
-      const apiUrl = !isTestEnv
-        ? isStaging
-          ? superFluidGraphqlStagingUrl
-          : superFluidGraphqlUrl
-        : superFluidTestGraphUrl;
-
-      const response = await axios.post(apiUrl, {
+      const response = await axios.post(subgraphUrl, {
         query: accountQuery,
         variables: {
           id: accountId?.toLowerCase(),
@@ -165,6 +181,56 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
       return response.data.data.account?.accountTokenSnapshots;
     } catch (e) {
       logger.error(e);
+    }
+  }
+
+  async getFlowByTxHash(params: {
+    receiver: string;
+    sender: string;
+    flowRate: string;
+    transactionHash: string;
+  }): Promise<FlowUpdatedEvent | undefined> {
+    try {
+      const response = await axios.post(subgraphUrl, {
+        query: getFlowsQuery,
+        variables: {
+          where: params,
+          orderBy: 'timestamp',
+          orderDirection: 'asc',
+        },
+      });
+      const flowUpdates = response.data?.data
+        ?.flowUpdatedEvents as FlowUpdatedEvent[];
+      return flowUpdates?.[0];
+    } catch (e) {
+      logger.error('getFlowByReceiverSenderFlowRate error', e);
+      throw e;
+    }
+  }
+
+  async getFlowByReceiverSenderFlowRate(params: {
+    receiver: string;
+    sender: string;
+    flowRate: string;
+    timestamp_gt: number;
+  }): Promise<FlowUpdatedEvent | undefined> {
+    try {
+      logger.debug('getFlowByReceiverSenderFlowRate has been called', params);
+
+      const response = await axios.post(subgraphUrl, {
+        query: getFlowsQuery,
+        variables: {
+          where: params,
+          orderBy: 'timestamp',
+          orderDirection: 'asc',
+        },
+      });
+      const flowUpdates = response.data?.data
+        ?.flowUpdatedEvents as FlowUpdatedEvent[];
+      return flowUpdates?.[0];
+    } catch (e) {
+      logger.error('getFlowByReceiverSenderFlowRate error', e);
+      throw e;
     }
   }
 }

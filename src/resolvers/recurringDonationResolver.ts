@@ -33,7 +33,6 @@ import {
 import {
   createNewRecurringDonation,
   findRecurringDonationById,
-  findRecurringDonationByProjectIdAndUserIdAndCurrency,
   updateRecurringDonation,
 } from '../repositories/recurringDonationRepository';
 import { detectAddressChainType } from '../utils/networks';
@@ -45,6 +44,7 @@ import {
 import { sleep } from '../utils/utils';
 import SentryLogger from '../sentryLogger';
 import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
+import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
 
 @InputType()
 class RecurringDonationSortBy {
@@ -189,8 +189,7 @@ export class RecurringDonationResolver {
         ),
       );
     }
-
-    return createNewRecurringDonation({
+    const recurringDonation = await createNewRecurringDonation({
       donor,
       project,
       anchorContractAddress: currentAnchorProjectAddress,
@@ -201,11 +200,22 @@ export class RecurringDonationResolver {
       anonymous,
       isBatch,
     });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate,
+    });
+
+    return recurringDonation;
   }
 
   @Mutation(_returns => RecurringDonation, { nullable: true })
   async updateRecurringDonationParams(
     @Ctx() ctx: ApolloContext,
+    @Arg('recurringDonationId', () => Int) recurringDonationId: number,
     @Arg('projectId', () => Int) projectId: number,
     @Arg('networkId', () => Int) networkId: number,
     @Arg('currency', () => String) currency: string,
@@ -226,15 +236,17 @@ export class RecurringDonationResolver {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
     const recurringDonation =
-      await findRecurringDonationByProjectIdAndUserIdAndCurrency({
-        projectId: project.id,
-        userId: donor.id,
-        currency,
-      });
+      await findRecurringDonationById(recurringDonationId);
+
     if (!recurringDonation) {
       // TODO set proper error message
       throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
     }
+
+    if (recurringDonation.donor.id !== donor.id) {
+      throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
+    }
+
     const currentAnchorProjectAddress = await findActiveAnchorAddress({
       projectId,
       networkId,
@@ -248,7 +260,7 @@ export class RecurringDonationResolver {
       );
     }
 
-    return updateRecurringDonation({
+    const updatedRecurringDonation = await updateRecurringDonation({
       recurringDonation,
       txHash,
       flowRate,
@@ -256,6 +268,16 @@ export class RecurringDonationResolver {
       status,
       isArchived,
     });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate: updatedRecurringDonation.flowRate,
+    });
+
+    return updatedRecurringDonation;
   }
 
   @Query(_returns => PaginateRecurringDonations, { nullable: true })
