@@ -219,8 +219,6 @@ function matchDraftRecurringDonationsTests() {
       },
     });
 
-    console.log('recurringDonation**', JSON.stringify(recurringDonation, null, 2));
-    console.log('updatedDraftDonation**', JSON.stringify(updatedDraftDonation, null, 2));
     expect(recurringDonation).to.be.ok;
 
     expect(recurringDonation?.txHash).to.be.equal(txHash);
