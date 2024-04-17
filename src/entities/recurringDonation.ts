@@ -103,6 +103,10 @@ export class RecurringDonation extends BaseEntity {
   @Field({ nullable: true })
   anonymous: boolean;
 
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  origin: string;
+
   @Index()
   @Field(_type => AnchorContractAddress)
   @ManyToOne(_type => AnchorContractAddress, { eager: true })

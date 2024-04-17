@@ -1,4 +1,7 @@
-import { SuperFluidAdapterInterface } from './superFluidAdapterInterface';
+import {
+  FlowUpdatedEvent,
+  SuperFluidAdapterInterface,
+} from './superFluidAdapterInterface';
 
 export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
   async streamPeriods() {
@@ -74,5 +77,23 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
         },
       ],
     };
+  }
+
+  getFlowByReceiverSenderFlowRate(_params: {
+    receiver: string;
+    sender: string;
+    flowRate: string;
+    timestamp_gt: number;
+  }): Promise<FlowUpdatedEvent | undefined> {
+    return Promise.resolve(undefined);
+  }
+
+  getFlowByTxHash(_params: {
+    receiver: string;
+    sender: string;
+    flowRate: string;
+    transactionHash: string;
+  }): Promise<FlowUpdatedEvent | undefined> {
+    return Promise.resolve(undefined);
   }
 }
