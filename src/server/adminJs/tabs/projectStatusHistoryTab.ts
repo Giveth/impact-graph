@@ -8,6 +8,20 @@ export const projectStatusHistoryTab = {
   resource: ProjectStatusHistory,
   options: {
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectStatusHistoryAction(
+            { currentAdmin },
+            ResourceActions.LIST,
+          ),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectStatusHistoryAction(
+            { currentAdmin },
+            ResourceActions.SHOW,
+          ),
+      },
       delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>
