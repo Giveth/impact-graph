@@ -178,8 +178,7 @@ function matchDraftRecurringDonationsTests() {
     );
   });
 
-  // TODO I think superfluid subgraph has some problem because yesterday this test was working
-  it.skip('should create a recurring donation based on the draft donation OP Sepholia  #2 batch', async () => {
+  it('should create a recurring donation based on the draft donation OP Sepholia  #2 batch', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x1833603bc894448b54cf9c03483fa361508fa101abcfa6c3b6ef51425cab533f
     const user = await saveUserDirectlyToDb(
       '0xa1179f64638adb613ddaac32d918eb6beb824104',

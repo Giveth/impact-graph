@@ -78,8 +78,7 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     await AnchorContractAddress.delete({ id: anchorContractAddress.id });
   });
 
-  // TODO I think superfluid subgraph has some problem because yesterday this test was working
-  it.skip('should verify transaction from OP Sepolia #2 batchCall', async () => {
+  it('should verify transaction from OP Sepolia #2 batchCall', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x1833603bc894448b54cf9c03483fa361508fa101abcfa6c3b6ef51425cab533f
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
@@ -126,8 +125,7 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     await AnchorContractAddress.delete({ id: anchorContractAddress.id });
   });
 
-  // TODO I think superfluid subgraph has some problem because yesterday this test was working
-  it.skip('should verify transaction from OP Sepolia when updateFlow function of smart contract has been called', async () => {
+  it('should verify transaction from OP Sepolia when updateFlow function of smart contract has been called', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x74d98ba95c7969746afc38e46748aa64f239e816785be74b03372397cf844986
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
