@@ -44,6 +44,7 @@ import {
 import { sleep } from '../utils/utils';
 import SentryLogger from '../sentryLogger';
 import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
+import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
 
 @InputType()
 class RecurringDonationSortBy {
@@ -188,8 +189,7 @@ export class RecurringDonationResolver {
         ),
       );
     }
-
-    return createNewRecurringDonation({
+    const recurringDonation = await createNewRecurringDonation({
       donor,
       project,
       anchorContractAddress: currentAnchorProjectAddress,
@@ -200,10 +200,20 @@ export class RecurringDonationResolver {
       anonymous,
       isBatch,
     });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate,
+    });
+
+    return recurringDonation;
   }
 
   @Mutation(_returns => RecurringDonation, { nullable: true })
-  async updateRecurringDonationParams(
+  async updateRecurringDonationParamsById(
     @Ctx() ctx: ApolloContext,
     @Arg('recurringDonationId', () => Int) recurringDonationId: number,
     @Arg('projectId', () => Int) projectId: number,
@@ -258,6 +268,74 @@ export class RecurringDonationResolver {
       status,
       isArchived,
     });
+  }
+
+  @Mutation(_returns => RecurringDonation, { nullable: true })
+  async updateRecurringDonationParams(
+    @Ctx() ctx: ApolloContext,
+    @Arg('recurringDonationId', () => Int) recurringDonationId: number,
+    @Arg('projectId', () => Int) projectId: number,
+    @Arg('networkId', () => Int) networkId: number,
+    @Arg('currency', () => String) currency: string,
+    @Arg('txHash', () => String, { nullable: true }) txHash?: string,
+    @Arg('flowRate', () => String, { nullable: true }) flowRate?: string,
+    @Arg('anonymous', () => Boolean, { nullable: true }) anonymous?: boolean,
+    @Arg('isArchived', () => Boolean, { nullable: true }) isArchived?: boolean,
+    @Arg('status', () => String, { nullable: true }) status?: string,
+  ): Promise<RecurringDonation> {
+    const userId = ctx?.req?.user?.userId;
+    const donor = await findUserById(userId);
+
+    if (!donor) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+    }
+    const project = await findProjectById(projectId);
+    if (!project) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+    const recurringDonation =
+      await findRecurringDonationById(recurringDonationId);
+
+    if (!recurringDonation) {
+      // TODO set proper error message
+      throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
+    }
+
+    if (recurringDonation.donor.id !== donor.id) {
+      throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
+    }
+
+    const currentAnchorProjectAddress = await findActiveAnchorAddress({
+      projectId,
+      networkId,
+    });
+
+    if (!currentAnchorProjectAddress) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
+        ),
+      );
+    }
+
+    const updatedRecurringDonation = await updateRecurringDonation({
+      recurringDonation,
+      txHash,
+      flowRate,
+      anonymous,
+      status,
+      isArchived,
+    });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate: updatedRecurringDonation.flowRate,
+    });
+
+    return updatedRecurringDonation;
   }
 
   @Query(_returns => PaginateRecurringDonations, { nullable: true })

@@ -153,7 +153,7 @@ export const qfRoundHistoryTab = {
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundHistoryAction(
             { currentAdmin },
-            ResourceActions.UPDATE_QF_ROUND_HISTORIES,
+            ResourceActions.RELATE_DONATIONS_WITH_DISTRIBUTED_FUNDS,
           ),
         handler: CreateRelatedDonationsForQfRoundHistoryRecords,
         component: false,
