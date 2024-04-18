@@ -7,6 +7,7 @@ import {
   createProjectData,
   generateRandomEvmTxHash,
   generateRandomEtheriumAddress,
+  saveRecurringDonationDirectlyToDb,
 } from '../../test/testUtils';
 import {
   createDraftDonationMutation,
@@ -232,7 +233,15 @@ function createDraftRecurringDonationTestCases() {
       donorId: user.id,
     });
   });
-  it('return error when send isForUpdate:true but dont pass recurringDonationId', async () => {
+  it('create simple draft donation when isForUpdate:true but recurringDonation doesnt exist', async () => {
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: user.id,
+        projectId: project.id,
+        networkId: NETWORK_IDS.XDAI,
+        currency: 'GIV',
+      },
+    });
     const saveDonationResponse = await axios.post(
       graphqlUrl,
       {
@@ -248,32 +257,24 @@ function createDraftRecurringDonationTestCases() {
         },
       },
     );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      '"recurringDonationId" is required',
-    );
-  });
-  it('return error when send isForUpdate:false but pass recurringDonationId', async () => {
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: createDraftRecurringDonationMutation,
-        variables: {
-          ...donationData,
-          isForUpdate: false,
-          recurringDonationId: 1,
-        },
+    assert.isOk(saveDonationResponse.data.data.createDraftRecurringDonation);
+    const draftRecurringDonation = await DraftRecurringDonation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDraftRecurringDonation,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      '"recurringDonationId" is not allowed',
-    );
+    });
+
+    expect(draftRecurringDonation).deep.contain({
+      networkId: donationData.networkId,
+      chainType: ChainType.EVM,
+      status: DRAFT_RECURRING_DONATION_STATUS.PENDING,
+      currency: 'GIV',
+      anonymous: false,
+      isBatch: false,
+      flowRate: donationData.flowRate,
+      projectId: project.id,
+      donorId: user.id,
+    });
   });
 
   it.skip('should return the same draft recurring donation id if the same donation is created twice', async () => {

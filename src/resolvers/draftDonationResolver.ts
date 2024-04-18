@@ -20,7 +20,11 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 import { DraftRecurringDonation } from '../entities/draftRecurringDonation';
-import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
+import {
+  findRecurringDonationById,
+  findRecurringDonationByProjectIdAndUserIdAndCurrency,
+} from '../repositories/recurringDonationRepository';
+import { RecurringDonation } from '../entities/recurringDonation';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 const draftRecurringDonationEnabled =
@@ -29,6 +33,7 @@ const draftRecurringDonationEnabled =
 @Resolver(_of => User)
 export class DraftDonationResolver {
   private readonly donationRepository: Repository<DraftDonation>;
+
   constructor() {
     this.donationRepository =
       AppDataSource.getDataSource().getRepository(DraftDonation);
@@ -227,10 +232,22 @@ export class DraftDonationResolver {
         );
         throw e; // Rethrow the original error
       }
-
-      if (recurringDonationId) {
-        const recurringDonation =
+      let recurringDonation: RecurringDonation | null;
+      if (recurringDonationId && isForUpdate) {
+        recurringDonation =
           await findRecurringDonationById(recurringDonationId);
+        if (!recurringDonation || recurringDonation.donorId !== donorUser.id) {
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.RECURRING_DONATION_NOT_FOUND),
+          );
+        }
+      } else if (isForUpdate) {
+        recurringDonation =
+          await findRecurringDonationByProjectIdAndUserIdAndCurrency({
+            projectId,
+            userId: donorUser.id,
+            currency,
+          });
         if (!recurringDonation || recurringDonation.donorId !== donorUser.id) {
           throw new Error(
             i18n.__(translationErrorMessagesKeys.RECURRING_DONATION_NOT_FOUND),
