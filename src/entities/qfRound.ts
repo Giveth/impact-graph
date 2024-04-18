@@ -22,6 +22,14 @@ export class QfRound extends BaseEntity {
   @Column('text', { nullable: true })
   name: string;
 
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  title: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  description: string;
+
   @Field()
   @Index({ unique: true })
   @Column('text')
