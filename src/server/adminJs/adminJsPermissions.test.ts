@@ -19,6 +19,8 @@ import {
   canAccessBroadcastNotificationAction,
   canAccessProjectStatusReasonAction,
   canAccessCampaignAction,
+  canAccessSybilAction,
+  canAccessProjectFraudAction,
 } from './adminJsPermissions';
 import { UserRole } from '../../entities/user';
 
@@ -27,6 +29,7 @@ const roles = Object.freeze([
   UserRole.CAMPAIGN_MANAGER,
   UserRole.VERIFICATION_FORM_REVIEWER,
   UserRole.OPERATOR,
+  UserRole.QF_MANAGER,
 ]);
 
 const actions = Object.values(ResourceActions);
@@ -46,6 +49,7 @@ const actionsPerRole = Object.freeze({
       'delete',
       'bulkDelete',
       'updateQfRoundHistories',
+      'relateDonationsWithDistributedFunds',
     ],
     projectStatusReason: ['list', 'show', 'new', 'edit'],
     projectAddress: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
@@ -63,6 +67,8 @@ const actionsPerRole = Object.freeze({
       'activateProject',
       'deactivateProject',
       'cancelProject',
+      'addToQfRound',
+      'removeFromQfRound',
     ],
     projectUpdate: ['list', 'show', 'addFeaturedProjectUpdate'],
     thirdPartyProjectImport: [
@@ -89,6 +95,9 @@ const actionsPerRole = Object.freeze({
     mainCategory: ['list', 'show', 'new', 'edit'],
     category: ['list', 'show', 'new', 'edit'],
     broadcastNotification: ['list', 'show', 'new'],
+    sybil: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
+    projectFraud: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
+    // recurringDonation: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
   },
   campaignManager: {
     users: ['list', 'show'],
@@ -105,10 +114,13 @@ const actionsPerRole = Object.freeze({
     thirdPartyProjectImport: ['list', 'show'],
     featuredUpdate: ['list', 'show'],
     donation: ['list', 'show'],
-    projectVerificationForm: ['list', 'show', 'verifyProject'],
+    projectVerificationForm: ['list', 'show'],
     mainCategory: ['list', 'show'],
     category: ['list', 'show'],
     broadcastNotification: ['list', 'show'],
+    sybil: ['list', 'show'],
+    projectFraud: ['list', 'show'],
+    // recurringDonation: ['list', 'show'],
   },
   reviewer: {
     users: ['list', 'show'],
@@ -151,6 +163,9 @@ const actionsPerRole = Object.freeze({
     mainCategory: ['list', 'show'],
     category: ['list', 'show'],
     broadcastNotification: ['list', 'show'],
+    sybil: ['list', 'show'],
+    projectFraud: ['list', 'show'],
+    // recurringDonation: ['list', 'show'],
   },
   operator: {
     users: ['list', 'show'],
@@ -183,78 +198,73 @@ const actionsPerRole = Object.freeze({
     mainCategory: ['list', 'show'],
     category: ['list', 'show'],
     broadcastNotification: ['list', 'show'],
+    sybil: ['list', 'show'],
+    projectFraud: ['list', 'show'],
+    // recurringDonation: ['list', 'show'],
   },
   qfManager: {
     qfRound: ['list', 'show', 'edit', 'new', 'returnAllDonationData'],
-    qfRoundHistory: [
+    qfRoundHistory: ['list', 'show', 'updateQfRoundHistories'],
+    project: [
       'list',
       'show',
-      'edit',
-      'delete',
-      'bulkDelete',
-      'updateQfRoundHistories',
+      'listProject',
+      'addToQfRound',
+      'removeFromQfRound',
     ],
-    project: ['list', 'show', 'addToQfRound', 'removeFromQfRound'],
+    sybil: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
+    projectFraud: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
   },
 });
 
-const callFunction = (
+const canAccessAction = (
   role: UserRole,
   page: string,
   action: ResourceActions,
 ): boolean => {
+  const args = { currentAdmin: { role } };
+
   switch (page) {
     case 'users':
-      return canAccessUserAction({ currentAdmin: { role } }, action);
+      return canAccessUserAction(args, action);
     case 'organization':
-      return canAccessOrganizationAction({ currentAdmin: { role } }, action);
+      return canAccessOrganizationAction(args, action);
     case 'projectStatusHistory':
-      return canAccessProjectStatusHistoryAction(
-        { currentAdmin: { role } },
-        action,
-      );
+      return canAccessProjectStatusHistoryAction(args, action);
     case 'campaign':
-      return canAccessCampaignAction({ currentAdmin: { role } }, action);
+      return canAccessCampaignAction(args, action);
     case 'qfRound':
-      return canAccessQfRoundAction({ currentAdmin: { role } }, action);
+      return canAccessQfRoundAction(args, action);
     case 'qfRoundHistory':
-      return canAccessQfRoundHistoryAction({ currentAdmin: { role } }, action);
+      return canAccessQfRoundHistoryAction(args, action);
     case 'projectStatusReason':
-      return canAccessProjectStatusReasonAction(
-        { currentAdmin: { role } },
-        action,
-      );
+      return canAccessProjectStatusReasonAction(args, action);
     case 'projectAddress':
-      return canAccessProjectAddressAction({ currentAdmin: { role } }, action);
+      return canAccessProjectAddressAction(args, action);
     case 'projectStatus':
-      return canAccessProjectStatusAction({ currentAdmin: { role } }, action);
+      return canAccessProjectStatusAction(args, action);
     case 'project':
-      return canAccessProjectAction({ currentAdmin: { role } }, action);
+      return canAccessProjectAction(args, action);
     case 'projectUpdate':
-      return canAccessProjectUpdateAction({ currentAdmin: { role } }, action);
+      return canAccessProjectUpdateAction(args, action);
     case 'thirdPartyProjectImport':
-      return canAccessThirdPartyProjectImportAction(
-        { currentAdmin: { role } },
-        action,
-      );
+      return canAccessThirdPartyProjectImportAction(args, action);
     case 'featuredUpdate':
-      return canAccessFeaturedUpdateAction({ currentAdmin: { role } }, action);
+      return canAccessFeaturedUpdateAction(args, action);
     case 'donation':
-      return canAccessDonationAction({ currentAdmin: { role } }, action);
+      return canAccessDonationAction(args, action);
     case 'projectVerificationForm':
-      return canAccessProjectVerificationFormAction(
-        { currentAdmin: { role } },
-        action,
-      );
+      return canAccessProjectVerificationFormAction(args, action);
     case 'mainCategory':
-      return canAccessMainCategoryAction({ currentAdmin: { role } }, action);
+      return canAccessMainCategoryAction(args, action);
     case 'category':
-      return canAccessCategoryAction({ currentAdmin: { role } }, action);
+      return canAccessCategoryAction(args, action);
     case 'broadcastNotification':
-      return canAccessBroadcastNotificationAction(
-        { currentAdmin: { role } },
-        action,
-      );
+      return canAccessBroadcastNotificationAction(args, action);
+    case 'sybil':
+      return canAccessSybilAction(args, action);
+    case 'projectFraud':
+      return canAccessProjectFraudAction(args, action);
     default:
       return false;
   }
@@ -266,7 +276,7 @@ describe('canAccessUserAction test cases', () => {
       actions.forEach(action => {
         it(`should return ${actionsPerRole[role][page].includes(action)} for ${role} --> ${action} on ${page}`, function () {
           assert.strictEqual(
-            callFunction(role, page, action),
+            canAccessAction(role, page, action),
             actionsPerRole[role][page].includes(action),
           );
         });

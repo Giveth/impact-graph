@@ -1,9 +1,6 @@
 import csv from 'csvtojson';
 import { Sybil } from '../../../entities/sybil';
-import {
-  canAccessProjectStatusReasonAction,
-  ResourceActions,
-} from '../adminJsPermissions';
+import { canAccessSybilAction, ResourceActions } from '../adminJsPermissions';
 import { AdminJsRequestInterface } from '../adminJs-types';
 import { logger } from '../../../utils/logger';
 import { messages } from '../../../utils/messages';
@@ -150,31 +147,19 @@ export const SybilTab = {
         handler: createSybil,
 
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.NEW,
-          ),
+          canAccessSybilAction({ currentAdmin }, ResourceActions.NEW),
       },
       edit: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.EDIT,
-          ),
+          canAccessSybilAction({ currentAdmin }, ResourceActions.EDIT),
       },
       delete: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.EDIT,
-          ),
+          canAccessSybilAction({ currentAdmin }, ResourceActions.DELETE),
       },
       bulkDelete: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.EDIT,
-          ),
+          canAccessSybilAction({ currentAdmin }, ResourceActions.BULK_DELETE),
       },
     },
   },

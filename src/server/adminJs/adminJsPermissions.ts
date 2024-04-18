@@ -25,6 +25,7 @@ export enum ResourceActions {
   REMOVE_PROJECT_FROM_QF_ROUND = 'removeFromQfRound',
   UPDATE_QF_ROUND_HISTORIES = 'updateQfRoundHistories',
   RETURN_ALL_DONATIONS_DATA = 'returnAllDonationData',
+  RELATE_DONATIONS_WITH_DISTRIBUTED_FUNDS = 'relateDonationsWithDistributedFunds',
 }
 
 // All permissions listed per resource, per role and action
@@ -153,6 +154,7 @@ const qfRoundHistoryPermissions = {
     show: true,
     edit: true,
     updateQfRoundHistories: true,
+    relateDonationsWithDistributedFunds: true,
   },
   [UserRole.OPERATOR]: {
     list: true,
@@ -193,7 +195,6 @@ const projectStatusReasonPermissions = {
     list: true,
     show: true,
   },
-
   // Add more roles here as needed
 };
 
@@ -256,6 +257,8 @@ const projectPermissions = {
     activateProject: true,
     deactivateProject: true,
     cancelProject: true,
+    addToQfRound: true,
+    removeFromQfRound: true,
   },
   [UserRole.OPERATOR]: {
     list: true,
@@ -423,7 +426,6 @@ const projectVerificationFormPermissions = {
   [UserRole.CAMPAIGN_MANAGER]: {
     list: true,
     show: true,
-    verifyProject: true,
   },
   // Add more roles here as needed
 };
@@ -477,6 +479,95 @@ const broadcastNotificationPermissions = {
     list: true,
     new: true,
     show: true,
+  },
+  [UserRole.OPERATOR]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
+    show: true,
+  },
+  // Add more roles here as needed
+};
+
+const projectFraudPermissions = {
+  [UserRole.ADMIN]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+    bulkDelete: true,
+  },
+  [UserRole.OPERATOR]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.QF_MANAGER]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+    bulkDelete: true,
+  },
+  // Add more roles here as needed
+};
+
+const sybilPermissions = {
+  [UserRole.ADMIN]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+    bulkDelete: true,
+  },
+  [UserRole.OPERATOR]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.QF_MANAGER]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+    bulkDelete: true,
+  },
+  // Add more roles here as needed
+};
+
+// will be modified later on
+const recurringDonationPermissions = {
+  [UserRole.ADMIN]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+    bulkDelete: true,
   },
   [UserRole.OPERATOR]: {
     list: true,
@@ -695,5 +786,35 @@ export const canAccessCampaignAction = ({ currentAdmin }, action: string) => {
     currentAdmin,
     action,
     resourcePermissions: campaignPermissions,
+  });
+};
+
+export const canAccessProjectFraudAction = (
+  { currentAdmin },
+  action: string,
+) => {
+  return hasAccessToResource({
+    currentAdmin,
+    action,
+    resourcePermissions: projectFraudPermissions,
+  });
+};
+
+export const canAccessSybilAction = ({ currentAdmin }, action: string) => {
+  return hasAccessToResource({
+    currentAdmin,
+    action,
+    resourcePermissions: sybilPermissions,
+  });
+};
+
+export const canAccessRecurringDonationAction = (
+  { currentAdmin },
+  action: string,
+) => {
+  return hasAccessToResource({
+    currentAdmin,
+    action,
+    resourcePermissions: recurringDonationPermissions,
   });
 };

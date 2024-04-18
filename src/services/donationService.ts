@@ -383,7 +383,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       totalDonated: donationStats?.totalDonated,
       donationsCount: donationStats?.donationsCount,
       lastDonationDate: donationStats?.lastDonationDate,
-      GIVbacksRound: donation.powerRound,
+      GIVbacksRound: donation.powerRound + 1, // powerRound is 1 behind givbacks round
       QFDonor: donation.qfRound?.name,
       donationChain: NETWORKS_IDS_TO_NAME[donation.transactionNetworkId],
     });

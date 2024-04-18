@@ -1,6 +1,6 @@
 import csv from 'csvtojson';
 import {
-  canAccessProjectStatusReasonAction,
+  canAccessProjectFraudAction,
   ResourceActions,
 } from '../adminJsPermissions';
 import { AdminJsRequestInterface } from '../adminJs-types';
@@ -126,31 +126,19 @@ export const ProjectFraudTab = {
         handler: createProjectFraud,
 
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.NEW,
-          ),
+          canAccessProjectFraudAction({ currentAdmin }, ResourceActions.NEW),
       },
       edit: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.EDIT,
-          ),
+          canAccessProjectFraudAction({ currentAdmin }, ResourceActions.EDIT),
       },
       delete: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.EDIT,
-          ),
+          canAccessProjectFraudAction({ currentAdmin }, ResourceActions.DELETE),
       },
       bulkDelete: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.EDIT,
-          ),
+          canAccessProjectFraudAction({ currentAdmin }, ResourceActions.EDIT),
       },
     },
   },
