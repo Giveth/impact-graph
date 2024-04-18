@@ -5,7 +5,7 @@ export class AddStreamBalanceWarningToUser1712146623379
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "user" ADD "streamBalanceWarning" text DEFAULT NULL`,
+      `ALTER TABLE "user" ADD "streamBalanceWarning" jsonb DEFAULT NULL`,
     );
   }
 

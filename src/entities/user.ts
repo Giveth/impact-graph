@@ -97,9 +97,11 @@ export class User extends BaseEntity {
   @Column({ nullable: true, unique: true })
   walletAddress?: string;
 
-  @Field(_type => String, { nullable: true })
-  @Column('text', { nullable: true })
-  streamBalanceWarning?: UserStreamBalanceWarning | null;
+  @Column({
+    type: 'json',
+    nullable: true,
+  })
+  streamBalanceWarning?: Record<string, UserStreamBalanceWarning | null>;
 
   @Column({ nullable: true })
   password?: string;
