@@ -33,6 +33,7 @@ import {
 import {
   createNewRecurringDonation,
   findRecurringDonationById,
+  findRecurringDonationByProjectIdAndUserIdAndCurrency,
   updateRecurringDonation,
 } from '../repositories/recurringDonationRepository';
 import { detectAddressChainType } from '../utils/networks';
@@ -273,7 +274,6 @@ export class RecurringDonationResolver {
   @Mutation(_returns => RecurringDonation, { nullable: true })
   async updateRecurringDonationParams(
     @Ctx() ctx: ApolloContext,
-    @Arg('recurringDonationId', () => Int) recurringDonationId: number,
     @Arg('projectId', () => Int) projectId: number,
     @Arg('networkId', () => Int) networkId: number,
     @Arg('currency', () => String) currency: string,
@@ -294,7 +294,11 @@ export class RecurringDonationResolver {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
     const recurringDonation =
-      await findRecurringDonationById(recurringDonationId);
+      await findRecurringDonationByProjectIdAndUserIdAndCurrency({
+        projectId,
+        userId: donor.id,
+        currency,
+      });
 
     if (!recurringDonation) {
       // TODO set proper error message

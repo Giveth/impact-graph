@@ -157,6 +157,7 @@ export const findRecurringDonationByProjectIdAndUserIdAndCurrency =
         currency: params.currency,
       })
       .leftJoinAndSelect('recurringDonation.project', 'project')
+      .leftJoinAndSelect('recurringDonation.donor', 'donor')
       .getOne();
   };
 

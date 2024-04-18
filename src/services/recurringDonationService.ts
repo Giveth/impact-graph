@@ -114,7 +114,7 @@ export const createRelatedDonationsToStream = async (
     try {
       const environment = config.get('ENVIRONMENT') as string;
 
-      const networkId =
+      const networkId: number =
         environment !== 'production'
           ? NETWORK_IDS.OPTIMISM_SEPOLIA
           : NETWORK_IDS.OPTIMISTIC;

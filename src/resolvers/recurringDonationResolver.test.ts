@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { assert } from 'chai';
 import axios from 'axios';
 import { NETWORK_IDS } from '../provider';
@@ -19,14 +20,16 @@ import {
   updateRecurringDonationQueryById,
   updateRecurringDonationStatusMutation,
 } from '../../test/graphqlQueries';
-import { errorMessages } from '../utils/errorMessages';
-import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
-
 describe(
   'createRecurringDonation test cases',
   createRecurringDonationTestCases,
 );
+import { errorMessages } from '../utils/errorMessages';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
+import { QfRound } from '../entities/qfRound';
+import { generateRandomString } from '../utils/utils';
+
 describe(
   'updateRecurringDonation test cases',
   updateRecurringDonationTestCases,
@@ -638,6 +641,86 @@ function updateRecurringDonationTestCases() {
     );
     assert.isTrue(result.data.data.updateRecurringDonationParams.anonymous);
   });
+  it('should update recurring donation successfully for project that is related to a QF', async () => {
+    const currency = 'GIV';
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency,
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    await QfRound.update({}, { isActive: false });
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      slug: generateRandomString(10),
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await addNewAnchorAddress({
+      project,
+      owner: project.adminUser,
+      creator: donor,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency,
+      },
+    });
+
+    assert.equal(donation.flowRate, '300');
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const flowRate = '201';
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          flowRate,
+          currency,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          txHash: generateRandomEvmTxHash(),
+          anonymous: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.flowRate,
+      flowRate,
+    );
+    assert.isTrue(result.data.data.updateRecurringDonationParams.anonymous);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
   it('should change status and isFinished when updating flowRate and txHash ', async () => {
     const currency = 'GIV';
     const transactionInfo = {
@@ -685,7 +768,6 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
-          recurringDonationId: donation.id,
           projectId: project.id,
           flowRate,
           currency,
@@ -762,7 +844,6 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
-          recurringDonationId: donation.id,
           projectId: project.id,
           currency,
           networkId: NETWORK_IDS.OPTIMISTIC,
@@ -833,7 +914,6 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
-          recurringDonationId: donation.id,
           projectId: project.id,
           flowRate,
           currency,
@@ -879,7 +959,7 @@ function updateRecurringDonationTestCases() {
         projectId: project.id,
       },
     });
-    const recurringDonation = await saveRecurringDonationDirectlyToDb({
+    await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
       },
@@ -894,7 +974,6 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
-          recurringDonationId: recurringDonation.id,
           projectId: project.id,
           flowRate: '10',
           networkId: NETWORK_IDS.OPTIMISTIC,
@@ -937,7 +1016,6 @@ function updateRecurringDonationTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: updateRecurringDonationQuery,
       variables: {
-        recurringDonationId: 1,
         projectId: project.id,
         networkId: NETWORK_IDS.OPTIMISTIC,
         txHash: generateRandomEvmTxHash(),
@@ -962,7 +1040,6 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
-          recurringDonationId: 1,
           projectId: 99999,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),

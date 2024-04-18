@@ -122,7 +122,6 @@ async function submitMatchedDraftRecurringDonation(
           {
             req: { user: { userId: draftRecurringDonation.donorId }, auth: {} },
           } as ApolloContext,
-          matchedRecurringDonationId!,
           projectId,
           networkId,
           currency,
