@@ -1674,7 +1674,6 @@ function updateRecurringDonationByIdTestCases() {
     );
   });
 }
-
 function recurringDonationsByProjectIdTestCases() {
   it('should sort by the createdAt DESC', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -2824,41 +2823,50 @@ function updateRecurringDonationStatusTestCases() {
 }
 
 function getRecurringDonationStatsTestCases() {
-  it('should return the correct stats for the given date range', async () => {
+  const lastYear = new Date().getFullYear() - 1;
+  const beginDate = `${lastYear}-01-01`;
+  const endDate = `${lastYear}-03-01`;
+
+  it(`should return the correct stats for a given date range (${beginDate} to ${endDate})`, async () => {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         totalUsdStreamed: 400,
+        createdAt: new Date(`${lastYear}-01-02`),
       },
     });
+
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         totalUsdStreamed: 100,
+        createdAt: new Date(`${lastYear}-01-24`),
       },
     });
 
+    // we are querying from January 1st of last year to the 1st of March of last year
     const result = await axios.post(graphqlUrl, {
       query: fetchRecurringDonationStatsQuery,
       variables: {
-        beginDate: new Date().toISOString().slice(0, 8) + '01',
-        endDate: new Date().toISOString().slice(0, 8) + '30',
+        beginDate,
+        endDate,
       },
     });
 
     const stats = result.data.data.getRecurringDonationStats;
-    assert.equal(stats.activeRecurringDonationsCount, 7);
+    assert.equal(stats.activeRecurringDonationsCount, 0);
     assert.equal(stats.totalStreamedUsdValue, 500);
   });
 
-  it('should return the correct stats for the given date range and currency', async () => {
+  it(`should return the correct stats for a given date range (${beginDate} -> ${endDate}) and currency`, async () => {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         totalUsdStreamed: 400,
         currency: 'DAI',
+        createdAt: new Date(`${lastYear}-01-01`),
       },
     });
     await saveRecurringDonationDirectlyToDb({
@@ -2866,90 +2874,81 @@ function getRecurringDonationStatsTestCases() {
         donorId: donor.id,
         totalUsdStreamed: 100,
         currency: 'USDT',
+        createdAt: new Date(`${lastYear}-02-01`),
       },
     });
 
     const result = await axios.post(graphqlUrl, {
       query: fetchRecurringDonationStatsQuery,
       variables: {
-        beginDate: new Date().toISOString().slice(0, 8) + '01',
-        endDate: new Date().toISOString().slice(0, 8) + '30',
+        beginDate,
+        endDate,
         currency: 'USDT',
       },
     });
 
     const stats = result.data.data.getRecurringDonationStats;
-    assert.equal(stats.activeRecurringDonationsCount, 4);
+    assert.equal(stats.activeRecurringDonationsCount, 0);
     assert.equal(stats.totalStreamedUsdValue, 600);
   });
 
-  it('should return the correct stats for the given date range and status', async () => {
-    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+  it(`should return the correct stats for a given date range (${beginDate} -> ${endDate}) with correct active count`, async () => {
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
     await saveRecurringDonationDirectlyToDb({
       donationData: {
-        donorId: donor.id,
-        totalUsdStreamed: 400,
-        status: RECURRING_DONATION_STATUS.ACTIVE,
-      },
-    });
-    await saveRecurringDonationDirectlyToDb({
-      donationData: {
-        donorId: donor.id,
-        totalUsdStreamed: 100,
-        status: RECURRING_DONATION_STATUS.PENDING,
-      },
-    });
-
-    const result = await axios.post(graphqlUrl, {
-      query: fetchRecurringDonationStatsQuery,
-      variables: {
-        beginDate: new Date().toISOString().slice(0, 8) + '01',
-        endDate: new Date().toISOString().slice(0, 8) + '30',
-        status: RECURRING_DONATION_STATUS.ACTIVE,
-      },
-    });
-
-    const stats = result.data.data.getRecurringDonationStats;
-    assert.equal(stats.activeRecurringDonationsCount, 8);
-    assert.equal(stats.totalStreamedUsdValue, 1500);
-  });
-
-  it('should return the correct stats for the given date range and status and currency', async () => {
-    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    await saveRecurringDonationDirectlyToDb({
-      donationData: {
-        donorId: donor.id,
+        donorId: donor1.id,
         totalUsdStreamed: 400,
         status: RECURRING_DONATION_STATUS.ACTIVE,
         currency: 'DAI',
+        createdAt: new Date(`${lastYear}-01-01`),
       },
     });
     await saveRecurringDonationDirectlyToDb({
       donationData: {
-        donorId: donor.id,
+        donorId: donor2.id,
         totalUsdStreamed: 100,
-        status: RECURRING_DONATION_STATUS.PENDING,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        currency: 'DAI',
+        createdAt: new Date(`${lastYear}-02-01`),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor1.id,
+        totalUsdStreamed: 200,
+        currency: 'DAI',
+        createdAt: new Date(`${lastYear}-02-01`),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor2.id,
+        totalUsdStreamed: 100,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
         currency: 'USDT',
+        createdAt: new Date(`${lastYear}-02-01`),
       },
     });
 
     const result = await axios.post(graphqlUrl, {
       query: fetchRecurringDonationStatsQuery,
       variables: {
-        beginDate: new Date().toISOString().slice(0, 8) + '01',
-        endDate: new Date().toISOString().slice(0, 8) + '30',
+        beginDate,
+        endDate,
         status: RECURRING_DONATION_STATUS.ACTIVE,
         currency: 'DAI',
       },
     });
 
     const stats = result.data.data.getRecurringDonationStats;
-    assert.equal(stats.activeRecurringDonationsCount, 1);
-    assert.equal(stats.totalStreamedUsdValue, 800);
+    assert.equal(stats.activeRecurringDonationsCount, 2);
+    assert.equal(stats.totalStreamedUsdValue, 1100);
   });
 
-  it('should return the correct stats for the given date range of the current month', async () => {
-    const currentDate = new Date().getTime();
+  it('should return the correct stats for the given date range where beginDate', async () => {
+    const lastYear15thOfJanuary = new Date(`${lastYear}-01-15T09:00:00`);
 
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     await saveRecurringDonationDirectlyToDb({
@@ -2957,28 +2956,43 @@ function getRecurringDonationStatsTestCases() {
         donorId: donor.id,
         totalUsdStreamed: 400,
         status: RECURRING_DONATION_STATUS.ACTIVE,
-        createdAt: new Date(currentDate - 1000 * 60 * 60 * 24 * 35),
+        createdAt: lastYear15thOfJanuary,
       },
     });
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         totalUsdStreamed: 100,
-        createdAt: new Date(currentDate - 1000 * 60 * 60 * 24 * 10),
+        createdAt: lastYear15thOfJanuary,
       },
     });
 
     const result = await axios.post(graphqlUrl, {
       query: fetchRecurringDonationStatsQuery,
       variables: {
-        beginDate: new Date().toISOString().slice(0, 8) + '01',
-        endDate: new Date().toISOString().slice(0, 8) + '30',
+        beginDate: `${lastYear}-01-15T09:00:00`,
+        endDate: `${lastYear}-01-15T09:00:00`,
       },
     });
 
     const stats = result.data.data.getRecurringDonationStats;
-    assert.equal(stats.activeRecurringDonationsCount, 9);
-    assert.equal(stats.totalStreamedUsdValue, 2100);
+
+    assert.equal(stats.activeRecurringDonationsCount, 1);
+    assert.equal(stats.totalStreamedUsdValue, 500);
+  });
+
+  it(`should return empty stats for the given date range where beginDate is same as endDate`, async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchRecurringDonationStatsQuery,
+      variables: {
+        beginDate: `${lastYear}-04-01`,
+        endDate: `${lastYear}-05-01`,
+      },
+    });
+
+    const stats = result.data.data.getRecurringDonationStats;
+    assert.equal(stats.activeRecurringDonationsCount, 0);
+    assert.equal(stats.totalStreamedUsdValue, 0);
   });
 
   it('should return an error for the given an empty date range', async () => {
