@@ -16,7 +16,6 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_VERIFIED_USERS_WHO_SUPPORT = 'Project verified - Users who supported',
 
   // https://github.com/Giveth/impact-graph/issues/624#issuecomment-1240364389
-  PROJECT_REJECTED = 'Project unverified',
   PROJECT_NOT_REVIEWED = 'Project not reviewed',
   PROJECT_UNVERIFIED = 'Project unverified',
   VERIFICATION_FORM_REJECTED = 'Form rejected',
@@ -44,4 +43,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_HAS_RISEN_IN_THE_RANK = 'Your Project has risen in the rank',
   PROJECT_HAS_A_NEW_RANK = 'Your project has a new rank',
   YOUR_PROJECT_GOT_A_RANK = 'Your project got a rank',
+  SUPER_TOKENS_BALANCE_WEEK = 'One week left in stream balance',
+  SUPER_TOKENS_BALANCE_MONTH = 'One month left in stream balance',
+  SUPER_TOKENS_BALANCE_DEPLETED = 'Stream balance depleted',
 }

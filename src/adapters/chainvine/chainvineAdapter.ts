@@ -1,11 +1,10 @@
+import { ChainvineClient } from '@chainvine/sdk/lib';
+import { Response } from 'express';
 import {
   ChainvineAdapterInterface,
   LinkDonorToChainvineReferrerType,
   NotifyChainVineInputType,
 } from './chainvineAdapterInterface';
-
-import { ChainvineClient } from '@chainvine/sdk/lib';
-import { Response } from 'express';
 import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 
@@ -76,9 +75,8 @@ export class ChainvineAdapter implements ChainvineAdapterInterface {
     walletAddress: string,
   ): Promise<string | void | null> {
     try {
-      const chainvineResult = await this.ChainvineSDK.getReferralUrl(
-        walletAddress,
-      );
+      const chainvineResult =
+        await this.ChainvineSDK.getReferralUrl(walletAddress);
       // https://app.chainvine.xyz/giveth?referrer_id=xxxxxxxxxxxxxxxxxxxxxxxxx
       const referralUrl = new URL(chainvineResult?.url);
       const referredId = referralUrl.searchParams.get('referrer_id');

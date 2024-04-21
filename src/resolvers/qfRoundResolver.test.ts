@@ -1,4 +1,6 @@
 import { assert, expect } from 'chai';
+import moment from 'moment';
+import axios from 'axios';
 import {
   createDonationData,
   createProjectData,
@@ -10,17 +12,11 @@ import {
 } from '../../test/testUtils';
 import { Project } from '../entities/project';
 import { QfRound } from '../entities/qfRound';
-import moment from 'moment';
 import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
-import { getProjectDonationsSqrtRootSum } from '../repositories/qfRoundRepository';
-import axios from 'axios';
-import {
-  fetchProjectBySlugQuery,
-  qfRoundStatsQuery,
-} from '../../test/graphqlQueries';
+import { qfRoundStatsQuery } from '../../test/graphqlQueries';
 import { generateRandomString } from '../utils/utils';
 
 describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);

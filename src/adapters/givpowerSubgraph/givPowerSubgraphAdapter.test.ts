@@ -1,5 +1,5 @@
-import { formatGivPowerBalance } from './givPowerSubgraphAdapter';
 import { assert } from 'chai';
+import { formatGivPowerBalance } from './givPowerSubgraphAdapter';
 import { generateRandomEtheriumAddress } from '../../../test/testUtils';
 import { givPowerSubgraphAdapter } from '../adaptersFactory';
 

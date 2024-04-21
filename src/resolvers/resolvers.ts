@@ -1,7 +1,5 @@
 import { UserResolver } from './userResolver';
 import { ProjectResolver } from './projectResolver';
-import { LoginResolver } from '../user/LoginResolver';
-import { RegisterResolver } from '../user/register/RegisterResolver';
 import { MeResolver } from '../user/MeResolver';
 import { UploadResolver } from './uploadResolver';
 import { CategoryResolver } from './categoryResolver';
@@ -23,6 +21,7 @@ import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
 import { RecurringDonationResolver } from './recurringDonationResolver';
 import { DraftDonationResolver } from './draftDonationResolver';
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const getResolvers = (): Function[] => {
   return [
     UserResolver,
@@ -30,8 +29,6 @@ export const getResolvers = (): Function[] => {
     ChainvineResolver,
     StatusReasonResolver,
 
-    LoginResolver,
-    RegisterResolver,
     MeResolver,
     UploadResolver,
     CategoryResolver,

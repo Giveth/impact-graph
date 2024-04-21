@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import { handleExpressError } from './standardError';
 import { logger } from '../utils/logger';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
 import {
@@ -7,7 +6,6 @@ import {
   oauth2CallbackHandler,
 } from '../services/socialProfileService';
 import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository';
-import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 
 export const oauth2CallbacksRouter = express.Router();
 

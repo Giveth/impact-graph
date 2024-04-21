@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class setSegmentNotifiedForOlderDonations1643891610952
   implements MigrationInterface
 {

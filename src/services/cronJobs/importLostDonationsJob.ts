@@ -1,8 +1,9 @@
-import config from '../../config';
 import abiDecoder from 'abi-decoder';
+import { schedule } from 'node-cron';
+import moment from 'moment';
+import config from '../../config';
 import { Donation } from '../../entities/donation';
 import { logger } from '../../utils/logger';
-import { schedule } from 'node-cron';
 import { NetworkTransactionInfo } from '../chains';
 import { getProvider, NETWORKS_IDS_TO_NAME } from '../../provider';
 import { erc20ABI } from '../../assets/erc20ABI';
@@ -10,7 +11,6 @@ import { User } from '../../entities/user';
 import { Token } from '../../entities/token';
 import { Project } from '../../entities/project';
 import { calculateGivbackFactor } from '../givbackService';
-import moment from 'moment';
 import {
   getUserDonationStats,
   updateUserTotalDonated,
@@ -25,8 +25,9 @@ import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapte
 import { QfRound } from '../../entities/qfRound';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 
@@ -251,7 +252,7 @@ export const importLostDonations = async () => {
 
         const donationStats = await getUserDonationStats(dbUser.id);
 
-        await getNotificationAdapter().updateOrttoUser({
+        const orttoPerson = getOrttoPersonAttributes({
           userId: dbUser.id.toString(),
           firstName: dbUser?.firstName,
           lastName: dbUser?.lastName,
@@ -260,9 +261,10 @@ export const importLostDonations = async () => {
           donationsCount: donationStats?.donationsCount,
           lastDonationDate: donationStats?.lastDonationDate,
           GIVbacksRound: dbDonation.powerRound,
-          QFRound: dbDonation.qfRound?.name,
+          QFDonor: dbDonation.qfRound?.name,
           donationChain: NETWORKS_IDS_TO_NAME[dbDonation.transactionNetworkId],
         });
+        await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
       } catch (e) {
         logger.error('importLostDonations() error');
         continue;

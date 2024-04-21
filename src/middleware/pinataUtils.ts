@@ -3,9 +3,8 @@
  */
 
 import pinataSDK, { PinataPinResponse } from '@pinata/sdk';
-
-import ReadableStream = NodeJS.ReadableStream;
 import config from '../config';
+import ReadableStream = NodeJS.ReadableStream;
 
 let _pinata: pinataSDK;
 
@@ -21,8 +20,7 @@ export const getPinata = (): pinataSDK => {
 
 export const pinFile = (
   file: ReadableStream,
-  filename: String = 'untitled',
-  encoding: string,
+  filename: string = 'untitled',
 ): Promise<PinataPinResponse> => {
   return getPinata().pinFileToIPFS(file, {
     pinataMetadata: { name: filename.toString() },
@@ -32,7 +30,6 @@ export const pinFile = (
 export const pinFileDataBase64 = (
   fileDataBase64: string,
   filename: string = 'untitled',
-  encoding: string,
 ): Promise<PinataPinResponse> => {
   const array = fileDataBase64.split(',');
   const base64FileData =

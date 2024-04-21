@@ -1,16 +1,14 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class deleteGnosisRecipientsOfGivingblocksProjects1666068280230
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     const projectTableExists = await queryRunner.hasTable('project');
-    const projectAddressTableExists = await queryRunner.hasTable(
-      'project_address',
-    );
+    const projectAddressTableExists =
+      await queryRunner.hasTable('project_address');
     if (!projectTableExists || !projectAddressTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('The project table or project_Address table doesnt exist', {
         projectAddressTableExists,
         projectTableExists,
@@ -25,5 +23,5 @@ export class deleteGnosisRecipientsOfGivingblocksProjects1666068280230
         `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

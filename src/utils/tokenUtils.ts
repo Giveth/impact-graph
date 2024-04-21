@@ -1,10 +1,5 @@
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from './errorMessages';
+import { i18n, translationErrorMessagesKeys } from './errorMessages';
 import { Token } from '../entities/token';
-import { logger } from './logger';
 
 export const findTokenByNetworkAndSymbol = async (
   networkId: number,

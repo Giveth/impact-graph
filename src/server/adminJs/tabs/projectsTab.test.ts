@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -14,7 +15,6 @@ import {
   RevokeSteps,
 } from '../../../entities/project';
 import { User } from '../../../entities/user';
-import { assert } from 'chai';
 import { findOneProjectStatusHistory } from '../../../repositories/projectSatusHistoryRepository';
 import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory';
 import {

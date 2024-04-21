@@ -9,5 +9,5 @@ export class AddDonationMatchedIdColumnToDraftDonation1707892354691
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(_queryRunner: QueryRunner): Promise<void> {}
 }

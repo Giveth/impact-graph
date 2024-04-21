@@ -1,18 +1,10 @@
 import { assert } from 'chai';
-import {
-  isTokenAcceptableForProject,
-  updateTotalDonationsOfProject,
-} from './donationService';
-import { NETWORK_IDS } from '../provider';
+
 import {
   createProjectData,
-  DONATION_SEED_DATA,
-  saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
-import { Token } from '../entities/token';
-import { ORGANIZATION_LABELS } from '../entities/organization';
 import { Project } from '../entities/project';
 import { updateTotalReactionsOfAProject } from './reactionsService';
 import { Reaction } from '../entities/reaction';

@@ -1,5 +1,4 @@
 import {
-  canAccessQfRoundAction,
   canAccessQfRoundHistoryAction,
   ResourceActions,
 } from '../adminJsPermissions';
@@ -13,7 +12,6 @@ import {
 import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository';
 import { insertDonationsFromQfRoundHistory } from '../../../services/donationService';
 import { refreshProjectDonationSummaryView } from '../../../services/projectViewsService';
-import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository';
 
 export const updateQfRoundHistory = async (
   _request: AdminJsRequestInterface,
@@ -155,7 +153,7 @@ export const qfRoundHistoryTab = {
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundHistoryAction(
             { currentAdmin },
-            ResourceActions.UPDATE_QF_ROUND_HISTORIES,
+            ResourceActions.RELATE_DONATIONS_WITH_DISTRIBUTED_FUNDS,
           ),
         handler: CreateRelatedDonationsForQfRoundHistoryRecords,
         component: false,

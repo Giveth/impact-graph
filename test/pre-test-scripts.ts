@@ -198,10 +198,10 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
-  for (const token of SEED_DATA.TOKENS.optimism_goerli) {
+  for (const token of SEED_DATA.TOKENS.optimism_sepolia) {
     const tokenData = {
       ...token,
-      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
       isGivbackEligible: true,
     };
     if (token.symbol === 'OP') {
@@ -335,6 +335,7 @@ async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.FOURTH_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.FIFTH_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.SIXTH_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.NON_VERIFIED_PROJECT);
 }
 
 async function seedProjectUpdates() {
@@ -478,8 +479,6 @@ async function runMigrations() {
     );
     await new createDonationethUser1701756190381().up(queryRunner);
     await new projectActualMatchingV14_1713545913826().up(queryRunner);
-  } catch (e) {
-    throw e;
   } finally {
     await queryRunner.release();
   }

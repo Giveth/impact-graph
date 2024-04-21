@@ -1,17 +1,12 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Organization } from '../src/entities/organization';
-import { Project } from '../src/entities/project';
-import { Donation } from '../src/entities/donation';
-import createSchema from '../src/server/createSchema';
 
-// tslint:disable-next-line:class-name
 export class relateExistingProjectsToOrganizations1646306281286
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     const projectTableExists = await queryRunner.hasTable('project');
     if (!projectTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log(
         'The project table doesnt exist, so there is no need to relate it to organizations',
       );

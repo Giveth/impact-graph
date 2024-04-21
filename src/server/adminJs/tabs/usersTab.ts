@@ -1,7 +1,7 @@
 import { User } from '../../../entities/user';
 import { canAccessUserAction, ResourceActions } from '../adminJsPermissions';
 import { logger } from '../../../utils/logger';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcrypt');
 
 export const usersTab = {
@@ -26,6 +26,14 @@ export const usersTab = {
       },
     },
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessUserAction({ currentAdmin }, ResourceActions.LIST),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessUserAction({ currentAdmin }, ResourceActions.SHOW),
+      },
       delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>

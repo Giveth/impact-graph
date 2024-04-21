@@ -1,9 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Project, ProjectUpdate } from '../src/entities/project';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
-// tslint:disable-next-line:class-name
 export class fixUpdatetAtOfProjects1647514950889 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const projectTableExists = await queryRunner.hasTable('project');
@@ -34,5 +32,5 @@ export class fixUpdatetAtOfProjects1647514950889 implements MigrationInterface {
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

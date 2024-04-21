@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class makeSomeFailedDonationsVerified1659516575436
   implements MigrationInterface
 {
@@ -43,7 +42,7 @@ export class makeSomeFailedDonationsVerified1659516575436
     );
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  async down(_queryRunner: QueryRunner): Promise<void> {
     //
   }
 }

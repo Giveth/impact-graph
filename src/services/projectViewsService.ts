@@ -32,7 +32,7 @@ export const refreshProjectDonationSummaryView = async (): Promise<void> => {
 };
 
 export const getQfRoundActualDonationDetails = async (
-  qfRoundId: Number,
+  qfRoundId: number,
 ): Promise<QfRoundDonationRow[]> => {
   try {
     const qfRound = await QfRound.createQueryBuilder('qfRound')
@@ -97,10 +97,11 @@ export const getQfRoundActualDonationDetails = async (
         totalValuesOfUserDonationsAfterAnalysis:
           row?.totalValuesOfUserDonationsAfterAnalysis?.join('-'),
         uniqueUserIdsAfterAnalysis: row?.uniqueUserIdsAfterAnalysis?.join('-'),
+        projectOwnerEmail: row?.email, // can be empty for new users
       };
     });
-    logger.info(
-      'Data that we should upload to googlesheet',
+    logger.debug(
+      'Data that we should upload to Google sheet',
       qfRoundDonationsRows,
     );
 

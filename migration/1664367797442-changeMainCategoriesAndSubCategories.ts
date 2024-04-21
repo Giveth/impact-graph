@@ -19,7 +19,6 @@ const updateSubCategory = async (
         `);
 };
 
-// tslint:disable-next-line:class-name
 export class changeMainCategoriesAndSubCategories1664367797442
   implements MigrationInterface
 {
@@ -238,5 +237,5 @@ export class changeMainCategoriesAndSubCategories1664367797442
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

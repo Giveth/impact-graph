@@ -4,9 +4,7 @@ import {
   createProjectData,
   saveProjectDirectlyToDb,
   SEED_DATA,
-  sleep,
 } from '../../test/testUtils';
-import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatus } from './projectStatus';
 import { ProjectStatusReason } from './projectStatusReason';
 import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSatusHistoryRepository';
@@ -21,7 +19,7 @@ describe('projectUpdate() test cases', projectUpdateTestCases);
 function projectUpdateTestCases() {
   it('should update project updatedAt when a new update is added', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const update = await ProjectUpdate.create({
+    const update = ProjectUpdate.create({
       userId: project.adminUserId,
       projectId: project.id,
       content: 'content',

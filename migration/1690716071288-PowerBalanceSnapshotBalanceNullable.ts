@@ -18,5 +18,5 @@ export class PowerBalanceSnapshotBalanceNullable1690716071288
     );
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

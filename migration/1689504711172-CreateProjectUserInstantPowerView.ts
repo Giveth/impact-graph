@@ -25,5 +25,5 @@ export class CreateProjectUserInstantPowerView1689504711172
     `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

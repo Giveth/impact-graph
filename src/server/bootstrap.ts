@@ -1,20 +1,25 @@
 // @ts-check
-import config from '../config';
+import http from 'http';
 import { rateLimit } from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
-import express, { json, Request, Response } from 'express';
-import { handleStripeWebhook } from '../utils/stripe';
-import createSchema from './createSchema';
-import { getResolvers } from '../resolvers/resolvers';
+import express, { json, Request } from 'express';
 import { Container } from 'typedi';
-import { RegisterResolver } from '../user/register/RegisterResolver';
-import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
 import { Resource } from '@adminjs/typeorm';
 import { validate } from 'class-validator';
+import { ModuleThread, Pool, spawn, Worker } from 'threads';
+import { DataSource } from 'typeorm';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
+import config from '../config';
+import { handleStripeWebhook } from '../utils/stripe';
+import createSchema from './createSchema';
 import SentryLogger from '../sentryLogger';
 
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
@@ -47,18 +52,10 @@ import {
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
-import { ModuleThread, Pool, spawn, Worker } from 'threads';
-import { DataSource } from 'typeorm';
 import { AppDataSource, CronDataSource } from '../orm';
-import http from 'http';
-import cors from 'cors';
-import bodyParser from 'body-parser';
 import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
-import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
-import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
-import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
 import {
   refreshProjectDonationSummaryView,
@@ -72,6 +69,9 @@ import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJo
 import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
+import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
+import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
+import { runDraftRecurringDonationMatchWorkerJob } from '../services/cronJobs/draftRecurringDonationMatchingJob';
 
 Resource.validate = validate;
 
@@ -89,21 +89,13 @@ export async function bootstrap() {
     await AppDataSource.initialize();
     await CronDataSource.initialize();
     Container.set(DataSource, AppDataSource.getDataSource());
-    const resolvers = getResolvers();
-
-    if (config.get('REGISTER_USERNAME_PASSWORD') === 'true') {
-      resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver]);
-    }
-
-    // Actually we should use await AppDataSource.initialize(); but it throw errors I think because some changes
-    // are needed in using typeorm repositories, so currently I kept this
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
     if (dropSchema) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Drop database....');
       await AppDataSource.getDataSource().synchronize(dropSchema);
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Drop done.');
       try {
         await dropDbCronExtension();
@@ -219,7 +211,7 @@ export async function bootstrap() {
         }),
         windowMs: 60 * 1000, // 1 minutes
         max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
-        skip: (req: Request, res: Response) => {
+        skip: (req: Request) => {
           const vercelKey = process.env.VERCEL_KEY;
           if (vercelKey && req.headers.vercel_key === vercelKey) {
             // Skip rate-limit for Vercel requests because our front is SSR
@@ -294,7 +286,7 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       handleStripeWebhook,
     );
-    app.get('/health', (req, res, next) => {
+    app.get('/health', (_req, res) => {
       res.send('Hi every thing seems ok');
     });
     app.post('/fiat_webhook', onramperWebhookHandler);
@@ -323,6 +315,7 @@ export async function bootstrap() {
     }
 
     runCheckPendingDonationsCronJob();
+    runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
     runUpdateDonationsWithoutValueUsdPrices();
@@ -351,6 +344,10 @@ export async function bootstrap() {
       runDraftDonationMatchWorkerJob();
     }
 
+    if (process.env.ENABLE_DRAFT_RECURRING_DONATION === 'true') {
+      runDraftRecurringDonationMatchWorkerJob();
+    }
+
     if (process.env.FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE === 'true') {
       runFillPowerSnapshotBalanceCronJob();
     }
@@ -376,6 +373,7 @@ export async function bootstrap() {
     }
     if (process.env.ENABLE_UPDATE_RECURRING_DONATION_STREAM === 'true') {
       runUpdateRecurringDonationStream();
+      runCheckUserSuperTokenBalancesJob();
     }
     await runCheckActiveStatusOfQfRounds();
     await runUpdateProjectCampaignsCacheJob();

@@ -1,17 +1,17 @@
+import axios from 'axios';
+import { assert } from 'chai';
 import {
   generateTestAccessToken,
   graphqlUrl,
   PROJECT_UPDATE_SEED_DATA,
   SEED_DATA,
 } from '../../test/testUtils';
-import axios from 'axios';
 import {
   likeProjectQuery,
   likeProjectUpdateQuery,
   unlikeProjectQuery,
   unlikeProjectUpdateQuery,
 } from '../../test/graphqlQueries';
-import { assert } from 'chai';
 import { Project, ProjectUpdate } from '../entities/project';
 import { Reaction } from '../entities/reaction';
 

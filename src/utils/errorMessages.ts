@@ -1,7 +1,6 @@
-import { logger } from 'ethers';
 import path from 'path';
 
-// tslint:disable:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 export const i18n = require('i18n');
 
 // global config, where ever its exported
@@ -13,7 +12,7 @@ i18n.configure({
 });
 
 // sets the language for a request in app.use express
-export const setI18nLocaleForRequest = async (req, res, next) => {
+export const setI18nLocaleForRequest = async (req, _res, next) => {
   const language = req.headers['accept-language'] || 'en';
   i18n.setLocale(language);
   next();
@@ -22,6 +21,7 @@ export const setI18nLocaleForRequest = async (req, res, next) => {
 export const errorMessages = {
   FIAT_DONATION_ALREADY_EXISTS: 'Onramper donation already exists',
   CAMPAIGN_NOT_FOUND: 'Campaign not found',
+  QF_ROUND_NOT_FOUND: 'qf round not found',
   NONE_OF_WALLET_ADDRESSES_FOUND_IN_DB:
     'None of the wallet addresses were found in the database',
   NO_VALID_PROJECTS_FOUND: 'No valid project slug found in the CSV',
@@ -109,6 +109,7 @@ export const errorMessages = {
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
   PROJECT_IS_NOT_ACTIVE: 'Project is not active.',
+  RECURRING_DONATION_NOT_FOUND: 'Recurring donation not found.',
   INVALID_FUNCTION: 'Invalid function name of transaction',
   PROJECT_UPDATE_NOT_FOUND: 'Project update not found.',
   DONATION_NOT_FOUND: 'donation not found',
@@ -194,10 +195,16 @@ export const errorMessages = {
   CHAINVINE_REGISTRATION_ERROR: 'Chainvine ID failed to be generated',
   CHAINVINE_CLICK_EVENT_ERROR: 'Unable to register click event or link donor',
   GITCOIN_ERROR_FETCHING_DATA: 'Unable to fetch gitcoin data, check logs',
+  TX_NOT_FOUND: 'Transaction not found',
+  INVALID_PROJECT_ID: 'Invalid project id',
+  INVALID_PROJECT_OWNER: 'Project owner is invalid',
 };
 
 export const translationErrorMessagesKeys = {
   GITCOIN_ERROR_FETCHING_DATA: 'GITCOIN_ERROR_FETCHING_DATA',
+  TX_NOT_FOUND: 'TX_NOT_FOUND',
+  INVALID_PROJECT_ID: 'INVALID_PROJECT_ID',
+  INVALID_PROJECT_OWNER: 'INVALID_PROJECT_OWNER',
   CHAINVINE_CLICK_EVENT_ERROR: 'CHAINVINE_CLICK_EVENT_ERROR',
   CHAINVINE_REGISTRATION_ERROR: 'CHAINVINE_REGISTRATION_ERROR',
   FIAT_DONATION_ALREADY_EXISTS: 'FIAT_DONATION_ALREADY_EXISTS',
@@ -270,6 +277,7 @@ export const translationErrorMessagesKeys = {
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT',
   PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
+  RECURRING_DONATION_NOT_FOUND: 'Recurring donation not found.',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
   THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
@@ -354,5 +362,6 @@ export const translationErrorMessagesKeys = {
   PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED:
     'PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED',
   DRAFT_DONATION_DISABLED: 'DRAFT_DONATION_DISABLED',
+  DRAFT_RECURRING_DONATION_DISABLED: 'DRAFT_RECURRING_DONATION_DISABLED',
   EVM_SUPPORT_ONLY: 'EVM_SUPPORT_ONLY',
 };

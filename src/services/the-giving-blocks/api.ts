@@ -1,4 +1,3 @@
-import { extractTraceparentData } from '@sentry/tracing';
 import Axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 import config from '../../config';

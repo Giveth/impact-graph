@@ -1,18 +1,19 @@
 import { assert, expect } from 'chai';
 import 'mocha';
+import axios from 'axios';
+import moment from 'moment';
+import { ArgumentValidationError } from 'type-graphql';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomSolanaAddress,
   generateTestAccessToken,
   graphqlUrl,
-  PROJECT_UPDATE_SEED_DATA,
   saveFeaturedProjectDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
-import axios from 'axios';
 import {
   activateProjectQuery,
   addProjectUpdateQuery,
@@ -25,6 +26,7 @@ import {
   fetchFeaturedProjectUpdate,
   fetchLatestProjectUpdates,
   fetchLikedProjectsQuery,
+  fetchMultiFilterAllProjectsQuery,
   fetchNewProjectsPerDate,
   fetchProjectBySlugQuery,
   fetchProjectUpdatesQuery,
@@ -48,6 +50,7 @@ import {
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
+  RevokeSteps,
 } from '../entities/project';
 import { Category } from '../entities/category';
 import { Reaction } from '../entities/reaction';
@@ -79,7 +82,6 @@ import {
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
-import moment from 'moment';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
 import { AppDataSource } from '../orm';
@@ -96,7 +98,6 @@ import {
   PROJECT_DESCRIPTION_MAX_LENGTH,
   PROJECT_TITLE_MAX_LENGTH,
 } from '../constants/validators';
-import { ArgumentValidationError } from 'type-graphql';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
 import { updateInstantBoosting } from '../services/instantBoostingServices';
@@ -159,6 +160,8 @@ describe(
   similarProjectsBySlugTestCases,
 );
 
+describe('projectSearch test cases --->', projectSearchTestCases);
+
 describe('projectUpdates query test cases --->', projectUpdatesTestCases);
 
 describe(
@@ -174,11 +177,11 @@ describe('projectsPerDate() test cases --->', projectsPerDateTestCases);
 
 function projectsPerDateTestCases() {
   it('should projects created in a time range', async () => {
-    const project = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       creationDate: moment().add(10, 'days').toDate(),
     });
-    const project2 = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       creationDate: moment().add(44, 'days').toDate(),
     });
@@ -546,6 +549,66 @@ function projectsByUserIdTestCases() {
 }
 
 function createProjectTestCases() {
+  it('should not create projects with same slug and title', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const sampleProject1 = {
+      title: 'title1',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const sampleProject2 = {
+      title: 'title1',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const promise1 = axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject1,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const promise2 = axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject2,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const [result1, result2] = await Promise.all([promise1, promise2]);
+    const isResult1Ok = !!result1.data.data?.createProject;
+    const isResult2Ok = !!result2.data.data?.createProject;
+
+    // Exactly one should be ok
+    const exactlyOneOk =
+      (isResult1Ok && !isResult2Ok) || (!isResult1Ok && isResult2Ok);
+
+    assert.isTrue(exactlyOneOk, 'Exactly one operation should be successful');
+  });
   it('Create Project should return <<Access denied>>, calling without token IN ENGLISH when no-lang header is sent', async () => {
     const sampleProject = {
       title: 'title1',
@@ -1762,10 +1825,6 @@ function updateProjectTestCases() {
     });
     const newWalletAddress = project.walletAddress;
 
-    const queriedAddress0 = await findAllRelatedAddressByWalletAddress(
-      walletAddress,
-    );
-
     const editProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -1826,7 +1885,6 @@ function updateProjectTestCases() {
       admin: String(user.id),
     });
     const newWalletAddress = generateRandomEtheriumAddress();
-    const newWalletAddress2 = generateRandomEtheriumAddress();
     const editProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -3982,7 +4040,7 @@ function featuredProjectUpdateTestCases() {
       isMain: false,
     }).save();
 
-    const featuredProject = await saveFeaturedProjectDirectlyToDb(
+    await saveFeaturedProjectDirectlyToDb(
       Number(project.id),
       Number(projectUpdate.id),
     );
@@ -4018,15 +4076,16 @@ function featureProjectsTestCases() {
       [ReviewStatus.NotReviewed, ProjStatus.active], // Not listed
       [ReviewStatus.Listed, ProjStatus.deactive], // Not active
     ];
-    const projectsPromises = settings.map(([reviewStatus, projectStatus]) => {
-      return saveProjectDirectlyToDb({
+    const projects: Project[] = [];
+    for (const element of settings) {
+      const project = await saveProjectDirectlyToDb({
         ...createProjectData(),
-        reviewStatus,
-        statusId: projectStatus,
+        reviewStatus: element[0],
+        statusId: element[1],
       });
-    });
-    const projects = await Promise.all(projectsPromises);
-    const projetUpdatePromises = projects.map(project => {
+      projects.push(project);
+    }
+    const projectUpdatePromises = projects.map(project => {
       return ProjectUpdate.create({
         userId: user!.id,
         projectId: project.id,
@@ -4036,7 +4095,7 @@ function featureProjectsTestCases() {
         isMain: false,
       }).save();
     });
-    const projectUpdates = await Promise.all(projetUpdatePromises);
+    const projectUpdates = await Promise.all(projectUpdatePromises);
     for (let i = 0; i < projects.length; i++) {
       const project = projects[i];
       const projectUpdate = projectUpdates[i];
@@ -4145,6 +4204,50 @@ function projectUpdatesTestCases() {
   });
 }
 
+function projectSearchTestCases() {
+  it('should return projects with a typo in the end of searchTerm', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        // Typo in the title
+        searchTerm: SEED_DATA.SECOND_PROJECT.title.slice(0, -1) + 'a',
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    const projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, limit);
+    assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
+    assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
+    assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
+  });
+
+  it('should return projects with the project title inverted in the searchTerm', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        searchTerm: SEED_DATA.SECOND_PROJECT.title
+          .split(' ')
+          .reverse()
+          .join(' '),
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    const projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, limit);
+    assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
+    assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
+    assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
+  });
+}
+
 function getProjectUpdatesTestCases() {
   it('should return project updates with current take', async () => {
     const take = 2;
@@ -4171,14 +4274,14 @@ function getProjectUpdatesTestCases() {
       },
     });
     assert.isOk(result);
-    const projectUpdates: ProjectUpdate[] = result.data.data.getProjectUpdates;
+    // const projectUpdates: ProjectUpdate[] = result.data.data.getProjectUpdates;
 
-    const likedProject = projectUpdates.find(
-      pu => +pu.id === PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
-    );
-    const noLikedProject = projectUpdates.find(
-      pu => +pu.id !== PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
-    );
+    // const likedProject = projectUpdates.find(
+    //   pu => +pu.id === PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
+    // );
+    // const noLikedProject = projectUpdates.find(
+    //   pu => +pu.id !== PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
+    // );
 
     // assert.equal(
     //   likedProject?.reaction?.id,
@@ -5041,7 +5144,7 @@ function similarProjectsBySlugTestCases() {
     });
 
     const c = await Category.findOne({ where: { name: 'food8' } });
-    const [_, relatedCount] = await Project.createQueryBuilder('project')
+    const [, relatedCount] = await Project.createQueryBuilder('project')
       .innerJoinAndSelect('project.categories', 'categories')
       .where('categories.id IN (:...ids)', { ids: [c?.id] })
       .andWhere('project.id != :id', { id: viewedProject.id })
@@ -5086,7 +5189,7 @@ function similarProjectsBySlugTestCases() {
     });
     const totalCount = result.data.data.similarProjectsBySlug.totalCount;
 
-    const [_, relatedCount] = await Project.createQueryBuilder('project')
+    const [, relatedCount] = await Project.createQueryBuilder('project')
       .innerJoinAndSelect('project.categories', 'categories')
       .where('project.id != :id', { id: viewedProject?.id })
       .andWhere('project.admin = :ownerId', {
@@ -5159,6 +5262,62 @@ function addProjectUpdateTestCases() {
       'testProjectUpdateFateme',
     );
   });
+
+  it('should change verificationStatus to null after adding update', async () => {
+    const verifiedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verificationStatus: RevokeSteps.UpForRevoking,
+    });
+    const revokedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verificationStatus: RevokeSteps.Revoked,
+    });
+    const accessTokenUser1 = await generateTestAccessToken(
+      verifiedProject.adminUserId,
+    );
+
+    await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectUpdateQuery,
+        variables: {
+          projectId: verifiedProject.id,
+          content: 'Test Project Update content',
+          title: 'test Project Update title',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessTokenUser1}`,
+        },
+      },
+    );
+    await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectUpdateQuery,
+        variables: {
+          projectId: revokedProject.id,
+          content: 'Test Project Update content',
+          title: 'test Project Update title',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessTokenUser1}`,
+        },
+      },
+    );
+    const _verifiedProject = await Project.findOne({
+      where: { id: verifiedProject.id },
+    });
+    const _revokedProject = await Project.findOne({
+      where: { id: revokedProject.id },
+    });
+    assert.equal(_verifiedProject?.verificationStatus, null);
+    assert.equal(_revokedProject?.verificationStatus, RevokeSteps.Revoked);
+  });
+
   it('should can not add project update because of ownerShip ', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

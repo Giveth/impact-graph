@@ -10,7 +10,6 @@ import {
 import { Repository } from 'typeorm';
 
 import { User } from '../entities/user';
-import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -29,27 +28,28 @@ import {
 import { logger } from '../utils/logger';
 import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
 import { addressHasDonated } from '../repositories/donationRepository';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 
 @ObjectType()
 class UserRelatedAddressResponse {
-  @Field(type => Boolean, { nullable: false })
+  @Field(_type => Boolean, { nullable: false })
   hasRelatedProject: boolean;
 
-  @Field(type => Boolean, { nullable: false })
+  @Field(_type => Boolean, { nullable: false })
   hasDonated: boolean;
 }
 
-@Resolver(of => User)
+@Resolver(_of => User)
 export class UserResolver {
   constructor(private readonly userRepository: Repository<User>) {
     this.userRepository = AppDataSource.getDataSource().getRepository(User);
   }
 
-  async create(@Arg('data', () => RegisterInput) data: any) {
-    // return User.create(data).save();
-  }
+  // async create(@Arg('data', () => RegisterInput) data: any) {
+  // return User.create(data).save();
+  // }
 
-  @Query(returns => UserRelatedAddressResponse)
+  @Query(_returns => UserRelatedAddressResponse)
   async walletAddressUsed(@Arg('address') address: string) {
     return {
       hasRelatedProject: await isWalletAddressInPurpleList(address),
@@ -57,9 +57,9 @@ export class UserResolver {
     };
   }
 
-  @Query(returns => UserByAddressResponse, { nullable: true })
+  @Query(_returns => UserByAddressResponse, { nullable: true })
   async userByAddress(
-    @Arg('address', type => String) address: string,
+    @Arg('address', _type => String) address: string,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     const includeSensitiveFields =
@@ -68,15 +68,18 @@ export class UserResolver {
       address,
       includeSensitiveFields,
     );
+    if (!foundUser) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+    }
     return {
       isSignedIn: Boolean(user),
       ...foundUser,
     };
   }
 
-  @Query(returns => User, { nullable: true })
+  @Query(_returns => User, { nullable: true })
   async refreshUserScores(
-    @Arg('address', type => String) address: string,
+    @Arg('address', _type => String) address: string,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     const includeSensitiveFields =
@@ -92,9 +95,8 @@ export class UserResolver {
       const passportScore = await getGitcoinAdapter().submitPassport({
         address,
       });
-      const passportStamps = await getGitcoinAdapter().getPassportStamps(
-        address,
-      );
+      const passportStamps =
+        await getGitcoinAdapter().getPassportStamps(address);
 
       if (passportScore && passportScore?.score) {
         const score = Number(passportScore.score);
@@ -110,7 +112,7 @@ export class UserResolver {
     return foundUser;
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async updateUser(
     @Arg('firstName', { nullable: true }) firstName: string,
     @Arg('lastName', { nullable: true }) lastName: string,
@@ -171,21 +173,22 @@ export class UserResolver {
     dbUser.name = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim();
     await dbUser.save();
 
-    await getNotificationAdapter().updateOrttoUser({
+    const orttoPerson = getOrttoPersonAttributes({
       firstName: dbUser.firstName,
       lastName: dbUser.lastName,
       email: dbUser.email,
       userId: dbUser.id.toString(),
     });
+    await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
 
     return true;
   }
 
   // Sets the current account verification and creates related verifications
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async addUserVerification(
     @Arg('dId', { nullable: true }) dId: string,
-    @Arg('verifications', type => [AccountVerificationInput])
+    @Arg('verifications', _type => [AccountVerificationInput])
     verificationsInput: AccountVerificationInput[],
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {

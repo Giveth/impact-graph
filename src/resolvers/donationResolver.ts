@@ -14,11 +14,11 @@ import {
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
+import { Brackets, In, Repository } from 'typeorm';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { ApolloContext } from '../types/ApolloContext';
 import { Project, ProjStatus } from '../entities/project';
 import { Token } from '../entities/token';
-import { Brackets, In, Repository } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -50,6 +50,8 @@ import {
   findDonationById,
   getRecentDonations,
   isVerifiedDonationExistsInQfRound,
+  newDonorsCount,
+  newDonorsDonationTotalUsd,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -60,49 +62,50 @@ import { getChainvineReferralInfoForDonation } from '../services/chainvineReferr
 import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
 import { detectAddressChainType } from '../utils/networks';
 import { ChainType } from '../types/network';
-import {
-  getAppropriateNetworkId,
-  getDefaultSolanaChainId,
-} from '../services/chains';
+import { getAppropriateNetworkId } from '../services/chains';
 import { markDraftDonationStatusMatched } from '../repositories/draftDonationRepository';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import { countOfActiveRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
 @ObjectType()
 class PaginateDonations {
-  @Field(type => [Donation], { nullable: true })
+  @Field(_type => [Donation], { nullable: true })
   donations: Donation[];
 
-  @Field(type => Number, { nullable: true })
+  @Field(_type => Number, { nullable: true })
   totalCount: number;
 
-  @Field(type => Number, { nullable: true })
+  @Field(_type => Number, { nullable: true })
+  recurringDonationsCount: number;
+
+  @Field(_type => Number, { nullable: true })
   totalUsdBalance: number;
 
-  @Field(type => Number, { nullable: true })
+  @Field(_type => Number, { nullable: true })
   totalEthBalance: number;
 }
 
 // As general as posible types to reuse it
 @ObjectType()
 export class ResourcesTotalPerMonthAndYear {
-  @Field(type => Number, { nullable: true })
-  total?: Number;
+  @Field(_type => Number, { nullable: true })
+  total?: number;
 
-  @Field(type => String, { nullable: true })
-  date?: String;
+  @Field(_type => String, { nullable: true })
+  date?: string;
 }
 
 @ObjectType()
 export class ResourcePerDateRange {
-  @Field(type => Number, { nullable: true })
-  total?: Number;
+  @Field(_type => Number, { nullable: true })
+  total?: number;
 
-  @Field(type => [ResourcesTotalPerMonthAndYear], { nullable: true })
+  @Field(_type => [ResourcesTotalPerMonthAndYear], { nullable: true })
   totalPerMonthAndYear?: ResourcesTotalPerMonthAndYear[];
 }
 
@@ -128,26 +131,26 @@ registerEnumType(SortDirection, {
 
 @InputType()
 class SortBy {
-  @Field(type => SortField)
+  @Field(_type => SortField)
   field: SortField;
 
-  @Field(type => SortDirection)
+  @Field(_type => SortDirection)
   direction: SortDirection;
 }
 
 @Service()
 @ArgsType()
 class UserDonationsArgs {
-  @Field(type => Int, { defaultValue: 0 })
+  @Field(_type => Int, { defaultValue: 0 })
   @Min(0)
   skip: number;
 
-  @Field(type => Int, { defaultValue: 10 })
+  @Field(_type => Int, { defaultValue: 10 })
   @Min(0)
   @Max(50)
   take: number;
 
-  @Field(type => SortBy, {
+  @Field(_type => SortBy, {
     defaultValue: {
       field: SortField.CreationDate,
       direction: SortDirection.DESC,
@@ -155,49 +158,49 @@ class UserDonationsArgs {
   })
   orderBy: SortBy;
 
-  @Field(type => Int, { nullable: false })
+  @Field(_type => Int, { nullable: false })
   userId: number;
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   status: string;
 }
 
 @ObjectType()
 class UserDonations {
-  @Field(type => [Donation])
+  @Field(_type => [Donation])
   donations: Donation[];
 
-  @Field(type => Int)
+  @Field(_type => Int)
   totalCount: number;
 }
 
 @ObjectType()
 class MainCategoryDonations {
-  @Field(type => Int)
+  @Field(_type => Int)
   id: number;
 
-  @Field(type => String)
+  @Field(_type => String)
   title: string;
 
-  @Field(type => String)
+  @Field(_type => String)
   slug: string;
 
-  @Field(type => Number)
+  @Field(_type => Number)
   totalUsd: number;
 }
 
 @ObjectType()
 class DonationCurrencyStats {
-  @Field(type => String, { nullable: true })
-  currency?: String;
+  @Field(_type => String, { nullable: true })
+  currency?: string;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   uniqueDonorCount?: number;
 
-  @Field(type => Number, { nullable: true })
-  currencyPercentage?: Number;
+  @Field(_type => Number, { nullable: true })
+  currencyPercentage?: number;
 }
 
-@Resolver(of => User)
+@Resolver(_of => User)
 export class DonationResolver {
   private readonly donationRepository: Repository<Donation>;
   constructor() {
@@ -205,7 +208,7 @@ export class DonationResolver {
       AppDataSource.getDataSource().getRepository(Donation);
   }
 
-  @Query(returns => [DonationCurrencyStats])
+  @Query(_returns => [DonationCurrencyStats])
   async getDonationStats(): Promise<DonationCurrencyStats[]> {
     const query = `
       SELECT
@@ -221,7 +224,7 @@ export class DonationResolver {
     return result;
   }
 
-  @Query(returns => [Donation], { nullable: true })
+  @Query(_returns => [Donation], { nullable: true })
   async donations(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
@@ -255,11 +258,12 @@ export class DonationResolver {
     }
   }
 
-  @Query(returns => [MainCategoryDonations], { nullable: true })
+  @Query(_returns => [MainCategoryDonations], { nullable: true })
   async totalDonationsPerCategory(
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<MainCategoryDonations[] | []> {
     try {
       validateWithJoiSchema(
@@ -296,20 +300,24 @@ export class DonationResolver {
         }
       }
 
-      const result = await query.getRawMany();
-      return result;
+      if (onlyVerified) {
+        query.andWhere('projects.verified = true');
+      }
+
+      return await query.getRawMany();
     } catch (e) {
-      logger.error('donations query error', e);
+      logger.error('totalDonationsPerCategory query error', e);
       throw e;
     }
   }
 
-  @Query(returns => ResourcePerDateRange, { nullable: true })
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
   async donationsTotalUsdPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -320,12 +328,14 @@ export class DonationResolver {
         fromDate,
         toDate,
         fromOptimismOnly,
+        onlyVerified,
       );
       const totalPerMonthAndYear =
         await donationsTotalAmountPerDateRangeByMonth(
           fromDate,
           toDate,
           fromOptimismOnly,
+          onlyVerified,
         );
 
       return {
@@ -338,12 +348,13 @@ export class DonationResolver {
     }
   }
 
-  @Query(returns => ResourcePerDateRange, { nullable: true })
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
   async totalDonationsNumberPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -354,12 +365,14 @@ export class DonationResolver {
         fromDate,
         toDate,
         fromOptimismOnly,
+        onlyVerified,
       );
       const totalPerMonthAndYear =
         await donationsTotalNumberPerDateRangeByMonth(
           fromDate,
           toDate,
           fromOptimismOnly,
+          onlyVerified,
         );
 
       return {
@@ -377,14 +390,14 @@ export class DonationResolver {
    * @param take
    * @return last donations' id, valueUd, createdAt, user.walletAddress and project.slug
    */
-  @Query(returns => [Donation], { nullable: true })
+  @Query(_returns => [Donation], { nullable: true })
   async recentDonations(
-    @Arg('take', type => Int, { nullable: true }) take: number = 30,
+    @Arg('take', _type => Int, { nullable: true }) take: number = 30,
   ): Promise<Donation[]> {
     return getRecentDonations(take);
   }
 
-  @Query(returns => ResourcePerDateRange, { nullable: true })
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
   async totalDonorsCountPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
@@ -416,11 +429,51 @@ export class DonationResolver {
     }
   }
 
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  async newDonorsCountPerDate(
+    // fromDate and toDate should be in this format (YYYY-MM-DD)T(HH:mm:ss)Z
+    @Arg('fromDate') fromDate: string,
+    @Arg('toDate') toDate: string,
+  ): Promise<{ total: number }> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const newDonors = await newDonorsCount(fromDate, toDate);
+      return {
+        total: newDonors?.length || 0,
+      };
+    } catch (e) {
+      logger.error('newDonorsCountPerDate query error', e);
+      throw e;
+    }
+  }
+
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  async newDonorsDonationTotalUsdPerDate(
+    // fromDate and toDate should be in this format (YYYY-MM-DD)T(HH:mm:ss)Z
+    @Arg('fromDate') fromDate: string,
+    @Arg('toDate') toDate: string,
+  ): Promise<{ total: number }> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await newDonorsDonationTotalUsd(fromDate, toDate);
+      return { total };
+    } catch (e) {
+      logger.error('newDonorsDonationTotalUsdPerDate query error', e);
+      throw e;
+    }
+  }
+
   // TODO I think we can delete this resolver
-  @Query(returns => [Donation], { nullable: true })
+  @Query(_returns => [Donation], { nullable: true })
   async donationsFromWallets(
-    @Ctx() ctx: ApolloContext,
-    @Arg('fromWalletAddresses', type => [String])
+    @Ctx() _ctx: ApolloContext,
+    @Arg('fromWalletAddresses', _type => [String])
     fromWalletAddresses: string[],
   ) {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
@@ -436,10 +489,10 @@ export class DonationResolver {
   }
 
   // TODO I think we can delete this resolver
-  @Query(returns => [Donation], { nullable: true })
+  @Query(_returns => [Donation], { nullable: true })
   async donationsToWallets(
-    @Ctx() ctx: ApolloContext,
-    @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[],
+    @Ctx() _ctx: ApolloContext,
+    @Arg('toWalletAddresses', _type => [String]) toWalletAddresses: string[],
   ) {
     const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
       o.toLowerCase(),
@@ -454,19 +507,19 @@ export class DonationResolver {
       .getMany();
   }
 
-  @Query(returns => PaginateDonations, { nullable: true })
+  @Query(_returns => PaginateDonations, { nullable: true })
   async donationsByProjectId(
-    @Ctx() ctx: ApolloContext,
-    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
-    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Arg('traceable', type => Boolean, { defaultValue: false })
+    @Ctx() _ctx: ApolloContext,
+    @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('traceable', _type => Boolean, { defaultValue: false })
     traceable: boolean,
-    @Arg('qfRoundId', type => Int, { defaultValue: null, nullable: true })
+    @Arg('qfRoundId', _type => Int, { defaultValue: null, nullable: true })
     qfRoundId: number,
-    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
-    @Arg('status', type => String, { nullable: true }) status: string,
-    @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
-    @Arg('orderBy', type => SortBy, {
+    @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
+    @Arg('status', _type => String, { nullable: true }) status: string,
+    @Arg('searchTerm', _type => String, { nullable: true }) searchTerm: string,
+    @Arg('orderBy', _type => SortBy, {
       defaultValue: {
         field: SortField.CreationDate,
         direction: SortDirection.DESC,
@@ -488,7 +541,9 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .addSelect(publicSelectionFields)
-      .where(`donation.projectId = ${projectId}`)
+      .where(
+        `donation.projectId = ${projectId} AND donation.recurringDonationId IS NULL`,
+      )
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
@@ -534,6 +589,9 @@ export class DonationResolver {
       );
     }
 
+    const recurringDonationsCount =
+      await countOfActiveRecurringDonationsByProjectId(projectId);
+
     const [donations, donationsCount] = await query
       .take(take)
       .skip(skip)
@@ -542,11 +600,12 @@ export class DonationResolver {
       donations,
       totalCount: donationsCount,
       totalUsdBalance: project.totalDonations,
+      recurringDonationsCount,
     };
   }
 
   // TODO I think we can delete this resolver
-  @Query(returns => [Donation], { nullable: true })
+  @Query(_returns => [Donation], { nullable: true })
   async donationsByDonor(@Ctx() ctx: ApolloContext) {
     if (!ctx.req.user)
       throw new Error(
@@ -555,13 +614,14 @@ export class DonationResolver {
     return this.donationRepository
       .createQueryBuilder('donation')
       .where({ userId: ctx.req.user.userId })
+      .andWhere(`donation.recurringDonationId IS NULL`)
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
       .getMany();
   }
 
-  @Query(returns => UserDonations, { nullable: true })
+  @Query(_returns => UserDonations, { nullable: true })
   async donationsByUserId(
     @Args() { take, skip, orderBy, userId, status }: UserDonationsArgs,
     @Ctx() ctx: ApolloContext,
@@ -573,6 +633,7 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .where(`donation.userId = ${userId}`)
+      .andWhere(`donation.recurringDonationId IS NULL`)
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
@@ -598,7 +659,7 @@ export class DonationResolver {
     };
   }
 
-  @Mutation(returns => Number)
+  @Mutation(_returns => Number)
   async createDonation(
     @Arg('amount') amount: number,
     @Arg('transactionId', { nullable: true }) transactionId: string,
@@ -613,7 +674,7 @@ export class DonationResolver {
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
     @Arg('draftDonationId', { nullable: true }) draftDonationId?: number,
-  ): Promise<Number> {
+  ): Promise<number> {
     const logData = {
       amount,
       transactionId,
@@ -693,7 +754,7 @@ export class DonationResolver {
           symbol: token,
         },
       });
-      const isCustomToken = !Boolean(tokenInDb);
+      const isCustomToken = !tokenInDb;
       let isTokenEligibleForGivback = false;
       if (isCustomToken && !project.organization.supportCustomTokens) {
         throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
@@ -777,9 +838,8 @@ export class DonationResolver {
           logger.error('get chainvine wallet address error', e);
         }
       }
-      const activeQfRoundForProject = await relatedActiveQfRoundForProject(
-        projectId,
-      );
+      const activeQfRoundForProject =
+        await relatedActiveQfRoundForProject(projectId);
       if (
         activeQfRoundForProject &&
         activeQfRoundForProject.isEligibleNetwork(networkId)
@@ -806,7 +866,7 @@ export class DonationResolver {
         case NETWORK_IDS.GOERLI:
           priceChainId = NETWORK_IDS.MAIN_NET;
           break;
-        case NETWORK_IDS.OPTIMISM_GOERLI:
+        case NETWORK_IDS.OPTIMISM_SEPOLIA:
           priceChainId = NETWORK_IDS.OPTIMISTIC;
           break;
         case NETWORK_IDS.MORDOR_ETC_TESTNET:
@@ -820,10 +880,8 @@ export class DonationResolver {
       await updateDonationPricesAndValues(
         donation,
         project,
-        tokenInDb,
-        token,
+        tokenInDb!,
         priceChainId,
-        amount,
       );
 
       if (chainType === ChainType.EVM) {
@@ -848,7 +906,7 @@ export class DonationResolver {
     }
   }
 
-  @Mutation(returns => Donation)
+  @Mutation(_returns => Donation)
   async updateDonationStatus(
     @Arg('donationId') donationId: number,
     @Arg('status', { nullable: true }) status: string,
@@ -927,7 +985,7 @@ export class DonationResolver {
     @Arg('projectId', _ => Int) projectId: number,
     @Arg('qfRoundId', _ => Int) qfRoundId: number,
     @Arg('userId', _ => Int) userId: number,
-  ): Promise<Boolean> {
+  ): Promise<boolean> {
     return isVerifiedDonationExistsInQfRound({
       projectId,
       qfRoundId,

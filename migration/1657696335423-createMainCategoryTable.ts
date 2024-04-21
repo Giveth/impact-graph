@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class createMainCategoryTable1657696335423
   implements MigrationInterface
 {

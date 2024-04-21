@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class modifyUserTotalDonated1647455975316 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     // To run the update query SUM I should check table existance
@@ -25,6 +24,5 @@ export class modifyUserTotalDonated1647455975316 implements MigrationInterface {
     }
   }
 
-  // tslint:disable-next-line:no-empty
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

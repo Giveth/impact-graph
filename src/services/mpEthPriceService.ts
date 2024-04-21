@@ -1,6 +1,5 @@
+import Axios from 'axios';
 import { logger } from '../utils/logger';
-import Axios, { AxiosResponse } from 'axios';
-import axiosRetry from 'axios-retry';
 
 const mpEthSubgraphUrl = process.env.MPETH_GRAPHQL_PRICES_URL as string;
 

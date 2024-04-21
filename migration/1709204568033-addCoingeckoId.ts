@@ -1553,7 +1553,7 @@ const stagingTokensData: TokenData[] = [
 export class AddCoingeckoId1709204568033 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
-    let tokenData =
+    const tokenData =
       environment === 'production' ? productionTokensData : stagingTokensData;
 
     const repository = queryRunner.manager.getRepository(Token);
@@ -1574,7 +1574,7 @@ export class AddCoingeckoId1709204568033 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(_queryRunner: QueryRunner): Promise<void> {
     //
   }
 }

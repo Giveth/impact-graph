@@ -1,4 +1,3 @@
-/* tslint:disable:no-console */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddProjectStatus1614079067364 implements MigrationInterface {
@@ -14,6 +13,7 @@ export class AddProjectStatus1614079067364 implements MigrationInterface {
     try {
       await queryRunner.query(`DROP TABLE "project_status"`);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.log('AddProjectStatus1614079067364 error', e);
     }
   }

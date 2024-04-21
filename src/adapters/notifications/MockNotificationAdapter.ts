@@ -1,33 +1,37 @@
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
+  OrttoPerson,
   ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import { logger } from '../../utils/logger';
+import { RecurringDonation } from '../../entities/recurringDonation';
 
 export class MockNotificationAdapter implements NotificationAdapterInterface {
-  async updateOrttoUser(params: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    userId?: string;
-  }): Promise<void> {
-    logger.debug('MockNotificationAdapter updateOrttoUser', {
-      firstName: params.firstName,
-      lastName: params.lastName,
-      email: params.email,
-      userId: params.userId,
-    });
+  async updateOrttoPeople(params: OrttoPerson[]): Promise<void> {
+    logger.debug('MockNotificationAdapter updateOrttoPeople', params);
+    return Promise.resolve(undefined);
+  }
+
+  userSuperTokensCritical(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
   donationReceived(params: {
-    donation: Donation;
+    donation: Donation | RecurringDonation;
     project: Project;
   }): Promise<void> {
+    if (params.donation instanceof RecurringDonation) {
+      logger.debug('MockNotificationAdapter donationReceived', {
+        projectSlug: params.project.slug,
+        donationTxHash: params.donation.txHash,
+        donationNetworkId: params.donation.networkId,
+      });
+      return Promise.resolve(undefined);
+    }
     logger.debug('MockNotificationAdapter donationReceived', {
       projectSlug: params.project.slug,
       donationTxHash: params.donation.transactionId,

@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
+import { Keypair } from '@solana/web3.js';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
@@ -32,12 +33,11 @@ import { MainCategory } from '../src/entities/mainCategory';
 import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 import { ChainType } from '../src/types/network';
-import { Keypair } from '@solana/web3.js';
 import { RecurringDonation } from '../src/entities/recurringDonation';
 import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
 import { findProjectById } from '../src/repositories/projectRepository';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
@@ -178,7 +178,7 @@ export const saveAnchorContractDirectlyToDb = async (params: {
     projectId: params.projectId,
     creatorId: params.creatorId,
     address: params.contractAddress || generateRandomEtheriumAddress(),
-    networkId: params.networkId || NETWORK_IDS.OPTIMISM_GOERLI,
+    networkId: params.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     txHash: params.txHash || generateRandomEtheriumAddress(),
     ownerId: projectOwnerId,
   }).save();
@@ -293,8 +293,8 @@ export const saveProjectDirectlyToDb = async (
       "userId","projectId",content,title,"createdAt","isMain"
     ) VALUES (
       ${user.id}, ${project.id}, '', '', '${
-    projectUpdateCreatedAt.toISOString().split('T')[0]
-  }', true
+        projectUpdateCreatedAt.toISOString().split('T')[0]
+      }', true
     )`);
   return project;
 };
@@ -435,10 +435,19 @@ export const SEED_DATA = {
   SIXTH_PROJECT: {
     ...createProjectData(),
     title: 'fifth project',
-    slug: 'fifth-project',
+    slug: 'sixth-project',
     description: 'forth description',
     id: 6,
     admin: '1',
+  },
+  NON_VERIFIED_PROJECT: {
+    ...createProjectData(),
+    title: 'non verified project',
+    slug: 'non-verified-project',
+    description: 'non verified description',
+    id: 7,
+    admin: '1',
+    verified: false,
   },
   MAIN_CATEGORIES: ['drink', 'food', 'nonProfit'],
   NON_PROFIT_SUB_CATEGORIES: [CATEGORY_NAMES.registeredNonProfits],
@@ -1397,17 +1406,11 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
-    optimism_goerli: [
+    optimism_sepolia: [
       {
         name: 'OPTIMISM native token',
         symbol: 'ETH',
         address: '0x0000000000000000000000000000000000000000',
-        decimals: 18,
-      },
-      {
-        name: 'OPTIMISM OP token',
-        symbol: 'OP',
-        address: '0x4200000000000000000000000000000000000042',
         decimals: 18,
       },
     ],
@@ -1923,6 +1926,7 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
   const donorId =
     params?.donationData?.donorId ||
     (await saveUserDirectlyToDb(generateRandomEtheriumAddress())).id;
+  const anonymous = params?.donationData?.anonymous || false;
   const anchorContractAddressId =
     params?.donationData?.anchorContractAddressId ||
     (
@@ -1932,12 +1936,25 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
       })
     ).id;
   return RecurringDonation.create({
-    amount: params?.donationData?.amount || 10,
+    flowRate: params?.donationData?.flowRate || '10',
+    totalUsdStreamed: params?.donationData?.totalUsdStreamed || 0,
     status: params?.donationData?.status || 'pending',
-    networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_GOERLI,
+    networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     currency: params?.donationData?.currency || 'USDT',
-    interval: params?.donationData?.interval || 'monthly',
+    finished:
+      params?.donationData?.finished !== undefined
+        ? params?.donationData?.finished
+        : false,
+    isArchived:
+      params?.donationData?.isArchived !== undefined
+        ? params?.donationData?.isArchived
+        : false,
+    isBatch:
+      params?.donationData?.isBatch !== undefined
+        ? params?.donationData?.isBatch
+        : false,
     txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),
+    anonymous,
     donorId,
     projectId,
     anchorContractAddressId,

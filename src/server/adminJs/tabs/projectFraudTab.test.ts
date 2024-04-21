@@ -1,3 +1,5 @@
+import moment from 'moment';
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -5,9 +7,6 @@ import {
   saveUserDirectlyToDb,
 } from '../../../../test/testUtils';
 import { QfRound } from '../../../entities/qfRound';
-import moment from 'moment';
-import { createSybil } from './sybilTab';
-import { assert } from 'chai';
 import { createProjectFraud } from './projectFraudTab';
 import { errorMessages } from '../../../utils/errorMessages';
 

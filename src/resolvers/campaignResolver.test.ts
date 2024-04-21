@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { assert } from 'chai';
 import {
   createProjectData,
   graphqlUrl,
@@ -6,7 +7,6 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import { fetchCampaignBySlug, getCampaigns } from '../../test/graphqlQueries';
-import { assert } from 'chai';
 import {
   Campaign,
   CampaignFilterField,

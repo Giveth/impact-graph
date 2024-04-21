@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -14,7 +14,7 @@ import { ChainType } from '../types/network';
 @ObjectType()
 @Index(['address', 'networkId'], { unique: true })
 export class Token extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -40,7 +40,7 @@ export class Token extends BaseEntity {
   @Column()
   networkId: number;
 
-  @Field(type => String)
+  @Field(_type => String)
   @Column({
     type: 'enum',
     enum: ChainType,
@@ -57,25 +57,25 @@ export class Token extends BaseEntity {
   // 1 is the order with most priority, and null means it doesn't have any priority
   order?: number;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column({ nullable: false, default: false })
   isGivbackEligible: boolean;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column({ nullable: true, default: false })
   isStableCoin: boolean;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   // If we fill that, we will get price of this token from coingecko
   coingeckoId: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   // If we fill that, we will get price of this token from cryptocompare
   cryptoCompareId: string;
 
-  @ManyToMany(type => Organization, organization => organization.tokens, {
+  @ManyToMany(_type => Organization, organization => organization.tokens, {
     // make it true to show organizations in token page of adminjs panel
     eager: true,
   })

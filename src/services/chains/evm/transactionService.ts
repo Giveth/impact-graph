@@ -1,13 +1,14 @@
 import abiDecoder from 'abi-decoder';
+import axios from 'axios';
 import {
   findTokenByNetworkAndAddress,
   findTokenByNetworkAndSymbol,
 } from '../../../utils/tokenUtils';
 import {
+  errorMessages,
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
-import axios from 'axios';
 import { erc20ABI } from '../../../assets/erc20ABI';
 import { disperseABI } from '../../../assets/disperseABI';
 import {
@@ -21,10 +22,9 @@ import { gnosisSafeL2ABI } from '../../../assets/gnosisSafeL2ABI';
 import { NetworkTransactionInfo, TransactionDetailInput } from '../index';
 import { normalizeAmount } from '../../../utils/utils';
 import { ONE_HOUR, validateTransactionWithInputData } from '../index';
-import _ from 'lodash';
 import { ITxInfo } from '../../../types/etherscan';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 abiDecoder.addABI(gnosisSafeL2ABI);
@@ -180,6 +180,8 @@ export async function getListOfTransactionsByAddress(input: {
   logger.debug(
     'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransaction fromAddress:',
     address,
+    networkId,
+    offset,
   );
   const result = await axios.get(getBlockExplorerApiUrl(networkId), {
     params: {
@@ -191,6 +193,23 @@ export async function getListOfTransactionsByAddress(input: {
       sort: 'desc',
     },
   });
+
+  if (result?.data?.status === '0') {
+    // https://docs.gnosisscan.io/support/common-error-messages
+
+    /**
+     * sample of these errors
+       {
+         "status": "0",
+         "message": "Query Timeout occured. Please select a smaller result dataset",
+         "result": null
+       }
+     */
+    throw new Error(
+      result.data?.message ||
+        `Error while fetching transactions networkId: ${networkId}`,
+    );
+  }
   const userRecentTransactions = result.data.result.filter(tx => {
     return tx.from.toLowerCase() === input.address.toLowerCase();
   });
@@ -199,6 +218,30 @@ export async function getListOfTransactionsByAddress(input: {
     userRecentTransactions,
     lastPage: result.data.result.length < offset,
   };
+}
+
+export async function getEvmTransactionTimestamp(input: {
+  txHash: string;
+  networkId: number;
+}): Promise<number> {
+  try {
+    const { txHash, networkId } = input;
+    logger.debug(
+      'NODE RPC request count - getTransactionTimeFromBlockchain  provider.getTransaction txHash:',
+      input.txHash,
+    );
+    const transaction = await getProvider(networkId).getTransaction(txHash);
+    if (!transaction) {
+      throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
+    }
+    const block = await getProvider(networkId).getBlock(
+      transaction.blockNumber as number,
+    );
+    return block.timestamp as number;
+  } catch (e) {
+    logger.error('getTransactionTimeFromBlockchain error', e);
+    throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
+  }
 }
 
 async function getTransactionDetailForNormalTransfer(
@@ -248,7 +291,7 @@ async function getTransactionDetailForNormalTransfer(
     const events = decodedLogs[0].events;
 
     transactionTo = events[0]?.value?.toLowerCase();
-    transactionFrom = decodedLogs[0]?.address!;
+    transactionFrom = decodedLogs[0]?.address;
     amount = normalizeAmount(events[1]?.value, token.decimals);
 
     if (!transactionTo || !transactionFrom) {

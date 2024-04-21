@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class addIsImportedToProjects1647913785673
   implements MigrationInterface
 {
@@ -22,5 +21,5 @@ export class addIsImportedToProjects1647913785673
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

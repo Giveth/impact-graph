@@ -1,7 +1,6 @@
 import { Field, InputType } from 'type-graphql';
-import { ProjectContacts } from '../../entities/projectVerificationForm';
-import { Column } from 'typeorm';
 import { ChainType } from '../../types/network';
+import { ProjectSocialMediaType } from '../../types/projectSocialMediaType';
 
 @InputType()
 class ProjectPersonalInfoInputType {
@@ -15,19 +14,19 @@ class ProjectPersonalInfoInputType {
 
 @InputType()
 class MilestonesInputType {
-  @Field(type => String, { nullable: true })
-  foundationDate?: String;
+  @Field(_type => String, { nullable: true })
+  foundationDate?: string;
   @Field({ nullable: true })
   mission?: string;
   @Field({ nullable: true })
   achievedMilestones?: string;
-  @Field(type => [String], { nullable: true })
+  @Field(_type => [String], { nullable: true })
   achievedMilestonesProofs?: string[];
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   problem?: string;
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   plans?: string;
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   impact?: string;
 }
 
@@ -47,8 +46,17 @@ export class RelatedAddressInputType {
   address: string;
   @Field({ nullable: true })
   networkId: number;
-  @Field(type => ChainType, { defaultValue: ChainType.EVM })
+  @Field(_type => ChainType, { defaultValue: ChainType.EVM })
   chainType?: ChainType;
+}
+
+@InputType()
+export class ProjectSocialMediaInput {
+  @Field(_type => ProjectSocialMediaType)
+  type: ProjectSocialMediaType;
+
+  @Field()
+  link: string;
 }
 
 @InputType()
@@ -72,7 +80,7 @@ class ProjectRegistryInputType {
   organizationDescription?: string;
   @Field({ nullable: true })
   organizationName?: string;
-  @Field(type => [String], { nullable: true })
+  @Field(_type => [String], { nullable: true })
   attachments: string[];
 }
 
@@ -90,7 +98,7 @@ export class ProjectVerificationUpdateInput {
   @Field({ nullable: true })
   projectRegistry?: ProjectRegistryInputType;
 
-  @Field(type => [ProjectContactsInputType], { nullable: true })
+  @Field(_type => [ProjectContactsInputType], { nullable: true })
   projectContacts?: ProjectContactsInputType[];
 
   @Field({ nullable: true })

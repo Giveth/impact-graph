@@ -30,6 +30,10 @@ export const featuredUpdateTab = {
             ResourceActions.BULK_DELETE,
           ),
       },
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessFeaturedUpdateAction({ currentAdmin }, ResourceActions.LIST),
+      },
       show: {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>

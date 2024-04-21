@@ -1,7 +1,7 @@
+import { schedule } from 'node-cron';
 import config from '../../config';
 
 import { logger } from '../../utils/logger';
-import { schedule } from 'node-cron';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { findUserByWalletAddress } from '../../repositories/userRepository';
 import { Donation } from '../../entities/donation';

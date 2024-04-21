@@ -1,14 +1,8 @@
-import { Sybil } from '../../../entities/sybil';
-import {
-  canAccessProjectStatusReasonAction,
-  ResourceActions,
-} from '../adminJsPermissions';
-import {
-  AdminJsContextInterface,
-  AdminJsRequestInterface,
-} from '../adminJs-types';
-import { logger } from '../../../utils/logger';
 import csv from 'csvtojson';
+import { Sybil } from '../../../entities/sybil';
+import { canAccessSybilAction, ResourceActions } from '../adminJsPermissions';
+import { AdminJsRequestInterface } from '../adminJs-types';
+import { logger } from '../../../utils/logger';
 import { messages } from '../../../utils/messages';
 import { errorMessages } from '../../../utils/errorMessages';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
@@ -16,7 +10,6 @@ import { findUserByWalletAddress } from '../../../repositories/userRepository';
 export const createSybil = async (
   request: AdminJsRequestInterface,
   response,
-  context?: AdminJsContextInterface,
 ) => {
   let message = messages.SYBIL_HAS_BEEN_CREATED_SUCCESSFULLY;
   logger.debug('createSybil has been called() ', request.payload);
@@ -154,31 +147,19 @@ export const SybilTab = {
         handler: createSybil,
 
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.NEW,
-          ),
+          canAccessSybilAction({ currentAdmin }, ResourceActions.NEW),
       },
       edit: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.EDIT,
-          ),
+          canAccessSybilAction({ currentAdmin }, ResourceActions.EDIT),
       },
       delete: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.EDIT,
-          ),
+          canAccessSybilAction({ currentAdmin }, ResourceActions.DELETE),
       },
       bulkDelete: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusReasonAction(
-            { currentAdmin },
-            ResourceActions.EDIT,
-          ),
+          canAccessSybilAction({ currentAdmin }, ResourceActions.BULK_DELETE),
       },
     },
   },

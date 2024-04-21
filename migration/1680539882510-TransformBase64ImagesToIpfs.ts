@@ -5,9 +5,10 @@ import { changeBase64ToIpfsImageInHTML } from '../src/utils/documents';
 export class TransformBase64ImagesToIpfs1680539882510
   implements MigrationInterface
 {
-  async up(queryRunner: QueryRunner): Promise<void> {
+  async up(_queryRunner: QueryRunner): Promise<void> {
     // paginate through project updates
     let skip = 0;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const [projectUpdates, count] = await ProjectUpdate.findAndCount({
         where: { content: Like('%;base64%') },
@@ -19,7 +20,7 @@ export class TransformBase64ImagesToIpfs1680539882510
       // transform base64 images to ipfs
       await Promise.all(
         projectUpdates.map(async ({ id, content }) => {
-          // tslint:disable-next-line:no-console
+          // eslint-disable-next-line no-console
           console.log(
             'Transforming base64 images to ipfs for project update',
             id,
@@ -34,6 +35,7 @@ export class TransformBase64ImagesToIpfs1680539882510
     }
 
     skip = 0;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const [projects, count] = await Project.findAndCount({
         where: { description: Like('%;base64%') },
@@ -46,7 +48,7 @@ export class TransformBase64ImagesToIpfs1680539882510
       await Promise.all(
         projects.map(async ({ id, description }) => {
           if (!description) return;
-          // tslint:disable-next-line:no-console
+          // eslint-disable-next-line no-console
           console.log('Transforming base64 images to ipfs for project', id);
           description = await changeBase64ToIpfsImageInHTML(description);
           return Project.update(id, { description });
@@ -58,5 +60,5 @@ export class TransformBase64ImagesToIpfs1680539882510
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

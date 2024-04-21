@@ -15,7 +15,7 @@ import { User } from './user';
 @ObjectType()
 export class ThirdPartyProjectImport extends BaseEntity {
   // required always for entities
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -30,8 +30,8 @@ export class ThirdPartyProjectImport extends BaseEntity {
   projectName: string;
 
   // History of who exported
-  @Field(type => User)
-  @ManyToOne(type => User)
+  @Field(_type => User)
+  @ManyToOne(_type => User)
   user?: User;
 
   @RelationId(
@@ -41,8 +41,8 @@ export class ThirdPartyProjectImport extends BaseEntity {
   userId: number;
 
   // Link to project
-  @Field(type => Project)
-  @ManyToOne(type => Project)
+  @Field(_type => Project)
+  @ManyToOne(_type => Project)
   project?: Project;
 
   @RelationId(

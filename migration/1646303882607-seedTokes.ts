@@ -3,7 +3,6 @@ import { Token } from '../src/entities/token';
 import seedTokens from './data/seedTokens';
 import { ChainType } from '../src/types/network';
 
-// tslint:disable-next-line:class-name
 export class seedTokes1646303882607 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

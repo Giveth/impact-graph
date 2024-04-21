@@ -1,9 +1,7 @@
-import { Project } from '../../entities/project';
 import { schedule } from 'node-cron';
-import { getRepository } from 'typeorm';
+import { Project } from '../../entities/project';
 
 import config from '../../config';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import { logger } from '../../utils/logger';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { makeProjectListed } from '../../repositories/projectRepository';

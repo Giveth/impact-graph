@@ -1,8 +1,8 @@
+import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import {
   GetTokenPriceParams,
   PriceAdapterInterface,
 } from './PriceAdapterInterface';
-import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { getMonoSwapTokenPrices } from '../../services/donationService';
 import { logger } from '../../utils/logger';
 

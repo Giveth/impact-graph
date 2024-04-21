@@ -1,20 +1,20 @@
 import axios from 'axios';
 
+import Bull from 'bull';
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
+  OrttoPerson,
   ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import { User } from '../../entities/user';
+import { UserStreamBalanceWarning, User } from '../../entities/user';
 import { createBasicAuthentication } from '../../utils/utils';
 import { logger } from '../../utils/logger';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
-import Bull from 'bull';
 import { redisConfig } from '../../redis';
 import config from '../../config';
-
 import { findProjectById } from '../../repositories/projectRepository';
 import {
   findAllUsers,
@@ -23,7 +23,10 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
-import { findTokenByNetworkAndAddress } from '../../utils/tokenUtils';
+import { RecurringDonation } from '../../entities/recurringDonation';
+import { getTokenPrice } from '../../services/priceService';
+import { Token } from '../../entities/token';
+import { toFixNumber } from '../../services/donationService';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -40,6 +43,7 @@ const sendBroadcastNotificationsQueue = new Bull<BroadcastNotificationsQueue>(
     redis: redisConfig,
   },
 );
+
 export class NotificationCenterAdapter implements NotificationAdapterInterface {
   readonly authorizationHeader: string;
   constructor() {
@@ -52,71 +56,52 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
-  async updateOrttoUser(params: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    userId?: string;
-    totalDonated?: number;
-    donationsCount?: string;
-    lastDonationDate?: Date | null;
-    GIVbacksRound?: number;
-    QFRound?: string;
-    donationChain?: string;
+  async userSuperTokensCritical(params: {
+    user: User;
+    eventName: UserStreamBalanceWarning;
+    tokenSymbol: string;
+    project: Project;
+    isEnded: boolean;
+    networkName: string;
   }): Promise<void> {
-    try {
-      const {
-        firstName,
-        lastName,
+    logger.debug('userSuperTokensCritical', { params });
+    const { eventName, tokenSymbol, project, user, isEnded, networkName } =
+      params;
+    const { email, walletAddress } = user;
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      tokenSymbol,
+      isEnded,
+    };
+    await sendProjectRelatedNotificationsQueue.add({
+      project,
+      user: {
         email,
-        userId,
-        totalDonated,
-        donationsCount,
-        lastDonationDate,
-        GIVbacksRound,
-        QFRound,
-        donationChain,
-      } = params;
-      logger.debug('updateOrttoUser has been called', params);
-      const fields = {
-        'str::first': firstName || '',
-        'str::last': lastName || '',
-        'str::email': email || '',
-      };
-      if (process.env.ENVIRONMENT === 'production') {
-        // On production, we should update Ortto user profile based on user-id to avoid touching real users data
-        fields['str:cm:user-id'] = userId;
-      }
-      if (donationsCount) {
-        fields['int:cm:number-of-donations'] = Number(donationsCount);
-      }
-      if (totalDonated) {
-        // Ortto automatically adds three decimal points to integers
-        fields['int:cm:total-donations-value'] =
-          Number(totalDonated?.toFixed(3)) * 1000;
-      }
-      if (lastDonationDate) {
-        fields['dtz:cm:lastdonationdate'] = lastDonationDate;
-      }
-      const tags: string[] = [];
-      if (GIVbacksRound) {
-        tags.push(`GIVbacks ${GIVbacksRound}`);
-      }
-      if (QFRound) {
-        tags.push(`QF Donor ${QFRound}`);
-      }
-      if (donationChain) {
-        tags.push(`Donated on ${donationChain}`);
-      }
+        walletAddress: walletAddress!,
+      },
+      eventName,
+      sendEmail: true,
+      metadata: {
+        ...payload,
+        networkName,
+        recurringDonationTab: `${process.env.WEBSITE_URL}/account?tab=recurring-donations`,
+      },
+      segment: {
+        payload,
+      },
+    });
+    return;
+  }
+
+  async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {
+    // TODO we should me this to notification-center, it's not good that we call Ortto directly
+    try {
       const data = {
-        people: [
-          {
-            fields,
-            tags,
-          },
-        ],
+        people,
         async: false,
       };
+      logger.debug('updateOrttoPeople has been called:', people);
       const orttoConfig = {
         method: 'post',
         maxBodyLength: Infinity,
@@ -129,7 +114,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       };
       await axios.request(orttoConfig);
     } catch (e) {
-      logger.error('updateOrttoUser >> error', e);
+      logger.error('updateOrttoPeople >> error', e);
     }
   }
 
@@ -167,15 +152,51 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async donationReceived(params: {
-    donation: Donation;
+    donation: Donation | RecurringDonation;
     project: Project;
     user: User | null;
   }): Promise<void> {
-    if (params.donation.valueUsd <= 1) return;
-
     const { project, donation, user } = params;
+    const isRecurringDonation = donation instanceof RecurringDonation;
+    let transactionId: string, transactionNetworkId: number;
+    if (isRecurringDonation) {
+      transactionId = donation.txHash;
+      transactionNetworkId = donation.networkId;
+      const token = await Token.findOneBy({
+        symbol: donation.currency,
+        networkId: transactionNetworkId,
+      });
+      const amount =
+        (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
+      const price = await getTokenPrice(transactionNetworkId, token!);
+      const donationValueUsd = toFixNumber(amount * price, 4);
+      logger.debug('donationReceived (recurring) has been called', {
+        params,
+        amount,
+        price,
+        donationValueUsd,
+        token,
+      });
+      if (donationValueUsd <= 20) return;
+    } else {
+      transactionId = donation.transactionId;
+      transactionNetworkId = donation.transactionNetworkId;
+      const donationValueUsd = donation.valueUsd;
+      logger.debug('donationReceived has been called', {
+        params,
+        transactionId,
+        transactionNetworkId,
+        donationValueUsd,
+      });
+      if (donationValueUsd <= 1) return;
+    }
+
     await sendProjectRelatedNotificationsQueue.add({
       project,
+      user: {
+        email: user?.email as string,
+        walletAddress: user?.walletAddress as string,
+      },
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
       sendEmail: true,
       segment: {
@@ -187,17 +208,15 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId:
         'donation-received-' +
-        donation.transactionNetworkId +
+        transactionNetworkId +
         '-' +
-        donation.transactionId,
+        transactionId +
+        '-' +
+        isRecurringDonation,
     });
   }
 
-  async donationSent(params: {
-    donation: Donation;
-    project: Project;
-    donor: User;
-  }): Promise<void> {
+  async donationSent(): Promise<void> {
     return;
     // const { project, donor, donation } = params;
     // await sendProjectRelatedNotificationsQueue.add({
@@ -471,10 +490,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  async projectReceivedHeartReaction(params: {
-    project: Project;
-    userId: number;
-  }): Promise<void> {
+  async projectReceivedHeartReaction(): Promise<void> {
     return;
     // const { project } = params;
     // await sendProjectRelatedNotificationsQueue.add({
@@ -491,11 +507,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     // });
   }
 
-  ProfileIsCompleted(params: { user: User }): Promise<void> {
+  ProfileIsCompleted(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
-  ProfileNeedToBeCompleted(params: { user: User }): Promise<void> {
+  ProfileNeedToBeCompleted(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
@@ -686,7 +702,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   // commenting for now to test load of notification center.
-  async projectEdited(params: { project: Project }): Promise<void> {
+  async projectEdited(): Promise<void> {
     return;
     // const { project } = params;
     // const projectOwner = project?.adminUser as User;
@@ -794,7 +810,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }): Promise<void> {
     const { project, donationInfo } = params;
     const { txLink, reason } = donationInfo;
-    const projectOwner = project?.adminUser as User;
     const now = Date.now();
 
     await sendProjectRelatedNotificationsQueue.add({
@@ -866,7 +881,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       if (!project) {
         continue;
       }
-      const projectOwner = project.adminUser;
       let eventName;
 
       // https://github.com/Giveth/impact-graph/issues/774#issuecomment-1542337083
@@ -909,14 +923,35 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 const getEmailDataDonationAttributes = async (params: {
   user: User;
   project: Project;
-  donation: Donation;
+  donation: Donation | RecurringDonation;
 }) => {
   const { user, project, donation } = params;
-  const token = await findTokenByNetworkAndAddress(
-    donation.transactionNetworkId,
-    donation.tokenAddress!,
-  );
-  const symbol = token?.symbol;
+  const isRecurringDonation = donation instanceof RecurringDonation;
+  let amount: number,
+    transactionId: string,
+    transactionNetworkId: number,
+    toWalletAddress: string | undefined,
+    donationValueUsd: number | undefined,
+    donationValueEth: number | undefined,
+    transakStatus: string | undefined;
+  if (isRecurringDonation) {
+    transactionId = donation.txHash;
+    transactionNetworkId = donation.networkId;
+    const token = await Token.findOneBy({
+      symbol: donation.currency,
+      networkId: transactionNetworkId,
+    });
+    amount =
+      (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
+  } else {
+    amount = Number(donation.amount);
+    transactionId = donation.transactionId;
+    transactionNetworkId = donation.transactionNetworkId;
+    toWalletAddress = donation.toWalletAddress.toLowerCase();
+    donationValueUsd = donation.valueUsd;
+    donationValueEth = donation.valueEth;
+    transakStatus = donation.transakStatus;
+  }
   return {
     email: user.email,
     title: project.title,
@@ -925,27 +960,30 @@ const getEmailDataDonationAttributes = async (params: {
     projectOwnerId: project.admin,
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
-    amount: Number(donation.amount),
-    token: symbol,
-    transactionId: donation.transactionId.toLowerCase(),
-    transactionNetworkId: Number(donation.transactionNetworkId),
-    transactionLink: buildTxLink(
-      donation.transactionId,
-      donation.transactionNetworkId,
-    ),
+    amount,
+    isRecurringDonation,
+    token: donation.currency,
+    transactionId: transactionId.toLowerCase(),
+    transactionNetworkId: Number(transactionNetworkId),
+    transactionLink: buildTxLink(transactionId, transactionNetworkId),
     currency: donation.currency,
-    createdAt: new Date(),
-    toWalletAddress: donation.toWalletAddress.toLowerCase(),
-    donationValueUsd: donation.valueUsd,
-    donationValueEth: donation.valueEth,
+    createdAt: donation.createdAt,
+    toWalletAddress,
+    donationValueUsd,
+    donationValueEth,
     verified: Boolean(project.verified),
-    transakStatus: donation.transakStatus,
+    transakStatus,
   };
 };
 
 const getEmailDataProjectAttributes = async (params: { project: Project }) => {
   const { project } = params;
-  const user = await findUserById(project.adminUserId);
+  let user: User | null;
+  if (project.adminUser?.email) {
+    user = project.adminUser;
+  } else {
+    user = await findUserById(project.adminUserId);
+  }
   return {
     email: user?.email,
     title: project.title,
@@ -955,6 +993,78 @@ const getEmailDataProjectAttributes = async (params: { project: Project }) => {
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     OwnerId: project?.adminUser?.id,
     slug: project.slug,
+  };
+};
+
+export const getOrttoPersonAttributes = (params: {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  userId?: string;
+  totalDonated?: number;
+  donationsCount?: string;
+  lastDonationDate?: Date | null;
+  GIVbacksRound?: number;
+  QFDonor?: string;
+  QFProjectOwnerAdded?: string;
+  QFProjectOwnerRemoved?: string;
+  donationChain?: string;
+}): OrttoPerson => {
+  const {
+    firstName,
+    lastName,
+    email,
+    userId,
+    totalDonated,
+    donationsCount,
+    lastDonationDate,
+    GIVbacksRound,
+    QFDonor,
+    QFProjectOwnerAdded,
+    QFProjectOwnerRemoved,
+    donationChain,
+  } = params;
+  const fields = {
+    'str::first': firstName || '',
+    'str::last': lastName || '',
+    'str::email': email || '',
+  };
+  if (process.env.ENVIRONMENT === 'production') {
+    // On production, we should update Ortto user profile based on user-id to avoid touching real users data
+    fields['str:cm:user-id'] = userId;
+  }
+  if (donationsCount) {
+    fields['int:cm:number-of-donations'] = Number(donationsCount);
+  }
+  if (totalDonated) {
+    // Ortto automatically adds three decimal points to integers
+    fields['int:cm:total-donations-value'] =
+      Number(totalDonated?.toFixed(3)) * 1000;
+  }
+  if (lastDonationDate) {
+    fields['dtz:cm:lastdonationdate'] = lastDonationDate;
+  }
+  const tags: string[] = [];
+  const unsetTags: string[] = [];
+  if (GIVbacksRound) {
+    tags.push(`GIVbacks ${GIVbacksRound}`);
+  }
+  if (QFDonor) {
+    tags.push(`QF Donor ${QFDonor}`);
+  }
+  if (QFProjectOwnerAdded) {
+    tags.push(`QF Project Owner ${QFProjectOwnerAdded}`);
+  }
+  if (donationChain) {
+    tags.push(`Donated on ${donationChain}`);
+  }
+  if (QFProjectOwnerRemoved) {
+    unsetTags.push(`QF Project Owner ${QFProjectOwnerRemoved}`);
+  }
+  return {
+    fields,
+    tags,
+    unset_tags: unsetTags,
   };
 };
 
@@ -976,7 +1086,7 @@ const sendProjectRelatedNotification = async (params: {
   const projectLink = buildProjectLink(eventName, project.slug);
   const data: SendNotificationBody = {
     eventName,
-    email: receivedUser.email,
+    email: segment?.payload?.email || receivedUser.email,
     sendEmail: sendEmail || false,
     sendSegment: Boolean(segment),
     userWalletAddress: receivedUser.walletAddress as string,

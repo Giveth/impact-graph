@@ -1,5 +1,7 @@
 import { assert } from 'chai';
 import 'mocha';
+import axios from 'axios';
+import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
@@ -12,7 +14,6 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
-import axios from 'axios';
 import { fetchMultiFilterAllProjectsQuery } from '../../test/graphqlQueries';
 import { Project, ReviewStatus, SortingField } from '../entities/project';
 import { User } from '../entities/user';
@@ -27,14 +28,12 @@ import { refreshProjectPowerView } from '../repositories/projectPowerViewReposit
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
-import moment from 'moment';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { AppDataSource } from '../orm';
 // We are using cache so redis needs to be cleared for tests with same filters
 import { redis } from '../redis';
 import { Campaign, CampaignType } from '../entities/campaign';
 import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
-import { ArgumentValidationError } from 'type-graphql';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
 import { updateInstantBoosting } from '../services/instantBoostingServices';
@@ -47,10 +46,6 @@ import {
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
-
-const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
-  { property: '' },
-]).message;
 
 // search and filters
 describe('all projects test cases --->', allProjectsTestCases);
@@ -126,16 +121,19 @@ function allProjectsTestCases() {
     result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        limit,
         searchTerm: SEED_DATA.FIRST_PROJECT.title,
         connectedWalletUserId: USER_DATA.id,
       },
     });
 
     projects = result.data.data.allProjects.projects;
-    assert.equal(projects.length, limit);
+    // Find the project with the exact title
+    const selectedProject = projects.find(
+      ({ title }) => title === SEED_DATA.FIRST_PROJECT.title,
+    );
+    assert.isAtLeast(projects.length, limit);
     assert.equal(
-      projects[0]?.reaction?.id,
+      selectedProject?.reaction?.id,
       REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION.id,
     );
     projects.forEach(project => {
@@ -178,7 +176,7 @@ function allProjectsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
-    const secondProject = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
@@ -462,9 +460,7 @@ function allProjectsTestCases() {
       ...createProjectData(),
       verified: false,
     }); // Not boosted -Not verified project
-    const project5 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
-
-    const roundNumber = project3.id * 10;
+    await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
 
     await Promise.all(
       [
@@ -559,11 +555,11 @@ function allProjectsTestCases() {
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const project3 = await saveProjectDirectlyToDb(createProjectData());
-    const project4 = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       verified: false,
     }); // Not boosted -Not verified project
-    const project5 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
+    await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
 
     const roundNumber = project3.id * 10;
 
@@ -1253,7 +1249,7 @@ function allProjectsTestCases() {
           address =>
             address.isRecipient === true &&
             (address.networkId === NETWORK_IDS.OPTIMISTIC ||
-              address.networkId === NETWORK_IDS.OPTIMISM_GOERLI) &&
+              address.networkId === NETWORK_IDS.OPTIMISM_SEPOLIA) &&
             address.chainType === ChainType.EVM,
         ),
       );
@@ -1469,7 +1465,7 @@ function allProjectsTestCases() {
     // Delete all project addresses
     await ProjectAddress.delete({ chainType: ChainType.SOLANA });
 
-    const project = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),

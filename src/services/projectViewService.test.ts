@@ -1,3 +1,5 @@
+import moment from 'moment';
+import { assert } from 'chai';
 import {
   getQfRoundActualDonationDetails,
   refreshProjectActualMatchingView,
@@ -5,7 +7,6 @@ import {
 import { QfRound } from '../entities/qfRound';
 import { Project } from '../entities/project';
 import { NETWORK_IDS } from '../provider';
-import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
@@ -14,7 +15,6 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { assert } from 'chai';
 
 describe(
   'getQfRoundActualDonationDetails test cases',
@@ -105,7 +105,7 @@ function getQfRoundActualDonationDetailsTestCases() {
       user.passportScore = qfr.minimumPassportScore;
       await user.save();
 
-      const donation = await saveDonationDirectlyToDb(
+      await saveDonationDirectlyToDb(
         {
           ...createDonationData(),
           status: 'verified',

@@ -1,7 +1,7 @@
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import { User } from '../../entities/user';
-import exp from 'constants';
+import { UserStreamBalanceWarning, User } from '../../entities/user';
+import { RecurringDonation } from '../../entities/recurringDonation';
 
 export interface BroadCastNotificationInputParams {
   broadCastNotificationId: number;
@@ -19,22 +19,25 @@ export interface ProjectsHaveNewRankingInputParam {
   newBottomRank: number;
 }
 
+export interface OrttoPerson {
+  fields: {
+    'str::first': string;
+    'str::last': string;
+    'str::email': string;
+    'str:cm:user-id'?: string;
+    'int:cm:number-of-donations'?: number;
+    'int:cm:total-donations-value'?: number;
+    'dtz:cm:lastdonationdate'?: Date;
+  };
+  tags: string[];
+  unset_tags: string[];
+}
+
 export interface NotificationAdapterInterface {
-  updateOrttoUser(params: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    userId?: string;
-    totalDonated?: number;
-    donationsCount?: string;
-    lastDonationDate?: Date | null;
-    GIVbacksRound?: number;
-    QFRound?: string;
-    donationChain?: string;
-  }): Promise<void>;
+  updateOrttoPeople(params: OrttoPerson[]): Promise<void>;
 
   donationReceived(params: {
-    donation: Donation;
+    donation: Donation | RecurringDonation;
     project: Project;
     user: User | null;
   }): Promise<void>;
@@ -48,6 +51,15 @@ export interface NotificationAdapterInterface {
   projectReceivedHeartReaction(params: {
     project: Project;
     userId: number;
+  }): Promise<void>;
+
+  userSuperTokensCritical(params: {
+    user: User;
+    eventName: UserStreamBalanceWarning;
+    tokenSymbol: string;
+    project: Project;
+    isEnded: boolean;
+    networkName: string;
   }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;

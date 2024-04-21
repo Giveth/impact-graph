@@ -1,5 +1,4 @@
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
-import { Repository } from 'typeorm';
 
 import { User } from '../entities/user';
 import {
@@ -35,9 +34,9 @@ export class ExpectedMatchingResponse {
   matchingPool: number;
 }
 
-@Resolver(of => User)
+@Resolver(_of => User)
 export class QfRoundResolver {
-  @Query(returns => [QfRound], { nullable: true })
+  @Query(_returns => [QfRound], { nullable: true })
   async qfRounds() {
     return findAllQfRounds();
   }

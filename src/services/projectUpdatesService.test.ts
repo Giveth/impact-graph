@@ -2,7 +2,6 @@ import { assert } from 'chai';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
-  SEED_DATA,
 } from '../../test/testUtils';
 import { Project, ProjectUpdate } from '../entities/project';
 import { updateTotalProjectUpdatesOfAProject } from './projectUpdatesService';
@@ -33,8 +32,8 @@ function updateTotalProjectUpdatesOfAProjectTestCases() {
       "userId","projectId",content,title,"createdAt","isMain"
     ) VALUES (
       ${Number(project.admin)}, ${project.id}, '', '', '${
-      new Date().toISOString().split('T')[0]
-    }', false
+        new Date().toISOString().split('T')[0]
+      }', false
     )`);
     await updateTotalProjectUpdatesOfAProject(project.id);
     const updatedProject = (await findProjectById(project.id)) as Project;

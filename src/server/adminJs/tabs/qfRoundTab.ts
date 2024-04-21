@@ -1,9 +1,11 @@
-import { QfRound } from '../../../entities/qfRound';
-import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
 import {
   ActionResponse,
   After,
 } from 'adminjs/src/backend/actions/action.interface';
+import adminJs, { ValidationError } from 'adminjs';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import { QfRound } from '../../../entities/qfRound';
+import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
 import {
   getQfRoundActualDonationDetails,
   refreshProjectActualMatchingView,
@@ -14,17 +16,17 @@ import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
 } from '../adminJs-types';
-import adminJs, { ValidationError } from 'adminjs';
 import { isQfRoundHasEnded } from '../../../services/qfRoundService';
 import {
   findQfRoundById,
   getRelatedProjectsOfQfRound,
 } from '../../../repositories/qfRoundRepository';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { NETWORK_IDS } from '../../../provider';
 import { logger } from '../../../utils/logger';
 import { messages } from '../../../utils/messages';
 import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
+import { errorMessages } from '../../../utils/errorMessages';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 
 export const refreshMaterializedViews = async (
   response,
@@ -43,8 +45,6 @@ export const fillProjects: After<ActionResponse> = async (
   const record: RecordJSON = response.record || {};
   const qfRoundId = record.params.qfRoundId || record.params.id;
   const projects = await getRelatedProjectsOfQfRound(qfRoundId);
-
-  const adminJsBaseUrl = process.env.SERVER_URL;
   response.record = {
     ...record,
     params: {
@@ -60,27 +60,32 @@ const returnAllQfRoundDonationAnalysis = async (
   request: AdminJsRequestInterface,
 ) => {
   const { record, currentAdmin } = context;
+  const qfRoundId = Number(request?.params?.recordId);
+  let type = 'success';
+  logger.debug(
+    'returnAllQfRoundDonationAnalysis() has been called, qfRoundId',
+    qfRoundId,
+  );
+  let message = messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY;
   try {
-    const qfRoundId = Number(request?.params?.recordId);
-    logger.debug('qfRoundId', qfRoundId);
-
-    const qfRoundDonationsRows = await getQfRoundActualDonationDetails(
-      qfRoundId,
-    );
+    const qfRoundDonationsRows =
+      await getQfRoundActualDonationDetails(qfRoundId);
     logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
     await addQfRoundDonationsSheetToSpreadsheet({
       rows: qfRoundDonationsRows,
       qfRoundId,
     });
-    // TODO Upload to google sheet
-  } catch (error) {
-    throw error;
+  } catch (e) {
+    logger.error('returnAllQfRoundDonationAnalysis() error', e);
+    message = e.message;
+    type = 'danger';
   }
+
   return {
     record: record.toJSON(currentAdmin),
     notice: {
-      message: messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY,
-      type: 'success',
+      message,
+      type,
     },
   };
 };
@@ -89,6 +94,23 @@ export const qfRoundTab = {
   resource: QfRound,
   options: {
     properties: {
+      addProjectIdsList: {
+        type: 'textarea',
+        // projectIds separated By comma
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: false,
+          edit: true,
+        },
+      },
+      title: {
+        isVisible: true,
+      },
+      description: {
+        isVisible: true,
+      },
       name: {
         isVisible: true,
       },
@@ -130,7 +152,7 @@ export const qfRoundTab = {
             value: NETWORK_IDS.MORDOR_ETC_TESTNET,
             label: 'MORDOR ETC TESTNET',
           },
-          { value: NETWORK_IDS.OPTIMISM_GOERLI, label: 'OPTIMISM GOERLI' },
+          { value: NETWORK_IDS.OPTIMISM_SEPOLIA, label: 'OPTIMISM SEPOLIA' },
           { value: NETWORK_IDS.CELO, label: 'CELO' },
           {
             value: NETWORK_IDS.CELO_ALFAJORES,
@@ -198,19 +220,34 @@ export const qfRoundTab = {
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
         before: async (
           request: AdminJsRequestInterface,
-          response,
+          _response,
           _context: AdminJsContextInterface,
         ) => {
           // https://docs.adminjs.co/basics/action#using-before-and-after-hooks
           if (request?.payload?.id) {
             const qfRoundId = Number(request.payload.id);
             const qfRound = await findQfRoundById(qfRoundId);
-            if (!qfRound || isQfRoundHasEnded({ endDate: qfRound!.endDate })) {
+            if (!qfRound) {
               throw new ValidationError({
                 endDate: {
-                  message:
-                    'The endDate has passed so qfRound cannot be edited.',
+                  message: errorMessages.QF_ROUND_NOT_FOUND,
                 },
+              });
+            }
+            if (isQfRoundHasEnded({ endDate: qfRound!.endDate })) {
+              // When qf round is ended we should not be able to edit begin date and end date
+              // https://github.com/Giveth/giveth-dapps-v2/issues/3864
+              request.payload.endDate = qfRound.endDate;
+              request.payload.beginDate = qfRound.beginDate;
+              request.payload.isActive = qfRound.isActive;
+            } else if (
+              qfRound.isActive &&
+              request?.payload?.addProjectIdsList?.split(',')?.length > 0
+            ) {
+              await relateManyProjectsToQfRound({
+                projectIds: request.payload.addProjectIdsList.split(','),
+                qfRound,
+                add: true,
               });
             }
           }
@@ -223,6 +260,11 @@ export const qfRoundTab = {
         // https://docs.adminjs.co/basics/action#record-type-actions
         actionType: 'record',
         isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.RETURN_ALL_DONATIONS_DATA,
+          ),
         handler: async (request, response, context) => {
           return returnAllQfRoundDonationAnalysis(context, request);
         },

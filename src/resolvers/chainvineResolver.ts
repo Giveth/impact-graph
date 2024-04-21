@@ -1,19 +1,6 @@
-import {
-  Arg,
-  Ctx,
-  Field,
-  Int,
-  Mutation,
-  Query,
-  registerEnumType,
-  Resolver,
-} from 'type-graphql';
+import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { ApolloContext } from '../types/ApolloContext';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User } from '../entities/user';
 import {
   findUserById,
@@ -22,9 +9,9 @@ import {
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
 
-@Resolver(of => User)
+@Resolver(_of => User)
 export class ChainvineResolver {
-  @Mutation(returns => User, { nullable: true })
+  @Mutation(_returns => User, { nullable: true })
   async registerOnChainvine(
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<User | void> {
@@ -56,7 +43,7 @@ export class ChainvineResolver {
     }
   }
 
-  @Mutation(returns => User, { nullable: true })
+  @Mutation(_returns => User, { nullable: true })
   async registerClickEvent(
     @Arg('referrerId', { nullable: false }) referrerId: string,
     @Arg('walletAddress', { nullable: false }) walletAddress: string,

@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -16,11 +16,11 @@ import { PowerSnapshot } from './powerSnapshot';
 // To improve the performance of the query, we need to add the following index
 @Index(['powerSnapshotId', 'userId'], { where: 'balance IS NULL' })
 export class PowerBalanceSnapshot extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   userId: number;
 
@@ -28,7 +28,7 @@ export class PowerBalanceSnapshot extends BaseEntity {
   @Column('float', { nullable: true })
   balance: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @RelationId(
     (powerBalanceSnapshot: PowerBalanceSnapshot) =>
       powerBalanceSnapshot.powerSnapshot,
@@ -36,7 +36,7 @@ export class PowerBalanceSnapshot extends BaseEntity {
   @Column()
   powerSnapshotId: number;
 
-  @Field(type => PowerSnapshot, { nullable: false })
-  @ManyToOne(type => PowerSnapshot, { nullable: false })
+  @Field(_type => PowerSnapshot, { nullable: false })
+  @ManyToOne(_type => PowerSnapshot, { nullable: false })
   powerSnapshot: PowerSnapshot;
 }

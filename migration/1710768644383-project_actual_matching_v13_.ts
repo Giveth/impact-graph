@@ -172,7 +172,7 @@ export class ProjectActualMatchingV13_1710768644383
         `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  async down(_queryRunner: QueryRunner): Promise<void> {
     //
   }
 }

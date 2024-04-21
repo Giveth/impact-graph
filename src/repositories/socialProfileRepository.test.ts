@@ -1,7 +1,7 @@
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
-  generateTestAccessToken,
   saveProjectDirectlyToDb,
   saveProjectVerificationFormDirectlyToDb,
   saveUserDirectlyToDb,
@@ -13,7 +13,6 @@ import {
   removeSocialProfileById,
 } from './socialProfileRepository';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
-import { assert } from 'chai';
 
 describe(
   'removeSocialProfileById test cases',
