@@ -33,7 +33,6 @@ import {
   updateTotalDonationsOfProject,
 } from './donationService';
 import { calculateGivbackFactor } from './givbackService';
-import { relatedActiveQfRoundForProject } from './qfRoundService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 import config from '../config';
 import { User } from '../entities/user';
@@ -213,16 +212,17 @@ export const createRelatedDonationsToStream = async (
         amount: donation.amount,
       });
 
-      const activeQfRoundForProject = await relatedActiveQfRoundForProject(
-        project.id,
-      );
-
-      if (
-        activeQfRoundForProject &&
-        activeQfRoundForProject.isEligibleNetwork(networkId)
-      ) {
-        donation.qfRound = activeQfRoundForProject;
-      }
+      // TODO - uncomment this when QF is enabled
+      // const activeQfRoundForProject = await relatedActiveQfRoundForProject(
+      //   project.id,
+      // );
+      //
+      // if (
+      //   activeQfRoundForProject &&
+      //   activeQfRoundForProject.isEligibleNetwork(networkId)
+      // ) {
+      //   donation.qfRound = activeQfRoundForProject;
+      // }
 
       const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
         await calculateGivbackFactor(project.id);
