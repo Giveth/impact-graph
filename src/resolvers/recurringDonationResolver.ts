@@ -261,7 +261,7 @@ export class RecurringDonationResolver {
       );
     }
 
-    return updateRecurringDonation({
+    const updatedRecurringDonation = await updateRecurringDonation({
       recurringDonation,
       txHash,
       flowRate,
@@ -269,6 +269,16 @@ export class RecurringDonationResolver {
       status,
       isArchived,
     });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate: updatedRecurringDonation.flowRate,
+    });
+
+    return updatedRecurringDonation;
   }
 
   @Mutation(_returns => RecurringDonation, { nullable: true })
