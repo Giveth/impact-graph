@@ -9,7 +9,7 @@ import {
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import { User } from '../../entities/user';
+import { UserStreamBalanceWarning, User } from '../../entities/user';
 import { createBasicAuthentication } from '../../utils/utils';
 import { logger } from '../../utils/logger';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
@@ -23,10 +23,7 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
-import {
-  RecurringDonation,
-  RecurringDonationBalanceWarning,
-} from '../../entities/recurringDonation';
+import { RecurringDonation } from '../../entities/recurringDonation';
 import { getTokenPrice } from '../../services/priceService';
 import { Token } from '../../entities/token';
 import { toFixNumber } from '../../services/donationService';
@@ -61,7 +58,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async userSuperTokensCritical(params: {
     user: User;
-    eventName: RecurringDonationBalanceWarning;
+    eventName: UserStreamBalanceWarning;
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
