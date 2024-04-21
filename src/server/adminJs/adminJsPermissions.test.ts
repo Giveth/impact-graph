@@ -270,7 +270,6 @@ const canAccessAction = (
   }
 };
 
-
 // TODO Should uncomment it after https://github.com/Giveth/impact-graph/issues/1481 ( I commented this to reduce the test execution time)
 describe.skip('canAccessUserAction test cases', () => {
   roles.forEach(role => {
