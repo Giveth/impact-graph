@@ -97,13 +97,22 @@ export class ProjectActualMatchingV121712205556308
                         WHERE s."userId" = upd."userId"
                         AND s."qfRoundId" = upd."qfRoundId"
                     )
-                AND NOT EXISTS (
-                    SELECT 1
-                    FROM project verified_project
-                    JOIN project_address ON verified_project."id" = project_address."projectId"
-                    WHERE verified_project.verified = true 
-                        AND lower(project_address."address") = lower(upd."fromWalletAddress") 
-                )
+               
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM project normal_project
+                        JOIN project_address ON normal_project."id" = project_address."projectId"
+                        WHERE normal_project."statusId" = 5 AND normal_project."reviewStatus" = 'Listed'
+                          AND lower(project_address."address") = lower(upd."fromWalletAddress") 
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM project_address pa
+                        INNER JOIN project_qf_rounds_qf_round pqrq ON pa."projectId" = pqrq."projectId"
+                        WHERE pqrq."qfRoundId" = upd."qfRoundId" -- Ensuring we're looking at the same QF round
+                          AND lower(pa."address") = lower(upd."fromWalletAddress")
+                          AND pa."isRecipient" = true
+                  )
 
             ),
             DonationIDsAggregated AS (
