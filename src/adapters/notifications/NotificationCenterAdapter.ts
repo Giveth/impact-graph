@@ -64,7 +64,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     isEnded: boolean;
     networkName: string;
   }): Promise<void> {
-    logger.debug('userSuperTokensCritical', { params });
+    logger.debug('userSuperTokensCritical has been called', { params });
     const { eventName, tokenSymbol, project, user, isEnded, networkName } =
       params;
     const { email, walletAddress } = user;

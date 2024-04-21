@@ -5,13 +5,18 @@ import {
   getNotificationAdapter,
   getSuperFluidAdapter,
 } from '../adapters/adaptersFactory';
-import { DONATION_STATUS, Donation } from '../entities/donation';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
 } from '../entities/recurringDonation';
 import { Token } from '../entities/token';
-import { getProvider, NETWORK_IDS, superTokensToToken } from '../provider';
+import {
+  getNetworkNameById,
+  getProvider,
+  NETWORK_IDS,
+  superTokensToToken,
+} from '../provider';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import {
@@ -32,6 +37,7 @@ import { relatedActiveQfRoundForProject } from './qfRoundService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 import config from '../config';
 import { User } from '../entities/user';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';
@@ -79,6 +85,14 @@ export const createRelatedDonationsToStream = async (
     recurringDonation.finished = true;
     recurringDonation.status = RECURRING_DONATION_STATUS.ENDED;
     await recurringDonation.save();
+    await getNotificationAdapter().userSuperTokensCritical({
+      user: recurringDonation.donor,
+      eventName: NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_DEPLETED,
+      tokenSymbol: recurringDonation.currency,
+      isEnded: recurringDonation.finished,
+      project: recurringDonation.project,
+      networkName: getNetworkNameById(recurringDonation.networkId),
+    });
   }
 
   const project = await findProjectById(recurringDonation.projectId);
