@@ -21,10 +21,11 @@ export class ProjectActualMatchinView151713700147145
                  STRING_AGG(DISTINCT CONCAT(pa."networkId", '-', pa."address"), ', ') AS "networkAddresses"
             FROM
                 public.project p
-                CROSS JOIN public.qf_round qr
+                INNER JOIN project_qf_rounds_qf_round pqrq ON pqrq."projectId" = p.id
                 INNER JOIN public."user" u on p."adminUserId" = u.id
+                INNER JOIN public.qf_round qr on qr.id = pqrq."qfRoundId"
                 LEFT JOIN project_address pa ON pa."projectId" = p.id AND pa."networkId" = ANY(qr."eligibleNetworks") AND pa."isRecipient" = true
-        group by
+           group by
             p.id,
             u.email,
             qr.id
