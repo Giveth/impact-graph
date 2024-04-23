@@ -6,7 +6,6 @@ import config from '../../config';
 import { logger } from '../../utils/logger';
 import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-
 import { makeFormDraft } from '../../repositories/projectVerificationRepository';
 import { sleep } from '../../utils/utils';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
