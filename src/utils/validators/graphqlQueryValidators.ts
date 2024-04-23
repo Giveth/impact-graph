@@ -154,11 +154,7 @@ export const createDraftRecurringDonationQueryValidator = Joi.object({
   currency: Joi.string().required(),
   flowRate: Joi.string().required(),
   projectId: Joi.number().integer().min(0).required(),
-  recurringDonationId: Joi.number().integer().min(0).when('isForUpdate', {
-    is: true,
-    then: Joi.required(),
-    otherwise: Joi.forbidden(),
-  }),
+  recurringDonationId: Joi.number().integer(),
   anonymous: Joi.boolean(),
   isBatch: Joi.boolean(),
   isForUpdate: Joi.boolean(),

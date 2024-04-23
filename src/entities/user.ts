@@ -1,15 +1,15 @@
-import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
+import { Field, Float, ID, Int, ObjectType } from 'type-graphql';
 import {
-  PrimaryGeneratedColumn,
-  Column,
-  Entity,
-  OneToMany,
-  ManyToMany,
   BaseEntity,
-  UpdateDateColumn,
+  Column,
   CreateDateColumn,
+  Entity,
   JoinTable,
+  ManyToMany,
+  OneToMany,
   OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Project, ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';
@@ -24,6 +24,7 @@ import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
 } from './recurringDonation';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 
 export const publicSelectionFields = [
   'user.id',
@@ -49,6 +50,11 @@ export enum UserRole {
   CAMPAIGN_MANAGER = 'campaignManager',
   QF_MANAGER = 'qfManager',
 }
+
+export type UserStreamBalanceWarning =
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_MONTH
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_WEEK
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_DEPLETED;
 
 @ObjectType()
 @Entity()
@@ -90,6 +96,12 @@ export class User extends BaseEntity {
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true, unique: true })
   walletAddress?: string;
+
+  @Column({
+    type: 'json',
+    nullable: true,
+  })
+  streamBalanceWarning?: Record<string, UserStreamBalanceWarning | null>;
 
   @Column({ nullable: true })
   password?: string;
