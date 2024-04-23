@@ -92,9 +92,14 @@ export class UserResolver {
     if (!foundUser) return;
 
     try {
-      const passportScore = await getGitcoinAdapter().submitPassport({
+      // Refresh user score
+      await getGitcoinAdapter().submitPassport({
         address,
       });
+
+      const passportScore =
+        await getGitcoinAdapter().getWalletAddressScore(address);
+
       const passportStamps =
         await getGitcoinAdapter().getPassportStamps(address);
 
