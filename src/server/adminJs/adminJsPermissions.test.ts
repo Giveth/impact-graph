@@ -275,9 +275,7 @@ describe.skip('canAccessUserAction test cases', () => {
   roles.forEach(role => {
     Object.keys(actionsPerRole[role]).forEach(page => {
       actions.forEach(action => {
-        it(`should return ${actionsPerRole[role][page].includes(
-          action,
-        )} for ${role} --> ${action} on ${page}`, function () {
+        it(`should return ${actionsPerRole[role][page].includes(action)} for ${role} --> ${action} on ${page}`, function () {
           assert.strictEqual(
             canAccessAction(role, page, action),
             actionsPerRole[role][page].includes(action),
