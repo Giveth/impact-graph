@@ -659,53 +659,31 @@ export class RecurringDonationResolver {
     @Args() { beginDate, endDate, currency }: GetRecurringDonationStatsArgs,
   ): Promise<RecurringDonationStats> {
     try {
-      // Validate input arguments using Joi schema
       validateWithJoiSchema(
         { beginDate, endDate },
         getRecurringDonationStatsArgsValidator,
       );
 
-      // Query to calculate total streamed USD value
-      const totalStreamedUsdValueQuery = RecurringDonation.createQueryBuilder(
-        'recurring_donation',
-      )
-        .select(
+      const query = RecurringDonation.createQueryBuilder('recurring_donation')
+        .select([
+          'COUNT(CASE WHEN recurring_donation.status = :active THEN 1 END)',
           'SUM(recurring_donation.totalUsdStreamed)',
-          'totalStreamedUsdValue',
-        )
+        ])
+        .setParameter('active', 'active')
         .where(
           `recurring_donation.createdAt >= :beginDate AND recurring_donation.createdAt <= :endDate`,
           { beginDate, endDate },
         );
 
-      // Query to calculate active recurring donations count
-      const activeRecurringDonationsCountQuery =
-        RecurringDonation.createQueryBuilder('recurring_donation').where(
-          `recurring_donation.createdAt >= :beginDate AND recurring_donation.createdAt <= :endDate AND recurring_donation.status = 'active'`,
-          { beginDate, endDate },
-        );
-
-      // Add currency filter if provided
       if (currency) {
-        totalStreamedUsdValueQuery.andWhere(
-          `recurring_donation.currency = :currency`,
-          { currency },
-        );
-        activeRecurringDonationsCountQuery.andWhere(
-          `recurring_donation.currency = :currency`,
-          { currency },
-        );
+        query.andWhere(`recurring_donation.currency = :currency`, { currency });
       }
 
-      const [activeRecurringDonationsCount, totalStreamedUsdValue] =
-        await Promise.all([
-          activeRecurringDonationsCountQuery.getCount(),
-          totalStreamedUsdValueQuery.getRawOne(),
-        ]);
+      const [result] = await query.getRawMany();
 
       return {
-        activeRecurringDonationsCount: activeRecurringDonationsCount || 0,
-        totalStreamedUsdValue: totalStreamedUsdValue.totalStreamedUsdValue || 0,
+        activeRecurringDonationsCount: parseInt(result.count),
+        totalStreamedUsdValue: parseFloat(result.sum) || 0,
       };
     } catch (e) {
       SentryLogger.captureException(e);
