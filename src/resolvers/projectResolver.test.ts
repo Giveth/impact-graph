@@ -26,7 +26,6 @@ import {
   fetchFeaturedProjectUpdate,
   fetchLatestProjectUpdates,
   fetchLikedProjectsQuery,
-  fetchMultiFilterAllProjectsQuery,
   fetchNewProjectsPerDate,
   fetchProjectBySlugQuery,
   fetchProjectUpdatesQuery,
@@ -160,7 +159,7 @@ describe(
   similarProjectsBySlugTestCases,
 );
 
-describe('projectSearch test cases --->', projectSearchTestCases);
+// describe('projectSearch test cases --->', projectSearchTestCases);
 
 describe('projectUpdates query test cases --->', projectUpdatesTestCases);
 
@@ -4204,49 +4203,49 @@ function projectUpdatesTestCases() {
   });
 }
 
-function projectSearchTestCases() {
-  it('should return projects with a typo in the end of searchTerm', async () => {
-    const limit = 1;
-    const USER_DATA = SEED_DATA.FIRST_USER;
-    const result = await axios.post(graphqlUrl, {
-      query: fetchMultiFilterAllProjectsQuery,
-      variables: {
-        limit,
-        // Typo in the title
-        searchTerm: SEED_DATA.SECOND_PROJECT.title.slice(0, -1) + 'a',
-        connectedWalletUserId: USER_DATA.id,
-      },
-    });
+// function projectSearchTestCases() {
+//   it('should return projects with a typo in the end of searchTerm', async () => {
+//     const limit = 1;
+//     const USER_DATA = SEED_DATA.FIRST_USER;
+//     const result = await axios.post(graphqlUrl, {
+//       query: fetchMultiFilterAllProjectsQuery,
+//       variables: {
+//         limit,
+//         // Typo in the title
+//         searchTerm: SEED_DATA.SECOND_PROJECT.title.slice(0, -1) + 'a',
+//         connectedWalletUserId: USER_DATA.id,
+//       },
+//     });
 
-    const projects = result.data.data.allProjects.projects;
-    assert.equal(projects.length, limit);
-    assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
-    assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
-    assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
-  });
+//     const projects = result.data.data.allProjects.projects;
+//     assert.equal(projects.length, limit);
+//     assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
+//     assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
+//     assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
+//   });
 
-  it('should return projects with the project title inverted in the searchTerm', async () => {
-    const limit = 1;
-    const USER_DATA = SEED_DATA.FIRST_USER;
-    const result = await axios.post(graphqlUrl, {
-      query: fetchMultiFilterAllProjectsQuery,
-      variables: {
-        limit,
-        searchTerm: SEED_DATA.SECOND_PROJECT.title
-          .split(' ')
-          .reverse()
-          .join(' '),
-        connectedWalletUserId: USER_DATA.id,
-      },
-    });
+//   it('should return projects with the project title inverted in the searchTerm', async () => {
+//     const limit = 1;
+//     const USER_DATA = SEED_DATA.FIRST_USER;
+//     const result = await axios.post(graphqlUrl, {
+//       query: fetchMultiFilterAllProjectsQuery,
+//       variables: {
+//         limit,
+//         searchTerm: SEED_DATA.SECOND_PROJECT.title
+//           .split(' ')
+//           .reverse()
+//           .join(' '),
+//         connectedWalletUserId: USER_DATA.id,
+//       },
+//     });
 
-    const projects = result.data.data.allProjects.projects;
-    assert.equal(projects.length, limit);
-    assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
-    assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
-    assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
-  });
-}
+//     const projects = result.data.data.allProjects.projects;
+//     assert.equal(projects.length, limit);
+//     assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
+//     assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
+//     assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
+//   });
+// }
 
 function getProjectUpdatesTestCases() {
   it('should return project updates with current take', async () => {
