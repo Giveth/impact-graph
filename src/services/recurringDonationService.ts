@@ -174,9 +174,7 @@ export const createRelatedDonationsToStream = async (
 
       const toAddress = projectRelatedAddress?.address?.toLowerCase();
       const fromAddress = donorUser.walletAddress?.toLowerCase();
-      const transactionTx = `${streamData.id?.toLowerCase()}-${
-        streamPeriod.endTime
-      }`;
+      const transactionTx = `${streamData.id?.toLowerCase()}-${streamPeriod.endTime}`;
       const donation = Donation.create({
         amount: normalizeNegativeAmount(
           streamPeriod.amount,
