@@ -12,7 +12,7 @@ import {
 import { NETWORK_IDS } from '../provider';
 import { addNewAnchorAddress } from './anchorContractAddressRepository';
 import {
-  countOfActiveRecurringDonationsByProjectId,
+  nonZeroRecurringDonationsByProjectId,
   createNewRecurringDonation,
   findRecurringDonationById,
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
@@ -263,7 +263,7 @@ function countOfActiveRecurringDonationsByProjectIdTestCases() {
     });
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation.save();
-    const count = await countOfActiveRecurringDonationsByProjectId(project.id);
+    const count = await nonZeroRecurringDonationsByProjectId(project.id);
     assert.equal(count, 1);
   });
   it('should return count correctly, when there is more than 1 active recurring donation', async () => {
@@ -316,7 +316,7 @@ function countOfActiveRecurringDonationsByProjectIdTestCases() {
     recurringDonation2.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation2.save();
 
-    const count = await countOfActiveRecurringDonationsByProjectId(project.id);
+    const count = await nonZeroRecurringDonationsByProjectId(project.id);
     assert.equal(count, 2);
   });
   it('should return count correctly, when there is active and non active donations', async () => {
@@ -398,7 +398,7 @@ function countOfActiveRecurringDonationsByProjectIdTestCases() {
     recurringDonation4.status = RECURRING_DONATION_STATUS.FAILED;
     await recurringDonation4.save();
 
-    const count = await countOfActiveRecurringDonationsByProjectId(project.id);
+    const count = await nonZeroRecurringDonationsByProjectId(project.id);
     assert.equal(count, 1);
   });
 }
