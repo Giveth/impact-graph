@@ -104,6 +104,9 @@ export const qfRoundTab = {
           new: false,
           edit: true,
         },
+        components: {
+          edit: adminJs.bundle('./components/ProjectIdsTextArea'),
+        },
       },
       title: {
         isVisible: true,
