@@ -124,6 +124,7 @@ export const findRecurringDonationById = async (
     )
     .leftJoinAndSelect(`recurringDonation.donations`, 'donations')
     .leftJoinAndSelect('recurringDonation.project', 'project')
+    .leftJoinAndSelect(`recurringDonation.donor`, 'donor')
     .where(`recurringDonation.id = :id`, { id })
     .getOne();
 };
@@ -156,6 +157,7 @@ export const findRecurringDonationByProjectIdAndUserIdAndCurrency =
         currency: params.currency,
       })
       .leftJoinAndSelect('recurringDonation.project', 'project')
+      .leftJoinAndSelect('recurringDonation.donor', 'donor')
       .getOne();
   };
 
