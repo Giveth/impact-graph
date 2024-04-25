@@ -134,14 +134,7 @@ export const nonZeroRecurringDonationsByProjectId = async (
 ): Promise<number> => {
   return await RecurringDonation.createQueryBuilder('recurringDonation')
     .where(`recurringDonation.projectId = :projectId`, { projectId })
-    .andWhere(
-      `(recurringDonation.status = :activeStatus OR 
-       (recurringDonation.status = :endedStatus AND recurringDonation.totalAmountStreamed > 0))`,
-      {
-        activeStatus: RECURRING_DONATION_STATUS.ACTIVE,
-        endedStatus: RECURRING_DONATION_STATUS.ENDED,
-      },
-    )
+    .andWhere('recurringDonation.totalUsdStreamed > 0')
     .getCount();
 };
 
