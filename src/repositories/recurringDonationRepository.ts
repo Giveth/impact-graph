@@ -19,8 +19,9 @@ export const createNewRecurringDonation = async (params: {
   currency: string;
   anonymous: boolean;
   isBatch: boolean;
+  totalUsdStreamed?: number;
 }): Promise<RecurringDonation> => {
-  const recurringDonation = await RecurringDonation.create({
+  const recurringDonation = RecurringDonation.create({
     project: params.project,
     donor: params.donor,
     anchorContractAddress: params.anchorContractAddress,
@@ -30,6 +31,7 @@ export const createNewRecurringDonation = async (params: {
     flowRate: params.flowRate,
     anonymous: params.anonymous,
     isBatch: params.isBatch,
+    totalUsdStreamed: params.totalUsdStreamed,
   });
   return recurringDonation.save();
 };
