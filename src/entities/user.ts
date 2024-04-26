@@ -221,7 +221,7 @@ export class User extends BaseEntity {
       'recurring_donation',
     )
       .where(`recurring_donation."donorId" = :donorId`, { donorId: this.id })
-      .andWhere('recurringDonation.totalUsdStreamed > 0')
+      .andWhere('recurring_donation.totalUsdStreamed > 0')
       .getCount();
 
     // Sum of both counts
