@@ -3425,6 +3425,7 @@ function donationsByProjectIdTestCases() {
       project,
       anonymous: false,
       isBatch: false,
+      totalUsdStreamed: 1,
     });
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation.save();
@@ -3439,6 +3440,7 @@ function donationsByProjectIdTestCases() {
       project,
       anonymous: false,
       isBatch: false,
+      totalUsdStreamed: 1,
     });
     recurringDonation2.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation2.save();
