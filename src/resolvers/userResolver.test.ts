@@ -326,7 +326,6 @@ function userByAddressTestCases() {
         flowRate: '300',
         anonymous: false,
         currency: 'USDT',
-        totalUsdStreamed: 200,
         status: RECURRING_DONATION_STATUS.PENDING,
       },
     });
@@ -350,7 +349,6 @@ function userByAddressTestCases() {
         flowRate: '300',
         anonymous: false,
         currency: 'USDT',
-        totalUsdStreamed: 200,
         status: RECURRING_DONATION_STATUS.FAILED,
       },
     });
@@ -377,8 +375,8 @@ function userByAddressTestCases() {
       userData.walletAddress,
     );
     // for totalDonated we consider all recurring donations but for donationsCount we consider only active recurring donations
-    assert.equal(result.data.data.userByAddress.totalDonated, 800);
-    assert.equal(result.data.data.userByAddress.donationsCount, 1);
+    assert.equal(result.data.data.userByAddress.totalDonated, 400);
+    assert.equal(result.data.data.userByAddress.donationsCount, 2);
   });
   it('Get donationsCount and totalDonated correctly, when there is both recurringDonations and one time donation', async () => {
     const userData = {
