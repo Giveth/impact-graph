@@ -11,6 +11,22 @@ export const findAllQfRounds = async (): Promise<QfRound[]> => {
     .getMany();
 };
 
+export const findArchivedQfRounds = async (
+  limit: number,
+  skip: number,
+  orderBy?: any,
+): Promise<QfRound[]> => {
+  const { direction } = orderBy;
+  return QfRound.createQueryBuilder('qf_round')
+    .where('"isActive" = false')
+    .leftJoinAndSelect('qf_round.projects', 'projects')
+    .leftJoinAndSelect('qf_round.donations', 'donations')
+    .addOrderBy('qf_round.id', direction)
+    .take(limit)
+    .skip(skip)
+    .getMany();
+};
+
 export const findActiveQfRound = async (): Promise<QfRound | null> => {
   return QfRound.createQueryBuilder('qf_round')
     .where('"isActive" = true')
