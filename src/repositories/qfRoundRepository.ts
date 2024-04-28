@@ -1,5 +1,6 @@
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
+import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -11,20 +12,57 @@ export const findAllQfRounds = async (): Promise<QfRound[]> => {
     .getMany();
 };
 
+export enum QfArchivedRoundsSortType {
+  allocatedFund,
+  totalDonations,
+  uniqueDonors,
+  beginDate,
+}
+
+export interface FindArchivedQfRounds {
+  id: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  allocatedFund: number;
+  eligibleNetworks: number[];
+  beginDate: Date;
+  endDate: Date;
+  totalDonations: number;
+  uniqueDonors: string;
+}
+
 export const findArchivedQfRounds = async (
   limit: number,
   skip: number,
-  orderBy?: any,
-): Promise<QfRound[]> => {
-  const { direction } = orderBy;
-  return QfRound.createQueryBuilder('qf_round')
+  orderBy: QfArchivedRoundsOrderBy,
+): Promise<FindArchivedQfRounds[]> => {
+  const { direction, field } = orderBy;
+  const fieldMap = {
+    [QfArchivedRoundsSortType.beginDate]: 'qfRound.beginDate',
+    [QfArchivedRoundsSortType.allocatedFund]: 'qfRound.allocatedFund',
+    [QfArchivedRoundsSortType.totalDonations]: 'SUM(donation.amount)',
+    [QfArchivedRoundsSortType.uniqueDonors]:
+      'COUNT(DISTINCT donation.fromWalletAddress)',
+  };
+  return QfRound.createQueryBuilder('qfRound')
     .where('"isActive" = false')
-    .leftJoinAndSelect('qf_round.projects', 'projects')
-    .leftJoinAndSelect('qf_round.donations', 'donations')
-    .addOrderBy('qf_round.id', direction)
+    .leftJoin('qfRound.donations', 'donation')
+    .select('qfRound.id', 'id')
+    .addSelect('qfRound.name', 'name')
+    .addSelect('qfRound.slug', 'slug')
+    .addSelect('qfRound.isActive', 'isActive')
+    .addSelect('qfRound.endDate', 'endDate')
+    .addSelect('qfRound.eligibleNetworks', 'eligibleNetworks')
+    .addSelect('SUM(donation.amount)', 'totalDonations')
+    .addSelect('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
+    .addSelect('qfRound.allocatedFund', 'allocatedFund')
+    .addSelect('qfRound.beginDate', 'beginDate')
+    .groupBy('qfRound.id')
+    .orderBy(fieldMap[field], direction, 'NULLS LAST')
     .take(limit)
     .skip(skip)
-    .getMany();
+    .getRawMany();
 };
 
 export const findActiveQfRound = async (): Promise<QfRound | null> => {

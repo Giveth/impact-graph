@@ -3,6 +3,7 @@ import {
   Args,
   ArgsType,
   Field,
+  InputType,
   Int,
   ObjectType,
   Query,
@@ -14,14 +15,15 @@ import { User } from '../entities/user';
 import {
   findActiveQfRound,
   findAllQfRounds,
+  FindArchivedQfRounds,
   findArchivedQfRounds,
   findQfRoundBySlug,
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalProjectsDonationsSum,
+  QfArchivedRoundsSortType,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
-import { OrderBy, OrderDirection } from './projectResolver';
-import { OrderField } from '../entities/project';
+import { OrderDirection } from './projectResolver';
 
 @ObjectType()
 export class QfRoundStatsResponse {
@@ -47,6 +49,15 @@ export class ExpectedMatchingResponse {
   matchingPool: number;
 }
 
+@InputType()
+export class QfArchivedRoundsOrderBy {
+  @Field(_type => QfArchivedRoundsSortType)
+  field: QfArchivedRoundsSortType;
+
+  @Field(_type => OrderDirection)
+  direction: OrderDirection;
+}
+
 @Service()
 @ArgsType()
 class QfArchivedRoundsArgs {
@@ -59,13 +70,13 @@ class QfArchivedRoundsArgs {
   @Max(50)
   limit: number;
 
-  @Field(_type => OrderBy, {
+  @Field(_type => QfArchivedRoundsOrderBy, {
     defaultValue: {
-      field: OrderField.GIVPower,
+      field: QfArchivedRoundsSortType.beginDate,
       direction: OrderDirection.DESC,
     },
   })
-  orderBy: OrderBy;
+  orderBy: QfArchivedRoundsOrderBy;
 }
 
 @Resolver(_of => User)
@@ -79,12 +90,12 @@ export class QfRoundResolver {
   async qfArchivedRounds(
     @Args()
     { limit, skip, orderBy }: QfArchivedRoundsArgs,
-  ): Promise<QfRound[] | null> {
+  ): Promise<FindArchivedQfRounds[] | null> {
     return findArchivedQfRounds(limit, skip, orderBy);
   }
 
   // This will be the formula data separated by parts so frontend
-  // can calculate the estimated matchin added per new donation
+  // can calculate the estimated matching added per new donation
   @Query(() => ExpectedMatchingResponse, { nullable: true })
   async expectedMatching(
     @Arg('projectId') projectId: number,
