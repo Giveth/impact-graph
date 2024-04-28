@@ -67,6 +67,14 @@ export class QfRound extends BaseEntity {
   @Column()
   endDate: Date;
 
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  bannerBgImage: string;
+
+  @Field(_type => [String])
+  @Column('text', { array: true, default: [] })
+  sponsorsImgs: string[];
+
   @UpdateDateColumn()
   updatedAt: Date;
 
