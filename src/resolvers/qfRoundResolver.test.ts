@@ -16,11 +16,64 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
-import { qfRoundStatsQuery } from '../../test/graphqlQueries';
+import {
+  fetchQFArchivedRounds,
+  qfRoundStatsQuery,
+} from '../../test/graphqlQueries';
 import { generateRandomString } from '../utils/utils';
+import { OrderDirection } from './projectResolver';
+import { QfArchivedRoundsSortType } from '../repositories/qfRoundRepository';
 
 describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);
 describe('Fetch qfRoundStats test cases', fetchQfRoundStatesTestCases);
+describe('Fetch archivedQFRounds test cases', fetchArchivedQFRoundsTestCases);
+
+function fetchArchivedQFRoundsTestCases() {
+  it('should return correct data when fetching archived QF rounds', async () => {
+    await QfRound.update({}, { isActive: false });
+    const qfRound1 = QfRound.create({
+      isActive: true,
+      name: 'test1',
+      slug: generateRandomString(10),
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound1.save();
+    const qfRound2 = QfRound.create({
+      isActive: false,
+      name: 'test2',
+      slug: generateRandomString(10),
+      allocatedFund: 200,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound2.save();
+    const qfRound3 = QfRound.create({
+      isActive: false,
+      name: 'test3',
+      slug: generateRandomString(10),
+      allocatedFund: 300,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound3.save();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const result = await axios.post(graphqlUrl, {
+      query: fetchQFArchivedRounds,
+      variables: {
+        orderBy: {
+          direction: QfArchivedRoundsSortType.totalDonations,
+          field: OrderDirection.DESC,
+        },
+      },
+    });
+    // console.log(result);
+  });
+}
 
 function fetchQfRoundStatesTestCases() {
   let qfRound: QfRound;

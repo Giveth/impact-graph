@@ -1,3 +1,4 @@
+import { Field, Int, ObjectType, registerEnumType } from 'type-graphql';
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
 import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver';
@@ -13,22 +14,47 @@ export const findAllQfRounds = async (): Promise<QfRound[]> => {
 };
 
 export enum QfArchivedRoundsSortType {
-  allocatedFund,
-  totalDonations,
-  uniqueDonors,
-  beginDate,
+  allocatedFund = 'allocatedFund',
+  totalDonations = 'totalDonations',
+  uniqueDonors = 'uniqueDonors',
+  beginDate = 'beginDate',
 }
 
-export interface FindArchivedQfRounds {
+registerEnumType(QfArchivedRoundsSortType, {
+  name: 'QfArchivedRoundsSortType',
+  description: 'The attributes by which archived rounds can be sorted.',
+});
+
+@ObjectType()
+export class QFArchivedRounds {
+  @Field(_type => String)
   id: string;
+
+  @Field(_type => String)
   name: string;
+
+  @Field(_type => String)
   slug: string;
+
+  @Field(_type => Boolean)
   isActive: boolean;
+
+  @Field(_type => Int)
   allocatedFund: number;
-  eligibleNetworks: number[];
+
+  @Field(_type => [Int])
+  eligibleNetworks: number;
+
+  @Field(_type => Date)
   beginDate: Date;
+
+  @Field(_type => Date)
   endDate: Date;
+
+  @Field(_type => Int)
   totalDonations: number;
+
+  @Field(_type => String)
   uniqueDonors: string;
 }
 
@@ -36,7 +62,7 @@ export const findArchivedQfRounds = async (
   limit: number,
   skip: number,
   orderBy: QfArchivedRoundsOrderBy,
-): Promise<FindArchivedQfRounds[]> => {
+): Promise<QFArchivedRounds[]> => {
   const { direction, field } = orderBy;
   const fieldMap = {
     [QfArchivedRoundsSortType.beginDate]: 'qfRound.beginDate',

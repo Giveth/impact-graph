@@ -15,11 +15,11 @@ import { User } from '../entities/user';
 import {
   findActiveQfRound,
   findAllQfRounds,
-  FindArchivedQfRounds,
   findArchivedQfRounds,
   findQfRoundBySlug,
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalProjectsDonationsSum,
+  QFArchivedRounds,
   QfArchivedRoundsSortType,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
@@ -86,11 +86,11 @@ export class QfRoundResolver {
     return findAllQfRounds();
   }
 
-  @Query(() => [QfRound], { nullable: true })
+  @Query(_returns => [QFArchivedRounds], { nullable: true })
   async qfArchivedRounds(
     @Args()
     { limit, skip, orderBy }: QfArchivedRoundsArgs,
-  ): Promise<FindArchivedQfRounds[] | null> {
+  ): Promise<QFArchivedRounds[] | null> {
     return findArchivedQfRounds(limit, skip, orderBy);
   }
 
