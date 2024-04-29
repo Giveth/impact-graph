@@ -9,6 +9,7 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
+  SEED_DATA,
 } from '../../test/testUtils';
 import { Project } from '../entities/project';
 import { QfRound } from '../entities/qfRound';
@@ -35,17 +36,39 @@ function fetchArchivedQFRoundsTestCases() {
       isActive: true,
       name: 'test1',
       slug: generateRandomString(10),
-      allocatedFund: 100,
+      allocatedFund: 100000,
       minimumPassportScore: 8,
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound1.save();
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 150,
+        qfRoundId: qfRound1.id,
+        status: 'verified',
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 250,
+        qfRoundId: qfRound1.id,
+        status: 'verified',
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
     const qfRound2 = QfRound.create({
       isActive: false,
       name: 'test2',
       slug: generateRandomString(10),
-      allocatedFund: 200,
+      allocatedFund: 200000,
       minimumPassportScore: 8,
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
@@ -55,7 +78,7 @@ function fetchArchivedQFRoundsTestCases() {
       isActive: false,
       name: 'test3',
       slug: generateRandomString(10),
-      allocatedFund: 300,
+      allocatedFund: 300000,
       minimumPassportScore: 8,
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
@@ -66,12 +89,15 @@ function fetchArchivedQFRoundsTestCases() {
       query: fetchQFArchivedRounds,
       variables: {
         orderBy: {
-          direction: QfArchivedRoundsSortType.totalDonations,
-          field: OrderDirection.DESC,
+          direction: OrderDirection.DESC,
+          field: QfArchivedRoundsSortType.allocatedFund,
         },
       },
     });
-    // console.log(result);
+    const res = result.data.data.qfArchivedRounds;
+    // console.log(res);
+    assert.equal(res[0].id, qfRound3.id);
+    assert.equal(res[0].totalDonations, 400);
   });
 }
 
