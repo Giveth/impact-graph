@@ -2282,6 +2282,31 @@ export const doesDonatedToProjectInQfRoundQuery = `
   }
 `;
 
+export const fetchQFArchivedRounds = `
+  query (
+   $limit: Int
+   $skip: Int
+   $orderBy: SortBy
+  ) {
+    qfArchivedRounds(
+      limit: $limit
+      skip: $skip
+      orderBy: $orderBy
+    ) {
+      id
+      name
+      slug
+      isActive
+      allocatedFund
+      eligibleNetworks
+      beginDate
+      endDate
+      totalDonations
+      uniqueDonors
+    }
+  }
+`;
+
 export const createAnchorContractAddressQuery = `
   mutation ($projectId: Int!,
             $networkId: Int!, 
