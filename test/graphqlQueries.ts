@@ -2286,7 +2286,7 @@ export const fetchQFArchivedRounds = `
   query (
    $limit: Int
    $skip: Int
-   $orderBy: SortBy
+   $orderBy: QfArchivedRoundsOrderBy
   ) {
     qfArchivedRounds(
       limit: $limit

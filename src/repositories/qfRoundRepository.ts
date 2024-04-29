@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType, registerEnumType } from 'type-graphql';
+import { Field, Float, Int, ObjectType, registerEnumType } from 'type-graphql';
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
 import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver';
@@ -30,7 +30,7 @@ export class QFArchivedRounds {
   @Field(_type => String)
   id: string;
 
-  @Field(_type => String)
+  @Field(_type => String, { nullable: true })
   name: string;
 
   @Field(_type => String)
@@ -51,10 +51,10 @@ export class QFArchivedRounds {
   @Field(_type => Date)
   endDate: Date;
 
-  @Field(_type => Int)
+  @Field(_type => Float, { nullable: true })
   totalDonations: number;
 
-  @Field(_type => String)
+  @Field(_type => String, { nullable: true })
   uniqueDonors: string;
 }
 
