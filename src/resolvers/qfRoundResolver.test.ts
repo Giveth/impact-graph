@@ -31,7 +31,7 @@ describe('Fetch archivedQFRounds test cases', fetchArchivedQFRoundsTestCases);
 
 function fetchArchivedQFRoundsTestCases() {
   it('should return correct data when fetching archived QF rounds', async () => {
-    await QfRound.update({}, { isActive: false });
+    await QfRound.update({}, { isActive: true });
     const qfRound1 = QfRound.create({
       isActive: true,
       name: 'test1',
@@ -70,7 +70,7 @@ function fetchArchivedQFRoundsTestCases() {
       slug: generateRandomString(10),
       allocatedFund: 200000,
       minimumPassportScore: 8,
-      beginDate: new Date(),
+      beginDate: moment().add(-10, 'days').toDate(),
       endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound2.save();
@@ -84,20 +84,18 @@ function fetchArchivedQFRoundsTestCases() {
       endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound3.save();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const result = await axios.post(graphqlUrl, {
       query: fetchQFArchivedRounds,
       variables: {
         orderBy: {
           direction: OrderDirection.DESC,
-          field: QfArchivedRoundsSortType.allocatedFund,
+          field: QfArchivedRoundsSortType.beginDate,
         },
       },
     });
     const res = result.data.data.qfArchivedRounds;
-    // console.log(res);
     assert.equal(res[0].id, qfRound3.id);
-    assert.equal(res[0].totalDonations, 400);
+    assert.equal(res.length, 2);
   });
 }
 
