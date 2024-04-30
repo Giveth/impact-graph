@@ -1,5 +1,4 @@
 import { Arg, Int, Query, Resolver } from 'type-graphql';
-
 import { QfRoundHistory } from '../entities/qfRoundHistory';
 import { getQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
 

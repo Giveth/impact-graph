@@ -8,8 +8,10 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
 import { Project } from './project';
+import { Donation } from './donation';
 
 @Entity()
 @ObjectType()
@@ -75,6 +77,9 @@ export class QfRound extends BaseEntity {
 
   @ManyToMany(_type => Project, project => project.qfRounds)
   projects: Project[];
+
+  @OneToMany(_type => Donation, donation => donation.qfRound)
+  donations: Donation[];
 
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {
