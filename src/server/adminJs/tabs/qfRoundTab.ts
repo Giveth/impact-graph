@@ -254,13 +254,16 @@ export const qfRoundTab = {
             for (let i = 0; i < request.payload.totalSponsorsImgs; i++) {
               const sponsorImg = request.payload[`sponsorsImgs.${i}`];
 
-              if (!sponsorImg || !sponsorImg.path) continue;
-              const { path, name } = sponsorImg;
-              const result = await pinFile(fs.createReadStream(path), name);
-              sponsorsImgs.push(
-                `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`,
-              );
-              delete request.payload[`sponsorsImgs.${i}`];
+              if (!sponsorImg || !sponsorImg.path)
+                sponsorsImgs.push(sponsorImg);
+              else {
+                const { path, name } = sponsorImg;
+                const result = await pinFile(fs.createReadStream(path), name);
+                sponsorsImgs.push(
+                  `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`,
+                );
+                delete request.payload[`sponsorsImgs.${i}`];
+              }
             }
             request.payload.sponsorsImgs = sponsorsImgs;
             delete request.payload.totalSponsorsImgs;
@@ -275,6 +278,7 @@ export const qfRoundTab = {
 
             request.payload.bannerBgImage = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
           }
+
           // https://docs.adminjs.co/basics/action#using-before-and-after-hooks
           if (request?.payload?.id) {
             const qfRoundId = Number(request.payload.id);
