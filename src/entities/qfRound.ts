@@ -46,11 +46,11 @@ export class QfRound extends BaseEntity {
   allocatedFund: number;
 
   @Field(_type => String, { nullable: true })
-  @Column()
+  @Column({ nullable: true })
   allocatedTokenSymbol: string;
 
   @Field(_type => Number, { nullable: true })
-  @Column()
+  @Column({ nullable: true })
   allocatedTokenChainId: number;
 
   @Field(_type => Number)
