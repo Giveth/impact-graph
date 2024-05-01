@@ -71,7 +71,7 @@ export const findArchivedQfRounds = async (
     [QfArchivedRoundsSortType.uniqueDonors]:
       'COUNT(DISTINCT donation.fromWalletAddress)',
   };
-  return QfRound.createQueryBuilder('qfRound')
+  const fullRounds = await QfRound.createQueryBuilder('qfRound')
     .where('"isActive" = false')
     .leftJoin('qfRound.donations', 'donation')
     .select('qfRound.id', 'id')
@@ -86,9 +86,8 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.beginDate', 'beginDate')
     .groupBy('qfRound.id')
     .orderBy(fieldMap[field], direction, 'NULLS LAST')
-    .take(limit)
-    .skip(skip)
     .getRawMany();
+  return fullRounds.slice(skip, skip + limit);
 };
 
 export const findActiveQfRound = async (): Promise<QfRound | null> => {
