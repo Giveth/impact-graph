@@ -13,6 +13,7 @@ export class AppDataSource {
         _overrideDrop ?? config.get('DROP_DATABASE') === 'true';
       const synchronize = (config.get('ENVIRONMENT') as string) === 'test';
       const entities = getEntities();
+      const poolSize = Number(process.env.TYPEORM_DATABASE_POOL_SIZE) || 10 // 10 is the default value
       AppDataSource.datasource = new DataSource({
         schema: 'public',
         type: 'postgres',
@@ -33,6 +34,7 @@ export class AppDataSource {
             db: 1, // Query Caching
           },
         },
+        poolSize
       });
       await AppDataSource.datasource.initialize();
     }
