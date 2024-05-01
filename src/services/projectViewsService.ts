@@ -54,7 +54,6 @@ export const getQfRoundActualDonationDetails = async (
     const totalWeight = rows.reduce((accumulator, currentRow) => {
       return accumulator + currentRow.donationsSqrtRootSumSquared;
     }, 0);
-    const weightCap = totalWeight * maxRewardShare;
     const fundingCap = totalReward * maxRewardShare;
     let remainingWeight = totalWeight;
     let remainingFunds = totalReward;
@@ -68,7 +67,6 @@ export const getQfRoundActualDonationDetails = async (
         remainingWeight -= row.donationsSqrtRootSumSquared;
         remainingFunds -= fundingCap;
         row.actualMatching = fundingCap;
-        row.donationsSqrtRootSumSquared = weightCap;
         result.push(row);
       }
     }
