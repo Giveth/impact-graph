@@ -177,7 +177,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         donationValueUsd,
         token,
       });
-      if (donationValueUsd <= 20) return;
+      if (donationValueUsd <= 5) return;
     } else {
       transactionId = donation.transactionId;
       transactionNetworkId = donation.transactionNetworkId;
