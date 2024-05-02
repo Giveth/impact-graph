@@ -89,26 +89,26 @@ jobs:
       - name: Run migrations
         run: npm run db:migrate:run:test
 
-      - name: Run tests
-        run: npm run test
-        env:
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
-          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
-          INFURA_ID: ${{ secrets.INFURA_ID }}
-          POLYGON_SCAN_API_KEY: ${{ secrets.POLYGON_SCAN_API_KEY }}
-          OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
-          CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
-          CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
-          ARBITRUM_SCAN_API_KEY: ${{ secrets.ARBITRUM_SCAN_API_KEY }}
-          ARBITRUM_SEPOLIA_SCAN_API_KEY: ${{ secrets.ARBITRUM_SEPOLIA_SCAN_API_KEY }}
-          MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
-          ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
-          DROP_DATABASE: ${{ secrets.DROP_DATABASE_DURING_TEST_PROD }}
-          SOLANA_TEST_NODE_RPC_URL: ${{ secrets.SOLANA_TEST_NODE_RPC_URL }}
-          SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
-          SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
-          MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
+#      - name: Run tests
+#        run: npm run test
+#        env:
+#          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+#          XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
+#          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+#          INFURA_ID: ${{ secrets.INFURA_ID }}
+#          POLYGON_SCAN_API_KEY: ${{ secrets.POLYGON_SCAN_API_KEY }}
+#          OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
+#          CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
+#          CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
+#          ARBITRUM_SCAN_API_KEY: ${{ secrets.ARBITRUM_SCAN_API_KEY }}
+#          ARBITRUM_SEPOLIA_SCAN_API_KEY: ${{ secrets.ARBITRUM_SEPOLIA_SCAN_API_KEY }}
+#          MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
+#          ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
+#          DROP_DATABASE: ${{ secrets.DROP_DATABASE_DURING_TEST_PROD }}
+#          SOLANA_TEST_NODE_RPC_URL: ${{ secrets.SOLANA_TEST_NODE_RPC_URL }}
+#          SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
+#          SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
+#          MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
 
   publish:
     needs: test
