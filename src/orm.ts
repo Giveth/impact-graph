@@ -27,10 +27,12 @@ export class AppDataSource {
           },
           slaves: [
             {
-              database: config.get('TYPEORM_DATABASE_NAME') as string,
-              username: config.get('TYPEORM_DATABASE_USER') as string,
-              password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-              port: config.get('TYPEORM_DATABASE_PORT') as number,
+              database: config.get('TYPEORM_DATABASE_NAME_READONLY') as string,
+              username: config.get('TYPEORM_DATABASE_USER_READONLY') as string,
+              password: config.get(
+                'TYPEORM_DATABASE_PASSWORD_READONLY',
+              ) as string,
+              port: config.get('TYPEORM_DATABASE_PORT_READONLY') as number,
               host: config.get('TYPEORM_DATABASE_HOST_READONLY') as string,
             },
           ],
