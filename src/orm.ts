@@ -35,6 +35,11 @@ export class AppDataSource {
           },
         },
         poolSize,
+        extra: {
+          maxWaitingClients: 10,
+          evictionRunIntervalMillis: 500,
+          idleTimeoutMillis: 500,
+        },
       });
       await AppDataSource.datasource.initialize();
     }
@@ -59,6 +64,11 @@ export class CronDataSource {
         entities: [CronJob],
         synchronize: false,
         dropSchema: false,
+        extra: {
+          maxWaitingClients: 10,
+          evictionRunIntervalMillis: 500,
+          idleTimeoutMillis: 500,
+        },
       });
       await CronDataSource.datasource.initialize();
     }
