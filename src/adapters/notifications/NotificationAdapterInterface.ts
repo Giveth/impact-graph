@@ -34,6 +34,8 @@ export interface OrttoPerson {
 }
 
 export interface NotificationAdapterInterface {
+  createOrttoProfile(params: User): Promise<void>;
+
   updateOrttoPeople(params: OrttoPerson[]): Promise<void>;
 
   donationReceived(params: {

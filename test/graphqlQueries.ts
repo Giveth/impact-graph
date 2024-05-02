@@ -1318,6 +1318,7 @@ export const updateUser = `
     $lastName: String
     $firstName: String
     $avatar: String
+    $newUser: Boolean
   ) {
     updateUser(
       url: $url
@@ -1326,6 +1327,7 @@ export const updateUser = `
       firstName: $firstName
       lastName: $lastName
       avatar: $avatar
+      newUser: $newUser
     )
   }
 `;
@@ -2279,6 +2281,31 @@ export const doesDonatedToProjectInQfRoundQuery = `
       qfRoundId: $qfRoundId
       userId: $userId
     )
+  }
+`;
+
+export const fetchQFArchivedRounds = `
+  query (
+   $limit: Int
+   $skip: Int
+   $orderBy: QfArchivedRoundsOrderBy
+  ) {
+    qfArchivedRounds(
+      limit: $limit
+      skip: $skip
+      orderBy: $orderBy
+    ) {
+      id
+      name
+      slug
+      isActive
+      allocatedFund
+      eligibleNetworks
+      beginDate
+      endDate
+      totalDonations
+      uniqueDonors
+    }
   }
 `;
 

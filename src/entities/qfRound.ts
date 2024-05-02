@@ -8,8 +8,10 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
 import { Project } from './project';
+import { Donation } from './donation';
 
 @Entity()
 @ObjectType()
@@ -43,6 +45,22 @@ export class QfRound extends BaseEntity {
   @Column()
   allocatedFund: number;
 
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  allocatedFundUSD: number;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ nullable: true })
+  allocatedFundUSDPreferred: boolean;
+
+  @Field(_type => String, { nullable: true })
+  @Column({ nullable: true })
+  allocatedTokenSymbol: string;
+
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  allocatedTokenChainId: number;
+
   @Field(_type => Number)
   @Column('real', { default: 0.2 })
   maximumReward: number;
@@ -67,6 +85,14 @@ export class QfRound extends BaseEntity {
   @Column()
   endDate: Date;
 
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  bannerBgImage: string;
+
+  @Field(_type => [String])
+  @Column('text', { array: true, default: [] })
+  sponsorsImgs: string[];
+
   @UpdateDateColumn()
   updatedAt: Date;
 
@@ -75,6 +101,9 @@ export class QfRound extends BaseEntity {
 
   @ManyToMany(_type => Project, project => project.qfRounds)
   projects: Project[];
+
+  @OneToMany(_type => Donation, donation => donation.qfRound)
+  donations: Donation[];
 
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {

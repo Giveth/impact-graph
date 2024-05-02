@@ -233,6 +233,7 @@ const getadminJsInstance = async () => {
     },
     rootPath: adminJsRootPath,
   });
+  // adminJsInstance.watch();
   return adminJsInstance;
 };
 
