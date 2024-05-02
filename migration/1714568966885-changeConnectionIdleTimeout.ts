@@ -9,7 +9,10 @@ export class ChangeConnectionIdleTimeout1714568966885
         `ALTER DATABASE "${process.env.TYPEORM_DATABASE_NAME}" SET idle_in_transaction_session_timeout = '10min';`,
       );
     } catch (e) {
-      console.error('Error setting idle_in_transaction_session_timeout, try to run the query manually ...', e);
+      console.error(
+        'Error setting idle_in_transaction_session_timeout, try to run the query manually ...',
+        e,
+      );
     }
   }
 
