@@ -17,11 +17,25 @@ export class AppDataSource {
       AppDataSource.datasource = new DataSource({
         schema: 'public',
         type: 'postgres',
-        database: config.get('TYPEORM_DATABASE_NAME') as string,
-        username: config.get('TYPEORM_DATABASE_USER') as string,
-        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-        port: config.get('TYPEORM_DATABASE_PORT') as number,
-        host: config.get('TYPEORM_DATABASE_HOST') as string,
+        replication: {
+          master: {
+            database: config.get('TYPEORM_DATABASE_NAME') as string,
+            username: config.get('TYPEORM_DATABASE_USER') as string,
+            password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+            port: config.get('TYPEORM_DATABASE_PORT') as number,
+            host: config.get('TYPEORM_DATABASE_HOST') as string,
+          },
+          slaves: [
+            {
+              database: config.get('TYPEORM_DATABASE_NAME') as string,
+              username: config.get('TYPEORM_DATABASE_USER') as string,
+              password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+              port: config.get('TYPEORM_DATABASE_PORT') as number,
+              host: config.get('TYPEORM_DATABASE_HOST_READONLY') as string,
+            },
+          ],
+        },
+
         entities,
         synchronize,
         dropSchema,
