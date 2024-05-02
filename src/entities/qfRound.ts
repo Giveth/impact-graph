@@ -45,6 +45,14 @@ export class QfRound extends BaseEntity {
   @Column()
   allocatedFund: number;
 
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  allocatedFundUSD: number;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ nullable: true })
+  allocatedFundUSDPreferred: boolean;
+
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   allocatedTokenSymbol: string;
