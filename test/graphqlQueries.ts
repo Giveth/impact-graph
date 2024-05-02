@@ -1318,6 +1318,7 @@ export const updateUser = `
     $lastName: String
     $firstName: String
     $avatar: String
+    $newUser: Boolean
   ) {
     updateUser(
       url: $url
@@ -1326,6 +1327,7 @@ export const updateUser = `
       firstName: $firstName
       lastName: $lastName
       avatar: $avatar
+      newUser: $newUser
     )
   }
 `;
