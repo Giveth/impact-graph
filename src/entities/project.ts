@@ -498,7 +498,7 @@ export class Project extends BaseEntity {
 
   @Field(_type => Float, { nullable: true })
   async sumDonationValueUsd() {
-    return sumDonationValueUsd(this.id);
+    return await sumDonationValueUsd(this.id);
   }
 
   @Field(_type => Int, { nullable: true })
@@ -514,7 +514,7 @@ export class Project extends BaseEntity {
 
   @Field(_type => Int, { nullable: true })
   async countUniqueDonors() {
-    return countUniqueDonors(this.id);
+    return await countUniqueDonors(this.id);
   }
 
   // In your main class
