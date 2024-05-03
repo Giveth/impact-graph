@@ -483,15 +483,16 @@ export async function sumDonationValueUsdForQfRound(params: {
 }): Promise<number> {
   const { projectId, qfRoundId } = params;
   const result = await ProjectEstimatedMatchingView.createQueryBuilder(
-    `"projectEstimatedMatchingView"`,
+    'projectEstimatedMatchingView',
   )
-    .select(`projectEstimatedMatchingView."sumValueUsd"`)
-    .where(`projectEstimatedMatchingView."projectId" = :projectId`, {
+    .select('projectEstimatedMatchingView.sumValueUsd')
+    .where('projectEstimatedMatchingView.projectId = :projectId', {
       projectId,
     })
-    .andWhere(`projectEstimatedMatchingView."qfRoundId" = :qfRoundId`, {
+    .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
       qfRoundId,
     })
+    .cache(`sumDonationValueUsdForQfRound-${projectId}-${qfRoundId}`, 60000)
     .getOne();
 
   return result?.sumValueUsd || 0;
@@ -499,10 +500,11 @@ export async function sumDonationValueUsdForQfRound(params: {
 
 export async function countUniqueDonors(projectId: number): Promise<number> {
   const result = await ProjectDonationSummaryView.createQueryBuilder(
-    `"projectDonationSummaryView"`,
+    'projectDonationSummaryView',
   )
-    .select(`projectDonationSummaryView."uniqueDonorsCount"`)
-    .where(`projectDonationSummaryView."projectId" = :projectId`, { projectId })
+    .select('projectDonationSummaryView.uniqueDonorsCount')
+    .where('projectDonationSummaryView.projectId = :projectId', { projectId })
+    .cache(`countUniqueDonors-${projectId}`, 60000)
     .getOne();
 
   return result?.uniqueDonorsCount || 0;
@@ -510,10 +512,11 @@ export async function countUniqueDonors(projectId: number): Promise<number> {
 
 export async function sumDonationValueUsd(projectId: number): Promise<number> {
   const result = await ProjectDonationSummaryView.createQueryBuilder(
-    `"projectDonationSummaryView"`,
+    `projectDonationSummaryView`,
   )
-    .select(`projectDonationSummaryView."sumVerifiedDonations"`)
-    .where(`projectDonationSummaryView."projectId" = :projectId`, { projectId })
+    .select('projectDonationSummaryView.sumVerifiedDonations')
+    .where('projectDonationSummaryView.projectId = :projectId', { projectId })
+    .cache(`sumDonationValueUsd-${projectId}`, 60000)
     .getOne();
 
   return result?.sumVerifiedDonations || 0;
