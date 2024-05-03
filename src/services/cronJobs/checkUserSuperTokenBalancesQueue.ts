@@ -86,7 +86,6 @@ export const checkRecurringDonationBalances = async (params: {
   );
   logger.debug(
     `checkRecurringDonationBalances() has been called for id ${params.recurringDonationId}`,
-    recurringDonation,
   );
   if (!recurringDonation) return;
   await validateDonorSuperTokenBalance(recurringDonation);
