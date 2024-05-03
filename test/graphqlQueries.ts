@@ -978,6 +978,7 @@ export const qfRoundStatsQuery = `
       uniqueDonors
       allDonationsUsdValue
       matchingPool
+      qfRound
     }
   }
 `;

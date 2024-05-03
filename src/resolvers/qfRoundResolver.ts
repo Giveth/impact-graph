@@ -35,6 +35,9 @@ export class QfRoundStatsResponse {
 
   @Field()
   matchingPool: number;
+
+  @Field()
+  qfRound: QfRound;
 }
 
 @ObjectType()
@@ -136,6 +139,7 @@ export class QfRoundResolver {
       uniqueDonors: contributorsCount,
       allDonationsUsdValue: totalDonationsSum,
       matchingPool: qfRound.allocatedFund,
+      qfRound,
     };
   }
 }
