@@ -978,7 +978,12 @@ export const qfRoundStatsQuery = `
       uniqueDonors
       allDonationsUsdValue
       matchingPool
-      qfRound
+      qfRound{
+        allocatedFund
+        allocatedFundUSD
+        allocatedFundUSDPreferred
+        allocatedTokenSymbol
+      }
     }
   }
 `;
