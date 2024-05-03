@@ -492,7 +492,10 @@ export async function sumDonationValueUsdForQfRound(params: {
     .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
       qfRoundId,
     })
-    .cache(`sumDonationValueUsdForQfRound-${projectId}-${qfRoundId}`, 60000)
+    .cache(
+      `sumDonationValueUsdForQfRound-${projectId}-${qfRoundId}`,
+      Number(process.env.PROJECT_QFROUND_DONATION_SUMMARY_CACHE_TIME || 60000),
+    )
     .getOne();
 
   return result?.sumValueUsd || 0;
@@ -504,7 +507,10 @@ export async function countUniqueDonors(projectId: number): Promise<number> {
   )
     .select('projectDonationSummaryView.uniqueDonorsCount')
     .where('projectDonationSummaryView.projectId = :projectId', { projectId })
-    .cache(`countUniqueDonors-${projectId}`, 60000)
+    .cache(
+      `countUniqueDonors-${projectId}`,
+      Number(process.env.PROJECT_DONATION_SUMMARY_CACHE_TIME || 60000),
+    )
     .getOne();
 
   return result?.uniqueDonorsCount || 0;
@@ -516,7 +522,10 @@ export async function sumDonationValueUsd(projectId: number): Promise<number> {
   )
     .select('projectDonationSummaryView.sumVerifiedDonations')
     .where('projectDonationSummaryView.projectId = :projectId', { projectId })
-    .cache(`sumDonationValueUsd-${projectId}`, 60000)
+    .cache(
+      `sumDonationValueUsd-${projectId}`,
+      Number(process.env.PROJECT_DONATION_SUMMARY_CACHE_TIME || 60000),
+    )
     .getOne();
 
   return result?.sumVerifiedDonations || 0;
