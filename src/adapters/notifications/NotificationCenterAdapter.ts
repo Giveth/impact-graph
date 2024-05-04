@@ -94,6 +94,22 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     return;
   }
 
+  async createOrttoProfile(user: User): Promise<void> {
+    try {
+      const { id, email, firstName, lastName } = user;
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.CREATE_ORTTO_PROFILE,
+        trackId: 'create-ortto-profile-' + user.id,
+        userWalletAddress: user.walletAddress!,
+        segment: {
+          payload: { userId: id, email, firstName, lastName },
+        },
+      });
+    } catch (e) {
+      logger.error('createOrttoProfile >> error', e);
+    }
+  }
+
   async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {
     // TODO we should me this to notification-center, it's not good that we call Ortto directly
     try {
@@ -177,7 +193,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         donationValueUsd,
         token,
       });
-      if (donationValueUsd <= 20) return;
+      if (donationValueUsd <= 5) return;
     } else {
       transactionId = donation.transactionId;
       transactionNetworkId = donation.transactionNetworkId;
@@ -1196,7 +1212,7 @@ interface SendNotificationBody {
   email?: string;
   trackId?: string;
   metadata?: any;
-  projectId: string;
+  projectId?: string;
   userWalletAddress: string;
   segment?: {
     payload: any;

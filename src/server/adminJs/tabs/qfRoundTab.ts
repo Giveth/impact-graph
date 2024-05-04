@@ -1,3 +1,4 @@
+import fs from 'fs';
 import {
   ActionResponse,
   After,
@@ -27,6 +28,7 @@ import { messages } from '../../../utils/messages';
 import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
 import { errorMessages } from '../../../utils/errorMessages';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
+import { pinFile } from '../../../middleware/pinataUtils';
 
 export const refreshMaterializedViews = async (
   response,
@@ -90,6 +92,29 @@ const returnAllQfRoundDonationAnalysis = async (
   };
 };
 
+const availableNetworkValues = [
+  { value: NETWORK_IDS.MAIN_NET, label: 'MAINNET' },
+  { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
+  { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
+  { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
+  { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
+  { value: NETWORK_IDS.ETC, label: 'ETC' },
+  {
+    value: NETWORK_IDS.MORDOR_ETC_TESTNET,
+    label: 'MORDOR ETC TESTNET',
+  },
+  { value: NETWORK_IDS.OPTIMISM_SEPOLIA, label: 'OPTIMISM SEPOLIA' },
+  { value: NETWORK_IDS.CELO, label: 'CELO' },
+  {
+    value: NETWORK_IDS.CELO_ALFAJORES,
+    label: 'ALFAJORES (Test CELO)',
+  },
+  { value: NETWORK_IDS.ARBITRUM_MAINNET, label: 'ARBITRUM MAINNET' },
+  { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'ARBITRUM SEPOLIA' },
+  { value: NETWORK_IDS.XDAI, label: 'XDAI' },
+  { value: NETWORK_IDS.BSC, label: 'BSC' },
+];
+
 export const qfRoundTab = {
   resource: QfRound,
   options: {
@@ -135,6 +160,14 @@ export const qfRoundTab = {
       allocatedFund: {
         isVisible: true,
       },
+      allocatedTokenSymbol: {
+        isVisible: true,
+      },
+      allocatedTokenChainId: {
+        isVisible: true,
+        type: 'number',
+        availableValues: availableNetworkValues,
+      },
       minimumPassportScore: {
         isVisible: true,
       },
@@ -144,28 +177,7 @@ export const qfRoundTab = {
       eligibleNetworks: {
         isVisible: true,
         type: 'array',
-        availableValues: [
-          { value: NETWORK_IDS.MAIN_NET, label: 'MAINNET' },
-          { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
-          { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
-          { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
-          { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
-          { value: NETWORK_IDS.ETC, label: 'ETC' },
-          {
-            value: NETWORK_IDS.MORDOR_ETC_TESTNET,
-            label: 'MORDOR ETC TESTNET',
-          },
-          { value: NETWORK_IDS.OPTIMISM_SEPOLIA, label: 'OPTIMISM SEPOLIA' },
-          { value: NETWORK_IDS.CELO, label: 'CELO' },
-          {
-            value: NETWORK_IDS.CELO_ALFAJORES,
-            label: 'ALFAJORES (Test CELO)',
-          },
-          { value: NETWORK_IDS.ARBITRUM_MAINNET, label: 'ARBITRUM MAINNET' },
-          { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'ARBITRUM SEPOLIA' },
-          { value: NETWORK_IDS.XDAI, label: 'XDAI' },
-          { value: NETWORK_IDS.BSC, label: 'BSC' },
-        ],
+        availableValues: availableNetworkValues,
       },
       projects: {
         type: 'mixed',
@@ -177,6 +189,30 @@ export const qfRoundTab = {
         },
         components: {
           show: adminJs.bundle('./components/ProjectsInQfRound'),
+        },
+      },
+      bannerBgImage: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: false,
+          edit: true,
+        },
+        components: {
+          edit: adminJs.bundle('./components/QFRoundBannerBg'),
+        },
+      },
+      sponsorsImgs: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: false,
+          edit: true,
+        },
+        components: {
+          edit: adminJs.bundle('./components/QFRoundSponsorsImgs'),
         },
       },
       createdAt: {
@@ -226,6 +262,36 @@ export const qfRoundTab = {
           _response,
           _context: AdminJsContextInterface,
         ) => {
+          if (request.payload.totalSponsorsImgs) {
+            const sponsorsImgs: string[] = [];
+            for (let i = 0; i < request.payload.totalSponsorsImgs; i++) {
+              const sponsorImg = request.payload[`sponsorsImgs.${i}`];
+
+              if (!sponsorImg || !sponsorImg.path)
+                sponsorsImgs.push(sponsorImg);
+              else {
+                const { path, name } = sponsorImg;
+                const result = await pinFile(fs.createReadStream(path), name);
+                sponsorsImgs.push(
+                  `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`,
+                );
+                delete request.payload[`sponsorsImgs.${i}`];
+              }
+            }
+            request.payload.sponsorsImgs = sponsorsImgs;
+            delete request.payload.totalSponsorsImgs;
+          }
+
+          if (
+            request.payload.bannerBgImage &&
+            request.payload.bannerBgImage.path
+          ) {
+            const { path, name } = request.payload.bannerBgImage;
+            const result = await pinFile(fs.createReadStream(path), name);
+
+            request.payload.bannerBgImage = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
+          }
+
           // https://docs.adminjs.co/basics/action#using-before-and-after-hooks
           if (request?.payload?.id) {
             const qfRoundId = Number(request.payload.id);

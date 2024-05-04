@@ -1,14 +1,29 @@
-import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
-
+import {
+  Arg,
+  Args,
+  ArgsType,
+  Field,
+  InputType,
+  Int,
+  ObjectType,
+  Query,
+  Resolver,
+} from 'type-graphql';
+import { Service } from 'typedi';
+import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import {
   findActiveQfRound,
   findAllQfRounds,
+  findArchivedQfRounds,
   findQfRoundBySlug,
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalProjectsDonationsSum,
+  QFArchivedRounds,
+  QfArchivedRoundsSortType,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
+import { OrderDirection } from './projectResolver';
 
 @ObjectType()
 export class QfRoundStatsResponse {
@@ -20,6 +35,9 @@ export class QfRoundStatsResponse {
 
   @Field()
   matchingPool: number;
+
+  @Field()
+  qfRound: QfRound;
 }
 
 @ObjectType()
@@ -34,6 +52,36 @@ export class ExpectedMatchingResponse {
   matchingPool: number;
 }
 
+@InputType()
+export class QfArchivedRoundsOrderBy {
+  @Field(_type => QfArchivedRoundsSortType)
+  field: QfArchivedRoundsSortType;
+
+  @Field(_type => OrderDirection)
+  direction: OrderDirection;
+}
+
+@Service()
+@ArgsType()
+class QfArchivedRoundsArgs {
+  @Field(_type => Int, { defaultValue: 0 })
+  @Min(0)
+  skip: number;
+
+  @Field(_type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  limit: number;
+
+  @Field(_type => QfArchivedRoundsOrderBy, {
+    defaultValue: {
+      field: QfArchivedRoundsSortType.beginDate,
+      direction: OrderDirection.DESC,
+    },
+  })
+  orderBy: QfArchivedRoundsOrderBy;
+}
+
 @Resolver(_of => User)
 export class QfRoundResolver {
   @Query(_returns => [QfRound], { nullable: true })
@@ -41,8 +89,16 @@ export class QfRoundResolver {
     return findAllQfRounds();
   }
 
+  @Query(_returns => [QFArchivedRounds], { nullable: true })
+  async qfArchivedRounds(
+    @Args()
+    { limit, skip, orderBy }: QfArchivedRoundsArgs,
+  ): Promise<QFArchivedRounds[] | null> {
+    return findArchivedQfRounds(limit, skip, orderBy);
+  }
+
   // This will be the formula data separated by parts so frontend
-  // can calculate the estimated matchin added per new donation
+  // can calculate the estimated matching added per new donation
   @Query(() => ExpectedMatchingResponse, { nullable: true })
   async expectedMatching(
     @Arg('projectId') projectId: number,
@@ -83,6 +139,7 @@ export class QfRoundResolver {
       uniqueDonors: contributorsCount,
       allDonationsUsdValue: totalDonationsSum,
       matchingPool: qfRound.allocatedFund,
+      qfRound,
     };
   }
 }

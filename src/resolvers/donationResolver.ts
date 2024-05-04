@@ -68,7 +68,7 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
-import { countOfActiveRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
+import { nonZeroRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
@@ -590,7 +590,7 @@ export class DonationResolver {
     }
 
     const recurringDonationsCount =
-      await countOfActiveRecurringDonationsByProjectId(projectId);
+      await nonZeroRecurringDonationsByProjectId(projectId);
 
     const [donations, donationsCount] = await query
       .take(take)

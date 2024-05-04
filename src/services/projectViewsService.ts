@@ -47,33 +47,36 @@ export const getQfRoundActualDonationDetails = async (
         SELECT *
         FROM project_actual_matching_view
         WHERE "qfRoundId" = ${qfRoundId}
+        ORDER BY "donationsSqrtRootSumSquared" DESC NULLS LAST
     `)) as ProjectActualMatchingView[];
     const totalReward = qfRound!.allocatedFund;
     const maxRewardShare = Number(qfRound?.maximumReward || 0.2);
     const totalWeight = rows.reduce((accumulator, currentRow) => {
       return accumulator + currentRow.donationsSqrtRootSumSquared;
     }, 0);
-    const weightCap = totalWeight * maxRewardShare;
     const fundingCap = totalReward * maxRewardShare;
-    const countOfProjectsWithMaxShare = rows.filter(currentRow => {
-      return currentRow.donationsSqrtRootSumSquared >= weightCap;
-    }).length;
     let remainingWeight = totalWeight;
-    const remainingFunds =
-      totalReward - countOfProjectsWithMaxShare * fundingCap;
+    let remainingFunds = totalReward;
 
     const result = [] as ProjectActualMatchingView[];
-    // Fill rows for those wight are more than maxRewardShare
+    // Fill rows for those weight are more than maxRewardShare
     for (const row of rows) {
-      if (row.donationsSqrtRootSumSquared / totalWeight >= maxRewardShare) {
+      const matchingFund =
+        (row.donationsSqrtRootSumSquared / remainingWeight) * remainingFunds;
+      if (matchingFund >= fundingCap) {
         remainingWeight -= row.donationsSqrtRootSumSquared;
+        remainingFunds -= fundingCap;
         row.actualMatching = fundingCap;
-        row.donationsSqrtRootSumSquared = weightCap;
         result.push(row);
       }
     }
+
     for (const row of rows) {
-      if (row.donationsSqrtRootSumSquared / totalWeight < maxRewardShare) {
+      const matchingFund =
+        (row.donationsSqrtRootSumSquared / remainingWeight) * remainingFunds;
+
+      // Avoid matching the same over the cap rows
+      if (matchingFund < fundingCap) {
         row.actualMatching =
           (row.donationsSqrtRootSumSquared / remainingWeight) * remainingFunds;
         result.push(row);

@@ -727,7 +727,8 @@ export class ProjectResolver {
 
     if (
       sortingBy === SortingField.ActiveQfRoundRaisedFunds ||
-      sortingBy === SortingField.EstimatedMatching
+      sortingBy === SortingField.EstimatedMatching ||
+      sortingBy === SortingField.InstantBoosting
     ) {
       activeQfRoundId = (await findActiveQfRound())?.id;
     }

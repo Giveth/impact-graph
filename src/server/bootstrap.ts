@@ -86,8 +86,16 @@ const options = {
 
 export async function bootstrap() {
   try {
+    logger.debug('bootstrap() has been called', new Date());
+
+    logger.debug('bootstrap() before AppDataSource.initialize()', new Date());
     await AppDataSource.initialize();
+    logger.debug('bootstrap() after AppDataSource.initialize()', new Date());
+
+    logger.debug('bootstrap() before CronDataSource.initialize()', new Date());
     await CronDataSource.initialize();
+    logger.debug('bootstrap() after CronDataSource.initialize()', new Date());
+
     Container.set(DataSource, AppDataSource.getDataSource());
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
@@ -105,25 +113,6 @@ export async function bootstrap() {
     }
 
     const schema = await createSchema();
-
-    const enableDbCronJob =
-      config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
-    if (enableDbCronJob) {
-      try {
-        const scheduleExpression = config.get(
-          'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
-        ) as string;
-        const powerSnapshotsHistoricScheduleExpression = config.get(
-          'ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA_CRONJOB_EXPRESSION',
-        ) as string;
-        await schedulePowerBoostingSnapshot(scheduleExpression);
-        await schedulePowerSnapshotsHistory(
-          powerSnapshotsHistoricScheduleExpression,
-        );
-      } catch (e) {
-        logger.error('Enabling power boosting snapshot ', e);
-      }
-    }
 
     // instantiate pool once and pass as context
     const projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>> =
@@ -241,7 +230,10 @@ export async function bootstrap() {
       }),
     );
 
+    logger.debug('bootstrap() before apolloServer.start()', new Date());
     await apolloServer.start();
+    logger.debug('bootstrap() after apolloServer.start()', new Date());
+
     app.use(
       '/graphql',
       expressMiddleware<ApolloContext>(apolloServer, {
@@ -294,26 +286,77 @@ export async function bootstrap() {
 
     const httpServer = http.createServer(app);
 
-    // Start the server
-    // app.listen({ port: 4000 });
-    await new Promise<void>(resolve =>
-      httpServer.listen({ port: 4000 }, resolve),
-    );
-
-    logger.debug(
-      `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
-    );
+    await new Promise<void>((resolve, reject) => {
+      httpServer
+        .listen({ port: 4000 }, () => {
+          logger.debug(
+            `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
+          );
+          performPostStartTasks();
+          resolve(); // Resolve the Promise once the server is successfully listening
+        })
+        .on('error', err => {
+          logger.debug(`Starting server failed`, err);
+          reject(err); // Reject the Promise if there's an error starting the server
+        });
+    });
 
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
+  } catch (err) {
+    logger.error(err);
+  }
+
+  async function continueDbSetup() {
+    logger.debug('continueDbSetup() has been called', new Date());
+
+    const enableDbCronJob =
+      config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
+    if (enableDbCronJob) {
+      try {
+        const scheduleExpression = config.get(
+          'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
+        ) as string;
+        const powerSnapshotsHistoricScheduleExpression = config.get(
+          'ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA_CRONJOB_EXPRESSION',
+        ) as string;
+        await schedulePowerBoostingSnapshot(scheduleExpression);
+        await schedulePowerSnapshotsHistory(
+          powerSnapshotsHistoricScheduleExpression,
+        );
+      } catch (e) {
+        logger.error('Enabling power boosting snapshot ', e);
+      }
+    }
 
     if (!isTestEnv) {
       // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
       // relation "project_estimated_matching_view" does not exist
+      logger.debug(
+        'continueDbSetup() before refreshProjectEstimatedMatchingView() ',
+        new Date(),
+      );
       await refreshProjectEstimatedMatchingView();
-      await refreshProjectDonationSummaryView();
-    }
+      logger.debug(
+        'continueDbSetup() after refreshProjectEstimatedMatchingView() ',
+        new Date(),
+      );
 
+      logger.debug(
+        'continueDbSetup() before refreshProjectDonationSummaryView() ',
+        new Date(),
+      );
+      await refreshProjectDonationSummaryView();
+      logger.debug(
+        'continueDbSetup() after refreshProjectDonationSummaryView() ',
+        new Date(),
+      );
+    }
+    logger.debug('continueDbSetup() end of function', new Date());
+  }
+
+  async function initializeCronJobs() {
+    logger.debug('initializeCronJobs() has been called', new Date());
     runCheckPendingDonationsCronJob();
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
@@ -375,9 +418,30 @@ export async function bootstrap() {
       runUpdateRecurringDonationStream();
       runCheckUserSuperTokenBalancesJob();
     }
+    logger.debug(
+      'initializeCronJobs() before runCheckActiveStatusOfQfRounds() ',
+      new Date(),
+    );
     await runCheckActiveStatusOfQfRounds();
+    logger.debug(
+      'initializeCronJobs() after runCheckActiveStatusOfQfRounds() ',
+      new Date(),
+    );
+
+    logger.debug(
+      'initializeCronJobs() before runUpdateProjectCampaignsCacheJob() ',
+      new Date(),
+    );
     await runUpdateProjectCampaignsCacheJob();
-  } catch (err) {
-    logger.error(err);
+    logger.debug(
+      'initializeCronJobs() after runUpdateProjectCampaignsCacheJob() ',
+      new Date(),
+    );
+  }
+
+  async function performPostStartTasks() {
+    // All heavy and non-critical initializations here
+    await continueDbSetup();
+    await initializeCronJobs();
   }
 }

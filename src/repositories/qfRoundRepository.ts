@@ -1,5 +1,7 @@
+import { Field, Float, Int, ObjectType, registerEnumType } from 'type-graphql';
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
+import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -9,6 +11,83 @@ export const findAllQfRounds = async (): Promise<QfRound[]> => {
   return QfRound.createQueryBuilder('qf_round')
     .addOrderBy('qf_round.id', 'DESC')
     .getMany();
+};
+
+export enum QfArchivedRoundsSortType {
+  allocatedFund = 'allocatedFund',
+  totalDonations = 'totalDonations',
+  uniqueDonors = 'uniqueDonors',
+  beginDate = 'beginDate',
+}
+
+registerEnumType(QfArchivedRoundsSortType, {
+  name: 'QfArchivedRoundsSortType',
+  description: 'The attributes by which archived rounds can be sorted.',
+});
+
+@ObjectType()
+export class QFArchivedRounds {
+  @Field(_type => String)
+  id: string;
+
+  @Field(_type => String, { nullable: true })
+  name: string;
+
+  @Field(_type => String)
+  slug: string;
+
+  @Field(_type => Boolean)
+  isActive: boolean;
+
+  @Field(_type => Int)
+  allocatedFund: number;
+
+  @Field(_type => [Int])
+  eligibleNetworks: number;
+
+  @Field(_type => Date)
+  beginDate: Date;
+
+  @Field(_type => Date)
+  endDate: Date;
+
+  @Field(_type => Float, { nullable: true })
+  totalDonations: number;
+
+  @Field(_type => String, { nullable: true })
+  uniqueDonors: string;
+}
+
+export const findArchivedQfRounds = async (
+  limit: number,
+  skip: number,
+  orderBy: QfArchivedRoundsOrderBy,
+): Promise<QFArchivedRounds[]> => {
+  const { direction, field } = orderBy;
+  const fieldMap = {
+    [QfArchivedRoundsSortType.beginDate]: 'qfRound.beginDate',
+    [QfArchivedRoundsSortType.allocatedFund]: 'qfRound.allocatedFund',
+    [QfArchivedRoundsSortType.totalDonations]: 'SUM(donation.amount)',
+    [QfArchivedRoundsSortType.uniqueDonors]:
+      'COUNT(DISTINCT donation.fromWalletAddress)',
+  };
+  const fullRounds = await QfRound.createQueryBuilder('qfRound')
+    .where('"isActive" = false')
+    .leftJoin('qfRound.donations', 'donation')
+    .select('qfRound.id', 'id')
+    .addSelect('qfRound.name', 'name')
+    .addSelect('qfRound.slug', 'slug')
+    .addSelect('qfRound.isActive', 'isActive')
+    .addSelect('qfRound.endDate', 'endDate')
+    .addSelect('qfRound.eligibleNetworks', 'eligibleNetworks')
+    .addSelect('SUM(donation.amount)', 'totalDonations')
+    .addSelect('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
+    .addSelect('qfRound.allocatedFund', 'allocatedFund')
+    .addSelect('qfRound.beginDate', 'beginDate')
+    .groupBy('qfRound.id')
+    .orderBy(fieldMap[field], direction, 'NULLS LAST')
+    .getRawMany();
+  return fullRounds.slice(skip, skip + limit);
 };
 
 export const findActiveQfRound = async (): Promise<QfRound | null> => {

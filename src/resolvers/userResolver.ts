@@ -125,6 +125,7 @@ export class UserResolver {
     @Arg('email', { nullable: true }) email: string,
     @Arg('url', { nullable: true }) url: string,
     @Arg('avatar', { nullable: true }) avatar: string,
+    @Arg('newUser', { nullable: true }) newUser: boolean,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user)
@@ -185,6 +186,9 @@ export class UserResolver {
       userId: dbUser.id.toString(),
     });
     await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
+    if (newUser) {
+      await getNotificationAdapter().createOrttoProfile(dbUser);
+    }
 
     return true;
   }

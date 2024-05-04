@@ -20,10 +20,7 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { PowerBoosting } from './powerBoosting';
 import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
 import { ReferredEvent } from './referredEvent';
-import {
-  RECURRING_DONATION_STATUS,
-  RecurringDonation,
-} from './recurringDonation';
+import { RecurringDonation } from './recurringDonation';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 
 export const publicSelectionFields = [
@@ -224,9 +221,7 @@ export class User extends BaseEntity {
       'recurring_donation',
     )
       .where(`recurring_donation."donorId" = :donorId`, { donorId: this.id })
-      .andWhere(`recurring_donation.status = :status`, {
-        status: RECURRING_DONATION_STATUS.ACTIVE,
-      })
+      .andWhere('recurring_donation.totalUsdStreamed > 0')
       .getCount();
 
     // Sum of both counts

@@ -119,7 +119,11 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
-  if (qfRoundId || activeQfRoundId) {
+
+  const isFilterByQF =
+    !!filters?.find(f => f === FilterField.ActiveQfRound) && activeQfRoundId;
+
+  if (qfRoundId || isFilterByQF) {
     query.innerJoinAndSelect(
       'project.qfRounds',
       'qf_rounds',
@@ -157,6 +161,15 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
+  if (isFilterByQF) {
+    query.leftJoin(
+      'project.projectEstimatedMatchingView',
+      'projectEstimatedMatchingView',
+      'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
+      { qfRoundId: activeQfRoundId },
+    );
+  }
+
   switch (sortingBy) {
     case SortingField.MostFunded:
       query.orderBy('project.totalDonations', OrderDirection.DESC);
@@ -185,7 +198,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           'NULLS LAST',
         );
       break;
-    case SortingField.InstantBoosting:
+    case SortingField.InstantBoosting: // This is our default sorting
+      if (isFilterByQF) {
+        query.addSelect([
+          'projectEstimatedMatchingView.sumValueUsd',
+          'projectEstimatedMatchingView.qfRoundId',
+        ]);
+      }
       query
         .orderBy(`project.verified`, OrderDirection.DESC)
         .addOrderBy(
@@ -193,16 +212,20 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           OrderDirection.DESC,
           'NULLS LAST',
         );
+      if (isFilterByQF) {
+        query.addOrderBy(
+          'projectEstimatedMatchingView.sumValueUsd',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        );
+      } else {
+        query.addOrderBy('project.totalDonations', OrderDirection.DESC);
+      }
+      query.addOrderBy('project.totalReactions', OrderDirection.DESC);
       break;
     case SortingField.ActiveQfRoundRaisedFunds:
       if (activeQfRoundId) {
         query
-          .leftJoin(
-            'project.projectEstimatedMatchingView',
-            'projectEstimatedMatchingView',
-            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
-            { qfRoundId: activeQfRoundId },
-          )
           .addSelect([
             'projectEstimatedMatchingView.sumValueUsd',
             'projectEstimatedMatchingView.qfRoundId',
@@ -218,12 +241,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.EstimatedMatching:
       if (activeQfRoundId) {
         query
-          .leftJoin(
-            'project.projectEstimatedMatchingView',
-            'projectEstimatedMatchingView',
-            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
-            { qfRoundId: activeQfRoundId },
-          )
           .addSelect([
             'projectEstimatedMatchingView.sqrtRootSum',
             'projectEstimatedMatchingView.qfRoundId',
