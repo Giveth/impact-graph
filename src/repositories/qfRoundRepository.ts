@@ -191,7 +191,7 @@ export const deactivateExpiredQfRounds = async (): Promise<void> => {
 
 export const getRelatedProjectsOfQfRound = async (
   qfRoundId: number,
-): Promise<{ slug: string; name: string }[]> => {
+): Promise<{ slug: string; name: string; id: number }[]> => {
   const query = `
     SELECT "p"."slug", "p"."title" , p.id
     FROM "project" "p"
