@@ -187,7 +187,9 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
     }
 
     projectVerificationForm.personalInfo = personalInfo;
-    return projectVerificationForm?.save();
+    const form = await projectVerificationForm?.save();
+    logger.debug('updateProjectPersonalInfoOfProjectVerification 2: ', form);
+    return form;
   } catch (error) {
     logger.debug(
       'updateProjectPersonalInfoOfProjectVerification error: ',
