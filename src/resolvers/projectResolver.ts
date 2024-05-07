@@ -40,7 +40,6 @@ import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { ApolloContext } from '../types/ApolloContext';
 import { publicSelectionFields, User } from '../entities/user';
-import config from '../config';
 import { Context } from '../context';
 import SentryLogger from '../sentryLogger';
 import {
