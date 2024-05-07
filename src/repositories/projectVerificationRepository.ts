@@ -14,6 +14,7 @@ import { findUserById } from './userRepository';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User } from '../entities/user';
 import { getAppropriateNetworkId } from '../services/chains';
+import { logger } from '../utils/logger';
 
 export const createProjectVerificationForm = async (params: {
   userId: number;
@@ -168,18 +169,34 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
   projectVerificationId: number;
   personalInfo: PersonalInfo;
 }): Promise<ProjectVerificationForm> => {
-  const { personalInfo, projectVerificationId } = params;
-  const projectVerificationForm = await findProjectVerificationFormById(
-    projectVerificationId,
-  );
-  if (!projectVerificationForm) {
-    throw new Error(
-      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+  try {
+    const { personalInfo, projectVerificationId } = params;
+    const projectVerificationForm = await findProjectVerificationFormById(
+      projectVerificationId,
     );
-  }
+    logger.debug('updateProjectPersonalInfoOfProjectVerification: ', {
+      params,
+      projectVerificationForm,
+    });
+    if (!projectVerificationForm) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND,
+        ),
+      );
+    }
 
-  projectVerificationForm.personalInfo = personalInfo;
-  return projectVerificationForm?.save();
+    projectVerificationForm.personalInfo = personalInfo;
+    const form = await projectVerificationForm?.save();
+    logger.debug('updateProjectPersonalInfoOfProjectVerification 2: ', form);
+    return form;
+  } catch (error) {
+    logger.debug(
+      'updateProjectPersonalInfoOfProjectVerification error: ',
+      error,
+    );
+    throw new Error(error);
+  }
 };
 
 export const updateProjectRegistryOfProjectVerification = async (params: {
