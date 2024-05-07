@@ -216,6 +216,10 @@ export class User extends BaseEntity {
         status: DONATION_STATUS.VERIFIED,
       })
       .andWhere(`donation."recurringDonationId" IS NULL`)
+      .cache(
+        `user-donationsCount-normal-${this.id}`,
+        Number(process.env.USER_STATS_CACHE_TIME || 60000),
+      )
       .getCount();
 
     // Count for recurring donations
@@ -224,6 +228,10 @@ export class User extends BaseEntity {
     )
       .where(`recurring_donation."donorId" = :donorId`, { donorId: this.id })
       .andWhere('recurring_donation.totalUsdStreamed > 0')
+      .cache(
+        `user-donationsCount-recurring-${this.id}`,
+        Number(process.env.USER_STATS_CACHE_TIME || 60000),
+      )
       .getCount();
 
     // Sum of both counts
@@ -238,6 +246,10 @@ export class User extends BaseEntity {
       .andWhere(
         `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
         { reviewStatus: ReviewStatus.Listed },
+      )
+      .cache(
+        `user-likedProjectsCount-recurring-${this.id}`,
+        Number(process.env.USER_STATS_CACHE_TIME || 60000),
       )
       .getCount();
 
