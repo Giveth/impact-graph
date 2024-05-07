@@ -31,7 +31,9 @@ export const runDraftDonationMatchWorkerJob = () => {
 
   setInterval(async () => {
     try {
-      logger.debug('Pending Draft Donations count: before execute the count query');
+      logger.debug(
+        'Pending Draft Donations count: before execute the count query',
+      );
       const count = await DraftDonation.count({
         where: {
           status: DRAFT_DONATION_STATUS.PENDING,
