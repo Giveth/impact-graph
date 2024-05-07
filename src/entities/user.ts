@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinTable,
   ManyToMany,
   OneToMany,
@@ -86,6 +87,7 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   lastName?: string;
 
+  @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   name?: string;
