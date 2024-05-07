@@ -41,7 +41,6 @@ import { createDonationethUser1701756190381 } from '../migration/1701756190381-c
 import { ChainType } from '../src/types/network';
 import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
 import { ProjectActualMatchinView151713700147145 } from '../migration/1713700147145-project_actual_matchin_view_15';
-import { ProjectDonationSummeryV41713441337834 } from '../migration/1713441337834-ProjectDonationSummeryV4';
 
 async function seedDb() {
   await seedUsers();
@@ -480,7 +479,6 @@ async function runMigrations() {
     );
     await new createDonationethUser1701756190381().up(queryRunner);
     await new ProjectActualMatchinView151713700147145().up(queryRunner);
-    await new ProjectDonationSummeryV41713441337834().up(queryRunner);
   } finally {
     await queryRunner.release();
   }
