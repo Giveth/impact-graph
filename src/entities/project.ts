@@ -607,7 +607,7 @@ export class ProjectUpdate extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Index('trgm_idx_user_name', { synchronize: false })
+  @Index('trgm_idx_project_title', { synchronize: false })
   @Field(_type => String)
   @Column()
   title: string;

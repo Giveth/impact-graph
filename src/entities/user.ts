@@ -87,7 +87,7 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   lastName?: string;
 
-  @Index('trgm_idx_project_impact_location', { synchronize: false })
+  @Index('trgm_idx_user_name', { synchronize: false })
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   name?: string;
