@@ -50,7 +50,7 @@ import { ProjectFraud } from './projectFraud';
 import { ProjectActualMatchingView } from './ProjectActualMatchingView';
 import { ProjectSocialMedia } from './projectSocialMedia';
 import { DraftRecurringDonation } from './draftRecurringDonation';
-import { ProjectDonationSummaryView } from './projectDonationSummaryView';
+import { ProjectDonationSummaryView } from '../views/projectDonationSummaryView';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [

@@ -5,7 +5,7 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
 import { logger } from '../utils/logger';
-import { ProjectDonationSummaryView } from '../entities/projectDonationSummaryView';
+import { ProjectDonationSummaryView } from '../views/projectDonationSummaryView';
 import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {

@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import { PostgresConnectionCredentialsOptions } from 'typeorm/driver/postgres/PostgresConnectionCredentialsOptions';
 import config from './config';
 import { CronJob } from './entities/CronJob';
 import { getEntities } from './entities/entities';
@@ -14,6 +15,16 @@ export class AppDataSource {
       const synchronize = (config.get('ENVIRONMENT') as string) === 'test';
       const entities = getEntities();
       const poolSize = Number(process.env.TYPEORM_DATABASE_POOL_SIZE) || 10; // 10 is the default value
+      const slaves: PostgresConnectionCredentialsOptions[] = [];
+      if (config.get('TYPEORM_DATABASE_HOST_READONLY')) {
+        slaves.push({
+          database: config.get('TYPEORM_DATABASE_NAME_READONLY') as string,
+          username: config.get('TYPEORM_DATABASE_USER_READONLY') as string,
+          password: config.get('TYPEORM_DATABASE_PASSWORD_READONLY') as string,
+          port: config.get('TYPEORM_DATABASE_PORT_READONLY') as number,
+          host: config.get('TYPEORM_DATABASE_HOST_READONLY') as string,
+        });
+      }
       AppDataSource.datasource = new DataSource({
         schema: 'public',
         type: 'postgres',
@@ -25,17 +36,7 @@ export class AppDataSource {
             port: config.get('TYPEORM_DATABASE_PORT') as number,
             host: config.get('TYPEORM_DATABASE_HOST') as string,
           },
-          slaves: [
-            {
-              database: config.get('TYPEORM_DATABASE_NAME_READONLY') as string,
-              username: config.get('TYPEORM_DATABASE_USER_READONLY') as string,
-              password: config.get(
-                'TYPEORM_DATABASE_PASSWORD_READONLY',
-              ) as string,
-              port: config.get('TYPEORM_DATABASE_PORT_READONLY') as number,
-              host: config.get('TYPEORM_DATABASE_HOST_READONLY') as string,
-            },
-          ],
+          slaves,
         },
 
         entities,
