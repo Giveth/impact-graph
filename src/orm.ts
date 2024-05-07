@@ -3,61 +3,88 @@ import config from './config';
 import { CronJob } from './entities/CronJob';
 import { getEntities } from './entities/entities';
 import { redisConfig } from './redis';
+import { logger } from './utils/logger';
+import { DataSourceOptions } from 'typeorm/data-source/DataSourceOptions';
+import { isLocalEnv, isTestEnv } from './utils/utils';
 
 export class AppDataSource {
   private static datasource: DataSource;
 
   static async initialize(_overrideDrop?: boolean) {
-    if (!AppDataSource.datasource) {
-      const dropSchema =
-        _overrideDrop ?? config.get('DROP_DATABASE') === 'true';
-      const synchronize = (config.get('ENVIRONMENT') as string) === 'test';
-      const entities = getEntities();
-      const poolSize = Number(process.env.TYPEORM_DATABASE_POOL_SIZE) || 10; // 10 is the default value
-      AppDataSource.datasource = new DataSource({
-        schema: 'public',
-        type: 'postgres',
-        replication: {
-          master: {
+    try {
+      if (!AppDataSource.datasource) {
+        const dropSchema =
+          _overrideDrop ?? config.get('DROP_DATABASE') === 'true';
+        const synchronize = (config.get('ENVIRONMENT') as string) === 'test';
+        const entities = getEntities();
+        const poolSize = Number(process.env.TYPEORM_DATABASE_POOL_SIZE) || 10; // 10 is the default value
+        let dataSourceData: DataSourceOptions = {
+          schema: 'public',
+          type: 'postgres',
+          entities,
+          synchronize,
+          dropSchema,
+          logger: 'advanced-console',
+          logging: ['error'],
+          cache: {
+            type: 'redis',
+            options: {
+              ...redisConfig,
+              db: 1, // Query Caching
+            },
+          },
+          poolSize,
+          extra: {
+            maxWaitingClients: 10,
+            evictionRunIntervalMillis: 500,
+            idleTimeoutMillis: 500,
+          },
+        };
+        if (isTestEnv || isLocalEnv) {
+          dataSourceData = {
+            ...dataSourceData,
             database: config.get('TYPEORM_DATABASE_NAME') as string,
             username: config.get('TYPEORM_DATABASE_USER') as string,
             password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
             port: config.get('TYPEORM_DATABASE_PORT') as number,
             host: config.get('TYPEORM_DATABASE_HOST') as string,
-          },
-          slaves: [
-            {
-              database: config.get('TYPEORM_DATABASE_NAME_READONLY') as string,
-              username: config.get('TYPEORM_DATABASE_USER_READONLY') as string,
-              password: config.get(
-                'TYPEORM_DATABASE_PASSWORD_READONLY',
-              ) as string,
-              port: config.get('TYPEORM_DATABASE_PORT_READONLY') as number,
-              host: config.get('TYPEORM_DATABASE_HOST_READONLY') as string,
+          };
+        } else {
+          // staging and production ENV
+          dataSourceData = {
+            ...dataSourceData,
+            replication: {
+              master: {
+                database: config.get('TYPEORM_DATABASE_NAME') as string,
+                username: config.get('TYPEORM_DATABASE_USER') as string,
+                password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+                port: config.get('TYPEORM_DATABASE_PORT') as number,
+                host: config.get('TYPEORM_DATABASE_HOST') as string,
+              },
+              slaves: [
+                {
+                  database: config.get(
+                    'TYPEORM_DATABASE_NAME_READONLY',
+                  ) as string,
+                  username: config.get(
+                    'TYPEORM_DATABASE_USER_READONLY',
+                  ) as string,
+                  password: config.get(
+                    'TYPEORM_DATABASE_PASSWORD_READONLY',
+                  ) as string,
+                  port: config.get('TYPEORM_DATABASE_PORT_READONLY') as number,
+                  host: config.get('TYPEORM_DATABASE_HOST_READONLY') as string,
+                },
+              ],
             },
-          ],
-        },
-
-        entities,
-        synchronize,
-        dropSchema,
-        logger: 'advanced-console',
-        logging: ['error'],
-        cache: {
-          type: 'redis',
-          options: {
-            ...redisConfig,
-            db: 1, // Query Caching
-          },
-        },
-        poolSize,
-        extra: {
-          maxWaitingClients: 10,
-          evictionRunIntervalMillis: 500,
-          idleTimeoutMillis: 500,
-        },
-      });
-      await AppDataSource.datasource.initialize();
+          };
+        }
+        AppDataSource.datasource = new DataSource(dataSourceData);
+        await AppDataSource.datasource.initialize();
+      }
+    } catch (e) {
+      logger.error('AppDataSource.initialize() error', e);
+      throw e;
     }
   }
 

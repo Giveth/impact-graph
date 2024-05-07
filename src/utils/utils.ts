@@ -415,6 +415,7 @@ export const getHtmlTextSummary = (
 };
 
 export const isTestEnv = (config.get('ENVIRONMENT') as string) === 'test';
+export const isLocalEnv = (config.get('ENVIRONMENT') as string) === 'local';
 
 export const isStaging = (config.get('ENVIRONMENT') as string) === 'staging';
 export const isProduction =
