@@ -1,10 +1,10 @@
 import { DataSource } from 'typeorm';
+import { DataSourceOptions } from 'typeorm/data-source/DataSourceOptions';
 import config from './config';
 import { CronJob } from './entities/CronJob';
 import { getEntities } from './entities/entities';
 import { redisConfig } from './redis';
 import { logger } from './utils/logger';
-import { DataSourceOptions } from 'typeorm/data-source/DataSourceOptions';
 import { isLocalEnv, isTestEnv } from './utils/utils';
 
 export class AppDataSource {
