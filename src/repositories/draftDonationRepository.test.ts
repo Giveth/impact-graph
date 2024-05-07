@@ -1,12 +1,13 @@
 // Create a draft donation
 
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import { generateRandomEtheriumAddress } from '../../test/testUtils';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
 import {
+  countPendingDraftDonations,
   delecteExpiredDraftDonations,
   markDraftDonationStatusMatched,
 } from './draftDonationRepository';
@@ -86,3 +87,52 @@ describe('draftDonationRepository', () => {
     expect(count).equal(1);
   });
 });
+
+describe(
+  'countPendingDraftDonations() test cases',
+  countPendingDraftDonationsTestCase,
+);
+
+function countPendingDraftDonationsTestCase() {
+  beforeEach(async () => {
+    await DraftDonation.clear();
+  });
+  it('should return draft pending donations count correctly', async () => {
+    await DraftDonation.create({
+      networkId: 1,
+      status: DRAFT_DONATION_STATUS.PENDING,
+      toWalletAddress: generateRandomEtheriumAddress(),
+      fromWalletAddress: generateRandomEtheriumAddress(),
+      tokenAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      anonymous: false,
+      amount: 1,
+      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
+    }).save();
+    await DraftDonation.create({
+      networkId: 1,
+      status: DRAFT_DONATION_STATUS.PENDING,
+      toWalletAddress: generateRandomEtheriumAddress(),
+      fromWalletAddress: generateRandomEtheriumAddress(),
+      tokenAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      anonymous: false,
+      amount: 1,
+      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
+    }).save();
+    await DraftDonation.create({
+      networkId: 1,
+      status: DRAFT_DONATION_STATUS.MATCHED,
+      toWalletAddress: generateRandomEtheriumAddress(),
+      fromWalletAddress: generateRandomEtheriumAddress(),
+      tokenAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      anonymous: false,
+      amount: 1,
+      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
+    }).save();
+
+    const pendingDraftDonationsCount = await countPendingDraftDonations();
+    assert.equal(pendingDraftDonationsCount, 2);
+  });
+}

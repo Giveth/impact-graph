@@ -3,10 +3,9 @@ import config from '../../config';
 import { logger } from '../../utils/logger';
 import { runDraftDonationMatchWorker } from '../chains/evm/draftDonationService';
 import {
-  DRAFT_DONATION_STATUS,
-  DraftDonation,
-} from '../../entities/draftDonation';
-import { delecteExpiredDraftDonations } from '../../repositories/draftDonationRepository';
+  countPendingDraftDonations,
+  delecteExpiredDraftDonations,
+} from '../../repositories/draftDonationRepository';
 
 const cronJobTime =
   (config.get('MATCH_DRAFT_DONATION_CRONJOB_EXPRESSION') as string) ||
@@ -34,11 +33,7 @@ export const runDraftDonationMatchWorkerJob = () => {
       logger.debug(
         'Pending Draft Donations count: before execute the count query',
       );
-      const count = await DraftDonation.count({
-        where: {
-          status: DRAFT_DONATION_STATUS.PENDING,
-        },
-      });
+      const count = await countPendingDraftDonations();
       logger.debug('Pending Draft Donations count:', { count });
     } catch (e) {
       logger.error('Pending Draft Donations count: Error', e);
