@@ -3,10 +3,6 @@ import config from '../../config';
 import { logger } from '../../utils/logger';
 import { runDraftDonationMatchWorker } from '../chains/evm/draftDonationService';
 import {
-  DRAFT_DONATION_STATUS,
-  DraftDonation,
-} from '../../entities/draftDonation';
-import {
   countPendingDraftDonations,
   delecteExpiredDraftDonations,
 } from '../../repositories/draftDonationRepository';
