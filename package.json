@@ -124,6 +124,7 @@
     "test:userRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/userRepository.test.ts",
     "test:statusReasonRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/statusReasonRepository.test.ts",
     "test:donationRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/donationRepository.test.ts",
+    "test:draftDonationRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/draftDonationRepository.test.ts",
     "test:reactionRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/reactionRepository.test.ts",
     "test:campaignRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/campaignRepository.test.ts",
     "test:socialProfileRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/socialProfileRepository.test.ts",

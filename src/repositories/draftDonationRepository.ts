@@ -58,3 +58,12 @@ export async function delecteExpiredDraftDonations(hours: number) {
     logger.error(`Error in removing expired draft donations, ${e.message}`);
   }
 }
+
+export async function countPendingDraftDonations(): Promise<number> {
+  const query = 'SELECT COUNT(*) FROM draft_donation WHERE status = $1';
+  const values = ['pending'];
+
+  // Query the database
+  const res = await DraftDonation.query(query, values);
+  return parseInt(res[0].count, 10);
+}
