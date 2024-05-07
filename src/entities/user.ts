@@ -161,11 +161,6 @@ export class User extends BaseEntity {
   })
   referredEvent?: ReferredEvent;
 
-  @Field(_type => [Project])
-  @ManyToMany(_type => Project, project => project.users)
-  @JoinTable()
-  projects?: Project[];
-
   @Column('bool', { default: false })
   segmentIdentified: boolean;
 
