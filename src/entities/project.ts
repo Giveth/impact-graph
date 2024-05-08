@@ -269,11 +269,6 @@ export class Project extends BaseEntity {
   @Column('jsonb', { nullable: true })
   contacts: ProjectContacts[];
 
-  @ManyToMany(_type => User, user => user.projects)
-  @Field(_type => [User], { nullable: true })
-  @JoinTable()
-  users: User[];
-
   @Field(() => [Reaction], { nullable: true })
   @OneToMany(_type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
@@ -580,10 +575,6 @@ export class Project extends BaseEntity {
     } else {
       this.qualityScore = this.qualityScore - 10;
     }
-  }
-
-  owner() {
-    return this.users[0];
   }
 
   @BeforeUpdate()

@@ -5,14 +5,12 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  JoinTable,
-  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Project, ProjStatus, ReviewStatus } from './project';
+import { ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
@@ -160,11 +158,6 @@ export class User extends BaseEntity {
     cascade: true,
   })
   referredEvent?: ReferredEvent;
-
-  @Field(_type => [Project])
-  @ManyToMany(_type => Project, project => project.users)
-  @JoinTable()
-  projects?: Project[];
 
   @Column('bool', { default: false })
   segmentIdentified: boolean;

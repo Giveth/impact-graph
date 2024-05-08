@@ -1312,7 +1312,6 @@ export class ProjectResolver {
 
     const project = Project.create({
       ...projectInput,
-
       categories: categories as Category[],
       organization: organization as Organization,
       image,
@@ -1321,7 +1320,6 @@ export class ProjectResolver {
       slug: slug.toLowerCase(),
       slugHistory: [],
       admin: String(ctx.req.user.userId),
-      users: [user],
       status: status as ProjectStatus,
       qualityScore,
       totalDonations: 0,
