@@ -954,10 +954,10 @@ export class ProjectResolver {
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
 
-    logger.debug(`project.admin ---> : ${project.admin}`);
+    logger.debug(`project.adminUserId ---> : ${project.adminUserId}`);
     logger.debug(`user.userId ---> : ${user.userId}`);
     logger.debug(`updateProject, inputData :`, newProjectData);
-    if (project.admin !== String(user.userId))
+    if (project.adminUserId !== user.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
@@ -1063,7 +1063,7 @@ export class ProjectResolver {
       }
     }
 
-    const adminUser = (await findUserById(Number(project.admin))) as User;
+    const adminUser = (await findUserById(project.adminUserId)) as User;
     if (newProjectData.addresses) {
       await removeRecipientAddressOfProject({ project });
       await addBulkNewProjectAddress(
@@ -1116,7 +1116,7 @@ export class ProjectResolver {
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
 
-    if (project.admin !== String(user.userId)) {
+    if (project.adminUserId !== user.userId) {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
@@ -1124,7 +1124,7 @@ export class ProjectResolver {
 
     await validateProjectWalletAddress(address, projectId, chainType);
 
-    const adminUser = (await findUserById(Number(project.admin))) as User;
+    const adminUser = (await findUserById(project.adminUserId)) as User;
     await addNewProjectAddress({
       project,
       user: adminUser,
@@ -1424,7 +1424,7 @@ export class ProjectResolver {
 
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
-    if (project.admin !== String(user.userId))
+    if (project.adminUserId !== user.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
@@ -1484,7 +1484,7 @@ export class ProjectResolver {
     const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
-    if (project.admin !== String(user.userId))
+    if (project.adminUserId !== user.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
@@ -1516,7 +1516,7 @@ export class ProjectResolver {
     const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
-    if (project.admin !== String(user.userId))
+    if (project.adminUserId !== user.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );

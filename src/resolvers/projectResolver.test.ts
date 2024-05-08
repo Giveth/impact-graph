@@ -387,7 +387,7 @@ function projectsByUserIdTestCases() {
 
     const projects = result.data.data.projectsByUserId.projects;
     const projectWithAnotherOwner = projects.find(
-      project => Number(project.admin) !== user!.id,
+      project => project.adminUserId !== user!.id,
     );
     assert.isNotOk(projectWithAnotherOwner);
     projects.forEach(project => {
@@ -410,7 +410,7 @@ function projectsByUserIdTestCases() {
     });
     const projects = result.data.data.projectsByUserId.projects;
     const projectWithAnotherOwner = projects.find(
-      project => Number(project.admin) !== userId,
+      project => project.adminUserId !== userId,
     );
     assert.isNotOk(projectWithAnotherOwner);
     projects.forEach(project => {
@@ -1367,8 +1367,8 @@ function createProjectTestCases() {
     );
 
     assert.equal(
-      result.data.data.createProject.admin,
-      String(SEED_DATA.FIRST_USER.id),
+      result.data.data.createProject.adminUserId,
+      SEED_DATA.FIRST_USER.id,
     );
     assert.equal(result.data.data.createProject.verified, false);
     assert.equal(
@@ -4301,7 +4301,7 @@ function projectBySlugTestCases() {
 
     const user = (await User.findOne({
       where: {
-        id: Number(project1.admin),
+        id: project1.adminUserId,
       },
     })) as User;
 
@@ -4348,7 +4348,7 @@ function projectBySlugTestCases() {
     const user =
       (await User.findOne({
         where: {
-          id: Number(project1.admin),
+          id: project1.adminUserId,
         },
       })) || undefined;
 
