@@ -2,12 +2,12 @@ import { UpdateResult } from 'typeorm';
 import {
   ManagingFunds,
   Milestones,
-  PROJECT_VERIFICATION_STATUSES,
   PersonalInfo,
+  PROJECT_VERIFICATION_STATUSES,
+  PROJECT_VERIFICATION_STEPS,
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
-  PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
@@ -174,10 +174,6 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
     const projectVerificationForm = await findProjectVerificationFormById(
       projectVerificationId,
     );
-    logger.debug('updateProjectPersonalInfoOfProjectVerification: ', {
-      params,
-      projectVerificationForm,
-    });
     if (!projectVerificationForm) {
       throw new Error(
         i18n.__(
@@ -187,9 +183,7 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
     }
 
     projectVerificationForm.personalInfo = personalInfo;
-    const form = await projectVerificationForm?.save();
-    logger.debug('updateProjectPersonalInfoOfProjectVerification 2: ', form);
-    return form;
+    return projectVerificationForm?.save();
   } catch (error) {
     logger.debug(
       'updateProjectPersonalInfoOfProjectVerification error: ',
