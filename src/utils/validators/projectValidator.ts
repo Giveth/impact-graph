@@ -160,7 +160,7 @@ async function isSmartContract(provider, projectWalletAddress) {
 
 export const canUserVisitProject = (
   project?: Project | null,
-  userId?: string,
+  userId?: number,
 ) => {
   if (!project) {
     throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
@@ -169,7 +169,7 @@ export const canUserVisitProject = (
     (project.status.id === ProjStatus.drafted ||
       project.status.id === ProjStatus.cancelled) &&
     // If project is draft or cancelled, just owner can view it
-    project.admin !== userId
+    project.adminUserId !== userId
   ) {
     throw new Error(
       i18n.__(
