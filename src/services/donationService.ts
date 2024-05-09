@@ -198,9 +198,6 @@ export const updateTotalDonationsOfProject = async (
     `,
       [projectId],
     );
-
-    // we want to update the project donation summary view after updating the total donations
-    refreshProjectDonationSummaryView();
   } catch (e) {
     logger.error('updateTotalDonationsOfAProject error', e);
   }
@@ -360,7 +357,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     // After updating, recalculate user total donated and owner total received
     await updateUserTotalDonated(donation.userId);
 
-    // After updating price we update totalDonations
+    // After updating price we update the totalDonations
     await updateTotalDonationsOfProject(donation.projectId);
     const project = await findProjectById(donation.projectId);
     await updateUserTotalReceived(project!.adminUser.id);

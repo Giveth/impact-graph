@@ -2,18 +2,19 @@ import { UpdateResult } from 'typeorm';
 import {
   ManagingFunds,
   Milestones,
-  PROJECT_VERIFICATION_STATUSES,
   PersonalInfo,
+  PROJECT_VERIFICATION_STATUSES,
+  PROJECT_VERIFICATION_STEPS,
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
-  PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User } from '../entities/user';
 import { getAppropriateNetworkId } from '../services/chains';
+import { logger } from '../utils/logger';
 
 export const createProjectVerificationForm = async (params: {
   userId: number;
@@ -168,18 +169,28 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
   projectVerificationId: number;
   personalInfo: PersonalInfo;
 }): Promise<ProjectVerificationForm> => {
-  const { personalInfo, projectVerificationId } = params;
-  const projectVerificationForm = await findProjectVerificationFormById(
-    projectVerificationId,
-  );
-  if (!projectVerificationForm) {
-    throw new Error(
-      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+  try {
+    const { personalInfo, projectVerificationId } = params;
+    const projectVerificationForm = await findProjectVerificationFormById(
+      projectVerificationId,
     );
-  }
+    if (!projectVerificationForm) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND,
+        ),
+      );
+    }
 
-  projectVerificationForm.personalInfo = personalInfo;
-  return projectVerificationForm?.save();
+    projectVerificationForm.personalInfo = personalInfo;
+    return projectVerificationForm?.save();
+  } catch (error) {
+    logger.debug(
+      'updateProjectPersonalInfoOfProjectVerification error: ',
+      error,
+    );
+    throw new Error(error);
+  }
 };
 
 export const updateProjectRegistryOfProjectVerification = async (params: {

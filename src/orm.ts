@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import { PostgresConnectionCredentialsOptions } from 'typeorm/driver/postgres/PostgresConnectionCredentialsOptions';
 import config from './config';
 import { CronJob } from './entities/CronJob';
 import { getEntities } from './entities/entities';
@@ -14,14 +15,30 @@ export class AppDataSource {
       const synchronize = (config.get('ENVIRONMENT') as string) === 'test';
       const entities = getEntities();
       const poolSize = Number(process.env.TYPEORM_DATABASE_POOL_SIZE) || 10; // 10 is the default value
+      const slaves: PostgresConnectionCredentialsOptions[] = [];
+      if (config.get('TYPEORM_DATABASE_HOST_READONLY')) {
+        slaves.push({
+          database: config.get('TYPEORM_DATABASE_NAME_READONLY') as string,
+          username: config.get('TYPEORM_DATABASE_USER_READONLY') as string,
+          password: config.get('TYPEORM_DATABASE_PASSWORD_READONLY') as string,
+          port: config.get('TYPEORM_DATABASE_PORT_READONLY') as number,
+          host: config.get('TYPEORM_DATABASE_HOST_READONLY') as string,
+        });
+      }
       AppDataSource.datasource = new DataSource({
         schema: 'public',
         type: 'postgres',
-        database: config.get('TYPEORM_DATABASE_NAME') as string,
-        username: config.get('TYPEORM_DATABASE_USER') as string,
-        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-        port: config.get('TYPEORM_DATABASE_PORT') as number,
-        host: config.get('TYPEORM_DATABASE_HOST') as string,
+        replication: {
+          master: {
+            database: config.get('TYPEORM_DATABASE_NAME') as string,
+            username: config.get('TYPEORM_DATABASE_USER') as string,
+            password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+            port: config.get('TYPEORM_DATABASE_PORT') as number,
+            host: config.get('TYPEORM_DATABASE_HOST') as string,
+          },
+          slaves,
+        },
+
         entities,
         synchronize,
         dropSchema,
@@ -35,6 +52,11 @@ export class AppDataSource {
           },
         },
         poolSize,
+        extra: {
+          maxWaitingClients: 10,
+          evictionRunIntervalMillis: 500,
+          idleTimeoutMillis: 500,
+        },
       });
       await AppDataSource.datasource.initialize();
     }
@@ -59,6 +81,11 @@ export class CronDataSource {
         entities: [CronJob],
         synchronize: false,
         dropSchema: false,
+        extra: {
+          maxWaitingClients: 10,
+          evictionRunIntervalMillis: 500,
+          idleTimeoutMillis: 500,
+        },
       });
       await CronDataSource.datasource.initialize();
     }

@@ -40,7 +40,6 @@ import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { ApolloContext } from '../types/ApolloContext';
 import { publicSelectionFields, User } from '../entities/user';
-import config from '../config';
 import { Context } from '../context';
 import SentryLogger from '../sentryLogger';
 import {
@@ -319,40 +318,27 @@ export class ProjectResolver {
     searchTerm?: string,
   ) {
     if (!searchTerm) return query;
-    const similarityThreshold =
-      Number(config.get('PROJECT_SEARCH_SIMILARITY_THRESHOLD')) || 0.4;
 
-    return query.andWhere(
-      new Brackets(qb => {
-        qb.where(
-          'WORD_SIMILARITY(project.title, :searchTerm) > :similarityThreshold',
-          {
-            searchTerm: `%${searchTerm}%`,
-            similarityThreshold,
-          },
+    return (
+      query
+        // For future use! This is the way to use similarity in TypeORM
+        // .addSelect('similarity(project.title, :searchTerm)', 'title_slm')
+        // .addSelect('similarity(project.description, :searchTerm)', 'desc_slm')
+        // .addSelect('similarity(project.impactLocation, :searchTerm)', 'loc_slm')
+        // .setParameter('searchTerm', searchTerm)
+        .andWhere(
+          new Brackets(qb => {
+            qb.where('project.title % :searchTerm ', {
+              searchTerm,
+            })
+              .orWhere('project.description % :searchTerm ', {
+                searchTerm,
+              })
+              .orWhere('project.impactLocation % :searchTerm', {
+                searchTerm,
+              });
+          }),
         )
-          .orWhere(
-            'WORD_SIMILARITY(project.description, :searchTerm) > :similarityThreshold',
-            {
-              searchTerm: `%${searchTerm}%`,
-              similarityThreshold,
-            },
-          )
-          .orWhere(
-            'WORD_SIMILARITY(project.impactLocation, :searchTerm) > :similarityThreshold',
-            {
-              searchTerm: `%${searchTerm}%`,
-              similarityThreshold,
-            },
-          )
-          .orWhere(
-            'WORD_SIMILARITY(user.name, :searchTerm) > :similarityThreshold',
-            {
-              searchTerm: `%${searchTerm}%`,
-              similarityThreshold,
-            },
-          );
-      }),
     );
   }
 
@@ -1326,7 +1312,6 @@ export class ProjectResolver {
 
     const project = Project.create({
       ...projectInput,
-
       categories: categories as Category[],
       organization: organization as Organization,
       image,
@@ -1335,7 +1320,6 @@ export class ProjectResolver {
       slug: slug.toLowerCase(),
       slugHistory: [],
       admin: String(ctx.req.user.userId),
-      users: [user],
       status: status as ProjectStatus,
       qualityScore,
       totalDonations: 0,

@@ -50,6 +50,7 @@ import { ProjectFraud } from './projectFraud';
 import { ProjectActualMatchingView } from './ProjectActualMatchingView';
 import { ProjectSocialMedia } from './projectSocialMedia';
 import { DraftRecurringDonation } from './draftRecurringDonation';
+import { ProjectDonationSummaryView } from '../views/projectDonationSummaryView';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -94,6 +95,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectUserInstantPowerView,
     ProjectEstimatedMatchingView,
     ProjectActualMatchingView,
+    ProjectDonationSummaryView,
 
     // historic snapshots
     PowerSnapshotHistory,
