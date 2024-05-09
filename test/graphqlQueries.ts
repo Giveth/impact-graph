@@ -672,6 +672,10 @@ export const fetchAllDonationsQuery = `
         anonymous
         valueUsd
         amount
+        recurringDonation{
+          id
+          txHash
+        }
         user {
           id
           walletAddress

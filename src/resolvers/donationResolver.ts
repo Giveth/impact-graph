@@ -237,6 +237,7 @@ export class DonationResolver {
         .leftJoin('donation.user', 'user')
         .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project')
+        .leftJoinAndSelect('donation.recurringDonation', 'recurringDonation')
         .leftJoinAndSelect('project.categories', 'categories')
         .leftJoin('project.projectPower', 'projectPower')
         .addSelect([
