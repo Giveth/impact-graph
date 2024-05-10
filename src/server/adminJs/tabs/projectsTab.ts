@@ -951,7 +951,7 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
               );
             }
-            if (request?.payload?.admin !== project?.admin) {
+            if (Number(request?.payload?.admin) !== project?.adminUserId) {
               request.payload.adminChanged = true;
             }
 
