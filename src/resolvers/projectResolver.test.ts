@@ -5192,8 +5192,8 @@ function similarProjectsBySlugTestCases() {
     const [, relatedCount] = await Project.createQueryBuilder('project')
       .innerJoinAndSelect('project.categories', 'categories')
       .where('project.id != :id', { id: viewedProject?.id })
-      .andWhere('project.admin = :ownerId', {
-        ownerId: String(SEED_DATA.FIRST_USER.id),
+      .andWhere('project.adminUserId = :ownerId', {
+        ownerId: SEED_DATA.FIRST_USER.id,
       })
       .andWhere(
         `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
