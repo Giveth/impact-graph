@@ -464,9 +464,9 @@ export class ProjectResolver {
     query: SelectQueryBuilder<Project>,
     take: number,
     skip: number,
-    ownerId?: string | null,
+    ownerId?: number | null,
   ): Promise<AllProjects> {
-    query.andWhere('project.admin = :ownerId', { ownerId });
+    query.andWhere('project.adminUserId = :ownerId', { ownerId });
     const [projects, totalCount] = await query
       .orderBy('project.creationDate', 'DESC')
       .take(take)
@@ -1850,7 +1850,7 @@ export class ProjectResolver {
             query,
             take,
             skip,
-            viewedProject?.admin,
+            viewedProject?.adminUserId,
           );
         }
       }
