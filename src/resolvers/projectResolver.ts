@@ -1709,7 +1709,7 @@ export class ProjectResolver {
       );
     }
 
-    query = query.where('project.admin = :userId', { userId: String(userId) });
+    query = query.where('project.adminUserId = :userId', { userId });
 
     if (userId !== user?.userId) {
       query = query.andWhere(
