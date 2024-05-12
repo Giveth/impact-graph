@@ -153,10 +153,6 @@ export class Project extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  admin?: string;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
   description?: string;
 
   @Field({ nullable: true })
