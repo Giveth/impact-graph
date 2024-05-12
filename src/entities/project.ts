@@ -309,6 +309,7 @@ export class Project extends BaseEntity {
   adminUser: User;
 
   @Column({ nullable: true })
+  @Field(_type => Int)
   @RelationId((project: Project) => project.adminUser)
   adminUserId: number;
 
