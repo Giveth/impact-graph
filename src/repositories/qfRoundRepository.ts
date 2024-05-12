@@ -42,11 +42,11 @@ export class QFArchivedRounds {
   @Field(_type => Int)
   allocatedFund: number;
 
-  @Field(_type => Int)
-  allocatedFundUSD: number;
+  @Field(_type => Int, { nullable: true })
+  allocatedFundUSD?: number | null;
 
-  @Field(_type => String)
-  allocatedTokenSymbol: string;
+  @Field(_type => String, { nullable: true })
+  allocatedTokenSymbol?: string | null;
 
   @Field(_type => [Int])
   eligibleNetworks: number;
