@@ -2310,6 +2310,8 @@ export const fetchQFArchivedRounds = `
       slug
       isActive
       allocatedFund
+      allocatedFundUSD
+      allocatedTokenSymbol
       eligibleNetworks
       beginDate
       endDate
