@@ -115,7 +115,7 @@ export const createProjectQuery = `
         title
         description
         descriptionSummary
-        admin
+        adminUserId
         image
         impactLocation
         slug
@@ -166,7 +166,7 @@ export const updateProjectQuery = `
       verified
       slugHistory
       creationDate
-      admin
+      adminUserId
       walletAddress
       impactLocation
       categories {
@@ -203,7 +203,7 @@ export const addRecipientAddressToProjectQuery = `
       slugHistory
       creationDate
       updatedAt
-      admin
+      adminUserId
       walletAddress
       impactLocation
       categories {
@@ -687,7 +687,7 @@ export const fetchAllDonationsQuery = `
           reviewStatus
           verified
           slug
-          admin
+          adminUserId
           title
           categories {
             name
@@ -781,7 +781,7 @@ export const fetchFeaturedProjects = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -877,7 +877,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         descriptionSummary
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -1030,7 +1030,7 @@ export const fetchProjectBySlugQuery = `
       slug
       creationDate
       updatedAt
-      admin
+      adminUserId
       description
       walletAddress
       impactLocation
@@ -1204,7 +1204,7 @@ export const fetchSimilarProjectsBySlugQuery = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -1265,7 +1265,7 @@ export const fetchLikedProjectsQuery = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -1512,7 +1512,7 @@ export const projectsBySlugsQuery = `
           image
           slug
           creationDate
-          admin
+          adminUserId
           walletAddress
           impactLocation
           listed
@@ -1560,7 +1560,7 @@ export const projectsByUserIdQuery = `
           image
           slug
           creationDate
-          admin
+          adminUserId
           walletAddress
           impactLocation
           listed
@@ -1664,7 +1664,7 @@ export const projectByIdQuery = `
       reviewStatus
       description,
       walletAddress
-      admin
+      adminUserId
       categories{
           name
       }

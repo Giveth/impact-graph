@@ -32,7 +32,7 @@ class ProjectInput {
   title: string;
 
   @Field({ nullable: true })
-  admin?: string;
+  adminUserId?: number;
 
   @Field({ nullable: true })
   @MaxLength(PROJECT_DESCRIPTION_MAX_LENGTH, {

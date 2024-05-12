@@ -123,7 +123,7 @@ export interface CreateProjectData {
   title: string;
   slug: string;
   description: string;
-  admin: string;
+  adminUserId: number;
   // relatedAddresses: RelatedAddressInputType[];
   walletAddress: string;
   categories: string[];
@@ -233,7 +233,7 @@ export const saveProjectDirectlyToDb = async (
     owner ||
     ((await User.findOne({
       where: {
-        id: Number(projectData.admin),
+        id: projectData.adminUserId,
       },
     })) as User);
   const categoriesPromise = Promise.all(
@@ -254,7 +254,7 @@ export const saveProjectDirectlyToDb = async (
     organization,
     categories,
     adminUser: user,
-    admin: String(user.id),
+    adminUserId: user.id,
   }).save();
 
   if (projectData.networkId) {
@@ -314,7 +314,7 @@ export const createProjectData = (): CreateProjectData => {
     updatedAt: new Date(),
     slug: title,
     // firstUser's id
-    admin: '1',
+    adminUserId: 1,
     qualityScore: 30,
     // just need the initial value to be different than 0
     totalDonations: 10,

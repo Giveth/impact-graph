@@ -1319,7 +1319,7 @@ export class ProjectResolver {
       updatedAt: now,
       slug: slug.toLowerCase(),
       slugHistory: [],
-      admin: String(ctx.req.user.userId),
+      adminUserId: ctx.req.user.userId,
       status: status as ProjectStatus,
       qualityScore,
       totalDonations: 0,

@@ -3721,7 +3721,7 @@ function donationsByUserIdTestCases() {
       updatedAt: new Date(),
       slug: title,
       // firstUser's id
-      admin: String(user.id),
+      adminUserId: user.id,
       qualityScore: 30,
       // just need the initial value to be different than 0
       totalDonations: 10,
@@ -3801,7 +3801,7 @@ function donationsByUserIdTestCases() {
       updatedAt: new Date(),
       slug: title,
       // firstUser's id
-      admin: String(user.id),
+      adminUserId: user.id,
       qualityScore: 30,
       // just need the initial value to be different than 0
       totalDonations: 10,
