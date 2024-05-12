@@ -42,6 +42,12 @@ export class QFArchivedRounds {
   @Field(_type => Int)
   allocatedFund: number;
 
+  @Field(_type => Int)
+  allocatedFundUSD: number;
+
+  @Field(_type => String)
+  allocatedTokenSymbol: string;
+
   @Field(_type => [Int])
   eligibleNetworks: number;
 
@@ -83,6 +89,8 @@ export const findArchivedQfRounds = async (
     .addSelect('SUM(donation.amount)', 'totalDonations')
     .addSelect('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
     .addSelect('qfRound.allocatedFund', 'allocatedFund')
+    .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
+    .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')
     .addSelect('qfRound.beginDate', 'beginDate')
     .groupBy('qfRound.id')
     .orderBy(fieldMap[field], direction, 'NULLS LAST')
