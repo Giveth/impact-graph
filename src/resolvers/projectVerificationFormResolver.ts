@@ -260,10 +260,6 @@ export class ProjectVerificationFormResolver {
       const projectVerificationForm = await findProjectVerificationFormById(
         projectVerificationId,
       );
-      logger.debug('updateProjectVerificationForm', {
-        projectVerificationForm,
-        projectVerificationUpdateInput,
-      });
       if (!projectVerificationForm) {
         throw new Error(
           i18n.__(

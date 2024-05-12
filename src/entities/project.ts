@@ -210,6 +210,7 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   image?: string;
 
+  @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field({ nullable: true })
   @Column({ nullable: true })
   impactLocation?: string;
@@ -267,11 +268,6 @@ export class Project extends BaseEntity {
   @Field(_type => [ProjectContacts], { nullable: true })
   @Column('jsonb', { nullable: true })
   contacts: ProjectContacts[];
-
-  @ManyToMany(_type => User, user => user.projects)
-  @Field(_type => [User], { nullable: true })
-  @JoinTable()
-  users: User[];
 
   @Field(() => [Reaction], { nullable: true })
   @OneToMany(_type => Reaction, reaction => reaction.project)
@@ -581,10 +577,6 @@ export class Project extends BaseEntity {
     }
   }
 
-  owner() {
-    return this.users[0];
-  }
-
   @BeforeUpdate()
   async updateProjectDescriptionSummary() {
     await Project.update(
@@ -606,6 +598,7 @@ export class ProjectUpdate extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
+  @Index('trgm_idx_user_name', { synchronize: false })
   @Field(_type => String)
   @Column()
   title: string;
@@ -667,6 +660,7 @@ export class ProjectUpdate extends BaseEntity {
   @Column('text', { nullable: true })
   organizationWebsite: string;
 
+  @Index('trgm_idx_project_description', { synchronize: false })
   @Field({ nullable: true })
   @Column('text', { nullable: true })
   organizationDescription: string;

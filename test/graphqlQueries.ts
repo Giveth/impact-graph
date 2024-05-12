@@ -672,6 +672,10 @@ export const fetchAllDonationsQuery = `
         anonymous
         valueUsd
         amount
+        recurringDonation{
+          id
+          txHash
+        }
         user {
           id
           walletAddress
@@ -2306,6 +2310,8 @@ export const fetchQFArchivedRounds = `
       slug
       isActive
       allocatedFund
+      allocatedFundUSD
+      allocatedTokenSymbol
       eligibleNetworks
       beginDate
       endDate

@@ -253,7 +253,6 @@ export const saveProjectDirectlyToDb = async (
     status,
     organization,
     categories,
-    users: [user],
     adminUser: user,
     admin: String(user.id),
   }).save();
