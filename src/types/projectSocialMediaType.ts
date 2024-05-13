@@ -11,6 +11,7 @@ export enum ProjectSocialMediaType {
   FARCASTER = 'FARCASTER',
   LENS = 'LENS',
   WEBSITE = 'WEBSITE',
+  TELEGRAM = 'TELEGRAM',
 }
 
 registerEnumType(ProjectSocialMediaType, {
