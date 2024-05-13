@@ -672,6 +672,10 @@ export const fetchAllDonationsQuery = `
         anonymous
         valueUsd
         amount
+        recurringDonation{
+          id
+          txHash
+        }
         user {
           id
           walletAddress
@@ -978,6 +982,12 @@ export const qfRoundStatsQuery = `
       uniqueDonors
       allDonationsUsdValue
       matchingPool
+      qfRound{
+        allocatedFund
+        allocatedFundUSD
+        allocatedFundUSDPreferred
+        allocatedTokenSymbol
+      }
     }
   }
 `;
@@ -2300,6 +2310,8 @@ export const fetchQFArchivedRounds = `
       slug
       isActive
       allocatedFund
+      allocatedFundUSD
+      allocatedTokenSymbol
       eligibleNetworks
       beginDate
       endDate
@@ -2421,4 +2433,21 @@ export const updateRecurringDonationQuery = `
             finished
           }
       }
+`;
+
+export const fetchRecurringDonationStatsQuery = `
+  query (
+    $beginDate: String!
+    $endDate: String!
+    $currency: String
+    ) {
+      getRecurringDonationStats(
+        beginDate: $beginDate
+        endDate: $endDate
+        currency: $currency
+      ) {
+        totalStreamedUsdValue,
+        activeRecurringDonationsCount,
+      }
+  }
 `;

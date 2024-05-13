@@ -4,14 +4,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
+  Index,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Project, ProjStatus, ReviewStatus } from './project';
+import { ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
@@ -86,6 +85,7 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   lastName?: string;
 
+  @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   name?: string;
@@ -159,11 +159,6 @@ export class User extends BaseEntity {
   })
   referredEvent?: ReferredEvent;
 
-  @Field(_type => [Project])
-  @ManyToMany(_type => Project, project => project.users)
-  @JoinTable()
-  projects?: Project[];
-
   @Column('bool', { default: false })
   segmentIdentified: boolean;
 
@@ -214,6 +209,10 @@ export class User extends BaseEntity {
         status: DONATION_STATUS.VERIFIED,
       })
       .andWhere(`donation."recurringDonationId" IS NULL`)
+      .cache(
+        `user-donationsCount-normal-${this.id}`,
+        Number(process.env.USER_STATS_CACHE_TIME || 60000),
+      )
       .getCount();
 
     // Count for recurring donations
@@ -222,6 +221,10 @@ export class User extends BaseEntity {
     )
       .where(`recurring_donation."donorId" = :donorId`, { donorId: this.id })
       .andWhere('recurring_donation.totalUsdStreamed > 0')
+      .cache(
+        `user-donationsCount-recurring-${this.id}`,
+        Number(process.env.USER_STATS_CACHE_TIME || 60000),
+      )
       .getCount();
 
     // Sum of both counts
@@ -236,6 +239,10 @@ export class User extends BaseEntity {
       .andWhere(
         `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
         { reviewStatus: ReviewStatus.Listed },
+      )
+      .cache(
+        `user-likedProjectsCount-recurring-${this.id}`,
+        Number(process.env.USER_STATS_CACHE_TIME || 60000),
       )
       .getCount();
 
