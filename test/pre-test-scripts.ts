@@ -41,6 +41,8 @@ import { createDonationethUser1701756190381 } from '../migration/1701756190381-c
 import { ChainType } from '../src/types/network';
 import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
 import { ProjectActualMatchinView151713700147145 } from '../migration/1713700147145-project_actual_matchin_view_15';
+import { EnablePgTrgmExtension1713859866338 } from '../migration/1713859866338-enable_pg_trgm_extension';
+import { AddPgTrgmIndexes1715086559930 } from '../migration/1715086559930-add_pg_trgm_indexes';
 
 async function seedDb() {
   await seedUsers();
@@ -479,6 +481,8 @@ async function runMigrations() {
     );
     await new createDonationethUser1701756190381().up(queryRunner);
     await new ProjectActualMatchinView151713700147145().up(queryRunner);
+    await new EnablePgTrgmExtension1713859866338().up(queryRunner);
+    await new AddPgTrgmIndexes1715086559930().up(queryRunner);
   } finally {
     await queryRunner.release();
   }
