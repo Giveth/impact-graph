@@ -17,9 +17,11 @@ const TAKE_DRAFT_DONATION = 1000;
 
 const worker: DraftDonationWorker = {
   async matchDraftDonations() {
-    await AppDataSource.initialize(false);
+    logger.debug('matchDraftDonations() has been called');
     // const dataSource = await AppDataSource.getDataSource();
     try {
+      await AppDataSource.initialize(false);
+
       let userIdSkip = 0;
       // eslint-disable-next-line no-constant-condition
       while (true) {
@@ -36,6 +38,7 @@ const worker: DraftDonationWorker = {
           .skip(userIdSkip)
           .take(TAKE_USER)
           .getRawMany();
+        logger.debug('matchDraftDonations() userId', userIds);
         for (const { userId } of userIds) {
           let draftDonationSkip = 0;
 
