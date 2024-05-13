@@ -15,7 +15,7 @@ export class RelateCurrentMiniStreamDonationsToQfRounds1715521134568
         `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(_queryRunner: QueryRunner): Promise<void> {
     // Since the `up` migration changes data based on existing conditions rather than schema,
     // rolling back would ideally require prior knowledge of the previous state, which might
     // not be practical or possible to restore.
