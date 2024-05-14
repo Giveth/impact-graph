@@ -210,6 +210,7 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   image?: string;
 
+  @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field({ nullable: true })
   @Column({ nullable: true })
   impactLocation?: string;
@@ -606,6 +607,7 @@ export class ProjectUpdate extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
+  @Index('trgm_idx_project_title', { synchronize: false })
   @Field(_type => String)
   @Column()
   title: string;
@@ -667,6 +669,7 @@ export class ProjectUpdate extends BaseEntity {
   @Column('text', { nullable: true })
   organizationWebsite: string;
 
+  @Index('trgm_idx_project_description', { synchronize: false })
   @Field({ nullable: true })
   @Column('text', { nullable: true })
   organizationDescription: string;
