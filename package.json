@@ -175,6 +175,7 @@
     "test:fillSnapshotBalance": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/fillSnapshotBalances.test.ts",
     "test:donationService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/repositories/qfRoundHistoryRepository.test.ts  ./src/services/donationService.test.ts",
     "test:draftDonationService": "NODE_ENV=test mocha -t 99999 ./test/pre-test-scripts.ts  src/services/chains/evm/draftDonationService.test.ts src/repositories/draftDonationRepository.test.ts src/workers/draftDonationMatchWorker.test.ts src/resolvers/draftDonationResolver.test.ts",
+    "test:draftDonationWorker": "NODE_ENV=test mocha -t 99999 ./test/pre-test-scripts.ts src/workers/draftDonationMatchWorker.test.ts",
     "test:draftRecurringDonationService": "NODE_ENV=test mocha -t 99999 ./test/pre-test-scripts.ts  src/services/chains/evm/draftRecurringDonationService.test.ts",
     "test:userService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/userService.test.ts",
     "test:lostDonations": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/importLostDonationsJob.test.ts",

@@ -219,6 +219,7 @@ async function submitMatchedDraftDonation(
 let workerIsIdle = true;
 let pool: Pool<ModuleThread<DraftDonationWorker>>;
 export async function runDraftDonationMatchWorker() {
+  logger.debug('runDraftDonationMatchWorker() has been called')
   if (!workerIsIdle) {
     logger.debug('Draft donation matching worker is already running');
     return;
@@ -226,6 +227,7 @@ export async function runDraftDonationMatchWorker() {
   workerIsIdle = false;
 
   if (!pool) {
+    logger.debug('runDraftDonationMatchWorker() pool is null, need to instantiate it')
     pool = Pool(
       () => spawn(new Worker('./../../../workers/draftDonationMatchWorker')),
       {
@@ -236,12 +238,16 @@ export async function runDraftDonationMatchWorker() {
     );
   }
   try {
+    logger.debug('runDraftDonationMatchWorker() before queuing the pool')
     await pool.queue(draftDonationWorker =>
       draftDonationWorker.matchDraftDonations(),
     );
+    logger.debug('runDraftDonationMatchWorker() after queuing the pool')
     await pool.settled(true);
+    logger.debug('runDraftDonationMatchWorker() pool.settled(true)')
+
   } catch (e) {
-    logger.error(`error in calling draft match worker: ${e.message}`);
+    logger.error(`runDraftDonationMatchWorker() error in calling draft match worker: ${e}`);
   } finally {
     workerIsIdle = true;
   }
