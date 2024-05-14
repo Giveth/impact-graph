@@ -80,6 +80,11 @@ export async function matchDraftDonations(
             networkId: Number(networkId),
             page: _page,
           });
+        logger.debug('matchDraftDonations() userTransactionsCount ', {
+          address: user,
+          networkId: Number(networkId),
+          txCount: userRecentTransactions?.length,
+        });
 
         for (const transaction of userRecentTransactions) {
           if (+transaction.timeStamp < minCreatedAt) {
@@ -91,6 +96,12 @@ export async function matchDraftDonations(
           const draftDonations =
             targetTxAddrToDraftDonationMap.get(targetAddress);
 
+          logger.debug('matchDraftDonations() draftDonations count', {
+            address: user,
+            networkId: Number(networkId),
+            draftDonationsCount: draftDonations?.length,
+          });
+
           if (draftDonations) {
             // doantions with same target address
             for (const draftDonation of draftDonations!) {
@@ -100,6 +111,11 @@ export async function matchDraftDonations(
                 // native transfer
                 const amount = ethers.utils.formatEther(transaction.value);
                 if (!closeTo(+amount, draftDonation.amount)) {
+                  logger.debug(
+                    'matchDraftDonations() amounts are not closed',
+                    draftDonation,
+                    amount,
+                  );
                   continue;
                 }
                 await submitMatchedDraftDonation(draftDonation, transaction);
@@ -129,6 +145,10 @@ export async function matchDraftDonations(
                 await submitMatchedDraftDonation(draftDonation, transaction);
               }
             }
+          } else {
+            logger.debug('Not any draftDonations', {
+              targetAddress,
+            });
           }
         }
 
@@ -144,6 +164,10 @@ async function submitMatchedDraftDonation(
   draftDonation: DraftDonation,
   tx: ITxInfo,
 ) {
+  logger.debug('submitMatchedDraftDonation()', {
+    draftDonation,
+    tx,
+  });
   // Check whether a donation with same networkId and txHash already exists
   const existingDonation = await Donation.findOne({
     where: {
