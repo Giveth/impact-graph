@@ -33,9 +33,19 @@ import { pinFile } from '../../../middleware/pinataUtils';
 export const refreshMaterializedViews = async (
   response,
 ): Promise<After<ActionResponse>> => {
+  const projectIds = await getRelatedProjectsOfQfRound(
+    response.record.params.id,
+  );
   await refreshProjectEstimatedMatchingView();
   await refreshProjectDonationSummaryView();
   await refreshProjectActualMatchingView();
+  response.record = {
+    ...response.record,
+    params: {
+      ...response.record.params,
+      projectIdsList: projectIds.map(project => project.id).join(','),
+    },
+  };
   return response;
 };
 
@@ -119,7 +129,7 @@ export const qfRoundTab = {
   resource: QfRound,
   options: {
     properties: {
-      addProjectIdsList: {
+      projectIdsList: {
         type: 'textarea',
         // projectIds separated By comma
         isVisible: {
@@ -308,10 +318,10 @@ export const qfRoundTab = {
               request.payload.isActive = qfRound.isActive;
             } else if (
               qfRound.isActive &&
-              request?.payload?.addProjectIdsList?.split(',')?.length > 0
+              request?.payload?.projectIdsList?.split(',')?.length > 0
             ) {
               await relateManyProjectsToQfRound({
-                projectIds: request.payload.addProjectIdsList.split(','),
+                projectIds: request.payload.projectIdsList.split(','),
                 qfRound,
                 add: true,
               });
