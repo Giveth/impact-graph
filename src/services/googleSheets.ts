@@ -10,7 +10,7 @@ interface ProjectExport {
   id: number;
   title: string;
   slug?: string | null;
-  admin?: string | null;
+  adminUserId?: number | null;
   creationDate: Date;
   updatedAt: Date;
   impactLocation?: string | null;

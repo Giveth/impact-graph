@@ -82,7 +82,7 @@ function updateUserTotalReceivedTestCases() {
     }).save();
     await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
       totalDonations: 180,
     });

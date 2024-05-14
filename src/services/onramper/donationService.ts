@@ -147,7 +147,7 @@ export const createFiatDonationFromOnramper = async (
 
     // After updating price we update totalDonations
     await updateTotalDonationsOfProject(project.id);
-    await updateUserTotalReceived(Number(project.admin));
+    await updateUserTotalReceived(project.adminUserId);
   } catch (e) {
     SentryLogger.captureException(e);
     logger.error('createFiatDonationFromOnramper() error', e);

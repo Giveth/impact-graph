@@ -63,7 +63,7 @@ const importPoignArtDonations = async () => {
     for (const poignArtWithdrawal of poignArtWithdrawals) {
       await createPoignArtDonationInDb(poignArtWithdrawal, unchainProject);
     }
-    await updateUserTotalReceived(Number(unchainProject.admin));
+    await updateUserTotalReceived(unchainProject.adminUserId);
     await updateTotalDonationsOfProject(unchainProject.id);
   } catch (e) {
     logger.error('importPoignArtDonations() error', e);

@@ -153,10 +153,6 @@ export class Project extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  admin?: string;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
   description?: string;
 
   @Field({ nullable: true })
@@ -313,6 +309,7 @@ export class Project extends BaseEntity {
   adminUser: User;
 
   @Column({ nullable: true })
+  @Field(_type => Int)
   @RelationId((project: Project) => project.adminUser)
   adminUserId: number;
 

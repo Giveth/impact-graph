@@ -31,7 +31,7 @@ function updateTotalProjectUpdatesOfAProjectTestCases() {
     INSERT INTO public.project_update (
       "userId","projectId",content,title,"createdAt","isMain"
     ) VALUES (
-      ${Number(project.admin)}, ${project.id}, '', '', '${
+      ${project.adminUserId}, ${project.id}, '', '', '${
         new Date().toISOString().split('T')[0]
       }', false
     )`);

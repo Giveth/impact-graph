@@ -980,7 +980,6 @@ const getEmailDataDonationAttributes = async (params: {
     title: project.title,
     firstName: user.firstName,
     userId: user.id,
-    projectOwnerId: project.admin,
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     amount,
