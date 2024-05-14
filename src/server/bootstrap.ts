@@ -98,6 +98,8 @@ export async function bootstrap() {
 
     Container.set(DataSource, AppDataSource.getDataSource());
 
+    await setDatabaseParameters(AppDataSource.getDataSource());
+
     const dropSchema = config.get('DROP_DATABASE') === 'true';
     if (dropSchema) {
       // eslint-disable-next-line no-console
@@ -448,4 +450,17 @@ export async function bootstrap() {
     }
     await initializeCronJobs();
   }
+}
+
+async function setDatabaseParameters(ds: DataSource) {
+  await setPgTrgmParameters(ds);
+}
+
+async function setPgTrgmParameters(ds: DataSource) {
+  const similarityThreshold =
+    Number(config.get('PROJECT_SEARCH_SIMILARITY_THRESHOLD')) || 0.1;
+  await ds.query(`SET pg_trgm.similarity_threshold TO ${similarityThreshold};`);
+  await ds.query(
+    `SET pg_trgm.word_similarity_threshold TO ${similarityThreshold};`,
+  );
 }
