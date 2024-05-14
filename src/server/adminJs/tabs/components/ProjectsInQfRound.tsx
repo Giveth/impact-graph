@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { withTheme } from 'styled-components';
 import { Section, Label, Link } from '@adminjs/design-system';
 
