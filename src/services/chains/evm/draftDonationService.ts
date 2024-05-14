@@ -236,6 +236,7 @@ export async function runDraftDonationMatchWorker() {
       {
         name: 'draftDonationMatchWorker',
         concurrency: 4,
+        maxQueuedJobs:1,
         size: 2,
       },
     );
