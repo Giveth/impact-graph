@@ -90,20 +90,28 @@ export const getMaxFetchedUpdatedAtTimestamp = async (): Promise<number> => {
 
 export const refreshProjectInstantPowerView = async (): Promise<void> => {
   logger.debug('Refresh project_instant_power_view materialized view');
-  return AppDataSource.getDataSource().query(
-    `
-      REFRESH MATERIALIZED VIEW project_instant_power_view
-    `,
-  );
+  try {
+    return AppDataSource.getDataSource().query(
+      `
+        REFRESH MATERIALIZED VIEW project_instant_power_view
+      `,
+    );
+  } catch (e) {
+    logger.error('refreshProjectInstantPowerView() error', e);
+  }
 };
 
 export const refreshProjectUserInstantPowerView = async (): Promise<void> => {
   logger.debug('Refresh project_user_instant_power_view materialized view');
-  return AppDataSource.getDataSource().query(
-    `
-      REFRESH MATERIALIZED VIEW project_user_instant_power_view
-    `,
-  );
+  try {
+    return AppDataSource.getDataSource().query(
+      `
+        REFRESH MATERIALIZED VIEW project_user_instant_power_view
+      `,
+    );
+  } catch (e) {
+    logger.error('refreshProjectUserInstantPowerView() error', e);
+  }
 };
 
 export const getProjectUserInstantPowerView = async (

@@ -443,7 +443,11 @@ export async function bootstrap() {
 
   async function performPostStartTasks() {
     // All heavy and non-critical initializations here
-    await continueDbSetup();
+    try {
+      await continueDbSetup();
+    } catch (e) {
+      logger.error('continueDbSetup) error', e);
+    }
     await initializeCronJobs();
   }
 }

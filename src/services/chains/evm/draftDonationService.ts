@@ -29,6 +29,7 @@ const transferErc20CallData = (to: string, amount: number, decimals = 18) => {
 export async function matchDraftDonations(
   userDraftDonationsMap: Record<string, DraftDonation[]>,
 ) {
+  logger.debug('matchDraftDonations() has been called');
   for (const user of Object.keys(userDraftDonationsMap)) {
     // group by networkId
     const userDraftDonations = userDraftDonationsMap[user];
