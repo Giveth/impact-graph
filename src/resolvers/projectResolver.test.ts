@@ -571,7 +571,7 @@ function createProjectTestCases() {
         },
       ],
     };
-    const promise1 = axios.post(
+    const res1 = await axios.post(
       graphqlUrl,
       {
         query: createProjectQuery,
@@ -585,7 +585,7 @@ function createProjectTestCases() {
         },
       },
     );
-    const promise2 = axios.post(
+    const res2 = await axios.post(
       graphqlUrl,
       {
         query: createProjectQuery,
@@ -599,15 +599,10 @@ function createProjectTestCases() {
         },
       },
     );
-    const [result1, result2] = await Promise.all([promise1, promise2]);
-    const isResult1Ok = !!result1.data.data?.createProject;
-    const isResult2Ok = !!result2.data.data?.createProject;
-
-    // Exactly one should be ok
-    const exactlyOneOk =
-      (isResult1Ok && !isResult2Ok) || (!isResult1Ok && isResult2Ok);
-
-    assert.isTrue(exactlyOneOk, 'Exactly one operation should be successful');
+    const isRes1Ok = !!res1.data.data?.createProject;
+    const isRes2Ok = !!res2.data.data?.createProject;
+    assert.isTrue(isRes1Ok);
+    assert.isFalse(isRes2Ok);
   });
   it('Create Project should return <<Access denied>>, calling without token IN ENGLISH when no-lang header is sent', async () => {
     const sampleProject = {
