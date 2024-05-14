@@ -235,9 +235,9 @@ export async function runDraftDonationMatchWorker() {
       () => spawn(new Worker('./../../../workers/draftDonationMatchWorker')),
       {
         name: 'draftDonationMatchWorker',
-        concurrency: 4,
+        concurrency: 1,
         maxQueuedJobs: 1,
-        size: 2,
+        size: 1,
       },
     );
   }
