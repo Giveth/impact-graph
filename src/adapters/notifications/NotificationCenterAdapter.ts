@@ -10,7 +10,7 @@ import {
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { UserStreamBalanceWarning, User } from '../../entities/user';
-import { createBasicAuthentication } from '../../utils/utils';
+import { createBasicAuthentication, isProduction } from '../../utils/utils';
 import { logger } from '../../utils/logger';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import { redisConfig } from '../../redis';
@@ -112,10 +112,17 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {
     // TODO we should me this to notification-center, it's not good that we call Ortto directly
+    const merge_by: string[] = [];
+    if (isProduction) {
+      merge_by.push('str:cm:user-id');
+    } else {
+      merge_by.push('str::email');
+    }
     try {
       const data = {
         people,
         async: false,
+        merge_by,
       };
       logger.debug('updateOrttoPeople has been called:', people);
       const orttoConfig = {
@@ -1045,7 +1052,7 @@ export const getOrttoPersonAttributes = (params: {
     'str::last': lastName || '',
     'str::email': email || '',
   };
-  if (process.env.ENVIRONMENT === 'production') {
+  if (isProduction) {
     // On production, we should update Ortto user profile based on user-id to avoid touching real users data
     fields['str:cm:user-id'] = userId;
   }
