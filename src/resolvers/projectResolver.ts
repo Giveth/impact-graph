@@ -7,6 +7,7 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Info,
   InputType,
   Int,
   Mutation,
@@ -855,7 +856,14 @@ export class ProjectResolver {
     @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
+    @Info() info: any,
   ) {
+    const requestedFields = info.fieldNodes.flatMap(node =>
+      node.selectionSet.selections.map(selection => selection.name.value),
+    );
+    console.log('-------------------------');
+    console.log(requestedFields);
+    console.log('-------------------------');
     const viewerUserId = connectedWalletUserId || user?.userId;
     let isOwnerOfProject = false;
 
