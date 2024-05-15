@@ -100,6 +100,9 @@ export async function matchDraftDonations(
             address: user,
             networkId: Number(networkId),
             draftDonationsCount: draftDonations?.length,
+            targetTxAddrToDraftDonationMap,
+            targetAddress,
+            userDraftDonationsByNetwork,
           });
 
           if (draftDonations) {
