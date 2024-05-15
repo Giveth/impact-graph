@@ -475,7 +475,7 @@ export class DonationResolver {
   async donationsFromWallets(
     @Ctx() _ctx: ApolloContext,
     @Arg('fromWalletAddresses', _type => [String])
-      fromWalletAddresses: string[],
+    fromWalletAddresses: string[],
   ) {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase(),
@@ -514,9 +514,9 @@ export class DonationResolver {
     @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
     @Arg('traceable', _type => Boolean, { defaultValue: false })
-      traceable: boolean,
+    traceable: boolean,
     @Arg('qfRoundId', _type => Int, { defaultValue: null, nullable: true })
-      qfRoundId: number,
+    qfRoundId: number,
     @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
     @Arg('status', _type => String, { nullable: true }) status: string,
     @Arg('searchTerm', _type => String, { nullable: true }) searchTerm: string,
@@ -526,7 +526,7 @@ export class DonationResolver {
         direction: SortDirection.DESC,
       },
     })
-      orderBy: SortBy,
+    orderBy: SortBy,
   ) {
     const project = await Project.findOne({
       where: {
