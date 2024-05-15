@@ -22,6 +22,52 @@ export const getAppropriateSlug = async (
   return slug;
 };
 
+/**
+ * Custom Query Builders to chain together
+ */
+
+// @Field(_type => Float, { nullable: true })
+// async sumDonationValueUsdForActiveQfRound() {
+//   const activeQfRound = this.getActiveQfRound();
+//   return activeQfRound
+//     ? await sumDonationValueUsdForQfRound({
+//         projectId: this.id,
+//         qfRoundId: activeQfRound.id,
+//       })
+//     : 0;
+// }
+
+// @Field(_type => Float, { nullable: true })
+// async sumDonationValueUsd() {
+//   return await sumDonationValueUsd(this.id);
+// }
+
+// @Field(_type => Int, { nullable: true })
+// async countUniqueDonorsForActiveQfRound() {
+//   const activeQfRound = this.getActiveQfRound();
+//   return activeQfRound
+//     ? await countUniqueDonorsForRound({
+//         projectId: this.id,
+//         qfRoundId: activeQfRound.id,
+//       })
+//     : 0;
+// }
+
+// @Field(_type => Int, { nullable: true })
+// async countUniqueDonors() {
+//   return await countUniqueDonors(this.id);
+// }
+
+// export const updateProjectStatistics = async (projectId: number) => {
+//   // const project = await Project.findOne(projectId);
+//   // if (!project) return;
+//   // project.sumDonationValueUsdForActiveQfRound = await calculateSumDonationValueUsdForActiveQfRound(projectId);
+//   // project.sumDonationValueUsd = await calculateSumDonationValueUsd(projectId);
+//   // project.countUniqueDonorsForActiveQfRound = await calculateCountUniqueDonorsForActiveQfRound(projectId);
+//   // project.countUniqueDonors = await calculateCountUniqueDonors(projectId);
+//   // await project.save();
+// };
+
 // Current Formula: will be changed possibly in the future
 export const getQualityScore = (description, hasImageUpload, heartCount?) => {
   const heartScore = 10;
