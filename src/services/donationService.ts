@@ -44,6 +44,7 @@ import { getTransactionInfoFromNetwork } from './chains';
 import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { CustomToken, getTokenPrice } from './priceService';
+import { updateProjectStatistics } from './projectService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -368,6 +369,8 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     // Update materialized view for project and qfRound data
     await refreshProjectEstimatedMatchingView();
     await refreshProjectDonationSummaryView();
+
+    await updateProjectStatistics(donation.projectId);
 
     const donationStats = await getUserDonationStats(donation.userId);
     const donor = await findUserById(donation.userId);

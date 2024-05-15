@@ -1,4 +1,11 @@
 import { Project } from '../entities/project';
+import {
+  countUniqueDonors,
+  countUniqueDonorsForRound,
+  sumDonationValueUsd,
+  sumDonationValueUsdForQfRound,
+} from '../repositories/donationRepository';
+import { findProjectById } from '../repositories/projectRepository';
 
 export const getAppropriateSlug = async (
   slugBase: string,
@@ -22,51 +29,34 @@ export const getAppropriateSlug = async (
   return slug;
 };
 
-/**
- * Custom Query Builders to chain together
- */
+export const updateProjectStatistics = async (projectId: number) => {
+  const project = await findProjectById(projectId);
+  if (!project) return;
 
-// @Field(_type => Float, { nullable: true })
-// async sumDonationValueUsdForActiveQfRound() {
-//   const activeQfRound = this.getActiveQfRound();
-//   return activeQfRound
-//     ? await sumDonationValueUsdForQfRound({
-//         projectId: this.id,
-//         qfRoundId: activeQfRound.id,
-//       })
-//     : 0;
-// }
+  const activeQfRound = project.getActiveQfRound();
+  if (activeQfRound) {
+    project.sumDonationValueUsdForActiveQfRound =
+      await sumDonationValueUsdForQfRound({
+        projectId: project.id,
+        qfRoundId: activeQfRound.id,
+      });
+    project.countUniqueDonorsForActiveQfRound = await countUniqueDonorsForRound(
+      {
+        projectId: project.id,
+        qfRoundId: activeQfRound.id,
+      },
+    );
+  }
 
-// @Field(_type => Float, { nullable: true })
-// async sumDonationValueUsd() {
-//   return await sumDonationValueUsd(this.id);
-// }
+  if (!activeQfRound) {
+    project.sumDonationValueUsdForActiveQfRound = 0;
+    project.countUniqueDonorsForActiveQfRound = 0;
+  }
 
-// @Field(_type => Int, { nullable: true })
-// async countUniqueDonorsForActiveQfRound() {
-//   const activeQfRound = this.getActiveQfRound();
-//   return activeQfRound
-//     ? await countUniqueDonorsForRound({
-//         projectId: this.id,
-//         qfRoundId: activeQfRound.id,
-//       })
-//     : 0;
-// }
-
-// @Field(_type => Int, { nullable: true })
-// async countUniqueDonors() {
-//   return await countUniqueDonors(this.id);
-// }
-
-// export const updateProjectStatistics = async (projectId: number) => {
-//   // const project = await Project.findOne(projectId);
-//   // if (!project) return;
-//   // project.sumDonationValueUsdForActiveQfRound = await calculateSumDonationValueUsdForActiveQfRound(projectId);
-//   // project.sumDonationValueUsd = await calculateSumDonationValueUsd(projectId);
-//   // project.countUniqueDonorsForActiveQfRound = await calculateCountUniqueDonorsForActiveQfRound(projectId);
-//   // project.countUniqueDonors = await calculateCountUniqueDonors(projectId);
-//   // await project.save();
-// };
+  project.sumDonationValueUsd = await sumDonationValueUsd(project.id);
+  project.countUniqueDonors = await countUniqueDonors(project.id);
+  await project.save();
+};
 
 // Current Formula: will be changed possibly in the future
 export const getQualityScore = (description, hasImageUpload, heartCount?) => {

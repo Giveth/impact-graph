@@ -79,10 +79,10 @@ function allProjectsTestCases() {
         getHtmlTextSummary(project.description),
       );
       assert.isNull(project.estimatedMatching);
-      assert.exists(project.sumDonationValueUsd);
-      assert.exists(project.sumDonationValueUsdForActiveQfRound);
-      assert.exists(project.countUniqueDonorsForActiveQfRound);
-      assert.exists(project.countUniqueDonors);
+      assert.isNull(project.sumDonationValueUsd);
+      assert.isNull(project.sumDonationValueUsdForActiveQfRound);
+      assert.isNull(project.countUniqueDonorsForActiveQfRound);
+      assert.isNull(project.countUniqueDonors);
     });
   });
 
