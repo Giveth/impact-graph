@@ -4,6 +4,7 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Float,
   InputType,
   Int,
   Mutation,
@@ -170,10 +171,10 @@ class GetRecurringDonationStatsArgs {
 
 @ObjectType()
 class RecurringDonationStats {
-  @Field(_type => Int)
+  @Field(_type => Float)
   activeRecurringDonationsCount: number;
 
-  @Field(_type => Int)
+  @Field(_type => Float)
   totalStreamedUsdValue: number;
 }
 
