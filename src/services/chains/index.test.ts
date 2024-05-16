@@ -4,11 +4,12 @@ import { NETWORK_IDS } from '../../provider';
 import { assertThrowsAsync } from '../../../test/testUtils';
 import { errorMessages } from '../../utils/errorMessages';
 import { ChainType } from '../../types/network';
-import { getTransactionInfoFromNetwork } from './index';
+import { closeTo, getTransactionInfoFromNetwork } from './index';
 
 const ONE_DAY = 60 * 60 * 24;
 
 describe('getTransactionDetail test cases', getTransactionDetailTestCases);
+describe('closeTo test cases', closeToTestCases);
 
 function getTransactionDetailTestCases() {
   // it('should return transaction detail for normal transfer on gnosis when it belongs to a multisig', async () => {
@@ -941,5 +942,17 @@ function getTransactionDetailTestCases() {
       badFunc,
       errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
+  });
+}
+
+function closeToTestCases() {
+  it('should 0.0008436 and 0.0008658 consider as closed amount', function () {
+    assert.isTrue(closeTo(0.0008436, 0.0008658));
+  });
+  it('should 0.0001 and 0.00011 consider as closed amount', function () {
+    assert.isTrue(closeTo(0.0001, 0.00011));
+  });
+  it('should not consider 0.001 and 0.003 consider as closed amount', function () {
+    assert.isFalse(closeTo(0.001, 0.003));
   });
 }

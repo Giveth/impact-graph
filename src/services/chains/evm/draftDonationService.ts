@@ -117,7 +117,10 @@ export async function matchDraftDonations(
                   logger.debug(
                     'matchDraftDonations() amounts are not closed',
                     draftDonation,
-                    amount,
+                    {
+                      amount,
+                      txHash: transaction.hash,
+                    },
                   );
                   continue;
                 }
@@ -125,6 +128,10 @@ export async function matchDraftDonations(
               } else {
                 // ERC20 transfer
                 let transferCallData = draftDonation.expectedCallData;
+                logger.debug(
+                  'matchDraftDonations() transferCallData',
+                  transferCallData,
+                );
                 if (!transferCallData) {
                   const token = await findTokenByNetworkAndAddress(
                     networkId,
