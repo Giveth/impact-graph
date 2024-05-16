@@ -1087,53 +1087,6 @@ export const fetchProjectBySlugQuery = `
         name
         isActive
       }
-      projectVerificationForm {
-        status
-        id
-        isTermAndConditionsAccepted
-        emailConfirmationTokenExpiredAt
-        email
-        emailConfirmationToken
-        emailConfirmationSent
-        emailConfirmationSentAt
-        emailConfirmedAt
-        emailConfirmed
-        projectRegistry {
-          organizationDescription
-          isNonProfitOrganization
-          organizationCountry
-          organizationWebsite
-          attachments
-          organizationName
-        }
-        personalInfo {
-          email
-          walletAddress
-          fullName
-        }
-        projectContacts {
-          name
-          url
-        }
-        milestones {
-          mission
-          foundationDate
-          achievedMilestones
-          achievedMilestonesProofs
-          problem
-          plans
-          impact
-        }
-        managingFunds {
-          description
-          relatedAddresses {
-            address
-            networkId
-            chainType
-            title
-          }
-        }
-      }
       status {
         id
         symbol
@@ -1167,6 +1120,7 @@ export const fetchProjectBySlugQuery = `
         email
         firstName
         walletAddress
+        email
       }
       totalReactions
       totalDonations

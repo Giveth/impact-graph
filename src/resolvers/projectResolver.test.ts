@@ -4287,7 +4287,7 @@ function getProjectUpdatesTestCases() {
 }
 
 function projectBySlugTestCases() {
-  it('should return projects with indicated slug and verification form if owner', async () => {
+  it('should return projects with indicated slug and verification form status if owner', async () => {
     const project1 = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -4326,45 +4326,15 @@ function projectBySlugTestCases() {
 
     const project = result.data.data.projectBySlug;
     assert.equal(Number(project.id), project1.id);
-    assert.isOk(project.projectVerificationForm);
-    assert.equal(project.projectVerificationForm.id, verificationForm.id);
+    assert.isOk(project.verificationFormStatus);
+    assert.equal(
+      project.project.verificationFormStatus,
+      verificationForm.status,
+    );
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
     assert.isNotOk(project.adminUser.email);
     assert.isOk(project.categories[0].mainCategory.title);
-  });
-  it('should return verificationFormStatus if its not owner', async () => {
-    const project1 = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-
-    const user =
-      (await User.findOne({
-        where: {
-          id: project1.adminUserId,
-        },
-      })) || undefined;
-
-    const verificationForm = await ProjectVerificationForm.create({
-      project: project1,
-      user,
-      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
-    }).save();
-
-    const result = await axios.post(graphqlUrl, {
-      query: fetchProjectBySlugQuery,
-      variables: {
-        slug: project1.slug,
-        connectedWalletUserId: user!.id,
-      },
-    });
-
-    const project = result.data.data.projectBySlug;
-    assert.equal(Number(project.id), project1.id);
-    assert.isNotOk(project.projectVerificationForm);
-    assert.equal(project.verificationFormStatus, verificationForm.status);
   });
 
   it('should return projects with indicated slug', async () => {
