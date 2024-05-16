@@ -4336,22 +4336,41 @@ function projectBySlugTestCases() {
 
   it('should return projects with indicated slug', async () => {
     const walletAddress = generateRandomEtheriumAddress();
-    const project1 = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      walletAddress,
-    });
-
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const sampleProject1 = {
+      title: 'title1',
+      adminUserId: SEED_DATA.FIRST_USER.id,
+      addresses: [
+        {
+          address: walletAddress,
+          networkId: NETWORK_IDS.XDAI,
+          chainType: ChainType.EVM,
+        },
+      ],
+    };
+    const res1 = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject1,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const _project = res1.data.data.createProject;
     const result = await axios.post(graphqlUrl, {
       query: fetchProjectBySlugQuery,
       variables: {
-        slug: project1.slug,
+        slug: _project.slug,
       },
     });
-
     const project = result.data.data.projectBySlug;
-    assert.equal(Number(project.id), project1.id);
+    assert.equal(Number(project.id), Number(_project.id));
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.givbackFactor);
     assert.isNull(project.projectVerificationForm);
