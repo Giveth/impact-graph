@@ -128,10 +128,11 @@ export async function matchDraftDonations(
               } else {
                 // ERC20 transfer
                 let transferCallData = draftDonation.expectedCallData;
-                logger.debug(
-                  'matchDraftDonations() transferCallData',
+                logger.debug('matchDraftDonations() transferCallData', {
                   transferCallData,
-                );
+                  txAmount: ethers.utils.formatEther(transaction.value),
+                  txHash: transaction.hash,
+                });
                 if (!transferCallData) {
                   const token = await findTokenByNetworkAndAddress(
                     networkId,
