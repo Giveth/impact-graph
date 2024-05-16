@@ -4327,10 +4327,7 @@ function projectBySlugTestCases() {
     const project = result.data.data.projectBySlug;
     assert.equal(Number(project.id), project1.id);
     assert.isOk(project.verificationFormStatus);
-    assert.equal(
-      project.project.verificationFormStatus,
-      verificationForm.status,
-    );
+    assert.equal(project.verificationFormStatus, verificationForm.status);
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
     assert.isNotOk(project.adminUser.email);
