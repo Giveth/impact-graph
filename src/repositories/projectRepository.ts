@@ -324,6 +324,16 @@ export const findProjectBySlug = (slug: string): Promise<Project | null> => {
   );
 };
 
+export const findProjectIdBySlug = (slug: string): Promise<Project | null> => {
+  // check current slug and previous slugs
+  return Project.createQueryBuilder('project')
+    .select('project.id')
+    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+      slug,
+    })
+    .getOne();
+};
+
 export const findProjectBySlugWithoutAnyJoin = (
   slug: string,
 ): Promise<Project | null> => {
