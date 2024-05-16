@@ -130,8 +130,7 @@ export async function matchDraftDonations(
                 let transferCallData = draftDonation.expectedCallData;
                 logger.debug('matchDraftDonations() transferCallData', {
                   transferCallData,
-                  txAmount: ethers.utils.formatEther(transaction.value),
-                  txHash: transaction.hash,
+                  transaction,
                 });
                 if (!transferCallData) {
                   const token = await findTokenByNetworkAndAddress(
@@ -150,6 +149,13 @@ export async function matchDraftDonations(
                 }
 
                 if (transaction.input.toLowerCase() !== transferCallData) {
+                  logger.debug(
+                    'matchDraftDonations() transaction.input.toLowerCase() !== transferCallData',
+                    {
+                      transferCallData,
+                      transaction,
+                    },
+                  );
                   continue;
                 }
 
