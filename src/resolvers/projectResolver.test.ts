@@ -4338,7 +4338,7 @@ function projectBySlugTestCases() {
     const walletAddress = generateRandomEtheriumAddress();
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
     const sampleProject1 = {
-      title: 'title1',
+      title: walletAddress,
       adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
@@ -4362,12 +4362,6 @@ function projectBySlugTestCases() {
         },
       },
     );
-    // eslint-disable-next-line no-console
-    console.log('----------------------------');
-    // eslint-disable-next-line no-console
-    console.log(res1.data, res1.data.error, res1.data.errors);
-    // eslint-disable-next-line no-console
-    console.log('----------------------------');
     const _project = res1.data.data.createProject;
     const result = await axios.post(graphqlUrl, {
       query: fetchProjectBySlugQuery,
