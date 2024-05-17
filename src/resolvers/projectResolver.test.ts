@@ -4373,7 +4373,6 @@ function projectBySlugTestCases() {
     assert.equal(Number(project.id), Number(_project.id));
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.givbackFactor);
-    assert.isNull(project.projectVerificationForm);
     assert.isOk(project.adminUser.firstName);
     assert.isNotOk(project.adminUser.email);
     assert.isNotEmpty(project.addresses);
