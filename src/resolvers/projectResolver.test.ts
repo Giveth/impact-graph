@@ -4362,6 +4362,12 @@ function projectBySlugTestCases() {
         },
       },
     );
+    // eslint-disable-next-line no-console
+    console.log('----------------------------');
+    // eslint-disable-next-line no-console
+    console.log(res1.data, res1.data.error, res1.data.errors);
+    // eslint-disable-next-line no-console
+    console.log('----------------------------');
     const _project = res1.data.data.createProject;
     const result = await axios.post(graphqlUrl, {
       query: fetchProjectBySlugQuery,
