@@ -5,6 +5,7 @@ import {
   graphqlUrl,
   PROJECT_UPDATE_SEED_DATA,
   SEED_DATA,
+  dbIndependentTests,
 } from '../../test/testUtils';
 import {
   likeProjectQuery,
@@ -66,8 +67,12 @@ function likeUnlikeProjectTestCases() {
     );
 
   beforeEach(async function () {
-    if (this.currentTest?.parent?.title === 'canAccessUserAction test cases')
+    const { title } = this.currentTest?.parent || {};
+
+    if (title && dbIndependentTests.includes(title)) {
       return;
+    }
+
     firstUserAccessToken = await generateTestAccessToken(USER_DATA.id);
     projectBefore = await Project.findOne({ where: { id: PROJECT_DATA.id } });
   });
@@ -199,8 +204,12 @@ function likeUnlikeProjectUpdateTestCases() {
     );
 
   beforeEach(async function () {
-    if (this.currentTest?.parent?.title === 'canAccessUserAction test cases')
+    const { title } = this.currentTest?.parent || {};
+
+    if (title && dbIndependentTests.includes(title)) {
       return;
+    }
+
     firstUserAccessToken = await generateTestAccessToken(USER_DATA.id);
     projectUpdateBefore = await ProjectUpdate.findOne({
       where: {
