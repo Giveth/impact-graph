@@ -71,7 +71,6 @@ import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStr
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
 import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
-import { runDraftRecurringDonationMatchWorkerJob } from '../services/cronJobs/draftRecurringDonationMatchingJob';
 
 Resource.validate = validate;
 
@@ -390,7 +389,8 @@ export async function bootstrap() {
     }
 
     if (process.env.ENABLE_DRAFT_RECURRING_DONATION === 'true') {
-      runDraftRecurringDonationMatchWorkerJob();
+      // TODO now disabling this field would break the recurring donation feature so I commented because otherwise draftDonation worker pool woud not work
+      // runDraftRecurringDonationMatchWorkerJob();
     }
 
     if (process.env.FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE === 'true') {

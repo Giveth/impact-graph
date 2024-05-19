@@ -38,7 +38,10 @@ const worker: DraftDonationWorker = {
           .skip(userIdSkip)
           .take(TAKE_USER)
           .getRawMany();
-        logger.debug('matchDraftDonations() userId', userIds);
+        logger.debug(
+          'matchDraftDonations() userId that have pending draft donation',
+          userIds,
+        );
         for (const { userId } of userIds) {
           let draftDonationSkip = 0;
 

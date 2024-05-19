@@ -203,6 +203,7 @@ class DonationCurrencyStats {
 @Resolver(_of => User)
 export class DonationResolver {
   private readonly donationRepository: Repository<Donation>;
+
   constructor() {
     this.donationRepository =
       AppDataSource.getDataSource().getRepository(Donation);
@@ -852,6 +853,11 @@ export class DonationResolver {
           where: { id: draftDonationId, status: DRAFT_DONATION_STATUS.MATCHED },
           select: ['matchedDonationId'],
         });
+        if (draftDonation?.createdAt) {
+          // Because if we dont set it donation createdAt might be later than tx.time and that will make a problem on verifying donation
+          // and would fail it
+          donation.createdAt = draftDonation?.createdAt;
+        }
         if (draftDonation?.matchedDonationId) {
           return draftDonation.matchedDonationId;
         }

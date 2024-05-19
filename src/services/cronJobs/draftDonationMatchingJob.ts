@@ -17,17 +17,17 @@ const TWO_MINUTES = 1000 * 60 * 2;
 
 // Periodically log the queue count
 
-export const runDraftDonationMatchWorkerJob = () => {
+export const runDraftDonationMatchWorkerJob = async () => {
   logger.debug('runDraftDonationMatchWorkerJob', cronJobTime);
-
+  const hours = Number(process.env.DRAFT_DONATION_MATCH_EXPIRATION_HOURS || 48);
   schedule(cronJobTime, async () => {
-    const hours = Number(
-      process.env.DRAFT_DONATION_MATCH_EXPIRATION_HOURS || 48,
-    );
     await delecteExpiredDraftDonations(hours);
     await runDraftDonationMatchWorker();
   });
 
+  // Execute first time when running
+  await delecteExpiredDraftDonations(hours);
+  await runDraftDonationMatchWorker();
   setInterval(async () => {
     try {
       logger.debug(
