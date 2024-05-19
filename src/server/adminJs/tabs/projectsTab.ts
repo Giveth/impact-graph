@@ -479,7 +479,7 @@ const sendProjectsToGoogleSheet = async (
       id: project.id,
       title: project.title,
       slug: project.slug,
-      admin: project.admin,
+      admin: project.adminUserId,
       creationDate: project.creationDate,
       updatedAt: project.updatedAt,
       impactLocation: project.impactLocation || '',
@@ -951,7 +951,7 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
               );
             }
-            if (request?.payload?.admin !== project?.admin) {
+            if (Number(request?.payload?.admin) !== project?.adminUserId) {
               request.payload.adminChanged = true;
             }
 
@@ -972,7 +972,7 @@ export const projectsTab = {
           if (project) {
             if (request?.record?.params?.adminChanged) {
               const adminUser = await User.findOne({
-                where: { id: Number(project.admin) },
+                where: { id: project.adminUserId },
               });
               project.adminUser = adminUser!;
               await project.save();

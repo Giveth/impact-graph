@@ -213,7 +213,7 @@ export class ProjectVerificationFormResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
       }
-      if (Number(project.admin) !== userId) {
+      if (project.adminUserId !== userId) {
         throw new Error(
           i18n.__(
             translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
@@ -315,7 +315,7 @@ export class ProjectVerificationFormResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
       }
-      if (Number(project.admin) !== userId) {
+      if (project.adminUserId !== userId) {
         throw new Error(
           i18n.__(
             translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,

@@ -359,7 +359,7 @@ function projectsByUserIdTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
 
     const verificationForm = await ProjectVerificationForm.create({
@@ -387,7 +387,7 @@ function projectsByUserIdTestCases() {
 
     const projects = result.data.data.projectsByUserId.projects;
     const projectWithAnotherOwner = projects.find(
-      project => Number(project.admin) !== user!.id,
+      project => project.adminUserId !== user!.id,
     );
     assert.isNotOk(projectWithAnotherOwner);
     projects.forEach(project => {
@@ -410,7 +410,7 @@ function projectsByUserIdTestCases() {
     });
     const projects = result.data.data.projectsByUserId.projects;
     const projectWithAnotherOwner = projects.find(
-      project => Number(project.admin) !== userId,
+      project => project.adminUserId !== userId,
     );
     assert.isNotOk(projectWithAnotherOwner);
     projects.forEach(project => {
@@ -481,7 +481,7 @@ function projectsByUserIdTestCases() {
     const userId = SEED_DATA.FIRST_USER.id;
     const draftProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       statusId: ProjStatus.drafted,
     });
     const result = await axios.post(graphqlUrl, {
@@ -505,7 +505,7 @@ function projectsByUserIdTestCases() {
     const userId = SEED_DATA.FIRST_USER.id;
     const notListedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
     });
@@ -553,7 +553,7 @@ function createProjectTestCases() {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
     const sampleProject1 = {
       title: 'title1',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -563,7 +563,7 @@ function createProjectTestCases() {
     };
     const sampleProject2 = {
       title: 'title1',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -607,7 +607,7 @@ function createProjectTestCases() {
   it('Create Project should return <<Access denied>>, calling without token IN ENGLISH when no-lang header is sent', async () => {
     const sampleProject = {
       title: 'title1',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -636,7 +636,7 @@ function createProjectTestCases() {
   it('Create Project should return <<Access denied>>, calling without token IN ENGLISH when non supported language is sent', async () => {
     const sampleProject = {
       title: 'title1',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -669,7 +669,7 @@ function createProjectTestCases() {
   it('Create Project should return <<Access denied>>, calling without token IN SPANISH', async () => {
     const sampleProject = {
       title: 'title1',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -701,7 +701,7 @@ function createProjectTestCases() {
   it('Create Project should return <<Access denied>>, calling without token', async () => {
     const sampleProject = {
       title: 'title1',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -735,7 +735,7 @@ function createProjectTestCases() {
       title: String(new Date().getTime()),
       categories: ['invalid category'],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -777,7 +777,7 @@ function createProjectTestCases() {
       title: String(new Date().getTime()),
       categories: [nonActiveCategory.name],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -810,7 +810,7 @@ function createProjectTestCases() {
       title: String(new Date().getTime()),
       categories: SEED_DATA.FOOD_SUB_CATEGORIES,
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -853,7 +853,7 @@ function createProjectTestCases() {
         SEED_DATA.FOOD_SUB_CATEGORIES[1],
       ],
       description: '<div>Sample Project Creation</div>',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -890,7 +890,7 @@ function createProjectTestCases() {
         SEED_DATA.FOOD_SUB_CATEGORIES[1],
       ],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -934,7 +934,7 @@ function createProjectTestCases() {
       title: String(new Date().getTime()),
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: SEED_DATA.MALFORMED_ETHEREUM_ADDRESS,
@@ -967,7 +967,7 @@ function createProjectTestCases() {
       title: String(new Date().getTime()),
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: SEED_DATA.MALFORMED_SOLANA_ADDRESS,
@@ -1001,7 +1001,7 @@ function createProjectTestCases() {
       title: String(new Date().getTime()),
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: SEED_DATA.FIRST_PROJECT.walletAddress,
@@ -1038,7 +1038,7 @@ function createProjectTestCases() {
       title: String(new Date().getTime()),
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
@@ -1076,7 +1076,7 @@ function createProjectTestCases() {
       title: SEED_DATA.FIRST_PROJECT.title,
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -1129,7 +1129,7 @@ function createProjectTestCases() {
       description: 'a'.repeat(PROJECT_DESCRIPTION_MAX_LENGTH + 1),
       image:
         'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -1191,7 +1191,7 @@ function createProjectTestCases() {
       description: 'description',
       image:
         'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -1275,7 +1275,7 @@ function createProjectTestCases() {
       description: 'description',
       image:
         'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -1318,7 +1318,7 @@ function createProjectTestCases() {
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       isDraft: true,
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -1362,8 +1362,8 @@ function createProjectTestCases() {
     );
 
     assert.equal(
-      result.data.data.createProject.admin,
-      String(SEED_DATA.FIRST_USER.id),
+      result.data.data.createProject.adminUserId,
+      SEED_DATA.FIRST_USER.id,
     );
     assert.equal(result.data.data.createProject.verified, false);
     assert.equal(
@@ -1575,7 +1575,7 @@ function updateProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomEtheriumAddress();
 
@@ -1647,7 +1647,7 @@ function updateProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomEtheriumAddress();
     const editProjectResult = await axios.post(
@@ -1692,7 +1692,7 @@ function updateProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const ethAddress = generateRandomEtheriumAddress();
     const solanaAddress = generateRandomSolanaAddress();
@@ -1749,7 +1749,7 @@ function updateProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomEtheriumAddress();
     const newWalletAddress2 = generateRandomEtheriumAddress();
@@ -1815,7 +1815,7 @@ function updateProjectTestCases() {
 
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       walletAddress,
     });
     const newWalletAddress = project.walletAddress;
@@ -1877,7 +1877,7 @@ function updateProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomEtheriumAddress();
     const editProjectResult = await axios.post(
@@ -1910,7 +1910,7 @@ function updateProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomEtheriumAddress();
     const editProjectResult = await axios.post(
@@ -1975,7 +1975,7 @@ function updateProjectTestCases() {
       title: 'test ' + String(new Date().getTime()),
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -2033,7 +2033,7 @@ function updateProjectTestCases() {
       title,
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
-      admin: String(SEED_DATA.FIRST_USER.id),
+      adminUserId: SEED_DATA.FIRST_USER.id,
       addresses: [
         {
           address: generateRandomEtheriumAddress(),
@@ -2091,7 +2091,7 @@ function updateProjectTestCases() {
     const walletAddress = generateRandomEtheriumAddress();
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       walletAddress,
     });
 
@@ -2561,7 +2561,7 @@ function addRecipientAddressToProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomEtheriumAddress();
 
@@ -2597,7 +2597,7 @@ function addRecipientAddressToProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomSolanaAddress();
 
@@ -2634,7 +2634,7 @@ function addRecipientAddressToProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomEtheriumAddress();
 
@@ -2668,7 +2668,7 @@ function addRecipientAddressToProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomEtheriumAddress();
 
@@ -2702,7 +2702,7 @@ function addRecipientAddressToProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       listed: true,
       reviewStatus: ReviewStatus.Listed,
     });
@@ -2743,7 +2743,7 @@ function addRecipientAddressToProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
     });
@@ -2785,7 +2785,7 @@ function addRecipientAddressToProjectTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newWalletAddress = generateRandomEtheriumAddress();
 
@@ -3872,7 +3872,7 @@ function walletAddressIsPurpleListedTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
 
     await addNewProjectAddress({
@@ -3968,7 +3968,7 @@ function getPurpleListTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
 
     await addNewProjectAddress({
@@ -4296,7 +4296,7 @@ function projectBySlugTestCases() {
 
     const user = (await User.findOne({
       where: {
-        id: Number(project1.admin),
+        id: project1.adminUserId,
       },
     })) as User;
 
@@ -4343,7 +4343,7 @@ function projectBySlugTestCases() {
     const user =
       (await User.findOne({
         where: {
-          id: Number(project1.admin),
+          id: project1.adminUserId,
         },
       })) || undefined;
 
@@ -5187,8 +5187,8 @@ function similarProjectsBySlugTestCases() {
     const [, relatedCount] = await Project.createQueryBuilder('project')
       .innerJoinAndSelect('project.categories', 'categories')
       .where('project.id != :id', { id: viewedProject?.id })
-      .andWhere('project.admin = :ownerId', {
-        ownerId: String(SEED_DATA.FIRST_USER.id),
+      .andWhere('project.adminUserId = :ownerId', {
+        ownerId: SEED_DATA.FIRST_USER.id,
       })
       .andWhere(
         `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
@@ -5232,7 +5232,7 @@ function addProjectUpdateTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
 
     const result = await axios.post(
@@ -5318,7 +5318,7 @@ function addProjectUpdateTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const accessTokenUser1 = await generateTestAccessToken(user1.id);
 
@@ -5417,7 +5417,7 @@ function editProjectUpdateTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const updateProject = await ProjectUpdate.create({
       userId: user.id,
@@ -5544,7 +5544,7 @@ function deleteProjectUpdateTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
 
     const updateProject = await ProjectUpdate.create({
@@ -5577,7 +5577,7 @@ function deleteProjectUpdateTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const accessTokenUser1 = await generateTestAccessToken(user1.id);
 
