@@ -65,7 +65,9 @@ function likeUnlikeProjectTestCases() {
       },
     );
 
-  beforeEach(async () => {
+  beforeEach(async function () {
+    if (this.currentTest?.parent?.title === 'canAccessUserAction test cases')
+      return;
     firstUserAccessToken = await generateTestAccessToken(USER_DATA.id);
     projectBefore = await Project.findOne({ where: { id: PROJECT_DATA.id } });
   });
@@ -196,7 +198,9 @@ function likeUnlikeProjectUpdateTestCases() {
       },
     );
 
-  beforeEach(async () => {
+  beforeEach(async function () {
+    if (this.currentTest?.parent?.title === 'canAccessUserAction test cases')
+      return;
     firstUserAccessToken = await generateTestAccessToken(USER_DATA.id);
     projectUpdateBefore = await ProjectUpdate.findOne({
       where: {
