@@ -328,6 +328,17 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   return projectVerificationForm?.save();
 };
 
+export const getVerificationFormStatusByProjectId = async (
+  projectId: number,
+): Promise<ProjectVerificationForm | null> => {
+  return ProjectVerificationForm.createQueryBuilder('project_verification_form')
+    .select(['project_verification_form.status'])
+    .where(`project_verification_form.projectId=:projectId`, {
+      projectId,
+    })
+    .getOne();
+};
+
 export const getVerificationFormByProjectId = async (
   projectId: number,
 ): Promise<ProjectVerificationForm | null> => {
