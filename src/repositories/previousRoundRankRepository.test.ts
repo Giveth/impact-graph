@@ -44,7 +44,9 @@ describe(
   projectsThatTheirRanksHaveChangedTestCases,
 );
 
-beforeEach(async () => {
+beforeEach(async function () {
+  if (this.currentTest?.parent?.title === 'canAccessUserAction test cases')
+    return;
   await AppDataSource.getDataSource().query('truncate power_snapshot cascade');
   await PowerBalanceSnapshot.clear();
   await PowerBoostingSnapshot.clear();
