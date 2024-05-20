@@ -41,6 +41,7 @@ export class DraftDonationResolver {
 
   @Mutation(_returns => Number)
   async createDraftDonation(
+    // TODO we should change it to bigInt in both backend and frontend to not round numbers
     @Arg('amount') amount: number,
     @Arg('networkId') networkId: number,
     @Arg('tokenAddress', { nullable: true }) tokenAddress: string,

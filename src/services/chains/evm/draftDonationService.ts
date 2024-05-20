@@ -15,6 +15,32 @@ import { DonationResolver } from '../../../resolvers/donationResolver';
 import { ApolloContext } from '../../../types/ApolloContext';
 import { logger } from '../../../utils/logger';
 import { DraftDonationWorker } from '../../../workers/draftDonationMatchWorker';
+import { normalizeAmount } from '../../../utils/utils';
+
+export const isAmountWithinTolerance = (
+  callData1,
+  callData2,
+  tokenDecimals,
+) => {
+  // Define the tolerance as 0.001 tokens in terms of the full token amount
+  const tolerance = 0.001; // For a readable number, directly as floating point
+
+  // Function to extract and convert the amount part of the callData using BigInt for precision
+  function extractAmount(callData) {
+    const amountHex = callData.slice(-64); // Last 64 characters are the amount in hexadecimal
+    return BigInt('0x' + amountHex);
+  }
+
+  const amount1 = extractAmount(callData1);
+  const amount2 = extractAmount(callData2);
+
+  // Convert BigInt amounts to string then normalize
+  const normalizedAmount1 = normalizeAmount(amount1.toString(), tokenDecimals);
+  const normalizedAmount2 = normalizeAmount(amount2.toString(), tokenDecimals);
+
+  // Compare within tolerance using normalized floating point numbers
+  return Math.abs(normalizedAmount1 - normalizedAmount2) <= tolerance;
+};
 
 const transferErc20CallData = (to: string, amount: number, decimals = 18) => {
   const iface = new ethers.utils.Interface([
@@ -126,6 +152,10 @@ export async function matchDraftDonations(
                 }
                 await submitMatchedDraftDonation(draftDonation, transaction);
               } else {
+                const token = await findTokenByNetworkAndAddress(
+                  networkId,
+                  targetAddress,
+                );
                 // ERC20 transfer
                 let transferCallData = draftDonation.expectedCallData;
                 logger.debug('matchDraftDonations() transferCallData', {
@@ -133,10 +163,6 @@ export async function matchDraftDonations(
                   transaction,
                 });
                 if (!transferCallData) {
-                  const token = await findTokenByNetworkAndAddress(
-                    networkId,
-                    targetAddress,
-                  );
                   transferCallData = transferErc20CallData(
                     draftDonation.toWalletAddress,
                     draftDonation.amount,
@@ -148,12 +174,29 @@ export async function matchDraftDonations(
                   draftDonation.expectedCallData = transferCallData;
                 }
 
-                if (transaction.input.toLowerCase() !== transferCallData) {
+                const isToAddressAreTheSame =
+                  transferCallData.slice(0, 64).toLowerCase() ===
+                  transaction.input.slice(0, 64).toLocaleLowerCase();
+                if (
+                  // TODO In the future we should compare exact match, but now because we save amount as number not bigInt in our db exact match with return false for some number because of rounding
+                  !isToAddressAreTheSame ||
+                  !isAmountWithinTolerance(
+                    transaction.input,
+                    transferCallData,
+                    token.decimals,
+                  )
+                ) {
                   logger.debug(
-                    'matchDraftDonations() transaction.input.toLowerCase() !== transferCallData',
+                    '!isToAddressAreTheSame || !isAmountWithinTolerance(transaction.input, transferCallData, token.decimals)',
                     {
                       transferCallData,
                       transaction,
+                      isToAddressAreTheSame,
+                      isAmountWithinTolerance: isAmountWithinTolerance(
+                        transaction.input,
+                        transferCallData,
+                        token.decimals,
+                      ),
                     },
                   );
                   continue;
