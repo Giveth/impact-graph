@@ -82,7 +82,6 @@ import {
   findProjectIdBySlug,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
-  userIsOwnerOfProject,
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
@@ -976,16 +975,11 @@ export class ProjectResolver {
     canUserVisitProject(project, user?.userId);
 
     if (fields.verificationFormStatus) {
-      const viewerUserId = connectedWalletUserId || user?.userId;
-      const isOwnerOfProject = await userIsOwnerOfProject(viewerUserId, slug);
-      if (isOwnerOfProject) {
-        const verificationForm = await getVerificationFormStatusByProjectId(
-          project?.id as number,
-        );
-        if (verificationForm) {
-          (project as Project).verificationFormStatus =
-            verificationForm?.status;
-        }
+      const verificationForm = await getVerificationFormStatusByProjectId(
+        project?.id as number,
+      );
+      if (verificationForm) {
+        (project as Project).verificationFormStatus = verificationForm?.status;
       }
     }
     if (fields.givbackFactor) {
