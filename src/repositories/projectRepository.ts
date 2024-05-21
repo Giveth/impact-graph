@@ -92,7 +92,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
 
   let query = Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.status', 'status')
-    .leftJoinAndSelect('project.users', 'users')
     .leftJoinAndSelect('project.addresses', 'addresses')
     // We dont need it right now, but I comment it because we may need it later
     // .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
@@ -323,6 +322,16 @@ export const findProjectBySlug = (slug: string): Promise<Project | null> => {
       })
       .getOne()
   );
+};
+
+export const findProjectIdBySlug = (slug: string): Promise<Project | null> => {
+  // check current slug and previous slugs
+  return Project.createQueryBuilder('project')
+    .select('project.id')
+    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+      slug,
+    })
+    .getOne();
 };
 
 export const findProjectBySlugWithoutAnyJoin = (

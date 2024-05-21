@@ -115,7 +115,7 @@ export const createProjectQuery = `
         title
         description
         descriptionSummary
-        admin
+        adminUserId
         image
         impactLocation
         slug
@@ -166,7 +166,7 @@ export const updateProjectQuery = `
       verified
       slugHistory
       creationDate
-      admin
+      adminUserId
       walletAddress
       impactLocation
       categories {
@@ -203,7 +203,7 @@ export const addRecipientAddressToProjectQuery = `
       slugHistory
       creationDate
       updatedAt
-      admin
+      adminUserId
       walletAddress
       impactLocation
       categories {
@@ -672,6 +672,10 @@ export const fetchAllDonationsQuery = `
         anonymous
         valueUsd
         amount
+        recurringDonation{
+          id
+          txHash
+        }
         user {
           id
           walletAddress
@@ -683,7 +687,7 @@ export const fetchAllDonationsQuery = `
           reviewStatus
           verified
           slug
-          admin
+          adminUserId
           title
           categories {
             name
@@ -777,7 +781,7 @@ export const fetchFeaturedProjects = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -873,7 +877,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         descriptionSummary
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -978,6 +982,12 @@ export const qfRoundStatsQuery = `
       uniqueDonors
       allDonationsUsdValue
       matchingPool
+      qfRound{
+        allocatedFund
+        allocatedFundUSD
+        allocatedFundUSDPreferred
+        allocatedTokenSymbol
+      }
     }
   }
 `;
@@ -1020,7 +1030,7 @@ export const fetchProjectBySlugQuery = `
       slug
       creationDate
       updatedAt
-      admin
+      adminUserId
       description
       walletAddress
       impactLocation
@@ -1077,53 +1087,6 @@ export const fetchProjectBySlugQuery = `
         name
         isActive
       }
-      projectVerificationForm {
-        status
-        id
-        isTermAndConditionsAccepted
-        emailConfirmationTokenExpiredAt
-        email
-        emailConfirmationToken
-        emailConfirmationSent
-        emailConfirmationSentAt
-        emailConfirmedAt
-        emailConfirmed
-        projectRegistry {
-          organizationDescription
-          isNonProfitOrganization
-          organizationCountry
-          organizationWebsite
-          attachments
-          organizationName
-        }
-        personalInfo {
-          email
-          walletAddress
-          fullName
-        }
-        projectContacts {
-          name
-          url
-        }
-        milestones {
-          mission
-          foundationDate
-          achievedMilestones
-          achievedMilestonesProofs
-          problem
-          plans
-          impact
-        }
-        managingFunds {
-          description
-          relatedAddresses {
-            address
-            networkId
-            chainType
-            title
-          }
-        }
-      }
       status {
         id
         symbol
@@ -1157,6 +1120,7 @@ export const fetchProjectBySlugQuery = `
         email
         firstName
         walletAddress
+        email
       }
       totalReactions
       totalDonations
@@ -1194,7 +1158,7 @@ export const fetchSimilarProjectsBySlugQuery = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -1255,7 +1219,7 @@ export const fetchLikedProjectsQuery = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -1502,7 +1466,7 @@ export const projectsBySlugsQuery = `
           image
           slug
           creationDate
-          admin
+          adminUserId
           walletAddress
           impactLocation
           listed
@@ -1550,7 +1514,7 @@ export const projectsByUserIdQuery = `
           image
           slug
           creationDate
-          admin
+          adminUserId
           walletAddress
           impactLocation
           listed
@@ -1654,7 +1618,7 @@ export const projectByIdQuery = `
       reviewStatus
       description,
       walletAddress
-      admin
+      adminUserId
       categories{
           name
       }
@@ -2300,6 +2264,8 @@ export const fetchQFArchivedRounds = `
       slug
       isActive
       allocatedFund
+      allocatedFundUSD
+      allocatedTokenSymbol
       eligibleNetworks
       beginDate
       endDate
@@ -2421,4 +2387,21 @@ export const updateRecurringDonationQuery = `
             finished
           }
       }
+`;
+
+export const fetchRecurringDonationStatsQuery = `
+  query (
+    $beginDate: String!
+    $endDate: String!
+    $currency: String
+    ) {
+      getRecurringDonationStats(
+        beginDate: $beginDate
+        endDate: $endDate
+        currency: $currency
+      ) {
+        totalStreamedUsdValue,
+        activeRecurringDonationsCount,
+      }
+  }
 `;

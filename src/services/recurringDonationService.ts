@@ -37,6 +37,7 @@ import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 import config from '../config';
 import { User } from '../entities/user';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
+import { relatedActiveQfRoundForProject } from './qfRoundService';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';
@@ -212,17 +213,16 @@ export const createRelatedDonationsToStream = async (
         amount: donation.amount,
       });
 
-      // TODO - uncomment this when QF is enabled
-      // const activeQfRoundForProject = await relatedActiveQfRoundForProject(
-      //   project.id,
-      // );
-      //
-      // if (
-      //   activeQfRoundForProject &&
-      //   activeQfRoundForProject.isEligibleNetwork(networkId)
-      // ) {
-      //   donation.qfRound = activeQfRoundForProject;
-      // }
+      const activeQfRoundForProject = await relatedActiveQfRoundForProject(
+        project.id,
+      );
+
+      if (
+        activeQfRoundForProject &&
+        activeQfRoundForProject.isEligibleNetwork(networkId)
+      ) {
+        donation.qfRound = activeQfRoundForProject;
+      }
 
       const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
         await calculateGivbackFactor(project.id);
