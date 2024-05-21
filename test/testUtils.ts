@@ -2011,3 +2011,6 @@ export function generateRandomSolanaTxHash() {
   const length = Math.floor(Math.random() * 3) + 86;
   return generateRandomAlphanumeric(length);
 }
+
+// list of test cases titles that doesn't require DB interaction
+export const dbIndependentTests = ['AdminJsPermissions'];
