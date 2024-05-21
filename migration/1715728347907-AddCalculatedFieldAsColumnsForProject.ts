@@ -24,6 +24,14 @@ export class AddCalculatedFieldAsColumnsForProject1715728347907
             ALTER TABLE "project"
             ADD COLUMN IF NOT EXISTS "countUniqueDonors" INTEGER DEFAULT 0;
         `);
+
+    await queryRunner.query(`
+        UPDATE "project"
+        SET "countUniqueDonors" = pds."uniqueDonorsCount",
+        "sumDonationValueUsd" = pds."sumVerifiedDonations"
+        FROM "project_donation_summary_view" AS pds
+        WHERE "project"."id" = pds."projectId";
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
