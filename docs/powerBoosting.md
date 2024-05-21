@@ -119,7 +119,7 @@ the givPower balance of users in each snapshot in order to determine **totalPowe
 
 
 We check with this cronjob expression `FILL_POWER_SNAPSHOT_BALANCE_CRONJOB_EXPRESSION` that in Staging ENV is `20 */5 * * * *`
-means every **5 min** to fill power balance , for users that boosted a project in a snapshot but their corresponding balance at the time of the snapshot is not filled.
+means every **5 min** to fill power balance, for users that boosted a project in a snapshot but their corresponding balance at the time of the snapshot is not filled.
 
 How we fill the balance? We already have filled the **blockNumber** in powerSnapshot so we
 call the subgraph and ask user's balance in that specific block
@@ -266,7 +266,7 @@ https://github.com/Giveth/giveth-dapps-v2/issues/1839
 
 ### What we do if a project that has some boosting got unverified?
 When we want to create record for **power_boosting_snapshot** we dont save boostings on unverified projects, so when we
-verify the project again from next snapshot we start to count them , so in the period that project was unverified
+verify the project again from next snapshot we start to count them, so in the period that project was unverified
 we haven't saved any power_boosting_snapshot for that project but immediately after it gets verified we start to save
 power_boosting_snapshot for next round
 
