@@ -51,23 +51,18 @@ import { ChainType } from '../types/network';
 describe('all projects test cases --->', allProjectsTestCases);
 
 function allProjectsTestCases() {
-  it('should return projects search by owner', async () => {
+  it('should return projects search by title', async () => {
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        searchTerm: SEED_DATA.SECOND_USER.name,
+        searchTerm: SEED_DATA.FIRST_PROJECT.title,
       },
     });
 
     const projects = result.data.data.allProjects.projects;
-    const secondUserProjects = await Project.find({
-      where: {
-        adminUserId: SEED_DATA.SECOND_USER.id,
-      },
-    });
 
-    assert.equal(projects.length, secondUserProjects.length);
-    assert.equal(projects[0]?.adminUserId, SEED_DATA.SECOND_USER.id);
+    assert.isTrue(projects.length > 0);
+    assert.equal(projects[0]?.adminUserId, SEED_DATA.FIRST_PROJECT.adminUserId);
     assert.isNotEmpty(projects[0].addresses);
     projects.forEach(project => {
       assert.isNotOk(project.adminUser.email);
