@@ -329,13 +329,13 @@ export class ProjectResolver {
         // .setParameter('searchTerm', searchTerm)
         .andWhere(
           new Brackets(qb => {
-            qb.where('project.title % :searchTerm ', {
+            qb.where('project.title %> :searchTerm ', {
               searchTerm,
             })
-              .orWhere('project.description % :searchTerm ', {
+              .orWhere('project.description %> :searchTerm ', {
                 searchTerm,
               })
-              .orWhere('project.impactLocation % :searchTerm', {
+              .orWhere('project.impactLocation %> :searchTerm', {
                 searchTerm,
               });
           }),
