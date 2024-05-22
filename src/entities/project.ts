@@ -92,6 +92,7 @@ export enum FilterField {
   AcceptFundOnETC = 'acceptFundOnETC',
   AcceptFundOnCelo = 'acceptFundOnCelo',
   AcceptFundOnArbitrum = 'acceptFundOnArbitrum',
+  AcceptFundOnBase = 'acceptFundOnBase',
   AcceptFundOnOptimism = 'acceptFundOnOptimism',
   AcceptFundOnSolana = 'acceptFundOnSolana',
   GivingBlock = 'fromGivingBlock',

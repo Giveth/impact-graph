@@ -527,6 +527,11 @@ export class ProjectResolver {
           networkIds.push(NETWORK_IDS.ARBITRUM_SEPOLIA);
           return;
 
+        case FilterField.AcceptFundOnBase:
+          networkIds.push(NETWORK_IDS.BASE_MAINNET);
+          networkIds.push(NETWORK_IDS.BASE_SEPOLIA);
+          return;
+
         case FilterField.AcceptFundOnPolygon:
           networkIds.push(NETWORK_IDS.POLYGON);
           return;

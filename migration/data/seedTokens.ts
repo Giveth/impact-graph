@@ -1593,6 +1593,19 @@ const seedTokens: ITokenData[] = [
     networkId: NETWORK_IDS.ARBITRUM_MAINNET,
     coingeckoId: 'cartesi',
   },
+
+
+
+
+  // BASE Sepolia
+  {
+    name: 'BASE',
+    symbol: 'ETH',
+    address: '0x319f865b287fCC10b30d8cE6144e8b6D1b476999',
+    decimals: 18,
+    networkId: NETWORK_IDS.BASE_SEPOLIA,
+    coingeckoId: 'cartesi',
+  },
 ];
 
 export default seedTokens;

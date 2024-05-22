@@ -21,6 +21,9 @@ export const NETWORK_IDS = {
   ARBITRUM_MAINNET: 42161,
   ARBITRUM_SEPOLIA: 421614,
 
+  BASE_MAINNET: 8453,
+  BASE_SEPOLIA: 84532,
+
   // https://docs.particle.network/developers/other-services/node-service/solana-api
   SOLANA_MAINNET: 101,
   SOLANA_TESTNET: 102,
