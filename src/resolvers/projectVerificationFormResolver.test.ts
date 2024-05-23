@@ -323,6 +323,16 @@ function updateProjectVerificationFormMutationTestCases() {
       },
       {
         address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.BASE_MAINNET,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.BASE_SEPOLIA,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
         networkId: NETWORK_IDS.ETC,
         title: 'test title',
       },

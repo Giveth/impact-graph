@@ -603,6 +603,8 @@ export const donationTab = {
           { value: NETWORK_IDS.CELO_ALFAJORES, label: 'Alfajores' },
           { value: NETWORK_IDS.ARBITRUM_MAINNET, label: 'Arbitrum' },
           { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'Arbitrum Sepolia' },
+          { value: NETWORK_IDS.BASE_MAINNET, label: 'Base' },
+          { value: NETWORK_IDS.BASE_SEPOLIA, label: 'Base Sepolia' },
         ],
         isVisible: {
           list: true,

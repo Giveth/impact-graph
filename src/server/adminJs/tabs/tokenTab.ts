@@ -197,6 +197,8 @@ export const generateTokenTab = async () => {
             },
             { value: NETWORK_IDS.ARBITRUM_MAINNET, label: 'ARBITRUM MAINNET' },
             { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'ARBITRUM SEPOLIA' },
+            { value: NETWORK_IDS.BASE_MAINNET, label: 'BASE MAINNET' },
+            { value: NETWORK_IDS.BASE_SEPOLIA, label: 'BASE SEPOLIA' },
             { value: NETWORK_IDS.XDAI, label: 'XDAI' },
             { value: NETWORK_IDS.BSC, label: 'BSC' },
             { value: NETWORK_IDS.ETC, label: 'Ethereum Classic' },

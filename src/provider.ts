@@ -401,6 +401,14 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('ARBITRUM_SEPOLIA_SCAN_API_URL');
       apiKey = config.get('ARBITRUM_SEPOLIA_SCAN_API_KEY');
       break;
+    case NETWORK_IDS.BASE_MAINNET:
+      apiUrl = config.get('BASE_SCAN_API_URL');
+      apiKey = config.get('BASE_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.BASE_SEPOLIA:
+      apiUrl = config.get('BASE_SEPOLIA_SCAN_API_URL');
+      apiKey = config.get('BASE_SEPOLIA_SCAN_API_KEY');
+      break;
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }

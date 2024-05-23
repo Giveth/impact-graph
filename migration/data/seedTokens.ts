@@ -1594,9 +1594,6 @@ const seedTokens: ITokenData[] = [
     coingeckoId: 'cartesi',
   },
 
-
-
-
   // BASE Sepolia
   {
     name: 'BASE',
