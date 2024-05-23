@@ -10,8 +10,8 @@ export class AddBaseChainTokens1716367359560 implements MigrationInterface {
 
     const networkId =
       environment === 'production'
-        ? NETWORK_IDS.ARBITRUM_MAINNET
-        : NETWORK_IDS.ARBITRUM_SEPOLIA;
+        ? NETWORK_IDS.BASE_MAINNET
+        : NETWORK_IDS.BASE_SEPOLIA;
 
     await queryRunner.manager.save(
       Token,
