@@ -45,7 +45,7 @@ export const getQfRoundHistoryMatchingValueUsd = async (
   try {
     logger.debug('Executing query to fetch matching fund values');
     const result = await QfRoundHistory.createQueryBuilder('q')
-      .select('SUM(q."matchingFundPriceUsd")', 'total')
+      .select('COALESCE(SUM(q."matchingFundPriceUsd"),0)', 'total')
       .where('q.projectId = :projectId', { projectId })
       .getRawOne();
 
