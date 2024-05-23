@@ -43,6 +43,7 @@ export const getQfRoundHistoryMatchingValueUsd = async (
   projectId: number,
 ): Promise<number> => {
   try {
+    logger.debug('Executing query to fetch matching fund values');
     const result = await QfRoundHistory.createQueryBuilder('q')
       .select('SUM(q."matchingFundPriceUsd")', 'total')
       .where('q.projectId = :projectId', { projectId })
@@ -50,7 +51,7 @@ export const getQfRoundHistoryMatchingValueUsd = async (
 
     return result.total;
   } catch (e) {
-    logger.error('getQfRoundHistoryMatchingValueUsd error', e);
+    logger.error('Error in getQfRoundHistoryMatchingValueUsd', e);
     throw e;
   }
 };
