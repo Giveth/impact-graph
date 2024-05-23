@@ -1598,10 +1598,18 @@ const seedTokens: ITokenData[] = [
   {
     name: 'BASE',
     symbol: 'ETH',
-    address: '0x319f865b287fCC10b30d8cE6144e8b6D1b476999',
+    address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
     networkId: NETWORK_IDS.BASE_SEPOLIA,
-    coingeckoId: 'cartesi',
+  },
+
+  // BASE Mainnet
+  {
+    name: 'BASE',
+    symbol: 'ETH',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    networkId: NETWORK_IDS.BASE_MAINNET,
   },
 ];
 
