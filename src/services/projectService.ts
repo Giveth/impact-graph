@@ -6,6 +6,7 @@ import {
   sumDonationValueUsdForQfRound,
 } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
+import { getQfRoundHistoryMatchingValueUsd } from '../repositories/qfRoundHistoryRepository';
 
 export const getAppropriateSlug = async (
   slugBase: string,
@@ -53,7 +54,12 @@ export const updateProjectStatistics = async (projectId: number) => {
     project.countUniqueDonorsForActiveQfRound = 0;
   }
 
-  project.sumDonationValueUsd = await sumDonationValueUsd(project.id);
+  const projectQfRoundHistoryMatching = await getQfRoundHistoryMatchingValueUsd(
+    project.id,
+  );
+
+  project.sumDonationValueUsd =
+    (await sumDonationValueUsd(project.id)) + projectQfRoundHistoryMatching;
   project.countUniqueDonors = await countUniqueDonors(project.id);
   await project.save();
 };
