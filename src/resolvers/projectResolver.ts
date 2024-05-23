@@ -822,27 +822,65 @@ export class ProjectResolver {
     @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
+    @Info() info: any,
   ) {
+    const fields = graphqlFields(info);
+
     let query = this.projectRepository
       .createQueryBuilder('project')
       .where(`project.id=:id`, {
         id,
       })
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
-      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-      .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields); // aliased selection
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+      .leftJoinAndSelect('project.status', 'status');
+
+    if (fields.categories) {
+      query = query
+        .leftJoinAndSelect(
+          'project.categories',
+          'categories',
+          'categories.isActive = :isActive',
+          { isActive: true },
+        )
+        .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
+    }
+    if (fields.organization) {
+      query = query.leftJoinAndSelect('project.organization', 'organization');
+    }
+    if (fields.addresses) {
+      query = query.leftJoinAndSelect('project.addresses', 'addresses');
+    }
+    if (fields.socialMedia) {
+      query = query.leftJoinAndSelect('project.socialMedia', 'socialMedia');
+    }
+    if (fields.anchorContracts) {
+      query = query.leftJoinAndSelect(
+        'project.anchorContracts',
+        'anchor_contract_address',
+      );
+    }
+    if (fields.adminUser) {
+      const adminUserFields = Object.keys(fields.adminUser).map(
+        field => `user.${field}`,
+      );
+      const filterByPublicFields = publicSelectionFields.filter(field =>
+        adminUserFields.includes(field),
+      );
+      query = query
+        .leftJoin('project.adminUser', 'user')
+        .addSelect(
+          filterByPublicFields.length > 0
+            ? filterByPublicFields
+            : publicSelectionFields,
+        ); // aliased selection
+    }
+    if (fields.reaction) {
+      query = ProjectResolver.addUserReaction(
+        query,
+        connectedWalletUserId,
+        user,
+      );
+    }
+
     const project = await query.getOne();
 
     canUserVisitProject(project, user?.userId);
@@ -961,7 +999,11 @@ export class ProjectResolver {
       );
       query = query
         .leftJoin('project.adminUser', 'user')
-        .addSelect(filterByPublicFields); // aliased selection
+        .addSelect(
+          filterByPublicFields.length > 0
+            ? filterByPublicFields
+            : publicSelectionFields,
+        ); // aliased selection
     }
     if (fields.reaction) {
       query = ProjectResolver.addUserReaction(
