@@ -221,7 +221,9 @@ export const createRelatedDonationsToStream = async (
         activeQfRoundForProject &&
         activeQfRoundForProject.isEligibleNetwork(networkId)
       ) {
+        const projectOwner = await User.findOneBy({ id: project.adminUserId });
         donation.qfRound = activeQfRoundForProject;
+        donation.qfRoundUserScore = projectOwner?.passportScore;
       }
 
       const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
