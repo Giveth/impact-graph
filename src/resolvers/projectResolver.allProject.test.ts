@@ -963,7 +963,6 @@ function allProjectsTestCases() {
     );
   });
 
-
   it('should return projects, filter by accept donation on base', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
