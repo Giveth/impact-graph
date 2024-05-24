@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import config from './config';
 import { i18n, translationErrorMessagesKeys } from './utils/errorMessages';
+import { logger } from './utils/logger';
 
 const INFURA_ID = config.get('INFURA_ID');
 
@@ -157,6 +158,8 @@ const NETWORK_NAMES = {
   MORDOR_ETC_TESTNET: 'Ethereum Classic Testnet',
   ARBITRUM_MAINNET: 'Arbitrum Mainnet',
   ARBITRUM_SEPOLIA: 'Arbitrum Sepolia',
+  BASE_MAINNET: 'Base Mainnet',
+  BASE_SEPOLIA: 'Base Sepolia',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -174,6 +177,8 @@ const NETWORK_NATIVE_TOKENS = {
   MORDOR_ETC_TESTNET: 'mETC',
   ARBITRUM_MAINNET: 'ETH',
   ARBITRUM_SEPOLIA: 'ETH',
+  BASE_MAINNET: 'ETH',
+  BASE_SEPOLIA: 'ETH',
 };
 
 const networkNativeTokensList = [
@@ -247,6 +252,16 @@ const networkNativeTokensList = [
     networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
     nativeToken: NETWORK_NATIVE_TOKENS.ARBITRUM_SEPOLIA,
   },
+  {
+    networkName: NETWORK_NAMES.BASE_MAINNET,
+    networkId: NETWORK_IDS.BASE_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.BASE_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.BASE_SEPOLIA,
+    networkId: NETWORK_IDS.BASE_SEPOLIA,
+    nativeToken: NETWORK_NATIVE_TOKENS.BASE_SEPOLIA,
+  },
 ];
 
 export function getNetworkNameById(networkId: number): string {
@@ -254,6 +269,10 @@ export function getNetworkNameById(networkId: number): string {
     item => item.networkId === networkId,
   );
   if (!networkInfo) {
+    logger.error(
+      'getNetworkNameById() error networkNativeTokensList doesnt have info for networkId',
+      networkId,
+    );
     throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
   return networkInfo.networkName;
@@ -264,6 +283,10 @@ export function getNetworkNativeToken(networkId: number): string {
     return item.networkId === networkId;
   });
   if (!networkInfo) {
+    logger.error(
+      'getNetworkNativeToken() error networkNativeTokensList doesnt have info for networkId',
+      networkId,
+    );
     throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
   return networkInfo.nativeToken;
@@ -422,6 +445,10 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiKey = config.get('BASE_SEPOLIA_SCAN_API_KEY');
       break;
     default:
+      logger.error(
+        'getBlockExplorerApiUrl() no url found for networkId',
+        networkId,
+      );
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
 
