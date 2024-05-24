@@ -2611,7 +2611,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 11155420, 56, 42220, 44787, 61, 63, 42161, 421614, 8453, 84532,  101, 102, 103]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 11155420, 56, 42220, 44787, 61, 63, 42161, 421614, 8453, 84532, 101, 102, 103]',
     );
   });
   it('should not throw exception when currency is not valid when currency is USDC.e', async () => {
