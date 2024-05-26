@@ -122,6 +122,7 @@ export const createToken = async (
     isGivbackEligible,
     mainnetAddress,
     name,
+    coingeckoId,
     networkId,
     symbol,
     organizations,
@@ -133,6 +134,7 @@ export const createToken = async (
       address: address?.toLowerCase(),
       mainnetAddress: mainnetAddress?.toLowerCase(),
       isGivbackEligible,
+      coingeckoId,
       decimals: Number(decimals),
       networkId: Number(networkId),
     });
