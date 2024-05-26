@@ -205,4 +205,3 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
     throw e;
   }
 };
-
