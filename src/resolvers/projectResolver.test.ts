@@ -117,7 +117,6 @@ describe(
   'addRecipientAddressToProject test cases --->',
   addRecipientAddressToProjectTestCases,
 );
-
 describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
 
 describe('deactivateProject test cases --->', deactivateProjectTestCases);
