@@ -222,9 +222,9 @@ export class AddDonationsMannuallyToDb1716549958362
     const environment = config.get('ENVIRONMENT') as string;
 
     if (environment !== 'production') {
-        // eslint-disable-next-line no-console
-        console.log('We just want to create these donations in production DB');
-        return;
+      // eslint-disable-next-line no-console
+      console.log('We just want to create these donations in production DB');
+      return;
     }
 
     await AppDataSource.initialize();
