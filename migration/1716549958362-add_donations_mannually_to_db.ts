@@ -1,9 +1,9 @@
+import moment from 'moment';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { Donation } from '../src/entities/donation';
 import { NETWORK_IDS } from '../src/provider';
 import config from '../src/config';
 import { AppDataSource } from '../src/orm';
-import moment from 'moment';
 import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
 import { calculateGivbackFactor } from '../src/services/givbackService';
@@ -33,7 +33,10 @@ const millisecondTimestampToDate = (timestamp: number): Date => {
 
  */
 
-const transactions: (Partial<Donation> & { donorName?: string, donorAddress?: string })[] = [
+const transactions: (Partial<Donation> & {
+  donorName?: string;
+  donorAddress?: string;
+})[] = [
   // https://github.com/Giveth/giveth-dapps-v2/issues/4201
 
   // https://optimistic.etherscan.io/tx/0xd5b98a3a6a928c944514c4bb7550c7a2c49b4592af7d4e0e06ea66f530fd8211
@@ -213,7 +216,8 @@ const transactions: (Partial<Donation> & { donorName?: string, donorAddress?: st
 ];
 
 export class AddDonationsMannuallyToDb1716549958362
-  implements MigrationInterface {
+  implements MigrationInterface
+{
   async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
 
@@ -230,8 +234,9 @@ export class AddDonationsMannuallyToDb1716549958362
         WHERE lower("walletAddress")=lower('${tx.donorAddress}')`)
       )[0];
       if (!user) {
+        // eslint-disable-next-line no-console
         console.log('User is not in our DB, creating .... ');
-        const result = await queryRunner.query(`
+        await queryRunner.query(`
                     INSERT INTO public.user ("walletAddress", role,"loginType", name) 
                     VALUES('${tx?.donorAddress?.toLowerCase()}', 'restricted','wallet', '${tx.donorName}');
                     `);
