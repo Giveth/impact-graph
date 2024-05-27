@@ -82,11 +82,24 @@ class QfArchivedRoundsArgs {
   orderBy: QfArchivedRoundsOrderBy;
 }
 
+@Service()
+@ArgsType()
+export class QfRoundsArgs {
+  @Field(_type => String, { nullable: true })
+  slug?: string;
+
+  @Field(_type => Boolean, { nullable: true })
+  activeOnly?: boolean;
+}
+
 @Resolver(_of => User)
 export class QfRoundResolver {
   @Query(_returns => [QfRound], { nullable: true })
-  async qfRounds() {
-    return findAllQfRounds();
+  async qfRounds(
+    @Args()
+    { slug, activeOnly }: QfRoundsArgs,
+  ) {
+    return findAllQfRounds({ slug, activeOnly });
   }
 
   @Query(_returns => [QFArchivedRounds], { nullable: true })
