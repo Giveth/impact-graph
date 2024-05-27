@@ -34,13 +34,14 @@ const millisecondTimestampToDate = (timestamp: number): Date => {
 
  */
 
-const transactions: (Partial<Donation> & { donorName?: string })[] = [
+const transactions: (Partial<Donation> & { donorName?: string, donorAddress?:string })[] = [
   // https://github.com/Giveth/giveth-dapps-v2/issues/4201
 
   // https://optimistic.etherscan.io/tx/0xd5b98a3a6a928c944514c4bb7550c7a2c49b4592af7d4e0e06ea66f530fd8211
   {
     // LottoPGF
     donorName: 'LottoPGF',
+    donorAddress:'0x77fb4fa1ABA92576942aD34BC47834059b84e693',
     fromWalletAddress: '0x437A4909293e704bB090357d714b585bF5658C4e',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
@@ -60,6 +61,7 @@ const transactions: (Partial<Donation> & { donorName?: string })[] = [
     // GMX
     donorName: 'GMX',
     fromWalletAddress: '0xb1F3D086b7c5114F429dc48530C7A0a20a8B65CE',
+    donorAddress  : '0x6da54f64d189a3cd68d1b7ab016ddabd112ad01f',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
     projectId: 1443,
@@ -78,6 +80,7 @@ const transactions: (Partial<Donation> & { donorName?: string })[] = [
     // Premia
     donorName: 'Premia',
     fromWalletAddress: '0xfc5538E1E9814eD6487b407FaD7b5710739A1cC2',
+    donorAddress: '0x5ca1ea5549e4e7cb64ae35225e11865d2572b3f9',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
     projectId: 1443,
@@ -96,6 +99,7 @@ const transactions: (Partial<Donation> & { donorName?: string })[] = [
     // MUX
     donorName: 'MUX',
     fromWalletAddress: '0x7C8126ef43c09C22bf0CcdF7426180e6c48068A5',
+    donorAddress: '0xf2a26c73f52c903d21ad85626b344d48e7af72ee',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
     projectId: 1443,
@@ -114,6 +118,7 @@ const transactions: (Partial<Donation> & { donorName?: string })[] = [
     // Rage Trade
     donorName: 'Rage Trade',
     fromWalletAddress: '0x507c7777837B85EDe1e67f5A4554dDD7e58b1F87',
+    donorAddress: '0x507c7777837b85ede1e67f5a4554ddd7e58b1f87',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
     projectId: 1443,
@@ -132,6 +137,7 @@ const transactions: (Partial<Donation> & { donorName?: string })[] = [
     // Dodo
     donorName: 'Dodo',
     fromWalletAddress: '0x01b6c66dee0476B70938Cf87Fe372848C58b6a13',
+    donorAddress: '0x28C6c06298d514Db089934071355E5743bf21d60',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
     projectId: 1443,
@@ -150,6 +156,7 @@ const transactions: (Partial<Donation> & { donorName?: string })[] = [
     // Gitcoin (Kyle)
     donorName: 'Kyle',
     fromWalletAddress: '0x202d0b551f0e137Efb419e70e1776B6d578bdbF3',
+    donorAddress: '0x563537412ad5d49faa7fa442b9193b8238d98c3c',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
     projectId: 1443,
@@ -168,6 +175,7 @@ const transactions: (Partial<Donation> & { donorName?: string })[] = [
     // WOOFi
     donorName: 'WOOFi',
     fromWalletAddress: '0x7C8126ef43c09C22bf0CcdF7426180e6c48068A5',
+    donorAddress: '0x63dfe4e34a3bfc00eb0220786238a7c6cef8ffc4',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
     projectId: 1443,
@@ -187,6 +195,7 @@ const transactions: (Partial<Donation> & { donorName?: string })[] = [
     // Landeck
     donorName: 'Landeck',
     fromWalletAddress: '0x659C5827EED31F205876F5A473cdd7e6B6AF1049',
+    donorAddress: '0x659C5827EED31F205876F5A473cdd7e6B6AF1049',
     toWalletAddress: '0xd0057c59A091eec3C825fF73F7065020baEE3680',
     // https://giveth.io/project/emergency-relief-fund-for-brazil-floods
     projectId: 3461,
@@ -220,17 +229,17 @@ export class AddDonationsMannuallyToDb1716549958362
     for (const tx of transactions) {
       let user = (
         await queryRunner.query(`SELECT * FROM public.user
-        WHERE lower("walletAddress")=lower('${tx.fromWalletAddress}')`)
+        WHERE lower("walletAddress")=lower('${tx.donorAddress}')`)
       )[0];
       if (!user) {
         console.log('User is not in our DB, creating .... ');
         const result = await queryRunner.query(`
                     INSERT INTO public.user ("walletAddress", role,"loginType", name) 
-                    VALUES('${tx?.fromWalletAddress?.toLowerCase()}', 'restricted','wallet', '${tx.donorName}');
+                    VALUES('${tx?.donorAddress?.toLowerCase()}', 'restricted','wallet', '${tx.donorName}');
                     `);
         user = (
           await queryRunner.query(`SELECT * FROM public.user
-                        WHERE lower("walletAddress")=lower('${tx.fromWalletAddress}')`)
+                        WHERE lower("walletAddress")=lower('${tx.donorAddress}')`)
         )[0];
       }
 
