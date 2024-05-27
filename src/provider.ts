@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import config from './config';
 import { i18n, translationErrorMessagesKeys } from './utils/errorMessages';
+import { logger } from './utils/logger';
 
 const INFURA_ID = config.get('INFURA_ID');
 
@@ -20,6 +21,9 @@ export const NETWORK_IDS = {
 
   ARBITRUM_MAINNET: 42161,
   ARBITRUM_SEPOLIA: 421614,
+
+  BASE_MAINNET: 8453,
+  BASE_SEPOLIA: 84532,
 
   // https://docs.particle.network/developers/other-services/node-service/solana-api
   SOLANA_MAINNET: 101,
@@ -154,6 +158,8 @@ const NETWORK_NAMES = {
   MORDOR_ETC_TESTNET: 'Ethereum Classic Testnet',
   ARBITRUM_MAINNET: 'Arbitrum Mainnet',
   ARBITRUM_SEPOLIA: 'Arbitrum Sepolia',
+  BASE_MAINNET: 'Base Mainnet',
+  BASE_SEPOLIA: 'Base Sepolia',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -171,6 +177,8 @@ const NETWORK_NATIVE_TOKENS = {
   MORDOR_ETC_TESTNET: 'mETC',
   ARBITRUM_MAINNET: 'ETH',
   ARBITRUM_SEPOLIA: 'ETH',
+  BASE_MAINNET: 'ETH',
+  BASE_SEPOLIA: 'ETH',
 };
 
 const networkNativeTokensList = [
@@ -244,6 +252,16 @@ const networkNativeTokensList = [
     networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
     nativeToken: NETWORK_NATIVE_TOKENS.ARBITRUM_SEPOLIA,
   },
+  {
+    networkName: NETWORK_NAMES.BASE_MAINNET,
+    networkId: NETWORK_IDS.BASE_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.BASE_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.BASE_SEPOLIA,
+    networkId: NETWORK_IDS.BASE_SEPOLIA,
+    nativeToken: NETWORK_NATIVE_TOKENS.BASE_SEPOLIA,
+  },
 ];
 
 export function getNetworkNameById(networkId: number): string {
@@ -251,6 +269,10 @@ export function getNetworkNameById(networkId: number): string {
     item => item.networkId === networkId,
   );
   if (!networkInfo) {
+    logger.error(
+      'getNetworkNameById() error networkNativeTokensList doesnt have info for networkId',
+      networkId,
+    );
     throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
   return networkInfo.networkName;
@@ -261,6 +283,10 @@ export function getNetworkNativeToken(networkId: number): string {
     return item.networkId === networkId;
   });
   if (!networkInfo) {
+    logger.error(
+      'getNetworkNativeToken() error networkNativeTokensList doesnt have info for networkId',
+      networkId,
+    );
     throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
   return networkInfo.nativeToken;
@@ -317,6 +343,18 @@ export function getProvider(networkId: number) {
       url =
         (process.env.ARBITRUM_SEPOLIA_NODE_HTTP_URL as string) ||
         `https://arbitrum-sepolia.infura.io/v3/${INFURA_ID}`;
+      break;
+
+    case NETWORK_IDS.BASE_MAINNET:
+      url =
+        (process.env.BASE_MAINNET_NODE_HTTP_URL as string) ||
+        `https://base-mainnet.infura.io/v3/${INFURA_ID}`;
+      break;
+
+    case NETWORK_IDS.BASE_SEPOLIA:
+      url =
+        (process.env.BASE_SEPOLIA_NODE_HTTP_URL as string) ||
+        `https://base-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
     default: {
@@ -398,7 +436,19 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('ARBITRUM_SEPOLIA_SCAN_API_URL');
       apiKey = config.get('ARBITRUM_SEPOLIA_SCAN_API_KEY');
       break;
+    case NETWORK_IDS.BASE_MAINNET:
+      apiUrl = config.get('BASE_SCAN_API_URL');
+      apiKey = config.get('BASE_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.BASE_SEPOLIA:
+      apiUrl = config.get('BASE_SEPOLIA_SCAN_API_URL');
+      apiKey = config.get('BASE_SEPOLIA_SCAN_API_KEY');
+      break;
     default:
+      logger.error(
+        'getBlockExplorerApiUrl() no url found for networkId',
+        networkId,
+      );
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
 

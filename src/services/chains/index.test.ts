@@ -540,6 +540,44 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
+  it('should return transaction detail for normal transfer on Base Mainnet', async () => {
+    // https://basescan.org/tx/0x1cbf53e5a9a0874b9ad97316e4f2e1782e24bec318bacd183d3f48052bfe1523
+
+    const amount = 0.0032;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x1cbf53e5a9a0874b9ad97316e4f2e1782e24bec318bacd183d3f48052bfe1523',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.BASE_MAINNET,
+      fromAddress: '0xbaed383ede0e5d9d72430661f3285daa77e9439f',
+      toAddress: '0xa5401000d255dbb154deb756b82dd5105486d8c9',
+      amount,
+      timestamp: 1716445331,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on Base Sepolia', async () => {
+    // https://sepolia.basescan.org/tx/0x66fdfe46de46fa1fbb77de642cc778cafc85943204039f69694aee6121f764f4
+
+    const amount = 0.001;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x66fdfe46de46fa1fbb77de642cc778cafc85943204039f69694aee6121f764f4',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.BASE_SEPOLIA,
+      fromAddress: '0x9cab0c7ff1c6250e641f4dcd4d9cd9db83bffb71',
+      toAddress: '0xd7eedf8422ababfbcafc0797e809ceae742fc142',
+      amount,
+      timestamp: 1716445488,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return transaction detail for OP token transfer on optimistic', async () => {
     // https://optimistic.etherscan.io/tx/0xf11be189d967831bb8a76656882eeeac944a799bd222acbd556f2156fdc02db4
     const amount = 0.453549908802477308;

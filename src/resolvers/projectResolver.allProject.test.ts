@@ -918,7 +918,6 @@ function allProjectsTestCases() {
       ),
     );
   });
-
   it('should return projects, filter by accept donation on arbitrum, not return when it doesnt have arbitrum address', async () => {
     const arbitrumProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -960,6 +959,112 @@ function allProjectsTestCases() {
     assert.isOk(
       result.data.data.allProjects.projects.find(
         project => Number(project.id) === Number(arbitrumProject.id),
+      ),
+    );
+  });
+
+  it('should return projects, filter by accept donation on base', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnBase'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.BASE_MAINNET ||
+              address.networkId === NETWORK_IDS.BASE_SEPOLIA),
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on base', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnBase'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.BASE_MAINNET ||
+              address.networkId === NETWORK_IDS.BASE_SEPOLIA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on base, not return when it doesnt have base address', async () => {
+    const baseProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    });
+    const polygonProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.POLYGON,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnBase'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.BASE_MAINNET ||
+              address.networkId === NETWORK_IDS.BASE_SEPOLIA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(polygonProject.id),
+      ),
+    );
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(baseProject.id),
       ),
     );
   });

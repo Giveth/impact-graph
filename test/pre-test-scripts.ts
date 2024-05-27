@@ -185,6 +185,34 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
+  for (const token of SEED_DATA.TOKENS.base_mainnet) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.BASE_MAINNET,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.base_sepolia) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.BASE_SEPOLIA,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
   for (const token of SEED_DATA.TOKENS.optimistic) {
     const tokenData = {
       ...token,
