@@ -16,7 +16,6 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../src/services/projectViewsService';
-import { logger } from 'ethers';
 
 const millisecondTimestampToDate = (timestamp: number): Date => {
   return new Date(timestamp);
@@ -26,22 +25,22 @@ const millisecondTimestampToDate = (timestamp: number): Date => {
 /**
  SELECT p.*, p.slug
  FROM "project" p
-     WHERE p."id" IN (
-     SELECT pa."projectId"
-     FROM "project_address" pa
-     WHERE lower(pa."address") = lower('0x6e8873085530406995170da467010565968c7c62')
-     );
+ WHERE p."id" IN (
+ SELECT pa."projectId"
+ FROM "project_address" pa
+ WHERE lower(pa."address") = lower('0x6e8873085530406995170da467010565968c7c62')
+ );
 
  */
 
-const transactions: (Partial<Donation> & { donorName?: string, donorAddress?:string })[] = [
+const transactions: (Partial<Donation> & { donorName?: string, donorAddress?: string })[] = [
   // https://github.com/Giveth/giveth-dapps-v2/issues/4201
 
   // https://optimistic.etherscan.io/tx/0xd5b98a3a6a928c944514c4bb7550c7a2c49b4592af7d4e0e06ea66f530fd8211
   {
     // LottoPGF
     donorName: 'LottoPGF',
-    donorAddress:'0x77fb4fa1ABA92576942aD34BC47834059b84e693',
+    donorAddress: '0x77fb4fa1ABA92576942aD34BC47834059b84e693',
     fromWalletAddress: '0x437A4909293e704bB090357d714b585bF5658C4e',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
@@ -61,7 +60,7 @@ const transactions: (Partial<Donation> & { donorName?: string, donorAddress?:str
     // GMX
     donorName: 'GMX',
     fromWalletAddress: '0xb1F3D086b7c5114F429dc48530C7A0a20a8B65CE',
-    donorAddress  : '0x6da54f64d189a3cd68d1b7ab016ddabd112ad01f',
+    donorAddress: '0x6da54f64d189a3cd68d1b7ab016ddabd112ad01f',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     // https://giveth.io/project/giveth-matching-pool-0
     projectId: 1443,
@@ -214,8 +213,7 @@ const transactions: (Partial<Donation> & { donorName?: string, donorAddress?:str
 ];
 
 export class AddDonationsMannuallyToDb1716549958362
-  implements MigrationInterface
-{
+  implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
 
