@@ -221,11 +221,11 @@ export class AddDonationsMannuallyToDb1716549958362
   async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
 
-    // if (environment !== 'production') {
-    //     // eslint-disable-next-line no-console
-    //     console.log('We just want to create these donations in production DB');
-    //     return;
-    // }
+    if (environment !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log('We just want to create these donations in production DB');
+        return;
+    }
 
     await AppDataSource.initialize();
     for (const tx of transactions) {
