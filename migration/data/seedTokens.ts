@@ -1602,6 +1602,7 @@ const seedTokens: ITokenData[] = [
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
     networkId: NETWORK_IDS.BASE_SEPOLIA,
+    coingeckoId: 'ethereum',
   },
 
   // BASE Mainnet - https://basescan.org/token/0x0000000000000000000000000000000000000000
