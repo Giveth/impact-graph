@@ -35,22 +35,10 @@ services:
       - giveth
 
 
-  redis-giveth:
-    # it's better to not using the latest tag, maybe latest tag have some breaking changes
-    image: redis:7.2.0-alpine3.18
-    container_name: redis-giveth
-    environment:
-      - REDIS_ALLOW_EMPTY_PASSWORD=yes
-    restart: always
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-
 volumes:
   db-data:
   db-data-replica:
-  redis-data:
+
 
 networks:
   giveth:
