@@ -195,12 +195,6 @@ export const updateTotalDonationsOfProject = async (
           SELECT COALESCE(SUM(d."valueUsd"),0)
           FROM "donation" as d
           WHERE d."projectId" = $1 AND d."status" = 'verified'
-        ) + (
-          COALESCE((
-            SELECT SUM(q."matchingFundPriceUsd")
-            FROM "qfRoundHistory" as q
-            WHERE q."projectId" = $1
-          ), 0)
         )
       )
       WHERE "id" = $1
@@ -375,6 +369,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     });
 
     // Update materialized view for project and qfRound data
+    await insertDonationsFromQfRoundHistory();
     await refreshProjectEstimatedMatchingView();
     await refreshProjectDonationSummaryView();
 
