@@ -191,9 +191,17 @@ export const updateTotalDonationsOfProject = async (
       `
       UPDATE "project"
       SET "totalDonations" = (
-        SELECT COALESCE(SUM(d."valueUsd"),0)
-        FROM "donation" as d
-        WHERE d."projectId" = $1 AND d."status" = 'verified'
+        (
+          SELECT COALESCE(SUM(d."valueUsd"),0)
+          FROM "donation" as d
+          WHERE d."projectId" = $1 AND d."status" = 'verified'
+        ) + (
+          COALESCE((
+            SELECT SUM(q."matchingFundPriceUsd")
+            FROM "qfRoundHistory" as q
+            WHERE q."projectId" = $1
+          ), 0)
+        )
       )
       WHERE "id" = $1
     `,
