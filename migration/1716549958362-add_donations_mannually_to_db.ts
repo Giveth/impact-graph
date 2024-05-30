@@ -16,6 +16,7 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../src/services/projectViewsService';
+import { updateProjectStatistics } from '../src/services/projectService';
 
 const millisecondTimestampToDate = (timestamp: number): Date => {
   return new Date(timestamp);
@@ -78,6 +79,8 @@ const transactions: (Partial<Donation> & {
   },
 
   // https://arbiscan.io/tx/0x38e060142c75fa4f3d2eefd27556ef899b3a6faa61bbd842ac7b06cfdd5fad2f
+  //TODO I set the network for all these donations to OP to make sure givbacks will distribute on OP
+  // but later we shuuld change it back to the right network
   {
     // Premia
     donorName: 'Premia',
@@ -92,7 +95,8 @@ const transactions: (Partial<Donation> & {
     tokenAddress: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
     amount: 1500,
     valueUsd: 1500,
-    transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
+    // transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
     createdAt: millisecondTimestampToDate(1713595569000),
   },
 
@@ -111,7 +115,8 @@ const transactions: (Partial<Donation> & {
     tokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     amount: 1500,
     valueUsd: 1500,
-    transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
+    // transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
     createdAt: millisecondTimestampToDate(1713844247000),
   },
 
@@ -130,7 +135,8 @@ const transactions: (Partial<Donation> & {
     tokenAddress: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
     amount: 1500,
     valueUsd: 1500,
-    transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
+    // transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
     createdAt: millisecondTimestampToDate(1714074373000),
   },
 
@@ -149,7 +155,8 @@ const transactions: (Partial<Donation> & {
     tokenAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     amount: 1500,
     valueUsd: 1500,
-    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
+    // transactionNetworkId: NETWORK_IDS.MAIN_NET,
     createdAt: millisecondTimestampToDate(1714044191000),
   },
 
@@ -168,7 +175,8 @@ const transactions: (Partial<Donation> & {
     tokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     amount: 7500,
     valueUsd: 7500,
-    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
+    // transactionNetworkId: NETWORK_IDS.MAIN_NET,
     createdAt: millisecondTimestampToDate(1714052806000),
   },
 
@@ -187,7 +195,8 @@ const transactions: (Partial<Donation> & {
     tokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     amount: 1500,
     valueUsd: 1500,
-    transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
+    // transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
     createdAt: millisecondTimestampToDate(1714033588000),
   },
 
@@ -210,8 +219,125 @@ const transactions: (Partial<Donation> & {
     qfRoundId: 9,
     amount: 0.011389,
     valueUsd: 33.86,
-    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
+    // transactionNetworkId: NETWORK_IDS.MAIN_NET,
     createdAt: millisecondTimestampToDate(1715201051000),
+  },
+
+  // https://github.com/Giveth/giveth-dapps-v2/issues/4203
+
+  // https://arbiscan.io/tx/0xd9bf19eb3c09baf79159e772ba0fd824b812d5953a7e2d026a2d65966501c7b3
+  {
+    // GloDollar
+    donorName: 'GloDollar',
+    donorAddress: '0x1bbfc95b826693bf17665f36a66ac9c389b7e581',
+    fromWalletAddress: '0x1bbfc95b826693bf17665f36a66ac9c389b7e581',
+    toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
+    // https://giveth.io/project/giveth-matching-pool-0
+    projectId: 1443,
+    transactionId:
+      '0xd9bf19eb3c09baf79159e772ba0fd824b812d5953a7e2d026a2d65966501c7b3',
+    currency: 'USDGLO',
+    tokenAddress: '0x4F604735c1cF31399C6E711D5962b2B3E0225AD3',
+    amount: 1500,
+    valueUsd: 1500,
+    transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
+    createdAt: millisecondTimestampToDate(1713273778000),
+  },
+
+  // https://etherscan.io/tx/0x4b0b0e7b8137ac68e42ebfa170607e6b59015d3583e7290af081ea974cfd6b10
+  {
+    // Aragon Project
+    donorName: 'Aragon Project',
+    donorAddress: '0x124cc44b7119fb592a774f466823f31885b60440',
+    fromWalletAddress: '0xD6B270DFEE268B452c86251Fd7e12Db8dE9200FB',
+    toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
+    // https://giveth.io/project/giveth-matching-pool-0
+    projectId: 1443,
+    transactionId:
+      '0x4b0b0e7b8137ac68e42ebfa170607e6b59015d3583e7290af081ea974cfd6b10',
+    currency: 'USDC',
+    tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    amount: 1000,
+    valueUsd: 1000,
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    createdAt: millisecondTimestampToDate(1696867907000),
+  },
+
+  // https://etherscan.io/tx/0x12135b286cbcb71c1c4155ee650613e1840d54619d4d06ae7be77f17bdc4683b
+  {
+    // Aragon Project
+    donorName: 'Aragon Project',
+    donorAddress: '0x124cc44b7119fb592a774f466823f31885b60440',
+    fromWalletAddress: '0xD6B270DFEE268B452c86251Fd7e12Db8dE9200FB',
+    toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
+    // https://giveth.io/project/giveth-matching-pool-0
+    projectId: 1443,
+    transactionId:
+      '0x12135b286cbcb71c1c4155ee650613e1840d54619d4d06ae7be77f17bdc4683b',
+    currency: 'USDC',
+    tokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    amount: 5000,
+    valueUsd: 5000,
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    createdAt: millisecondTimestampToDate(1689342251000),
+  },
+
+  // https://etherscan.io/tx/0x30954cb441cb7b2184e6cd1afc6acbd1318f86a68b669f6bfb2786dd459e2d6c
+  {
+    // Public Nouns
+    donorName: 'Public Nouns',
+    donorAddress: '0x553826cb0d0ee63155920f42b4e60aae6607dfcb',
+    fromWalletAddress: '0xda04c025F4d8Ac555Fdb3497B197D28FCEcf4d41',
+    toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
+    // https://giveth.io/project/giveth-matching-pool-0
+    projectId: 1443,
+    transactionId:
+      '0x30954cb441cb7b2184e6cd1afc6acbd1318f86a68b669f6bfb2786dd459e2d6c',
+    currency: 'ETH',
+    tokenAddress: '0x0000000000000000000000000000000000000000',
+    amount: 5,
+    valueUsd: 9458.4,
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    createdAt: millisecondTimestampToDate(1689897227000),
+  },
+
+  // https://etherscan.io/tx/0x10975407db91205cda1e9f9bb288488d215d6d94dfa12b192ffa0cb78893df11
+  {
+    // Public Nouns
+    donorName: 'Public Nouns',
+    donorAddress: '0x553826cb0d0ee63155920f42b4e60aae6607dfcb',
+    fromWalletAddress: '0xda04c025F4d8Ac555Fdb3497B197D28FCEcf4d41',
+    toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
+    // https://giveth.io/project/giveth-matching-pool-0
+    projectId: 1443,
+    transactionId:
+      '0x10975407db91205cda1e9f9bb288488d215d6d94dfa12b192ffa0cb78893df11',
+    currency: 'ETH',
+    tokenAddress: '0x0000000000000000000000000000000000000000',
+    amount: 5,
+    valueUsd: 11154.7,
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    createdAt: millisecondTimestampToDate(1703626727000),
+  },
+
+  // https://etherscan.io/tx/0xa6e68136fdb972597cb795d73059aa5a7eedfe5a84b0af3b0091121231e1529d
+  {
+    // Jordi Baylina
+    donorName: 'Jordi Baylina',
+    donorAddress: '0x1DBA1131000664b884A1Ba238464159892252D3a',
+    fromWalletAddress: '0x1dba1131000664b884a1ba238464159892252d3a',
+    toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
+    // https://giveth.io/project/giveth-matching-pool-0
+    projectId: 1443,
+    transactionId:
+      '0xa6e68136fdb972597cb795d73059aa5a7eedfe5a84b0af3b0091121231e1529d',
+    currency: 'ENS',
+    tokenAddress: '0xc18360217d8f7ab5e7c516566761ea12ce7f9d72',
+    amount: 110,
+    valueUsd: 2739,
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    createdAt: millisecondTimestampToDate(1689200507000),
   },
 ];
 
@@ -260,9 +386,9 @@ export class AddDonationsMannuallyToDb1716549958362
             "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt", "givbackFactor", "powerRound", "projectRank", "bottomRankInRound", "qfRoundId", "tokenAddress")
            VALUES ('${tx.toWalletAddress?.toLowerCase()}', ${
              tx.projectId
-           }, '${tx.fromWalletAddress?.toLocaleLowerCase()}', ${user.id}, ${
+           }, '${tx.fromWalletAddress?.toLowerCase()}', ${user.id}, ${
              tx.amount
-           }, '${tx.currency}', '${tx.transactionId?.toLocaleLowerCase()}', ${
+           }, '${tx.currency}', '${tx.transactionId?.toLowerCase()}', ${
              tx.transactionNetworkId
            }, false, ${tx.valueUsd}, 'verified',
              true, true, true, '${createdAt}', ${givbackFactor}, ${powerRound}, ${projectRank}, ${bottomRankInRound}, ${tx.qfRoundId || null}, '${
@@ -273,6 +399,7 @@ export class AddDonationsMannuallyToDb1716549958362
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
       await updateTotalDonationsOfProject(tx.projectId as number);
+      await updateProjectStatistics(tx.projectId as number);
     }
 
     await refreshProjectEstimatedMatchingView();
