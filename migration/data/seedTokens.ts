@@ -1613,7 +1613,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'ethereum',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
 
   // USDC - https://basescan.org/token/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913
@@ -1624,7 +1624,7 @@ const seedTokens: ITokenData[] = [
     decimals: 6,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'usd-coin',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
     isStableCoin: true,
   },
   // Dai Stablecoin - https://basescan.org/token/0x50c5725949a6f0c72e6c4a641f24049a917db0cb
@@ -1635,7 +1635,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'dai',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
     isStableCoin: true,
   },
   // Rocket Pool ETH - https://basescan.org/token/0xb6fe221fe9eef5aba221c348ba20a1bf5e73624c
@@ -1646,7 +1646,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'rocket-pool-eth',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Synthetix Network Token - https://basescan.org/token/0x22e6966b799c4d5b13be962e1d117b56327fda66
   {
@@ -1656,7 +1656,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'havven',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Coinbase Wrapped Staked ETH - https://basescan.org/token/0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22
   {
@@ -1666,7 +1666,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'coinbase-wrapped-staked-eth',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Prime - https://basescan.org/token/0xfA980cEd6895AC314E7dE34Ef1bFAE90a5AdD21b
   {
@@ -1676,7 +1676,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'echelon-prime',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Aerodrome - https://basescan.org/token/0x940181a94a35a4569e4529a3cdfb74e38fd98631
   {
@@ -1686,7 +1686,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'aerodrome-finance',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Degen - https://basescan.org/token/0x4ed4e862860bed51a9570b96d89af5e1b0efefed
   {
@@ -1696,7 +1696,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'degen-base',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Osaka Protocol - https://basescan.org/token/0xbFd5206962267c7b4b4A8B3D76AC2E1b2A5c4d5e
   {
@@ -1706,7 +1706,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'osaka-protocol',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // BTRST - https://basescan.org/token/0xa7d68d155d17cb30e311367c2ef1e82ab6022b67
   {
@@ -1716,7 +1716,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'braintrust',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // SmarDex Token - https://basescan.org/token/0xfd4330b0312fdeec6d4225075b82e00493ff2e3f
   {
@@ -1726,7 +1726,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'smardex',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Spectral Token - https://basescan.org/token/0x96419929d7949d6a801a6909c145c8eef6a40431
   {
@@ -1736,7 +1736,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'spectral',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Heroes of Mavia - https://basescan.org/token/0x24fcFC492C1393274B6bcd568ac9e225BEc93584
   {
@@ -1746,7 +1746,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'heroes-of-mavia',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Maverick Token - https://basescan.org/token/0x64b88c73a5dfa78d1713fe1b4c69a22d7e0faaa7
   {
@@ -1756,7 +1756,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'maverick-protocol',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Dola USD Stablecoin - https://basescan.org/token/0x4621b7a9c75199271f773ebd9a499dbd165c3191
   {
@@ -1766,7 +1766,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'dola-usd',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
     isStableCoin: true,
   },
   // USD+ - https://basescan.org/token/0xb79dd08ea68a908a97220c76d19a6aa9cbde4376
@@ -1777,7 +1777,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'usd',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
     isStableCoin: true,
   },
   // Magic Internet Money - https://basescan.org/token/0x4A3A6Dd60A34bB2Aba60D73B4C88315E9CeB6A3D
@@ -1788,7 +1788,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'magic-internet-money',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Seamless - https://basescan.org/token/0x1c7a460413dd4e964f96d8dfc56e7223ce88cd85
   {
@@ -1798,7 +1798,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'seamless-protocol',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Extra Finance - https://basescan.org/token/0x2dad3a13ef0c6366220f989157009e501e7938f8
   {
@@ -1808,7 +1808,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'extra-finance',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // agEUR - https://basescan.org/token/0xa61beb4a3d02decb01039e378237032b351125b4
   {
@@ -1818,7 +1818,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'ageur-plenty-bridge',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
     isStableCoin: true,
   },
   // SubQueryToken - https://basescan.org/token/0x858c50C3AF1913b0E849aFDB74617388a1a5340d
@@ -1829,7 +1829,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'subquery-network',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Rai.Finance - https://basescan.org/token/0x703d57164ca270b0b330a87fd159cfef1490c0a5
   {
@@ -1839,7 +1839,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'rai-finance',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // UNJD (MBS) - https://basescan.org/token/0x8fbd0648971d56f1f2c35fa075ff5bc75fb0e39d
   {
@@ -1849,7 +1849,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'monkeyball',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Rigo Token - https://basescan.org/token/0x09188484e1ab980daef53a9755241d759c5b7d60
   {
@@ -1859,7 +1859,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'rigoblock',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // DEUS - https://basescan.org/token/0xde5ed76e7c05ec5e4572cfc88d1acea165109e44
   {
@@ -1869,7 +1869,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'deus-finance-2',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
   // Alongside Crypto Market Index - https://basescan.org/token/0x13f4196cc779275888440b3000ae533bbbbc3166
   {
@@ -1879,7 +1879,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.BASE_MAINNET,
     coingeckoId: 'alongside-crypto-market-index',
-    isGivbackEligible: true,
+    isGivbackEligible: false,
   },
 ];
 
