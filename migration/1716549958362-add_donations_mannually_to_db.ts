@@ -381,21 +381,18 @@ export class AddDonationsMannuallyToDb1716549958362
 
       const { givbackFactor, projectRank, powerRound, bottomRankInRound } =
         await calculateGivbackFactor(tx.projectId as number);
-
       await queryRunner.query(`
-           INSERT INTO donation ("toWalletAddress", "projectId", "fromWalletAddress", "userId", amount, currency, "transactionId", "transactionNetworkId", anonymous, "valueUsd", status,
-            "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt", "givbackFactor", "powerRound", "projectRank", "bottomRankInRound", "qfRoundId", "tokenAddress")
-           VALUES ('${tx.toWalletAddress?.toLowerCase()}', ${
-             tx.projectId
-           }, '${tx.fromWalletAddress?.toLowerCase()}', ${user.id}, ${
-             tx.amount
-           }, '${tx.currency}', '${tx.transactionId?.toLowerCase()}', ${
-             tx.transactionNetworkId
-           }, false, ${tx.valueUsd}, 'verified',
-             true, true, true, '${createdAt}', ${givbackFactor}, ${powerRound}, ${projectRank}, ${bottomRankInRound}, ${tx.qfRoundId || null}, '${
-               tx.tokenAddress
-             }');
-                `);
+            INSERT INTO donation ("toWalletAddress", "projectId", "fromWalletAddress", "userId", amount, currency, "transactionId", "transactionNetworkId", anonymous, "valueUsd", status,
+             "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt", "givbackFactor", "powerRound", "projectRank", "bottomRankInRound", "qfRoundId", "tokenAddress")
+            VALUES ('${tx.toWalletAddress?.toLowerCase()}', ${tx.projectId}, '${tx.fromWalletAddress?.toLowerCase()}', ${user.id}, ${tx.amount}, '${tx.currency}', '${tx.transactionId?.toLowerCase()}', ${
+              tx.transactionNetworkId
+            }, false, ${tx.valueUsd}, 'verified',
+              true, true, true, '${createdAt}', ${givbackFactor}, ${powerRound}, ${projectRank}, ${bottomRankInRound}, ${tx.qfRoundId || null}, '${
+                tx.tokenAddress
+              }')
+            ON CONFLICT DO NOTHING;
+        `);
+
 
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
