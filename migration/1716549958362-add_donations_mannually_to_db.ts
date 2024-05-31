@@ -74,7 +74,8 @@ const transactions: (Partial<Donation> & {
     tokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     amount: 7500,
     valueUsd: 7500,
-    transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
+    // transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
     createdAt: millisecondTimestampToDate(1714247188000),
   },
 
