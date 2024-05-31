@@ -393,7 +393,6 @@ export class AddDonationsMannuallyToDb1716549958362
             ON CONFLICT DO NOTHING;
         `);
 
-
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
       await updateTotalDonationsOfProject(tx.projectId as number);
