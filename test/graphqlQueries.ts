@@ -1056,7 +1056,6 @@ export const fetchProjectBySlugQuery = `
         sortingField
         createdAt
         updatedAt
-      
       }
       givbackFactor
       projectPower {

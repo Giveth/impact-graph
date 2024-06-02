@@ -1,16 +1,34 @@
 import { Field, Float, Int, ObjectType, registerEnumType } from 'type-graphql';
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
-import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver';
+import {
+  QfArchivedRoundsOrderBy,
+  QfRoundsArgs,
+} from '../resolvers/qfRoundResolver';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
 );
 
-export const findAllQfRounds = async (): Promise<QfRound[]> => {
-  return QfRound.createQueryBuilder('qf_round')
-    .addOrderBy('qf_round.id', 'DESC')
-    .getMany();
+export const findAllQfRounds = async ({
+  slug,
+  activeOnly,
+}: QfRoundsArgs): Promise<QfRound[]> => {
+  const query = QfRound.createQueryBuilder('qf_round').addOrderBy(
+    'qf_round.id',
+    'DESC',
+  );
+  if (slug) {
+    query.where('slug = :slug', { slug });
+  }
+  if (activeOnly) {
+    query.andWhere('"isActive" = true');
+  }
+  if (slug || activeOnly) {
+    const res = await query.getOne();
+    return res ? [res] : [];
+  }
+  return query.getMany();
 };
 
 export enum QfArchivedRoundsSortType {
