@@ -23,9 +23,14 @@ export const relateManyProjectsToQfRound = async (params: {
 
   if (params.add) {
     query = `
-      INSERT INTO project_qf_rounds_qf_round ("projectId", "qfRoundId") 
-      VALUES ${values}
-      ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;`;
+      INSERT INTO project_qf_rounds_qf_round ("projectId", "qfRoundId")
+      SELECT v.projectId, v.qfRoundId
+      FROM (VALUES ${values}) AS v(projectId, qfRoundId)
+      WHERE EXISTS (SELECT 1 FROM project p WHERE p.id = v.projectId)
+        AND EXISTS (SELECT 1 FROM qf_round q WHERE q.id = v.qfRoundId)
+      ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;
+    `;
+
     orttoPeople = projects.map(project =>
       getOrttoPersonAttributes({
         firstName: project?.adminUser?.firstName,
