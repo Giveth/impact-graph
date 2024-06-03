@@ -9,23 +9,25 @@ const ProjectsInQfRound = props => {
     <div>
       <Label>Related Projects</Label>
       <Section>
-        {projects.map(project => {
-          const { id, title, slug } = project;
-          const projectLink = `/admin/resources/Project/records/${id}/show`;
-          return (
-            <div key={id}>
-              <br />
-              <Section>
-                <h1>{title}</h1>
-                <h2>{slug}</h2>
-                <br />
-                <Link href={projectLink || ''} target="_blank">
-                  {projectLink}
-                </Link>
-              </Section>
-            </div>
-          );
-        })}
+        {projects.length > 0
+          ? projects.map(project => {
+              const { id, title, slug } = project;
+              const projectLink = `/admin/resources/Project/records/${id}/show`;
+              return (
+                <div key={id}>
+                  <br />
+                  <Section>
+                    <h1>{title}</h1>
+                    <h2>{slug}</h2>
+                    <br />
+                    <Link href={projectLink || ''} target="_blank">
+                      {projectLink}
+                    </Link>
+                  </Section>
+                </div>
+              );
+            })
+          : 'No related projects found.'}
       </Section>
       <br />
     </div>
