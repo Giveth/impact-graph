@@ -115,7 +115,7 @@ async function handleSponsorsImgs(payload: any) {
   for (let i = 0; i < payload.totalSponsorsImgs; i++) {
     const sponsorImg = payload[`sponsorsImgs.${i}`];
 
-    if (!sponsorImg || !sponsorImg.path) {
+    if (!sponsorImg?.path) {
       sponsorsImgs.push(sponsorImg);
     } else {
       const { path, name } = sponsorImg;
@@ -131,7 +131,7 @@ async function handleSponsorsImgs(payload: any) {
 }
 
 async function handleBannerBgImage(payload: any) {
-  if (payload.bannerBgImage && payload.bannerBgImage.path) {
+  if (payload.bannerBgImage?.path) {
     const { path, name } = payload.bannerBgImage;
     const result = await pinFile(fs.createReadStream(path), name);
     payload.bannerBgImage = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
