@@ -58,6 +58,7 @@ const ProjectsInQfRound = props => {
               width="12"
               height="12"
               viewBox="0 0 12 12"
+              aria-label="Previous page"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -81,6 +82,7 @@ const ProjectsInQfRound = props => {
               height="12"
               viewBox="0 0 12 12"
               fill="none"
+              aria-label="Next page"
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
