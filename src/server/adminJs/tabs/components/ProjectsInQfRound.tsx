@@ -26,25 +26,6 @@ const ProjectsInQfRound = props => {
     <div>
       <Label>Related Projects</Label>
       <Section>
-<<<<<<< Updated upstream
-        {projects.map(project => {
-          const { id, title, slug } = project;
-          const projectLink = `/admin/resources/Project/records/${id}/show`;
-          return (
-            <div key={id}>
-              <br />
-              <Section>
-                <h1>{title}</h1>
-                <h2>{slug}</h2>
-                <br />
-                <Link href={projectLink || ''} target="_blank">
-                  {projectLink}
-                </Link>
-              </Section>
-            </div>
-          );
-        })}
-=======
         {currentProjects.length > 0
           ? currentProjects.map(project => {
               const { id, title, slug } = project;
@@ -64,7 +45,6 @@ const ProjectsInQfRound = props => {
               );
             })
           : 'No related projects found.'}
->>>>>>> Stashed changes
       </Section>
 
       {totalPages > 1 && (
