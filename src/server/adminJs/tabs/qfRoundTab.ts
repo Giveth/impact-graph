@@ -108,7 +108,11 @@ const returnAllQfRoundDonationAnalysis = async (
   };
 };
 
-async function handleSponsorsImgs(payload: any) {
+async function handleSponsorsImgs(payload: {
+  [key: string]: any;
+  totalSponsorsImgs?: number;
+  sponsorsImgs?: string[];
+}) {
   if (!payload.totalSponsorsImgs) return;
 
   const sponsorsImgs: string[] = [];
@@ -123,11 +127,11 @@ async function handleSponsorsImgs(payload: any) {
       sponsorsImgs.push(
         `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`,
       );
-      delete payload[`sponsorsImgs.${i}`];
+      payload[`sponsorsImgs.${i}`] = undefined;
     }
   }
   payload.sponsorsImgs = sponsorsImgs;
-  delete payload.totalSponsorsImgs;
+  payload.totalSponsorsImgs = undefined;
 }
 
 async function handleBannerBgImage(payload: any) {
@@ -138,7 +142,13 @@ async function handleBannerBgImage(payload: any) {
   }
 }
 
-async function validateQfRound(payload: any) {
+async function validateQfRound(payload: {
+  id?: string;
+  projectIdsList?: string;
+  endDate?: Date;
+  beginDate?: Date;
+  isActive?: boolean;
+}) {
   if (!payload.id) return;
 
   const qfRoundId = Number(payload.id);
@@ -152,10 +162,10 @@ async function validateQfRound(payload: any) {
   }
 
   const currentProjectIds = payload.projectIdsList
-    ? payload.projectIdsList.split(',')
+    ? payload.projectIdsList.split(',').map(Number)
     : [];
   const removedProjectIds = initialProjectIds.filter(
-    id => !currentProjectIds.includes(id.toString()),
+    id => !currentProjectIds.includes(id),
   );
 
   if (isQfRoundHasEnded({ endDate: qfRound.endDate })) {
