@@ -134,9 +134,14 @@ async function handleSponsorsImgs(payload: {
   payload.totalSponsorsImgs = undefined;
 }
 
-async function handleBannerBgImage(payload: any) {
-  if (payload.bannerBgImage?.path) {
-    const { path, name } = payload.bannerBgImage;
+async function handleBannerBgImage(payload: {
+  [key: string]: any;
+  bannerBgImage?: string | { path: string; name: string };
+}) {
+  const bannerBgImage = payload.bannerBgImage;
+
+  if (typeof bannerBgImage == 'object' && bannerBgImage?.path) {
+    const { path, name } = bannerBgImage;
     const result = await pinFile(fs.createReadStream(path), name);
     payload.bannerBgImage = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
   }
