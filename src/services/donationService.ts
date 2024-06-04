@@ -31,10 +31,7 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from './userService';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from './projectViewsService';
+import { refreshProjectEstimatedMatchingView } from './projectViewsService';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
@@ -180,7 +177,6 @@ export const updateDonationByTransakData = async (
 
   // We dont wait for this to finish
   refreshProjectEstimatedMatchingView();
-  refreshProjectDonationSummaryView();
 };
 
 export const updateTotalDonationsOfProject = async (
@@ -371,7 +367,6 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     // Update materialized view for project and qfRound data
     await insertDonationsFromQfRoundHistory();
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     await updateProjectStatistics(donation.projectId);
 
