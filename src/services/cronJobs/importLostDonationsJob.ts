@@ -17,15 +17,13 @@ import {
   updateUserTotalReceived,
 } from '../userService';
 import { toFixNumber, updateTotalDonationsOfProject } from '../donationService';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../projectViewsService';
 import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter';
 import { QfRound } from '../../entities/qfRound';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
+import { updateProjectStatistics } from '../projectService';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ethers = require('ethers');
@@ -251,6 +249,7 @@ export const importLostDonations = async () => {
         await updateTotalDonationsOfProject(project.id);
 
         const donationStats = await getUserDonationStats(dbUser.id);
+        await updateProjectStatistics(project.id);
 
         const orttoPerson = getOrttoPersonAttributes({
           userId: dbUser.id.toString(),
@@ -273,7 +272,6 @@ export const importLostDonations = async () => {
 
     // Figure out if its ideal to call this here or once, maybe in a button in adminjs
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   } catch (e) {
     logger.error('importLostDonations() error', e);
   }

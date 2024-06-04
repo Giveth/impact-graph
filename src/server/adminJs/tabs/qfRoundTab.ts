@@ -10,7 +10,6 @@ import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
 import {
   getQfRoundActualDonationDetails,
   refreshProjectActualMatchingView,
-  refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../../../services/projectViewsService';
 import {
@@ -40,7 +39,6 @@ export const refreshMaterializedViews: After<
   const projectIds = await getRelatedProjectsOfQfRound(qfRoundId);
 
   await refreshProjectEstimatedMatchingView();
-  await refreshProjectDonationSummaryView();
   await refreshProjectActualMatchingView();
 
   initialProjectIds = [...projectIds.map(project => project.id)];
