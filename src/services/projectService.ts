@@ -1,8 +1,7 @@
 import { Project } from '../entities/project';
 import {
-  countUniqueDonors,
+  countUniqueDonorsAndSumDonationValueUsd,
   countUniqueDonorsForRound,
-  sumDonationValueUsd,
   sumDonationValueUsdForQfRound,
 } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
@@ -53,8 +52,11 @@ export const updateProjectStatistics = async (projectId: number) => {
     project.countUniqueDonorsForActiveQfRound = 0;
   }
 
-  project.sumDonationValueUsd = await sumDonationValueUsd(project.id);
-  project.countUniqueDonors = await countUniqueDonors(project.id);
+  const { totalDonations, uniqueDonors } =
+    await countUniqueDonorsAndSumDonationValueUsd(project.id);
+
+  project.sumDonationValueUsd = totalDonations;
+  project.countUniqueDonors = uniqueDonors;
   await project.save();
 };
 
