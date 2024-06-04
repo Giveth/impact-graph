@@ -660,7 +660,7 @@ export const projectsTab = {
           list: true,
           filter: false,
           show: true,
-          edit: false,
+          edit: true, // edited it to true
           new: false,
         },
       },
@@ -889,6 +889,7 @@ export const projectsTab = {
       edit: {
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectAction({ currentAdmin }, ResourceActions.EDIT),
+
         before: async (request: AdminJsRequestInterface) => {
           const { verified, reviewStatus } = request.payload;
           const statusChanges: string[] = [];
@@ -951,6 +952,8 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
               );
             }
+
+            //
             if (Number(request?.payload?.admin) !== project?.adminUserId) {
               request.payload.adminChanged = true;
             }
