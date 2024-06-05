@@ -13,10 +13,7 @@ import {
 } from '../../test/testUtils';
 import { Project } from '../entities/project';
 import { QfRound } from '../entities/qfRound';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import {
   fetchQFArchivedRounds,
   qfRoundStatsQuery,
@@ -157,7 +154,7 @@ function fetchQfRoundStatesTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
+
     const result = await axios.post(graphqlUrl, {
       query: qfRoundStatsQuery,
       variables: {

@@ -50,10 +50,7 @@ import {
 import { FeaturedUpdate } from '../../../entities/featuredUpdate';
 import { findActiveQfRound } from '../../../repositories/qfRoundRepository';
 import { User } from '../../../entities/user';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../../../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../../../services/projectViewsService';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 
@@ -391,9 +388,7 @@ export const addProjectsToQfRound = async (
       qfRound,
       add,
     });
-
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   } else {
     message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
   }
@@ -426,7 +421,6 @@ export const addSingleProjectToQfRound = async (
     });
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   } else {
     message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
   }

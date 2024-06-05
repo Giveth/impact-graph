@@ -12,7 +12,6 @@ import {
 } from '../../test/testUtils';
 import {
   refreshProjectActualMatchingView,
-  refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from './projectViewsService';
 import { ProjectActualMatchingView } from '../entities/ProjectActualMatchingView';
@@ -221,8 +220,6 @@ function getActualMatchingFundTests() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
-
     await refreshProjectActualMatchingView();
 
     const actualMatchingFund = await ProjectActualMatchingView.findOne({
@@ -333,8 +330,6 @@ function getActualMatchingFundTests() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
-
     await refreshProjectActualMatchingView();
 
     const actualMatchingFund = await ProjectActualMatchingView.findOne({
