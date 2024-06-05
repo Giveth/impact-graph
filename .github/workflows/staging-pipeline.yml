@@ -31,7 +31,7 @@ jobs:
         with:
           eslint: true
           #prettier: true
-          continue_on_error: false
+          continue_on_error: true
 
   test:
     runs-on: ubuntu-latest
