@@ -20,7 +20,6 @@ if (loadConfigResult.error) {
 
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { getEntities } from './entities/entities';
-import { ENVIRONMENTS } from './utils/utils';
 
 const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -30,10 +29,7 @@ const ormConfig: DataSourceOptions = {
   password: process.env.TYPEORM_DATABASE_PASSWORD,
   database: process.env.TYPEORM_DATABASE_NAME,
   entities: getEntities(),
-  migrations:
-    process.env.ENVIRONMENT === ENVIRONMENTS.PRODUCTION
-      ? ['migration/*.js']
-      : ['migration/*.ts'],
+  migrations: ['migration/*.ts'],
   // cli: {
   //   migrationsDir: 'migration',
   // },
