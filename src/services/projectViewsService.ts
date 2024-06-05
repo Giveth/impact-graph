@@ -30,19 +30,6 @@ export const refreshProjectActualMatchingView = async (): Promise<void> => {
   }
 };
 
-export const refreshProjectDonationSummaryView = async (): Promise<void> => {
-  try {
-    logger.debug('Refresh project_donation_summary_view materialized view');
-    return AppDataSource.getDataSource().query(
-      `
-        REFRESH MATERIALIZED VIEW project_donation_summary_view
-      `,
-    );
-  } catch (e) {
-    logger.error('refreshProjectDonationSummaryView() error', e);
-  }
-};
-
 export const getQfRoundActualDonationDetails = async (
   qfRoundId: number,
 ): Promise<QfRoundDonationRow[]> => {

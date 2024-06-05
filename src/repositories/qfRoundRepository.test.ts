@@ -18,10 +18,7 @@ import {
   getQfRoundTotalProjectsDonationsSum,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 
 describe(
   'getProjectDonationsSqrtRootSum test cases',
@@ -90,7 +87,6 @@ function getProjectDonationsSqrRootSumTests() {
       project.id,
     );
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const { sqrtRootSum, uniqueDonorsCount } =
       await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
@@ -120,7 +116,6 @@ function getProjectDonationsSqrRootSumTests() {
       }),
     );
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const { sqrtRootSum, uniqueDonorsCount } =
       await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
@@ -164,7 +159,6 @@ function getProjectDonationsSqrRootSumTests() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const { sqrtRootSum, uniqueDonorsCount } =
       await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
@@ -246,7 +240,6 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const { sum, contributorsCount } =
       await getQfRoundTotalProjectsDonationsSum(qfRound.id);
@@ -293,7 +286,6 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const { sum, contributorsCount } =
       await getQfRoundTotalProjectsDonationsSum(qfRound.id);
