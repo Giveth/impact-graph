@@ -66,7 +66,6 @@ export const updateDonationPricesAndValues = async (
       error: e,
       donation,
     });
-
     await getNotificationAdapter().donationGetPriceFailed({
       project,
       donationInfo: {
