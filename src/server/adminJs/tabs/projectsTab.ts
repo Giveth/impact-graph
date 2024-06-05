@@ -474,7 +474,7 @@ const sendProjectsToGoogleSheet = async (
   // parse data and set headers
   const projectRows = projects.map((project: Project) => {
     const projectAddresses = project.addresses || [];
-
+   
     return {
       id: project.id,
       title: project.title,
@@ -656,6 +656,8 @@ export const projectsTab = {
         },
       },
       adminUserId: {
+        
+        // type:"Number",
         isVisible: {
           list: true,
           filter: false,
@@ -663,6 +665,9 @@ export const projectsTab = {
           edit: true, // edited it to true
           new: false,
         },
+        position:1,
+        
+        
       },
       contacts: {
         isVisible: {
@@ -712,9 +717,9 @@ export const projectsTab = {
       totalTraceDonations: {
         isVisible: { list: false, filter: false, show: true, edit: true },
       },
-      admin: {
-        isVisible: { list: false, filter: false, show: true, edit: true },
-      },
+      // admin: {
+      //   isVisible: { list: true, filter: false, show: true, edit: true },
+      // },
       description: {
         isVisible: {
           list: false,
@@ -734,6 +739,7 @@ export const projectsTab = {
           show: true,
           edit: false,
         },
+        
         components: {
           show: adminJs.bundle('./components/ClickableLink'),
         },
@@ -923,8 +929,8 @@ export const projectsTab = {
                   );
                   break;
               }
-            }
-            if (project?.verified && !verified) {
+            }    
+            if (project?.verified && !verified) {      
               statusChanges.push(NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED);
             }
             if (!project?.verified && verified) {
@@ -953,9 +959,12 @@ export const projectsTab = {
               );
             }
 
-            //
-            if (Number(request?.payload?.admin) !== project?.adminUserId) {
+            
+            if (Number(request?.payload?.adminUserId) !== project?.adminUserId) {
+              const newID=request?.payload?.adminUserId;
+              // console.log("newID",newID);
               request.payload.adminChanged = true;
+              request.payload.newAdminId=newID;
             }
 
             // We put these status changes in payload, so in after hook we would know to send notification for users
@@ -975,7 +984,8 @@ export const projectsTab = {
           if (project) {
             if (request?.record?.params?.adminChanged) {
               const adminUser = await User.findOne({
-                where: { id: project.adminUserId },
+              
+                where: { id: request?.record?.params?.newAdminId},
               });
               project.adminUser = adminUser!;
               await project.save();
