@@ -650,12 +650,12 @@ export const projectsTab = {
         },
       },
       adminUserId: {
-        // type:"Number",
+        type: 'Number',
         isVisible: {
           list: true,
           filter: false,
           show: true,
-          edit: true, // edited it to true
+          edit: true,
           new: false,
         },
         position: 1,
@@ -708,9 +708,7 @@ export const projectsTab = {
       totalTraceDonations: {
         isVisible: { list: false, filter: false, show: true, edit: true },
       },
-      // admin: {
-      //   isVisible: { list: true, filter: false, show: true, edit: true },
-      // },
+
       description: {
         isVisible: {
           list: false,
@@ -954,7 +952,6 @@ export const projectsTab = {
               Number(request?.payload?.adminUserId) !== project?.adminUserId
             ) {
               const newID = request?.payload?.adminUserId;
-              // console.log("newID",newID);
               request.payload.adminChanged = true;
               request.payload.newAdminId = newID;
             }
