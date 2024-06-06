@@ -10,7 +10,7 @@ const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
 );
 
-export const findAllQfRounds = async ({
+export const findQfRounds = async ({
   slug,
   activeOnly,
 }: QfRoundsArgs): Promise<QfRound[]> => {
@@ -22,7 +22,9 @@ export const findAllQfRounds = async ({
     query.where('slug = :slug', { slug });
   }
   if (activeOnly) {
-    query.andWhere('"isActive" = true');
+    query
+      .andWhere('"isActive" = true')
+      .cache('findQfRounds-activeOnly', 1000 * 60 * 60);
   }
   if (slug || activeOnly) {
     const res = await query.getOne();
