@@ -31,7 +31,7 @@ const ormConfig: DataSourceOptions = {
   database: process.env.TYPEORM_DATABASE_NAME,
   entities: getEntities(),
   migrations:
-    process.env.ENVIRONMENT === ENVIRONMENTS.PRODUCTION
+    process.env.NODE_ENV === ENVIRONMENTS.PRODUCTION
       ? ['migration/*.js']
       : ['migration/*.ts'],
   // cli: {
