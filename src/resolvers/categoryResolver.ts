@@ -42,6 +42,7 @@ export class CategoryResolver {
         'mainCategory.title': 'ASC',
         'categories.name': 'ASC',
       })
+      .cache('mainCategories', 1000 * 60 * 60)
       .getMany();
   }
 }
