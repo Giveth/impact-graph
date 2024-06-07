@@ -14,7 +14,7 @@ import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import {
   findActiveQfRound,
-  findAllQfRounds,
+  findQfRounds,
   findArchivedQfRounds,
   findQfRoundBySlug,
   getProjectDonationsSqrtRootSum,
@@ -99,7 +99,7 @@ export class QfRoundResolver {
     @Args()
     { slug, activeOnly }: QfRoundsArgs,
   ) {
-    return findAllQfRounds({ slug, activeOnly });
+    return findQfRounds({ slug, activeOnly });
   }
 
   @Query(_returns => [QFArchivedRounds], { nullable: true })
