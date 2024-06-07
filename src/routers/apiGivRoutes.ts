@@ -12,6 +12,7 @@ import { ApiGivStandardError, handleExpressError } from './standardError';
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 import { User } from '../entities/user';
+import { getTokenInfoFromAddress } from '../services/chains/evm/transactionService';
 
 export const apiGivRouter = express.Router();
 apiGivRouter.post(
@@ -68,9 +69,21 @@ apiGivRouter.post(
         );
       }
 
-      const token = tokenAddress
+      let token = tokenAddress
         ? await findTokenByTokenAddress(tokenAddress)
         : await findTokenByNetworkAndSymbol(transactionNetworkId, currency);
+      if (!token) {
+        const { name, decimals, symbol }: any =
+          await getTokenInfoFromAddress(tokenAddress);
+        token = {
+          chainId: transactionNetworkId,
+          address: tokenAddress,
+          name: name,
+          decimals: decimals,
+          isGivbackEligible: false,
+          symbol: symbol,
+        };
+      }
       if (!token) {
         throw new ApiGivStandardError(
           i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND),

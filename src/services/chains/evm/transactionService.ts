@@ -1,5 +1,6 @@
 import abiDecoder from 'abi-decoder';
 import axios from 'axios';
+import { Web3 } from 'web3';
 import {
   findTokenByNetworkAndAddress,
   findTokenByNetworkAndSymbol,
@@ -547,3 +548,19 @@ export const getGnosisSafeTransactions = async (
   // It seems csv airdrop and gnosis safe multi sig transactions are similar so I reused that
   return getCsvAirdropTransactions(txHash, networkId);
 };
+
+export async function getTokenInfoFromAddress(addressOfToken: string) {
+  const provider = getProvider(NETWORK_IDS.BASE_MAINNET);
+  const web3 = new Web3(provider.connection.url);
+  const tokenContract = new web3.eth.Contract(erc20ABI, addressOfToken);
+  const [symbol, decimals, name] = await Promise.all([
+    tokenContract.methods.symbol().call(),
+    tokenContract.methods.decimals().call(),
+    tokenContract.methods.name().call(),
+  ]);
+  return {
+    name: name,
+    decimals: decimals,
+    symbol: symbol,
+  };
+}
