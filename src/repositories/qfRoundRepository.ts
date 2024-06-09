@@ -87,6 +87,9 @@ export class QFArchivedRounds {
 
   @Field(_type => String, { nullable: true })
   uniqueDonors: string;
+
+  @Field(_type => Boolean)
+  isDataAnalysisDone: boolean;
 }
 
 export const findArchivedQfRounds = async (
@@ -112,6 +115,7 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.isActive', 'isActive')
     .addSelect('qfRound.endDate', 'endDate')
     .addSelect('qfRound.eligibleNetworks', 'eligibleNetworks')
+    .addSelect('qfRound.isDataAnalysisDone', 'isDataAnalysisDone')
     .addSelect('SUM(donation.amount)', 'totalDonations')
     .addSelect(
       'COUNT(DISTINCT CASE WHEN user.passportScore >= qfRound.minimumPassportScore AND user.knownAsSybilAddress = FALSE THEN donation.fromWalletAddress ELSE NULL END)',
