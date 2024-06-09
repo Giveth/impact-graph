@@ -155,10 +155,6 @@ async function validateQfRound(payload: {
 }) {
   if (!payload.id) return;
 
-  if (payload.isActive && payload.isDataAnalysisDone) {
-    payload.isDataAnalysisDone = false;
-  }
-
   const qfRoundId = Number(payload.id);
   const qfRound = await findQfRoundById(qfRoundId);
   if (!qfRound) {
@@ -196,6 +192,9 @@ async function validateQfRound(payload: {
         qfRound,
         add: false,
       });
+    }
+    if (payload.isDataAnalysisDone) {
+      payload.isDataAnalysisDone = false;
     }
   }
 }
