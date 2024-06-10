@@ -15,7 +15,6 @@ import {
 } from '../utils/errorMessages';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
-import { fetchGivHistoricPrice } from './givPriceService';
 import {
   findDonationById,
   findStableCoinDonationsWithoutPrice,
@@ -230,45 +229,6 @@ export const isTokenAcceptableForProject = async (inputData: {
 
 export const toFixNumber = (input: number, digits: number): number => {
   return convertExponentialNumber(Number(input.toFixed(digits)));
-};
-
-export const updateOldGivDonationsPrice = async () => {
-  const donations = await Donation.findXdaiGivDonationsWithoutPrice();
-  logger.debug('updateOldGivDonationPrice donations count', donations.length);
-  for (const donation of donations) {
-    logger.debug(
-      'updateOldGivDonationPrice() updating accurate price, donationId',
-      donation.id,
-    );
-    try {
-      const givHistoricPrices = await fetchGivHistoricPrice(
-        donation.transactionId,
-        donation.transactionNetworkId,
-      );
-      logger.debug('Update donation usd price ', {
-        donationId: donation.id,
-        ...givHistoricPrices,
-        valueEth: toFixNumber(
-          donation.amount * givHistoricPrices.givPriceInEth,
-          7,
-        ),
-      });
-      donation.priceEth = toFixNumber(givHistoricPrices.ethPriceInUsd, 7);
-      donation.priceUsd = toFixNumber(givHistoricPrices.givPriceInUsd, 4);
-      donation.valueUsd = toFixNumber(
-        donation.amount * givHistoricPrices.givPriceInUsd,
-        4,
-      );
-      donation.valueEth = toFixNumber(
-        donation.amount * givHistoricPrices.givPriceInEth,
-        7,
-      );
-      await donation.save();
-      await updateTotalDonationsOfProject(donation.projectId);
-    } catch (e) {
-      logger.error('Update GIV donation valueUsd error', e.message);
-    }
-  }
 };
 
 export const updateOldStableCoinDonationsPrice = async () => {

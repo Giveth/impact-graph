@@ -9,11 +9,13 @@ import {
 import { Project } from '../../entities/project';
 import { convertTimeStampToSeconds } from '../../utils/utils';
 import { getPoignArtWithdrawals, PoignArtWithdrawal } from './api';
-import { fetchGivHistoricPrice } from '../givPriceService';
 import { NETWORK_IDS } from '../../provider';
 import { updateUserTotalReceived } from '../userService';
 import { updateTotalDonationsOfProject } from '../donationService';
 import { findDonationsByTransactionId } from '../../repositories/donationRepository';
+import { getTokenPrice } from '../priceService';
+import { getNativeTokenByAddress } from '@giveth/monoswap/dist/src/sdk/celo/tokens';
+import { findTokenByNetworkAndSymbol } from '../../utils/tokenUtils';
 
 /**
  * @see{@link https://github.com/Giveth/impact-graph/issues/433}
@@ -80,9 +82,12 @@ const createPoignArtDonationInDb = async (
   if (isDonationExist) {
     return;
   }
-  const ethPrice = (
-    await fetchGivHistoricPrice(poignArtWithdrawal.txHash, NETWORK_IDS.MAIN_NET)
-  ).ethPriceInUsd;
+  const currency = 'ETH';
+  const token = await findTokenByNetworkAndSymbol(
+    NETWORK_IDS.MAIN_NET,
+    currency,
+  );
+  const ethPrice = await getTokenPrice(NETWORK_IDS.MAIN_NET, token);
   const donation = Donation.create({
     project: unchainProject,
     toWalletAddress: unchainProject.walletAddress,
@@ -104,7 +109,7 @@ const createPoignArtDonationInDb = async (
     amount: poignArtWithdrawal.amount,
 
     // PoignArt donations are just ETH in mainnet
-    currency: 'ETH',
+    currency,
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
   });
   await donation.save();

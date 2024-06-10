@@ -1,8 +1,5 @@
 import { schedule } from 'node-cron';
-import {
-  updateOldGivDonationsPrice,
-  updateOldStableCoinDonationsPrice,
-} from '../donationService';
+import { updateOldStableCoinDonationsPrice } from '../donationService';
 import { logger } from '../../utils/logger';
 import config from '../../config';
 
@@ -16,7 +13,6 @@ export const runUpdateDonationsWithoutValueUsdPrices = () => {
     cronJobTime,
   );
   schedule(cronJobTime, async () => {
-    await updateOldGivDonationsPrice();
     await updateOldStableCoinDonationsPrice();
   });
 };
