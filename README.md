@@ -10,7 +10,7 @@
 
 ---
 
-ImpactQL is a GraphQL server, that enables rapid development of serverless impact project applications. It does this by taking care of the persistance of impact project data.
+ImpactQL is a GraphQL server, that enables rapid development of serverless impact project applications. It does this by taking care of the persistence of impact project data.
 
 [Installation](#installation)
 
@@ -31,7 +31,7 @@ cd impact-graph
 // we specified version in .nvmrc file, so when you just enter nvm use it will use exact version of required npm
 nvm use
 
-// You should have installed chromium on your system, it can be installed by your or package maneger (apt,brew, ..)
+// You should have installed chromium on your system, it can be installed by you or a package manager (apt, brew, ...)
 npm i
 // If you had problem on npm install, you can see https://stackoverflow.com/a/66044814/9372962 (Mac os users)
 cp config/example.env config/development.env
@@ -91,7 +91,7 @@ If this is more important you and your have the resources, deploy your own versi
 
 ## Architecture
 
-The aim is to give a single entry point into any persistance solution that you want to use for your data.
+The aim is to give a single entry point into any persistence solution that you want to use for your data.
 The aim is for something like this:
 ![Impact Graph architecture](/docs/img/impact-graph.png)
 
@@ -129,7 +129,7 @@ in your local database you can hash a desired password with `BCRYPT_SALT` that i
 change `role` of user to `admin` in db
 Now you can login in admin dashboard with your user's `email` and the `password` you already set
 
-We wrote a migration file to create an admin user in local DB to can test it easily,
+We wrote a migration file to create an admin user in local DB to test it easily,
 so after executing migrations and run application you can navigate to http://localhost:4000/admin and login
 with this data
 
@@ -139,7 +139,7 @@ with this data
 - operator role: \*`username`: **operator@giveth.io**, `password`: **admin**
 
 **PS**:
-A simple script for create encryptedPassword
+A simple script for creating encryptedPassword
 
 ```
 const bcrypt = require('bcrypt');
@@ -229,7 +229,7 @@ https://www.tablesgenerator.com/markdown_tables
 **PS**
 
 - If a project is **cancelled** just admin can activate that
-- If project is **deactive** both admins and project owner can activate it
+- If project is **deactivated** both admins and project owner can activate it
 - Both admins and project owner can deactivate an **active** project
 
 ### Diagrams
