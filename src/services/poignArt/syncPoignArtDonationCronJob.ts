@@ -14,7 +14,6 @@ import { updateUserTotalReceived } from '../userService';
 import { updateTotalDonationsOfProject } from '../donationService';
 import { findDonationsByTransactionId } from '../../repositories/donationRepository';
 import { getTokenPrice } from '../priceService';
-import { getNativeTokenByAddress } from '@giveth/monoswap/dist/src/sdk/celo/tokens';
 import { findTokenByNetworkAndSymbol } from '../../utils/tokenUtils';
 
 /**
