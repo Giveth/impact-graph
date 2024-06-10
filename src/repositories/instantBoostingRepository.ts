@@ -93,7 +93,7 @@ export const refreshProjectInstantPowerView = async (): Promise<void> => {
   try {
     return AppDataSource.getDataSource().query(
       `
-        REFRESH MATERIALIZED VIEW CONCURRENTLY project_instant_power_view
+        REFRESH MATERIALIZED VIEW project_instant_power_view
       `,
     );
   } catch (e) {
@@ -106,7 +106,7 @@ export const refreshProjectUserInstantPowerView = async (): Promise<void> => {
   try {
     return AppDataSource.getDataSource().query(
       `
-        REFRESH MATERIALIZED VIEW CONCURRENTLY project_user_instant_power_view
+        REFRESH MATERIALIZED VIEW project_user_instant_power_view
       `,
     );
   } catch (e) {
