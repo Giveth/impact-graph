@@ -57,10 +57,7 @@ import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
@@ -340,16 +337,6 @@ export async function bootstrap() {
       await refreshProjectEstimatedMatchingView();
       logger.debug(
         'continueDbSetup() after refreshProjectEstimatedMatchingView() ',
-        new Date(),
-      );
-
-      logger.debug(
-        'continueDbSetup() before refreshProjectDonationSummaryView() ',
-        new Date(),
-      );
-      await refreshProjectDonationSummaryView();
-      logger.debug(
-        'continueDbSetup() after refreshProjectDonationSummaryView() ',
         new Date(),
       );
     }

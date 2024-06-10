@@ -37,6 +37,8 @@ const networksConfig = {
   },
   '42161': { blockExplorer: 'https://arbiscan.io/' },
   '421614': { blockExplorer: 'https://sepolia.arbiscan.io/' },
+  '8453': { blockExplorer: 'https://basescan.org/' },
+  '84532': { blockExplorer: 'https://sepolia.basescan.org/' },
 };
 
 export default networksConfig;

@@ -12,10 +12,7 @@ import {
 import { updateTotalDonationsOfProject } from '../src/services/donationService';
 import { Donation } from '../src/entities/donation';
 import { NETWORK_IDS } from '../src/provider';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../src/services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../src/services/projectViewsService';
 
 const QF_ROUND_ID = 5;
 const millisecondTimestampToDate = (timestamp: number): Date => {
@@ -278,7 +275,6 @@ export class addMissedOpDonationsToDb1703398409668
     }
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   }
 
   async down(_queryRunner: QueryRunner): Promise<void> {

@@ -1,4 +1,11 @@
 import { Project } from '../entities/project';
+import {
+  countUniqueDonorsAndSumDonationValueUsd,
+  countUniqueDonorsForRound,
+  sumDonationValueUsdForQfRound,
+} from '../repositories/donationRepository';
+import { findProjectById } from '../repositories/projectRepository';
+import { logger } from '../utils/logger';
 
 export const getAppropriateSlug = async (
   slugBase: string,
@@ -20,6 +27,43 @@ export const getAppropriateSlug = async (
     slug = slug + '-' + (projectCount - 1);
   }
   return slug;
+};
+
+export const updateProjectStatistics = async (projectId: number) => {
+  const project = await findProjectById(projectId);
+  if (!project) return;
+
+  const activeQfRound = project.getActiveQfRound();
+  if (activeQfRound) {
+    project.sumDonationValueUsdForActiveQfRound =
+      await sumDonationValueUsdForQfRound({
+        projectId: project.id,
+        qfRoundId: activeQfRound.id,
+      });
+    project.countUniqueDonorsForActiveQfRound = await countUniqueDonorsForRound(
+      {
+        projectId: project.id,
+        qfRoundId: activeQfRound.id,
+      },
+    );
+  }
+
+  if (!activeQfRound) {
+    project.sumDonationValueUsdForActiveQfRound = 0;
+    project.countUniqueDonorsForActiveQfRound = 0;
+  }
+
+  const { totalDonations, uniqueDonors } =
+    await countUniqueDonorsAndSumDonationValueUsd(project.id);
+  logger.debug('updateProjectStatistics', {
+    projectId,
+    totalDonations,
+    uniqueDonors,
+  });
+
+  project.sumDonationValueUsd = totalDonations;
+  project.countUniqueDonors = uniqueDonors;
+  await project.save();
 };
 
 // Current Formula: will be changed possibly in the future

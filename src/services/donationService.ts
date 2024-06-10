@@ -31,10 +31,7 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from './userService';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from './projectViewsService';
+import { refreshProjectEstimatedMatchingView } from './projectViewsService';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
@@ -44,6 +41,7 @@ import { getTransactionInfoFromNetwork } from './chains';
 import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { CustomToken, getTokenPrice } from './priceService';
+import { updateProjectStatistics } from './projectService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -179,7 +177,6 @@ export const updateDonationByTransakData = async (
 
   // We dont wait for this to finish
   refreshProjectEstimatedMatchingView();
-  refreshProjectDonationSummaryView();
 };
 
 export const updateTotalDonationsOfProject = async (
@@ -190,9 +187,11 @@ export const updateTotalDonationsOfProject = async (
       `
       UPDATE "project"
       SET "totalDonations" = (
-        SELECT COALESCE(SUM(d."valueUsd"),0)
-        FROM "donation" as d
-        WHERE d."projectId" = $1 AND d."status" = 'verified'
+        (
+          SELECT COALESCE(SUM(d."valueUsd"),0)
+          FROM "donation" as d
+          WHERE d."projectId" = $1 AND d."status" = 'verified'
+        )
       )
       WHERE "id" = $1
     `,
@@ -366,8 +365,10 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     });
 
     // Update materialized view for project and qfRound data
+    await insertDonationsFromQfRoundHistory();
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
+
+    await updateProjectStatistics(donation.projectId);
 
     const donationStats = await getUserDonationStats(donation.userId);
     const donor = await findUserById(donation.userId);

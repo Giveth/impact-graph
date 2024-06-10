@@ -39,10 +39,7 @@ import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostin
 import { updateInstantBoosting } from '../services/instantBoostingServices';
 import { QfRound } from '../entities/qfRound';
 import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
@@ -51,23 +48,18 @@ import { ChainType } from '../types/network';
 describe('all projects test cases --->', allProjectsTestCases);
 
 function allProjectsTestCases() {
-  it('should return projects search by owner', async () => {
+  it('should return projects search by title', async () => {
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        searchTerm: SEED_DATA.SECOND_USER.name,
+        searchTerm: SEED_DATA.FIRST_PROJECT.title,
       },
     });
 
     const projects = result.data.data.allProjects.projects;
-    const secondUserProjects = await Project.find({
-      where: {
-        adminUserId: SEED_DATA.SECOND_USER.id,
-      },
-    });
 
-    assert.equal(projects.length, secondUserProjects.length);
-    assert.equal(projects[0]?.adminUserId, SEED_DATA.SECOND_USER.id);
+    assert.isTrue(projects.length > 0);
+    assert.equal(projects[0]?.adminUserId, SEED_DATA.FIRST_PROJECT.adminUserId);
     assert.isNotEmpty(projects[0].addresses);
     projects.forEach(project => {
       assert.isNotOk(project.adminUser.email);
@@ -79,10 +71,10 @@ function allProjectsTestCases() {
         getHtmlTextSummary(project.description),
       );
       assert.isNull(project.estimatedMatching);
-      assert.exists(project.sumDonationValueUsd);
-      assert.exists(project.sumDonationValueUsdForActiveQfRound);
-      assert.exists(project.countUniqueDonorsForActiveQfRound);
-      assert.exists(project.countUniqueDonors);
+      assert.isNull(project.sumDonationValueUsd);
+      assert.isNull(project.sumDonationValueUsdForActiveQfRound);
+      assert.isNull(project.countUniqueDonorsForActiveQfRound);
+      assert.isNull(project.countUniqueDonors);
     });
   });
 
@@ -427,7 +419,6 @@ function allProjectsTestCases() {
   //   );
 
   //   await refreshProjectEstimatedMatchingView();
-  //   await refreshProjectDonationSummaryView();
 
   //   const result = await axios.post(graphqlUrl, {
   //     query: fetchMultiFilterAllProjectsQuery,
@@ -923,7 +914,6 @@ function allProjectsTestCases() {
       ),
     );
   });
-
   it('should return projects, filter by accept donation on arbitrum, not return when it doesnt have arbitrum address', async () => {
     const arbitrumProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -965,6 +955,112 @@ function allProjectsTestCases() {
     assert.isOk(
       result.data.data.allProjects.projects.find(
         project => Number(project.id) === Number(arbitrumProject.id),
+      ),
+    );
+  });
+
+  it('should return projects, filter by accept donation on base', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnBase'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.BASE_MAINNET ||
+              address.networkId === NETWORK_IDS.BASE_SEPOLIA),
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on base', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnBase'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.BASE_MAINNET ||
+              address.networkId === NETWORK_IDS.BASE_SEPOLIA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on base, not return when it doesnt have base address', async () => {
+    const baseProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    });
+    const polygonProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.POLYGON,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnBase'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.BASE_MAINNET ||
+              address.networkId === NETWORK_IDS.BASE_SEPOLIA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(polygonProject.id),
+      ),
+    );
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(baseProject.id),
       ),
     );
   });
@@ -1741,7 +1837,6 @@ function allProjectsTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,

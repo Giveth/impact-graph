@@ -1,16 +1,41 @@
 import { Field, Float, Int, ObjectType, registerEnumType } from 'type-graphql';
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
-import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver';
+import {
+  QfArchivedRoundsOrderBy,
+  QfRoundsArgs,
+} from '../resolvers/qfRoundResolver';
+import config from '../config';
+
+const qfRoundsAndMainCategoryCacheDuration =
+  (config.get('QF_ROUND_AND_MAIN_CATEGORIES_CACHE_DURATION') as number) ||
+  1000 * 60 * 15;
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
 );
 
-export const findAllQfRounds = async (): Promise<QfRound[]> => {
-  return QfRound.createQueryBuilder('qf_round')
-    .addOrderBy('qf_round.id', 'DESC')
-    .getMany();
+export const findQfRounds = async ({
+  slug,
+  activeOnly,
+}: QfRoundsArgs): Promise<QfRound[]> => {
+  const query = QfRound.createQueryBuilder('qf_round').addOrderBy(
+    'qf_round.id',
+    'DESC',
+  );
+  if (slug) {
+    query.where('slug = :slug', { slug });
+  }
+  if (activeOnly) {
+    query
+      .andWhere('"isActive" = true')
+      .cache('findQfRounds-activeOnly', qfRoundsAndMainCategoryCacheDuration);
+  }
+  if (slug || activeOnly) {
+    const res = await query.getOne();
+    return res ? [res] : [];
+  }
+  return query.getMany();
 };
 
 export enum QfArchivedRoundsSortType {

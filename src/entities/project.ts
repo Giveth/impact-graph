@@ -41,12 +41,6 @@ import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
 import {
-  countUniqueDonors,
-  countUniqueDonorsForRound,
-  sumDonationValueUsd,
-  sumDonationValueUsdForQfRound,
-} from '../repositories/donationRepository';
-import {
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalProjectsDonationsSum,
 } from '../repositories/qfRoundRepository';
@@ -92,6 +86,7 @@ export enum FilterField {
   AcceptFundOnETC = 'acceptFundOnETC',
   AcceptFundOnCelo = 'acceptFundOnCelo',
   AcceptFundOnArbitrum = 'acceptFundOnArbitrum',
+  AcceptFundOnBase = 'acceptFundOnBase',
   AcceptFundOnOptimism = 'acceptFundOnOptimism',
   AcceptFundOnSolana = 'acceptFundOnSolana',
   GivingBlock = 'fromGivingBlock',
@@ -474,41 +469,22 @@ export class Project extends BaseEntity {
       createdAt: new Date(),
     }).save();
   }
-  /**
-   * Custom Query Builders to chain together
-   */
 
   @Field(_type => Float, { nullable: true })
-  async sumDonationValueUsdForActiveQfRound() {
-    const activeQfRound = this.getActiveQfRound();
-    return activeQfRound
-      ? await sumDonationValueUsdForQfRound({
-          projectId: this.id,
-          qfRoundId: activeQfRound.id,
-        })
-      : 0;
-  }
+  @Column({ type: 'float', nullable: true })
+  sumDonationValueUsdForActiveQfRound: number;
 
   @Field(_type => Float, { nullable: true })
-  async sumDonationValueUsd() {
-    return await sumDonationValueUsd(this.id);
-  }
+  @Column({ type: 'float', nullable: true })
+  sumDonationValueUsd: number;
 
   @Field(_type => Int, { nullable: true })
-  async countUniqueDonorsForActiveQfRound() {
-    const activeQfRound = this.getActiveQfRound();
-    return activeQfRound
-      ? await countUniqueDonorsForRound({
-          projectId: this.id,
-          qfRoundId: activeQfRound.id,
-        })
-      : 0;
-  }
+  @Column({ type: 'int', nullable: true })
+  countUniqueDonorsForActiveQfRound: number;
 
   @Field(_type => Int, { nullable: true })
-  async countUniqueDonors() {
-    return await countUniqueDonors(this.id);
-  }
+  @Column({ type: 'int', nullable: true })
+  countUniqueDonors: number;
 
   // In your main class
   @Field(_type => EstimatedMatching, { nullable: true })

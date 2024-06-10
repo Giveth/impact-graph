@@ -1732,6 +1732,24 @@ export const SEED_DATA = {
         coingeckoId: 'weth',
       },
     ],
+    base_mainnet: [
+      {
+        name: 'Base ETH',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+    ],
+    base_sepolia: [
+      {
+        name: 'Base Sepolia native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+    ],
   },
 };
 
@@ -2011,3 +2029,6 @@ export function generateRandomSolanaTxHash() {
   const length = Math.floor(Math.random() * 3) + 86;
   return generateRandomAlphanumeric(length);
 }
+
+// list of test cases titles that doesn't require DB interaction
+export const dbIndependentTests = ['AdminJsPermissions'];
