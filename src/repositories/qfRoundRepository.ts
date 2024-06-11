@@ -87,6 +87,9 @@ export class QFArchivedRounds {
 
   @Field(_type => String, { nullable: true })
   uniqueDonors: string;
+
+  @Field(_type => Boolean)
+  isDataAnalysisDone: boolean;
 }
 
 export const findArchivedQfRounds = async (
@@ -111,8 +114,19 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.isActive', 'isActive')
     .addSelect('qfRound.endDate', 'endDate')
     .addSelect('qfRound.eligibleNetworks', 'eligibleNetworks')
+    .addSelect('qfRound.isDataAnalysisDone', 'isDataAnalysisDone')
     .addSelect('SUM(donation.amount)', 'totalDonations')
-    .addSelect('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
+    .addSelect(
+      qb =>
+        qb
+          .select('COUNT(DISTINCT subDonation.fromWalletAddress)')
+          .from('donation', 'subDonation')
+          .leftJoin('subDonation.user', 'subUser')
+          .where('subDonation.qfRoundId = qfRound.id')
+          .andWhere('subUser.passportScore >= qfRound.minimumPassportScore')
+          .andWhere('subUser.knownAsSybilAddress = FALSE'),
+      'uniqueDonors',
+    )
     .addSelect('qfRound.allocatedFund', 'allocatedFund')
     .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
     .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')

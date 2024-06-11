@@ -151,6 +151,7 @@ async function validateQfRound(payload: {
   endDate?: Date;
   beginDate?: Date;
   isActive?: boolean;
+  isDataAnalysisDone?: boolean;
 }) {
   if (!payload.id) return;
 
@@ -191,6 +192,9 @@ async function validateQfRound(payload: {
         qfRound,
         add: false,
       });
+    }
+    if (payload.isDataAnalysisDone) {
+      payload.isDataAnalysisDone = false;
     }
   }
 }
@@ -249,6 +253,15 @@ export const qfRoundTab = {
       },
       isActive: {
         isVisible: true,
+      },
+      isDataAnalysisDone: {
+        isVisible: {
+          filter: true,
+          list: false,
+          show: true,
+          new: true,
+          edit: true,
+        },
       },
       maximumReward: {
         isVisible: true,
