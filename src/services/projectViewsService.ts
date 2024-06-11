@@ -9,7 +9,7 @@ export const refreshProjectEstimatedMatchingView = async (): Promise<void> => {
   try {
     return AppDataSource.getDataSource().query(
       `
-        REFRESH MATERIALIZED VIEW CONCURRENTLY project_estimated_matching_view
+        REFRESH MATERIALIZED VIEW project_estimated_matching_view
       `,
     );
   } catch (e) {
@@ -22,7 +22,7 @@ export const refreshProjectActualMatchingView = async (): Promise<void> => {
   try {
     return AppDataSource.getDataSource().query(
       `
-        REFRESH MATERIALIZED VIEW CONCURRENTLY project_actual_matching_view
+        REFRESH MATERIALIZED VIEW project_actual_matching_view
       `,
     );
   } catch (e) {

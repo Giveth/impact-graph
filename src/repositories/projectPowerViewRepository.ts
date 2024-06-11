@@ -89,7 +89,7 @@ export const refreshProjectFuturePowerView = async (
         );
         await AppDataSource.getDataSource().query(
           `
-        REFRESH MATERIALIZED VIEW CONCURRENTLY last_snapshot_project_power_view
+        REFRESH MATERIALIZED VIEW last_snapshot_project_power_view
       `,
         );
       }
