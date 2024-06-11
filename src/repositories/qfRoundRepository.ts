@@ -108,7 +108,6 @@ export const findArchivedQfRounds = async (
   const fullRounds = await QfRound.createQueryBuilder('qfRound')
     .where('"isActive" = false')
     .leftJoin('qfRound.donations', 'donation')
-    .leftJoin('donation.user', 'user')
     .select('qfRound.id', 'id')
     .addSelect('qfRound.name', 'name')
     .addSelect('qfRound.slug', 'slug')
@@ -118,7 +117,14 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.isDataAnalysisDone', 'isDataAnalysisDone')
     .addSelect('SUM(donation.amount)', 'totalDonations')
     .addSelect(
-      'COUNT(DISTINCT CASE WHEN user.passportScore >= qfRound.minimumPassportScore AND user.knownAsSybilAddress = FALSE THEN donation.fromWalletAddress ELSE NULL END)',
+      qb =>
+        qb
+          .select('COUNT(DISTINCT subDonation.fromWalletAddress)')
+          .from('donation', 'subDonation')
+          .leftJoin('subDonation.user', 'subUser')
+          .where('subDonation.qfRoundId = qfRound.id')
+          .andWhere('subUser.passportScore >= qfRound.minimumPassportScore')
+          .andWhere('subUser.knownAsSybilAddress = FALSE'),
       'uniqueDonors',
     )
     .addSelect('qfRound.allocatedFund', 'allocatedFund')
