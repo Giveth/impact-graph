@@ -70,6 +70,10 @@ export class QfRound extends BaseEntity {
   minimumPassportScore: number;
 
   @Field(_type => Number)
+  @Column()
+  minimumModelScore: number;
+
+  @Field(_type => Number)
   @Column('real', { default: 1 })
   minimumValidUsdValue: number;
 
