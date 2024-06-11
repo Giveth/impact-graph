@@ -723,10 +723,10 @@ export class DonationResolver {
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
       } catch (e) {
-        logger.error(
-          'Error on validating createDonation input',
+        logger.error('Error on validating createDonation input', {
           validaDataInput,
-        );
+          error: e,
+        });
         // Joi alternatives does not handle custom errors, have to catch them.
         if (e.message.includes('does not match any of the allowed types')) {
           throw new Error(

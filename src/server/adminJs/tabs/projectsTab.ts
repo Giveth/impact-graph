@@ -600,6 +600,7 @@ export const exportProjectsWithFiltersToCsv = async (
       },
     };
   } catch (e) {
+    logger.error('exportProjectsWithFiltersToCsv() error', e);
     return {
       redirectUrl: '/admin/resources/Project',
       record: {},

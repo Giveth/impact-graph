@@ -114,7 +114,7 @@ export const getCurrentAdminJsSession = async (request: IncomingMessage) => {
       });
     });
   } catch (e) {
-    logger.error(e);
+    logger.error('getCurrentAdminJsSession error', e);
   }
   if (!adminUser) return false;
 
