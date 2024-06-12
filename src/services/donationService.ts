@@ -364,9 +364,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donation,
     });
 
-    // Update materialized view for project and qfRound data
     await insertDonationsFromQfRoundHistory();
-
     await updateProjectStatistics(donation.projectId);
 
     const donationStats = await getUserDonationStats(donation.userId);
@@ -407,11 +405,13 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
         valueUsd: donation.priceUsd, // the USD value of the token at the time of the conversion
         donationId: donation.id, //
       });
-      await refreshProjectEstimatedMatchingView();
     }
-
     logger.debug('donation and transaction', {
       transaction,
+      donationId: donation.id,
+    });
+    await refreshProjectEstimatedMatchingView();
+    logger.debug('refreshProjectEstimatedMatchingView finished', {
       donationId: donation.id,
     });
     return donation;
