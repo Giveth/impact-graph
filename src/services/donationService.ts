@@ -472,54 +472,55 @@ export const sendNotificationForDonation = async (params: {
 };
 
 export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
-  const qfRoundHistories =
-    await getQfRoundHistoriesThatDontHaveRelatedDonations();
-  const donationDotEthAddress = '0x6e8873085530406995170Da467010565968C7C62'; // Address behind donation.eth ENS address;
-  const powerRound = (await getPowerRound())?.round || 1;
-  if (qfRoundHistories.length === 0) {
-    logger.debug(
-      'insertDonationsFromQfRoundHistory There is not any qfRoundHistories in DB that doesnt have related donation',
-    );
-    return;
-  }
-  logger.debug(
-    `insertDonationsFromQfRoundHistory Filling ${qfRoundHistories.length} qfRoundHistory info ...`,
-  );
-
-  for (const qfRoundHistory of qfRoundHistories) {
-    if (qfRoundHistory.distributedFundTxDate) {
-      continue;
+  try {
+    const qfRoundHistories =
+      await getQfRoundHistoriesThatDontHaveRelatedDonations();
+    const donationDotEthAddress = '0x6e8873085530406995170Da467010565968C7C62'; // Address behind donation.eth ENS address;
+    const powerRound = (await getPowerRound())?.round || 1;
+    if (qfRoundHistories.length === 0) {
+      logger.debug(
+        'insertDonationsFromQfRoundHistory There is not any qfRoundHistories in DB that doesnt have related donation',
+      );
+      return;
     }
-    // get transaction time from blockchain
-    try {
-      const txTimestamp = await getEvmTransactionTimestamp({
-        txHash: qfRoundHistory.distributedFundTxHash,
-        networkId: Number(qfRoundHistory.distributedFundNetwork),
-      });
-      qfRoundHistory.distributedFundTxDate = new Date(txTimestamp);
-      await qfRoundHistory.save();
-    } catch (e) {
-      logger.error(
-        'insertDonationsFromQfRoundHistory-getEvmTransactionTimestamp',
-        {
-          e,
+    logger.debug(
+      `insertDonationsFromQfRoundHistory Filling ${qfRoundHistories.length} qfRoundHistory info ...`,
+    );
+
+    for (const qfRoundHistory of qfRoundHistories) {
+      if (qfRoundHistory.distributedFundTxDate) {
+        continue;
+      }
+      // get transaction time from blockchain
+      try {
+        const txTimestamp = await getEvmTransactionTimestamp({
           txHash: qfRoundHistory.distributedFundTxHash,
           networkId: Number(qfRoundHistory.distributedFundNetwork),
-        },
-      );
+        });
+        qfRoundHistory.distributedFundTxDate = new Date(txTimestamp);
+        await qfRoundHistory.save();
+      } catch (e) {
+        logger.error(
+          'insertDonationsFromQfRoundHistory-getEvmTransactionTimestamp',
+          {
+            e,
+            txHash: qfRoundHistory.distributedFundTxHash,
+            networkId: Number(qfRoundHistory.distributedFundNetwork),
+          },
+        );
+      }
     }
-  }
-  const matchingFundFromAddress =
-    (process.env.MATCHING_FUND_DONATIONS_FROM_ADDRESS as string) ||
-    donationDotEthAddress;
-  const user = await findUserByWalletAddress(matchingFundFromAddress);
-  if (!user) {
-    logger.error(
-      'insertDonationsFromQfRoundHistory User with walletAddress MATCHING_FUND_DONATIONS_FROM_ADDRESS doesnt exist',
-    );
-    return;
-  }
-  await AppDataSource.getDataSource().query(`
+    const matchingFundFromAddress =
+      (process.env.MATCHING_FUND_DONATIONS_FROM_ADDRESS as string) ||
+      donationDotEthAddress;
+    const user = await findUserByWalletAddress(matchingFundFromAddress);
+    if (!user) {
+      logger.error(
+        'insertDonationsFromQfRoundHistory User with walletAddress MATCHING_FUND_DONATIONS_FROM_ADDRESS doesnt exist',
+      );
+      return;
+    }
+    await AppDataSource.getDataSource().query(`
          INSERT INTO "donation" (
             "transactionId",
             "transactionNetworkId",
@@ -575,12 +576,15 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             )
   `);
 
-  for (const qfRoundHistory of qfRoundHistories) {
-    await updateTotalDonationsOfProject(qfRoundHistory.projectId);
-    const project = await findProjectById(qfRoundHistory.projectId);
-    if (project) {
-      await updateUserTotalReceived(project.adminUser.id);
+    for (const qfRoundHistory of qfRoundHistories) {
+      await updateTotalDonationsOfProject(qfRoundHistory.projectId);
+      const project = await findProjectById(qfRoundHistory.projectId);
+      if (project) {
+        await updateUserTotalReceived(project.adminUser.id);
+      }
     }
+    await updateUserTotalDonated(user.id);
+  } catch (e) {
+    logger.error('insertDonationsFromQfRoundHistory', e);
   }
-  await updateUserTotalDonated(user.id);
 };
