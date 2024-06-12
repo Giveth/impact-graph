@@ -491,12 +491,23 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
       continue;
     }
     // get transaction time from blockchain
-    const txTimestamp = await getEvmTransactionTimestamp({
-      txHash: qfRoundHistory.distributedFundTxHash,
-      networkId: Number(qfRoundHistory.distributedFundNetwork),
-    });
-    qfRoundHistory.distributedFundTxDate = new Date(txTimestamp);
-    await qfRoundHistory.save();
+    try {
+      const txTimestamp = await getEvmTransactionTimestamp({
+        txHash: qfRoundHistory.distributedFundTxHash,
+        networkId: Number(qfRoundHistory.distributedFundNetwork),
+      });
+      qfRoundHistory.distributedFundTxDate = new Date(txTimestamp);
+      await qfRoundHistory.save();
+    } catch (e) {
+      logger.error(
+        'insertDonationsFromQfRoundHistory-getEvmTransactionTimestamp',
+        {
+          e,
+          txHash: qfRoundHistory.distributedFundTxHash,
+          networkId: Number(qfRoundHistory.distributedFundNetwork),
+        },
+      );
+    }
   }
   const matchingFundFromAddress =
     (process.env.MATCHING_FUND_DONATIONS_FROM_ADDRESS as string) ||
