@@ -1,5 +1,7 @@
 import { Field, Float, Int, ObjectType, registerEnumType } from 'type-graphql';
 import { QfRound } from '../entities/qfRound';
+import { Donation } from '../entities/donation';
+import { User } from '../entities/user';
 import { AppDataSource } from '../orm';
 import {
   QfArchivedRoundsOrderBy,
@@ -105,9 +107,9 @@ export const findArchivedQfRounds = async (
     [QfArchivedRoundsSortType.uniqueDonors]:
       'COUNT(DISTINCT donation.fromWalletAddress)',
   };
+
   const fullRounds = await QfRound.createQueryBuilder('qfRound')
-    .where('"isActive" = false')
-    .leftJoin('qfRound.donations', 'donation')
+    .where('qfRound.isActive = :isActive', { isActive: false })
     .select('qfRound.id', 'id')
     .addSelect('qfRound.name', 'name')
     .addSelect('qfRound.slug', 'slug')
@@ -115,22 +117,33 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.endDate', 'endDate')
     .addSelect('qfRound.eligibleNetworks', 'eligibleNetworks')
     .addSelect('qfRound.isDataAnalysisDone', 'isDataAnalysisDone')
-    .addSelect('SUM(donation.amount)', 'totalDonations')
-    .addSelect(
-      qb =>
-        qb
-          .select('COUNT(DISTINCT subDonation.fromWalletAddress)')
-          .from('donation', 'subDonation')
-          .leftJoin('subDonation.user', 'subUser')
-          .where('subDonation.qfRoundId = qfRound.id')
-          .andWhere('subUser.passportScore >= qfRound.minimumPassportScore')
-          .andWhere('subUser.knownAsSybilAddress = FALSE'),
-      'uniqueDonors',
-    )
     .addSelect('qfRound.allocatedFund', 'allocatedFund')
     .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
     .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')
     .addSelect('qfRound.beginDate', 'beginDate')
+    .addSelect(
+      qb =>
+        qb
+          .select('SUM(donation.valueUsd)', 'totalDonations')
+          .from(Donation, 'donation')
+          .where('donation.qfRoundId = qfRound.id')
+          .andWhere('donation.status = :status', { status: 'verified' })
+          .andWhere(
+            'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
+          ),
+      'totalDonations',
+    )
+    .addSelect(
+      qb =>
+        qb
+          .select('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
+          .from(Donation, 'donation')
+          .leftJoin(User, 'user', 'user.id = donation.userId')
+          .where('donation.qfRoundId = qfRound.id')
+          .andWhere('user.passportScore >= qfRound.minimumPassportScore')
+          .andWhere('user.knownAsSybilAddress = FALSE'),
+      'uniqueDonors',
+    )
     .groupBy('qfRound.id')
     .orderBy(fieldMap[field], direction, 'NULLS LAST')
     .getRawMany();
