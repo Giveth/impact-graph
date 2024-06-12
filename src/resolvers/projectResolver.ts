@@ -1272,6 +1272,7 @@ export class ProjectResolver {
 
         return response;
       } catch (e) {
+        logger.error('upload image failed in project resolver', e);
         throw Error(i18n.__(translationErrorMessagesKeys.UPLOAD_FAILED));
       }
     }

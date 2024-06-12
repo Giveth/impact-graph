@@ -265,7 +265,7 @@ export const importLostDonations = async () => {
         });
         await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
       } catch (e) {
-        logger.error('importLostDonations() error');
+        logger.error('importLostDonations() error', e);
         continue;
       }
     }
