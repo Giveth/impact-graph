@@ -151,9 +151,15 @@ export const findArchivedQfRounds = async (
 };
 
 export const findActiveQfRound = async (): Promise<QfRound | null> => {
-  return QfRound.createQueryBuilder('qf_round')
-    .where('"isActive" = true')
-    .getOne();
+  const queryRunner = AppDataSource.getDataSource().createQueryRunner('slave');
+  try {
+    return await AppDataSource.getDataSource()
+      .createQueryBuilder(QfRound, 'qf_round', queryRunner)
+      .where('"isActive" = true')
+      .getOne();
+  } finally {
+    await queryRunner.release();
+  }
 };
 
 export const findQfRoundById = async (id: number): Promise<QfRound | null> => {
