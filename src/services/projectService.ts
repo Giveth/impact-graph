@@ -5,7 +5,6 @@ import {
   sumDonationValueUsdForQfRound,
 } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
-import { logger } from '../utils/logger';
 
 export const getAppropriateSlug = async (
   slugBase: string,
@@ -55,11 +54,6 @@ export const updateProjectStatistics = async (projectId: number) => {
 
   const { totalDonations, uniqueDonors } =
     await countUniqueDonorsAndSumDonationValueUsd(project.id);
-  logger.debug('updateProjectStatistics', {
-    projectId,
-    totalDonations,
-    uniqueDonors,
-  });
 
   project.sumDonationValueUsd = totalDonations;
   project.countUniqueDonors = uniqueDonors;
