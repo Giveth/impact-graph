@@ -36,7 +36,6 @@ import {
   setI18nLocaleForRequest,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 import { apiGivRouter } from '../routers/apiGivRoutes';
 import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 import { authorizationHandler } from '../services/authorizationServices';
@@ -359,9 +358,6 @@ export async function bootstrap() {
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
     //   runGivingBlocksProjectSynchronization();
     // }
-    if (process.env.POIGN_ART_SERVICE_ACTIVE === 'true') {
-      runSyncPoignArtDonations();
-    }
 
     if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
       runSyncLostDonations();
