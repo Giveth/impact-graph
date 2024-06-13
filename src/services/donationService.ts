@@ -371,9 +371,6 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donationId: donation.id,
     });
     await refreshProjectEstimatedMatchingView();
-    logger.debug('refreshProjectEstimatedMatchingView finished', {
-      donationId: donation.id,
-    });
     return donation;
   } catch (e) {
     logger.error('syncDonationStatusWithBlockchainNetwork() error', {
@@ -461,7 +458,7 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
         await qfRoundHistory.save();
       } catch (e) {
         logger.error(
-          'insertDonationsFromQfRoundHistory-getEvmTransactionTimestamp',
+          'insertDonationsFromQfRoundHistory-getEvmTransactionTimestamp error',
           {
             e,
             txHash: qfRoundHistory.distributedFundTxHash,
@@ -545,6 +542,6 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
     }
     await updateUserTotalDonated(user.id);
   } catch (e) {
-    logger.error('insertDonationsFromQfRoundHistory', e);
+    logger.error('insertDonationsFromQfRoundHistory error', e);
   }
 };
