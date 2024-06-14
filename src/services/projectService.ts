@@ -4,7 +4,8 @@ import {
   countUniqueDonorsForRound,
   sumDonationValueUsdForQfRound,
 } from '../repositories/donationRepository';
-import { findProjectById } from '../repositories/projectRepository';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import { logger } from '../utils/logger';
 
 export const getAppropriateSlug = async (
   slugBase: string,
@@ -29,35 +30,39 @@ export const getAppropriateSlug = async (
 };
 
 export const updateProjectStatistics = async (projectId: number) => {
-  const project = await findProjectById(projectId);
-  if (!project) return;
-
-  const activeQfRound = project.getActiveQfRound();
+  const activeQfRound = await findActiveQfRound();
+  logger.debug('updateProjectStatistics-activeQfRound', activeQfRound);
+  let sumDonationValueUsdForActiveQfRound = 0,
+    countUniqueDonorsForActiveQfRound = 0;
   if (activeQfRound) {
-    project.sumDonationValueUsdForActiveQfRound =
-      await sumDonationValueUsdForQfRound({
-        projectId: project.id,
-        qfRoundId: activeQfRound.id,
-      });
-    project.countUniqueDonorsForActiveQfRound = await countUniqueDonorsForRound(
-      {
-        projectId: project.id,
-        qfRoundId: activeQfRound.id,
-      },
-    );
-  }
-
-  if (!activeQfRound) {
-    project.sumDonationValueUsdForActiveQfRound = 0;
-    project.countUniqueDonorsForActiveQfRound = 0;
+    sumDonationValueUsdForActiveQfRound = await sumDonationValueUsdForQfRound({
+      projectId,
+      qfRoundId: activeQfRound.id,
+    });
+    countUniqueDonorsForActiveQfRound = await countUniqueDonorsForRound({
+      projectId,
+      qfRoundId: activeQfRound.id,
+    });
   }
 
   const { totalDonations, uniqueDonors } =
-    await countUniqueDonorsAndSumDonationValueUsd(project.id);
+    await countUniqueDonorsAndSumDonationValueUsd(projectId);
+  logger.debug(
+    'updateProjectStatistics-countUniqueDonorsAndSumDonationValueUsd',
+    {
+      sumDonationValueUsd: totalDonations,
+      countUniqueDonors: uniqueDonors,
+      sumDonationValueUsdForActiveQfRound,
+      countUniqueDonorsForActiveQfRound,
+    },
+  );
 
-  project.sumDonationValueUsd = totalDonations;
-  project.countUniqueDonors = uniqueDonors;
-  await project.save();
+  await Project.update(projectId, {
+    sumDonationValueUsd: totalDonations,
+    countUniqueDonors: uniqueDonors,
+    sumDonationValueUsdForActiveQfRound,
+    countUniqueDonorsForActiveQfRound,
+  });
 };
 
 // Current Formula: will be changed possibly in the future
