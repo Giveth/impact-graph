@@ -476,6 +476,29 @@ export async function countUniqueDonorsForRound(params: {
     .uniqueDonorsCount;
 }
 
+export async function qfRoundStats(params: {
+  projectId: number;
+  qfRoundId: number;
+}): Promise<{ uniqueDonorsCount: number; sumValueUsd: number }> {
+  const { projectId, qfRoundId } = params;
+  const result = await ProjectEstimatedMatchingView.createQueryBuilder(
+    'projectEstimatedMatchingView',
+  )
+    .select('projectEstimatedMatchingView.sumValueUsd')
+    .where('projectEstimatedMatchingView.projectId = :projectId', {
+      projectId,
+    })
+    .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
+      qfRoundId,
+    })
+    .getOne();
+  const { uniqueDonorsCount = 0, sumValueUsd = 0 } = result || {};
+  return {
+    uniqueDonorsCount,
+    sumValueUsd,
+  };
+}
+
 export async function sumDonationValueUsdForQfRound(params: {
   projectId: number;
   qfRoundId: number;
@@ -491,12 +514,7 @@ export async function sumDonationValueUsdForQfRound(params: {
     .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
       qfRoundId,
     })
-    .cache(
-      `sumDonationValueUsdForQfRound-${projectId}-${qfRoundId}`,
-      Number(process.env.PROJECT_QFROUND_DONATION_SUMMARY_CACHE_TIME || 60000),
-    )
     .getOne();
-
   return result?.sumValueUsd || 0;
 }
 
