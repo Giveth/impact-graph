@@ -16,6 +16,7 @@ import {
   getExpiredActiveQfRounds,
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalDonations,
+  getQfRoundTotalSqrtRootSumSquared,
   getQfRoundUniqueDonors,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
@@ -265,8 +266,8 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
         );
       }),
     );
-
-    const sum = await getQfRoundTotalDonations(qfRound.id);
+    await refreshProjectEstimatedMatchingView();
+    const sum = await getQfRoundTotalSqrtRootSumSquared(qfRound.id);
     const contributorsCount = await getQfRoundUniqueDonors(qfRound.id);
     expect(sum).to.equal(289);
     expect(contributorsCount).to.equal(3);
@@ -310,10 +311,11 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
       }),
     );
 
-    const sum = await getQfRoundTotalDonations(qfRound.id);
+    await refreshProjectEstimatedMatchingView();
+    const sum = await getQfRoundTotalSqrtRootSumSquared(qfRound.id);
     const contributorsCount = await getQfRoundUniqueDonors(qfRound.id);
     expect(sum).to.equal(289 * 5);
-    expect(contributorsCount).to.equal(3 * 2);
+    expect(contributorsCount).to.equal(3);
   });
 }
 
