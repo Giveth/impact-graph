@@ -4,6 +4,8 @@ import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { logger } from '../utils/logger';
+import { QfRound } from '../entities/qfRound';
+import { findActiveQfRound, findQfRoundById } from './qfRoundRepository';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`
@@ -468,14 +470,25 @@ export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
 export async function getProjectQfRoundStats(params: {
   projectId: number;
   qfRoundId: number;
+  isActiveQfRound?: boolean;
 }): Promise<{ uniqueDonorsCount: number; sumValueUsd: number }> {
-  const { projectId, qfRoundId } = params;
+  const { projectId, qfRoundId, isActiveQfRound } = params;
+  let qfRound: QfRound | null;
+  if (isActiveQfRound) {
+    qfRound = await findActiveQfRound();
+  } else {
+    qfRound = await findQfRoundById(qfRoundId);
+  }
   const result = await Donation.createQueryBuilder('donation')
     .select('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
     .addSelect('SUM(donation.valueUsd)', 'totalDonationValueUsd')
+    .leftJoin('donation.user', 'user')
     .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
     .andWhere('donation.projectId = :projectId', { projectId })
     .andWhere('donation.status = :status', { status: 'verified' })
+    .andWhere('user.passportScore >= :minimumScore', {
+      minimumScore: qfRound?.minimumPassportScore,
+    })
     .getRawOne();
 
   return {
