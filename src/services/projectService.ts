@@ -1,7 +1,7 @@
 import { Project } from '../entities/project';
 import {
   countUniqueDonorsAndSumDonationValueUsd,
-  qfRoundStats,
+  getProjectQfRoundStats,
 } from '../repositories/donationRepository';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { logger } from '../utils/logger';
@@ -34,7 +34,7 @@ export const updateProjectStatistics = async (projectId: number) => {
   let sumDonationValueUsdForActiveQfRound = 0,
     countUniqueDonorsForActiveQfRound = 0;
   if (activeQfRound) {
-    const qfRoundResult = await qfRoundStats({
+    const qfRoundResult = await getProjectQfRoundStats({
       projectId,
       qfRoundId: activeQfRound.id,
     });
