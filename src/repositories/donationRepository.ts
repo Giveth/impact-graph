@@ -475,6 +475,7 @@ export async function getProjectQfRoundStats(params: {
     .addSelect('SUM(donation.valueUsd)', 'totalDonationValueUsd')
     .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
     .andWhere('donation.projectId = :projectId', { projectId })
+    .andWhere('donation.status = :status', { status: 'verified' })
     .getRawOne();
 
   return {
