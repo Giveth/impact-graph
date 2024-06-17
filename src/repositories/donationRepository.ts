@@ -489,6 +489,10 @@ export async function getProjectQfRoundStats(params: {
     .andWhere('user.passportScore >= :minimumScore', {
       minimumScore: qfRound?.minimumPassportScore,
     })
+    .andWhere('donation.createdAt BETWEEN :beginDate AND :endDate', {
+      beginDate: qfRound?.beginDate,
+      endDate: qfRound?.endDate,
+    })
     .getRawOne();
 
   return {
