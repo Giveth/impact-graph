@@ -3,9 +3,7 @@ import moment from 'moment';
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
 import { logger } from '../utils/logger';
-import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`
@@ -467,55 +465,22 @@ export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
   });
 };
 
-export async function countUniqueDonorsForRound(params: {
-  projectId: number;
-  qfRoundId: number;
-}): Promise<number> {
-  const { projectId, qfRoundId } = params;
-  return (await getProjectDonationsSqrtRootSum(projectId, qfRoundId))
-    .uniqueDonorsCount;
-}
-
-export async function qfRoundStats(params: {
+export async function getProjectQfRoundStats(params: {
   projectId: number;
   qfRoundId: number;
 }): Promise<{ uniqueDonorsCount: number; sumValueUsd: number }> {
   const { projectId, qfRoundId } = params;
-  const result = await ProjectEstimatedMatchingView.createQueryBuilder(
-    'projectEstimatedMatchingView',
-  )
-    .select('projectEstimatedMatchingView.sumValueUsd')
-    .where('projectEstimatedMatchingView.projectId = :projectId', {
-      projectId,
-    })
-    .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
-      qfRoundId,
-    })
-    .getOne();
-  const { uniqueDonorsCount = 0, sumValueUsd = 0 } = result || {};
-  return {
-    uniqueDonorsCount,
-    sumValueUsd,
-  };
-}
+  const result = await Donation.createQueryBuilder('donation')
+    .select('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
+    .addSelect('SUM(donation.valueUsd)', 'totalDonationValueUsd')
+    .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
+    .andWhere('donation.projectId = :projectId', { projectId })
+    .getRawOne();
 
-export async function sumDonationValueUsdForQfRound(params: {
-  projectId: number;
-  qfRoundId: number;
-}): Promise<number> {
-  const { projectId, qfRoundId } = params;
-  const result = await ProjectEstimatedMatchingView.createQueryBuilder(
-    'projectEstimatedMatchingView',
-  )
-    .select('projectEstimatedMatchingView.sumValueUsd')
-    .where('projectEstimatedMatchingView.projectId = :projectId', {
-      projectId,
-    })
-    .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
-      qfRoundId,
-    })
-    .getOne();
-  return result?.sumValueUsd || 0;
+  return {
+    uniqueDonorsCount: parseInt(result.uniqueDonors, 10) || 0,
+    sumValueUsd: parseFloat(result.totalDonationValueUsd) || 0,
+  };
 }
 
 export async function countUniqueDonorsAndSumDonationValueUsd(
