@@ -8,6 +8,7 @@ import {
   QfRoundsArgs,
 } from '../resolvers/qfRoundResolver';
 import config from '../config';
+import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
 
 const qfRoundsAndMainCategoryCacheDuration =
   (config.get('QF_ROUND_AND_MAIN_CATEGORIES_CACHE_DURATION') as number) ||
@@ -174,62 +175,64 @@ export const findQfRoundBySlug = async (
     .getOne();
 };
 
+export const getQfRoundTotalSqrtRootSumSquared = async (qfRoundId: number) => {
+  const result = await ProjectEstimatedMatchingView.createQueryBuilder()
+    .select('SUM("sqrtRootSumSquared")', 'totalSqrtRootSumSquared')
+    .where('"qfRoundId" = :qfRoundId', { qfRoundId })
+    .cache(
+      'getDonationsTotalSqrtRootSumSquared_' + qfRoundId,
+      qfRoundEstimatedMatchingParamsCacheDuration || 600000,
+    )
+    .getRawOne();
+  return result ? result.totalSqrtRootSumSquared : 0;
+};
+
 export async function getProjectDonationsSqrtRootSum(
   projectId: number,
   qfRoundId: number,
-): Promise<{ sqrtRootSum: number; uniqueDonorsCount: number }> {
-  const result = await AppDataSource.getDataSource()
-    .createQueryBuilder()
+): Promise<number> {
+  const result = await ProjectEstimatedMatchingView.createQueryBuilder()
     .select('"sqrtRootSum"')
-    .addSelect('"uniqueDonorsCount"')
-    .from('project_estimated_matching_view', 'project_estimated_matching_view')
     .where('"projectId" = :projectId AND "qfRoundId" = :qfRoundId', {
       projectId,
       qfRoundId,
     })
-    // Add cache here
     .cache(
       'projectDonationsSqrtRootSum_' + projectId + '_' + qfRoundId,
-      qfRoundEstimatedMatchingParamsCacheDuration,
+      qfRoundEstimatedMatchingParamsCacheDuration || 600000,
     )
     .getRawOne();
-
-  return {
-    sqrtRootSum: result ? result.sqrtRootSum : 0,
-    uniqueDonorsCount: result ? Number(result.uniqueDonorsCount) : 0,
-  };
+  return result ? result.sqrtRootSum : 0;
 }
 
-export const getQfRoundTotalProjectsDonationsSum = async (
+export const getQfRoundUniqueDonors = async (
   qfRoundId: number,
-): Promise<{
-  sum: number;
-  totalDonationsSum: number;
-  contributorsCount: number;
-}> => {
-  const result = await AppDataSource.getDataSource()
-    .createQueryBuilder()
-    .select(`SUM("sqrtRootSumSquared")`, 'sum')
-    .addSelect(`SUM("donorsCount")`, 'contributorsCount')
-    .addSelect(`SUM("sumValueUsd")`, 'totalDonationsSum') // Added sum of all donation values
-    .from('project_estimated_matching_view', 'project_estimated_matching_view')
-    .where('"qfRoundId" = :qfRoundId', { qfRoundId })
-    // Add cache here
+): Promise<number> => {
+  const result = await Donation.createQueryBuilder('donation')
+    .select('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
+    .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
+    .andWhere('donation.status = :status', { status: 'verified' })
     .cache(
-      'qfRoundTotalProjectsDonationsSum_' + qfRoundId,
-      qfRoundEstimatedMatchingParamsCacheDuration,
+      'getQfRoundUniqueDonors_' + qfRoundId,
+      qfRoundEstimatedMatchingParamsCacheDuration || 600000,
     )
     .getRawOne();
+  return parseInt(result.uniqueDonors) || 0;
+};
 
-  const sum = result?.sum || 0;
-  const totalDonationsSum = result?.totalDonationsSum || 0;
-  const contributorsCount = parseInt(result?.contributorsCount, 10) || 0;
-
-  return {
-    sum,
-    contributorsCount,
-    totalDonationsSum,
-  };
+export const getQfRoundTotalDonations = async (
+  qfRoundId: number,
+): Promise<number> => {
+  const result = await Donation.createQueryBuilder('donation')
+    .select('SUM(donation.valueUsd)', 'totalDonationValueUsd')
+    .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
+    .andWhere('donation.status = :status', { status: 'verified' })
+    .cache(
+      'getQfRoundTotalDonations_' + qfRoundId,
+      qfRoundEstimatedMatchingParamsCacheDuration || 600000,
+    )
+    .getRawOne();
+  return parseFloat(result.totalDonationValueUsd) || 0;
 };
 
 export const getExpiredActiveQfRounds = async (): Promise<QfRound[]> => {
