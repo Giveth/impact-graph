@@ -659,8 +659,6 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       project.id,
     );
 
-    await refreshProjectEstimatedMatchingView();
-
     const donorCount = await getProjectQfRoundStats({
       projectId: project.id,
       qfRoundId: qfRound.id,
@@ -1027,7 +1025,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     qfRound.isActive = false;
     await qfRound.save();
   });
-  it('should not count donations usd values when donors  have less than minimum passport score', async () => {
+  it('should not count donations usd values when donors have less than minimum passport score', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -1059,7 +1057,6 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       donor.id,
       project.id,
     );
-    await refreshProjectEstimatedMatchingView();
 
     const { sumValueUsd } = await getProjectQfRoundStats({
       projectId: project.id,
