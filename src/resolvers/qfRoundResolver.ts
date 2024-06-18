@@ -24,6 +24,11 @@ import {
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 import { OrderDirection } from './projectResolver';
+import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+import { logger } from '../utils/logger';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore';
+import { findUserByWalletAddress } from '../repositories/userRepository';
 
 @ObjectType()
 export class QfRoundStatsResponse {
@@ -108,6 +113,34 @@ export class QfRoundResolver {
     { limit, skip, orderBy }: QfArchivedRoundsArgs,
   ): Promise<QFArchivedRounds[] | null> {
     return findArchivedQfRounds(limit, skip, orderBy);
+  }
+
+  @Query(_return => Number, { nullable: true })
+  async scoreUserAddress(
+    @Arg('address') address: string,
+  ): Promise<number | undefined> {
+    try {
+      const user = await findUserByWalletAddress(address.toLowerCase());
+      const activeQfRound = await findActiveQfRound();
+      if (!user && !activeQfRound) return;
+
+      const userScore = await getGitcoinAdapter().getUserAnalysisScore(
+        address.toLowerCase(),
+      );
+      const userQfRoundScore = UserQfRoundModelScore.create({
+        userId: user?.id,
+        qfRoundId: activeQfRound!.id,
+        score: userScore!,
+      });
+
+      await userQfRoundScore.save();
+      return userScore;
+    } catch (e) {
+      logger.error('scoreUserAddress error', e);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
+      );
+    }
   }
 
   // This will be the formula data separated by parts so frontend

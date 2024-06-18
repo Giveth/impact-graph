@@ -22,21 +22,29 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
   }
 
   // New Model API
-  async getUserAnalysisScore(
-    address: string
-  ): Promise<number> {
+  /*
+    address: string;
+    details: {
+      models: {
+        ethereum_activity: {
+          score: number;
+        }
+      }
+    } 
+   */
+  async getUserAnalysisScore(address: string): Promise<number> {
     try {
       const result = await axios.get(
-        `${GITCOIN_API_BASE_URL}/passport/analysis/${address.toLowerCase()}`
-      )
+        `${GITCOIN_API_BASE_URL}/passport/analysis/${address.toLowerCase()}`,
+      );
+      return result.data?.details?.models?.ethereum_activity?.score;
     } catch (e) {
       logger.error('getUserAnalysisScore error', e);
       throw new Error(
         i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
       );
     }
-    return 1;
-  };
+  }
 
   async getWalletAddressScore(
     address: string,
