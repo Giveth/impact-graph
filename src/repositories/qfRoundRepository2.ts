@@ -38,10 +38,12 @@ export const relateManyProjectsToQfRound = async (params: {
       const newAddedProjectIds = params.projectIds.filter(
         projectId => !qfRoundProjects.find(project => project.id === projectId),
       );
-      await Project.update(newAddedProjectIds, {
-        countUniqueDonorsForActiveQfRound: 0,
-        sumDonationValueUsdForActiveQfRound: 0,
-      });
+      if (newAddedProjectIds.length > 0) {
+        await Project.update(newAddedProjectIds, {
+          countUniqueDonorsForActiveQfRound: 0,
+          sumDonationValueUsdForActiveQfRound: 0,
+        });
+      }
     }
 
     orttoPeople = projects.map(project =>
