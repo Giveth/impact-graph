@@ -10,6 +10,12 @@ const refreshEstimatedMatchingCacheDuration = Number(
 );
 
 export const refreshProjectEstimatedMatchingView = async (): Promise<void> => {
+  if (process.env.NODE_ENV === 'test') {
+    await AppDataSource.getDataSource().query(`
+      REFRESH MATERIALIZED VIEW project_estimated_matching_view
+    `);
+    return;
+  }
   const now = Date.now();
   if (
     lastRefreshTimestamp &&
