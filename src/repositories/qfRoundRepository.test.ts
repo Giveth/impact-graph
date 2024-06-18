@@ -15,10 +15,13 @@ import {
   findQfRoundBySlug,
   getExpiredActiveQfRounds,
   getProjectDonationsSqrtRootSum,
-  getQfRoundTotalProjectsDonationsSum,
+  getQfRoundTotalDonations,
+  getQfRoundTotalSqrtRootSumSquared,
+  getQfRoundUniqueDonors,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
+import { getProjectQfRoundStats } from './donationRepository';
 
 describe(
   'getProjectDonationsSqrtRootSum test cases',
@@ -66,9 +69,15 @@ function getProjectDonationsSqrRootSumTests() {
   });
 
   it('should return 0 when no donations', async () => {
-    const { sqrtRootSum, uniqueDonorsCount } =
-      await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
+    const sqrtRootSum = await getProjectDonationsSqrtRootSum(
+      project.id,
+      qfRound.id,
+    );
     expect(sqrtRootSum).to.equal(0);
+    const { uniqueDonorsCount } = await getProjectQfRoundStats({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+    });
     expect(uniqueDonorsCount).to.equal(0);
   });
 
@@ -88,8 +97,14 @@ function getProjectDonationsSqrRootSumTests() {
     );
     await refreshProjectEstimatedMatchingView();
 
-    const { sqrtRootSum, uniqueDonorsCount } =
-      await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
+    const sqrtRootSum = await getProjectDonationsSqrtRootSum(
+      project.id,
+      qfRound.id,
+    );
+    const { uniqueDonorsCount } = await getProjectQfRoundStats({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+    });
     expect(sqrtRootSum).to.equal(10);
     expect(uniqueDonorsCount).to.equal(1);
   });
@@ -117,8 +132,14 @@ function getProjectDonationsSqrRootSumTests() {
     );
     await refreshProjectEstimatedMatchingView();
 
-    const { sqrtRootSum, uniqueDonorsCount } =
-      await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
+    const sqrtRootSum = await getProjectDonationsSqrtRootSum(
+      project.id,
+      qfRound.id,
+    );
+    const { uniqueDonorsCount } = await getProjectQfRoundStats({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+    });
     // sqrtRootSum = sqrt(4) + sqrt(25) + sqrt(100) + sqrt(1024) = 2 + 5 + 10 + 32 = 49
     const expectedSum = 49;
 
@@ -160,8 +181,15 @@ function getProjectDonationsSqrRootSumTests() {
 
     await refreshProjectEstimatedMatchingView();
 
-    const { sqrtRootSum, uniqueDonorsCount } =
-      await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
+    const sqrtRootSum = await getProjectDonationsSqrtRootSum(
+      project.id,
+      qfRound.id,
+    );
+
+    const { uniqueDonorsCount } = await getProjectQfRoundStats({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+    });
     // sqrtRootSum = sqrt(4) + sqrt(25) + sqrt(100) = 2 + 5 + 10 = 17
     const expectedSum = 17;
 
@@ -202,8 +230,8 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
   });
 
   it('should return 0 when no donations', async () => {
-    const { sum, contributorsCount } =
-      await getQfRoundTotalProjectsDonationsSum(qfRound.id);
+    const sum = await getQfRoundTotalDonations(qfRound.id);
+    const contributorsCount = await getQfRoundUniqueDonors(qfRound.id);
     expect(sum).to.equal(0);
     expect(contributorsCount).to.equal(0);
   });
@@ -238,11 +266,9 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
         );
       }),
     );
-
     await refreshProjectEstimatedMatchingView();
-
-    const { sum, contributorsCount } =
-      await getQfRoundTotalProjectsDonationsSum(qfRound.id);
+    const sum = await getQfRoundTotalSqrtRootSumSquared(qfRound.id);
+    const contributorsCount = await getQfRoundUniqueDonors(qfRound.id);
     expect(sum).to.equal(289);
     expect(contributorsCount).to.equal(3);
   });
@@ -286,11 +312,10 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-
-    const { sum, contributorsCount } =
-      await getQfRoundTotalProjectsDonationsSum(qfRound.id);
+    const sum = await getQfRoundTotalSqrtRootSumSquared(qfRound.id);
+    const contributorsCount = await getQfRoundUniqueDonors(qfRound.id);
     expect(sum).to.equal(289 * 5);
-    expect(contributorsCount).to.equal(3 * 2);
+    expect(contributorsCount).to.equal(3);
   });
 }
 

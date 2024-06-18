@@ -20,7 +20,10 @@ export const relateManyProjectsToQfRound = async (params: {
   const projects = await Promise.all(
     params.projectIds.map(id => Project.findOne({ where: { id } })),
   );
-
+  await Project.update(params.projectIds, {
+    countUniqueDonorsForActiveQfRound: 0,
+    sumDonationValueUsdForActiveQfRound: 0,
+  });
   if (params.add) {
     query = `
       INSERT INTO project_qf_rounds_qf_round ("projectId", "qfRoundId")
