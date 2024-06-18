@@ -36,8 +36,7 @@ export const updateProjectStatistics = async (projectId: number) => {
   if (activeQfRound) {
     const qfRoundResult = await getProjectQfRoundStats({
       projectId,
-      qfRoundId: activeQfRound.id,
-      isActiveQfRound: true,
+      qfRound: activeQfRound,
     });
     sumDonationValueUsdForActiveQfRound = qfRoundResult.sumValueUsd;
     countUniqueDonorsForActiveQfRound = qfRoundResult.uniqueDonorsCount;
