@@ -18,10 +18,9 @@ import {
   findArchivedQfRounds,
   findQfRoundBySlug,
   getProjectDonationsSqrtRootSum,
-  getQfRoundTotalDonations,
   QFArchivedRounds,
   QfArchivedRoundsSortType,
-  getQfRoundUniqueDonors,
+  getQfRoundStats,
   getQfRoundTotalSqrtRootSumSquared,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
@@ -149,11 +148,10 @@ export class QfRoundResolver {
     if (!qfRound) {
       return null;
     }
-    const uniqueDonors = await getQfRoundUniqueDonors(qfRound.id);
-    const allDonationsUsdValue = await getQfRoundTotalDonations(qfRound.id);
+    const { uniqueDonors, totalDonationUsd } = await getQfRoundStats(qfRound);
     return {
       uniqueDonors,
-      allDonationsUsdValue,
+      allDonationsUsdValue: totalDonationUsd,
       matchingPool: qfRound.allocatedFund,
       qfRound,
     };
