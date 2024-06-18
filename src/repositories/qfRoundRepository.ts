@@ -214,7 +214,7 @@ export const getQfRoundStats = async (
   const { id: qfRoundId, beginDate, endDate } = qfRound;
   const result = await Donation.createQueryBuilder('donation')
     .select('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
-    .select('SUM(donation.valueUsd)', 'totalDonationUsd')
+    .addSelect('SUM(donation.valueUsd)', 'totalDonationUsd')
     .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
     .andWhere('donation.status = :status', { status: 'verified' })
     .andWhere('donation.createdAt BETWEEN :beginDate AND :endDate', {

@@ -229,9 +229,8 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
   });
 
   it('should return 0 when no donations', async () => {
-    const sum = await getQfRoundTotalSqrtRootSumSquared(qfRound.id);
-    const { uniqueDonors } = await getQfRoundStats(qfRound);
-    expect(sum).to.equal(0);
+    const { uniqueDonors, totalDonationUsd } = await getQfRoundStats(qfRound);
+    expect(totalDonationUsd).to.equal(0);
     expect(uniqueDonors).to.equal(0);
   });
 
