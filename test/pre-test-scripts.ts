@@ -100,7 +100,6 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
-
   for (const token of SEED_DATA.TOKENS.goerli) {
     const tokenData = {
       ...token,
@@ -114,7 +113,6 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
-
   for (const token of SEED_DATA.TOKENS.polygon) {
     const tokenData = {
       ...token,
@@ -203,6 +201,34 @@ async function seedTokens() {
     const tokenData = {
       ...token,
       networkId: NETWORK_IDS.BASE_SEPOLIA,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.zkevm_mainnet) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.zkevm_cardano) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.ZKEVM_CARDONA,
       isGivbackEligible: true,
     };
     if (token.symbol === 'GIV') {
