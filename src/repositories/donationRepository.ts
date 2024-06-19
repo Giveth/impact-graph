@@ -471,7 +471,7 @@ export async function getProjectQfRoundStats(params: {
   qfRound: QfRound;
 }): Promise<{ uniqueDonorsCount: number; sumValueUsd: number }> {
   const { projectId, qfRound } = params;
-  const { minimumPassportScore, id: qfRoundId, beginDate, endDate } = qfRound;
+  const { id: qfRoundId, beginDate, endDate } = qfRound;
   const result = await Donation.createQueryBuilder('donation')
     .select('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
     .addSelect('SUM(donation.valueUsd)', 'totalDonationValueUsd')
@@ -479,9 +479,6 @@ export async function getProjectQfRoundStats(params: {
     .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
     .andWhere('donation.projectId = :projectId', { projectId })
     .andWhere('donation.status = :status', { status: 'verified' })
-    .andWhere('user.passportScore >= :minimumScore', {
-      minimumScore: minimumPassportScore,
-    })
     .andWhere('donation.createdAt BETWEEN :beginDate AND :endDate', {
       beginDate,
       endDate,
