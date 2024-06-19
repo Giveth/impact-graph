@@ -258,6 +258,14 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
     .leftJoin('project.projectUpdates', 'projectUpdates')
     .select('project.id', 'projectId')
     .addSelect('MAX(projectUpdates.createdAt)', 'latestUpdate')
+    .where('project.isImported = false')
+    .andWhere('project.verified = true')
+    .andWhere(
+      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
+      {
+        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
+      },
+    )
     .groupBy('project.id')
     .having('MAX(projectUpdates.createdAt) < :date', { date })
     .getRawMany();
@@ -267,21 +275,9 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
   );
 
   const projects = await Project.createQueryBuilder('project')
-    .where('project.isImported = false')
-    .andWhere('project.verified = true')
-    .andWhere(
-      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
-      {
-        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
-      },
-    )
-    .andWhereInIds(validProjectIds)
-    .leftJoinAndSelect(
-      'project.projectVerificationForm',
-      'projectVerificationForm',
-    )
-    .leftJoinAndSelect('project.adminUser', 'user')
-    .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+    .whereInIds(validProjectIds)
+    .leftJoin('project.projectUpdates', 'projectUpdates')
+    .addSelect('projectUpdates.createdAt')
     .getMany();
 
   projects.forEach(project => {
