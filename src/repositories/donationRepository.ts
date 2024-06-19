@@ -475,7 +475,6 @@ export async function getProjectQfRoundStats(params: {
   const result = await Donation.createQueryBuilder('donation')
     .select('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
     .addSelect('SUM(donation.valueUsd)', 'totalDonationValueUsd')
-    .leftJoin('donation.user', 'user')
     .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
     .andWhere('donation.projectId = :projectId', { projectId })
     .andWhere('donation.status = :status', { status: 'verified' })
