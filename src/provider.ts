@@ -25,6 +25,9 @@ export const NETWORK_IDS = {
   BASE_MAINNET: 8453,
   BASE_SEPOLIA: 84532,
 
+  ZKEVM_MAINNET: 1101,
+  ZKEVM_CARDONA: 2442,
+
   // https://docs.particle.network/developers/other-services/node-service/solana-api
   SOLANA_MAINNET: 101,
   SOLANA_TESTNET: 102,
@@ -160,6 +163,9 @@ const NETWORK_NAMES = {
   ARBITRUM_SEPOLIA: 'Arbitrum Sepolia',
   BASE_MAINNET: 'Base Mainnet',
   BASE_SEPOLIA: 'Base Sepolia',
+
+  ZKEVM_CARDONA: 'ZKEVM Cardona',
+  ZKEVM_MAINNET: 'ZKEVM Mainnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -179,6 +185,8 @@ const NETWORK_NATIVE_TOKENS = {
   ARBITRUM_SEPOLIA: 'ETH',
   BASE_MAINNET: 'ETH',
   BASE_SEPOLIA: 'ETH',
+  ZKEVM_MAINNET: 'ETH',
+  ZKEVM_CARDONA: 'ETH',
 };
 
 const networkNativeTokensList = [
@@ -261,6 +269,16 @@ const networkNativeTokensList = [
     networkName: NETWORK_NAMES.BASE_SEPOLIA,
     networkId: NETWORK_IDS.BASE_SEPOLIA,
     nativeToken: NETWORK_NATIVE_TOKENS.BASE_SEPOLIA,
+  },
+  {
+    networkName: NETWORK_NAMES.ZKEVM_MAINNET,
+    networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.ZKEVM_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.ZKEVM_CARDONA,
+    networkId: NETWORK_IDS.ZKEVM_CARDONA,
+    nativeToken: NETWORK_NATIVE_TOKENS.ZKEVM_CARDONA,
   },
 ];
 
@@ -357,6 +375,15 @@ export function getProvider(networkId: number) {
         `https://base-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
+    // Infura doesn support Polygon ZKEVM
+    case NETWORK_IDS.ZKEVM_MAINNET:
+      url = process.env.ZKEVM_MAINNET_NODE_HTTP_URL as string;
+      break;
+
+    case NETWORK_IDS.ZKEVM_CARDONA:
+      url = process.env.ZKEVM_CARDONA_NODE_HTTP_URL as string;
+      break;
+
     default: {
       // Use infura
       const connectionInfo = ethers.providers.InfuraProvider.getUrl(
@@ -443,6 +470,14 @@ export function getBlockExplorerApiUrl(networkId: number): string {
     case NETWORK_IDS.BASE_SEPOLIA:
       apiUrl = config.get('BASE_SEPOLIA_SCAN_API_URL');
       apiKey = config.get('BASE_SEPOLIA_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.ZKEVM_MAINNET:
+      apiUrl = config.get('ZKEVM_MAINNET_SCAN_API_URL');
+      apiKey = config.get('ZKEVM_MAINET_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.ZKEVM_CARDONA:
+      apiUrl = config.get('ZKEVM_CARDONA_SCAN_API_URL');
+      apiKey = config.get('ZKEVM_CARDONA_SCAN_API_KEY');
       break;
     default:
       logger.error(
