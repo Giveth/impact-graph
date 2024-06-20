@@ -277,7 +277,7 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
   const projects = await Project.createQueryBuilder('project')
     .whereInIds(validProjectIds)
     .leftJoin('project.projectUpdates', 'projectUpdates')
-    .addSelect('projectUpdates.createdAt')
+    .addSelect(['projectUpdates.createdAt', 'projectUpdates.id'])
     .getMany();
 
   projects.forEach(project => {
