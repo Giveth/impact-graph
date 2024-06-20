@@ -375,18 +375,6 @@ export function getProvider(networkId: number) {
         `https://base-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
-    case NETWORK_IDS.BASE_MAINNET:
-      url =
-        (process.env.BASE_MAINNET_NODE_HTTP_URL as string) ||
-        `https://base-mainnet.infura.io/v3/${INFURA_ID}`;
-      break;
-
-    case NETWORK_IDS.BASE_SEPOLIA:
-      url =
-        (process.env.BASE_SEPOLIA_NODE_HTTP_URL as string) ||
-        `https://base-sepolia.infura.io/v3/${INFURA_ID}`;
-      break;
-
     // Infura doesn support Polygon ZKEVM
     case NETWORK_IDS.ZKEVM_MAINNET:
       url = process.env.ZKEVM_MAINNET_NODE_HTTP_URL as string;
