@@ -14,13 +14,14 @@ import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import {
   findActiveQfRound,
-  findAllQfRounds,
+  findQfRounds,
   findArchivedQfRounds,
   findQfRoundBySlug,
   getProjectDonationsSqrtRootSum,
-  getQfRoundTotalProjectsDonationsSum,
   QFArchivedRounds,
   QfArchivedRoundsSortType,
+  getQfRoundStats,
+  getQfRoundTotalSqrtRootSumSquared,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 import { OrderDirection } from './projectResolver';
@@ -99,7 +100,7 @@ export class QfRoundResolver {
     @Args()
     { slug, activeOnly }: QfRoundsArgs,
   ) {
-    return findAllQfRounds({ slug, activeOnly });
+    return findQfRounds({ slug, activeOnly });
   }
 
   @Query(_returns => [QFArchivedRounds], { nullable: true })
@@ -126,18 +127,19 @@ export class QfRoundResolver {
       activeQfRound.id,
     );
 
-    const allProjectsSum = await getQfRoundTotalProjectsDonationsSum(
+    const allProjectsSum = await getQfRoundTotalSqrtRootSumSquared(
       activeQfRound.id,
     );
 
     const matchingPool = activeQfRound.allocatedFund;
 
     return {
-      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
-      allProjectsSum: allProjectsSum.sum,
+      projectDonationsSqrtRootSum,
+      allProjectsSum,
       matchingPool,
     };
   }
+
   @Query(() => QfRoundStatsResponse, { nullable: true })
   async qfRoundStats(
     @Arg('slug') slug: string,
@@ -146,11 +148,10 @@ export class QfRoundResolver {
     if (!qfRound) {
       return null;
     }
-    const { totalDonationsSum, contributorsCount } =
-      await getQfRoundTotalProjectsDonationsSum(qfRound.id);
+    const { uniqueDonors, totalDonationUsd } = await getQfRoundStats(qfRound);
     return {
-      uniqueDonors: contributorsCount,
-      allDonationsUsdValue: totalDonationsSum,
+      uniqueDonors,
+      allDonationsUsdValue: totalDonationUsd,
       matchingPool: qfRound.allocatedFund,
       qfRound,
     };

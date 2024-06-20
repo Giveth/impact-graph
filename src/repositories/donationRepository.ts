@@ -3,10 +3,8 @@ import moment from 'moment';
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
 import { logger } from '../utils/logger';
-import { ProjectDonationSummaryView } from '../views/projectDonationSummaryView';
-import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
+import { QfRound } from '../entities/qfRound';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`
@@ -468,67 +466,43 @@ export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
   });
 };
 
-export async function countUniqueDonorsForRound(params: {
+export async function getProjectQfRoundStats(params: {
   projectId: number;
-  qfRoundId: number;
-}): Promise<number> {
-  const { projectId, qfRoundId } = params;
-  return (await getProjectDonationsSqrtRootSum(projectId, qfRoundId))
-    .uniqueDonorsCount;
-}
-
-export async function sumDonationValueUsdForQfRound(params: {
-  projectId: number;
-  qfRoundId: number;
-}): Promise<number> {
-  const { projectId, qfRoundId } = params;
-  const result = await ProjectEstimatedMatchingView.createQueryBuilder(
-    'projectEstimatedMatchingView',
-  )
-    .select('projectEstimatedMatchingView.sumValueUsd')
-    .where('projectEstimatedMatchingView.projectId = :projectId', {
-      projectId,
+  qfRound: QfRound;
+}): Promise<{ uniqueDonorsCount: number; sumValueUsd: number }> {
+  const { projectId, qfRound } = params;
+  const { id: qfRoundId, beginDate, endDate } = qfRound;
+  const result = await Donation.createQueryBuilder('donation')
+    .select('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
+    .addSelect('SUM(donation.valueUsd)', 'totalDonationValueUsd')
+    .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
+    .andWhere('donation.projectId = :projectId', { projectId })
+    .andWhere('donation.status = :status', { status: 'verified' })
+    .andWhere('donation.createdAt BETWEEN :beginDate AND :endDate', {
+      beginDate,
+      endDate,
     })
-    .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
-      qfRoundId,
-    })
-    .cache(
-      `sumDonationValueUsdForQfRound-${projectId}-${qfRoundId}`,
-      Number(process.env.PROJECT_QFROUND_DONATION_SUMMARY_CACHE_TIME || 60000),
-    )
-    .getOne();
+    .getRawOne();
 
-  return result?.sumValueUsd || 0;
+  return {
+    uniqueDonorsCount: parseInt(result.uniqueDonors, 10) || 0,
+    sumValueUsd: parseFloat(result.totalDonationValueUsd) || 0,
+  };
 }
 
-export async function countUniqueDonors(projectId: number): Promise<number> {
-  const result = await ProjectDonationSummaryView.createQueryBuilder(
-    'projectDonationSummaryView',
-  )
-    .select('projectDonationSummaryView.uniqueDonorsCount')
-    .where('projectDonationSummaryView.projectId = :projectId', { projectId })
-    .cache(
-      `countUniqueDonors-${projectId}`,
-      Number(process.env.PROJECT_DONATION_SUMMARY_CACHE_TIME || 60000),
-    )
-    .getOne();
-
-  return result?.uniqueDonorsCount || 0;
-}
-
-export async function sumDonationValueUsd(projectId: number): Promise<number> {
-  const result = await ProjectDonationSummaryView.createQueryBuilder(
-    `projectDonationSummaryView`,
-  )
-    .select('projectDonationSummaryView.sumVerifiedDonations')
-    .where('projectDonationSummaryView.projectId = :projectId', { projectId })
-    .cache(
-      `sumDonationValueUsd-${projectId}`,
-      Number(process.env.PROJECT_DONATION_SUMMARY_CACHE_TIME || 60000),
-    )
-    .getOne();
-
-  return result?.sumVerifiedDonations || 0;
+export async function countUniqueDonorsAndSumDonationValueUsd(
+  projectId: number,
+): Promise<{ totalDonations: number; uniqueDonors: number }> {
+  const result = await Donation.createQueryBuilder('donation')
+    .select('SUM(donation.valueUsd)', 'totalDonations')
+    .addSelect('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
+    .where('donation.projectId = :projectId', { projectId })
+    .andWhere('donation.status = :status', { status: 'verified' })
+    .getRawOne();
+  return {
+    totalDonations: parseFloat(result.totalDonations) || 0,
+    uniqueDonors: parseInt(result.uniqueDonors) || 0,
+  };
 }
 
 export async function isVerifiedDonationExistsInQfRound(params: {

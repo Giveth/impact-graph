@@ -279,6 +279,7 @@ export const importDonationsFromIdrissTwitter = async (
       },
     };
   } catch (e) {
+    logger.error('importDonationsFromIdrissTwitter() error', e);
     return {
       redirectUrl: '/admin/resources/Donation',
       record: {},
@@ -312,6 +313,7 @@ export const exportDonationsWithFiltersToCsv = async (
       },
     };
   } catch (e) {
+    logger.error('exportDonationsWithFiltersToCsv() error', e);
     return {
       redirectUrl: '/admin/resources/Donation',
       record: {},

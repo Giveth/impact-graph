@@ -39,10 +39,7 @@ import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostin
 import { updateInstantBoosting } from '../services/instantBoostingServices';
 import { QfRound } from '../entities/qfRound';
 import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
@@ -422,7 +419,6 @@ function allProjectsTestCases() {
   //   );
 
   //   await refreshProjectEstimatedMatchingView();
-  //   await refreshProjectDonationSummaryView();
 
   //   const result = await axios.post(graphqlUrl, {
   //     query: fetchMultiFilterAllProjectsQuery,
@@ -1961,7 +1957,6 @@ function allProjectsTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,

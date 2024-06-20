@@ -50,10 +50,7 @@ import {
 import { FeaturedUpdate } from '../../../entities/featuredUpdate';
 import { findActiveQfRound } from '../../../repositories/qfRoundRepository';
 import { User } from '../../../entities/user';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../../../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../../../services/projectViewsService';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 
@@ -391,9 +388,7 @@ export const addProjectsToQfRound = async (
       qfRound,
       add,
     });
-
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   } else {
     message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
   }
@@ -426,7 +421,6 @@ export const addSingleProjectToQfRound = async (
     });
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   } else {
     message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
   }
@@ -606,6 +600,7 @@ export const exportProjectsWithFiltersToCsv = async (
       },
     };
   } catch (e) {
+    logger.error('exportProjectsWithFiltersToCsv() error', e);
     return {
       redirectUrl: '/admin/resources/Project',
       record: {},
@@ -656,13 +651,15 @@ export const projectsTab = {
         },
       },
       adminUserId: {
+        type: 'Number',
         isVisible: {
           list: true,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
+        position: 1,
       },
       contacts: {
         isVisible: {
@@ -712,9 +709,7 @@ export const projectsTab = {
       totalTraceDonations: {
         isVisible: { list: false, filter: false, show: true, edit: true },
       },
-      admin: {
-        isVisible: { list: false, filter: false, show: true, edit: true },
-      },
+
       description: {
         isVisible: {
           list: false,
@@ -734,6 +729,7 @@ export const projectsTab = {
           show: true,
           edit: false,
         },
+
         components: {
           show: adminJs.bundle('./components/ClickableLink'),
         },
@@ -889,6 +885,7 @@ export const projectsTab = {
       edit: {
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectAction({ currentAdmin }, ResourceActions.EDIT),
+
         before: async (request: AdminJsRequestInterface) => {
           const { verified, reviewStatus } = request.payload;
           const statusChanges: string[] = [];
@@ -951,8 +948,13 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
               );
             }
-            if (Number(request?.payload?.admin) !== project?.adminUserId) {
+
+            if (
+              Number(request?.payload?.adminUserId) !== project?.adminUserId
+            ) {
+              const newID = request?.payload?.adminUserId;
               request.payload.adminChanged = true;
+              request.payload.newAdminId = newID;
             }
 
             // We put these status changes in payload, so in after hook we would know to send notification for users
@@ -972,7 +974,7 @@ export const projectsTab = {
           if (project) {
             if (request?.record?.params?.adminChanged) {
               const adminUser = await User.findOne({
-                where: { id: project.adminUserId },
+                where: { id: request?.record?.params?.newAdminId },
               });
               project.adminUser = adminUser!;
               await project.save();

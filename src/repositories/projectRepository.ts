@@ -160,7 +160,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
-  if (isFilterByQF) {
+  if (isFilterByQF && sortingBy === SortingField.EstimatedMatching) {
     query.leftJoin(
       'project.projectEstimatedMatchingView',
       'projectEstimatedMatchingView',
@@ -198,12 +198,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         );
       break;
     case SortingField.InstantBoosting: // This is our default sorting
-      if (isFilterByQF) {
-        query.addSelect([
-          'projectEstimatedMatchingView.sumValueUsd',
-          'projectEstimatedMatchingView.qfRoundId',
-        ]);
-      }
       query
         .orderBy(`project.verified`, OrderDirection.DESC)
         .addOrderBy(
@@ -213,7 +207,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         );
       if (isFilterByQF) {
         query.addOrderBy(
-          'projectEstimatedMatchingView.sumValueUsd',
+          'project.sumDonationValueUsdForActiveQfRound',
           OrderDirection.DESC,
           'NULLS LAST',
         );
@@ -225,12 +219,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.ActiveQfRoundRaisedFunds:
       if (activeQfRoundId) {
         query
-          .addSelect([
-            'projectEstimatedMatchingView.sumValueUsd',
-            'projectEstimatedMatchingView.qfRoundId',
-          ])
           .orderBy(
-            'projectEstimatedMatchingView.sumValueUsd',
+            'project.sumDonationValueUsdForActiveQfRound',
             OrderDirection.DESC,
             'NULLS LAST',
           )
@@ -240,10 +230,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.EstimatedMatching:
       if (activeQfRoundId) {
         query
-          .addSelect([
-            'projectEstimatedMatchingView.sqrtRootSum',
-            'projectEstimatedMatchingView.qfRoundId',
-          ])
+          .addSelect('projectEstimatedMatchingView.sqrtRootSum')
           .orderBy(
             'projectEstimatedMatchingView.sqrtRootSum',
             OrderDirection.DESC,

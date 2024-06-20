@@ -36,7 +36,6 @@ import {
   setI18nLocaleForRequest,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 import { apiGivRouter } from '../routers/apiGivRoutes';
 import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 import { authorizationHandler } from '../services/authorizationServices';
@@ -57,10 +56,7 @@ import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
@@ -305,7 +301,7 @@ export async function bootstrap() {
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
   } catch (err) {
-    logger.error(err);
+    logger.error('bootstrap() error', err);
   }
 
   async function continueDbSetup() {
@@ -342,16 +338,6 @@ export async function bootstrap() {
         'continueDbSetup() after refreshProjectEstimatedMatchingView() ',
         new Date(),
       );
-
-      logger.debug(
-        'continueDbSetup() before refreshProjectDonationSummaryView() ',
-        new Date(),
-      );
-      await refreshProjectDonationSummaryView();
-      logger.debug(
-        'continueDbSetup() after refreshProjectDonationSummaryView() ',
-        new Date(),
-      );
     }
     logger.debug('continueDbSetup() end of function', new Date());
   }
@@ -372,9 +358,6 @@ export async function bootstrap() {
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
     //   runGivingBlocksProjectSynchronization();
     // }
-    if (process.env.POIGN_ART_SERVICE_ACTIVE === 'true') {
-      runSyncPoignArtDonations();
-    }
 
     if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
       runSyncLostDonations();
@@ -446,7 +429,7 @@ export async function bootstrap() {
     try {
       await continueDbSetup();
     } catch (e) {
-      logger.error('continueDbSetup) error', e);
+      logger.error('continueDbSetup() error', e);
     }
     await initializeCronJobs();
   }

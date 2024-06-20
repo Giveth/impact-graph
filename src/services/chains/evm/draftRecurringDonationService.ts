@@ -61,6 +61,7 @@ export async function matchDraftRecurringDonations(
         draftRecurringDonationId:
           draftRecurringDonation.matchedRecurringDonationId,
         flowRate: draftRecurringDonation?.flowRate,
+        error: e,
       });
     }
   }
