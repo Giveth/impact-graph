@@ -1750,6 +1750,24 @@ export const SEED_DATA = {
         coingeckoId: 'ethereum',
       },
     ],
+    zkevm_mainnet: [
+      {
+        name: 'ZKEVM ETH',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+    ],
+    zkevm_cardano: [
+      {
+        name: 'ZKEVM Cardano native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+    ],
   },
 };
 

@@ -532,6 +532,11 @@ export class ProjectResolver {
           networkIds.push(NETWORK_IDS.BASE_SEPOLIA);
           return;
 
+        case FilterField.AcceptFundOnZKEVM:
+          networkIds.push(NETWORK_IDS.ZKEVM_MAINNET);
+          networkIds.push(NETWORK_IDS.ZKEVM_CARDONA);
+          return;
+
         case FilterField.AcceptFundOnPolygon:
           networkIds.push(NETWORK_IDS.POLYGON);
           return;

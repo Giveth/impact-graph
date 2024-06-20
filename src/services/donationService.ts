@@ -324,8 +324,9 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donation,
     });
 
-    await refreshProjectEstimatedMatchingView();
-    await insertDonationsFromQfRoundHistory();
+    if (donation.qfRoundId) {
+      await refreshProjectEstimatedMatchingView();
+    }
     await updateProjectStatistics(donation.projectId);
 
     const donationStats = await getUserDonationStats(donation.userId);
