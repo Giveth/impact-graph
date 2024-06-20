@@ -49,7 +49,7 @@ export class AddPolygonZkevmTokens1718177138564 implements MigrationInterface {
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(_queryRunner: QueryRunner): Promise<void> {
     //
   }
 }
