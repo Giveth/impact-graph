@@ -263,6 +263,8 @@ const failedVerifiedDonationErrorMessages = [
   errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
 ];
 
+const FAILED_VERIFICTION_ALERT_THRESHOLD = 20 * 60 * 1000; // 20 minutes
+
 export const syncDonationStatusWithBlockchainNetwork = async (params: {
   donationId: number;
 }): Promise<Donation> => {
@@ -383,9 +385,25 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     if (failedVerifiedDonationErrorMessages.includes(e.message)) {
       // if error message is in failedVerifiedDonationi18n.__(translationErrorMessagesKeys.then) we know we should change the status to failed
       // otherwise we leave it to be checked in next cycle
+      logger.fatal('donation verification failed', {
+        error: e,
+        donationId: donation.id,
+        txHash: donation.transactionId,
+      });
       donation.verifyErrorMessage = e.message;
       donation.status = DONATION_STATUS.FAILED;
       await donation.save();
+    } else {
+      const timeDifference =
+        new Date().getTime() - donation.createdAt.getTime();
+      if (timeDifference > FAILED_VERIFICTION_ALERT_THRESHOLD) {
+        logger.fatal('donation verification failed', {
+          error: e,
+          donationId: donation.id,
+          txHash: donation.transactionId,
+          donationAgeInMS: timeDifference,
+        });
+      }
     }
     return donation;
   }
