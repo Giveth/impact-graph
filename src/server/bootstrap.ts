@@ -301,7 +301,7 @@ export async function bootstrap() {
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
   } catch (err) {
-    logger.error('bootstrap() error', err);
+    logger.fatal('bootstrap() error', err);
   }
 
   async function continueDbSetup() {
@@ -429,7 +429,7 @@ export async function bootstrap() {
     try {
       await continueDbSetup();
     } catch (e) {
-      logger.error('continueDbSetup() error', e);
+      logger.fatal('continueDbSetup() error', e);
     }
     await initializeCronJobs();
   }
