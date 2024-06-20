@@ -328,6 +328,8 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await insertDonationsFromQfRoundHistory();
     await updateProjectStatistics(donation.projectId);
 
+    await updateProjectStatistics(donation.projectId);
+
     const donationStats = await getUserDonationStats(donation.userId);
     const donor = await findUserById(donation.userId);
 
