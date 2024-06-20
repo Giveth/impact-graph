@@ -2032,7 +2032,7 @@ const seedTokens: ITokenData[] = [
     name: 'Aave Token',
     symbol: 'AAVE',
     decimals: 18,
-    address: '0xa61beb4a3d02decb01039e378237032b351125b4',
+    address: '0x68791cfe079814c46e0e25c19bcc5bfc71a744f7',
     coingeckoId: 'aave',
     isGivbackEligible: false,
     networkId: NETWORK_IDS.ZKEVM_MAINNET,
