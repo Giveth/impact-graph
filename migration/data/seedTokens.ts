@@ -2042,7 +2042,7 @@ const seedTokens: ITokenData[] = [
     symbol: 'WBTC',
     decimals: 8,
     address: '0xea034fb02eb1808c2cc3adbc15f447b93cbe08e1',
-    coingeckoId: '',
+    coingeckoId: 'wrapped-bitcoin',
     isGivbackEligible: false,
     networkId: NETWORK_IDS.ZKEVM_MAINNET,
   },
