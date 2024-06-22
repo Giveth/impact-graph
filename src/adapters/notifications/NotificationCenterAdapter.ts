@@ -373,7 +373,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-revoked-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${user?.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -394,13 +394,15 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-revoke-reminder-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${user?.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
   async projectBadgeRevokeWarning(params: { project: Project }): Promise<void> {
     const { project } = params;
-    const user = project.adminUser as User;
+    if (!project.adminUser?.email) {
+      project.adminUser = (await findUserById(project.adminUserId))!;
+    }
     const now = new Date();
 
     await sendProjectRelatedNotificationsQueue.add({
@@ -414,7 +416,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-revoke-warning-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${project.adminUser.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -422,7 +424,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
   }): Promise<void> {
     const { project } = params;
-    const user = project.adminUser as User;
+    if (!project.adminUser?.email) {
+      project.adminUser = (await findUserById(project.adminUserId))!;
+    }
     const now = Date.now();
     await sendProjectRelatedNotificationsQueue.add({
       project,
@@ -435,7 +439,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-revoke-last-warning-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${project.adminUser?.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -455,7 +459,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-up-for-revoking-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${user?.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
