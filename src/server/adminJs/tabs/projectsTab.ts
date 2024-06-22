@@ -381,7 +381,7 @@ export const addProjectsToQfRound = async (
   const projectIds = request?.query?.recordIds
     ?.split(',')
     ?.map(strId => Number(strId)) as number[];
-  const qfRound = await findActiveQfRound();
+  const qfRound = await findActiveQfRound(true);
   if (qfRound) {
     await relateManyProjectsToQfRound({
       projectIds,
@@ -412,7 +412,7 @@ export const addSingleProjectToQfRound = async (
   const { record, currentAdmin } = context;
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
   const projectId = Number(request?.params?.recordId);
-  const qfRound = await findActiveQfRound();
+  const qfRound = await findActiveQfRound(true);
   if (qfRound) {
     await relateManyProjectsToQfRound({
       projectIds: [projectId],
