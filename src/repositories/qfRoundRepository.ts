@@ -9,6 +9,7 @@ import {
 } from '../resolvers/qfRoundResolver';
 import config from '../config';
 import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
+import { Sybil } from '../entities/sybil';
 
 const qfRoundsAndMainCategoryCacheDuration =
   (config.get('QF_ROUND_AND_MAIN_CATEGORIES_CACHE_DURATION') as number) ||
@@ -140,9 +141,14 @@ export const findArchivedQfRounds = async (
           .select('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
           .from(Donation, 'donation')
           .leftJoin(User, 'user', 'user.id = donation.userId')
+          .leftJoin(Sybil, 'sybil', 'sybil.userId = user.id')
           .where('donation.qfRoundId = qfRound.id')
+          .andWhere('donation.status = :status', { status: 'verified' })
           .andWhere('user.passportScore >= qfRound.minimumPassportScore')
-          .andWhere('user.knownAsSybilAddress = FALSE'),
+          .andWhere('sybil.id IS NULL')
+          .andWhere(
+            'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
+          ),
       'uniqueDonors',
     )
     .groupBy('qfRound.id')
