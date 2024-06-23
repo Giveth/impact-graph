@@ -47,7 +47,7 @@ export const updateProjectStatistics = async (projectId: number) => {
   logger.debug(
     'updateProjectStatistics-countUniqueDonorsAndSumDonationValueUsd',
     {
-      sumDonationValueUsd: totalDonations,
+      totalDonations,
       countUniqueDonors: uniqueDonors,
       sumDonationValueUsdForActiveQfRound,
       countUniqueDonorsForActiveQfRound,
@@ -55,7 +55,7 @@ export const updateProjectStatistics = async (projectId: number) => {
   );
 
   await Project.update(projectId, {
-    sumDonationValueUsd: totalDonations,
+    totalDonations,
     countUniqueDonors: uniqueDonors,
     sumDonationValueUsdForActiveQfRound,
     countUniqueDonorsForActiveQfRound,
