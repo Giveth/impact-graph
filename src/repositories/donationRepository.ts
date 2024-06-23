@@ -417,6 +417,8 @@ export const findStableCoinDonationsWithoutPrice = async (): Promise<
       'token',
       'donation.currency = token.symbol AND donation.transactionNetworkId = token.networkId',
     )
+    .leftJoin('donation.project', 'project')
+    .select('project.adminUserId')
     .where('token.isStableCoin = true')
     .andWhere('donation.valueUsd IS NULL')
     .getMany();
@@ -474,7 +476,7 @@ export async function getProjectQfRoundStats(params: {
   const { id: qfRoundId, beginDate, endDate } = qfRound;
   const result = await Donation.createQueryBuilder('donation')
     .select('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
-    .addSelect('SUM(donation.valueUsd)', 'totalDonationValueUsd')
+    .addSelect('COALESCE(SUM(donation.valueUsd), 0)', 'totalDonationValueUsd')
     .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
     .andWhere('donation.projectId = :projectId', { projectId })
     .andWhere('donation.status = :status', { status: 'verified' })
@@ -494,7 +496,7 @@ export async function countUniqueDonorsAndSumDonationValueUsd(
   projectId: number,
 ): Promise<{ totalDonations: number; uniqueDonors: number }> {
   const result = await Donation.createQueryBuilder('donation')
-    .select('SUM(donation.valueUsd)', 'totalDonations')
+    .select('COALESCE(SUM(donation.valueUsd), 0)', 'totalDonations')
     .addSelect('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
     .where('donation.projectId = :projectId', { projectId })
     .andWhere('donation.status = :status', { status: 'verified' })

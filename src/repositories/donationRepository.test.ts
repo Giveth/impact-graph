@@ -424,6 +424,9 @@ function findStableCoinDonationsWithoutPriceTestCases() {
     await saveDonationDirectlyToDb(donationData9, donor.id, project.id);
 
     const donations = await findStableCoinDonationsWithoutPrice();
+    for (const donation of donations) {
+      assert.isOk(donation.project.adminUserId);
+    }
     assert.equal(donations.length, 4);
     assert.isOk(
       donations.find(
