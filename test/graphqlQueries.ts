@@ -941,7 +941,6 @@ export const fetchMultiFilterAllProjectsQuery = `
         totalDonations
         totalTraceDonations
         sumDonationValueUsdForActiveQfRound
-        sumDonationValueUsd
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
         estimatedMatching{
