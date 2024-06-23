@@ -605,6 +605,8 @@ export const donationTab = {
           { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'Arbitrum Sepolia' },
           { value: NETWORK_IDS.BASE_MAINNET, label: 'Base' },
           { value: NETWORK_IDS.BASE_SEPOLIA, label: 'Base Sepolia' },
+          { value: NETWORK_IDS.ZKEVM_MAINNET, label: 'ZKEVM Mainnet' },
+          { value: NETWORK_IDS.ZKEVM_CARDONA, label: 'ZKEVM Cardona' },
         ],
         isVisible: {
           list: true,
