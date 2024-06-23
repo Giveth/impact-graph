@@ -45,6 +45,7 @@ export class AddPolygonZkevmTokens1718177138564 implements MigrationInterface {
       await queryRunner.query(`INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
         (${token.id}, ${givethOrganization.id}),
         (${token.id}, ${traceOrganization.id})
+         ON CONFLICT DO NOTHING;
       ;`);
     }
   }
