@@ -162,14 +162,14 @@ export const donationsTotalAmountPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
-  const donationsUsdAmount = await query.getRawOne();
-
-  query.cache(
-    `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}-${
-      fromOptimismOnly || 'all'
-    }-${onlyVerified || 'all'}`,
-    300000,
-  );
+  const donationsUsdAmount = await query
+    .cache(
+      `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}-${
+        fromOptimismOnly || 'all'
+      }-${onlyVerified || 'all'}`,
+      300000,
+    )
+    .getRawOne();
 
   return donationsUsdAmount.sum;
 };
@@ -247,14 +247,14 @@ export const donationsNumberPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
-  const donationsUsdAmount = await query.getRawOne();
-
-  query.cache(
-    `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
-      fromOptimismOnly || 'all'
-    }-${onlyVerified || 'all'}`,
-    300000,
-  );
+  const donationsUsdAmount = await query
+    .cache(
+      `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
+        fromOptimismOnly || 'all'
+      }-${onlyVerified || 'all'}`,
+      300000,
+    )
+    .getRawOne();
 
   return donationsUsdAmount.count;
 };
