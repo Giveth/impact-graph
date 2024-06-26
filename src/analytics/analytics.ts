@@ -46,5 +46,6 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   SUPER_TOKENS_BALANCE_WEEK = 'One week left in stream balance',
   SUPER_TOKENS_BALANCE_MONTH = 'One month left in stream balance',
   SUPER_TOKENS_BALANCE_DEPLETED = 'Stream balance depleted',
+  SUBSCRIBE_ONBOARDING = 'Subscribe onboarding',
   CREATE_ORTTO_PROFILE = 'Create Ortto profile',
 }

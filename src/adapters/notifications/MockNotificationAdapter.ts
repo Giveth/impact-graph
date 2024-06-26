@@ -11,6 +11,11 @@ import { logger } from '../../utils/logger';
 import { RecurringDonation } from '../../entities/recurringDonation';
 
 export class MockNotificationAdapter implements NotificationAdapterInterface {
+  async subscribeOnboarding(params: { email: string }): Promise<void> {
+    logger.debug('MockNotificationAdapter subscribeOnboarding', params);
+    return Promise.resolve(undefined);
+  }
+
   async createOrttoProfile(params: User): Promise<void> {
     logger.debug('MockNotificationAdapter createOrttoProfile', params);
     return Promise.resolve(undefined);

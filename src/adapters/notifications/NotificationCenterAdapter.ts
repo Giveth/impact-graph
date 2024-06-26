@@ -56,6 +56,21 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
+  async subscribeOnboarding(params: { email: string }): Promise<void> {
+    try {
+      const { email } = params;
+      if (!email) return;
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.SUBSCRIBE_ONBOARDING,
+        segment: {
+          payload: { email },
+        },
+      });
+    } catch (e) {
+      logger.error('subscribeOnboarding >> error', e);
+    }
+  }
+
   async userSuperTokensCritical(params: {
     user: User;
     eventName: UserStreamBalanceWarning;
@@ -1223,7 +1238,7 @@ interface SendNotificationBody {
   trackId?: string;
   metadata?: any;
   projectId?: string;
-  userWalletAddress: string;
+  userWalletAddress?: string;
   segment?: {
     payload: any;
   };
