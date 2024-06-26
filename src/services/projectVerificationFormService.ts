@@ -153,6 +153,15 @@ export const updateProjectVerificationFormByUser = async (params: {
           projectVerificationId,
           isTermAndConditionsAccepted,
         });
+
+      break;
+    }
+    case PROJECT_VERIFICATION_STEPS.SUBMIT: {
+      updatedProjectVerificationForm =
+        await updateTermsAndConditionsOfProjectVerification({
+          projectVerificationId,
+          isTermAndConditionsAccepted: true,
+        });
       const data = removeUndefinedFieldsFromObject({
         projectRegistry: updatedProjectVerificationForm.projectRegistry,
         projectContacts: updatedProjectVerificationForm.projectContacts,
@@ -168,6 +177,7 @@ export const updateProjectVerificationFormByUser = async (params: {
       updatedProjectVerificationForm = await submitProjectVerificationForm({
         projectVerificationId,
       });
+
       break;
     }
     default:
