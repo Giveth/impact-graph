@@ -5,6 +5,8 @@ import { User } from '../entities/user';
 import { AppDataSource } from '../orm';
 import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver';
 import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
+import { Sybil } from '../entities/sybil';
+import { ProjectFraud } from '../entities/projectFraud';
 import config from '../config';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
@@ -131,9 +133,24 @@ export const findArchivedQfRounds = async (
           .select('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
           .from(Donation, 'donation')
           .leftJoin(User, 'user', 'user.id = donation.userId')
+          .leftJoin(
+            Sybil,
+            'sybil',
+            'sybil.userId = user.id AND sybil.qfRoundId = qfRound.id',
+          )
+          .leftJoin(
+            ProjectFraud,
+            'projectFraud',
+            'projectFraud.projectId = donation.projectId AND projectFraud.qfRoundId = qfRound.id',
+          )
           .where('donation.qfRoundId = qfRound.id')
+          .andWhere('donation.status = :status', { status: 'verified' })
           .andWhere('user.passportScore >= qfRound.minimumPassportScore')
-          .andWhere('user.knownAsSybilAddress = FALSE'),
+          .andWhere('sybil.id IS NULL')
+          .andWhere('projectFraud.id IS NULL')
+          .andWhere(
+            'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
+          ),
       'uniqueDonors',
     )
     .groupBy('qfRound.id')

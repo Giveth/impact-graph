@@ -434,7 +434,7 @@ export const userIsOwnerOfProject = async (
 export const totalProjectsPerDate = async (
   fromDate?: string,
   toDate?: string,
-  includesOptimism?: boolean,
+  networkId?: number,
   onlyListed?: boolean,
   onlyVerified?: boolean,
 ): Promise<number> => {
@@ -456,17 +456,17 @@ export const totalProjectsPerDate = async (
     query.andWhere(`project."reviewStatus" = 'Listed'`);
   }
 
-  if (includesOptimism) {
+  if (networkId) {
     query.innerJoin(
       `project.addresses`,
       'addresses',
-      'addresses."networkId" = 10',
+      `addresses."networkId" = ${networkId}`,
     );
   }
 
   query.cache(
     `totalProjectPerDate-${fromDate || ''}-${toDate || ''}-${
-      includesOptimism || 'all'
+      networkId || 'all'
     }-${onlyVerified || 'all'}-${onlyListed || 'all'}`,
     300000,
   );
@@ -477,7 +477,7 @@ export const totalProjectsPerDate = async (
 export const totalProjectsPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
-  includesOptimism?: boolean,
+  networkId?: number,
   onlyListed?: boolean,
   onlyVerified?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
@@ -501,11 +501,11 @@ export const totalProjectsPerDateByMonthAndYear = async (
     query.andWhere(`project."reviewStatus" = 'Listed'`);
   }
 
-  if (includesOptimism) {
+  if (networkId) {
     query.innerJoin(
       `project.addresses`,
       'addresses',
-      'addresses."networkId" = 10',
+      `addresses."networkId" = ${networkId}`,
     );
   }
 
@@ -514,7 +514,7 @@ export const totalProjectsPerDateByMonthAndYear = async (
   query.addOrderBy('month', 'ASC');
   query.cache(
     `totalProjectsPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}-${
-      includesOptimism || 'all'
+      networkId || 'all'
     }-${onlyVerified || 'all'}-${onlyListed || 'all'}`,
     300000,
   );
