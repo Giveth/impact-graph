@@ -43,6 +43,7 @@ import { QfRound } from './qfRound';
 import {
   getQfRoundTotalSqrtRootSumSquared,
   getProjectDonationsSqrtRootSum,
+  findActiveQfRound,
 } from '../repositories/qfRoundRepository';
 import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
@@ -490,7 +491,7 @@ export class Project extends BaseEntity {
   // In your main class
   @Field(_type => EstimatedMatching, { nullable: true })
   async estimatedMatching(): Promise<EstimatedMatching | null> {
-    const activeQfRound = this.getActiveQfRound();
+    const activeQfRound = await findActiveQfRound();
     if (!activeQfRound) {
       // TODO should move it to materialized view
       return null;
@@ -511,10 +512,6 @@ export class Project extends BaseEntity {
       allProjectsSum,
       matchingPool,
     };
-  }
-
-  getActiveQfRound(): QfRound | undefined {
-    return this.qfRounds?.find(r => r.isActive === true);
   }
 
   // Status 7 is deleted status
