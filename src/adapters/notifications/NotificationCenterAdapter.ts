@@ -1,5 +1,4 @@
 import axios from 'axios';
-
 import Bull from 'bull';
 import {
   BroadCastNotificationInputParams,
@@ -27,10 +26,12 @@ import { RecurringDonation } from '../../entities/recurringDonation';
 import { getTokenPrice } from '../../services/priceService';
 import { Token } from '../../entities/token';
 import { toFixNumber } from '../../services/donationService';
+
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
 const disableNotificationCenter = process.env.DISABLE_NOTIFICATION_CENTER;
+const dappUrl = process.env.FRONTEND_URL as string;
 
 const numberOfSendNotificationsConcurrentJob =
   Number(
@@ -53,6 +54,27 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       // load on notification-center and make sure all notifications would arrive
       this.processSendingNotifications();
       isProcessingQueueEventsEnabled = true;
+    }
+  }
+
+  async sendEmailConfirmation(params: {
+    email: string;
+    project: Project;
+    token: string;
+  }): Promise<void> {
+    const { email, project, token } = params;
+    try {
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.SEND_EMAIL_CONFIRMATION,
+        segment: {
+          payload: {
+            email,
+            verificationLink: `${dappUrl}/verification/${project.slug}/${token}`,
+          },
+        },
+      });
+    } catch (e) {
+      logger.error('sendEmailConfirmation >> error', e);
     }
   }
 
@@ -1223,7 +1245,7 @@ interface SendNotificationBody {
   trackId?: string;
   metadata?: any;
   projectId?: string;
-  userWalletAddress: string;
+  userWalletAddress?: string;
   segment?: {
     payload: any;
   };
