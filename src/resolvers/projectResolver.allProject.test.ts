@@ -71,7 +71,7 @@ function allProjectsTestCases() {
         getHtmlTextSummary(project.description),
       );
       assert.isNull(project.estimatedMatching);
-      assert.isNull(project.sumDonationValueUsd);
+      assert.isNull(project.totalDonations);
       assert.isNull(project.sumDonationValueUsdForActiveQfRound);
       assert.isNull(project.countUniqueDonorsForActiveQfRound);
       assert.isNull(project.countUniqueDonors);

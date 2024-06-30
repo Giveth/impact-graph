@@ -44,7 +44,7 @@ export const updateProjectStatistics = async (projectId: number) => {
     await countUniqueDonorsAndSumDonationValueUsd(projectId);
 
   await Project.update(projectId, {
-    sumDonationValueUsd: totalDonations,
+    totalDonations,
     countUniqueDonors: uniqueDonors,
     sumDonationValueUsdForActiveQfRound,
     countUniqueDonorsForActiveQfRound,

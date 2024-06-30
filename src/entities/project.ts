@@ -382,6 +382,18 @@ export class Project extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   totalProjectUpdates: number;
 
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', nullable: true })
+  sumDonationValueUsdForActiveQfRound: number;
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  countUniqueDonorsForActiveQfRound: number;
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  countUniqueDonors: number;
+
   @Field(_type => Boolean, { nullable: true })
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
@@ -471,22 +483,6 @@ export class Project extends BaseEntity {
       createdAt: new Date(),
     }).save();
   }
-
-  @Field(_type => Float, { nullable: true })
-  @Column({ type: 'float', nullable: true })
-  sumDonationValueUsdForActiveQfRound: number;
-
-  @Field(_type => Float, { nullable: true })
-  @Column({ type: 'float', nullable: true })
-  sumDonationValueUsd: number;
-
-  @Field(_type => Int, { nullable: true })
-  @Column({ type: 'int', nullable: true })
-  countUniqueDonorsForActiveQfRound: number;
-
-  @Field(_type => Int, { nullable: true })
-  @Column({ type: 'int', nullable: true })
-  countUniqueDonors: number;
 
   // In your main class
   @Field(_type => EstimatedMatching, { nullable: true })
