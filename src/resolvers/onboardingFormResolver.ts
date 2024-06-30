@@ -1,14 +1,17 @@
-import { Args, Query, Resolver } from 'type-graphql';
-import { QfRound } from '../entities/qfRound';
+import { Arg, Query, Resolver } from 'type-graphql';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { logger } from '../utils/logger';
 
 @Resolver()
 export class OnboardingFormResolver {
-  @Query(_returns => [QfRound], { nullable: true })
-  async subscribeOnboarding(
-    @Args()
-    { email }: { email: string },
-  ) {
-    return await getNotificationAdapter().subscribeOnboarding({ email });
+  @Query(_returns => Boolean)
+  async subscribeOnboarding(@Arg('email') email: string): Promise<boolean> {
+    try {
+      await getNotificationAdapter().subscribeOnboarding({ email });
+      return true;
+    } catch (e) {
+      logger.debug('subscribeOnboarding() error', e);
+      return e;
+    }
   }
 }
