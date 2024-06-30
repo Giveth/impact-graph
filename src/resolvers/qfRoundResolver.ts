@@ -122,21 +122,46 @@ export class QfRoundResolver {
     try {
       const user = await findUserByWalletAddress(address.toLowerCase());
       const activeQfRound = await findActiveQfRound();
-      if (!user && !activeQfRound) return;
+      if (!user || !activeQfRound) return;
 
       const userScore = await getGitcoinAdapter().getUserAnalysisScore(
         address.toLowerCase(),
       );
       const userQfRoundScore = UserQfRoundModelScore.create({
-        userId: user?.id,
-        qfRoundId: activeQfRound!.id,
-        score: userScore!,
+        userId: user.id,
+        qfRoundId: activeQfRound.id,
+        score: userScore,
       });
 
       await userQfRoundScore.save();
       return userScore;
     } catch (e) {
       logger.error('scoreUserAddress error', e);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
+      );
+    }
+  }
+
+  @Query(_return => Number, { nullable: true })
+  async fetchUserMBDScore(
+    @Arg('address') address: string,
+  ): Promise<{ score: number | undefined } | undefined> {
+    try {
+      const user = await findUserByWalletAddress(address.toLowerCase());
+      const activeQfRound = await findActiveQfRound();
+      if (!user && !activeQfRound) return;
+
+      const userQfRoundScore = await UserQfRoundModelScore.findOne({
+        where: {
+          userId: user?.id,
+          qfRoundId: activeQfRound!.id,
+        },
+      });
+
+      return { score: userQfRoundScore?.score };
+    } catch (e) {
+      logger.error('fetchUserModelScore error', e);
       throw new Error(
         i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
       );

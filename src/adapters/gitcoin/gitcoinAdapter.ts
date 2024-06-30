@@ -36,6 +36,11 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
     try {
       const result = await axios.get(
         `${GITCOIN_API_BASE_URL}/passport/analysis/${address.toLowerCase()}`,
+        {
+          headers: {
+            'X-API-KEY': this.GitcoinApiKey,
+          },
+        },
       );
       return result.data?.details?.models?.ethereum_activity?.score;
     } catch (e) {

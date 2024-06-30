@@ -1,5 +1,6 @@
 import { Field, Float, Int, ObjectType, registerEnumType } from 'type-graphql';
 import { QfRound } from '../entities/qfRound';
+import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore';
 import { AppDataSource } from '../orm';
 import {
   QfArchivedRoundsOrderBy,
@@ -233,4 +234,19 @@ export const getRelatedProjectsOfQfRound = async (
   `;
 
   return QfRound.query(query);
+};
+
+export const getUserMBDScore = async (
+  qfRoundId: number,
+  userId: string,
+): Promise<number | null> => {
+  const result = await UserQfRoundModelScore.createQueryBuilder(
+    'user_qf_round_model_score',
+  )
+    .select('score')
+    .where('userId = :userId', { userId })
+    .andWhere('qfRoundId = :qfRoundId', { qfRoundId })
+    .getRawOne();
+
+  return result.score ?? null;
 };
