@@ -11,7 +11,7 @@ export class OnboardingFormResolver {
       return true;
     } catch (e) {
       logger.debug('subscribeOnboarding() error', e);
-      return e;
+      return false;
     }
   }
 }
