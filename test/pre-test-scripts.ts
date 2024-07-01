@@ -347,7 +347,7 @@ async function relateOrganizationsToTokens() {
   })) as Organization;
   const givingBlock = (await Organization.findOne({
     where: {
-      label: ORGANIZATION_LABELS.GIVING_BLOCK,
+      label: ORGANIZATION_LABELS.ENDAOMENT,
     },
   })) as Organization;
   const change = (await Organization.findOne({

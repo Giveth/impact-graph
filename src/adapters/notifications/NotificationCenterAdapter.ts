@@ -27,6 +27,7 @@ import { RecurringDonation } from '../../entities/recurringDonation';
 import { getTokenPrice } from '../../services/priceService';
 import { Token } from '../../entities/token';
 import { toFixNumber } from '../../services/donationService';
+import { findOrganizationById } from '../../repositories/organizationRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -1104,6 +1105,15 @@ const sendProjectRelatedNotification = async (params: {
 }): Promise<void> => {
   const { project, eventName, metadata, user, segment, sendEmail, trackId } =
     params;
+  const organization =
+    project.organization ||
+    (await findOrganizationById(project.organizationId));
+  if (organization?.disableNotifications) {
+    logger.debug(
+      `Organization ${organization.id} has disabled notifications. project ${project.slug} will not receive notification ${eventName}`,
+    );
+    return;
+  }
   const receivedUser = user || (project.adminUser as User);
   const projectLink = buildProjectLink(eventName, project.slug);
   const data: SendNotificationBody = {

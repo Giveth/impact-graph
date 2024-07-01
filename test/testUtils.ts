@@ -549,7 +549,7 @@ export const SEED_DATA = {
     },
     {
       name: 'Giving Block',
-      label: ORGANIZATION_LABELS.GIVING_BLOCK,
+      label: ORGANIZATION_LABELS.ENDAOMENT,
       website: 'https://thegivingblock.com',
       supportCustomTokens: false,
     },

@@ -1811,10 +1811,10 @@ function createDonationTestCases() {
     });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
-  it('should throw error when create GIV donation for givingBlock project on xdai', async () => {
+  it('should throw error when create GIV donation for endaoment project on xdai', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -1846,10 +1846,10 @@ function createDonationTestCases() {
       errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
     );
   });
-  it('should throw error when create GIV donation for givingBlock project on mainnet', async () => {
+  it('should throw error when create GIV donation for endaoment project on mainnet', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -2031,10 +2031,10 @@ function createDonationTestCases() {
       errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
     );
   });
-  it('should create ETH donation for givingBlock project on mainnet successfully', async () => {
+  it('should create ETH donation for endaoment project on mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),

@@ -295,6 +295,8 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
     )
     .leftJoinAndSelect('project.adminUser', 'user')
     .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+    .leftJoinAndSelect('project.organization', 'organization')
+    .andWhere('organization.disableUpdateEnforcement = false')
     .getMany();
 
   projects.forEach(project => {

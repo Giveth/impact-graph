@@ -754,7 +754,7 @@ function isProjectAcceptTokenTestCases() {
     });
     assert.isTrue(result);
   });
-  it('should return true for givingBlock projects accepting ETH on mainnet', async () => {
+  it('should return true for endaoment projects accepting ETH on mainnet', async () => {
     const token = await Token.findOne({
       where: {
         symbol: 'ETH',
@@ -763,7 +763,7 @@ function isProjectAcceptTokenTestCases() {
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const result = await isTokenAcceptableForProject({
       projectId: project.id,
@@ -771,7 +771,7 @@ function isProjectAcceptTokenTestCases() {
     });
     assert.isTrue(result);
   });
-  it('should return false for givingblock projects accepting GIV on xdai', async () => {
+  it('should return false for endaoment projects accepting GIV on xdai', async () => {
     const token = await Token.findOne({
       where: {
         symbol: 'GIV',
@@ -780,7 +780,7 @@ function isProjectAcceptTokenTestCases() {
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const result = await isTokenAcceptableForProject({
       projectId: project.id,
@@ -788,7 +788,7 @@ function isProjectAcceptTokenTestCases() {
     });
     assert.isFalse(result);
   });
-  it('should return false for givingblock projects accepting XDAI on xdai', async () => {
+  it('should return false for endaoment projects accepting XDAI on xdai', async () => {
     const token = await Token.findOne({
       where: {
         symbol: 'XDAI',
@@ -797,7 +797,7 @@ function isProjectAcceptTokenTestCases() {
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const result = await isTokenAcceptableForProject({
       projectId: project.id,
@@ -805,7 +805,7 @@ function isProjectAcceptTokenTestCases() {
     });
     assert.isFalse(result);
   });
-  it('should return false for givingblock projects accepting GIV on mainnet', async () => {
+  it('should return false for endaoment projects accepting GIV on mainnet', async () => {
     const token = await Token.findOne({
       where: {
         symbol: 'GIV',
@@ -814,7 +814,7 @@ function isProjectAcceptTokenTestCases() {
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const result = await isTokenAcceptableForProject({
       projectId: project.id,

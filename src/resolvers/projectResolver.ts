@@ -493,7 +493,7 @@ export class ProjectResolver {
         case FilterField.AcceptGiv:
           // only giving Blocks do not accept Giv
           return query.andWhere(`project.${filter} IS NULL`);
-        case FilterField.GivingBlock:
+        case FilterField.Endaoment:
           return query.andWhere('project.givingBlocksId IS NOT NULL');
         case FilterField.BoostedWithGivPower:
           return query.andWhere(`projectPower.totalPower > 0`);

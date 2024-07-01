@@ -368,10 +368,6 @@ export async function bootstrap() {
       runCheckProjectVerificationStatus();
     }
 
-    // If we need to deactivate the process use the env var NO MORE
-    // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
-    //   runGivingBlocksProjectSynchronization();
-    // }
     if (process.env.POIGN_ART_SERVICE_ACTIVE === 'true') {
       runSyncPoignArtDonations();
     }

@@ -333,10 +333,10 @@ function getProjectsAcceptTokensTestCases() {
     assert.isEmpty(result.data.data.getProjectAcceptTokens);
   });
 
-  it('should just return ETH token for givingBlock projects', async () => {
+  it('should just return ETH token for endaoment projects', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const result = await axios.post(graphqlUrl, {
       query: getProjectsAcceptTokensQuery,
