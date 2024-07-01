@@ -4,6 +4,7 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Float,
   InputType,
   Int,
   Mutation,
@@ -24,6 +25,7 @@ import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
+  getDonationToGivethWithDonationBoxMetrics,
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
@@ -198,6 +200,18 @@ class DonationCurrencyStats {
 
   @Field(_type => Number, { nullable: true })
   currencyPercentage?: number;
+}
+
+@ObjectType()
+class DonationMetrics {
+  @Field(_type => Int)
+  totalDonationsToGiveth: number;
+
+  @Field(_type => Float)
+  totalUsdValueToGiveth: number;
+
+  @Field(_type => Float)
+  averagePercentageToGiveth: number;
 }
 
 @Resolver(_of => User)
@@ -994,5 +1008,24 @@ export class DonationResolver {
       qfRoundId,
       userId,
     });
+  }
+
+  @Query(_returns => DonationMetrics)
+  async donationMetrics(
+    @Arg('startDate', _type => String, { nullable: false }) startDate: string,
+    @Arg('endDate', _type => String, { nullable: false }) endDate: string,
+    @Arg('timeDiff', _type => Int, { nullable: true, defaultValue: 60 })
+    timeDiff: number,
+  ): Promise<DonationMetrics> {
+    const metrics = await getDonationToGivethWithDonationBoxMetrics(
+      new Date(startDate),
+      new Date(endDate),
+      timeDiff,
+    );
+    return {
+      totalDonationsToGiveth: metrics.totalDonationsToGiveth,
+      totalUsdValueToGiveth: metrics.totalUsdValueToGiveth,
+      averagePercentageToGiveth: metrics.averagePercentageToGiveth,
+    };
   }
 }
