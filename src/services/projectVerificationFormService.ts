@@ -158,19 +158,19 @@ export const updateProjectVerificationFormByUser = async (params: {
       break;
     }
     case PROJECT_VERIFICATION_STEPS.SUBMIT: {
-      const getdProjectVerificationData = await findProjectVerificationFormById(
+      const getProjectVerificationData = await findProjectVerificationFormById(
         projectVerificationId,
       );
       const data = removeUndefinedFieldsFromObject({
-        projectRegistry: getdProjectVerificationData?.projectRegistry,
-        projectContacts: getdProjectVerificationData?.projectContacts,
-        milestones: getdProjectVerificationData?.milestones,
-        managingFunds: getdProjectVerificationData?.managingFunds,
-        socialProfiles: getdProjectVerificationData?.socialProfiles,
-        status: getdProjectVerificationData?.status,
-        emailConfirmed: getdProjectVerificationData?.emailConfirmed,
+        projectRegistry: getProjectVerificationData?.projectRegistry,
+        projectContacts: getProjectVerificationData?.projectContacts,
+        milestones: getProjectVerificationData?.milestones,
+        managingFunds: getProjectVerificationData?.managingFunds,
+        socialProfiles: getProjectVerificationData?.socialProfiles,
+        status: getProjectVerificationData?.status,
+        emailConfirmed: getProjectVerificationData?.emailConfirmed,
         isTermAndConditionsAccepted:
-          getdProjectVerificationData?.isTermAndConditionsAccepted,
+          getProjectVerificationData?.isTermAndConditionsAccepted,
       });
       validateWithJoiSchema(data, submitProjectVerificationStepValidator);
       updatedProjectVerificationForm = await submitProjectVerificationForm({
