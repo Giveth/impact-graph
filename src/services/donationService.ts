@@ -571,12 +571,14 @@ export async function getDonationToGivethWithDonationBoxMetrics(
     const pairedDonation = pairedDonations[index];
     const totalValue =
       (donation.valueUsd || 0) + (pairedDonation.valueUsd || 0);
-    return (donation.valueUsd || 0) / totalValue;
+    return totalValue > 0 ? (donation.valueUsd || 0) / totalValue : 0;
   });
 
   const averagePercentageToGiveth =
-    donationPercentages.reduce((sum, percentage) => sum + percentage, 0) /
-    donationPercentages.length;
+    donationPercentages.length > 0
+      ? donationPercentages.reduce((sum, percentage) => sum + percentage, 0) /
+        donationPercentages.length
+      : 0;
 
   return {
     totalDonationsToGiveth,

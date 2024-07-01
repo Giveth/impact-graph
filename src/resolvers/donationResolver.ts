@@ -204,13 +204,13 @@ class DonationCurrencyStats {
 
 @ObjectType()
 class DonationMetrics {
-  @Field(_type => Int)
+  @Field(_type => Int, { nullable: true })
   totalDonationsToGiveth: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   totalUsdValueToGiveth: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   averagePercentageToGiveth: number;
 }
 
