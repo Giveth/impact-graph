@@ -264,7 +264,7 @@ export class DonationResolver {
   async totalDonationsPerCategory(
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<MainCategoryDonations[] | []> {
     try {
@@ -294,11 +294,11 @@ export class DonationResolver {
         query.where(`donations."createdAt" <= '${toDate}'`);
       }
 
-      if (fromOptimismOnly) {
+      if (networkId) {
         if (fromDate || toDate) {
-          query.andWhere(`donations."transactionNetworkId" = 10`);
+          query.andWhere(`donations."transactionNetworkId" = ${networkId}`);
         } else {
-          query.where(`donations."transactionNetworkId" = 10`);
+          query.where(`donations."transactionNetworkId" = ${networkId}`);
         }
       }
 
@@ -318,7 +318,7 @@ export class DonationResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
@@ -329,14 +329,14 @@ export class DonationResolver {
       const total = await donationsTotalAmountPerDateRange(
         fromDate,
         toDate,
-        fromOptimismOnly,
+        networkId,
         onlyVerified,
       );
       const totalPerMonthAndYear =
         await donationsTotalAmountPerDateRangeByMonth(
           fromDate,
           toDate,
-          fromOptimismOnly,
+          networkId,
           onlyVerified,
         );
 
@@ -355,7 +355,7 @@ export class DonationResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
@@ -366,14 +366,14 @@ export class DonationResolver {
       const total = await donationsNumberPerDateRange(
         fromDate,
         toDate,
-        fromOptimismOnly,
+        networkId,
         onlyVerified,
       );
       const totalPerMonthAndYear =
         await donationsTotalNumberPerDateRangeByMonth(
           fromDate,
           toDate,
-          fromOptimismOnly,
+          networkId,
           onlyVerified,
         );
 
@@ -404,22 +404,18 @@ export class DonationResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('networkId', { nullable: true }) networkId?: number,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const total = await donorsCountPerDate(
-        fromDate,
-        toDate,
-        fromOptimismOnly,
-      );
+      const total = await donorsCountPerDate(fromDate, toDate, networkId);
       const totalPerMonthAndYear = await donorsCountPerDateByMonthAndYear(
         fromDate,
         toDate,
-        fromOptimismOnly,
+        networkId,
       );
       return {
         total,
@@ -723,10 +719,10 @@ export class DonationResolver {
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
       } catch (e) {
-        logger.error(
-          'Error on validating createDonation input',
+        logger.error('Error on validating createDonation input', {
           validaDataInput,
-        );
+          error: e,
+        });
         // Joi alternatives does not handle custom errors, have to catch them.
         if (e.message.includes('does not match any of the allowed types')) {
           throw new Error(

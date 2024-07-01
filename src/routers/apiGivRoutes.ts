@@ -9,9 +9,13 @@ import { ProjStatus } from '../entities/project';
 import { logger } from '../utils/logger';
 import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 import { ApiGivStandardError, handleExpressError } from './standardError';
-import { updateTotalDonationsOfProject } from '../services/donationService';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 import { User } from '../entities/user';
+import { updateProjectStatistics } from '../services/projectService';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../services/userService';
 
 export const apiGivRouter = express.Router();
 apiGivRouter.post(
@@ -77,7 +81,7 @@ apiGivRouter.post(
           400,
         );
       }
-      const donationData: Partial<Donation> = {
+      const donationData = Donation.create({
         fromWalletAddress,
         toWalletAddress,
         user: donor,
@@ -99,9 +103,11 @@ apiGivRouter.post(
         isFiat,
         isTokenEligibleForGivback: token.isGivbackEligible,
         speedup: false,
-      };
-      const result = await Donation.create(donationData).save();
-      await updateTotalDonationsOfProject(project.id);
+      });
+      const result = await donationData.save();
+      await updateProjectStatistics(project.id);
+      await updateUserTotalDonated(result.userId);
+      await updateUserTotalReceived(project.adminUserId);
 
       response.send(result);
     } catch (e) {

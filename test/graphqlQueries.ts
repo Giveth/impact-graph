@@ -502,14 +502,14 @@ export const fetchNewProjectsPerDate = `
     $toDate: String
     $onlyListed: Boolean
     $onlyVerified: Boolean
-    $includesOptimism: Boolean
+    $networkId: Int
   ) {
     projectsPerDate(
       fromDate: $fromDate
       toDate: $toDate
       onlyListed: $onlyListed
       onlyVerified: $onlyVerified
-      includesOptimism: $includesOptimism
+      networkId: $networkId
     ) {
       total
       totalPerMonthAndYear {
@@ -524,13 +524,13 @@ export const fetchTotalDonationsPerCategoryPerDate = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Int
     $onlyVerified: Boolean
   ) {
     totalDonationsPerCategory(
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
       onlyVerified: $onlyVerified
     ) {
       id
@@ -566,12 +566,12 @@ export const fetchTotalDonors = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Int
   ) {
     totalDonorsCountPerDate(
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
     ) {
       total
       totalPerMonthAndYear {
@@ -586,13 +586,13 @@ export const fetchTotalDonationsUsdAmount = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Int
     $onlyVerified: Boolean
   ) {
     donationsTotalUsdPerDate (
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
       onlyVerified: $onlyVerified
     ) {
       total
@@ -608,13 +608,13 @@ export const fetchTotalDonationsNumberPerDateRange = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Int
     $onlyVerified: Boolean
   ) {
     totalDonationsNumberPerDate (
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
       onlyVerified: $onlyVerified
     ) {
       total
@@ -941,7 +941,6 @@ export const fetchMultiFilterAllProjectsQuery = `
         totalDonations
         totalTraceDonations
         sumDonationValueUsdForActiveQfRound
-        sumDonationValueUsd
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
         estimatedMatching{

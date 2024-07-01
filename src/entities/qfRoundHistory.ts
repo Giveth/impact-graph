@@ -15,8 +15,8 @@ import { Project } from './project';
 import { QfRound } from './qfRound';
 import {
   findQfRoundById,
+  getQfRoundTotalSqrtRootSumSquared,
   getProjectDonationsSqrtRootSum,
-  getQfRoundTotalProjectsDonationsSum,
 } from '../repositories/qfRoundRepository';
 import { EstimatedMatching } from '../types/qfTypes';
 
@@ -102,7 +102,7 @@ export class QfRoundHistory extends BaseEntity {
       this.qfRoundId,
     );
 
-    const allProjectsSum = await getQfRoundTotalProjectsDonationsSum(
+    const allProjectsSum = await getQfRoundTotalSqrtRootSumSquared(
       this.qfRoundId,
     );
     const qfRound = await findQfRoundById(this.qfRoundId);
@@ -110,8 +110,8 @@ export class QfRoundHistory extends BaseEntity {
     const matchingPool = qfRound!.allocatedFund;
 
     return {
-      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
-      allProjectsSum: allProjectsSum.sum,
+      projectDonationsSqrtRootSum,
+      allProjectsSum,
       matchingPool,
     };
   }

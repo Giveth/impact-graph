@@ -9,13 +9,10 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../src/services/userService';
-import { updateTotalDonationsOfProject } from '../src/services/donationService';
 import { Donation } from '../src/entities/donation';
 import { NETWORK_IDS } from '../src/provider';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../src/services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../src/services/projectViewsService';
+import { updateProjectStatistics } from '../src/services/projectService';
 
 const QF_ROUND_ID = 5;
 const millisecondTimestampToDate = (timestamp: number): Date => {
@@ -274,11 +271,10 @@ export class addMissedOpDonationsToDb1703398409668
 
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
-      await updateTotalDonationsOfProject(tx.projectId as number);
+      await updateProjectStatistics(tx.projectId as number);
     }
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   }
 
   async down(_queryRunner: QueryRunner): Promise<void> {

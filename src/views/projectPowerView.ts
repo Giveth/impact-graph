@@ -7,12 +7,16 @@ import {
   BaseEntity,
   PrimaryColumn,
   Column,
+  Index,
 } from 'typeorm';
 import { Field, Float, Int, ObjectType } from 'type-graphql';
 import { Project } from '../entities/project';
 import { ColumnNumericTransformer } from '../utils/entities';
 
 @ViewEntity('project_power_view', { synchronize: false })
+@Index('project_power_view_project_id_unique', ['projectId', 'round'], {
+  unique: true,
+})
 @ObjectType()
 export class ProjectPowerView extends BaseEntity {
   @Field()

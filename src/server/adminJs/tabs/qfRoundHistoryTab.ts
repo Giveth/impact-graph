@@ -11,7 +11,6 @@ import {
 
 import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository';
 import { insertDonationsFromQfRoundHistory } from '../../../services/donationService';
-import { refreshProjectDonationSummaryView } from '../../../services/projectViewsService';
 
 export const updateQfRoundHistory = async (
   _request: AdminJsRequestInterface,
@@ -34,7 +33,6 @@ export const CreateRelatedDonationsForQfRoundHistoryRecords = async (
   _context: AdminJsContextInterface,
 ) => {
   await insertDonationsFromQfRoundHistory();
-  await refreshProjectDonationSummaryView();
   return {
     redirectUrl: '/admin/resources/QfRoundHistory',
     record: {},

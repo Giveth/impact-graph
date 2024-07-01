@@ -291,7 +291,7 @@ async function submitMatchedDraftDonation(
     // draftDonation.status = DRAFT_DONATION_STATUS.MATCHED;
     // draftDonation.matchedDonationId = Number(donationId);
   } catch (e) {
-    logger.error(
+    logger.fatal(
       `Error on creating donation for draftDonation with ID ${draftDonation.id}`,
       e,
     );

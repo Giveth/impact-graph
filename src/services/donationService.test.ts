@@ -6,7 +6,6 @@ import {
   updateOldStableCoinDonationsPrice,
   sendNotificationForDonation,
   syncDonationStatusWithBlockchainNetwork,
-  updateTotalDonationsOfProject,
   updateDonationPricesAndValues,
   insertDonationsFromQfRoundHistory,
 } from './donationService';
@@ -37,6 +36,7 @@ import {
 } from '../repositories/qfRoundHistoryRepository';
 import { User } from '../entities/user';
 import { QfRoundHistory } from '../entities/qfRoundHistory';
+import { updateProjectStatistics } from './projectService';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -827,7 +827,7 @@ function isProjectAcceptTokenTestCases() {
 function fillTotalDonationsOfProjectTestCases() {
   it('should not change updatedAt', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    await updateTotalDonationsOfProject(project.id);
+    await updateProjectStatistics(project.id);
     const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(
       new Date(project.updatedAt).getTime(),
@@ -842,7 +842,7 @@ function fillTotalDonationsOfProjectTestCases() {
       SEED_DATA.FIRST_USER.id,
       project.id,
     );
-    await updateTotalDonationsOfProject(project.id);
+    await updateProjectStatistics(project.id);
     const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(updatedProject.totalDonations, donation.valueUsd);
     assert.equal(

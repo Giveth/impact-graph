@@ -1,7 +1,7 @@
 import {
   findActiveQfRound,
+  getQfRoundTotalSqrtRootSumSquared,
   getProjectDonationsSqrtRootSum,
-  getQfRoundTotalProjectsDonationsSum,
 } from '../repositories/qfRoundRepository';
 
 export const calculateEstimatedMatchingWithParams = async (params: {
@@ -33,11 +33,13 @@ export const calculateEstimateMatchingForProjectById = async (params: {
     qfRoundId,
   );
 
-  const allProjectsSum = await getQfRoundTotalProjectsDonationsSum(qfRoundId);
+  const allProjectsSum = await getQfRoundTotalSqrtRootSumSquared(
+    activeQfRound.id,
+  );
 
   return calculateEstimatedMatchingWithParams({
     matchingPool: activeQfRound.allocatedFund,
-    projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
-    allProjectsSum: allProjectsSum.sum,
+    projectDonationsSqrtRootSum,
+    allProjectsSum,
   });
 };

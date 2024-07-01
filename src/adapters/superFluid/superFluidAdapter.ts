@@ -139,7 +139,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
       );
       return filteredData[0];
     } catch (e) {
-      logger.error(e);
+      logger.error('superFluidAdaptor.streamPeriods error', e);
     }
   }
 
@@ -180,7 +180,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
 
       return response.data.data.account?.accountTokenSnapshots;
     } catch (e) {
-      logger.error(e);
+      logger.error('superFluidAdaptor.accountBalance error', e);
     }
   }
 

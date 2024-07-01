@@ -1,11 +1,9 @@
 import { Project } from '../entities/project';
 import {
-  countUniqueDonors,
-  countUniqueDonorsForRound,
-  sumDonationValueUsd,
-  sumDonationValueUsdForQfRound,
+  countUniqueDonorsAndSumDonationValueUsd,
+  getProjectQfRoundStats,
 } from '../repositories/donationRepository';
-import { findProjectById } from '../repositories/projectRepository';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
 
 export const getAppropriateSlug = async (
   slugBase: string,
@@ -30,32 +28,27 @@ export const getAppropriateSlug = async (
 };
 
 export const updateProjectStatistics = async (projectId: number) => {
-  const project = await findProjectById(projectId);
-  if (!project) return;
-
-  const activeQfRound = project.getActiveQfRound();
+  const activeQfRound = await findActiveQfRound();
+  let sumDonationValueUsdForActiveQfRound = 0,
+    countUniqueDonorsForActiveQfRound = 0;
   if (activeQfRound) {
-    project.sumDonationValueUsdForActiveQfRound =
-      await sumDonationValueUsdForQfRound({
-        projectId: project.id,
-        qfRoundId: activeQfRound.id,
-      });
-    project.countUniqueDonorsForActiveQfRound = await countUniqueDonorsForRound(
-      {
-        projectId: project.id,
-        qfRoundId: activeQfRound.id,
-      },
-    );
+    const qfRoundResult = await getProjectQfRoundStats({
+      projectId,
+      qfRound: activeQfRound,
+    });
+    sumDonationValueUsdForActiveQfRound = qfRoundResult.sumValueUsd;
+    countUniqueDonorsForActiveQfRound = qfRoundResult.uniqueDonorsCount;
   }
 
-  if (!activeQfRound) {
-    project.sumDonationValueUsdForActiveQfRound = 0;
-    project.countUniqueDonorsForActiveQfRound = 0;
-  }
+  const { totalDonations, uniqueDonors } =
+    await countUniqueDonorsAndSumDonationValueUsd(projectId);
 
-  project.sumDonationValueUsd = await sumDonationValueUsd(project.id);
-  project.countUniqueDonors = await countUniqueDonors(project.id);
-  await project.save();
+  await Project.update(projectId, {
+    totalDonations,
+    countUniqueDonors: uniqueDonors,
+    sumDonationValueUsdForActiveQfRound,
+    countUniqueDonorsForActiveQfRound,
+  });
 };
 
 // Current Formula: will be changed possibly in the future
