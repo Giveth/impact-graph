@@ -19,6 +19,7 @@ import {
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import {
+  findProjectVerificationFormById,
   updateManagingFundsOfProjectVerification,
   updateMilestonesOfProjectVerification,
   updateProjectContactsOfProjectVerification,
@@ -157,21 +158,19 @@ export const updateProjectVerificationFormByUser = async (params: {
       break;
     }
     case PROJECT_VERIFICATION_STEPS.SUBMIT: {
-      updatedProjectVerificationForm =
-        await updateTermsAndConditionsOfProjectVerification({
-          projectVerificationId,
-          isTermAndConditionsAccepted: true,
-        });
+      const getdProjectVerificationData = await findProjectVerificationFormById(
+        projectVerificationId,
+      );
       const data = removeUndefinedFieldsFromObject({
-        projectRegistry: updatedProjectVerificationForm.projectRegistry,
-        projectContacts: updatedProjectVerificationForm.projectContacts,
-        milestones: updatedProjectVerificationForm.milestones,
-        managingFunds: updatedProjectVerificationForm.managingFunds,
-        socialProfiles: updatedProjectVerificationForm.socialProfiles,
-        status: updatedProjectVerificationForm.status,
-        emailConfirmed: updatedProjectVerificationForm.emailConfirmed,
+        projectRegistry: getdProjectVerificationData?.projectRegistry,
+        projectContacts: getdProjectVerificationData?.projectContacts,
+        milestones: getdProjectVerificationData?.milestones,
+        managingFunds: getdProjectVerificationData?.managingFunds,
+        socialProfiles: getdProjectVerificationData?.socialProfiles,
+        status: getdProjectVerificationData?.status,
+        emailConfirmed: getdProjectVerificationData?.emailConfirmed,
         isTermAndConditionsAccepted:
-          updatedProjectVerificationForm.isTermAndConditionsAccepted,
+          getdProjectVerificationData?.isTermAndConditionsAccepted,
       });
       validateWithJoiSchema(data, submitProjectVerificationStepValidator);
       updatedProjectVerificationForm = await submitProjectVerificationForm({
