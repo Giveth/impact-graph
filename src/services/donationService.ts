@@ -575,10 +575,10 @@ export async function getDonationToGivethWithDonationBoxMetrics(
   });
 
   const averagePercentageToGiveth =
-    donationPercentages.length > 0
+    (donationPercentages.length > 0
       ? donationPercentages.reduce((sum, percentage) => sum + percentage, 0) /
         donationPercentages.length
-      : 0;
+      : 0) * 100;
 
   return {
     totalDonationsToGiveth,
