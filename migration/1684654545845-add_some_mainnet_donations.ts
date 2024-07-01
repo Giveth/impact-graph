@@ -9,9 +9,9 @@ import {
 } from '../src/services/userService';
 import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
-import { updateTotalDonationsOfProject } from '../src/services/donationService';
 import { calculateGivbackFactor } from '../src/services/givbackService';
 import { AppDataSource } from '../src/orm';
+import { updateProjectStatistics } from '../src/services/projectService';
 
 const fromWalletAddress = '0x6bed0ce7be8dc307b69cfdc100f87db51bc3823a';
 const txHash =
@@ -257,7 +257,7 @@ export class addSomeMainnetDonations1684654545845
                 `);
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
-      await updateTotalDonationsOfProject(tx.projectId as number);
+      await updateProjectStatistics(tx.projectId as number);
     }
   }
 

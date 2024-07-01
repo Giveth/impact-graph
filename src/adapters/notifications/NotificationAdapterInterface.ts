@@ -57,6 +57,12 @@ export interface NotificationAdapterInterface {
     userId: number;
   }): Promise<void>;
 
+  sendEmailConfirmation(params: {
+    email: string;
+    project: Project;
+    token: string;
+  }): Promise<void>;
+
   userSuperTokensCritical(params: {
     user: User;
     eventName: UserStreamBalanceWarning;
@@ -78,7 +84,10 @@ export interface NotificationAdapterInterface {
   projectBadgeRevokeLastWarning(params: { project: Project }): Promise<void>;
   projectBadgeUpForRevoking(params: { project: Project }): Promise<void>;
   projectUnVerified(params: { project: Project }): Promise<void>;
-  verificationFormRejected(params: { project: Project }): Promise<void>;
+  verificationFormRejected(params: {
+    project: Project;
+    reason?: string;
+  }): Promise<void>;
 
   projectListed(params: { project: Project }): Promise<void>;
 

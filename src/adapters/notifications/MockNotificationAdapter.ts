@@ -26,6 +26,15 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
+  async sendEmailConfirmation(params: {
+    email: string;
+    project: Project;
+    token: string;
+  }) {
+    logger.debug('MockNotificationAdapter sendEmailConfirmation', params);
+    return Promise.resolve(undefined);
+  }
+
   userSuperTokensCritical(): Promise<void> {
     return Promise.resolve(undefined);
   }
@@ -225,7 +234,10 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  verificationFormRejected(params: { project: Project }): Promise<void> {
+  verificationFormRejected(params: {
+    project: Project;
+    reason?: string;
+  }): Promise<void> {
     logger.debug('MockNotificationAdapter verificationFormRejected', {
       projectSlug: params.project.slug,
     });

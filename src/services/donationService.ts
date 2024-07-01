@@ -134,7 +134,7 @@ export const updateDonationByTransakData = async (
   donation.fromWalletAddress = transakData.webhookData.fromWalletAddress;
   if (donation.amount !== transakData.webhookData.cryptoAmount) {
     // If the transaction amount is different with donation amount
-    // it proves it's might be fraud, so we change the valueEth and valueUsd
+    // it proves it might be fraud, so we change the valueEth and valueUsd
     donation.valueUsd =
       donation.valueUsd *
       (transakData.webhookData.cryptoAmount / donation.amount);
@@ -172,33 +172,10 @@ export const updateDonationByTransakData = async (
     }
   }
   await donation.save();
-  await updateTotalDonationsOfProject(donation.projectId);
-
-  // We dont wait for this to finish
-  refreshProjectEstimatedMatchingView();
-};
-
-export const updateTotalDonationsOfProject = async (
-  projectId: number,
-): Promise<void> => {
-  try {
-    await Project.query(
-      `
-      UPDATE "project"
-      SET "totalDonations" = (
-        (
-          SELECT COALESCE(SUM(d."valueUsd"),0)
-          FROM "donation" as d
-          WHERE d."projectId" = $1 AND d."status" = 'verified'
-        )
-      )
-      WHERE "id" = $1
-    `,
-      [projectId],
-    );
-  } catch (e) {
-    logger.error('updateTotalDonationsOfAProject error', e);
-  }
+  await updateProjectStatistics(donation.projectId);
+  await updateUserTotalDonated(donation.userId);
+  await updateUserTotalReceived(donation.project?.adminUserId);
+  await refreshProjectEstimatedMatchingView();
 };
 
 export const isTokenAcceptableForProject = async (inputData: {
@@ -246,7 +223,9 @@ export const updateOldStableCoinDonationsPrice = async () => {
       donation.priceUsd = 1;
       donation.valueUsd = donation.amount;
       await donation.save();
-      await updateTotalDonationsOfProject(donation.projectId);
+      await updateProjectStatistics(donation.projectId);
+      await updateUserTotalDonated(donation.userId);
+      await updateUserTotalReceived(donation.project.adminUserId);
     } catch (e) {
       logger.error('Update GIV donation valueUsd error', e.message);
     }
@@ -315,13 +294,11 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await donation.save();
 
     // ONLY verified donations should be accumulated
-    // After updating, recalculate user total donated and owner total received
+    // After updating, recalculate user and project total donations
+    await updateProjectStatistics(donation.projectId);
     await updateUserTotalDonated(donation.userId);
+    await updateUserTotalReceived(donation.project.adminUserId);
 
-    // After updating price we update the totalDonations
-    await updateTotalDonationsOfProject(donation.projectId);
-    const project = await findProjectById(donation.projectId);
-    await updateUserTotalReceived(project!.adminUser.id);
     await sendNotificationForDonation({
       donation,
     });
@@ -329,7 +306,6 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     if (donation.qfRoundId) {
       await refreshProjectEstimatedMatchingView();
     }
-    await updateProjectStatistics(donation.projectId);
 
     const donationStats = await getUserDonationStats(donation.userId);
     const donor = await findUserById(donation.userId);
@@ -553,7 +529,7 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
   `);
 
     for (const qfRoundHistory of qfRoundHistories) {
-      await updateTotalDonationsOfProject(qfRoundHistory.projectId);
+      await updateProjectStatistics(qfRoundHistory.projectId);
       const project = await findProjectById(qfRoundHistory.projectId);
       if (project) {
         await updateUserTotalReceived(project.adminUser.id);

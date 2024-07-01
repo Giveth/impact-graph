@@ -11,7 +11,6 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../src/services/userService';
-import { updateTotalDonationsOfProject } from '../src/services/donationService';
 import { refreshProjectEstimatedMatchingView } from '../src/services/projectViewsService';
 import { updateProjectStatistics } from '../src/services/projectService';
 
@@ -392,7 +391,6 @@ export class AddDonationsMannuallyToDb1716549958362
 
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
-      await updateTotalDonationsOfProject(tx.projectId as number);
       await updateProjectStatistics(tx.projectId as number);
     }
 
