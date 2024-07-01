@@ -13,11 +13,15 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { findProjectById } from '../repositories/projectRepository';
+import {
+  findProjectById,
+  findProjectIdBySlug,
+} from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import {
   findDonationById,
   findStableCoinDonationsWithoutPrice,
+  findRelevantDonations,
 } from '../repositories/donationRepository';
 import {
   getChainvineAdapter,
@@ -540,3 +544,43 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
     logger.error('insertDonationsFromQfRoundHistory error', e);
   }
 };
+
+export async function getDonationToGivethWithDonationBoxMetrics(
+  startDate: Date,
+  endDate: Date,
+  timeDiff: number,
+) {
+  const givethProject = await findProjectIdBySlug('giveth');
+  if (givethProject === null) {
+    throw new Error('giveth project not found!');
+  }
+
+  const { donationsToGiveth, pairedDonations } = await findRelevantDonations(
+    startDate,
+    endDate,
+    givethProject.id,
+    timeDiff,
+  );
+  const totalDonationsToGiveth = donationsToGiveth.length;
+  const totalUsdValueToGiveth = donationsToGiveth.reduce(
+    (sum, donation) => sum + (donation.valueUsd || 0),
+    0,
+  );
+
+  const donationPercentages = donationsToGiveth.map((donation, index) => {
+    const pairedDonation = pairedDonations[index];
+    const totalValue =
+      (donation.valueUsd || 0) + (pairedDonation.valueUsd || 0);
+    return (donation.valueUsd || 0) / totalValue;
+  });
+
+  const averagePercentageToGiveth =
+    donationPercentages.reduce((sum, percentage) => sum + percentage, 0) /
+    donationPercentages.length;
+
+  return {
+    totalDonationsToGiveth,
+    totalUsdValueToGiveth,
+    averagePercentageToGiveth,
+  };
+}
