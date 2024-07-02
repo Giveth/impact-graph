@@ -238,8 +238,10 @@ export const getRelatedProjectsOfQfRound = async (
 
 export const getUserMBDScore = async (
   qfRoundId: number,
-  userId: string,
+  userId: number,
 ): Promise<number | null> => {
+  if (!userId || !qfRoundId) return null;
+
   const result = await UserQfRoundModelScore.createQueryBuilder(
     'user_qf_round_model_score',
   )
@@ -248,5 +250,13 @@ export const getUserMBDScore = async (
     .andWhere('qfRoundId = :qfRoundId', { qfRoundId })
     .getRawOne();
 
-  return result.score ?? null;
+  return result?.score ?? null;
+};
+
+export const retrieveActiveQfRoundUserMBDScore = async (
+  userId: number,
+): Promise<number | null> => {
+  const activeQfRound = await findActiveQfRound();
+  if (!activeQfRound) return null;
+  return getUserMBDScore(activeQfRound.id, userId);
 };

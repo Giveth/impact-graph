@@ -199,6 +199,9 @@ export class User extends BaseEntity {
   projectsCount?: number;
 
   @Field(_type => Int, { nullable: true })
+  activeQFMBDScore?: number;
+
+  @Field(_type => Int, { nullable: true })
   async donationsCount() {
     // Count for non-recurring donations
     const nonRecurringDonationsCount = await Donation.createQueryBuilder(
