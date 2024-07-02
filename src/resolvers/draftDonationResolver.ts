@@ -49,6 +49,8 @@ export class DraftDonationResolver {
     @Arg('token') token: string,
     @Arg('projectId') projectId: number,
     @Arg('toAddress', { nullable: true }) toAddress: string,
+    @Arg('useDonationBox', { nullable: true, defaultValue: false })
+    useDonationBox: boolean,
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
@@ -94,6 +96,7 @@ export class DraftDonationResolver {
         referrerId,
         safeTransactionId,
         chainType,
+        useDonationBox,
       };
       try {
         validateWithJoiSchema(
@@ -133,6 +136,7 @@ export class DraftDonationResolver {
           anonymous: Boolean(anonymous),
           chainType: chainType as ChainType,
           referrerId,
+          useDonationBox,
         })
         .orIgnore()
         .returning('id')

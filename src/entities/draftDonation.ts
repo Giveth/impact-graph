@@ -111,4 +111,8 @@ export class DraftDonation extends BaseEntity {
   @Field()
   @Column({ nullable: true })
   matchedDonationId?: number;
+
+  @Field()
+  @Column({ nullable: true })
+  useDonationBox?: boolean;
 }

@@ -682,6 +682,8 @@ export class DonationResolver {
     @Arg('projectId') projectId: number,
     @Arg('nonce', { nullable: true }) nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
+    @Arg('useDonationBox', { nullable: true, defaultValue: false })
+    useDonationBox: boolean,
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
@@ -729,6 +731,7 @@ export class DonationResolver {
         referrerId,
         safeTransactionId,
         chainType,
+        useDonationBox,
       };
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
@@ -827,6 +830,7 @@ export class DonationResolver {
         anonymous: Boolean(anonymous),
         safeTransactionId,
         chainType: chainType as ChainType,
+        useDonationBox,
       });
       if (referrerId) {
         // Fill referrer data if referrerId is valid
