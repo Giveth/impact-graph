@@ -4,6 +4,7 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Float,
   InputType,
   Int,
   Mutation,
@@ -24,6 +25,7 @@ import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
+  getDonationToGivethWithDonationBoxMetrics,
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
@@ -198,6 +200,18 @@ class DonationCurrencyStats {
 
   @Field(_type => Number, { nullable: true })
   currencyPercentage?: number;
+}
+
+@ObjectType()
+class DonationMetrics {
+  @Field(_type => Int, { nullable: true })
+  totalDonationsToGiveth: number;
+
+  @Field(_type => Float, { nullable: true })
+  totalUsdValueToGiveth: number;
+
+  @Field(_type => Float, { nullable: true })
+  averagePercentageToGiveth: number;
 }
 
 @Resolver(_of => User)
@@ -668,6 +682,8 @@ export class DonationResolver {
     @Arg('projectId') projectId: number,
     @Arg('nonce', { nullable: true }) nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
+    @Arg('useDonationBox', { nullable: true, defaultValue: false })
+    useDonationBox: boolean,
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
@@ -715,6 +731,7 @@ export class DonationResolver {
         referrerId,
         safeTransactionId,
         chainType,
+        useDonationBox,
       };
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
@@ -813,6 +830,7 @@ export class DonationResolver {
         anonymous: Boolean(anonymous),
         safeTransactionId,
         chainType: chainType as ChainType,
+        useDonationBox,
       });
       if (referrerId) {
         // Fill referrer data if referrerId is valid
@@ -994,5 +1012,24 @@ export class DonationResolver {
       qfRoundId,
       userId,
     });
+  }
+
+  @Query(_returns => DonationMetrics)
+  async donationMetrics(
+    @Arg('startDate', _type => String, { nullable: false }) startDate: string,
+    @Arg('endDate', _type => String, { nullable: false }) endDate: string,
+    @Arg('timeDiff', _type => Int, { nullable: true, defaultValue: 60 })
+    timeDiff: number,
+  ): Promise<DonationMetrics> {
+    const metrics = await getDonationToGivethWithDonationBoxMetrics(
+      new Date(startDate),
+      new Date(endDate),
+      timeDiff,
+    );
+    return {
+      totalDonationsToGiveth: metrics.totalDonationsToGiveth,
+      totalUsdValueToGiveth: metrics.totalUsdValueToGiveth,
+      averagePercentageToGiveth: metrics.averagePercentageToGiveth,
+    };
   }
 }

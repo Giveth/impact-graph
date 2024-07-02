@@ -2403,3 +2403,21 @@ export const fetchRecurringDonationStatsQuery = `
       }
   }
 `;
+
+export const fetchDonationMetricsQuery = `
+  query (
+    $startDate: String!
+    $endDate: String!
+    $timeDiff: Int
+  ) {
+    donationMetrics(
+      startDate: $startDate
+      endDate: $endDate
+      timeDiff: $timeDiff
+    ) {
+      totalDonationsToProject1
+      totalUsdValueToProject1
+      averagePercentageToProject1
+    }
+  }
+`;

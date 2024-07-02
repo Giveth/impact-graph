@@ -34,6 +34,7 @@ import {
   doesDonatedToProjectInQfRoundQuery,
   fetchNewDonorsCount,
   fetchNewDonorsDonationTotalUsd,
+  fetchDonationMetricsQuery,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -96,6 +97,7 @@ describe(
   totalDonationsPerCategoryPerDateTestCases,
 );
 describe('recentDonations() test cases', recentDonationsTestCases);
+describe('donationMetrics() test cases', donationMetricsTestCases);
 
 // // describe('tokens() test cases', tokensTestCases);
 
@@ -4785,5 +4787,82 @@ async function recentDonationsTestCases() {
     assert.lengthOf(recentDonations, 2);
     assert.equal(recentDonations[0].id, donation3.id);
     assert.equal(recentDonations[1].id, donation2.id);
+  });
+}
+
+async function donationMetricsTestCases() {
+  // Clear all other donations before each test
+  beforeEach(async () => {
+    await Donation.clear();
+  });
+
+  it('should return correct donation metrics', async () => {
+    const walletAddress1 = generateRandomEtheriumAddress();
+    const walletAddress2 = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user1 = await saveUserDirectlyToDb(walletAddress1);
+    const user2 = await saveUserDirectlyToDb(walletAddress2);
+
+    // Donations to project with ID 1 (giveth)
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date('2023-01-01T00:00:00Z'),
+        valueUsd: 100,
+      }),
+      user1.id,
+      project.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date('2023-01-01T00:00:30Z'),
+        valueUsd: 50,
+      }),
+      user1.id,
+      project.id,
+    );
+
+    // Donations to another project
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date('2023-01-01T00:01:00Z'),
+        valueUsd: 100,
+      }),
+      user1.id,
+      project.id + 1,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date('2023-01-01T00:01:30Z'),
+        valueUsd: 50,
+      }),
+      user2.id,
+      project.id + 1,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationMetricsQuery,
+        variables: {
+          startDate: '2023-01-01T00:00:00Z',
+          endDate: '2023-01-02T00:00:00Z',
+          timeDiff: 60,
+        },
+      },
+      {},
+    );
+
+    assert.isOk(result);
+
+    const { donationMetrics } = result.data.data;
+    assert.equal(donationMetrics.totalDonationsToProject1, 2);
+    assert.equal(donationMetrics.totalUsdValueToProject1, 150);
+    assert.closeTo(donationMetrics.averagePercentageToProject1, 0.75, 0.01); // Assuming equal weights for the two donations
   });
 }

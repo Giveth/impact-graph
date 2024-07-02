@@ -536,3 +536,87 @@ export async function isVerifiedDonationExistsInQfRound(params: {
     return false;
   }
 }
+
+export async function findRelevantDonations(
+  startDate: Date,
+  endDate: Date,
+  givethProjectId: number,
+  timeDiff: number,
+): Promise<{ donationsToGiveth: Donation[]; pairedDonations: Donation[] }> {
+  const donations = await Donation.createQueryBuilder('donation')
+    .where('donation.createdAt BETWEEN :startDate AND :endDate', {
+      startDate,
+      endDate,
+    })
+    .getMany();
+
+  const userDonations = donations.reduce((acc, donation) => {
+    const userId = donation.userId;
+    if (!acc[userId]) {
+      acc[userId] = [];
+    }
+    acc[userId].push(donation);
+    return acc;
+  }, {});
+
+  const donationsToGiveth: Donation[] = [];
+  const pairedDonations: Donation[] = [];
+  for (const userId in userDonations) {
+    const userDonationsList = userDonations[userId];
+    userDonationsList.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+    );
+
+    for (let i = 0; i < userDonationsList.length; i++) {
+      const donation = userDonationsList[i];
+      if (donation.projectId === givethProjectId) {
+        let isRelevant = false;
+
+        // Check for donations after the current donation
+        for (let j = i + 1; j < userDonationsList.length; j++) {
+          const nextDonation = userDonationsList[j];
+          const timeDifference =
+            (nextDonation.createdAt.getTime() - donation.createdAt.getTime()) /
+            1000;
+          if (
+            timeDifference <= timeDiff &&
+            nextDonation.projectId !== givethProjectId
+          ) {
+            donationsToGiveth.push(donation);
+            pairedDonations.push(nextDonation);
+            isRelevant = true;
+            break;
+          }
+          if (timeDifference > timeDiff) {
+            break;
+          }
+        }
+
+        // Check for donations before the current donation
+        if (!isRelevant) {
+          for (let k = i - 1; k >= 0; k--) {
+            const prevDonation = userDonationsList[k];
+            const timeDifference =
+              (donation.createdAt.getTime() -
+                prevDonation.createdAt.getTime()) /
+              1000;
+            if (
+              timeDifference <= timeDiff &&
+              prevDonation.projectId !== givethProjectId
+            ) {
+              donationsToGiveth.push(donation);
+              pairedDonations.push(prevDonation);
+              isRelevant = true;
+              break;
+            }
+            if (timeDifference > timeDiff) {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return { donationsToGiveth, pairedDonations };
+}
