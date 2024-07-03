@@ -682,12 +682,12 @@ export class DonationResolver {
     @Arg('projectId') projectId: number,
     @Arg('nonce', { nullable: true }) nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
-    @Arg('useDonationBox', { nullable: true, defaultValue: false })
-    useDonationBox: boolean,
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
     @Arg('draftDonationId', { nullable: true }) draftDonationId?: number,
+    @Arg('useDonationBox', { nullable: true, defaultValue: false })
+    useDonationBox?: boolean,
   ): Promise<number> {
     const logData = {
       amount,
