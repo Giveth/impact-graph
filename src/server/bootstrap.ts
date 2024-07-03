@@ -37,7 +37,6 @@ import {
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
 import { apiGivRouter } from '../routers/apiGivRoutes';
-import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 import { authorizationHandler } from '../services/authorizationServices';
 import {
   oauth2CallbacksRouter,
@@ -348,7 +347,6 @@ export async function bootstrap() {
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-    runUpdateDonationsWithoutValueUsdPrices();
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
