@@ -4860,8 +4860,8 @@ async function donationMetricsTestCases() {
     assert.isOk(result);
 
     const { donationMetrics } = result.data.data;
-    assert.equal(donationMetrics.totalDonationsToProject1, 2);
-    assert.equal(donationMetrics.totalUsdValueToProject1, 150);
-    assert.closeTo(donationMetrics.averagePercentageToProject1, 0.75, 0.01); // Assuming equal weights for the two donations
+    assert.equal(donationMetrics.totalDonationsToGiveth, 2);
+    assert.equal(donationMetrics.totalUsdValueToGiveth, 150);
+    assert.closeTo(donationMetrics.averagePercentageToGiveth, 0.75, 0.01); // Assuming equal weights for the two donations
   });
 }

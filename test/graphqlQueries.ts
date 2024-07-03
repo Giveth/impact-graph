@@ -2413,9 +2413,9 @@ export const fetchDonationMetricsQuery = `
       startDate: $startDate
       endDate: $endDate
     ) {
-      totalDonationsToProject1
-      totalUsdValueToProject1
-      averagePercentageToProject1
+      totalDonationsToGiveth
+      totalUsdValueToGiveth
+      averagePercentageToGiveth
     }
   }
 `;
