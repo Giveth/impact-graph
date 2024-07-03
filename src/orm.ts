@@ -29,6 +29,7 @@ export class AppDataSource {
         schema: 'public',
         type: 'postgres',
         replication: {
+          defaultMode: 'master',
           master: {
             database: config.get('TYPEORM_DATABASE_NAME') as string,
             username: config.get('TYPEORM_DATABASE_USER') as string,

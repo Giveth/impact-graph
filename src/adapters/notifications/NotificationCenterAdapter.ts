@@ -57,6 +57,21 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
+  async subscribeOnboarding(params: { email: string }): Promise<void> {
+    try {
+      const { email } = params;
+      if (!email) return;
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.SUBSCRIBE_ONBOARDING,
+        segment: {
+          payload: { email },
+        },
+      });
+    } catch (e) {
+      logger.error('subscribeOnboarding >> error', e);
+    }
+  }
+
   async sendEmailConfirmation(params: {
     email: string;
     project: Project;
@@ -519,8 +534,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  async verificationFormRejected(params: { project: Project }): Promise<void> {
-    const { project } = params;
+  async verificationFormRejected(params: {
+    project: Project;
+    reason?: string;
+  }): Promise<void> {
+    const { project, reason } = params;
     const user = project.adminUser as User;
     const now = Date.now();
 
@@ -529,9 +547,12 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_REJECTED,
       sendEmail: true,
       segment: {
-        payload: await getEmailDataProjectAttributes({
-          project,
-        }),
+        payload: {
+          ...(await getEmailDataProjectAttributes({
+            project,
+          })),
+          verificationRejectedReason: reason,
+        },
       },
       trackId: `verification-form-rejected-${
         project.id

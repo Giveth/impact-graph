@@ -11,6 +11,11 @@ import { logger } from '../../utils/logger';
 import { RecurringDonation } from '../../entities/recurringDonation';
 
 export class MockNotificationAdapter implements NotificationAdapterInterface {
+  async subscribeOnboarding(params: { email: string }): Promise<void> {
+    logger.debug('MockNotificationAdapter subscribeOnboarding', params);
+    return Promise.resolve(undefined);
+  }
+
   async createOrttoProfile(params: User): Promise<void> {
     logger.debug('MockNotificationAdapter createOrttoProfile', params);
     return Promise.resolve(undefined);
@@ -229,7 +234,10 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  verificationFormRejected(params: { project: Project }): Promise<void> {
+  verificationFormRejected(params: {
+    project: Project;
+    reason?: string;
+  }): Promise<void> {
     logger.debug('MockNotificationAdapter verificationFormRejected', {
       projectSlug: params.project.slug,
     });
