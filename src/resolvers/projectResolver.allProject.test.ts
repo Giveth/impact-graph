@@ -46,6 +46,7 @@ import {
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 
 // search and filters
 describe('all projects test cases --->', allProjectsTestCases);
@@ -295,22 +296,22 @@ function allProjectsTestCases() {
       assert.isOk(projectQueried?.projectPower?.totalPower > 0),
     );
   });
-  it('should return projects, filter from the givingblocks', async () => {
+  it('should return projects, filter from the ENDAOMENT', async () => {
     await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
-      givingBlocksId: '1234355',
       qualityScore: 0,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        filters: ['GivingBlock'],
+        filters: ['Endaoment'],
       },
     });
     assert.isNotEmpty(result.data.data.allProjects.projects);
     result.data.data.allProjects.projects.forEach(project =>
-      assert.exists(project.givingBlocksId),
+      assert.exists(project.organization.label, ORGANIZATION_LABELS.ENDAOMENT),
     );
   });
   it('should return projects, sort by reactions, DESC', async () => {
@@ -1105,7 +1106,7 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-      networkId: NETWORK_IDS.BASE_MAINNET,
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
     });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,

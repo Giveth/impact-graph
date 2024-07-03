@@ -494,7 +494,9 @@ export class ProjectResolver {
           // only giving Blocks do not accept Giv
           return query.andWhere(`project.${filter} IS NULL`);
         case FilterField.Endaoment:
-          return query.andWhere('project.givingBlocksId IS NOT NULL');
+          return query.andWhere('organization.label = :label', {
+            label: ORGANIZATION_LABELS.ENDAOMENT,
+          });
         case FilterField.BoostedWithGivPower:
           return query.andWhere(`projectPower.totalPower > 0`);
         case FilterField.ActiveQfRound:
@@ -2121,6 +2123,7 @@ export class ProjectResolver {
       throw error;
     }
   }
+
   @Mutation(_returns => Boolean)
   async activateProject(
     @Arg('projectId') projectId: number,
