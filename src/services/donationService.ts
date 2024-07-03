@@ -548,7 +548,6 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
 export async function getDonationToGivethWithDonationBoxMetrics(
   startDate: Date,
   endDate: Date,
-  timeDiff: number,
 ) {
   const givethProject = await findProjectIdBySlug('giveth');
   if (givethProject === null) {
@@ -559,7 +558,6 @@ export async function getDonationToGivethWithDonationBoxMetrics(
     startDate,
     endDate,
     givethProject.id,
-    timeDiff,
   );
   const totalDonationsToGiveth = donationsToGiveth.length;
   const totalUsdValueToGiveth = donationsToGiveth.reduce(

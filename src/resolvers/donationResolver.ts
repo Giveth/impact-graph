@@ -1018,18 +1018,20 @@ export class DonationResolver {
   async donationMetrics(
     @Arg('startDate', _type => String, { nullable: false }) startDate: string,
     @Arg('endDate', _type => String, { nullable: false }) endDate: string,
-    @Arg('timeDiff', _type => Int, { nullable: true, defaultValue: 60 })
-    timeDiff: number,
   ): Promise<DonationMetrics> {
-    const metrics = await getDonationToGivethWithDonationBoxMetrics(
-      new Date(startDate),
-      new Date(endDate),
-      timeDiff,
-    );
-    return {
-      totalDonationsToGiveth: metrics.totalDonationsToGiveth,
-      totalUsdValueToGiveth: metrics.totalUsdValueToGiveth,
-      averagePercentageToGiveth: metrics.averagePercentageToGiveth,
-    };
+    try {
+      const metrics = await getDonationToGivethWithDonationBoxMetrics(
+        new Date(startDate),
+        new Date(endDate),
+      );
+      return {
+        totalDonationsToGiveth: metrics.totalDonationsToGiveth,
+        totalUsdValueToGiveth: metrics.totalUsdValueToGiveth,
+        averagePercentageToGiveth: metrics.averagePercentageToGiveth,
+      };
+    } catch (e) {
+      logger.error('donationMetrics query error', e);
+      throw e;
+    }
   }
 }
