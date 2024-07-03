@@ -1,13 +1,12 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 import { endaomentProjects } from './data/importedEndaomentProjects';
 import { NETWORK_IDS } from '../src/provider';
 import { findUserByWalletAddress } from '../src/repositories/userRepository';
 import { generateRandomEtheriumAddress } from '../test/testUtils';
 import { ReviewStatus } from '../src/entities/project';
-import { User } from '@sentry/node';
+import { endaomentProjectCategoryMapping } from './data/endaomentProjectCategoryMapping';
 
 export class AddEndaomentProjects1719808494904 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Insert the Endaoment organization if it doesn't exist
     await queryRunner.query(`
@@ -23,7 +22,9 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
     const endaomentOrgId = endaomentOrgIdResult[0].id;
 
     const endaomentAdminWalletAddress = generateRandomEtheriumAddress();
-    const adminUser = await findUserByWalletAddress(endaomentAdminWalletAddress)
+    const adminUser = await findUserByWalletAddress(
+      endaomentAdminWalletAddress,
+    );
 
     // Insert projects and their addresses
     for (const project of endaomentProjects) {
@@ -34,7 +35,7 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
       // Insert the project
       await queryRunner.query(`
                 INSERT INTO "project" (
-                    "title", "description", "organizationId", "categories", "walletAddress", "creationDate", "slug","website", "image", "slugHistory", "givingBlocksId", "statusId", "totalDonations", "totalReactions", "totalProjectUpdates", "listed", "reviewStatus", "verified", "giveBacks", "isImported", "adminUserId"
+                    "title", "description", "organizationId", "categories", "walletAddress", "creationDate", "slug", "image", "slugHistory", "statusId", "totalDonations", "totalReactions", "totalProjectUpdates", "listed", "reviewStatus", "verified", "giveBacks", "isImported", "adminUserId"
                 )
                 VALUES (
                     '${project.name.replace(/'/g, "''")}',
@@ -44,10 +45,8 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
                     '${project.mainnetAddress || ''}',
                     NOW(),
                     '${slug}',
-                    '${project.website || ''}',
                     '${project.logoUrl}',
                     '{}', -- Empty slug history
-                    '${project.id}', -- Assuming givingBlocksId is project id in JSON
                     5, -- statusId 5 is 'Active'
                     0,
                     0,
@@ -66,6 +65,26 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
                 SELECT "id" FROM "project" WHERE "title" = '${project.name.replace(/'/g, "''")}' AND "organizationId" = ${endaomentOrgId};
             `);
       const projectId = projectIdResult[0].id;
+
+      // Insert the project-category relationship in a single query
+      const categoryName = endaomentProjectCategoryMapping[project.nteeCode]; // Example category name
+      const categoryIdResult = await queryRunner.query(`
+                SELECT "id" FROM "category" WHERE "name" = '${categoryName.replace(/'/g, "''")}' LIMIT 1;
+            `);
+      const categoryId = categoryIdResult[0]?.id;
+
+      // Insert the project-category relationship if category exists
+      if (categoryId) {
+        await queryRunner.query(`
+                    INSERT INTO "project_categories_category" ("projectId", "categoryId")
+                    VALUES (${projectId}, ${categoryId});
+                `);
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `Category '${categoryName}' not found for project '${project.name}'.`,
+        );
+      }
 
       // Insert the project addresses if provided
       if (project.mainnetAddress) {
@@ -101,7 +120,6 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
                 );
             `);
     }
-
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

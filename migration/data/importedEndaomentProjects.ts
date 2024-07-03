@@ -2,13 +2,11 @@ interface EndaomentProject {
   name: string;
   description: string;
   logoUrl: string;
-  nteeCode: string;
+  nteeCode: string | number;
   nteeDescription: string;
   mainnetAddress?: string;
   opAddress?: string;
   baseAddress?: string;
-  website?: string;
-  id?: string;
 }
 
 export const endaomentProjects: EndaomentProject[] = [
@@ -18,7 +16,7 @@ export const endaomentProjects: EndaomentProject[] = [
     logoUrl: '',
     nteeCode: 'W00',
     nteeDescription: 'Public & Societal Benefit',
-    mainnetAddress: '0xdef3f7548a789da782a4868d86e5d6c5dacbd4a2',
+    mainnetAddress: '0xdef3f7548a789da782a4868d86e5d6c5dacbd4a',
     opAddress: '0xdef3f7548a789da782a4868d86e5d6c5dacbd4a2',
     baseAddress: '0x831b59936bf2012ad63658f48d579cba1fd3bf74',
   },
@@ -3410,7 +3408,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x2f93f4fa5e3c9c6d2f88105efc9f5641d66a52af',
   },
   {
-    name: 1517,
+    name: '1517',
     description:
       '1517 is a nonprofit organization focused on assuring all people that the work of salvation is finished in Jesus Christ. Our mission is to help you hear that you are forgiven and free on account of Christ alone.',
     logoUrl: 'https://static.tgbwidget.com/1517.jpg',

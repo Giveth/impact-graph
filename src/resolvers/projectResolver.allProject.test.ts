@@ -1070,7 +1070,7 @@ function allProjectsTestCases() {
   });
 
   /////// Beginning of ZKEVM filter test
-  it.only('should return projects, filter by accept donation on zkevm', async () => {
+  it('should return projects, filter by accept donation on zkevm', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
