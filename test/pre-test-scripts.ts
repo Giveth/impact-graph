@@ -72,7 +72,7 @@ async function seedTokens() {
     } else if (token.symbol === 'WETH') {
       (tokenData as any).order = 3;
     }
-    await Token.create(tokenData as Token).save();
+    await Token.create(tokenData).save();
   }
   for (const token of SEED_DATA.TOKENS.mainnet) {
     const tokenData = {
