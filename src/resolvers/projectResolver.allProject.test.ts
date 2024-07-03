@@ -1101,7 +1101,7 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-      networkId: NETWORK_IDS.BASE_MAINNET,
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
     });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
