@@ -4852,7 +4852,6 @@ async function donationMetricsTestCases() {
         variables: {
           startDate: '2023-01-01T00:00:00Z',
           endDate: '2023-01-02T00:00:00Z',
-          timeDiff: 60,
         },
       },
       {},
