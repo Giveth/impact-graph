@@ -113,6 +113,6 @@ export class DraftDonation extends BaseEntity {
   matchedDonationId?: number;
 
   @Field()
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: false })
   useDonationBox?: boolean;
 }
