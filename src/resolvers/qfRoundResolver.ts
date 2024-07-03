@@ -115,10 +115,10 @@ export class QfRoundResolver {
     return findArchivedQfRounds(limit, skip, orderBy);
   }
 
-  @Query(_return => Number, { nullable: true })
+  @Query(_return => User, { nullable: true })
   async scoreUserAddress(
     @Arg('address') address: string,
-  ): Promise<number | undefined> {
+  ): Promise<User | undefined> {
     try {
       const user = await findUserByWalletAddress(address.toLowerCase());
       const activeQfRound = await findActiveQfRound();
@@ -127,41 +127,34 @@ export class QfRoundResolver {
       const userScore = await getGitcoinAdapter().getUserAnalysisScore(
         address.toLowerCase(),
       );
-      const userQfRoundScore = UserQfRoundModelScore.create({
-        userId: user.id,
-        qfRoundId: activeQfRound.id,
-        score: userScore,
-      });
 
-      await userQfRoundScore.save();
-      return userScore;
+      const existingRecord = await UserQfRoundModelScore.createQueryBuilder(
+        'userQfRoundModelScore',
+      )
+        .where('"userId" = :userId', { userId: user.id })
+        .andWhere('"qfRoundId" = :qfRoundId', {
+          qfRoundId: activeQfRound.id,
+        })
+        .getOne();
+
+      if (existingRecord) {
+        UserQfRoundModelScore.update(
+          { id: existingRecord.id },
+          { score: userScore },
+        );
+      } else {
+        const userQfRoundScore = UserQfRoundModelScore.create({
+          userId: user.id,
+          qfRoundId: activeQfRound.id,
+          score: userScore,
+        });
+        await userQfRoundScore.save();
+      }
+
+      user.activeQFMBDScore = userScore;
+      return user;
     } catch (e) {
       logger.error('scoreUserAddress error', e);
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
-      );
-    }
-  }
-
-  @Query(_return => Number, { nullable: true })
-  async fetchUserMBDScore(
-    @Arg('address') address: string,
-  ): Promise<{ score: number | undefined } | undefined> {
-    try {
-      const user = await findUserByWalletAddress(address.toLowerCase());
-      const activeQfRound = await findActiveQfRound();
-      if (!user && !activeQfRound) return;
-
-      const userQfRoundScore = await UserQfRoundModelScore.findOne({
-        where: {
-          userId: user?.id,
-          qfRoundId: activeQfRound!.id,
-        },
-      });
-
-      return { score: userQfRoundScore?.score };
-    } catch (e) {
-      logger.error('fetchUserModelScore error', e);
       throw new Error(
         i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
       );

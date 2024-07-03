@@ -56,7 +56,7 @@ export const findUserByWalletAddress = async (
   );
 
   const activeQFMBDScore = await retrieveActiveQfRoundUserMBDScore(user.id);
-  if (activeQFMBDScore) {
+  if (activeQFMBDScore != null) {
     user.activeQFMBDScore = activeQFMBDScore;
   }
 

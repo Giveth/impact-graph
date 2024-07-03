@@ -246,8 +246,8 @@ export const getUserMBDScore = async (
     'user_qf_round_model_score',
   )
     .select('score')
-    .where('userId = :userId', { userId })
-    .andWhere('qfRoundId = :qfRoundId', { qfRoundId })
+    .where('"userId" = :userId', { userId })
+    .andWhere('"qfRoundId" = :qfRoundId', { qfRoundId })
     .getRawOne();
 
   return result?.score ?? null;
