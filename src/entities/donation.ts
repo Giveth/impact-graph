@@ -280,7 +280,7 @@ export class Donation extends BaseEntity {
   virtualPeriodEnd?: number;
 
   @Field({ nullable: true })
-  @Column('boolean', { nullable: true })
+  @Column('boolean', { nullable: true, default: false })
   useDonationBox?: boolean;
 
   static async findXdaiGivDonationsWithoutPrice() {
