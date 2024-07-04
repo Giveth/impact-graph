@@ -133,6 +133,7 @@ export interface CreateProjectData {
   giveBacks?: boolean;
   creationDate: Date;
   updatedAt: Date;
+  latestUpdateCreationDate: Date;
   statusId?: number;
   organizationLabel?: string;
   qualityScore?: number;
@@ -206,6 +207,7 @@ export const saveProjectVerificationFormDirectlyToDb = async (params: {
     status: status || PROJECT_VERIFICATION_STATUSES.DRAFT,
   }).save();
 };
+
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
   owner?: User,
@@ -312,11 +314,12 @@ export const createProjectData = (): CreateProjectData => {
     giveBacks: false,
     creationDate: new Date(),
     updatedAt: new Date(),
+    latestUpdateCreationDate: new Date(),
     slug: title,
     // firstUser's id
     adminUserId: 1,
     qualityScore: 30,
-    // just need the initial value to be different than 0
+    // just need the initial value to be different from 0
     totalDonations: 10,
     totalReactions: 0,
     totalProjectUpdates: 1,
