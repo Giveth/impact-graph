@@ -555,7 +555,6 @@ export async function findRelevantDonations(
   donations.forEach(donation => {
     if (donation.projectId === givethProjectId) {
       donationsToGiveth.push(donation);
-    } else if (donation.relevantDonationTxHash) {
       const relevantDonation = donations.find(
         d => d.transactionId === donation.relevantDonationTxHash,
       );

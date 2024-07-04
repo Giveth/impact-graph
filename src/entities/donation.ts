@@ -284,7 +284,7 @@ export class Donation extends BaseEntity {
   useDonationBox?: boolean;
 
   @Field({ nullable: true })
-  @Column('string', { nullable: true })
+  @Column({ nullable: true })
   relevantDonationTxHash?: string;
 
   static async findXdaiGivDonationsWithoutPrice() {
