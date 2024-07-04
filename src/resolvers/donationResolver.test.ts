@@ -4805,42 +4805,58 @@ async function donationMetricsTestCases() {
 
     // Donations to project with ID 1 (giveth)
     await saveDonationDirectlyToDb(
-      createDonationData({
-        status: DONATION_STATUS.VERIFIED,
-        createdAt: new Date('2023-01-01T00:00:00Z'),
-        valueUsd: 100,
-      }),
+      {
+        ...createDonationData({
+          status: DONATION_STATUS.VERIFIED,
+          createdAt: new Date('2023-01-01T00:00:00Z'),
+          valueUsd: 100,
+        }),
+        useDonationBox: true,
+        relevantDonationTxHash: 'tx1',
+      },
       user1.id,
       project.id,
     );
 
     await saveDonationDirectlyToDb(
-      createDonationData({
-        status: DONATION_STATUS.VERIFIED,
-        createdAt: new Date('2023-01-01T00:00:30Z'),
-        valueUsd: 50,
-      }),
+      {
+        ...createDonationData({
+          status: DONATION_STATUS.VERIFIED,
+          createdAt: new Date('2023-01-01T00:00:30Z'),
+          valueUsd: 50,
+        }),
+        useDonationBox: true,
+        relevantDonationTxHash: 'tx2',
+      },
       user1.id,
       project.id,
     );
 
     // Donations to another project
     await saveDonationDirectlyToDb(
-      createDonationData({
-        status: DONATION_STATUS.VERIFIED,
-        createdAt: new Date('2023-01-01T00:01:00Z'),
-        valueUsd: 100,
-      }),
+      {
+        ...createDonationData({
+          status: DONATION_STATUS.VERIFIED,
+          createdAt: new Date('2023-01-01T00:01:00Z'),
+          valueUsd: 100,
+        }),
+        useDonationBox: true,
+        transactionId: 'tx1',
+      },
       user1.id,
       project.id + 1,
     );
 
     await saveDonationDirectlyToDb(
-      createDonationData({
-        status: DONATION_STATUS.VERIFIED,
-        createdAt: new Date('2023-01-01T00:01:30Z'),
-        valueUsd: 50,
-      }),
+      {
+        ...createDonationData({
+          status: DONATION_STATUS.VERIFIED,
+          createdAt: new Date('2023-01-01T00:01:30Z'),
+          valueUsd: 50,
+        }),
+        useDonationBox: true,
+        transactionId: 'tx2',
+      },
       user2.id,
       project.id + 1,
     );
