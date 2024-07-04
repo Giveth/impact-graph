@@ -1,25 +1,20 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectEstimatedMatchingViewV21717646357435
+export class ProjectEstimatedMatchingView_V31718547883338
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `
-              DROP MATERIALIZED VIEW IF EXISTS project_estimated_matching_view;
-              `,
-    );
+    await queryRunner.query(`
+      DROP MATERIALIZED VIEW IF EXISTS project_estimated_matching_view;
+    `);
     await queryRunner.query(
       `
           CREATE MATERIALIZED VIEW project_estimated_matching_view AS
           SELECT
             donations_by_user."projectId",
             donations_by_user."qfRoundId",
-            SUM(donations_by_user."valueUsd") as "sumValueUsd",
-            COUNT(*) as "uniqueDonorsCount",
             SUM(SQRT(donations_by_user."valueUsd")) as "sqrtRootSum",
-            POWER(SUM(SQRT(donations_by_user."valueUsd")), 2) as "sqrtRootSumSquared",
-            COUNT(donations_by_user."userId") as "donorsCount"
+            POWER(SUM(SQRT(donations_by_user."valueUsd")), 2) as "sqrtRootSumSquared"
           FROM (
             SELECT
               "donation"."projectId",
@@ -41,12 +36,12 @@ export class ProjectEstimatedMatchingViewV21717646357435
           GROUP BY
             donations_by_user."projectId",
             donations_by_user."qfRoundId";
-        `,
+         `,
     );
     await queryRunner.query(`
-      CREATE INDEX idx_project_estimated_matching_project_id ON project_estimated_matching_view USING hash ("projectId");
-      CREATE INDEX idx_project_estimated_matching_qf_round_id ON project_estimated_matching_view USING btree ("qfRoundId");
-      CREATE UNIQUE INDEX idx_project_estimated_matching_unique ON project_estimated_matching_view ("projectId", "qfRoundId");
+          CREATE INDEX idx_project_estimated_matching_project_id ON project_estimated_matching_view USING hash ("projectId");
+          CREATE INDEX idx_project_estimated_matching_qf_round_id ON project_estimated_matching_view USING btree ("qfRoundId");
+          CREATE UNIQUE INDEX idx_project_estimated_matching_unique ON project_estimated_matching_view ("projectId", "qfRoundId");
     `);
   }
 

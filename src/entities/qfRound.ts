@@ -97,6 +97,10 @@ export class QfRound extends BaseEntity {
   @Column('text', { array: true, default: [] })
   sponsorsImgs: string[];
 
+  @Field(_type => Boolean)
+  @Column({ default: false })
+  isDataAnalysisDone: boolean;
+
   @UpdateDateColumn()
   updatedAt: Date;
 

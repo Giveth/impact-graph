@@ -532,6 +532,11 @@ export class ProjectResolver {
           networkIds.push(NETWORK_IDS.BASE_SEPOLIA);
           return;
 
+        case FilterField.AcceptFundOnZKEVM:
+          networkIds.push(NETWORK_IDS.ZKEVM_MAINNET);
+          networkIds.push(NETWORK_IDS.ZKEVM_CARDONA);
+          return;
+
         case FilterField.AcceptFundOnPolygon:
           networkIds.push(NETWORK_IDS.POLYGON);
           return;
@@ -1272,6 +1277,7 @@ export class ProjectResolver {
 
         return response;
       } catch (e) {
+        logger.error('upload image failed in project resolver', e);
         throw Error(i18n.__(translationErrorMessagesKeys.UPLOAD_FAILED));
       }
     }
@@ -1285,7 +1291,7 @@ export class ProjectResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('onlyListed', { nullable: true }) onlyListed?: boolean,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
-    @Arg('includesOptimism', { nullable: true }) includesOptimism?: boolean,
+    @Arg('networkId', { nullable: true }) networkId?: number,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -1295,14 +1301,14 @@ export class ProjectResolver {
       const total = await totalProjectsPerDate(
         fromDate,
         toDate,
-        includesOptimism,
+        networkId,
         onlyListed,
         onlyVerified,
       );
       const totalPerMonthAndYear = await totalProjectsPerDateByMonthAndYear(
         fromDate,
         toDate,
-        includesOptimism,
+        networkId,
         onlyListed,
         onlyVerified,
       );

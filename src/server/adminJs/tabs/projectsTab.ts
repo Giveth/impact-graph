@@ -381,7 +381,7 @@ export const addProjectsToQfRound = async (
   const projectIds = request?.query?.recordIds
     ?.split(',')
     ?.map(strId => Number(strId)) as number[];
-  const qfRound = await findActiveQfRound();
+  const qfRound = await findActiveQfRound(true);
   if (qfRound) {
     await relateManyProjectsToQfRound({
       projectIds,
@@ -412,7 +412,7 @@ export const addSingleProjectToQfRound = async (
   const { record, currentAdmin } = context;
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
   const projectId = Number(request?.params?.recordId);
-  const qfRound = await findActiveQfRound();
+  const qfRound = await findActiveQfRound(true);
   if (qfRound) {
     await relateManyProjectsToQfRound({
       projectIds: [projectId],
@@ -600,6 +600,7 @@ export const exportProjectsWithFiltersToCsv = async (
       },
     };
   } catch (e) {
+    logger.error('exportProjectsWithFiltersToCsv() error', e);
     return {
       redirectUrl: '/admin/resources/Project',
       record: {},
@@ -650,13 +651,15 @@ export const projectsTab = {
         },
       },
       adminUserId: {
+        type: 'Number',
         isVisible: {
           list: true,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
+        position: 1,
       },
       contacts: {
         isVisible: {
@@ -706,9 +709,7 @@ export const projectsTab = {
       totalTraceDonations: {
         isVisible: { list: false, filter: false, show: true, edit: true },
       },
-      admin: {
-        isVisible: { list: false, filter: false, show: true, edit: true },
-      },
+
       description: {
         isVisible: {
           list: false,
@@ -728,6 +729,7 @@ export const projectsTab = {
           show: true,
           edit: false,
         },
+
         components: {
           show: adminJs.bundle('./components/ClickableLink'),
         },
@@ -883,6 +885,7 @@ export const projectsTab = {
       edit: {
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectAction({ currentAdmin }, ResourceActions.EDIT),
+
         before: async (request: AdminJsRequestInterface) => {
           const { verified, reviewStatus } = request.payload;
           const statusChanges: string[] = [];
@@ -945,8 +948,13 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
               );
             }
-            if (Number(request?.payload?.admin) !== project?.adminUserId) {
+
+            if (
+              Number(request?.payload?.adminUserId) !== project?.adminUserId
+            ) {
+              const newID = request?.payload?.adminUserId;
               request.payload.adminChanged = true;
+              request.payload.newAdminId = newID;
             }
 
             // We put these status changes in payload, so in after hook we would know to send notification for users
@@ -966,7 +974,7 @@ export const projectsTab = {
           if (project) {
             if (request?.record?.params?.adminChanged) {
               const adminUser = await User.findOne({
-                where: { id: project.adminUserId },
+                where: { id: request?.record?.params?.newAdminId },
               });
               project.adminUser = adminUser!;
               await project.save();

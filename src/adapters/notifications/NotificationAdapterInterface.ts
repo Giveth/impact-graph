@@ -34,6 +34,8 @@ export interface OrttoPerson {
 }
 
 export interface NotificationAdapterInterface {
+  subscribeOnboarding(params: { email: string }): Promise<void>;
+
   createOrttoProfile(params: User): Promise<void>;
 
   updateOrttoPeople(params: OrttoPerson[]): Promise<void>;
@@ -53,6 +55,12 @@ export interface NotificationAdapterInterface {
   projectReceivedHeartReaction(params: {
     project: Project;
     userId: number;
+  }): Promise<void>;
+
+  sendEmailConfirmation(params: {
+    email: string;
+    project: Project;
+    token: string;
   }): Promise<void>;
 
   userSuperTokensCritical(params: {
@@ -76,7 +84,10 @@ export interface NotificationAdapterInterface {
   projectBadgeRevokeLastWarning(params: { project: Project }): Promise<void>;
   projectBadgeUpForRevoking(params: { project: Project }): Promise<void>;
   projectUnVerified(params: { project: Project }): Promise<void>;
-  verificationFormRejected(params: { project: Project }): Promise<void>;
+  verificationFormRejected(params: {
+    project: Project;
+    reason?: string;
+  }): Promise<void>;
 
   projectListed(params: { project: Project }): Promise<void>;
 

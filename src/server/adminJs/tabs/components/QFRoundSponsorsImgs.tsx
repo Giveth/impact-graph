@@ -162,9 +162,10 @@ const Label = styled.label`
 
 const Container = styled.div`
   background-color: white;
-  border-radius: 0.75rem; /* Equivalent to rounded */
+  border-radius: 0.75rem;
   width: 100%;
-  margin: auto;
+  margin-inline: auto;
+  margin-bottom: 2rem;
 `;
 
 const FileContainer = styled.div`
@@ -172,22 +173,22 @@ const FileContainer = styled.div`
   display: flex;
   margin-top: 1rem;
   flex-direction: column;
-  padding: 1rem; /* Equivalent to p-4 */
-  color: #718096; /* Equivalent to text-gray-400 */
-  border: 1px solid #e2e8f0; /* Equivalent to border */
-  border-radius: 0.375rem; /* Equivalent to rounded */
+  padding: 1rem;
+  color: #718096;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
 `;
 
 const DropZone = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  border: 1px dashed #e2e8f0; /* Equivalent to border-dashed */
-  border-radius: 0.375rem; /* Equivalent to rounded */
+  border: 1px dashed #e2e8f0;
+  border-radius: 0.375rem;
   cursor: pointer;
   &:hover {
-    border-color: #4a90e2; /* Equivalent to border-blue-400 */
-    box-shadow: 0 0 0 0.25rem #4a90e2; /* Equivalent to ring-4 */
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 0.25rem #4a90e2;
   }
 `;
 
