@@ -1508,6 +1508,9 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
 
 function findRelevantDonationsTestCases() {
   it('should return relevant donations correctly', async () => {
+    // Clear existing data
+    await Donation.clear();
+
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -1516,8 +1519,8 @@ function findRelevantDonationsTestCases() {
       {
         ...createDonationData(),
         projectId: project1.id,
-        createdAt: new Date(),
-        transactionId: 'tx1',
+        createdAt: new Date('2024-01-01'),
+        relevantDonationTxHash: 'tx1',
         useDonationBox: true,
       },
       user.id,
@@ -1528,8 +1531,8 @@ function findRelevantDonationsTestCases() {
       {
         ...createDonationData(),
         projectId: project2.id,
-        createdAt: new Date(),
-        relevantDonationTxHash: 'tx1',
+        createdAt: new Date('2024-01-01'),
+        transactionId: 'tx1',
         useDonationBox: true,
       },
       user.id,
@@ -1553,25 +1556,19 @@ function findRelevantDonationsTestCases() {
     await Donation.clear();
 
     // Create project and user
-    const givethProject = await saveProjectDirectlyToDb(
-      SEED_DATA.FIRST_PROJECT,
-    );
-    const otherProject = await saveProjectDirectlyToDb(
-      SEED_DATA.SECOND_PROJECT,
-    );
-    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const givethProject = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    // Create a donation without a matching relevant donation
-    await saveDonationDirectlyToDb(
+    const donationsToGiveth = await saveDonationDirectlyToDb(
       {
-        ...createDonationData({
-          createdAt: new Date(),
-        }),
-        relevantDonationTxHash: 'non-existent-tx',
+        ...createDonationData(),
+        projectId: givethProject.id,
+        createdAt: new Date('2024-01-01'),
+        relevantDonationTxHash: 'tx1',
         useDonationBox: true,
       },
-      donor.id,
-      otherProject.id,
+      user.id,
+      givethProject.id,
     );
 
     // Fetch relevant donations and expect an error
@@ -1579,10 +1576,10 @@ function findRelevantDonationsTestCases() {
       () =>
         findRelevantDonations(
           new Date('2023-01-01'),
-          new Date('2023-12-31'),
+          new Date('2025-01-01'),
           givethProject.id,
         ),
-      'the relevant donation to this donation does not exist',
+      `the relevant donation to this donation does not exist: donation id = ${donationsToGiveth.id}`,
     );
   });
 }

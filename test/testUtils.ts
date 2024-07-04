@@ -297,8 +297,8 @@ export const saveProjectDirectlyToDb = async (
     )`);
   return project;
 };
-export const createProjectData = (): CreateProjectData => {
-  const title = String(new Date().getTime());
+export const createProjectData = (name?: string): CreateProjectData => {
+  const title = name ? name : String(new Date().getTime());
   const walletAddress = generateRandomEtheriumAddress();
   return {
     // title: `test project`,

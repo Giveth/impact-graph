@@ -4799,7 +4799,8 @@ async function donationMetricsTestCases() {
   it('should return correct donation metrics', async () => {
     const walletAddress1 = generateRandomEtheriumAddress();
     const walletAddress2 = generateRandomEtheriumAddress();
-    const project = await saveProjectDirectlyToDb(createProjectData());
+    const project1 = await saveProjectDirectlyToDb(createProjectData('giveth'));
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
     const user1 = await saveUserDirectlyToDb(walletAddress1);
     const user2 = await saveUserDirectlyToDb(walletAddress2);
 
@@ -4808,28 +4809,28 @@ async function donationMetricsTestCases() {
       {
         ...createDonationData({
           status: DONATION_STATUS.VERIFIED,
-          createdAt: new Date('2023-01-01T00:00:00Z'),
+          createdAt: new Date('2024-01-01T00:00:00Z'),
           valueUsd: 100,
         }),
         useDonationBox: true,
         relevantDonationTxHash: 'tx1',
       },
       user1.id,
-      project.id,
+      project1.id,
     );
 
     await saveDonationDirectlyToDb(
       {
         ...createDonationData({
           status: DONATION_STATUS.VERIFIED,
-          createdAt: new Date('2023-01-01T00:00:30Z'),
+          createdAt: new Date('2024-01-01T00:00:30Z'),
           valueUsd: 50,
         }),
         useDonationBox: true,
         relevantDonationTxHash: 'tx2',
       },
       user1.id,
-      project.id,
+      project1.id,
     );
 
     // Donations to another project
@@ -4837,14 +4838,14 @@ async function donationMetricsTestCases() {
       {
         ...createDonationData({
           status: DONATION_STATUS.VERIFIED,
-          createdAt: new Date('2023-01-01T00:01:00Z'),
-          valueUsd: 100,
+          createdAt: new Date('2024-01-01T00:01:00Z'),
+          valueUsd: 900,
         }),
         useDonationBox: true,
         transactionId: 'tx1',
       },
       user1.id,
-      project.id + 1,
+      project2.id,
     );
 
     await saveDonationDirectlyToDb(
@@ -4852,13 +4853,13 @@ async function donationMetricsTestCases() {
         ...createDonationData({
           status: DONATION_STATUS.VERIFIED,
           createdAt: new Date('2023-01-01T00:01:30Z'),
-          valueUsd: 50,
+          valueUsd: 200,
         }),
         useDonationBox: true,
         transactionId: 'tx2',
       },
       user2.id,
-      project.id + 1,
+      project2.id,
     );
 
     const result = await axios.post(
@@ -4867,7 +4868,7 @@ async function donationMetricsTestCases() {
         query: fetchDonationMetricsQuery,
         variables: {
           startDate: '2023-01-01T00:00:00Z',
-          endDate: '2023-01-02T00:00:00Z',
+          endDate: '2025-01-02T00:00:00Z',
         },
       },
       {},
@@ -4878,6 +4879,6 @@ async function donationMetricsTestCases() {
     const { donationMetrics } = result.data.data;
     assert.equal(donationMetrics.totalDonationsToGiveth, 2);
     assert.equal(donationMetrics.totalUsdValueToGiveth, 150);
-    assert.closeTo(donationMetrics.averagePercentageToGiveth, 0.75, 0.01); // Assuming equal weights for the two donations
+    assert.closeTo(donationMetrics.averagePercentageToGiveth, 15, 0.0001);
   });
 }

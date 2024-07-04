@@ -559,10 +559,10 @@ export async function findRelevantDonations(
         d => d.transactionId === donation.relevantDonationTxHash,
       );
       if (relevantDonation) {
-        pairedDonations.push(donation);
+        pairedDonations.push(relevantDonation);
       } else {
         throw new Error(
-          `the relevant donation to this donation does not exist: ${donation}`,
+          `the relevant donation to this donation does not exist: donation id = ${donation.id}`,
         );
       }
     }
