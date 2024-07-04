@@ -115,4 +115,8 @@ export class DraftDonation extends BaseEntity {
   @Field()
   @Column({ nullable: true, default: false })
   useDonationBox?: boolean;
+
+  @Field()
+  @Column({ nullable: true })
+  relevantDonationTxHash?: string;
 }

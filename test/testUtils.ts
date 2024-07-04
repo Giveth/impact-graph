@@ -1917,6 +1917,8 @@ export interface CreateDonationData {
   qfRoundId?: number;
   tokenAddress?: string;
   qfRoundUserScore?: number;
+  useDonationBox?: boolean;
+  relevantDonationTxHash?: string;
 }
 
 export interface CategoryData {

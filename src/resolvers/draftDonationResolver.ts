@@ -54,6 +54,8 @@ export class DraftDonationResolver {
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
     @Arg('useDonationBox', { nullable: true, defaultValue: false })
     useDonationBox?: boolean,
+    @Arg('relevantDonationTxHash', { nullable: true })
+    relevantDonationTxHash?: string,
   ): Promise<number> {
     const logData = {
       amount,
@@ -97,6 +99,7 @@ export class DraftDonationResolver {
         safeTransactionId,
         chainType,
         useDonationBox,
+        relevantDonationTxHash,
       };
       try {
         validateWithJoiSchema(
@@ -137,6 +140,7 @@ export class DraftDonationResolver {
           chainType: chainType as ChainType,
           referrerId,
           useDonationBox,
+          relevantDonationTxHash,
         })
         .orIgnore()
         .returning('id')
