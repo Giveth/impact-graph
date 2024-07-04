@@ -48,6 +48,10 @@ import { ChainType } from '../types/network';
 describe('all projects test cases --->', allProjectsTestCases);
 
 function allProjectsTestCases() {
+  beforeEach(async () => {
+    // Make all existing qfRounds inactive
+    await QfRound.update({}, { isActive: false });
+  });
   it('should return projects search by title', async () => {
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
@@ -1961,7 +1965,8 @@ function allProjectsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        qfRoundId: qfRound.id,
+        filters: ['ActiveQfRound'],
+        sortingBy: SortingField.EstimatedMatching,
       },
     });
 
