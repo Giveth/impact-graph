@@ -549,18 +549,25 @@ export async function findRelevantDonations(
     },
   });
 
-  const donationsToGiveth = donations.filter(
-    donation => donation.projectId === givethProjectId,
-  );
-  const pairedDonations = donations.filter(
-    donation => donation.projectId !== givethProjectId,
-  );
+  const donationsToGiveth: Donation[] = [];
+  const pairedDonations: Donation[] = [];
 
-  // Sort both arrays by createdAt to ensure entries with same index match with each other
-  donationsToGiveth.sort(
-    (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-  );
-  pairedDonations.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  donations.forEach(donation => {
+    if (donation.projectId === givethProjectId) {
+      donationsToGiveth.push(donation);
+    } else if (donation.relevantDonationTxHash) {
+      const relevantDonation = donations.find(
+        d => d.transactionId === donation.relevantDonationTxHash,
+      );
+      if (relevantDonation) {
+        pairedDonations.push(donation);
+      } else {
+        throw new Error(
+          `the relevant donation to this donation does not exist: ${donation}`,
+        );
+      }
+    }
+  });
 
   return { donationsToGiveth, pairedDonations };
 }
