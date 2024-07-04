@@ -502,7 +502,7 @@ export const fetchNewProjectsPerDate = `
     $toDate: String
     $onlyListed: Boolean
     $onlyVerified: Boolean
-    $networkId: Int
+    $networkId: Float
   ) {
     projectsPerDate(
       fromDate: $fromDate
