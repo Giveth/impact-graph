@@ -104,6 +104,8 @@ jobs:
           ARBITRUM_SEPOLIA_SCAN_API_KEY: ${{ secrets.ARBITRUM_SEPOLIA_SCAN_API_KEY }}
           BASE_SCAN_API_KEY: ${{ secrets.BASE_SCAN_API_KEY }}
           BASE_SEPOLIA_SCAN_API_KEY: ${{ secrets.BASE_SEPOLIA_SCAN_API_KEY }}
+          ZKEVM_MAINNET_SCAN_API_KEY: ${{ secrets.ZKEVM_MAINNET_SCAN_API_KEY }}
+          ZKEVM_CARDONA_SCAN_API_KEY: ${{ secrets.ZKEVM_CARDONA_SCAN_API_KEY }}
           MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
           ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
           DROP_DATABASE: ${{ secrets.DROP_DATABASE_DURING_TEST_PROD }}
@@ -111,6 +113,7 @@ jobs:
           SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
           SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
           MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
+          GIV_POWER_SUBGRAPH_URL: ${{ secrets.GIV_POWER_SUBGRAPH_URL }}
 
   publish:
     needs: test

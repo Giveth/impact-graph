@@ -137,7 +137,7 @@ export const generateGivingBlockDepositAddress = async (
     );
     return result.data.data.depositAddress;
   } catch (e) {
-    logger.error('giving block service depositAddress() err');
+    logger.error('giving block service depositAddress() err', e);
     throw e;
   }
 };

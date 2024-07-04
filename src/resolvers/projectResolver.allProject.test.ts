@@ -71,7 +71,7 @@ function allProjectsTestCases() {
         getHtmlTextSummary(project.description),
       );
       assert.isNull(project.estimatedMatching);
-      assert.isNull(project.sumDonationValueUsd);
+      assert.isNull(project.totalDonations);
       assert.isNull(project.sumDonationValueUsdForActiveQfRound);
       assert.isNull(project.countUniqueDonorsForActiveQfRound);
       assert.isNull(project.countUniqueDonors);
@@ -1064,6 +1064,126 @@ function allProjectsTestCases() {
       ),
     );
   });
+
+  /////// Beginning of ZKEVM filter test
+  it('should return projects, filter by accept donation on zkevm', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnZKEVM'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ZKEVM_MAINNET ||
+              address.networkId === NETWORK_IDS.ZKEVM_CARDONA),
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on zkevm', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnZKEVM'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ZKEVM_MAINNET ||
+              address.networkId === NETWORK_IDS.ZKEVM_CARDONA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on base, not return when it doesnt have zkevm address', async () => {
+    const zkevmProject1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    });
+    const zkevmCardanoProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ZKEVM_CARDONA,
+    });
+    const polygonProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.POLYGON,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnZKEVM'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ZKEVM_MAINNET ||
+              address.networkId === NETWORK_IDS.ZKEVM_CARDONA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(polygonProject.id),
+      ),
+    );
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(zkevmProject1.id),
+      ),
+    );
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(zkevmCardanoProject.id),
+      ),
+    );
+  });
+
+  /////// End of ZKEVM filter test
 
   it('should return projects, filter by accept donation on mainnet', async () => {
     const savedProject = await saveProjectDirectlyToDb({
