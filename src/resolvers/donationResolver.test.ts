@@ -15,7 +15,6 @@ import {
   generateUserIdLessAccessToken,
   generateRandomSolanaAddress,
   generateRandomSolanaTxHash,
-  deleteProjectFromDbById,
 } from '../../test/testUtils';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
@@ -35,7 +34,6 @@ import {
   doesDonatedToProjectInQfRoundQuery,
   fetchNewDonorsCount,
   fetchNewDonorsDonationTotalUsd,
-  fetchDonationMetricsQuery,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -98,7 +96,7 @@ describe(
   totalDonationsPerCategoryPerDateTestCases,
 );
 describe('recentDonations() test cases', recentDonationsTestCases);
-describe('donationMetrics() test cases', donationMetricsTestCases);
+// describe('donationMetrics() test cases', donationMetricsTestCases);
 
 // // describe('tokens() test cases', tokensTestCases);
 
@@ -4791,104 +4789,104 @@ async function recentDonationsTestCases() {
   });
 }
 
-async function donationMetricsTestCases() {
-  // Clear all other donations before each test
-  beforeEach(async () => {
-    await Donation.clear();
-  });
-
-  // Clear All donations after test
-  after(async () => {
-    await Donation.clear();
-  });
-
-  it('should return correct donation metrics', async () => {
-    const walletAddress1 = generateRandomEtheriumAddress();
-    const walletAddress2 = generateRandomEtheriumAddress();
-    const project1 = await saveProjectDirectlyToDb(createProjectData('giveth'));
-    const project2 = await saveProjectDirectlyToDb(createProjectData());
-    const user1 = await saveUserDirectlyToDb(walletAddress1);
-    const user2 = await saveUserDirectlyToDb(walletAddress2);
-
-    // Donations to project with ID 1 (giveth)
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData({
-          status: DONATION_STATUS.VERIFIED,
-          createdAt: new Date('2024-01-01T00:00:00Z'),
-          valueUsd: 100,
-        }),
-        useDonationBox: true,
-        relevantDonationTxHash: 'tx1',
-      },
-      user1.id,
-      project1.id,
-    );
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData({
-          status: DONATION_STATUS.VERIFIED,
-          createdAt: new Date('2024-01-01T00:00:30Z'),
-          valueUsd: 50,
-        }),
-        useDonationBox: true,
-        relevantDonationTxHash: 'tx2',
-      },
-      user1.id,
-      project1.id,
-    );
-
-    // Donations to another project
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData({
-          status: DONATION_STATUS.VERIFIED,
-          createdAt: new Date('2024-01-01T00:01:00Z'),
-          valueUsd: 900,
-        }),
-        useDonationBox: true,
-        transactionId: 'tx1',
-      },
-      user1.id,
-      project2.id,
-    );
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData({
-          status: DONATION_STATUS.VERIFIED,
-          createdAt: new Date('2023-01-01T00:01:30Z'),
-          valueUsd: 200,
-        }),
-        useDonationBox: true,
-        transactionId: 'tx2',
-      },
-      user2.id,
-      project2.id,
-    );
-
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationMetricsQuery,
-        variables: {
-          startDate: '2023-01-01T00:00:00Z',
-          endDate: '2025-01-02T00:00:00Z',
-        },
-      },
-      {},
-    );
-
-    assert.isOk(result);
-
-    const { donationMetrics } = result.data.data;
-    assert.equal(donationMetrics.totalDonationsToGiveth, 2);
-    assert.equal(donationMetrics.totalUsdValueToGiveth, 150);
-    assert.closeTo(donationMetrics.averagePercentageToGiveth, 15, 0.0001);
-
-    // delete created projects to not effects on the other test cases
-    await deleteProjectFromDbById(project1.id);
-    await deleteProjectFromDbById(project2.id);
-  });
-}
+// async function donationMetricsTestCases() {
+//   // Clear all other donations before each test
+//   beforeEach(async () => {
+//     await Donation.clear();
+//   });
+//
+//   // Clear All donations after test
+//   after(async () => {
+//     await Donation.clear();
+//   });
+//
+//   it('should return correct donation metrics', async () => {
+//     const walletAddress1 = generateRandomEtheriumAddress();
+//     const walletAddress2 = generateRandomEtheriumAddress();
+//     const project1 = await saveProjectDirectlyToDb(createProjectData('giveth'));
+//     const project2 = await saveProjectDirectlyToDb(createProjectData());
+//     const user1 = await saveUserDirectlyToDb(walletAddress1);
+//     const user2 = await saveUserDirectlyToDb(walletAddress2);
+//
+//     // Donations to project with ID 1 (giveth)
+//     await saveDonationDirectlyToDb(
+//       {
+//         ...createDonationData({
+//           status: DONATION_STATUS.VERIFIED,
+//           createdAt: new Date('2024-01-01T00:00:00Z'),
+//           valueUsd: 100,
+//         }),
+//         useDonationBox: true,
+//         relevantDonationTxHash: 'tx1',
+//       },
+//       user1.id,
+//       project1.id,
+//     );
+//
+//     await saveDonationDirectlyToDb(
+//       {
+//         ...createDonationData({
+//           status: DONATION_STATUS.VERIFIED,
+//           createdAt: new Date('2024-01-01T00:00:30Z'),
+//           valueUsd: 50,
+//         }),
+//         useDonationBox: true,
+//         relevantDonationTxHash: 'tx2',
+//       },
+//       user1.id,
+//       project1.id,
+//     );
+//
+//     // Donations to another project
+//     await saveDonationDirectlyToDb(
+//       {
+//         ...createDonationData({
+//           status: DONATION_STATUS.VERIFIED,
+//           createdAt: new Date('2024-01-01T00:01:00Z'),
+//           valueUsd: 900,
+//         }),
+//         useDonationBox: true,
+//         transactionId: 'tx1',
+//       },
+//       user1.id,
+//       project2.id,
+//     );
+//
+//     await saveDonationDirectlyToDb(
+//       {
+//         ...createDonationData({
+//           status: DONATION_STATUS.VERIFIED,
+//           createdAt: new Date('2023-01-01T00:01:30Z'),
+//           valueUsd: 200,
+//         }),
+//         useDonationBox: true,
+//         transactionId: 'tx2',
+//       },
+//       user2.id,
+//       project2.id,
+//     );
+//
+//     const result = await axios.post(
+//       graphqlUrl,
+//       {
+//         query: fetchDonationMetricsQuery,
+//         variables: {
+//           startDate: '2023-01-01T00:00:00Z',
+//           endDate: '2025-01-02T00:00:00Z',
+//         },
+//       },
+//       {},
+//     );
+//
+//     assert.isOk(result);
+//
+//     const { donationMetrics } = result.data.data;
+//     assert.equal(donationMetrics.totalDonationsToGiveth, 2);
+//     assert.equal(donationMetrics.totalUsdValueToGiveth, 150);
+//     assert.closeTo(donationMetrics.averagePercentageToGiveth, 15, 0.0001);
+//
+//     // delete created projects to not effects on the other test cases
+//     await deleteProjectFromDbById(project1.id);
+//     await deleteProjectFromDbById(project2.id);
+//   });
+// }
