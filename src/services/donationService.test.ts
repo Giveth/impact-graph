@@ -3,7 +3,6 @@ import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import moment from 'moment';
 import {
   isTokenAcceptableForProject,
-  updateOldStableCoinDonationsPrice,
   sendNotificationForDonation,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
@@ -45,7 +44,7 @@ describe(
 );
 describe(
   'updateOldStableCoinDonationsPrice test cases',
-  fillOldStableCoinDonationsPriceTestCases,
+  fillStableCoinDonationsPriceTestCases,
 );
 
 describe(
@@ -852,26 +851,7 @@ function fillTotalDonationsOfProjectTestCases() {
   });
 }
 
-function fillOldStableCoinDonationsPriceTestCases() {
-  it('should fill price for XDAI donation that already doesnt have price', async () => {
-    const donation = await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        currency: 'XDAI',
-        valueUsd: undefined,
-        amount: 100,
-        transactionNetworkId: NETWORK_IDS.XDAI,
-      },
-      SEED_DATA.FIRST_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
-    );
-    assert.isNotOk(donation.valueUsd);
-    await updateOldStableCoinDonationsPrice();
-    const updatedDonation = await findDonationById(donation.id);
-    assert.equal(updatedDonation?.valueUsd, updatedDonation?.amount);
-    assert.equal(updatedDonation?.priceUsd, 1);
-  });
-
+function fillStableCoinDonationsPriceTestCases() {
   it('should fill price for Matic donation on the Polygon network', async () => {
     const token = 'MATIC';
     const amount = 100;
