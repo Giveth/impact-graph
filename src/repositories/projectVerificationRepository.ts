@@ -2,18 +2,19 @@ import { UpdateResult } from 'typeorm';
 import {
   ManagingFunds,
   Milestones,
-  PROJECT_VERIFICATION_STATUSES,
   PersonalInfo,
+  PROJECT_VERIFICATION_STATUSES,
+  PROJECT_VERIFICATION_STEPS,
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
-  PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User } from '../entities/user';
 import { getAppropriateNetworkId } from '../services/chains';
+import { logger } from '../utils/logger';
 
 export const createProjectVerificationForm = async (params: {
   userId: number;
@@ -168,18 +169,31 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
   projectVerificationId: number;
   personalInfo: PersonalInfo;
 }): Promise<ProjectVerificationForm> => {
-  const { personalInfo, projectVerificationId } = params;
-  const projectVerificationForm = await findProjectVerificationFormById(
-    projectVerificationId,
-  );
-  if (!projectVerificationForm) {
-    throw new Error(
-      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+  try {
+    const { personalInfo, projectVerificationId } = params;
+    const projectVerificationForm = await findProjectVerificationFormById(
+      projectVerificationId,
     );
-  }
+    if (!projectVerificationForm) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND,
+        ),
+      );
+    }
 
-  projectVerificationForm.personalInfo = personalInfo;
-  return projectVerificationForm?.save();
+    projectVerificationForm.personalInfo = personalInfo;
+    await ProjectVerificationForm.update(projectVerificationId, {
+      personalInfo,
+    });
+    return projectVerificationForm;
+  } catch (error) {
+    logger.debug(
+      'updateProjectPersonalInfoOfProjectVerification error: ',
+      error,
+    );
+    throw new Error(error);
+  }
 };
 
 export const updateProjectRegistryOfProjectVerification = async (params: {
@@ -195,9 +209,11 @@ export const updateProjectRegistryOfProjectVerification = async (params: {
       i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
     );
   }
-
+  await ProjectVerificationForm.update(projectVerificationId, {
+    projectRegistry,
+  });
   projectVerificationForm.projectRegistry = projectRegistry;
-  return projectVerificationForm?.save();
+  return projectVerificationForm;
 };
 
 export const updateProjectVerificationStatus = async (params: {
@@ -213,9 +229,11 @@ export const updateProjectVerificationStatus = async (params: {
       i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
     );
   }
-
+  await ProjectVerificationForm.update(projectVerificationId, {
+    status,
+  });
   projectVerificationForm.status = status;
-  return projectVerificationForm?.save();
+  return projectVerificationForm;
 };
 
 export const updateProjectVerificationLastStep = async (params: {
@@ -231,9 +249,11 @@ export const updateProjectVerificationLastStep = async (params: {
       i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
     );
   }
-
+  await ProjectVerificationForm.update(projectVerificationId, {
+    lastStep,
+  });
   projectVerificationForm.lastStep = lastStep;
-  return projectVerificationForm?.save();
+  return projectVerificationForm;
 };
 
 export const updateProjectContactsOfProjectVerification = async (params: {
@@ -251,8 +271,11 @@ export const updateProjectContactsOfProjectVerification = async (params: {
   }
   // const projectContacts2 = new ProjectContacts()
   // projectContacts2.linkedin = projectContacts.linkedin
+  await ProjectVerificationForm.update(projectVerificationId, {
+    projectContacts,
+  });
   projectVerificationForm.projectContacts = projectContacts;
-  return await projectVerificationForm.save();
+  return projectVerificationForm;
 };
 export const updateMilestonesOfProjectVerification = async (params: {
   projectVerificationId: number;
@@ -267,8 +290,11 @@ export const updateMilestonesOfProjectVerification = async (params: {
       i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
     );
   }
+  await ProjectVerificationForm.update(projectVerificationId, {
+    milestones,
+  });
   projectVerificationForm.milestones = milestones;
-  return await projectVerificationForm?.save();
+  return projectVerificationForm;
 };
 export const updateTermsAndConditionsOfProjectVerification = async (params: {
   projectVerificationId: number;
@@ -285,7 +311,10 @@ export const updateTermsAndConditionsOfProjectVerification = async (params: {
   }
   projectVerificationForm.isTermAndConditionsAccepted =
     isTermAndConditionsAccepted;
-  return await projectVerificationForm?.save();
+  await ProjectVerificationForm.update(projectVerificationId, {
+    isTermAndConditionsAccepted,
+  });
+  return projectVerificationForm;
 };
 
 export const updateManagingFundsOfProjectVerification = async (params: {
@@ -314,7 +343,21 @@ export const updateManagingFundsOfProjectVerification = async (params: {
     },
   );
   projectVerificationForm.managingFunds = managingFunds;
-  return projectVerificationForm?.save();
+  await ProjectVerificationForm.update(projectVerificationId, {
+    managingFunds,
+  });
+  return projectVerificationForm;
+};
+
+export const getVerificationFormStatusByProjectId = async (
+  projectId: number,
+): Promise<ProjectVerificationForm | null> => {
+  return ProjectVerificationForm.createQueryBuilder('project_verification_form')
+    .select(['project_verification_form.status'])
+    .where(`project_verification_form.projectId=:projectId`, {
+      projectId,
+    })
+    .getOne();
 };
 
 export const getVerificationFormByProjectId = async (

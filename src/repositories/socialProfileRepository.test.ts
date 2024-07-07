@@ -28,7 +28,7 @@ function removeSocialProfileByIdTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -54,7 +54,7 @@ function findSocialProfilesByProjectIdTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -78,7 +78,7 @@ function findSocialProfilesByProjectIdTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const socialProfiles = await findSocialProfilesByProjectId({

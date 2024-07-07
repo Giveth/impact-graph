@@ -123,7 +123,7 @@ export interface CreateProjectData {
   title: string;
   slug: string;
   description: string;
-  admin: string;
+  adminUserId: number;
   // relatedAddresses: RelatedAddressInputType[];
   walletAddress: string;
   categories: string[];
@@ -233,7 +233,7 @@ export const saveProjectDirectlyToDb = async (
     owner ||
     ((await User.findOne({
       where: {
-        id: Number(projectData.admin),
+        id: projectData.adminUserId,
       },
     })) as User);
   const categoriesPromise = Promise.all(
@@ -253,9 +253,8 @@ export const saveProjectDirectlyToDb = async (
     status,
     organization,
     categories,
-    users: [user],
     adminUser: user,
-    admin: String(user.id),
+    adminUserId: user.id,
   }).save();
 
   if (projectData.networkId) {
@@ -315,7 +314,7 @@ export const createProjectData = (): CreateProjectData => {
     updatedAt: new Date(),
     slug: title,
     // firstUser's id
-    admin: '1',
+    adminUserId: 1,
     qualityScore: 30,
     // just need the initial value to be different than 0
     totalDonations: 10,
@@ -398,7 +397,7 @@ export const SEED_DATA = {
     slug: 'first-project',
     description: 'first description',
     id: 1,
-    admin: '1',
+    adminUserId: 1,
   },
   SECOND_PROJECT: {
     ...createProjectData(),
@@ -406,7 +405,7 @@ export const SEED_DATA = {
     slug: 'second-project',
     description: 'second description',
     id: 2,
-    admin: '2',
+    adminUserId: 2,
   },
   TRANSAK_PROJECT: {
     ...createProjectData(),
@@ -414,7 +413,7 @@ export const SEED_DATA = {
     slug: 'transak-project',
     description: 'transak description',
     id: 3,
-    admin: '3',
+    adminUserId: 3,
   },
   FOURTH_PROJECT: {
     ...createProjectData(),
@@ -422,7 +421,7 @@ export const SEED_DATA = {
     slug: 'forth-project',
     description: 'forth description',
     id: 4,
-    admin: '1',
+    adminUserId: 1,
   },
   FIFTH_PROJECT: {
     ...createProjectData(),
@@ -430,15 +429,15 @@ export const SEED_DATA = {
     slug: 'fifth-project',
     description: 'forth description',
     id: 5,
-    admin: '1',
+    adminUserId: 1,
   },
   SIXTH_PROJECT: {
     ...createProjectData(),
     title: 'fifth project',
-    slug: 'fifth-project',
+    slug: 'sixth-project',
     description: 'forth description',
     id: 6,
-    admin: '1',
+    adminUserId: 1,
   },
   NON_VERIFIED_PROJECT: {
     ...createProjectData(),
@@ -446,8 +445,8 @@ export const SEED_DATA = {
     slug: 'non-verified-project',
     description: 'non verified description',
     id: 7,
-    admin: '1',
     verified: false,
+    adminUserId: 1,
   },
   MAIN_CATEGORIES: ['drink', 'food', 'nonProfit'],
   NON_PROFIT_SUB_CATEGORIES: [CATEGORY_NAMES.registeredNonProfits],
@@ -572,6 +571,7 @@ export const SEED_DATA = {
       {
         name: 'Giveth Token',
         symbol: 'GIV',
+        coingeckoId: 'giveth',
         address: '0x900db999074d9277c5da2a43f252d74366230da0',
         decimals: 18,
       },
@@ -1530,6 +1530,7 @@ export const SEED_DATA = {
       {
         name: 'Giveth Token',
         symbol: 'GIV',
+        coingeckoId: 'giveth',
         address: '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75',
         decimals: 18,
       },
@@ -1731,6 +1732,42 @@ export const SEED_DATA = {
         address: '0x93252009E644138b906aE1a28792229E577239B9',
         decimals: 18,
         coingeckoId: 'weth',
+      },
+    ],
+    base_mainnet: [
+      {
+        name: 'Base ETH',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+    ],
+    base_sepolia: [
+      {
+        name: 'Base Sepolia native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+    ],
+    zkevm_mainnet: [
+      {
+        name: 'ZKEVM ETH',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+    ],
+    zkevm_cardano: [
+      {
+        name: 'ZKEVM Cardano native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
       },
     ],
   },
@@ -1958,6 +1995,7 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
     donorId,
     projectId,
     anchorContractAddressId,
+    createdAt: params?.donationData?.createdAt || moment(),
   }).save();
 };
 
@@ -2011,3 +2049,6 @@ export function generateRandomSolanaTxHash() {
   const length = Math.floor(Math.random() * 3) + 86;
   return generateRandomAlphanumeric(length);
 }
+
+// list of test cases titles that doesn't require DB interaction
+export const dbIndependentTests = ['AdminJsPermissions'];

@@ -8,6 +8,14 @@ export const campaignsTab = {
   resource: Campaign,
   options: {
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessCampaignAction({ currentAdmin }, ResourceActions.LIST),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessCampaignAction({ currentAdmin }, ResourceActions.SHOW),
+      },
       delete: {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>

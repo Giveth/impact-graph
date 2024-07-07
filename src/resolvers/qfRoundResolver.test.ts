@@ -9,18 +9,92 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
+  SEED_DATA,
 } from '../../test/testUtils';
 import { Project } from '../entities/project';
 import { QfRound } from '../entities/qfRound';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
-import { qfRoundStatsQuery } from '../../test/graphqlQueries';
+  fetchQFArchivedRounds,
+  qfRoundStatsQuery,
+} from '../../test/graphqlQueries';
 import { generateRandomString } from '../utils/utils';
+import { OrderDirection } from './projectResolver';
+import { QfArchivedRoundsSortType } from '../repositories/qfRoundRepository';
 
 describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);
 describe('Fetch qfRoundStats test cases', fetchQfRoundStatesTestCases);
+describe('Fetch archivedQFRounds test cases', fetchArchivedQFRoundsTestCases);
+
+function fetchArchivedQFRoundsTestCases() {
+  it('should return correct data when fetching archived QF rounds', async () => {
+    await QfRound.update({}, { isActive: true });
+    const qfRound1 = QfRound.create({
+      isActive: true,
+      name: 'test1',
+      slug: generateRandomString(10),
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound1.save();
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 150,
+        qfRoundId: qfRound1.id,
+        status: 'verified',
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 250,
+        qfRoundId: qfRound1.id,
+        status: 'verified',
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const qfRound2 = QfRound.create({
+      isActive: false,
+      name: 'test2',
+      slug: generateRandomString(10),
+      allocatedFund: 200000,
+      minimumPassportScore: 8,
+      beginDate: moment().add(-10, 'days').toDate(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound2.save();
+    const qfRound3 = QfRound.create({
+      isActive: false,
+      name: 'test3',
+      slug: generateRandomString(10),
+      allocatedFund: 300000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound3.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchQFArchivedRounds,
+      variables: {
+        orderBy: {
+          direction: OrderDirection.DESC,
+          field: QfArchivedRoundsSortType.beginDate,
+        },
+      },
+    });
+    const res = result.data.data.qfArchivedRounds;
+    assert.equal(res[0].id, qfRound3.id);
+    assert.equal(res.length, 2);
+  });
+}
 
 function fetchQfRoundStatesTestCases() {
   let qfRound: QfRound;
@@ -80,7 +154,7 @@ function fetchQfRoundStatesTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
+
     const result = await axios.post(graphqlUrl, {
       query: qfRoundStatsQuery,
       variables: {

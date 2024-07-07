@@ -12,6 +12,7 @@ import {
 import { NETWORK_IDS } from '../provider';
 import { addNewAnchorAddress } from './anchorContractAddressRepository';
 import {
+  nonZeroRecurringDonationsByProjectId,
   createNewRecurringDonation,
   findRecurringDonationById,
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
@@ -19,6 +20,7 @@ import {
 } from './recurringDonationRepository';
 import { getPendingRecurringDonationsIds } from './recurringDonationRepository';
 import { DONATION_STATUS } from '../entities/donation';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 
 describe(
   'createNewRecurringDonationTestCases',
@@ -28,6 +30,10 @@ describe(
 describe(
   'findRecurringDonationByProjectIdAndUserIdTestCases',
   findRecurringDonationByProjectIdAndUserIdTestCases,
+);
+describe(
+  'countOfActiveRecurringDonationsByProjectIdTestCases',
+  countOfActiveRecurringDonationsByProjectIdTestCases,
 );
 
 describe(
@@ -219,6 +225,200 @@ function findRecurringDonationByProjectIdAndUserIdTestCases() {
         currency,
       });
     assert.equal(foundRecurringDonation?.id, recurringDonation.id);
+  });
+}
+
+function countOfActiveRecurringDonationsByProjectIdTestCases() {
+  it('should return count correctly', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const creator = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const anchorAddress = generateRandomEtheriumAddress();
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator,
+      address: anchorAddress,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const currency = 'USD';
+    const recurringDonation = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: creator,
+      anchorContractAddress,
+      flowRate: '100',
+      totalUsdStreamed: 1,
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+    });
+    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation.save();
+    const count = await nonZeroRecurringDonationsByProjectId(project.id);
+    assert.equal(count, 1);
+  });
+  it('should return count correctly, when there is more than 1 active recurring donation', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const creator = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const anchorAddress = generateRandomEtheriumAddress();
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator,
+      address: anchorAddress,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const currency = 'USD';
+
+    const recurringDonation = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: creator,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+      totalUsdStreamed: 1,
+    });
+    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation.save();
+
+    const recurringDonation2 = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: creator,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+      totalUsdStreamed: 1,
+    });
+    recurringDonation2.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation2.save();
+
+    const count = await nonZeroRecurringDonationsByProjectId(project.id);
+    assert.equal(count, 2);
+  });
+  it('should return count correctly, when there is active and non active donations', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const creator = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const anchorAddress = generateRandomEtheriumAddress();
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator,
+      address: anchorAddress,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const currency = 'USD';
+
+    const recurringDonation0 = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: creator,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+      totalUsdStreamed: 0,
+    });
+    recurringDonation0.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation0.save();
+
+    const recurringDonation1 = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: creator,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+      totalUsdStreamed: 1,
+    });
+    recurringDonation1.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation1.save();
+
+    const recurringDonation2 = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: creator,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+    });
+    recurringDonation2.status = RECURRING_DONATION_STATUS.PENDING;
+    await recurringDonation2.save();
+
+    const recurringDonation3 = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: creator,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+      totalUsdStreamed: 2,
+    });
+    recurringDonation3.status = RECURRING_DONATION_STATUS.ENDED;
+    await recurringDonation3.save();
+
+    const recurringDonation4 = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: creator,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+    });
+    recurringDonation4.status = RECURRING_DONATION_STATUS.FAILED;
+    await recurringDonation4.save();
+
+    const count = await nonZeroRecurringDonationsByProjectId(project.id);
+    assert.equal(count, 2);
   });
 }
 

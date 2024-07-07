@@ -25,16 +25,6 @@ export const RECURRING_DONATION_STATUS = {
   ACTIVE: 'active',
 };
 
-export enum RecurringDonationBalanceWarning {
-  WEEK = 'week',
-  MONTH = 'month',
-}
-
-export enum RecurringDonationEmailEvents {
-  WEEK = 'One week left in stream balance',
-  MONTH = 'One month left in stream balance',
-}
-
 @Entity()
 @ObjectType()
 @Unique(['txHash', 'networkId', 'project'])
@@ -91,10 +81,6 @@ export class RecurringDonation extends BaseEntity {
   @Field({ nullable: true })
   finished: boolean;
 
-  @Field(_type => String, { nullable: true })
-  @Column('text', { nullable: true })
-  balanceWarning?: RecurringDonationBalanceWarning | null;
-
   @Column({ nullable: true, default: false })
   @Field({ nullable: true })
   isArchived: boolean;
@@ -106,6 +92,10 @@ export class RecurringDonation extends BaseEntity {
   @Column({ nullable: true, default: false })
   @Field({ nullable: true })
   anonymous: boolean;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  origin: string;
 
   @Index()
   @Field(_type => AnchorContractAddress)

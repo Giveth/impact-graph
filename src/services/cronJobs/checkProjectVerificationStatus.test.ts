@@ -25,8 +25,10 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(46, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment().subtract(46, 'days').endOf('day'),
+      projectUpdateCreationDate: moment()
+        .subtract(46, 'days')
+        .endOf('day')
+        .toDate(),
       verificationStatus: RevokeSteps.Reminder,
     });
 
@@ -46,7 +48,6 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(91, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(91, 'days').endOf('day'),
       verificationStatus: RevokeSteps.Warning,
     });
@@ -67,7 +68,6 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(105, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
       verificationStatus: RevokeSteps.LastChance,
     });

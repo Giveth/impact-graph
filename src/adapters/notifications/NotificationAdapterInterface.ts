@@ -1,6 +1,6 @@
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import { User } from '../../entities/user';
+import { UserStreamBalanceWarning, User } from '../../entities/user';
 import { RecurringDonation } from '../../entities/recurringDonation';
 
 export interface BroadCastNotificationInputParams {
@@ -34,6 +34,10 @@ export interface OrttoPerson {
 }
 
 export interface NotificationAdapterInterface {
+  subscribeOnboarding(params: { email: string }): Promise<void>;
+
+  createOrttoProfile(params: User): Promise<void>;
+
   updateOrttoPeople(params: OrttoPerson[]): Promise<void>;
 
   donationReceived(params: {
@@ -53,14 +57,19 @@ export interface NotificationAdapterInterface {
     userId: number;
   }): Promise<void>;
 
-  userSuperTokensCritical(params: {
-    userId: number;
+  sendEmailConfirmation(params: {
     email: string;
-    criticalDate: string;
+    project: Project;
+    token: string;
+  }): Promise<void>;
+
+  userSuperTokensCritical(params: {
+    user: User;
+    eventName: UserStreamBalanceWarning;
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
-    eventName: string;
+    networkName: string;
   }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;
@@ -75,7 +84,10 @@ export interface NotificationAdapterInterface {
   projectBadgeRevokeLastWarning(params: { project: Project }): Promise<void>;
   projectBadgeUpForRevoking(params: { project: Project }): Promise<void>;
   projectUnVerified(params: { project: Project }): Promise<void>;
-  verificationFormRejected(params: { project: Project }): Promise<void>;
+  verificationFormRejected(params: {
+    project: Project;
+    reason?: string;
+  }): Promise<void>;
 
   projectListed(params: { project: Project }): Promise<void>;
 

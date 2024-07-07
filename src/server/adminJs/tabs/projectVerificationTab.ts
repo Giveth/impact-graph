@@ -121,8 +121,15 @@ export const verifySingleVerificationForm = async (
         project,
       });
     } else {
+      const commentsSorted = verificationForm.commentsSection.comments.sort(
+        (a, b) => {
+          return a.createdAt.getTime() - b.createdAt.getTime();
+        },
+      );
+      const lastComment = commentsSorted[commentsSorted.length - 1];
       await getNotificationAdapter().verificationFormRejected({
         project,
+        reason: lastComment.content,
       });
     }
 
@@ -262,8 +269,16 @@ export const verifyVerificationForms = async (
           project,
         });
       } else {
+        const commentsSorted = verificationForm.commentsSection.comments.sort(
+          (a, b) => {
+            return a.createdAt.getTime() - b.createdAt.getTime();
+          },
+        );
+        const lastComment = commentsSorted[commentsSorted.length - 1];
+
         await getNotificationAdapter().verificationFormRejected({
           project,
+          reason: lastComment.content,
         });
       }
     }
@@ -565,6 +580,13 @@ export const projectVerificationTab = {
           ),
         isVisible: true,
         after: setCommentEmailAndTimeStamps,
+      },
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectVerificationFormAction(
+            { currentAdmin },
+            ResourceActions.LIST,
+          ),
       },
       show: {
         isVisible: true,

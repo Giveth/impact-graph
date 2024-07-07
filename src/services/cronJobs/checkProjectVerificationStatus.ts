@@ -1,20 +1,11 @@
 import { schedule } from 'node-cron';
 import moment = require('moment');
 import { Project, RevokeSteps } from '../../entities/project';
-import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
 import config from '../../config';
 import { logger } from '../../utils/logger';
 import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-
-import { makeFormDraft } from '../../repositories/projectVerificationRepository';
-import { sleep } from '../../utils/utils';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
-import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
-import {
-  refreshProjectFuturePowerView,
-  refreshProjectPowerView,
-} from '../../repositories/projectPowerViewRepository';
 
 const cronJobTime =
   (config.get(
@@ -61,7 +52,6 @@ export const checkProjectVerificationStatus = async () => {
     maxDaysForSendingUpdateWarning,
   );
   logger.debug('checkProjectVerificationStatus() has been called', {
-    maxDaysForSendingUpdateWarning,
     foundProjectsCount: projects.length,
     projects: projects.map(p => {
       return {
@@ -77,29 +67,25 @@ export const checkProjectVerificationStatus = async () => {
     } catch (error) {
       logger.error('Error in remindUpdatesOrRevokeVerification', {
         projectId: project.id,
-        projectSlug: project.slug,
         projectVerificationStatus: project.verificationStatus,
         error,
       });
     }
   }
-
-  if (projects.length > 0) {
-    await Promise.all([
-      refreshUserProjectPowerView(),
-      refreshProjectPowerView(),
-      refreshProjectFuturePowerView(),
-    ]);
-  }
 };
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
   // We don't revoke verification badge for any projects.
-  const latestUpdate =
-    project.projectUpdates?.[0].createdAt || project.updatedAt;
+  if (
+    !project ||
+    !project.projectUpdates ||
+    project.projectUpdates.length === 0
+  ) {
+    return;
+  }
+  const latestUpdate = project.projectUpdates[0].createdAt;
   logger.debug('remindUpdatesOrRevokeVerification() has been called', {
     projectId: project.id,
-    projectSlug: project.slug,
     projectVerificationStatus: project.verificationStatus,
     latestUpdate,
   });
@@ -128,31 +114,9 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
     await sendProperNotification(project, project.verificationStatus as string);
     logger.debug('remindUpdatesOrRevokeVerification() save project', {
       projectId: project.id,
-      slug: project.slug,
       verificationStatus: project.verificationStatus,
     });
   }
-
-  // draft the verification form to allow to reapply
-  if (
-    project.projectVerificationForm &&
-    project.verificationStatus === RevokeSteps.Revoked
-  ) {
-    await makeFormDraft({
-      formId: project.projectVerificationForm.id,
-    });
-  }
-
-  // save status changes history
-  if (project.verificationStatus === RevokeSteps.Revoked) {
-    await Project.addProjectStatusHistoryRecord({
-      project,
-      status: project.status,
-      description: HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED_BY_CRONJOB,
-    });
-  }
-
-  await sleep(300);
 };
 
 const sendProperNotification = (
@@ -161,7 +125,6 @@ const sendProperNotification = (
 ) => {
   logger.debug('sendProperNotification()', {
     projectId: project.id,
-    slug: project.slug,
     verificationStatus: project.verificationStatus,
   });
   switch (projectVerificationStatus) {
