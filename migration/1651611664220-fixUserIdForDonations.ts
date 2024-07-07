@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class fixUserIdForDonations1651611664220 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const donationTableExists = await queryRunner.hasTable('donation');
@@ -20,5 +19,5 @@ export class fixUserIdForDonations1651611664220 implements MigrationInterface {
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

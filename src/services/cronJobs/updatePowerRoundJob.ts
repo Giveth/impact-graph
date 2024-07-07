@@ -1,6 +1,6 @@
+import { schedule } from 'node-cron';
 import config from '../../config';
 import { logger } from '../../utils/logger';
-import { schedule } from 'node-cron';
 import {
   getPowerRound,
   setPowerRound,
@@ -14,7 +14,6 @@ import {
 import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
 import {
   copyProjectRanksToPreviousRoundRankTable,
-  deleteAllPreviousRoundRanks,
   projectsThatTheirRanksHaveChanged,
 } from '../../repositories/previousRoundRankRepository';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';

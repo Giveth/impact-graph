@@ -4,9 +4,7 @@
         "eventID": "ORDER_CREATED",
         "createdAt": "2020-02-17T01:55:05.100Z",
         "webhookData": {
-            // tslint:disable-next-line:jsdoc-format
             "id": "9151faa1-e69b-4a36-b959-3c4f894afb68",
-            // tslint:disable-next-line:jsdoc-format
             "walletAddress": "0x86349020e9394b2BE1b1262531B0C3335fc32F20",
             "createdAt": "2020-02-17T01:55:05.095Z",
             "status": "AWAITING_PAYMENT_FROM_USER",

@@ -4,11 +4,11 @@ import { Column, Entity, BaseEntity, PrimaryColumn } from 'typeorm';
 @Entity()
 @ObjectType()
 export class PowerBalanceSnapshotHistory extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryColumn()
   id: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   userId: number;
 
@@ -16,7 +16,7 @@ export class PowerBalanceSnapshotHistory extends BaseEntity {
   @Column('float')
   balance: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   powerSnapshotId: number;
 }

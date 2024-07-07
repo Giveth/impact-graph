@@ -1,12 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class createProjectTable1662877385200 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const projectTableExists = await queryRunner.hasTable('project');
 
     if (projectTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Project table already exists');
       return;
     }
@@ -99,6 +98,5 @@ export class createProjectTable1662877385200 implements MigrationInterface {
     );
   }
 
-  // tslint:disable-next-line:no-empty
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

@@ -16,8 +16,8 @@ export class ProjectUserInstantPowerViewResolver {
   @Query(() => PaginatedProjectUserInstantPowerView, { nullable: true })
   async getProjectUserInstantPower(
     @Arg('projectId', () => Int, { nullable: false }) projectId: number,
-    @Arg('take', type => Int, { nullable: true }) take?: number,
-    @Arg('skip', type => Int, { defaultValue: 0 }) skip?: number,
+    @Arg('take', _type => Int, { nullable: true }) take?: number,
+    @Arg('skip', _type => Int, { defaultValue: 0 }) skip?: number,
   ): Promise<PaginatedProjectUserInstantPowerView | null> {
     const [projectUserInstantPowers, total] =
       await getProjectUserInstantPowerView(projectId, take, skip);

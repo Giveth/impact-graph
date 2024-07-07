@@ -1,9 +1,9 @@
 import * as TypeGraphQL from 'type-graphql';
-import { getResolvers } from '../resolvers/resolvers';
 import { Container } from 'typedi';
-import { userCheck } from '../auth/userCheck';
 import { GraphQLSchema } from 'graphql';
 import { NonEmptyArray } from 'type-graphql';
+import { userCheck } from '../auth/userCheck';
+import { getResolvers } from '../resolvers/resolvers';
 import config from '../config';
 
 const createSchema = async (): Promise<GraphQLSchema> => {
@@ -18,7 +18,7 @@ const createSchema = async (): Promise<GraphQLSchema> => {
   const environment = config.get('ENVIRONMENT') as string;
   // build TypeGraphQL executable schema
   const schema = await TypeGraphQL.buildSchema({
-    resolvers: getResolvers() as NonEmptyArray<Function>,
+    resolvers: getResolvers() as NonEmptyArray<() => NonNullable<unknown>>,
     container: Container,
     authChecker: userCheck,
     validate: {

@@ -1,5 +1,5 @@
-import * as dotenv from 'dotenv';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
 
 import { DataSourceOptions } from 'typeorm';
 import { getEntities } from './entities/entities';

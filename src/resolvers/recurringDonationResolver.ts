@@ -4,6 +4,7 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Float,
   InputType,
   Int,
   Mutation,
@@ -13,6 +14,9 @@ import {
   Resolver,
 } from 'type-graphql';
 
+import { Brackets } from 'typeorm';
+import { Service } from 'typedi';
+import { Max, Min } from 'class-validator';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findProjectById } from '../repositories/projectRepository';
 import {
@@ -33,28 +37,34 @@ import {
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
   updateRecurringDonation,
 } from '../repositories/recurringDonationRepository';
-import { publicSelectionFields } from '../entities/user';
-import { Brackets } from 'typeorm';
 import { detectAddressChainType } from '../utils/networks';
-import { Service } from 'typedi';
-import { Max, Min } from 'class-validator';
 import { logger } from '../utils/logger';
 import {
+  getRecurringDonationStatsArgsValidator,
   updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { sleep } from '../utils/utils';
-import { syncDonationStatusWithBlockchainNetwork } from '../services/donationService';
 import SentryLogger from '../sentryLogger';
 import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
+import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
 
 @InputType()
 class RecurringDonationSortBy {
-  @Field(type => RecurringDonationSortField)
+  @Field(_type => RecurringDonationSortField)
   field: RecurringDonationSortField;
 
-  @Field(type => RecurringDonationSortDirection)
+  @Field(_type => RecurringDonationSortDirection)
   direction: RecurringDonationSortDirection;
+}
+
+@InputType()
+class FinishStatus {
+  @Field(_type => Boolean)
+  active: boolean;
+
+  @Field(_type => Boolean)
+  ended: boolean;
 }
 
 export enum RecurringDonationSortField {
@@ -82,28 +92,33 @@ registerEnumType(RecurringDonationSortDirection, {
   description: 'Sort direction',
 });
 
+registerEnumType(FinishStatus, {
+  name: 'FinishStatus',
+  description: 'Filter active status',
+});
+
 @ObjectType()
 class PaginateRecurringDonations {
-  @Field(type => [RecurringDonation], { nullable: true })
+  @Field(_type => [RecurringDonation], { nullable: true })
   recurringDonations: RecurringDonation[];
 
-  @Field(type => Number, { nullable: true })
+  @Field(_type => Number, { nullable: true })
   totalCount: number;
 }
 
 @Service()
 @ArgsType()
 class UserRecurringDonationsArgs {
-  @Field(type => Int, { defaultValue: 0 })
+  @Field(_type => Int, { defaultValue: 0 })
   @Min(0)
   skip: number;
 
-  @Field(type => Int, { defaultValue: 10 })
+  @Field(_type => Int, { defaultValue: 10 })
   @Min(0)
   @Max(50)
   take: number;
 
-  @Field(type => RecurringDonationSortBy, {
+  @Field(_type => RecurringDonationSortBy, {
     defaultValue: {
       field: RecurringDonationSortField.createdAt,
       direction: RecurringDonationSortDirection.DESC,
@@ -111,30 +126,61 @@ class UserRecurringDonationsArgs {
   })
   orderBy: RecurringDonationSortBy;
 
-  @Field(type => Int, { nullable: false })
+  @Field(_type => Int, { nullable: false })
   userId: number;
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   status: string;
 
-  @Field(type => [Boolean], { nullable: true, defaultValue: [false] })
-  finishStatus: boolean[];
+  @Field(_type => Boolean, { nullable: true, defaultValue: false })
+  includeArchived: boolean;
 
-  @Field(type => [String], { nullable: true, defaultValue: [] })
+  @Field(_type => FinishStatus, {
+    nullable: true,
+    defaultValue: {
+      active: true,
+      ended: false,
+    },
+  })
+  finishStatus: FinishStatus;
+
+  @Field(_type => [String], { nullable: true, defaultValue: [] })
   filteredTokens: string[];
 }
 
 @ObjectType()
 class UserRecurringDonations {
-  @Field(type => [RecurringDonation])
+  @Field(_type => [RecurringDonation])
   recurringDonations: RecurringDonation[];
 
-  @Field(type => Int)
+  @Field(_type => Int)
   totalCount: number;
 }
 
-@Resolver(of => AnchorContractAddress)
+@Service()
+@ArgsType()
+class GetRecurringDonationStatsArgs {
+  @Field(_type => String)
+  beginDate: string;
+
+  @Field(_type => String)
+  endDate: string;
+
+  @Field(_type => String, { nullable: true })
+  currency?: string;
+}
+
+@ObjectType()
+class RecurringDonationStats {
+  @Field(_type => Float)
+  activeRecurringDonationsCount: number;
+
+  @Field(_type => Float)
+  totalStreamedUsdValue: number;
+}
+
+@Resolver(_of => AnchorContractAddress)
 export class RecurringDonationResolver {
-  @Mutation(returns => RecurringDonation, { nullable: true })
+  @Mutation(_returns => RecurringDonation, { nullable: true })
   async createRecurringDonation(
     @Ctx() ctx: ApolloContext,
     @Arg('projectId', () => Int) projectId: number,
@@ -144,6 +190,8 @@ export class RecurringDonationResolver {
     @Arg('flowRate', () => String) flowRate: string,
     @Arg('anonymous', () => Boolean, { defaultValue: false })
     anonymous: boolean,
+    @Arg('isBatch', () => Boolean, { defaultValue: false })
+    isBatch: boolean,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
     const donor = await findUserById(userId);
@@ -166,8 +214,7 @@ export class RecurringDonationResolver {
         ),
       );
     }
-
-    return createNewRecurringDonation({
+    const recurringDonation = await createNewRecurringDonation({
       donor,
       project,
       anchorContractAddress: currentAnchorProjectAddress,
@@ -176,18 +223,99 @@ export class RecurringDonationResolver {
       flowRate,
       currency,
       anonymous,
+      isBatch,
     });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate,
+    });
+
+    return recurringDonation;
   }
 
-  @Mutation(returns => RecurringDonation, { nullable: true })
+  @Mutation(_returns => RecurringDonation, { nullable: true })
+  async updateRecurringDonationParamsById(
+    @Ctx() ctx: ApolloContext,
+    @Arg('recurringDonationId', () => Int) recurringDonationId: number,
+    @Arg('projectId', () => Int) projectId: number,
+    @Arg('networkId', () => Int) networkId: number,
+    @Arg('currency', () => String) currency: string,
+    @Arg('txHash', () => String, { nullable: true }) txHash?: string,
+    @Arg('flowRate', () => String, { nullable: true }) flowRate?: string,
+    @Arg('anonymous', () => Boolean, { nullable: true }) anonymous?: boolean,
+    @Arg('isArchived', () => Boolean, { nullable: true }) isArchived?: boolean,
+    @Arg('status', () => String, { nullable: true }) status?: string,
+  ): Promise<RecurringDonation> {
+    const userId = ctx?.req?.user?.userId;
+    const donor = await findUserById(userId);
+
+    if (!donor) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+    }
+    const project = await findProjectById(projectId);
+    if (!project) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+    const recurringDonation =
+      await findRecurringDonationById(recurringDonationId);
+
+    if (!recurringDonation) {
+      // TODO set proper error message
+      throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
+    }
+
+    if (recurringDonation.donor.id !== donor.id) {
+      throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
+    }
+
+    const currentAnchorProjectAddress = await findActiveAnchorAddress({
+      projectId,
+      networkId,
+    });
+
+    if (!currentAnchorProjectAddress) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
+        ),
+      );
+    }
+
+    const updatedRecurringDonation = await updateRecurringDonation({
+      recurringDonation,
+      txHash,
+      flowRate,
+      anonymous,
+      status,
+      isArchived,
+    });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate: updatedRecurringDonation.flowRate,
+    });
+
+    return updatedRecurringDonation;
+  }
+
+  @Mutation(_returns => RecurringDonation, { nullable: true })
   async updateRecurringDonationParams(
     @Ctx() ctx: ApolloContext,
     @Arg('projectId', () => Int) projectId: number,
     @Arg('networkId', () => Int) networkId: number,
-    @Arg('txHash', () => String) txHash: string,
-    @Arg('flowRate', () => String) flowRate: string,
     @Arg('currency', () => String) currency: string,
-    @Arg('anonymous', () => Boolean) anonymous: boolean,
+    @Arg('txHash', () => String, { nullable: true }) txHash?: string,
+    @Arg('flowRate', () => String, { nullable: true }) flowRate?: string,
+    @Arg('anonymous', () => Boolean, { nullable: true }) anonymous?: boolean,
+    @Arg('isArchived', () => Boolean, { nullable: true }) isArchived?: boolean,
+    @Arg('status', () => String, { nullable: true }) status?: string,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
     const donor = await findUserById(userId);
@@ -201,14 +329,20 @@ export class RecurringDonationResolver {
     }
     const recurringDonation =
       await findRecurringDonationByProjectIdAndUserIdAndCurrency({
-        projectId: project.id,
+        projectId,
         userId: donor.id,
         currency,
       });
+
     if (!recurringDonation) {
       // TODO set proper error message
       throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
     }
+
+    if (recurringDonation.donor.id !== donor.id) {
+      throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
+    }
+
     const currentAnchorProjectAddress = await findActiveAnchorAddress({
       projectId,
       networkId,
@@ -222,28 +356,48 @@ export class RecurringDonationResolver {
       );
     }
 
-    return updateRecurringDonation({
+    const updatedRecurringDonation = await updateRecurringDonation({
       recurringDonation,
       txHash,
       flowRate,
       anonymous,
+      status,
+      isArchived,
     });
+
+    await markDraftRecurringDonationStatusMatched({
+      matchedRecurringDonationId: recurringDonation.id,
+      networkId,
+      currency,
+      projectId,
+      flowRate: updatedRecurringDonation.flowRate,
+    });
+
+    return updatedRecurringDonation;
   }
 
-  @Query(returns => PaginateRecurringDonations, { nullable: true })
+  @Query(_returns => PaginateRecurringDonations, { nullable: true })
   async recurringDonationsByProjectId(
-    @Ctx() ctx: ApolloContext,
-    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
-    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
-    @Arg('status', type => String, { nullable: true }) status: string,
-    @Arg('finishStatus', type => [Boolean], {
+    @Ctx() _ctx: ApolloContext,
+    @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
+    @Arg('status', _type => String, { nullable: true }) status: string,
+    @Arg('includeArchived', _type => Boolean, {
       nullable: true,
-      defaultValue: [false],
+      defaultValue: false,
     })
-    finishStatus: boolean[],
-    @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
-    @Arg('orderBy', type => RecurringDonationSortBy, {
+    includeArchived: boolean,
+    @Arg('finishStatus', _type => FinishStatus, {
+      nullable: true,
+      defaultValue: {
+        active: true,
+        ended: false,
+      },
+    })
+    finishStatus: FinishStatus,
+    @Arg('searchTerm', _type => String, { nullable: true }) searchTerm: string,
+    @Arg('orderBy', _type => RecurringDonationSortBy, {
       defaultValue: {
         field: RecurringDonationSortField.createdAt,
         direction: RecurringDonationSortDirection.DESC,
@@ -277,16 +431,29 @@ export class RecurringDonationResolver {
       orderBy.direction,
       RecurringDonationNullDirection[orderBy.direction as string],
     );
-
-    if (finishStatus && finishStatus.length > 0) {
-      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
-        finishStatus,
+    const finishStatusArray: boolean[] = [];
+    if (finishStatus.active) {
+      finishStatusArray.push(false);
+    }
+    if (finishStatus.ended) {
+      finishStatusArray.push(true);
+    }
+    if (finishStatusArray.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatusArray)`, {
+        finishStatusArray,
       });
     }
 
     if (status) {
       query.andWhere(`recurringDonation.status = :status`, {
         status,
+      });
+    }
+
+    if (!includeArchived) {
+      // Return only non-archived recurring donations
+      query.andWhere(`recurringDonation.isArchived = :isArchived`, {
+        isArchived: false,
       });
     }
 
@@ -327,7 +494,7 @@ export class RecurringDonationResolver {
     };
   }
 
-  @Query(returns => UserRecurringDonations, { nullable: true })
+  @Query(_returns => UserRecurringDonations, { nullable: true })
   async recurringDonationsByUserId(
     @Args()
     {
@@ -336,6 +503,7 @@ export class RecurringDonationResolver {
       orderBy,
       userId,
       status,
+      includeArchived,
       finishStatus,
       filteredTokens,
     }: UserRecurringDonationsArgs,
@@ -344,6 +512,7 @@ export class RecurringDonationResolver {
     const loggedInUserId = ctx?.req?.user?.userId;
     const query = RecurringDonation.createQueryBuilder('recurringDonation')
       .leftJoinAndSelect('recurringDonation.project', 'project')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoin('recurringDonation.donor', 'donor')
       .addSelect([
         'donor.id',
@@ -369,14 +538,28 @@ export class RecurringDonationResolver {
     }
 
     if (status) {
-      query.andWhere(`donation.status = :status`, {
+      query.andWhere(`recurringDonation.status = :status`, {
         status,
       });
     }
 
-    if (finishStatus && finishStatus.length > 0) {
-      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
-        finishStatus,
+    if (!includeArchived) {
+      // Return only non-archived recurring donations
+      query.andWhere(`recurringDonation.isArchived = :isArchived`, {
+        isArchived: false,
+      });
+    }
+
+    const finishStatusArray: boolean[] = [];
+    if (finishStatus.active) {
+      finishStatusArray.push(false);
+    }
+    if (finishStatus.ended) {
+      finishStatusArray.push(true);
+    }
+    if (finishStatusArray.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatusArray)`, {
+        finishStatusArray,
       });
     }
 
@@ -396,7 +579,7 @@ export class RecurringDonationResolver {
     };
   }
 
-  @Mutation(returns => RecurringDonation)
+  @Mutation(_returns => RecurringDonation)
   async updateRecurringDonationStatus(
     @Arg('donationId') donationId: number,
     @Arg('status', { nullable: true }) status: string,
@@ -461,12 +644,51 @@ export class RecurringDonationResolver {
         // We just update status of donation with tx status in blockchain network
         // but if user send failed status, and there were nothing in network we change it to failed
         updatedRecurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+        updatedRecurringDonation.finished = true;
         await updatedRecurringDonation.save();
       }
       return updatedRecurringDonation;
     } catch (e) {
       SentryLogger.captureException(e);
-      logger.error('updateRecurringDonationStatus() error', e);
+      logger.error('updateRecurringDonationStatus() error ', e);
+      throw e;
+    }
+  }
+
+  @Query(_returns => RecurringDonationStats)
+  async getRecurringDonationStats(
+    @Args() { beginDate, endDate, currency }: GetRecurringDonationStatsArgs,
+  ): Promise<RecurringDonationStats> {
+    try {
+      validateWithJoiSchema(
+        { beginDate, endDate },
+        getRecurringDonationStatsArgsValidator,
+      );
+
+      const query = RecurringDonation.createQueryBuilder('recurring_donation')
+        .select([
+          'COUNT(CASE WHEN recurring_donation.status = :active THEN 1 END)',
+          'SUM(recurring_donation.totalUsdStreamed)',
+        ])
+        .setParameter('active', 'active')
+        .where(
+          `recurring_donation.createdAt >= :beginDate AND recurring_donation.createdAt <= :endDate`,
+          { beginDate, endDate },
+        );
+
+      if (currency) {
+        query.andWhere(`recurring_donation.currency = :currency`, { currency });
+      }
+
+      const [result] = await query.getRawMany();
+
+      return {
+        activeRecurringDonationsCount: parseInt(result.count),
+        totalStreamedUsdValue: parseFloat(result.sum) || 0,
+      };
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('getRecurringDonationStats() error ', e);
       throw e;
     }
   }

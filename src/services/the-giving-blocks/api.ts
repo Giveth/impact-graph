@@ -1,4 +1,3 @@
-import { extractTraceparentData } from '@sentry/tracing';
 import Axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 import config from '../../config';
@@ -138,7 +137,7 @@ export const generateGivingBlockDepositAddress = async (
     );
     return result.data.data.depositAddress;
   } catch (e) {
-    logger.error('giving block service depositAddress() err');
+    logger.error('giving block service depositAddress() err', e);
     throw e;
   }
 };

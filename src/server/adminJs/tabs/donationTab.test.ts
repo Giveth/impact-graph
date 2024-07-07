@@ -1,17 +1,14 @@
+import { assert } from 'chai';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
-  SEED_DATA,
 } from '../../../../test/testUtils';
-import { findUserById } from '../../../repositories/userRepository';
 import { NETWORK_IDS } from '../../../provider';
-import { User } from '../../../entities/user';
 import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
 } from '../../../entities/donation';
-import { assert } from 'chai';
 import { createDonation } from './donationTab';
 
 describe('createDonation() test cases', createDonationTestCases);
@@ -53,7 +50,6 @@ function createDonationTestCases() {
       ...createProjectData(),
       walletAddress: sixthProjectAddress,
     });
-    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await createDonation(
       {
         query: {
@@ -71,12 +67,6 @@ function createDonationTestCases() {
         send: () => {
           //
         },
-      },
-      {
-        currentAdmin: adminUser as User,
-        h: {},
-        resource: {},
-        records: [],
       },
     );
 
@@ -168,7 +158,6 @@ function createDonationTestCases() {
       ...createProjectData(),
       walletAddress: firstProjectAddress,
     });
-    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await createDonation(
       {
         query: {
@@ -187,12 +176,6 @@ function createDonationTestCases() {
         send: () => {
           //
         },
-      },
-      {
-        currentAdmin: adminUser as User,
-        h: {},
-        resource: {},
-        records: [],
       },
     );
 

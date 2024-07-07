@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import config from '../src/config';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcrypt');
 
 export class createTestAdminUser1672836674875 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
     if (environment !== 'local' && environment !== 'test') {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('We just create admin user in local and test ENVs');
       return;
     }

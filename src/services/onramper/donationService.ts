@@ -6,19 +6,15 @@ import { findProjectRecipientAddressByNetworkId } from '../../repositories/proje
 import { findProjectById } from '../../repositories/projectRepository';
 import { findUserById } from '../../repositories/userRepository';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
-import {
-  isTokenAcceptableForProject,
-  updateDonationPricesAndValues,
-  updateTotalDonationsOfProject,
-} from '../donationService';
+import { isTokenAcceptableForProject } from '../donationService';
 import { OnRamperFiatTransaction, OnRamperMetadata } from './fiatTransaction';
 import SentryLogger from '../../sentryLogger';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
+import { updateProjectStatistics } from '../projectService';
 
 export const createFiatDonationFromOnramper = async (
   fiatTransaction: OnRamperFiatTransaction,
@@ -102,7 +98,7 @@ export const createFiatDonationFromOnramper = async (
     const ethMainnetAddress = '0x0000000000000000000000000000000000000000';
 
     // FromWalletAddress is not the donor wallet, but the Onramper Address
-    donation = await Donation.create({
+    donation = Donation.create({
       amount: Number(fiatTransaction.payload.outAmount),
       transactionId: fiatTransaction.payload.txHash!.toLowerCase(),
       isFiat: true,
@@ -133,14 +129,14 @@ export const createFiatDonationFromOnramper = async (
 
     await donation.save();
 
-    await updateDonationPricesAndValues(
-      donation,
-      project,
-      null,
-      fiatTransaction.payload.outCurrency,
-      priceChainId,
-      fiatTransaction.payload.outAmount,
-    );
+    // await updateDonationPricesAndValues(
+    //   donation,
+    //   project,
+    //   null,
+    //   fiatTransaction.payload.outCurrency,
+    //   priceChainId,
+    //   fiatTransaction.payload.outAmount,
+    // );
 
     // After updating, recalculate user total donated and owner total received
     if (donorUser) {
@@ -148,8 +144,8 @@ export const createFiatDonationFromOnramper = async (
     }
 
     // After updating price we update totalDonations
-    await updateTotalDonationsOfProject(project.id);
-    await updateUserTotalReceived(Number(project.admin));
+    await updateProjectStatistics(project.id);
+    await updateUserTotalReceived(project.adminUserId);
   } catch (e) {
     SentryLogger.captureException(e);
     logger.error('createFiatDonationFromOnramper() error', e);

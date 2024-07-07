@@ -15,20 +15,20 @@ import { QfRound } from './qfRound';
 @Entity()
 @Unique(['projectId', 'qfRoundId'])
 export class ProjectFraud extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field(type => Project)
-  @ManyToOne(type => Project, { eager: true })
+  @Field(_type => Project)
+  @ManyToOne(_type => Project, { eager: true })
   project: Project;
 
   @RelationId((projectFraud: ProjectFraud) => projectFraud.project)
   @Column()
   projectId: number;
 
-  @Field(type => QfRound)
-  @ManyToOne(type => QfRound, { eager: true })
+  @Field(_type => QfRound)
+  @ManyToOne(_type => QfRound, { eager: true })
   qfRound: QfRound;
 
   @RelationId((projectFraud: ProjectFraud) => projectFraud.qfRound)

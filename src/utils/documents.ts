@@ -1,14 +1,14 @@
 import HTMLToPDF from 'html-pdf-node';
 import { pinFileDataBase64 } from '../middleware/pinataUtils';
 
-// tslint:disable-next-line:no-var-requires
-const Handlebars = require('handlebars');
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs = require('fs');
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const util = require('util');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const Handlebars = require('handlebars');
 
 const readFile = util.promisify(fs.readFile);
 
@@ -24,7 +24,7 @@ export async function generateHTMLDocument(name: string, data: any) {
 export async function generatePDFDocument(
   name: string,
   data: any,
-): Promise<String> {
+): Promise<string> {
   const html = await generateHTMLDocument(name, data);
   const buf = await HTMLToPDF.generatePdf({ content: html }, { format: 'A4' });
 
@@ -36,6 +36,7 @@ export async function generatePDFDocument(
 export async function changeBase64ToIpfsImageInHTML(
   html: string,
 ): Promise<string> {
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     // Find image with base64
     const regex = /<img\ssrc="(data:image\/[^;]+;base64,[^"]+)"/g;
@@ -44,7 +45,7 @@ export async function changeBase64ToIpfsImageInHTML(
     if (!match) break;
 
     const base64 = match[1];
-    const pinResponse = await pinFileDataBase64(base64, undefined, 'base64');
+    const pinResponse = await pinFileDataBase64(base64, undefined);
     const url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.IpfsHash}`;
 
     const startIndex = match.index + '<img src="'.length;

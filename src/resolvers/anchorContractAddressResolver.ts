@@ -1,24 +1,23 @@
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
+import path from 'path';
+import { promises as fs } from 'fs';
+import { ethers } from 'ethers';
+import { Arg, Ctx, Int, Mutation, Resolver } from 'type-graphql';
 
-import { QfRoundHistory } from '../entities/qfRoundHistory';
-import { getQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findProjectById } from '../repositories/projectRepository';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import {
   addNewAnchorAddress,
   findActiveAnchorAddress,
 } from '../repositories/anchorContractAddressRepository';
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
+import { getProvider } from '../provider';
+import { logger } from '../utils/logger';
 
-@Resolver(of => AnchorContractAddress)
+@Resolver(_of => AnchorContractAddress)
 export class AnchorContractAddressResolver {
-  @Mutation(returns => AnchorContractAddress, { nullable: true })
+  @Mutation(_returns => AnchorContractAddress, { nullable: true })
   async addAnchorContractAddress(
     @Ctx() ctx: ApolloContext,
     @Arg('projectId', () => Int) projectId: number,
@@ -61,7 +60,49 @@ export class AnchorContractAddressResolver {
       );
     }
 
-    // Validate anchor address, the owner of contract must be the project owner
+    const web3Provider = getProvider(networkId);
+    // tx sample   // https://sepolia-optimism.etherscan.io/tx/0x7af6b35466b651a43dab0d06e066c421416e5b340c62e5a54124b3eac346297a
+    const networkData = await web3Provider.getTransaction(txHash);
+
+    if (!networkData) {
+      logger.debug(
+        'Transaction not found in the network. maybe its not mined yet',
+        {
+          txHash,
+          networkId,
+        },
+      );
+      throw new Error(i18n.__(translationErrorMessagesKeys.TX_NOT_FOUND));
+    }
+
+    // Load the ABI from  file
+    const abiPath = path.join(__dirname, '../abi/anchorContractAbi.json');
+    const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
+
+    const iface = new ethers.utils.Interface(abi);
+    const decodedData = iface.parseTransaction({ data: networkData.data });
+    const txProjectId = decodedData.args[1];
+    if (Number(txProjectId) !== projectId) {
+      logger.debug('txProjectId odoes not match the project id', {
+        txProjectId,
+        projectId,
+      });
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_ID));
+    }
+    const profileOwnerWalletAddress = decodedData.args[3];
+    if (
+      profileOwnerWalletAddress.toLowerCase() !==
+      project?.adminUser?.walletAddress?.toLowerCase()
+    ) {
+      logger.debug(
+        'profile owner of tx payload does not match the project owner',
+        {
+          profileOwnerWalletAddress,
+          projectOwner: project.adminUser.walletAddress,
+        },
+      );
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_ID));
+    }
 
     return addNewAnchorAddress({
       project,

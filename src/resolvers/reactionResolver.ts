@@ -1,13 +1,4 @@
-import {
-  Arg,
-  Ctx,
-  Field,
-  Int,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
-} from 'type-graphql';
+import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
 import { Reaction } from '../entities/reaction';
 import { Context } from '../context';
 import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
@@ -18,30 +9,21 @@ import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
 
-@ObjectType()
-class ToggleResponse {
-  @Field(type => Boolean)
-  reaction: boolean;
-
-  @Field(type => Number)
-  reactionCount: number;
-}
-
-@Resolver(of => Reaction)
+@Resolver(_of => Reaction)
 export class ReactionResolver {
-  @Query(returns => [Reaction])
+  @Query(_returns => [Reaction])
   async getProjectReactions(
     @Arg('projectId') projectId: number,
-    @Ctx() { user }: Context,
+    @Ctx() { user: _user }: Context,
   ): Promise<Reaction[]> {
     return await Reaction.find({
       where: { projectId: projectId || -1 },
     });
   }
 
-  @Mutation(returns => Reaction)
+  @Mutation(_returns => Reaction)
   async likeProjectUpdate(
-    @Arg('projectUpdateId', type => Int) projectUpdateId: number,
+    @Arg('projectUpdateId', _type => Int) projectUpdateId: number,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
@@ -102,9 +84,9 @@ export class ReactionResolver {
     }
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async unlikeProjectUpdate(
-    @Arg('reactionId', type => Int) reactionId: number,
+    @Arg('reactionId', _type => Int) reactionId: number,
     @Ctx()
     { req: { user } }: ApolloContext,
   ): Promise<boolean> {
@@ -163,9 +145,9 @@ export class ReactionResolver {
     }
   }
 
-  @Mutation(returns => Reaction)
+  @Mutation(_returns => Reaction)
   async likeProject(
-    @Arg('projectId', type => Int) projectId: number,
+    @Arg('projectId', _type => Int) projectId: number,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
@@ -233,9 +215,9 @@ export class ReactionResolver {
     }
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async unlikeProject(
-    @Arg('reactionId', type => Int) reactionId: number,
+    @Arg('reactionId', _type => Int) reactionId: number,
     @Ctx()
     { req: { user } }: ApolloContext,
   ): Promise<boolean> {

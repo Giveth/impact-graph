@@ -1,9 +1,9 @@
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql';
 
+import { Repository } from 'typeorm';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { ApolloContext } from '../types/ApolloContext';
-import { Repository, In } from 'typeorm';
 import { getLoggedInUser } from '../services/authorizationServices';
 import { AppDataSource } from '../orm';
 
@@ -50,7 +50,7 @@ export class MeResolver {
     const user = await getLoggedInUser(ctx);
 
     const projects = this.projectRepository.find({
-      where: { admin: user.id?.toString() },
+      where: { adminUserId: user.id },
       // relations: ['status', 'donations', 'reactions'],
       relations: ['status', 'reactions'],
       order: {

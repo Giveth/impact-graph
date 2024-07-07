@@ -1,16 +1,11 @@
+import { stringify } from 'querystring';
+import axios from 'axios';
 import {
   GetUserInfoByOauth2Output,
   SocialNetworkOauth2AdapterInterface,
 } from './SocialNetworkOauth2AdapterInterface';
-import { stringify } from 'querystring';
-import axios from 'axios';
-import { decode, JwtPayload } from 'jsonwebtoken';
 import { logger } from '../../utils/logger';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 
 const clientId = process.env.LINKEDIN_CLIENT_ID;
 const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;

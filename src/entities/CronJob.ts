@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
+import { Field, ID, ObjectType } from 'type-graphql';
 import { PrimaryGeneratedColumn, Column, Entity, BaseEntity } from 'typeorm';
 
 @ObjectType()
@@ -7,7 +7,7 @@ import { PrimaryGeneratedColumn, Column, Entity, BaseEntity } from 'typeorm';
 })
 // Postgres cron jobs
 export class CronJob extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn({ name: 'jobid' })
   readonly id: number;
 

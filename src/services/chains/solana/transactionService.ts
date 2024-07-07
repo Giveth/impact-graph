@@ -1,5 +1,5 @@
-import { logger } from '../../../utils/logger';
 import SolanaWeb3, { ParsedInstruction } from '@solana/web3.js';
+import { logger } from '../../../utils/logger';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
@@ -10,10 +10,7 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
-import {
-  findTokenByNetworkAndAddress,
-  findTokenByNetworkAndSymbol,
-} from '../../../utils/tokenUtils';
+import { findTokenByNetworkAndSymbol } from '../../../utils/tokenUtils';
 import { NETWORK_IDS } from '../../../provider';
 
 const solanaProviders = new Map<number, SolanaWeb3.Connection>();

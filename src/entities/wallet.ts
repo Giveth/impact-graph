@@ -12,7 +12,7 @@ import { User } from './user';
 @ObjectType()
 @Entity()
 export class Wallet extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -20,8 +20,8 @@ export class Wallet extends BaseEntity {
   @Column('text', { unique: true })
   address: string;
 
-  @Field(type => User)
-  @ManyToOne(type => User, { eager: true })
+  @Field(_type => User)
+  @ManyToOne(_type => User, { eager: true })
   user: User;
   @RelationId((donation: Wallet) => donation.user)
   @Column()

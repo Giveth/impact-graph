@@ -14,7 +14,7 @@ import { Token } from './token';
 @Entity()
 @ObjectType()
 export class Organization extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -35,12 +35,12 @@ export class Organization extends BaseEntity {
   @Column('boolean', { nullable: true, default: false })
   supportCustomTokens?: boolean;
 
-  @Field(type => [Project], { nullable: true })
-  @OneToMany(type => Project, project => project.organization)
+  @Field(_type => [Project], { nullable: true })
+  @OneToMany(_type => Project, project => project.organization)
   projects?: Project[];
 
-  @Field(type => [Token], { nullable: true })
-  @ManyToMany(type => Token, token => token.organizations)
+  @Field(_type => [Token], { nullable: true })
+  @ManyToMany(_type => Token, token => token.organizations)
   @JoinTable()
   tokens: Token[];
 }

@@ -1,15 +1,10 @@
-import { SuperFluidAdapterInterface } from './superFluidAdapterInterface';
+import {
+  FlowUpdatedEvent,
+  SuperFluidAdapterInterface,
+} from './superFluidAdapterInterface';
 
 export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
-  async streamPeriods(params: {
-    address: string;
-    chain: number;
-    start: number;
-    end: number;
-    priceGranularity: string;
-    virtualization: string;
-    currency: string;
-  }) {
+  async streamPeriods() {
     return {
       id: '0x8c3bf3eb2639b2326ff937d041292da2e79adbbf-0xd964ab7e202bab8fbaa28d5ca2b2269a5497cf68-0x1305f6b6df9dc47159d12eb7ac2804d4a33173c2-0.0-0.0',
       flowRate: '462962962962962',
@@ -60,7 +55,7 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
     };
   }
 
-  async accountBalance(accountId: string) {
+  async accountBalance() {
     return {
       id: '0x0000000000000000000000000000000000000000',
       accountTokenSnapshots: [
@@ -70,7 +65,7 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
             name: 'ETHx',
             symbol: 'ETHx',
           },
-          maybeCriticalAtTimestamp: null,
+          maybeCriticalAtTimestamp: 1738525894,
         },
         {
           token: {
@@ -78,9 +73,27 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
             name: 'Daix',
             symbol: 'Daix',
           },
-          maybeCriticalAtTimestamp: null,
+          maybeCriticalAtTimestamp: 1738525894,
         },
       ],
     };
+  }
+
+  getFlowByReceiverSenderFlowRate(_params: {
+    receiver: string;
+    sender: string;
+    flowRate: string;
+    timestamp_gt: number;
+  }): Promise<FlowUpdatedEvent | undefined> {
+    return Promise.resolve(undefined);
+  }
+
+  getFlowByTxHash(_params: {
+    receiver: string;
+    sender: string;
+    flowRate: string;
+    transactionHash: string;
+  }): Promise<FlowUpdatedEvent | undefined> {
+    return Promise.resolve(undefined);
   }
 }

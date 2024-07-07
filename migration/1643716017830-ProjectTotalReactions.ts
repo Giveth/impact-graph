@@ -28,6 +28,5 @@ export class ProjectTotalReactions1643716017830 implements MigrationInterface {
     }
   }
 
-  // tslint:disable-next-line:no-empty
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

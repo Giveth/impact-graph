@@ -1,3 +1,4 @@
+import { DataSourceOptions } from 'typeorm';
 import { Organization } from './organization';
 import { Category } from './category';
 import { Token } from './token';
@@ -27,7 +28,6 @@ import { PowerSnapshotHistory } from './powerSnapshotHistory';
 import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
 import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
 import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
-import { DataSourceOptions } from 'typeorm';
 import { User } from './user';
 import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
@@ -49,6 +49,7 @@ import { DraftDonation } from './draftDonation';
 import { ProjectFraud } from './projectFraud';
 import { ProjectActualMatchingView } from './ProjectActualMatchingView';
 import { ProjectSocialMedia } from './projectSocialMedia';
+import { DraftRecurringDonation } from './draftRecurringDonation';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -114,5 +115,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
 
     AnchorContractAddress,
     RecurringDonation,
+    DraftRecurringDonation,
   ];
 };

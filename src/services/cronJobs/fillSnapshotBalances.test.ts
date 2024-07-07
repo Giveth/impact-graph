@@ -1,9 +1,10 @@
+import { assert } from 'chai';
+import sinon from 'sinon';
 import {
   addFillPowerSnapshotBalanceJobsToQueue,
   processFillPowerSnapshotJobs,
 } from './fillSnapshotBalances';
 import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository';
-import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -15,8 +16,6 @@ import { PowerSnapshot } from '../../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../../orm';
 import { PowerBalanceSnapshot } from '../../entities/powerBalanceSnapshot';
-import { logger } from '../../utils/logger';
-import sinon from 'sinon';
 import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory';
 import { convertTimeStampToSeconds } from '../../utils/utils';
 

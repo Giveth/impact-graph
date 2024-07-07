@@ -1,5 +1,4 @@
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
-import { SocialProfile } from '../entities/socialProfile';
 
 export const findOneProjectStatusHistoryByProjectId = (
   projectId: number,

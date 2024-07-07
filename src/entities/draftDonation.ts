@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -26,7 +26,7 @@ export const DRAFT_DONATION_STATUS = {
   },
 )
 export class DraftDonation extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -39,7 +39,7 @@ export class DraftDonation extends BaseEntity {
   // @Column({ nullable: true })
   // safeTransactionId?: string;
 
-  @Field(type => String)
+  @Field(_type => String)
   @Column({
     type: 'enum',
     enum: ChainType,
@@ -90,17 +90,17 @@ export class DraftDonation extends BaseEntity {
   userId: number;
 
   @Index()
-  @Field(type => Date)
+  @Field(_type => Date)
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   referrerId?: string;
 
   // Expected call data used only for matching ERC20 transfers
   // Is calculated and saved once during the matching time, and will be used in next iterations
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   expectedCallData?: string;
 

@@ -32,15 +32,11 @@ const transactionId =
 function onramperWebhookHandlerTestCases() {
   it('should return error 403 if the hmac-sha256 signature is invalid', async () => {
     try {
-      const result = await axios.post(
-        `${serverBaseAddress}/fiat_webhook`,
-        payload,
-        {
-          headers: {
-            'x-onramper-webhook-signature': 'xxxxxx',
-          },
+      await axios.post(`${serverBaseAddress}/fiat_webhook`, payload, {
+        headers: {
+          'x-onramper-webhook-signature': 'xxxxxx',
         },
-      );
+      });
     } catch (e) {
       const status = e.response.status;
       assert.equal(status, 403);
@@ -48,10 +44,7 @@ function onramperWebhookHandlerTestCases() {
   });
   it('should return error if the hmac-sha256 signature header is missing', async () => {
     try {
-      const result = await axios.post(
-        `${serverBaseAddress}/fiat_webhook`,
-        payload,
-      );
+      await axios.post(`${serverBaseAddress}/fiat_webhook`, payload);
     } catch (e) {
       const status = e.response.status;
       assert.equal(status, 403);

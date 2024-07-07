@@ -1,5 +1,4 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import config from '../src/config';
 import { Project } from '../src/entities/project';
 import { NETWORK_IDS } from '../src/provider';
 import { ENVIRONMENTS } from '../src/utils/utils';
@@ -15,19 +14,19 @@ const insertRelatedAddress = async (params: {
                   INSERT INTO project_address(
                   "networkId", address, "projectId", "userId", "isRecipient")
                   VALUES (${networkId}, '${project.walletAddress?.toLowerCase()}', ${
-      project.id
-    }, ${Number(project.admin)}, true);
+                    project.id
+                  }, ${project.adminUserId}, true);
               `,
   );
 };
-// tslint:disable-next-line:class-name
+
 export class fillRelatedAddressesFromProjectsTable1654415838996
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     const projectTableExists = await queryRunner.hasTable('project');
     if (!projectTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log(
         'The project table doesnt exist, so there is no need to relate it to relatedAddreses',
       );
@@ -36,7 +35,7 @@ export class fillRelatedAddressesFromProjectsTable1654415838996
     const userTableExists = await queryRunner.hasTable('user');
 
     if (!userTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log(
         'The user table doesnt exist, so there is no need to relate it to relatedAddresses',
       );
@@ -102,7 +101,7 @@ export class fillRelatedAddressesFromProjectsTable1654415838996
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  async down(_queryRunner: QueryRunner): Promise<void> {
     //
   }
 }

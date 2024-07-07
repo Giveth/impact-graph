@@ -16,35 +16,35 @@ import { User } from './user';
 @Index(['userId', 'projectId'], { unique: true })
 @Index(['userId', 'projectUpdateId'], { unique: true })
 export class Reaction extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @ManyToOne(type => ProjectUpdate)
+  @ManyToOne(_type => ProjectUpdate)
   projectUpdate: ProjectUpdate;
 
   @Index()
   @RelationId((reaction: Reaction) => reaction.projectUpdate)
-  @Field(type => ID, { nullable: true })
+  @Field(_type => ID, { nullable: true })
   @Column({ nullable: true })
   projectUpdateId?: number;
 
   // We just fill it with join when making query so dont need to Add @Column or @ManyToOne
   user: User;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   userId: number;
 
-  @Field(type => String)
+  @Field(_type => String)
   @Column()
   reaction: string;
 
-  @ManyToOne(type => Project)
+  @ManyToOne(_type => Project)
   project: Project;
 
   @Index()
-  @Field(type => ID, { nullable: true })
+  @Field(_type => ID, { nullable: true })
   @RelationId((reaction: Reaction) => reaction.project)
   @Column({ nullable: true })
   projectId: number;

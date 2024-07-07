@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import { addNewAnchorAddress } from './anchorContractAddressRepository';
 import {
   createProjectData,
@@ -7,7 +8,6 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { NETWORK_IDS } from '../provider';
-import { assert } from 'chai';
 
 describe('addNewAnchorAddressTestCases', addNewAnchorAddressTestCases);
 

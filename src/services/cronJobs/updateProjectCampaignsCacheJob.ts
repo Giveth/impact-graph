@@ -1,9 +1,6 @@
+import { schedule } from 'node-cron';
 import config from '../../config';
 import { logger } from '../../utils/logger';
-import { schedule } from 'node-cron';
-import { isTestEnv } from '../../utils/utils';
-import { ModuleThread, Pool, spawn, Worker } from 'threads';
-import { CacheProjectCampaignsWorker } from '../../workers/cacheProjectCampaignsWorker';
 import { cacheProjectCampaigns } from '../campaignService';
 
 // every 10 minutes
@@ -11,11 +8,11 @@ const cronJobTime =
   (config.get('CACHE_PROJECT_CAMPAIGNS_CRONJOB_EXPRESSION') as string) ||
   '0 */5 * * * *';
 
-const projectsFiltersThreadPool: Pool<
-  ModuleThread<CacheProjectCampaignsWorker>
-> = Pool(
-  () => spawn(new Worker('../../workers/cacheProjectCampaignsWorker')), // create the worker,
-);
+// const projectsFiltersThreadPool: Pool<
+//   ModuleThread<CacheProjectCampaignsWorker>
+// > = Pool(
+//   () => spawn(new Worker('../../workers/cacheProjectCampaignsWorker')), // create the worker,
+// );
 export const runUpdateProjectCampaignsCacheJob = async () => {
   logger.debug(
     'runUpdateProjectCampaignsCacheJob() has been called, cronJobTime',

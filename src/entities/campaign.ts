@@ -4,16 +4,10 @@ import {
   Column,
   Entity,
   BaseEntity,
-  ManyToMany,
   UpdateDateColumn,
   CreateDateColumn,
-  JoinTable,
-  Index,
-  ManyToOne,
-  RelationId,
 } from 'typeorm';
 import { Project } from './project';
-import { User } from './user';
 
 // Copied from projects enums
 export enum CampaignSortingField {
@@ -61,7 +55,7 @@ export enum CampaignType {
 @Entity()
 @ObjectType()
 export class Campaign extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -73,7 +67,7 @@ export class Campaign extends BaseEntity {
   @Column('text', { nullable: false })
   title: string;
 
-  @Field(type => String)
+  @Field(_type => String)
   @Column({
     type: 'enum',
     enum: CampaignType,
@@ -96,11 +90,11 @@ export class Campaign extends BaseEntity {
   @Column('text', { nullable: false })
   description: string;
 
-  @Field(type => [String], { nullable: true })
+  @Field(_type => [String], { nullable: true })
   @Column('text', { nullable: true, array: true })
   hashtags: string[];
 
-  @Field(type => [String], { nullable: true })
+  @Field(_type => [String], { nullable: true })
   @Column('text', { nullable: true, array: true })
   relatedProjectsSlugs: string[];
 
@@ -119,7 +113,7 @@ export class Campaign extends BaseEntity {
   // ipfs link
   videoPreview?: string;
 
-  @Field(type => [Project], { nullable: true })
+  @Field(_type => [Project], { nullable: true })
   relatedProjects: Project[];
 
   @Field({ nullable: true })
@@ -133,7 +127,7 @@ export class Campaign extends BaseEntity {
   @Column({ nullable: true })
   landingLink: string;
 
-  @Field(type => [String], { nullable: true })
+  @Field(_type => [String], { nullable: true })
   @Column({
     type: 'enum',
     enum: CampaignFilterField,
@@ -142,7 +136,7 @@ export class Campaign extends BaseEntity {
   })
   filterFields: CampaignFilterField[];
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({
     type: 'enum',
     enum: CampaignSortingField,

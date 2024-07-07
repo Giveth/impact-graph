@@ -1,12 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class createUserTable1662877385100 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const userTableExists = await queryRunner.hasTable('public.user');
 
     if (userTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('user table already exists');
       return;
     }
@@ -41,6 +40,5 @@ export class createUserTable1662877385100 implements MigrationInterface {
     );
   }
 
-  // tslint:disable-next-line:no-empty
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

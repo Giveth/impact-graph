@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   dropDbCronExtension,
   EVERY_MINUTE_CRON_JOB_EXPRESSION,
@@ -8,7 +9,6 @@ import {
   setupPgCronExtension,
   unSchedulePowerBoostingSnapshot,
 } from './dbCronRepository';
-import { assert } from 'chai';
 import config from '../config';
 import {
   createProjectData,
@@ -247,7 +247,6 @@ describe('db cron job test', () => {
     });
     await dropDbCronExtension();
     await setupPgCronExtension();
-    const EVERY_TEN_SECONDS_CRON_JOB_EXPRESSION = '*/10 * * * * *';
 
     await schedulePowerBoostingSnapshot(EVERY_MINUTE_CRON_JOB_EXPRESSION);
 
@@ -321,7 +320,6 @@ describe('db cron job test', () => {
     });
     await dropDbCronExtension();
     await setupPgCronExtension();
-    const EVERY_TEN_SECONDS_CRON_JOB_EXPRESSION = '*/10 * * * * *';
 
     await schedulePowerBoostingSnapshot(EVERY_MINUTE_CRON_JOB_EXPRESSION);
 

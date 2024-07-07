@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class addGivingBlockOrganizationToGivingBlockProjects1648085509369
   implements MigrationInterface
 {
@@ -23,5 +22,5 @@ export class addGivingBlockOrganizationToGivingBlockProjects1648085509369
         `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

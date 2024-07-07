@@ -1,7 +1,7 @@
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
-  generateTestAccessToken,
   saveProjectDirectlyToDb,
   saveProjectVerificationFormDirectlyToDb,
   saveUserDirectlyToDb,
@@ -13,7 +13,6 @@ import {
   removeSocialProfileById,
 } from './socialProfileRepository';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
-import { assert } from 'chai';
 
 describe(
   'removeSocialProfileById test cases',
@@ -29,7 +28,7 @@ function removeSocialProfileByIdTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -55,7 +54,7 @@ function findSocialProfilesByProjectIdTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -79,7 +78,7 @@ function findSocialProfilesByProjectIdTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const socialProfiles = await findSocialProfilesByProjectId({

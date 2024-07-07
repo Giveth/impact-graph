@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class modifyUserTotalReceived1647455993813
   implements MigrationInterface
 {
@@ -27,6 +26,5 @@ export class modifyUserTotalReceived1647455993813
     }
   }
 
-  // tslint:disable-next-line:no-empty
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

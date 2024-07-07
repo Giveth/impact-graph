@@ -1,5 +1,4 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Project, ReviewStatus } from '../src/entities/project';
 
 export class SetProjectReviewStatus1677073819672 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -25,5 +24,5 @@ export class SetProjectReviewStatus1677073819672 implements MigrationInterface {
     `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

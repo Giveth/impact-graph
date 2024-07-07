@@ -4,18 +4,15 @@ import {
   Column,
   Entity,
   BaseEntity,
-  OneToMany,
-  Index,
   ManyToOne,
   RelationId,
 } from 'typeorm';
-import { Project } from './project';
 import { ProjectStatus } from './projectStatus';
 
 @Entity()
 @ObjectType()
 export class ProjectStatusReason extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -23,8 +20,8 @@ export class ProjectStatusReason extends BaseEntity {
   @Column({ nullable: true })
   description: string;
 
-  @Field(type => ProjectStatus)
-  @ManyToOne(type => ProjectStatus)
+  @Field(_type => ProjectStatus)
+  @ManyToOne(_type => ProjectStatus)
   status: ProjectStatus;
 
   @RelationId(

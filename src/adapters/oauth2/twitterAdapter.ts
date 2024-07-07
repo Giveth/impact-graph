@@ -1,12 +1,11 @@
+import { auth } from 'twitter-api-sdk';
+import { OAuth2User } from 'twitter-api-sdk/dist/OAuth2User';
+import axios from 'axios';
+import { logger } from '../../utils/logger';
 import {
   GetUserInfoByOauth2Output,
   SocialNetworkOauth2AdapterInterface,
 } from './SocialNetworkOauth2AdapterInterface';
-import { auth, Client } from 'twitter-api-sdk';
-import { OAuth2User } from 'twitter-api-sdk/dist/OAuth2User';
-import { logger } from '../../utils/logger';
-import { generateRandomString } from '../../utils/utils';
-import axios from 'axios';
 
 export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
   private authClient: OAuth2User;

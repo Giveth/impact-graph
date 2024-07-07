@@ -1,4 +1,5 @@
 import abiDecoder from 'abi-decoder';
+import axios from 'axios';
 import {
   findTokenByNetworkAndAddress,
   findTokenByNetworkAndSymbol,
@@ -8,7 +9,6 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
-import axios from 'axios';
 import { erc20ABI } from '../../../assets/erc20ABI';
 import { disperseABI } from '../../../assets/disperseABI';
 import {
@@ -22,10 +22,9 @@ import { gnosisSafeL2ABI } from '../../../assets/gnosisSafeL2ABI';
 import { NetworkTransactionInfo, TransactionDetailInput } from '../index';
 import { normalizeAmount } from '../../../utils/utils';
 import { ONE_HOUR, validateTransactionWithInputData } from '../index';
-import _ from 'lodash';
 import { ITxInfo } from '../../../types/etherscan';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 abiDecoder.addABI(gnosisSafeL2ABI);
@@ -175,31 +174,62 @@ export async function getListOfTransactionsByAddress(input: {
   userRecentTransactions: ITxInfo[];
   lastPage: boolean;
 }> {
-  const { address, page = 1, offset = 1000, networkId } = input;
-  // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
-  // https://blockscout.com/xdai/mainnet/api-docs#account
-  logger.debug(
-    'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransaction fromAddress:',
-    address,
-  );
-  const result = await axios.get(getBlockExplorerApiUrl(networkId), {
-    params: {
-      module: 'account',
-      action: 'txlist',
-      page,
-      offset,
+  try {
+    const { address, page = 1, offset = 1000, networkId } = input;
+    // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
+    // https://blockscout.com/xdai/mainnet/api-docs#account
+    logger.debug(
+      'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransaction fromAddress:',
       address,
-      sort: 'desc',
-    },
-  });
-  const userRecentTransactions = result.data.result.filter(tx => {
-    return tx.from.toLowerCase() === input.address.toLowerCase();
-  });
+      networkId,
+      offset,
+    );
+    const result = await axios.get(getBlockExplorerApiUrl(networkId), {
+      params: {
+        module: 'account',
+        action: 'txlist',
+        page,
+        offset,
+        address,
+        sort: 'desc',
+      },
+    });
 
-  return {
-    userRecentTransactions,
-    lastPage: result.data.result.length < offset,
-  };
+    if (result?.data?.status === '0') {
+      // https://docs.gnosisscan.io/support/common-error-messages
+
+      /**
+       * sample of these errors
+       {
+           "status": "0",
+           "message": "Query Timeout occured. Please select a smaller result dataset",
+           "result": null
+         }
+       */
+      throw new Error(
+        result.data?.message ||
+          `Error while fetching transactions networkId: ${networkId}`,
+      );
+    }
+    const userRecentTransactions = result.data.result.filter(tx => {
+      return tx.from.toLowerCase() === input.address.toLowerCase();
+    });
+
+    return {
+      userRecentTransactions,
+      lastPage: result.data.result.length < offset,
+    };
+  } catch (e) {
+    logger.error('getListOfTransactionsByAddress() err', {
+      error: e,
+      networkId: input.networkId,
+      address: input.address,
+    });
+    return {
+      userRecentTransactions: [],
+      lastPage: true,
+    };
+  }
 }
 
 export async function getEvmTransactionTimestamp(input: {
@@ -273,7 +303,7 @@ async function getTransactionDetailForNormalTransfer(
     const events = decodedLogs[0].events;
 
     transactionTo = events[0]?.value?.toLowerCase();
-    transactionFrom = decodedLogs[0]?.address!;
+    transactionFrom = decodedLogs[0]?.address;
     amount = normalizeAmount(events[1]?.value, token.decimals);
 
     if (!transactionTo || !transactionFrom) {

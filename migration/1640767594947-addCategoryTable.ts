@@ -1,7 +1,5 @@
-/* tslint:disable:no-console */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class addCategoryTable1640767594947 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -13,6 +11,7 @@ export class addCategoryTable1640767594947 implements MigrationInterface {
     try {
       await queryRunner.query(`DROP TABLE "category"`);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.log('addCategoryTable1640767594947 error', e);
     }
   }

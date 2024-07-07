@@ -1,3 +1,4 @@
+import { getTokenPrices } from '@giveth/monoswap';
 import { Project } from '../entities/project';
 import { Token } from '../entities/token';
 import { Donation, DONATION_STATUS } from '../entities/donation';
@@ -14,53 +15,37 @@ import {
 } from '../utils/errorMessages';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
-import { fetchGivHistoricPrice, fetchGivPrice } from './givPriceService';
-import {
-  findDonationById,
-  findStableCoinDonationsWithoutPrice,
-} from '../repositories/donationRepository';
+import { findDonationById } from '../repositories/donationRepository';
 import {
   getChainvineAdapter,
   getNotificationAdapter,
 } from '../adapters/adaptersFactory';
 import { calculateGivbackFactor } from './givbackService';
-import { getTokenPrices } from '@giveth/monoswap';
 import SentryLogger from '../sentryLogger';
 import {
   getUserDonationStats,
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from './userService';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from './projectViewsService';
-import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
-import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
-import {
-  COINGECKO_TOKEN_IDS,
-  CoingeckoPriceAdapter,
-} from '../adapters/price/CoingeckoPriceAdapter';
+import { refreshProjectEstimatedMatchingView } from './projectViewsService';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
 import { fetchSafeTransactionHash } from './safeServices';
-import { ChainType } from '../types/network';
-import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../provider';
+import { NETWORKS_IDS_TO_NAME } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
-import { fetchMpEthPrice } from './mpEthPriceService';
 import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+import { CustomToken, getTokenPrice } from './priceService';
+import { updateProjectStatistics } from './projectService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
 export const updateDonationPricesAndValues = async (
   donation: Donation,
   project: Project,
-  token: Token | null,
-  currency: string,
+  token: CustomToken,
   priceChainId: number,
-  amount: string | number,
 ) => {
   logger.debug('updateDonationPricesAndValues() has been called', {
     donationId: donation.id,
@@ -69,41 +54,9 @@ export const updateDonationPricesAndValues = async (
     priceChainId,
   });
   try {
-    if (token?.isStableCoin) {
-      donation.priceUsd = 1;
-      donation.valueUsd = Number(amount);
-      // } else if (currency === 'mpETH') {
-      //   const mpEthPriceInUsd = await fetchMpEthPrice();
-      //   donation.priceUsd = toFixNumber(mpEthPriceInUsd, 4);
-      //   donation.valueUsd = toFixNumber(donation.amount * mpEthPriceInUsd, 4);
-    } else if (currency === 'GIV') {
-      const { givPriceInUsd } = await fetchGivPrice();
-      donation.priceUsd = toFixNumber(givPriceInUsd, 4);
-      donation.valueUsd = toFixNumber(donation.amount * givPriceInUsd, 4);
-    } else if (token?.cryptoCompareId) {
-      const priceUsd = await new CryptoComparePriceAdapter().getTokenPrice({
-        symbol: token.cryptoCompareId,
-        networkId: priceChainId,
-      });
-      donation.priceUsd = toFixNumber(priceUsd, 4);
-      donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
-    } else if (token?.coingeckoId) {
-      const priceUsd = await new CoingeckoPriceAdapter().getTokenPrice({
-        symbol: token.coingeckoId,
-        networkId: priceChainId,
-      });
-      donation.priceUsd = toFixNumber(priceUsd, 4);
-      donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
-    } else {
-      const priceUsd = await new MonoswapPriceAdapter().getTokenPrice({
-        symbol: currency,
-        networkId: priceChainId,
-      });
-      if (priceUsd) {
-        donation.priceUsd = Number(priceUsd);
-        donation.valueUsd = toFixNumber(Number(amount) * donation.priceUsd, 4);
-      }
-    }
+    const tokenPrice = await getTokenPrice(priceChainId, token);
+    donation.priceUsd = toFixNumber(tokenPrice, 4);
+    donation.valueUsd = toFixNumber(donation.amount * tokenPrice, 4);
   } catch (e) {
     logger.error('Error in getting price from donation', {
       error: e,
@@ -178,7 +131,7 @@ export const updateDonationByTransakData = async (
   donation.fromWalletAddress = transakData.webhookData.fromWalletAddress;
   if (donation.amount !== transakData.webhookData.cryptoAmount) {
     // If the transaction amount is different with donation amount
-    // it proves it's might be fraud, so we change the valueEth and valueUsd
+    // it proves it might be fraud, so we change the valueEth and valueUsd
     donation.valueUsd =
       donation.valueUsd *
       (transakData.webhookData.cryptoAmount / donation.amount);
@@ -216,32 +169,10 @@ export const updateDonationByTransakData = async (
     }
   }
   await donation.save();
-  await updateTotalDonationsOfProject(donation.projectId);
-
-  // We dont wait for this to finish
-  refreshProjectEstimatedMatchingView();
-  refreshProjectDonationSummaryView();
-};
-
-export const updateTotalDonationsOfProject = async (
-  projectId: number,
-): Promise<void> => {
-  try {
-    await Project.query(
-      `
-      UPDATE "project"
-      SET "totalDonations" = (
-        SELECT COALESCE(SUM(d."valueUsd"),0)
-        FROM "donation" as d
-        WHERE d."projectId" = $1 AND d."status" = 'verified'
-      )
-      WHERE "id" = $1
-    `,
-      [projectId],
-    );
-  } catch (e) {
-    logger.error('updateTotalDonationsOfAProject error', e);
-  }
+  await updateProjectStatistics(donation.projectId);
+  await updateUserTotalDonated(donation.userId);
+  await updateUserTotalReceived(donation.project?.adminUserId);
+  await refreshProjectEstimatedMatchingView();
 };
 
 export const isTokenAcceptableForProject = async (inputData: {
@@ -274,67 +205,6 @@ export const toFixNumber = (input: number, digits: number): number => {
   return convertExponentialNumber(Number(input.toFixed(digits)));
 };
 
-export const updateOldGivDonationsPrice = async () => {
-  const donations = await Donation.findXdaiGivDonationsWithoutPrice();
-  logger.debug('updateOldGivDonationPrice donations count', donations.length);
-  for (const donation of donations) {
-    logger.debug(
-      'updateOldGivDonationPrice() updating accurate price, donationId',
-      donation.id,
-    );
-    try {
-      const givHistoricPrices = await fetchGivHistoricPrice(
-        donation.transactionId,
-        donation.transactionNetworkId,
-      );
-      logger.debug('Update donation usd price ', {
-        donationId: donation.id,
-        ...givHistoricPrices,
-        valueEth: toFixNumber(
-          donation.amount * givHistoricPrices.givPriceInEth,
-          7,
-        ),
-      });
-      donation.priceEth = toFixNumber(givHistoricPrices.ethPriceInUsd, 7);
-      donation.priceUsd = toFixNumber(givHistoricPrices.givPriceInUsd, 4);
-      donation.valueUsd = toFixNumber(
-        donation.amount * givHistoricPrices.givPriceInUsd,
-        4,
-      );
-      donation.valueEth = toFixNumber(
-        donation.amount * givHistoricPrices.givPriceInEth,
-        7,
-      );
-      await donation.save();
-      await updateTotalDonationsOfProject(donation.projectId);
-    } catch (e) {
-      logger.error('Update GIV donation valueUsd error', e.message);
-    }
-  }
-};
-
-export const updateOldStableCoinDonationsPrice = async () => {
-  const donations = await findStableCoinDonationsWithoutPrice();
-  logger.debug(
-    'updateOldStableCoinDonationPrice donations count',
-    donations.length,
-  );
-  for (const donation of donations) {
-    logger.debug(
-      'updateOldStableCoinDonationPrice() updating accurate price, donationId',
-      donation.id,
-    );
-    try {
-      donation.priceUsd = 1;
-      donation.valueUsd = donation.amount;
-      await donation.save();
-      await updateTotalDonationsOfProject(donation.projectId);
-    } catch (e) {
-      logger.error('Update GIV donation valueUsd error', e.message);
-    }
-  }
-};
-
 const failedVerifiedDonationErrorMessages = [
   errorMessages.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
   errorMessages.INVALID_NETWORK_ID,
@@ -344,6 +214,8 @@ const failedVerifiedDonationErrorMessages = [
   errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
   errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
 ];
+
+const FAILED_VERIFICTION_ALERT_THRESHOLD = 20 * 60 * 1000; // 20 minutes
 
 export const syncDonationStatusWithBlockchainNetwork = async (params: {
   donationId: number;
@@ -395,20 +267,18 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await donation.save();
 
     // ONLY verified donations should be accumulated
-    // After updating, recalculate user total donated and owner total received
+    // After updating, recalculate user and project total donations
+    await updateProjectStatistics(donation.projectId);
     await updateUserTotalDonated(donation.userId);
+    await updateUserTotalReceived(donation.project.adminUserId);
 
-    // After updating price we update totalDonations
-    await updateTotalDonationsOfProject(donation.projectId);
-    const project = await findProjectById(donation.projectId);
-    await updateUserTotalReceived(project!.adminUser.id);
     await sendNotificationForDonation({
       donation,
     });
 
-    // Update materialized view for project and qfRound data
-    await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
+    if (donation.qfRoundId) {
+      await refreshProjectEstimatedMatchingView();
+    }
 
     const donationStats = await getUserDonationStats(donation.userId);
     const donor = await findUserById(donation.userId);
@@ -421,7 +291,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       totalDonated: donationStats?.totalDonated,
       donationsCount: donationStats?.donationsCount,
       lastDonationDate: donationStats?.lastDonationDate,
-      GIVbacksRound: donation.powerRound,
+      GIVbacksRound: donation.powerRound + 1, // powerRound is 1 behind givbacks round
       QFDonor: donation.qfRound?.name,
       donationChain: NETWORKS_IDS_TO_NAME[donation.transactionNetworkId],
     });
@@ -449,7 +319,6 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
         donationId: donation.id, //
       });
     }
-
     logger.debug('donation and transaction', {
       transaction,
       donationId: donation.id,
@@ -465,9 +334,25 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     if (failedVerifiedDonationErrorMessages.includes(e.message)) {
       // if error message is in failedVerifiedDonationi18n.__(translationErrorMessagesKeys.then) we know we should change the status to failed
       // otherwise we leave it to be checked in next cycle
+      logger.fatal('donation verification failed', {
+        error: e,
+        donationId: donation.id,
+        txHash: donation.transactionId,
+      });
       donation.verifyErrorMessage = e.message;
       donation.status = DONATION_STATUS.FAILED;
       await donation.save();
+    } else {
+      const timeDifference =
+        new Date().getTime() - donation.createdAt.getTime();
+      if (timeDifference > FAILED_VERIFICTION_ALERT_THRESHOLD) {
+        logger.fatal('donation verification failed', {
+          error: e,
+          donationId: donation.id,
+          txHash: donation.transactionId,
+          donationAgeInMS: timeDifference,
+        });
+      }
     }
     return donation;
   }
@@ -512,43 +397,55 @@ export const sendNotificationForDonation = async (params: {
 };
 
 export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
-  const qfRoundHistories =
-    await getQfRoundHistoriesThatDontHaveRelatedDonations();
-  const donationDotEthAddress = '0x6e8873085530406995170Da467010565968C7C62'; // Address behind donation.eth ENS address;
-  const powerRound = (await getPowerRound())?.round || 1;
-  if (qfRoundHistories.length === 0) {
-    logger.debug(
-      'insertDonationsFromQfRoundHistory There is not any qfRoundHistories in DB that doesnt have related donation',
-    );
-    return;
-  }
-  logger.debug(
-    `insertDonationsFromQfRoundHistory Filling ${qfRoundHistories.length} qfRoundHistory info ...`,
-  );
-
-  for (const qfRoundHistory of qfRoundHistories) {
-    if (qfRoundHistory.distributedFundTxDate) {
-      continue;
+  try {
+    const qfRoundHistories =
+      await getQfRoundHistoriesThatDontHaveRelatedDonations();
+    const donationDotEthAddress = '0x6e8873085530406995170Da467010565968C7C62'; // Address behind donation.eth ENS address;
+    const powerRound = (await getPowerRound())?.round || 1;
+    if (qfRoundHistories.length === 0) {
+      logger.debug(
+        'insertDonationsFromQfRoundHistory There is not any qfRoundHistories in DB that doesnt have related donation',
+      );
+      return;
     }
-    // get transaction time from blockchain
-    const txTimestamp = await getEvmTransactionTimestamp({
-      txHash: qfRoundHistory.distributedFundTxHash,
-      networkId: Number(qfRoundHistory.distributedFundNetwork),
-    });
-    qfRoundHistory.distributedFundTxDate = new Date(txTimestamp);
-    await qfRoundHistory.save();
-  }
-  const matchingFundFromAddress =
-    (process.env.MATCHING_FUND_DONATIONS_FROM_ADDRESS as string) ||
-    donationDotEthAddress;
-  const user = await findUserByWalletAddress(matchingFundFromAddress);
-  if (!user) {
-    logger.error(
-      'insertDonationsFromQfRoundHistory User with walletAddress MATCHING_FUND_DONATIONS_FROM_ADDRESS doesnt exist',
+    logger.debug(
+      `insertDonationsFromQfRoundHistory Filling ${qfRoundHistories.length} qfRoundHistory info ...`,
     );
-    return;
-  }
-  await AppDataSource.getDataSource().query(`
+
+    for (const qfRoundHistory of qfRoundHistories) {
+      if (qfRoundHistory.distributedFundTxDate) {
+        continue;
+      }
+      // get transaction time from blockchain
+      try {
+        const txTimestamp = await getEvmTransactionTimestamp({
+          txHash: qfRoundHistory.distributedFundTxHash,
+          networkId: Number(qfRoundHistory.distributedFundNetwork),
+        });
+        qfRoundHistory.distributedFundTxDate = new Date(txTimestamp);
+        await qfRoundHistory.save();
+      } catch (e) {
+        logger.error(
+          'insertDonationsFromQfRoundHistory-getEvmTransactionTimestamp error',
+          {
+            e,
+            txHash: qfRoundHistory.distributedFundTxHash,
+            networkId: Number(qfRoundHistory.distributedFundNetwork),
+          },
+        );
+      }
+    }
+    const matchingFundFromAddress =
+      (process.env.MATCHING_FUND_DONATIONS_FROM_ADDRESS as string) ||
+      donationDotEthAddress;
+    const user = await findUserByWalletAddress(matchingFundFromAddress);
+    if (!user) {
+      logger.error(
+        'insertDonationsFromQfRoundHistory User with walletAddress MATCHING_FUND_DONATIONS_FROM_ADDRESS doesnt exist',
+      );
+      return;
+    }
+    await AppDataSource.getDataSource().query(`
          INSERT INTO "donation" (
             "transactionId",
             "transactionNetworkId",
@@ -604,12 +501,15 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             )
   `);
 
-  for (const qfRoundHistory of qfRoundHistories) {
-    await updateTotalDonationsOfProject(qfRoundHistory.projectId);
-    const project = await findProjectById(qfRoundHistory.projectId);
-    if (project) {
-      await updateUserTotalReceived(project.adminUser.id);
+    for (const qfRoundHistory of qfRoundHistories) {
+      await updateProjectStatistics(qfRoundHistory.projectId);
+      const project = await findProjectById(qfRoundHistory.projectId);
+      if (project) {
+        await updateUserTotalReceived(project.adminUser.id);
+      }
     }
+    await updateUserTotalDonated(user.id);
+  } catch (e) {
+    logger.error('insertDonationsFromQfRoundHistory error', e);
   }
-  await updateUserTotalDonated(user.id);
 };

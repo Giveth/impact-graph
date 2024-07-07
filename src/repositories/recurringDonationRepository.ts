@@ -1,8 +1,12 @@
+import moment from 'moment';
+import { MoreThan } from 'typeorm';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
-import { RecurringDonation } from '../entities/recurringDonation';
+import {
+  RECURRING_DONATION_STATUS,
+  RecurringDonation,
+} from '../entities/recurringDonation';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
-import { Donation } from '../entities/donation';
 import { logger } from '../utils/logger';
 
 export const createNewRecurringDonation = async (params: {
@@ -14,8 +18,10 @@ export const createNewRecurringDonation = async (params: {
   flowRate: string;
   currency: string;
   anonymous: boolean;
+  isBatch: boolean;
+  totalUsdStreamed?: number;
 }): Promise<RecurringDonation> => {
-  const recurringDonation = await RecurringDonation.create({
+  const recurringDonation = RecurringDonation.create({
     project: params.project,
     donor: params.donor,
     anchorContractAddress: params.anchorContractAddress,
@@ -24,19 +30,51 @@ export const createNewRecurringDonation = async (params: {
     currency: params.currency,
     flowRate: params.flowRate,
     anonymous: params.anonymous,
+    isBatch: params.isBatch,
+    totalUsdStreamed: params.totalUsdStreamed,
   });
   return recurringDonation.save();
 };
 export const updateRecurringDonation = async (params: {
   recurringDonation: RecurringDonation;
-  txHash: string;
-  flowRate: string;
-  anonymous: boolean;
+  txHash?: string;
+  flowRate?: string;
+  anonymous?: boolean;
+  isArchived?: boolean;
+  status?: string;
 }): Promise<RecurringDonation> => {
-  const { recurringDonation, txHash, anonymous, flowRate } = params;
-  recurringDonation.txHash = txHash;
-  recurringDonation.flowRate = flowRate;
-  recurringDonation.anonymous = anonymous;
+  const { recurringDonation, txHash, anonymous, flowRate, status, isArchived } =
+    params;
+  if (txHash && flowRate) {
+    recurringDonation.txHash = txHash;
+    recurringDonation.flowRate = flowRate;
+    recurringDonation.finished = false;
+    recurringDonation.isArchived = false;
+    recurringDonation.status = RECURRING_DONATION_STATUS.PENDING;
+  }
+
+  if (anonymous) {
+    recurringDonation.anonymous = anonymous;
+  }
+
+  if (
+    recurringDonation.status === RECURRING_DONATION_STATUS.ACTIVE &&
+    status === RECURRING_DONATION_STATUS.ENDED
+  ) {
+    recurringDonation.status = status;
+    recurringDonation.finished = true;
+  }
+
+  if (
+    recurringDonation.status === RECURRING_DONATION_STATUS.ENDED &&
+    isArchived
+  ) {
+    recurringDonation.isArchived = true;
+  } else if (isArchived === false) {
+    // isArchived can be undefined, so we need to check if it's false
+    recurringDonation.isArchived = false;
+  }
+
   return recurringDonation.save();
 };
 
@@ -62,12 +100,12 @@ export const updateRecurringDonationFromTheStreamDonations = async (
       SET "totalUsdStreamed" = (
         SELECT COALESCE(SUM(d."valueUsd"), 0)
         FROM donation as d
-        WHERE d.recurringDonationId = $1
+        WHERE d."recurringDonationId" = $1
       ),
       "amountStreamed" = (
         SELECT COALESCE(SUM(d."amount"), 0)
         FROM donation as d
-        WHERE d.recurringDonationId = $1
+        WHERE d."recurringDonationId" = $1
       )
       WHERE "id" = $1
     `,
@@ -88,9 +126,18 @@ export const findRecurringDonationById = async (
     )
     .leftJoinAndSelect(`recurringDonation.donations`, 'donations')
     .leftJoinAndSelect('recurringDonation.project', 'project')
+    .leftJoinAndSelect(`recurringDonation.donor`, 'donor')
     .where(`recurringDonation.id = :id`, { id })
-    .andWhere(`recurringDonation.finished = false`)
     .getOne();
+};
+
+export const nonZeroRecurringDonationsByProjectId = async (
+  projectId: number,
+): Promise<number> => {
+  return await RecurringDonation.createQueryBuilder('recurringDonation')
+    .where(`recurringDonation.projectId = :projectId`, { projectId })
+    .andWhere('recurringDonation.totalUsdStreamed > 0')
+    .getCount();
 };
 
 export const findRecurringDonationByProjectIdAndUserIdAndCurrency =
@@ -110,5 +157,26 @@ export const findRecurringDonationByProjectIdAndUserIdAndCurrency =
         currency: params.currency,
       })
       .leftJoinAndSelect('recurringDonation.project', 'project')
+      .leftJoinAndSelect('recurringDonation.donor', 'donor')
       .getOne();
   };
+
+export const getPendingRecurringDonationsIds = (): Promise<
+  { id: number }[]
+> => {
+  const date = moment()
+    .subtract({
+      hours:
+        Number(process.env.RECURRING_DONATION_VERIFICAITON_EXPIRATION_HOURS) ||
+        72,
+    })
+    .toDate();
+  logger.debug('getPendingRecurringDonationsIds  -> expirationDate', date);
+  return RecurringDonation.find({
+    where: {
+      status: RECURRING_DONATION_STATUS.PENDING,
+      createdAt: MoreThan(date),
+    },
+    select: ['id'],
+  });
+};

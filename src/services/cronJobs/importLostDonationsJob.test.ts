@@ -1,12 +1,4 @@
 import { assert } from 'chai';
-import {
-  createProjectData,
-  generateRandomEtheriumAddress,
-  saveProjectDirectlyToDb,
-  saveUserDirectlyToDb,
-} from '../../../test/testUtils';
-import { importLostDonations } from './importLostDonationsJob';
-import { Donation } from '../../entities/donation';
 
 describe('importLostDonations() test cases', importLostDonationsTestCases);
 

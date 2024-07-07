@@ -1,6 +1,7 @@
+import adminJs from 'adminjs';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { Token } from '../../../entities/token';
 import { NETWORK_IDS } from '../../../provider';
-import adminJs from 'adminjs';
 import { canAccessTokenAction, ResourceActions } from '../adminJsPermissions';
 import { AdminJsRequestInterface } from '../adminJs-types';
 import { Organization } from '../../../entities/organization';
@@ -45,7 +46,7 @@ export const permuteOrganizations = (
 };
 
 export const generateOrganizationList = async () => {
-  const organizationsList: {}[] = [];
+  const organizationsList: NonNullable<unknown>[] = [];
   const [organizations, organizationCount] =
     await Organization.createQueryBuilder('organization')
       .orderBy('organization.id')
@@ -80,8 +81,6 @@ export const linkOrganizations = async (request: AdminJsRequestInterface) => {
   // default handler updates the other params, we only care about orgs
   if (!request.record.params.organizations) return request;
 
-  let message = `Token created successfully`;
-  let type = 'success';
   const { organizations, id } = request.record.params;
   try {
     const token = await findTokenByTokenId(id);
@@ -105,8 +104,6 @@ export const linkOrganizations = async (request: AdminJsRequestInterface) => {
     await token!.save();
   } catch (e) {
     logger.error('error creating token', e.message);
-    message = e.message;
-    type = 'danger';
   }
 
   return request;
@@ -114,7 +111,7 @@ export const linkOrganizations = async (request: AdminJsRequestInterface) => {
 
 export const createToken = async (
   request: AdminJsRequestInterface,
-  response,
+  context,
 ) => {
   let message = `Token created successfully`;
   let type = 'success';
@@ -125,6 +122,7 @@ export const createToken = async (
     isGivbackEligible,
     mainnetAddress,
     name,
+    coingeckoId,
     networkId,
     symbol,
     organizations,
@@ -136,6 +134,7 @@ export const createToken = async (
       address: address?.toLowerCase(),
       mainnetAddress: mainnetAddress?.toLowerCase(),
       isGivbackEligible,
+      coingeckoId,
       decimals: Number(decimals),
       networkId: Number(networkId),
     });
@@ -158,16 +157,24 @@ export const createToken = async (
     type = 'danger';
   }
 
-  response.send({
-    redirectUrl: '/admin/resources/Token',
-    record: {},
+  const record: RecordJSON = {
+    baseError: null,
+    id: request?.params?.recordId || '',
+    title: '',
+    bulkActions: [],
+    errors: {},
+    params: (context as any)?.record?.params,
+    populated: (context as any)?.record?.populated,
+    recordActions: [],
+  };
+
+  return {
+    redirectUrl: '/admin/resources/Token/actions/new',
+    record,
     notice: {
       message,
       type,
     },
-  });
-  return {
-    record: newToken,
   };
 };
 
@@ -192,6 +199,10 @@ export const generateTokenTab = async () => {
             },
             { value: NETWORK_IDS.ARBITRUM_MAINNET, label: 'ARBITRUM MAINNET' },
             { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'ARBITRUM SEPOLIA' },
+            { value: NETWORK_IDS.BASE_MAINNET, label: 'BASE MAINNET' },
+            { value: NETWORK_IDS.BASE_SEPOLIA, label: 'BASE SEPOLIA' },
+            { value: NETWORK_IDS.ZKEVM_MAINNET, label: 'ZKEVM MAINNET' },
+            { value: NETWORK_IDS.ZKEVM_CARDONA, label: 'ZKEVM CARDANO' },
             { value: NETWORK_IDS.XDAI, label: 'XDAI' },
             { value: NETWORK_IDS.BSC, label: 'BSC' },
             { value: NETWORK_IDS.ETC, label: 'Ethereum Classic' },
@@ -248,6 +259,14 @@ export const generateTokenTab = async () => {
         },
       },
       actions: {
+        list: {
+          isAccessible: ({ currentAdmin }) =>
+            canAccessTokenAction({ currentAdmin }, ResourceActions.LIST),
+        },
+        show: {
+          isAccessible: ({ currentAdmin }) =>
+            canAccessTokenAction({ currentAdmin }, ResourceActions.SHOW),
+        },
         bulkDelete: {
           isVisible: false,
           isAccessible: ({ currentAdmin }) =>
@@ -289,8 +308,8 @@ export const generateTokenTab = async () => {
         new: {
           isAccessible: ({ currentAdmin }) =>
             canAccessTokenAction({ currentAdmin }, ResourceActions.NEW),
-          handler: createToken,
-          // component: false
+          handler: async (req, _res, context) => createToken(req, context),
+          // component: false,
         },
       },
     },

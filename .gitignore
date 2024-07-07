@@ -26,10 +26,11 @@ src/scripts/*.json
 
 *.log
 *.log.*
-*.DS_Store
 
 .adminbro
 .adminjs
 ./src/adminjs
 ./src/server/adminjs
 ./src/server/adminJs/adminjs
+
+.DS_Store

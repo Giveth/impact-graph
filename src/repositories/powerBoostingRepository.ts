@@ -1,7 +1,7 @@
+import { Brackets } from 'typeorm';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { Project } from '../entities/project';
 import { publicSelectionFields, User } from '../entities/user';
-import { Brackets } from 'typeorm';
 import { logger } from '../utils/logger';
 import {
   errorMessages,
@@ -165,7 +165,11 @@ export const findPowerBoostingsCountByUserId = async (
     .leftJoin('powerBoosting.user', 'user')
     .addSelect(publicSelectionFields)
     .where(`percentage > 0`)
-    .andWhere(`"userId" =${userId}`);
+    .andWhere(`"userId" =${userId}`)
+    .cache(
+      `findPowerBoostingsCountByUserId-recurring-${userId}`,
+      Number(process.env.USER_STATS_CACHE_TIME || 60000),
+    );
   return query.getCount();
 };
 

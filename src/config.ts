@@ -10,7 +10,7 @@ const loadConfigResult = dotenv.config({
 });
 
 if (loadConfigResult.error) {
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log('Load process.env error', {
     path: configPath,
     error: loadConfigResult.error,
@@ -31,7 +31,6 @@ const envVars = [
   'DROP_DATABASE',
   'SEED_PASSWORD',
   'APOLLO_KEY',
-  'REGISTER_USERNAME_PASSWORD',
   'STRIPE_KEY',
   'STRIPE_SECRET',
   'STRIPE_APPLICATION_FEE',
@@ -59,7 +58,6 @@ const envVars = [
   'DONATION_VERIFICAITON_EXPIRATION_HOURS',
 ];
 
-// tslint:disable-next-line:class-name
 interface requiredEnv {
   JWT_SECRET: string;
   JWT_MAX_AGE: string;
@@ -74,7 +72,6 @@ interface requiredEnv {
   DROP_DATABASE: string;
   SEED_PASSWORD: string;
   APOLLO_KEY: string;
-  REGISTER_USERNAME_PASSWORD: string;
 
   STRIPE_KEY: string;
   STRIPE_SECRET: string;
@@ -120,7 +117,7 @@ class Config {
   }
 
   get(envVar: string): string | number {
-    // I thinks it's an unnecessary checking, because may we have some optional config, but this checking make all
+    // I think it's an unnecessary checking, because may we have some optional config, but this checking make all
     // config variables required
 
     // if (!this.env[envVar]) {

@@ -26,5 +26,5 @@ export class addChainTypeToProjectAddressAndDonation1702374813793
     await queryRunner.query(`UPDATE "token" SET "chainType" = 'EVM'`);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

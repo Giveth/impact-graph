@@ -4,11 +4,10 @@ export class ChangeProjectAddressToGoerli1661163993626
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
-    const projectAddressTableExists = await queryRunner.hasTable(
-      'project_address',
-    );
+    const projectAddressTableExists =
+      await queryRunner.hasTable('project_address');
     if (!projectAddressTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('The project_address table doesnt exist');
       return;
     }
@@ -20,11 +19,10 @@ export class ChangeProjectAddressToGoerli1661163993626
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    const projectAddressTableExists = await queryRunner.hasTable(
-      'project_address',
-    );
+    const projectAddressTableExists =
+      await queryRunner.hasTable('project_address');
     if (!projectAddressTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('The project_address table doesnt exist');
       return;
     }

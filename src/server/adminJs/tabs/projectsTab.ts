@@ -1,3 +1,10 @@
+import adminJs from 'adminjs';
+import { SelectQueryBuilder } from 'typeorm';
+import {
+  ActionResponse,
+  After,
+} from 'adminjs/src/backend/actions/action.interface';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import {
   Project,
   ProjectUpdate,
@@ -5,12 +12,7 @@ import {
   ReviewStatus,
   RevokeSteps,
 } from '../../../entities/project';
-import adminJs, { ActionContext } from 'adminjs';
-import {
-  canAccessProjectAction,
-  canAccessQfRoundAction,
-  ResourceActions,
-} from '../adminJsPermissions';
+import { canAccessProjectAction, ResourceActions } from '../adminJsPermissions';
 import {
   findProjectById,
   findProjectsByIdArray,
@@ -24,14 +26,7 @@ import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../../../repositories/projectPowerViewRepository';
-import { redis } from '../../../redis';
-import { SelectQueryBuilder } from 'typeorm';
 import { logger } from '../../../utils/logger';
-import {
-  ActionResponse,
-  After,
-} from 'adminjs/src/backend/actions/action.interface';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
 import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
 import {
@@ -55,10 +50,7 @@ import {
 import { FeaturedUpdate } from '../../../entities/featuredUpdate';
 import { findActiveQfRound } from '../../../repositories/qfRoundRepository';
 import { User } from '../../../entities/user';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../../../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../../../services/projectViewsService';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 
@@ -304,72 +296,68 @@ export const updateStatusOfProjects = async (
   status,
 ) => {
   const { records, currentAdmin } = context;
-  try {
-    const projectIds = request?.query?.recordIds
-      ?.split(',')
-      ?.map(strId => Number(strId)) as number[];
-    const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
-    const projectStatus = await ProjectStatus.findOne({
-      where: { id: status },
-    });
-    if (projectStatus) {
-      const updateData: any = { status: projectStatus };
-      if (status === ProjStatus.cancelled || status === ProjStatus.deactive) {
-        updateData.verified = false;
-        updateData.listed = false;
-        updateData.reviewStatus = ReviewStatus.NotListed;
-      }
-      const projects = await Project.createQueryBuilder('project')
-        .update<Project>(Project, updateData)
-        .where('project.id IN (:...ids)')
-        .setParameter('ids', projectIds)
-        .returning('*')
-        .updateEntity(true)
-        .execute();
-
-      for (const project of projects.raw) {
-        if (
-          projectsBeforeUpdating.find(p => p.id === project.id)?.statusId ===
-          projectStatus.id
-        ) {
-          logger.debug('Changing project status but no changes happened', {
-            projectId: project.id,
-            projectStatus,
-          });
-          // if project.listed have not changed, so we should not execute rest of the codes
-          continue;
-        }
-        await Project.addProjectStatusHistoryRecord({
-          project,
-          status: projectStatus,
-          userId: currentAdmin.id,
-        });
-        const projectWithAdmin = (await findProjectById(project.id)) as Project;
-        if (status === ProjStatus.cancelled) {
-          await getNotificationAdapter().projectCancelled({
-            project: projectWithAdmin,
-          });
-          await changeUserBoostingsAfterProjectCancelled({
-            projectId: project.id,
-          });
-        } else if (status === ProjStatus.active) {
-          await getNotificationAdapter().projectReactivated({
-            project: projectWithAdmin,
-          });
-        } else if (status === ProjStatus.deactive) {
-          await getNotificationAdapter().projectDeactivated({
-            project: projectWithAdmin,
-          });
-        }
-      }
-      await Promise.all([
-        refreshUserProjectPowerView(),
-        refreshProjectFuturePowerView(),
-        refreshProjectPowerView(),
-      ]);
+  const projectIds = request?.query?.recordIds
+    ?.split(',')
+    ?.map(strId => Number(strId)) as number[];
+  const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
+  const projectStatus = await ProjectStatus.findOne({
+    where: { id: status },
+  });
+  if (projectStatus) {
+    const updateData: any = { status: projectStatus };
+    if (status === ProjStatus.cancelled || status === ProjStatus.deactive) {
+      updateData.verified = false;
+      updateData.listed = false;
+      updateData.reviewStatus = ReviewStatus.NotListed;
     }
-  } catch (error) {
-    throw error;
+    const projects = await Project.createQueryBuilder('project')
+      .update<Project>(Project, updateData)
+      .where('project.id IN (:...ids)')
+      .setParameter('ids', projectIds)
+      .returning('*')
+      .updateEntity(true)
+      .execute();
+
+    for (const project of projects.raw) {
+      if (
+        projectsBeforeUpdating.find(p => p.id === project.id)?.statusId ===
+        projectStatus.id
+      ) {
+        logger.debug('Changing project status but no changes happened', {
+          projectId: project.id,
+          projectStatus,
+        });
+        // if project.listed have not changed, so we should not execute rest of the codes
+        continue;
+      }
+      await Project.addProjectStatusHistoryRecord({
+        project,
+        status: projectStatus,
+        userId: currentAdmin.id,
+      });
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+      if (status === ProjStatus.cancelled) {
+        await getNotificationAdapter().projectCancelled({
+          project: projectWithAdmin,
+        });
+        await changeUserBoostingsAfterProjectCancelled({
+          projectId: project.id,
+        });
+      } else if (status === ProjStatus.active) {
+        await getNotificationAdapter().projectReactivated({
+          project: projectWithAdmin,
+        });
+      } else if (status === ProjStatus.deactive) {
+        await getNotificationAdapter().projectDeactivated({
+          project: projectWithAdmin,
+        });
+      }
+    }
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectFuturePowerView(),
+      refreshProjectPowerView(),
+    ]);
   }
   return {
     redirectUrl: '/admin/resources/Project',
@@ -390,25 +378,19 @@ export const addProjectsToQfRound = async (
 ) => {
   const { records } = context;
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
-  try {
-    const projectIds = request?.query?.recordIds
-      ?.split(',')
-      ?.map(strId => Number(strId)) as number[];
-    const qfRound = await findActiveQfRound();
-    if (qfRound) {
-      await relateManyProjectsToQfRound({
-        projectIds,
-        qfRound,
-        add,
-      });
-
-      await refreshProjectEstimatedMatchingView();
-      await refreshProjectDonationSummaryView();
-    } else {
-      message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
-    }
-  } catch (error) {
-    throw error;
+  const projectIds = request?.query?.recordIds
+    ?.split(',')
+    ?.map(strId => Number(strId)) as number[];
+  const qfRound = await findActiveQfRound(true);
+  if (qfRound) {
+    await relateManyProjectsToQfRound({
+      projectIds,
+      qfRound,
+      add,
+    });
+    await refreshProjectEstimatedMatchingView();
+  } else {
+    message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
   }
   return {
     redirectUrl: '/admin/resources/Project',
@@ -429,23 +411,18 @@ export const addSingleProjectToQfRound = async (
 ) => {
   const { record, currentAdmin } = context;
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
-  try {
-    const projectId = Number(request?.params?.recordId);
-    const qfRound = await findActiveQfRound();
-    if (qfRound) {
-      await relateManyProjectsToQfRound({
-        projectIds: [projectId],
-        qfRound,
-        add,
-      });
+  const projectId = Number(request?.params?.recordId);
+  const qfRound = await findActiveQfRound(true);
+  if (qfRound) {
+    await relateManyProjectsToQfRound({
+      projectIds: [projectId],
+      qfRound,
+      add,
+    });
 
-      await refreshProjectEstimatedMatchingView();
-      await refreshProjectDonationSummaryView();
-    } else {
-      message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
-    }
-  } catch (error) {
-    throw error;
+    await refreshProjectEstimatedMatchingView();
+  } else {
+    message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
   }
   return {
     record: record.toJSON(currentAdmin),
@@ -456,11 +433,9 @@ export const addSingleProjectToQfRound = async (
   };
 };
 
-export const fillSocialProfileAndQfRounds: After<ActionResponse> = async (
-  response,
-  request,
-  context,
-) => {
+export const fillSocialProfileAndQfRounds: After<
+  ActionResponse
+> = async response => {
   const record: RecordJSON = response.record || {};
   // both cases for projectVerificationForms and projects' ids
   const projectId = record.params.projectId || record.params.id;
@@ -498,7 +473,7 @@ const sendProjectsToGoogleSheet = async (
       id: project.id,
       title: project.title,
       slug: project.slug,
-      admin: project.admin,
+      admin: project.adminUserId,
       creationDate: project.creationDate,
       updatedAt: project.updatedAt,
       impactLocation: project.impactLocation || '',
@@ -625,6 +600,7 @@ export const exportProjectsWithFiltersToCsv = async (
       },
     };
   } catch (e) {
+    logger.error('exportProjectsWithFiltersToCsv() error', e);
     return {
       redirectUrl: '/admin/resources/Project',
       record: {},
@@ -675,13 +651,15 @@ export const projectsTab = {
         },
       },
       adminUserId: {
+        type: 'Number',
         isVisible: {
           list: true,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
+        position: 1,
       },
       contacts: {
         isVisible: {
@@ -731,9 +709,7 @@ export const projectsTab = {
       totalTraceDonations: {
         isVisible: { list: false, filter: false, show: true, edit: true },
       },
-      admin: {
-        isVisible: { list: false, filter: false, show: true, edit: true },
-      },
+
       description: {
         isVisible: {
           list: false,
@@ -753,6 +729,7 @@ export const projectsTab = {
           show: true,
           edit: false,
         },
+
         components: {
           show: adminJs.bundle('./components/ClickableLink'),
         },
@@ -908,11 +885,8 @@ export const projectsTab = {
       edit: {
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectAction({ currentAdmin }, ResourceActions.EDIT),
-        before: async (
-          request: AdminJsRequestInterface,
-          response,
-          context: AdminJsContextInterface,
-        ) => {
+
+        before: async (request: AdminJsRequestInterface) => {
           const { verified, reviewStatus } = request.payload;
           const statusChanges: string[] = [];
           if (request?.payload?.id) {
@@ -974,8 +948,13 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
               );
             }
-            if (request?.payload?.admin !== project?.admin) {
+
+            if (
+              Number(request?.payload?.adminUserId) !== project?.adminUserId
+            ) {
+              const newID = request?.payload?.adminUserId;
               request.payload.adminChanged = true;
+              request.payload.newAdminId = newID;
             }
 
             // We put these status changes in payload, so in after hook we would know to send notification for users
@@ -995,7 +974,7 @@ export const projectsTab = {
           if (project) {
             if (request?.record?.params?.adminChanged) {
               const adminUser = await User.findOne({
-                where: { id: Number(project.admin) },
+                where: { id: request?.record?.params?.newAdminId },
               });
               project.adminUser = adminUser!;
               await project.save();
@@ -1248,7 +1227,7 @@ export const projectsTab = {
         actionType: 'record',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction(
+          canAccessProjectAction(
             { currentAdmin },
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),
@@ -1263,7 +1242,7 @@ export const projectsTab = {
         actionType: 'record',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction(
+          canAccessProjectAction(
             { currentAdmin },
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),
@@ -1279,7 +1258,7 @@ export const projectsTab = {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction(
+          canAccessProjectAction(
             { currentAdmin },
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),
@@ -1292,7 +1271,7 @@ export const projectsTab = {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction(
+          canAccessProjectAction(
             { currentAdmin },
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),

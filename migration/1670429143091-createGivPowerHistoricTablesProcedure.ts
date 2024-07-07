@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class createGivPowerHistoricTablesProcedure1670429143091
   implements MigrationInterface
 {

@@ -1,5 +1,4 @@
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { logger } from '../utils/logger';
 
 type PowerBalanceSnapshotParams = Pick<
   PowerBalanceSnapshot,

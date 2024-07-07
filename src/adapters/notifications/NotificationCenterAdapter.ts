@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import Bull from 'bull';
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
@@ -8,11 +8,10 @@ import {
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import { User } from '../../entities/user';
-import { createBasicAuthentication } from '../../utils/utils';
+import { UserStreamBalanceWarning, User } from '../../entities/user';
+import { createBasicAuthentication, isProduction } from '../../utils/utils';
 import { logger } from '../../utils/logger';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
-import Bull from 'bull';
 import { redisConfig } from '../../redis';
 import config from '../../config';
 import { findProjectById } from '../../repositories/projectRepository';
@@ -23,11 +22,16 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
-import { findTokenByNetworkAndAddress } from '../../utils/tokenUtils';
+import { RecurringDonation } from '../../entities/recurringDonation';
+import { getTokenPrice } from '../../services/priceService';
+import { Token } from '../../entities/token';
+import { toFixNumber } from '../../services/donationService';
+
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
 const disableNotificationCenter = process.env.DISABLE_NOTIFICATION_CENTER;
+const dappUrl = process.env.FRONTEND_URL as string;
 
 const numberOfSendNotificationsConcurrentJob =
   Number(
@@ -53,21 +57,109 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
-  async userSuperTokensCritical(params: {
-    userId: number;
+  async subscribeOnboarding(params: { email: string }): Promise<void> {
+    try {
+      const { email } = params;
+      if (!email) return;
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.SUBSCRIBE_ONBOARDING,
+        segment: {
+          payload: { email },
+        },
+      });
+    } catch (e) {
+      logger.error('subscribeOnboarding >> error', e);
+    }
+  }
+
+  async sendEmailConfirmation(params: {
     email: string;
-    criticalDate: string;
-    tokensymbol: string;
+    project: Project;
+    token: string;
   }): Promise<void> {
-    return; // implement it on another branch
+    const { email, project, token } = params;
+    try {
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.SEND_EMAIL_CONFIRMATION,
+        segment: {
+          payload: {
+            email,
+            verificationLink: `${dappUrl}/verification/${project.slug}/${token}`,
+          },
+        },
+      });
+    } catch (e) {
+      logger.error('sendEmailConfirmation >> error', e);
+    }
+  }
+
+  async userSuperTokensCritical(params: {
+    user: User;
+    eventName: UserStreamBalanceWarning;
+    tokenSymbol: string;
+    project: Project;
+    isEnded: boolean;
+    networkName: string;
+  }): Promise<void> {
+    logger.debug('userSuperTokensCritical has been called', { params });
+    const { eventName, tokenSymbol, project, user, isEnded, networkName } =
+      params;
+    const { email, walletAddress } = user;
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      tokenSymbol,
+      isEnded,
+    };
+    await sendProjectRelatedNotificationsQueue.add({
+      project,
+      user: {
+        email,
+        walletAddress: walletAddress!,
+      },
+      eventName,
+      sendEmail: true,
+      metadata: {
+        ...payload,
+        networkName,
+        recurringDonationTab: `${process.env.WEBSITE_URL}/account?tab=recurring-donations`,
+      },
+      segment: {
+        payload,
+      },
+    });
+    return;
+  }
+
+  async createOrttoProfile(user: User): Promise<void> {
+    try {
+      const { id, email, firstName, lastName } = user;
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.CREATE_ORTTO_PROFILE,
+        trackId: 'create-ortto-profile-' + user.id,
+        userWalletAddress: user.walletAddress!,
+        segment: {
+          payload: { userId: id, email, firstName, lastName },
+        },
+      });
+    } catch (e) {
+      logger.error('createOrttoProfile >> error', e);
+    }
   }
 
   async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {
     // TODO we should me this to notification-center, it's not good that we call Ortto directly
+    const merge_by: string[] = [];
+    if (isProduction) {
+      merge_by.push('str:cm:user-id');
+    } else {
+      merge_by.push('str::email');
+    }
     try {
       const data = {
         people,
         async: false,
+        merge_by,
       };
       logger.debug('updateOrttoPeople has been called:', people);
       const orttoConfig = {
@@ -120,15 +212,51 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async donationReceived(params: {
-    donation: Donation;
+    donation: Donation | RecurringDonation;
     project: Project;
     user: User | null;
   }): Promise<void> {
-    if (params.donation.valueUsd <= 1) return;
-
     const { project, donation, user } = params;
+    const isRecurringDonation = donation instanceof RecurringDonation;
+    let transactionId: string, transactionNetworkId: number;
+    if (isRecurringDonation) {
+      transactionId = donation.txHash;
+      transactionNetworkId = donation.networkId;
+      const token = await Token.findOneBy({
+        symbol: donation.currency,
+        networkId: transactionNetworkId,
+      });
+      const amount =
+        (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
+      const price = await getTokenPrice(transactionNetworkId, token!);
+      const donationValueUsd = toFixNumber(amount * price, 4);
+      logger.debug('donationReceived (recurring) has been called', {
+        params,
+        amount,
+        price,
+        donationValueUsd,
+        token,
+      });
+      if (donationValueUsd <= 5) return;
+    } else {
+      transactionId = donation.transactionId;
+      transactionNetworkId = donation.transactionNetworkId;
+      const donationValueUsd = donation.valueUsd;
+      logger.debug('donationReceived has been called', {
+        params,
+        transactionId,
+        transactionNetworkId,
+        donationValueUsd,
+      });
+      if (donationValueUsd <= 1) return;
+    }
+
     await sendProjectRelatedNotificationsQueue.add({
       project,
+      user: {
+        email: user?.email as string,
+        walletAddress: user?.walletAddress as string,
+      },
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
       sendEmail: true,
       segment: {
@@ -140,17 +268,15 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId:
         'donation-received-' +
-        donation.transactionNetworkId +
+        transactionNetworkId +
         '-' +
-        donation.transactionId,
+        transactionId +
+        '-' +
+        isRecurringDonation,
     });
   }
 
-  async donationSent(params: {
-    donation: Donation;
-    project: Project;
-    donor: User;
-  }): Promise<void> {
+  async donationSent(): Promise<void> {
     return;
     // const { project, donor, donation } = params;
     // await sendProjectRelatedNotificationsQueue.add({
@@ -284,7 +410,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-revoked-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${user?.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -305,13 +431,15 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-revoke-reminder-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${user?.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
   async projectBadgeRevokeWarning(params: { project: Project }): Promise<void> {
     const { project } = params;
-    const user = project.adminUser as User;
+    if (!project.adminUser?.email) {
+      project.adminUser = (await findUserById(project.adminUserId))!;
+    }
     const now = new Date();
 
     await sendProjectRelatedNotificationsQueue.add({
@@ -325,7 +453,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-revoke-warning-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${project.adminUser.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -333,7 +461,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
   }): Promise<void> {
     const { project } = params;
-    const user = project.adminUser as User;
+    if (!project.adminUser?.email) {
+      project.adminUser = (await findUserById(project.adminUserId))!;
+    }
     const now = Date.now();
     await sendProjectRelatedNotificationsQueue.add({
       project,
@@ -346,7 +476,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-revoke-last-warning-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${project.adminUser?.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -366,7 +496,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId: `project-badge-up-for-revoking-${
         project.id
-      }-${user.walletAddress?.toLowerCase()}-${now}`,
+      }-${user?.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -404,8 +534,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  async verificationFormRejected(params: { project: Project }): Promise<void> {
-    const { project } = params;
+  async verificationFormRejected(params: {
+    project: Project;
+    reason?: string;
+  }): Promise<void> {
+    const { project, reason } = params;
     const user = project.adminUser as User;
     const now = Date.now();
 
@@ -414,9 +547,12 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_REJECTED,
       sendEmail: true,
       segment: {
-        payload: await getEmailDataProjectAttributes({
-          project,
-        }),
+        payload: {
+          ...(await getEmailDataProjectAttributes({
+            project,
+          })),
+          verificationRejectedReason: reason,
+        },
       },
       trackId: `verification-form-rejected-${
         project.id
@@ -424,10 +560,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  async projectReceivedHeartReaction(params: {
-    project: Project;
-    userId: number;
-  }): Promise<void> {
+  async projectReceivedHeartReaction(): Promise<void> {
     return;
     // const { project } = params;
     // await sendProjectRelatedNotificationsQueue.add({
@@ -444,11 +577,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     // });
   }
 
-  ProfileIsCompleted(params: { user: User }): Promise<void> {
+  ProfileIsCompleted(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
-  ProfileNeedToBeCompleted(params: { user: User }): Promise<void> {
+  ProfileNeedToBeCompleted(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
@@ -639,7 +772,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   // commenting for now to test load of notification center.
-  async projectEdited(params: { project: Project }): Promise<void> {
+  async projectEdited(): Promise<void> {
     return;
     // const { project } = params;
     // const projectOwner = project?.adminUser as User;
@@ -747,7 +880,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }): Promise<void> {
     const { project, donationInfo } = params;
     const { txLink, reason } = donationInfo;
-    const projectOwner = project?.adminUser as User;
     const now = Date.now();
 
     await sendProjectRelatedNotificationsQueue.add({
@@ -819,7 +951,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       if (!project) {
         continue;
       }
-      const projectOwner = project.adminUser;
       let eventName;
 
       // https://github.com/Giveth/impact-graph/issues/774#issuecomment-1542337083
@@ -862,37 +993,55 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 const getEmailDataDonationAttributes = async (params: {
   user: User;
   project: Project;
-  donation: Donation;
+  donation: Donation | RecurringDonation;
 }) => {
   const { user, project, donation } = params;
-  const token = await findTokenByNetworkAndAddress(
-    donation.transactionNetworkId,
-    donation.tokenAddress!,
-  );
-  const symbol = token?.symbol;
+  const isRecurringDonation = donation instanceof RecurringDonation;
+  let amount: number,
+    transactionId: string,
+    transactionNetworkId: number,
+    toWalletAddress: string | undefined,
+    donationValueUsd: number | undefined,
+    donationValueEth: number | undefined,
+    transakStatus: string | undefined;
+  if (isRecurringDonation) {
+    transactionId = donation.txHash;
+    transactionNetworkId = donation.networkId;
+    const token = await Token.findOneBy({
+      symbol: donation.currency,
+      networkId: transactionNetworkId,
+    });
+    amount =
+      (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
+  } else {
+    amount = Number(donation.amount);
+    transactionId = donation.transactionId;
+    transactionNetworkId = donation.transactionNetworkId;
+    toWalletAddress = donation.toWalletAddress.toLowerCase();
+    donationValueUsd = donation.valueUsd;
+    donationValueEth = donation.valueEth;
+    transakStatus = donation.transakStatus;
+  }
   return {
     email: user.email,
     title: project.title,
     firstName: user.firstName,
     userId: user.id,
-    projectOwnerId: project.admin,
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
-    amount: Number(donation.amount),
-    token: symbol,
-    transactionId: donation.transactionId.toLowerCase(),
-    transactionNetworkId: Number(donation.transactionNetworkId),
-    transactionLink: buildTxLink(
-      donation.transactionId,
-      donation.transactionNetworkId,
-    ),
+    amount,
+    isRecurringDonation,
+    token: donation.currency,
+    transactionId: transactionId.toLowerCase(),
+    transactionNetworkId: Number(transactionNetworkId),
+    transactionLink: buildTxLink(transactionId, transactionNetworkId),
     currency: donation.currency,
-    createdAt: new Date(),
-    toWalletAddress: donation.toWalletAddress.toLowerCase(),
-    donationValueUsd: donation.valueUsd,
-    donationValueEth: donation.valueEth,
+    createdAt: donation.createdAt,
+    toWalletAddress,
+    donationValueUsd,
+    donationValueEth,
     verified: Boolean(project.verified),
-    transakStatus: donation.transakStatus,
+    transakStatus,
   };
 };
 
@@ -949,7 +1098,7 @@ export const getOrttoPersonAttributes = (params: {
     'str::last': lastName || '',
     'str::email': email || '',
   };
-  if (process.env.ENVIRONMENT === 'production') {
+  if (isProduction) {
     // On production, we should update Ortto user profile based on user-id to avoid touching real users data
     fields['str:cm:user-id'] = userId;
   }
@@ -1006,7 +1155,7 @@ const sendProjectRelatedNotification = async (params: {
   const projectLink = buildProjectLink(eventName, project.slug);
   const data: SendNotificationBody = {
     eventName,
-    email: receivedUser.email,
+    email: segment?.payload?.email || receivedUser.email,
     sendEmail: sendEmail || false,
     sendSegment: Boolean(segment),
     userWalletAddress: receivedUser.walletAddress as string,
@@ -1116,8 +1265,8 @@ interface SendNotificationBody {
   email?: string;
   trackId?: string;
   metadata?: any;
-  projectId: string;
-  userWalletAddress: string;
+  projectId?: string;
+  userWalletAddress?: string;
   segment?: {
     payload: any;
   };

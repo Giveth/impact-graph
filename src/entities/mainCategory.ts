@@ -11,7 +11,7 @@ import { Category } from './category';
 @Entity()
 @ObjectType()
 export class MainCategory extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -36,7 +36,7 @@ export class MainCategory extends BaseEntity {
   @Column({ default: true })
   isActive: boolean;
 
-  @Field(type => [Category], { nullable: true })
-  @OneToMany(type => Category, category => category.mainCategory)
+  @Field(_type => [Category], { nullable: true })
+  @OneToMany(_type => Category, category => category.mainCategory)
   categories?: Category[];
 }

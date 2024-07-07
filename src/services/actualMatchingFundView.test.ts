@@ -1,6 +1,7 @@
+import moment from 'moment';
+import { assert } from 'chai';
 import { QfRound } from '../entities/qfRound';
 import { Project } from '../entities/project';
-import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
@@ -9,11 +10,8 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { getProjectDonationsSqrtRootSum } from '../repositories/qfRoundRepository';
-import { assert, expect } from 'chai';
 import {
   refreshProjectActualMatchingView,
-  refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from './projectViewsService';
 import { ProjectActualMatchingView } from '../entities/ProjectActualMatchingView';
@@ -21,7 +19,6 @@ import { NETWORK_IDS } from '../provider';
 import { Sybil } from '../entities/sybil';
 import { ProjectFraud } from '../entities/projectFraud';
 import { DONATION_STATUS } from '../entities/donation';
-import { findProjectById } from '../repositories/projectRepository';
 
 describe('getActualMatchingFund test cases', getActualMatchingFundTests);
 
@@ -73,7 +70,7 @@ function getActualMatchingFundTests() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     user.passportScore = qfRound.minimumPassportScore;
     await user.save();
-    const donation = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
         status: 'verified',
@@ -107,7 +104,7 @@ function getActualMatchingFundTests() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     user.passportScore = qfRound.minimumPassportScore;
     await user.save();
-    const verifiedProject = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       walletAddress: user.walletAddress as string,
       listed: true,
@@ -147,7 +144,7 @@ function getActualMatchingFundTests() {
   it('Validates correct aggregation of multiple donations to a project', async () => {
     const valuesUsd = [4, 25, 100, 1024];
     await Promise.all(
-      valuesUsd.map(async (valueUsd, index) => {
+      valuesUsd.map(async valueUsd => {
         const user = await saveUserDirectlyToDb(
           generateRandomEtheriumAddress(),
         );
@@ -223,8 +220,6 @@ function getActualMatchingFundTests() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
-
     await refreshProjectActualMatchingView();
 
     const actualMatchingFund = await ProjectActualMatchingView.findOne({
@@ -335,8 +330,6 @@ function getActualMatchingFundTests() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
-
     await refreshProjectActualMatchingView();
 
     const actualMatchingFund = await ProjectActualMatchingView.findOne({
@@ -366,7 +359,7 @@ function getActualMatchingFundTests() {
     await project.save();
     user.passportScore = qfRound.minimumPassportScore;
     await user.save();
-    const donation = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
         status: 'verified',
@@ -402,7 +395,7 @@ function getActualMatchingFundTests() {
     await project.save();
     user.passportScore = qfRound.minimumPassportScore;
     await user.save();
-    const donation = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
         status: 'verified',

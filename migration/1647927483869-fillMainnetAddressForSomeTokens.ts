@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class fillMainnetAddressForSomeTokens1647927483869
   implements MigrationInterface
 {

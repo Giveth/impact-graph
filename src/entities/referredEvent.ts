@@ -5,45 +5,42 @@ import {
   Column,
   BaseEntity,
   RelationId,
-  ManyToOne,
-  Index,
   OneToOne,
   UpdateDateColumn,
   CreateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { Project, ProjectUpdate } from './project';
 import { User } from './user';
 
 @Entity()
 @ObjectType()
 export class ReferredEvent extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field(type => Date, { nullable: true })
+  @Field(_type => Date, { nullable: true })
   @Column({ nullable: true })
   startTime?: Date;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   referrerId?: string;
 
-  @Field(type => Boolean, { nullable: false })
+  @Field(_type => Boolean, { nullable: false })
   @Column({ nullable: false, default: false })
   isDonorLinkedToReferrer: boolean;
 
-  @Field(type => Boolean, { nullable: false })
+  @Field(_type => Boolean, { nullable: false })
   @Column({ nullable: false, default: false })
   isDonorClickEventSent: boolean;
 
-  @Field(type => User, { nullable: true })
-  @OneToOne(type => User, { nullable: true })
+  @Field(_type => User, { nullable: true })
+  @OneToOne(_type => User, { nullable: true })
   @JoinColumn()
   user: User;
 
-  @Field(type => ID, { nullable: true })
+  @Field(_type => ID, { nullable: true })
   @RelationId((referredEvent: ReferredEvent) => referredEvent.user)
   @Column({ nullable: true })
   userId: number;

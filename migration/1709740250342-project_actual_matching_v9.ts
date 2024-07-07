@@ -159,5 +159,5 @@ export class projectActualMatchingV91709740250342
         `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(_queryRunner: QueryRunner): Promise<void> {}
 }

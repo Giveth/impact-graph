@@ -1,20 +1,25 @@
 // @ts-check
-import config from '../config';
+import http from 'http';
 import { rateLimit } from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
-import express, { json, Request, Response } from 'express';
-import { handleStripeWebhook } from '../utils/stripe';
-import createSchema from './createSchema';
-import { getResolvers } from '../resolvers/resolvers';
+import express, { json, Request } from 'express';
 import { Container } from 'typedi';
-import { RegisterResolver } from '../user/register/RegisterResolver';
-import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
 import { Resource } from '@adminjs/typeorm';
 import { validate } from 'class-validator';
+import { ModuleThread, Pool, spawn, Worker } from 'threads';
+import { DataSource } from 'typeorm';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
+import config from '../config';
+import { handleStripeWebhook } from '../utils/stripe';
+import createSchema from './createSchema';
 import SentryLogger from '../sentryLogger';
 
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
@@ -31,9 +36,7 @@ import {
   setI18nLocaleForRequest,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 import { apiGivRouter } from '../routers/apiGivRoutes';
-import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 import { authorizationHandler } from '../services/authorizationServices';
 import {
   oauth2CallbacksRouter,
@@ -47,23 +50,12 @@ import {
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
-import { ModuleThread, Pool, spawn, Worker } from 'threads';
-import { DataSource } from 'typeorm';
 import { AppDataSource, CronDataSource } from '../orm';
-import http from 'http';
-import cors from 'cors';
-import bodyParser from 'body-parser';
 import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
-import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
-import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
-import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
@@ -72,8 +64,8 @@ import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJo
 import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
-import { runCheckUserSuperTokenBalances } from '../services/cronJobs/checkUserSuperTokenBalancesQueue';
 import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
+import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
 
 Resource.validate = validate;
 
@@ -88,24 +80,26 @@ const options = {
 
 export async function bootstrap() {
   try {
+    logger.debug('bootstrap() has been called', new Date());
+
+    logger.debug('bootstrap() before AppDataSource.initialize()', new Date());
     await AppDataSource.initialize();
+    logger.debug('bootstrap() after AppDataSource.initialize()', new Date());
+
+    logger.debug('bootstrap() before CronDataSource.initialize()', new Date());
     await CronDataSource.initialize();
+    logger.debug('bootstrap() after CronDataSource.initialize()', new Date());
+
     Container.set(DataSource, AppDataSource.getDataSource());
-    const resolvers = getResolvers();
 
-    if (config.get('REGISTER_USERNAME_PASSWORD') === 'true') {
-      resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver]);
-    }
-
-    // Actually we should use await AppDataSource.initialize(); but it throw errors I think because some changes
-    // are needed in using typeorm repositories, so currently I kept this
+    await setDatabaseParameters(AppDataSource.getDataSource());
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
     if (dropSchema) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Drop database....');
       await AppDataSource.getDataSource().synchronize(dropSchema);
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Drop done.');
       try {
         await dropDbCronExtension();
@@ -115,25 +109,6 @@ export async function bootstrap() {
     }
 
     const schema = await createSchema();
-
-    const enableDbCronJob =
-      config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
-    if (enableDbCronJob) {
-      try {
-        const scheduleExpression = config.get(
-          'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
-        ) as string;
-        const powerSnapshotsHistoricScheduleExpression = config.get(
-          'ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA_CRONJOB_EXPRESSION',
-        ) as string;
-        await schedulePowerBoostingSnapshot(scheduleExpression);
-        await schedulePowerSnapshotsHistory(
-          powerSnapshotsHistoricScheduleExpression,
-        );
-      } catch (e) {
-        logger.error('Enabling power boosting snapshot ', e);
-      }
-    }
 
     // instantiate pool once and pass as context
     const projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>> =
@@ -221,7 +196,7 @@ export async function bootstrap() {
         }),
         windowMs: 60 * 1000, // 1 minutes
         max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
-        skip: (req: Request, res: Response) => {
+        skip: (req: Request) => {
           const vercelKey = process.env.VERCEL_KEY;
           if (vercelKey && req.headers.vercel_key === vercelKey) {
             // Skip rate-limit for Vercel requests because our front is SSR
@@ -251,7 +226,10 @@ export async function bootstrap() {
       }),
     );
 
+    logger.debug('bootstrap() before apolloServer.start()', new Date());
     await apolloServer.start();
+    logger.debug('bootstrap() after apolloServer.start()', new Date());
+
     app.use(
       '/graphql',
       expressMiddleware<ApolloContext>(apolloServer, {
@@ -296,7 +274,7 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       handleStripeWebhook,
     );
-    app.get('/health', (req, res, next) => {
+    app.get('/health', (_req, res) => {
       res.send('Hi every thing seems ok');
     });
     app.post('/fiat_webhook', onramperWebhookHandler);
@@ -304,30 +282,71 @@ export async function bootstrap() {
 
     const httpServer = http.createServer(app);
 
-    // Start the server
-    // app.listen({ port: 4000 });
-    await new Promise<void>(resolve =>
-      httpServer.listen({ port: 4000 }, resolve),
-    );
-
-    logger.debug(
-      `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
-    );
+    await new Promise<void>((resolve, reject) => {
+      httpServer
+        .listen({ port: 4000 }, () => {
+          logger.debug(
+            `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
+          );
+          performPostStartTasks();
+          resolve(); // Resolve the Promise once the server is successfully listening
+        })
+        .on('error', err => {
+          logger.debug(`Starting server failed`, err);
+          reject(err); // Reject the Promise if there's an error starting the server
+        });
+    });
 
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
+  } catch (err) {
+    logger.fatal('bootstrap() error', err);
+  }
+
+  async function continueDbSetup() {
+    logger.debug('continueDbSetup() has been called', new Date());
+
+    const enableDbCronJob =
+      config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
+    if (enableDbCronJob) {
+      try {
+        const scheduleExpression = config.get(
+          'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
+        ) as string;
+        const powerSnapshotsHistoricScheduleExpression = config.get(
+          'ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA_CRONJOB_EXPRESSION',
+        ) as string;
+        await schedulePowerBoostingSnapshot(scheduleExpression);
+        await schedulePowerSnapshotsHistory(
+          powerSnapshotsHistoricScheduleExpression,
+        );
+      } catch (e) {
+        logger.error('Enabling power boosting snapshot ', e);
+      }
+    }
 
     if (!isTestEnv) {
       // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
       // relation "project_estimated_matching_view" does not exist
+      logger.debug(
+        'continueDbSetup() before refreshProjectEstimatedMatchingView() ',
+        new Date(),
+      );
       await refreshProjectEstimatedMatchingView();
-      await refreshProjectDonationSummaryView();
+      logger.debug(
+        'continueDbSetup() after refreshProjectEstimatedMatchingView() ',
+        new Date(),
+      );
     }
+    logger.debug('continueDbSetup() end of function', new Date());
+  }
 
+  async function initializeCronJobs() {
+    logger.debug('initializeCronJobs() has been called', new Date());
     runCheckPendingDonationsCronJob();
+    runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-    runUpdateDonationsWithoutValueUsdPrices();
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
@@ -337,9 +356,6 @@ export async function bootstrap() {
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
     //   runGivingBlocksProjectSynchronization();
     // }
-    if (process.env.POIGN_ART_SERVICE_ACTIVE === 'true') {
-      runSyncPoignArtDonations();
-    }
 
     if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
       runSyncLostDonations();
@@ -351,6 +367,11 @@ export async function bootstrap() {
 
     if (process.env.ENABLE_DRAFT_DONATION === 'true') {
       runDraftDonationMatchWorkerJob();
+    }
+
+    if (process.env.ENABLE_DRAFT_RECURRING_DONATION === 'true') {
+      // TODO now disabling this field would break the recurring donation feature so I commented because otherwise draftDonation worker pool woud not work
+      // runDraftRecurringDonationMatchWorkerJob();
     }
 
     if (process.env.FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE === 'true') {
@@ -380,9 +401,47 @@ export async function bootstrap() {
       runUpdateRecurringDonationStream();
       runCheckUserSuperTokenBalancesJob();
     }
+    logger.debug(
+      'initializeCronJobs() before runCheckActiveStatusOfQfRounds() ',
+      new Date(),
+    );
     await runCheckActiveStatusOfQfRounds();
+    logger.debug(
+      'initializeCronJobs() after runCheckActiveStatusOfQfRounds() ',
+      new Date(),
+    );
+
+    logger.debug(
+      'initializeCronJobs() before runUpdateProjectCampaignsCacheJob() ',
+      new Date(),
+    );
     await runUpdateProjectCampaignsCacheJob();
-  } catch (err) {
-    logger.error(err);
+    logger.debug(
+      'initializeCronJobs() after runUpdateProjectCampaignsCacheJob() ',
+      new Date(),
+    );
   }
+
+  async function performPostStartTasks() {
+    // All heavy and non-critical initializations here
+    try {
+      await continueDbSetup();
+    } catch (e) {
+      logger.fatal('continueDbSetup() error', e);
+    }
+    await initializeCronJobs();
+  }
+}
+
+async function setDatabaseParameters(ds: DataSource) {
+  await setPgTrgmParameters(ds);
+}
+
+async function setPgTrgmParameters(ds: DataSource) {
+  const similarityThreshold =
+    Number(config.get('PROJECT_SEARCH_SIMILARITY_THRESHOLD')) || 0.1;
+  await ds.query(`SET pg_trgm.similarity_threshold TO ${similarityThreshold};`);
+  await ds.query(
+    `SET pg_trgm.word_similarity_threshold TO ${similarityThreshold};`,
+  );
 }

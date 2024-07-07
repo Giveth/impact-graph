@@ -1,11 +1,7 @@
 import express, { Request, Response } from 'express';
 import { apiGivAuthentication } from '../middleware/apiGivAuthentication';
 import { findDonationsByTransactionId } from '../repositories/donationRepository';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { Donation } from '../entities/donation';
 import { findProjectByWalletAddress } from '../repositories/projectRepository';
 import { findTokenByTokenAddress } from '../repositories/tokenRepository';
@@ -13,9 +9,13 @@ import { ProjStatus } from '../entities/project';
 import { logger } from '../utils/logger';
 import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 import { ApiGivStandardError, handleExpressError } from './standardError';
-import { updateTotalDonationsOfProject } from '../services/donationService';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 import { User } from '../entities/user';
+import { updateProjectStatistics } from '../services/projectService';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../services/userService';
 
 export const apiGivRouter = express.Router();
 apiGivRouter.post(
@@ -81,7 +81,7 @@ apiGivRouter.post(
           400,
         );
       }
-      const donationData: Partial<Donation> = {
+      const donationData = Donation.create({
         fromWalletAddress,
         toWalletAddress,
         user: donor,
@@ -103,9 +103,11 @@ apiGivRouter.post(
         isFiat,
         isTokenEligibleForGivback: token.isGivbackEligible,
         speedup: false,
-      };
-      const result = await Donation.create(donationData).save();
-      await updateTotalDonationsOfProject(project.id);
+      });
+      const result = await donationData.save();
+      await updateProjectStatistics(project.id);
+      await updateUserTotalDonated(result.userId);
+      await updateUserTotalReceived(project.adminUserId);
 
       response.send(result);
     } catch (e) {

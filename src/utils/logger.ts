@@ -1,15 +1,13 @@
-// tslint:disable-next-line:no-var-requires
-const RotatingFileStream = require('bunyan-rotating-file-stream');
-
 import { createLogger, levelFromName, DEBUG } from 'bunyan';
-import { existsSync, writeFileSync } from 'fs';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const RotatingFileStream = require('bunyan-rotating-file-stream');
 
 function createBunyanLogger() {
   const logDir = process.env.LOG_PATH || './logs/impact-graph.log';
   // if (!existsSync(logDir)) {
   //   writeFileSync(logDir, '');
   // }
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log('Bunyan log level is', process.env.LOG_LEVEL || 'debug');
   const bunyanStreams: any[] = [
     {

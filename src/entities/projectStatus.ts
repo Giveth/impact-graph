@@ -13,7 +13,7 @@ import { ProjectStatusReason } from './projectStatusReason';
 @Entity()
 @ObjectType()
 export class ProjectStatus extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -30,20 +30,20 @@ export class ProjectStatus extends BaseEntity {
   @Column({ nullable: true })
   description: string;
 
-  @Field(type => [Project], { nullable: true })
-  @OneToMany(type => Project, project => project.status)
+  @Field(_type => [Project], { nullable: true })
+  @OneToMany(_type => Project, project => project.status)
   projects?: Project[];
 
-  @Field(type => [ProjectStatusReason], { nullable: true })
+  @Field(_type => [ProjectStatusReason], { nullable: true })
   @OneToMany(
-    type => ProjectStatusReason,
+    _type => ProjectStatusReason,
     projectStatusReason => projectStatusReason.status,
   )
   reasons?: ProjectStatusReason[];
 
-  @Field(type => [ProjectStatusReason], { nullable: true })
+  @Field(_type => [ProjectStatusReason], { nullable: true })
   @OneToMany(
-    type => ProjectStatusReason,
+    _type => ProjectStatusReason,
     projectStatusReason => projectStatusReason.status,
   )
   projectStatusHistories?: ProjectStatusReason[];

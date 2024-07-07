@@ -1,4 +1,4 @@
-import Axios, { AxiosResponse } from 'axios';
+import Axios from 'axios';
 import slugify from 'slugify';
 import config from '../../config';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
@@ -9,11 +9,7 @@ import {
   ReviewStatus,
 } from '../../entities/project';
 import { ProjectStatus } from '../../entities/projectStatus';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { findUserById } from '../../repositories/userRepository';
@@ -58,7 +54,7 @@ interface ChangeNonProfit {
 
 // exact title returns 1 element
 export const getChangeNonProfitByNameOrIEN = async (
-  nonProfit: String,
+  nonProfit: string,
 ): Promise<ChangeNonProfit> => {
   try {
     const result = await Axios.get(changeApiNonProfitUrl, {

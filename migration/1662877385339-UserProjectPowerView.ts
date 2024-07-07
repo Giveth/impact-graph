@@ -31,6 +31,5 @@ export class UserProjectPowerView1662877385339 implements MigrationInterface {
     );
   }
 
-  // tslint:disable-next-line:no-empty
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

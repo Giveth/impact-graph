@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class setUserTotalReceived1644467298829 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     // To run the update query SUM I should check table existance
@@ -26,7 +25,7 @@ export class setUserTotalReceived1644467298829 implements MigrationInterface {
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  async down(_queryRunner: QueryRunner): Promise<void> {
     // deleting the column from project entity removes it completely.
   }
 }

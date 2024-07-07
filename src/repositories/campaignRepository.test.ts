@@ -1,10 +1,10 @@
+import { assert } from 'chai';
 import { Campaign, CampaignType } from '../entities/campaign';
 import {
   findAllActiveCampaigns,
   findCampaignBySlug,
   findFeaturedCampaign,
 } from './campaignRepository';
-import { assert } from 'chai';
 import { findProjectById } from './projectRepository';
 import { SEED_DATA } from '../../test/testUtils';
 import { Project } from '../entities/project';

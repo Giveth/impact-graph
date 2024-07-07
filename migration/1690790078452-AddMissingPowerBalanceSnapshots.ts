@@ -13,5 +13,5 @@ export class AddMissingPowerBalanceSnapshots1690790078452
     `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

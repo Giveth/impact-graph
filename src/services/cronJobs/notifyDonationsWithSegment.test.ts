@@ -1,11 +1,11 @@
 import { assert } from 'chai';
 import 'mocha';
+import sinon from 'sinon';
 import {
   createDonationData,
   saveDonationDirectlyToDb,
   SEED_DATA,
 } from '../../../test/testUtils';
-import sinon from 'sinon';
 import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { notifyMissingDonationsWithSegment } from './notifyDonationsWithSegment';
 import * as utils from '../../utils/utils';

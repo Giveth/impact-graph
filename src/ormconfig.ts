@@ -1,5 +1,5 @@
-import * as dotenv from 'dotenv';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
 
 const configPath = path.resolve(
   __dirname,
@@ -10,7 +10,7 @@ const loadConfigResult = dotenv.config({
 });
 
 if (loadConfigResult.error) {
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log('Load process.env error', {
     path: configPath,
     error: loadConfigResult.error,
@@ -20,6 +20,7 @@ if (loadConfigResult.error) {
 
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { getEntities } from './entities/entities';
+import { ENVIRONMENTS } from './utils/utils';
 
 const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -29,7 +30,10 @@ const ormConfig: DataSourceOptions = {
   password: process.env.TYPEORM_DATABASE_PASSWORD,
   database: process.env.TYPEORM_DATABASE_NAME,
   entities: getEntities(),
-  migrations: ['migration/*.ts'],
+  migrations:
+    process.env.NODE_ENV === ENVIRONMENTS.PRODUCTION
+      ? ['migration/*.js']
+      : ['migration/*.ts'],
   // cli: {
   //   migrationsDir: 'migration',
   // },

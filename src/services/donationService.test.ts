@@ -1,10 +1,10 @@
 import { assert, expect } from 'chai';
+import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
+import moment from 'moment';
 import {
   isTokenAcceptableForProject,
-  updateOldStableCoinDonationsPrice,
   sendNotificationForDonation,
   syncDonationStatusWithBlockchainNetwork,
-  updateTotalDonationsOfProject,
   updateDonationPricesAndValues,
   insertDonationsFromQfRoundHistory,
 } from './donationService';
@@ -14,7 +14,6 @@ import {
   createProjectData,
   DONATION_SEED_DATA,
   generateRandomEtheriumAddress,
-  generateRandomEvmTxHash,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -27,13 +26,8 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { errorMessages } from '../utils/errorMessages';
 import { findDonationById } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
-import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
-import {
-  findUserById,
-  findUserByWalletAddress,
-} from '../repositories/userRepository';
+import { findUserByWalletAddress } from '../repositories/userRepository';
 import { QfRound } from '../entities/qfRound';
-import moment from 'moment';
 import {
   fillQfRoundHistory,
   getQfRoundHistoriesThatDontHaveRelatedDonations,
@@ -41,6 +35,7 @@ import {
 } from '../repositories/qfRoundHistoryRepository';
 import { User } from '../entities/user';
 import { QfRoundHistory } from '../entities/qfRoundHistory';
+import { updateProjectStatistics } from './projectService';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -49,7 +44,7 @@ describe(
 );
 describe(
   'updateOldStableCoinDonationsPrice test cases',
-  fillOldStableCoinDonationsPriceTestCases,
+  fillStableCoinDonationsPriceTestCases,
 );
 
 describe(
@@ -85,61 +80,6 @@ function sendSegmentEventForDonationTestCases() {
 }
 
 function syncDonationStatusWithBlockchainNetworkTestCases() {
-  it('should verify a goerli donation and update donor.totalDonated and projectOwner.totalReceived', async () => {
-    // https://goerli.etherscan.io/tx/0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1
-
-    const transactionInfo = {
-      txHash:
-        '0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1',
-      networkId: NETWORK_IDS.GOERLI,
-      amount: 0.117,
-      fromAddress: '0xc18c3cc1cf44e72dedfcbae981ef1ab32256ee60',
-      toAddress: '0x2d2b642c7407ebce201ed80711124fffd1777331',
-      currency: 'ETH',
-      timestamp: 1661114988,
-    };
-    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
-    const projectOwner = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const project = await saveProjectDirectlyToDb(
-      {
-        ...createProjectData(),
-        walletAddress: transactionInfo.toAddress,
-      },
-      projectOwner,
-    );
-    const donation = await saveDonationDirectlyToDb(
-      {
-        amount: transactionInfo.amount,
-        transactionNetworkId: transactionInfo.networkId,
-        transactionId: transactionInfo.txHash,
-        currency: transactionInfo.currency,
-        fromWalletAddress: transactionInfo.fromAddress,
-        toWalletAddress: transactionInfo.toAddress,
-        valueUsd: 100,
-        anonymous: false,
-        createdAt: new Date(transactionInfo.timestamp),
-        status: DONATION_STATUS.PENDING,
-      },
-      user.id,
-      project.id,
-    );
-    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
-      donationId: donation.id,
-    });
-    assert.isOk(updateDonation);
-    assert.equal(updateDonation.id, donation.id);
-    assert.isTrue(updateDonation.segmentNotified);
-    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
-
-    const donor = await findUserById(user.id);
-    assert.equal(donor?.totalDonated, 100);
-
-    const updatedProjectOwner = await findUserById(projectOwner.id);
-    assert.equal(updatedProjectOwner?.totalReceived, 100);
-  });
-
   it('should verify a Polygon donation', async () => {
     // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
 
@@ -886,7 +826,7 @@ function isProjectAcceptTokenTestCases() {
 function fillTotalDonationsOfProjectTestCases() {
   it('should not change updatedAt', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    await updateTotalDonationsOfProject(project.id);
+    await updateProjectStatistics(project.id);
     const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(
       new Date(project.updatedAt).getTime(),
@@ -901,7 +841,7 @@ function fillTotalDonationsOfProjectTestCases() {
       SEED_DATA.FIRST_USER.id,
       project.id,
     );
-    await updateTotalDonationsOfProject(project.id);
+    await updateProjectStatistics(project.id);
     const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(updatedProject.totalDonations, donation.valueUsd);
     assert.equal(
@@ -911,26 +851,7 @@ function fillTotalDonationsOfProjectTestCases() {
   });
 }
 
-function fillOldStableCoinDonationsPriceTestCases() {
-  it('should fill price for XDAI donation that already doesnt have price', async () => {
-    const donation = await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        currency: 'XDAI',
-        valueUsd: undefined,
-        amount: 100,
-        transactionNetworkId: NETWORK_IDS.XDAI,
-      },
-      SEED_DATA.FIRST_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
-    );
-    assert.isNotOk(donation.valueUsd);
-    await updateOldStableCoinDonationsPrice();
-    const updatedDonation = await findDonationById(donation.id);
-    assert.equal(updatedDonation?.valueUsd, updatedDonation?.amount);
-    assert.equal(updatedDonation?.priceUsd, 1);
-  });
-
+function fillStableCoinDonationsPriceTestCases() {
   it('should fill price for Matic donation on the Polygon network', async () => {
     const token = 'MATIC';
     const amount = 100;
@@ -952,10 +873,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      null,
-      token,
+      { symbol: token },
       CHAIN_ID.POLYGON,
-      amount,
     );
 
     donation = (await findDonationById(donation.id))!;
@@ -984,10 +903,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      null,
-      token,
+      { symbol: token },
       CHAIN_ID.CELO,
-      amount,
     );
     donation = (await findDonationById(donation.id))!;
     expect(donation.valueUsd).to.gt(0);
@@ -1024,10 +941,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      token,
-      currency,
+      token!,
       CHAIN_ID.MAINNET,
-      amount,
     );
     donation = (await findDonationById(donation.id))!;
     expect(donation.valueUsd).to.gt(0);
@@ -1065,10 +980,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      token,
-      currency,
+      token!,
       CHAIN_ID.MAINNET,
-      amount,
     );
     donation = (await findDonationById(donation.id))!;
     expect(donation.valueUsd).to.gt(0);
@@ -1097,10 +1010,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      null,
-      token,
+      { symbol: token },
       CHAIN_ID.ALFAJORES,
-      amount,
     );
 
     donation = (await findDonationById(donation.id))!;

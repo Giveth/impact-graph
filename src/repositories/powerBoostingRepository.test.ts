@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   assertThrowsAsync,
   createProjectData,
@@ -15,7 +16,6 @@ import {
   setSingleBoosting,
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
-import { assert } from 'chai';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
@@ -208,7 +208,7 @@ function findPowerBoostingsTestCases() {
     );
     const firstProject = await saveProjectDirectlyToDb(createProjectData());
     const secondProject = await saveProjectDirectlyToDb(createProjectData());
-    const firstPower = await insertSinglePowerBoosting({
+    await insertSinglePowerBoosting({
       user: firstUser,
       project: firstProject,
       percentage: 1,
@@ -932,10 +932,9 @@ function powerBoostingSnapshotTests() {
     const [snapshot] = await PowerSnapshot.find({ take: 1 });
     assert.isDefined(snapshot);
 
-    const [powerBoostings, powerBoostingCounts] =
-      await PowerBoosting.findAndCount({
-        select: ['id', 'projectId', 'userId', 'percentage'],
-      });
+    const [powerBoostings] = await PowerBoosting.findAndCount({
+      select: ['id', 'projectId', 'userId', 'percentage'],
+    });
     const [powerBoostingSnapshots, powerBoostingSnapshotsCounts] =
       await PowerBoostingSnapshot.findAndCount({
         where: { powerSnapshotId: snapshot?.id },

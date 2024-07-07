@@ -1,3 +1,9 @@
+import adminJs from 'adminjs';
+import {
+  ActionResponse,
+  After,
+} from 'adminjs/src/backend/actions/action.interface';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
 } from '../../../entities/broadcastNotification';
@@ -5,16 +11,10 @@ import {
   canAccessBroadcastNotificationAction,
   ResourceActions,
 } from '../adminJsPermissions';
-import adminJs from 'adminjs';
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
 } from '../adminJs-types';
-import {
-  ActionResponse,
-  After,
-} from 'adminjs/src/backend/actions/action.interface';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
 import { updateBroadcastNotificationStatus } from '../../../repositories/broadcastNotificationRepository';
 import { logger } from '../../../utils/logger';
@@ -24,7 +24,7 @@ export const sendBroadcastNotification = async (
 ): Promise<After<ActionResponse>> => {
   const record: RecordJSON = response.record || {};
   if (record?.params) {
-    const { html, id } = record?.params;
+    const { html, id } = record?.params || {};
     try {
       await getNotificationAdapter().broadcastNotification({
         broadCastNotificationId: id,
@@ -49,6 +49,20 @@ export const broadcastNotificationTab = {
   resource: BroadcastNotification,
   options: {
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessBroadcastNotificationAction(
+            { currentAdmin },
+            ResourceActions.LIST,
+          ),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessBroadcastNotificationAction(
+            { currentAdmin },
+            ResourceActions.SHOW,
+          ),
+      },
       delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>

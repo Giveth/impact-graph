@@ -1,14 +1,13 @@
+import { schedule } from 'node-cron';
 import config from '../../config';
 import { logger } from '../../utils/logger';
-import { schedule } from 'node-cron';
-import { isTestEnv, sleep } from '../../utils/utils';
+import { isTestEnv } from '../../utils/utils';
 import {
   deactivateExpiredQfRounds,
   getExpiredActiveQfRounds,
 } from '../../repositories/qfRoundRepository';
 import {
   refreshProjectActualMatchingView,
-  refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../projectViewsService';
 import { fillQfRoundHistory } from '../../repositories/qfRoundHistoryRepository';
@@ -37,7 +36,6 @@ export const runCheckActiveStatusOfQfRounds = () => {
       );
       await deactivateExpiredQfRounds();
       await refreshProjectEstimatedMatchingView();
-      await refreshProjectDonationSummaryView();
       await fillQfRoundDonationsUserScores();
       await refreshProjectActualMatchingView();
       await fillQfRoundHistory();

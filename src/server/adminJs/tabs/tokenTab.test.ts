@@ -1,5 +1,5 @@
-import { generateRandomEvmTxHash } from '../../../../test/testUtils';
 import { assert } from 'chai';
+import { generateRandomEvmTxHash } from '../../../../test/testUtils';
 import { findTokenByTokenAddress } from '../../../repositories/tokenRepository';
 import {
   Organization,
@@ -66,7 +66,7 @@ function generateOrganizationListTestCases() {
   // this includes all organizations option
   it('should return 15 permutations option when 4 organizations are present', async () => {
     let totalPermutations = 0;
-    const [_, n] = await Organization.createQueryBuilder('organization')
+    const [, n] = await Organization.createQueryBuilder('organization')
       .orderBy('organization.id')
       .getManyAndCount();
     // there is no take 0 elements case
@@ -94,7 +94,7 @@ function generateOrganizationListTestCases() {
     });
     await organization.save();
 
-    const [_, n] = await Organization.createQueryBuilder('organization')
+    const [, n] = await Organization.createQueryBuilder('organization')
       .orderBy('organization.id')
       .getManyAndCount();
     // there is no take 0 elements case

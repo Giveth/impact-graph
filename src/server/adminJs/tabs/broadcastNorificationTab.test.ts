@@ -1,7 +1,7 @@
+import { assert } from 'chai';
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
 } from '../../../entities/broadcastNotification';
-import { assert } from 'chai';
 import { findBroadcastNotificationById } from '../../../repositories/broadcastNotificationRepository';
 import { sendBroadcastNotification } from './broadcastNotificationTab';
 

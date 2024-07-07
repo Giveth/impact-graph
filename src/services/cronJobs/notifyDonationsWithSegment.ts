@@ -1,8 +1,6 @@
+import { schedule } from 'node-cron';
 import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { logger } from '../../utils/logger';
-import { schedule } from 'node-cron';
-import { Project } from '../../entities/project';
-import { User } from '../../entities/user';
 import { sleep } from '../../utils/utils';
 import config from '../../config';
 import { sendNotificationForDonation } from '../donationService';
@@ -39,50 +37,4 @@ export const notifyMissingDonationsWithSegment = async () => {
     // await enough for segment limit to regen
     await sleep(1000);
   }
-};
-
-interface SegmentDonationInterFace {
-  slug?: string | null;
-  title: string;
-  amount: number;
-  transactionId: string;
-  toWalletAddress: string;
-  fromWalletAddress: string;
-  donationValueUsd: number;
-  donationValueEth: number;
-  verified: boolean;
-  projectOwnerId: number;
-  transactionNetworkId: number;
-  currency: string;
-  projectWalletAddress?: string | null;
-  createdAt: Date;
-  email?: string | null;
-  firstName?: string | null;
-  anonymous: boolean;
-}
-
-const segmentDonationAttributes = (
-  project: Project,
-  donation: Donation,
-  user: User,
-): SegmentDonationInterFace => {
-  return {
-    slug: project.slug,
-    title: project.title,
-    amount: donation.amount,
-    transactionId: donation.transactionId.toLowerCase(),
-    toWalletAddress: donation.toWalletAddress.toLowerCase(),
-    fromWalletAddress: donation.fromWalletAddress.toLowerCase(),
-    donationValueUsd: donation.valueUsd,
-    donationValueEth: donation.valueEth,
-    verified: project.verified,
-    projectOwnerId: Number(project.admin),
-    transactionNetworkId: donation.transactionNetworkId,
-    currency: donation.currency,
-    projectWalletAddress: project.walletAddress,
-    createdAt: donation.createdAt,
-    email: user != null ? user.email : '',
-    firstName: user != null ? user.firstName : '',
-    anonymous: donation.anonymous,
-  };
 };

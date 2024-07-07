@@ -1,8 +1,8 @@
-import config from './config';
 import { ethers } from 'ethers';
+import config from './config';
 import { i18n, translationErrorMessagesKeys } from './utils/errorMessages';
+import { logger } from './utils/logger';
 
-const INFURA_API_KEY = config.get('INFURA_API_KEY');
 const INFURA_ID = config.get('INFURA_ID');
 
 export const NETWORK_IDS = {
@@ -22,6 +22,12 @@ export const NETWORK_IDS = {
   ARBITRUM_MAINNET: 42161,
   ARBITRUM_SEPOLIA: 421614,
 
+  BASE_MAINNET: 8453,
+  BASE_SEPOLIA: 84532,
+
+  ZKEVM_MAINNET: 1101,
+  ZKEVM_CARDONA: 2442,
+
   // https://docs.particle.network/developers/other-services/node-service/solana-api
   SOLANA_MAINNET: 101,
   SOLANA_TESTNET: 102,
@@ -35,6 +41,93 @@ export const superTokensToToken = {
   OPx: 'OP',
   GIVx: 'GIV',
 };
+
+export const superTokens = [
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0x2f2c819210191750F2E11F7CfC5664a0eB4fd5e6',
+      name: 'Giveth',
+      symbol: 'GIV',
+    },
+    decimals: 18,
+    id: '0xdfd824f6928b9776c031f7ead948090e2824ce8b',
+    name: 'fake Super Giveth Token',
+    symbol: 'GIVx',
+  },
+  {
+    underlyingToken: {
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      id: '0x0000000000000000000000000000000000000000',
+    },
+    decimals: 18,
+    id: '0x0043d7c85c8b96a49a72a92c0b48cdc4720437d7',
+    name: 'Super ETH',
+    symbol: 'ETHx',
+  },
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0x4200000000000000000000000000000000000042',
+      name: 'Optimism',
+      symbol: 'OP',
+    },
+    decimals: 18,
+    id: '0x1828bff08bd244f7990eddcd9b19cc654b33cdb4',
+    name: 'Super Optimism',
+    symbol: 'OPx',
+  },
+  {
+    underlyingToken: {
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      id: '0x0000000000000000000000000000000000000000',
+    },
+    decimals: 18,
+    id: '0x4ac8bd1bdae47beef2d1c6aa62229509b962aa0d',
+    name: 'Super ETH',
+    symbol: 'ETHx',
+  },
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0x528cdc92eab044e1e39fe43b9514bfdab4412b98',
+      name: 'Giveth Token',
+      symbol: 'GIV',
+    },
+    decimals: 18,
+    id: '0x4cab5b9930210e2edc6a905b9c75d615872a1a7e',
+    name: 'Super Giveth Token',
+    symbol: 'GIVx',
+  },
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+      name: 'Dai Stablecoin',
+      symbol: 'DAI',
+    },
+    decimals: 18,
+    id: '0x7d342726b69c28d942ad8bfe6ac81b972349d524',
+    name: 'Super Dai Stablecoin',
+    symbol: 'DAIx',
+  },
+  {
+    underlyingToken: {
+      decimals: 6,
+      id: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
+      name: 'USD Coin',
+      symbol: 'USDC',
+    },
+    decimals: 18,
+    id: '0x8430f084b939208e2eded1584889c9a66b90562f',
+    name: 'Super USD Coin',
+    symbol: 'USDCx',
+  },
+];
 
 export const NETWORKS_IDS_TO_NAME = {
   1: 'MAIN_NET',
@@ -68,6 +161,11 @@ const NETWORK_NAMES = {
   MORDOR_ETC_TESTNET: 'Ethereum Classic Testnet',
   ARBITRUM_MAINNET: 'Arbitrum Mainnet',
   ARBITRUM_SEPOLIA: 'Arbitrum Sepolia',
+  BASE_MAINNET: 'Base Mainnet',
+  BASE_SEPOLIA: 'Base Sepolia',
+
+  ZKEVM_CARDONA: 'ZKEVM Cardona',
+  ZKEVM_MAINNET: 'ZKEVM Mainnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -85,6 +183,10 @@ const NETWORK_NATIVE_TOKENS = {
   MORDOR_ETC_TESTNET: 'mETC',
   ARBITRUM_MAINNET: 'ETH',
   ARBITRUM_SEPOLIA: 'ETH',
+  BASE_MAINNET: 'ETH',
+  BASE_SEPOLIA: 'ETH',
+  ZKEVM_MAINNET: 'ETH',
+  ZKEVM_CARDONA: 'ETH',
 };
 
 const networkNativeTokensList = [
@@ -158,13 +260,51 @@ const networkNativeTokensList = [
     networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
     nativeToken: NETWORK_NATIVE_TOKENS.ARBITRUM_SEPOLIA,
   },
+  {
+    networkName: NETWORK_NAMES.BASE_MAINNET,
+    networkId: NETWORK_IDS.BASE_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.BASE_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.BASE_SEPOLIA,
+    networkId: NETWORK_IDS.BASE_SEPOLIA,
+    nativeToken: NETWORK_NATIVE_TOKENS.BASE_SEPOLIA,
+  },
+  {
+    networkName: NETWORK_NAMES.ZKEVM_MAINNET,
+    networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.ZKEVM_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.ZKEVM_CARDONA,
+    networkId: NETWORK_IDS.ZKEVM_CARDONA,
+    nativeToken: NETWORK_NATIVE_TOKENS.ZKEVM_CARDONA,
+  },
 ];
+
+export function getNetworkNameById(networkId: number): string {
+  const networkInfo = networkNativeTokensList.find(
+    item => item.networkId === networkId,
+  );
+  if (!networkInfo) {
+    logger.error(
+      'getNetworkNameById() error networkNativeTokensList doesnt have info for networkId',
+      networkId,
+    );
+    throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
+  }
+  return networkInfo.networkName;
+}
 
 export function getNetworkNativeToken(networkId: number): string {
   const networkInfo = networkNativeTokensList.find(item => {
     return item.networkId === networkId;
   });
   if (!networkInfo) {
+    logger.error(
+      'getNetworkNativeToken() error networkNativeTokensList doesnt have info for networkId',
+      networkId,
+    );
     throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
   return networkInfo.nativeToken;
@@ -223,16 +363,25 @@ export function getProvider(networkId: number) {
         `https://arbitrum-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
-    case NETWORK_IDS.ARBITRUM_MAINNET:
+    case NETWORK_IDS.BASE_MAINNET:
       url =
-        (process.env.ARBITRUM_MAINNET_NODE_HTTP_URL as string) ||
-        `https://arbitrum-mainnet.infura.io/v3/${INFURA_ID}`;
+        (process.env.BASE_MAINNET_NODE_HTTP_URL as string) ||
+        `https://base-mainnet.infura.io/v3/${INFURA_ID}`;
       break;
 
-    case NETWORK_IDS.ARBITRUM_SEPOLIA:
+    case NETWORK_IDS.BASE_SEPOLIA:
       url =
-        (process.env.ARBITRUM_SEPOLIA_NODE_HTTP_URL as string) ||
-        `https://arbitrum-sepolia.infura.io/v3/${INFURA_ID}`;
+        (process.env.BASE_SEPOLIA_NODE_HTTP_URL as string) ||
+        `https://base-sepolia.infura.io/v3/${INFURA_ID}`;
+      break;
+
+    // Infura doesn support Polygon ZKEVM
+    case NETWORK_IDS.ZKEVM_MAINNET:
+      url = process.env.ZKEVM_MAINNET_NODE_HTTP_URL as string;
+      break;
+
+    case NETWORK_IDS.ZKEVM_CARDONA:
+      url = process.env.ZKEVM_CARDONA_NODE_HTTP_URL as string;
       break;
 
     default: {
@@ -298,7 +447,7 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       break;
     case NETWORK_IDS.OPTIMISM_SEPOLIA:
       apiUrl = config.get('OPTIMISTIC_SEPOLIA_SCAN_API_URL');
-      apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
+      apiKey = config.get('OPTIMISTIC_SEPOLIA_SCAN_API_KEY');
       break;
     case NETWORK_IDS.ETC:
       // ETC network doesn't need API key
@@ -314,7 +463,27 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('ARBITRUM_SEPOLIA_SCAN_API_URL');
       apiKey = config.get('ARBITRUM_SEPOLIA_SCAN_API_KEY');
       break;
+    case NETWORK_IDS.BASE_MAINNET:
+      apiUrl = config.get('BASE_SCAN_API_URL');
+      apiKey = config.get('BASE_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.BASE_SEPOLIA:
+      apiUrl = config.get('BASE_SEPOLIA_SCAN_API_URL');
+      apiKey = config.get('BASE_SEPOLIA_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.ZKEVM_MAINNET:
+      apiUrl = config.get('ZKEVM_MAINNET_SCAN_API_URL');
+      apiKey = config.get('ZKEVM_MAINET_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.ZKEVM_CARDONA:
+      apiUrl = config.get('ZKEVM_CARDONA_SCAN_API_URL');
+      apiKey = config.get('ZKEVM_CARDONA_SCAN_API_KEY');
+      break;
     default:
+      logger.error(
+        'getBlockExplorerApiUrl() no url found for networkId',
+        networkId,
+      );
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
 

@@ -6,7 +6,7 @@ import {
   Column,
   ManyToOne,
 } from 'typeorm';
-import { Field, Float, Int, ObjectType } from 'type-graphql';
+import { Field, Float, ObjectType } from 'type-graphql';
 import { ColumnNumericTransformer } from '../utils/entities';
 import { User } from '../entities/user';
 
@@ -22,8 +22,8 @@ export class ProjectUserInstantPowerView extends BaseEntity {
   @Field()
   projectId: number;
 
-  @Field(type => User)
-  @ManyToOne(type => User, { eager: true })
+  @Field(_type => User)
+  @ManyToOne(_type => User, { eager: true })
   user?: User;
 
   @ViewColumn()
@@ -31,7 +31,7 @@ export class ProjectUserInstantPowerView extends BaseEntity {
   userId: number;
 
   @ViewColumn()
-  @Field(type => Float)
+  @Field(_type => Float)
   @Column('numeric', {
     scale: 2,
     transformer: new ColumnNumericTransformer(),

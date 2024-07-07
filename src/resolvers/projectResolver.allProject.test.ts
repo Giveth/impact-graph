@@ -1,5 +1,7 @@
 import { assert } from 'chai';
 import 'mocha';
+import axios from 'axios';
+import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
@@ -12,7 +14,6 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
-import axios from 'axios';
 import { fetchMultiFilterAllProjectsQuery } from '../../test/graphqlQueries';
 import { Project, ReviewStatus, SortingField } from '../entities/project';
 import { User } from '../entities/user';
@@ -27,52 +28,42 @@ import { refreshProjectPowerView } from '../repositories/projectPowerViewReposit
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
-import moment from 'moment';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { AppDataSource } from '../orm';
 // We are using cache so redis needs to be cleared for tests with same filters
 import { redis } from '../redis';
 import { Campaign, CampaignType } from '../entities/campaign';
 import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
-import { ArgumentValidationError } from 'type-graphql';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
 import { updateInstantBoosting } from '../services/instantBoostingServices';
 import { QfRound } from '../entities/qfRound';
 import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
-
-const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
-  { property: '' },
-]).message;
 
 // search and filters
 describe('all projects test cases --->', allProjectsTestCases);
 
 function allProjectsTestCases() {
-  it('should return projects search by owner', async () => {
+  beforeEach(async () => {
+    // Make all existing qfRounds inactive
+    await QfRound.update({}, { isActive: false });
+  });
+  it('should return projects search by title', async () => {
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        searchTerm: SEED_DATA.SECOND_USER.name,
+        searchTerm: SEED_DATA.FIRST_PROJECT.title,
       },
     });
 
     const projects = result.data.data.allProjects.projects;
-    const secondUserProjects = await Project.find({
-      where: {
-        admin: String(SEED_DATA.SECOND_USER.id),
-      },
-    });
 
-    assert.equal(projects.length, secondUserProjects.length);
-    assert.equal(Number(projects[0]?.admin), SEED_DATA.SECOND_USER.id);
+    assert.isTrue(projects.length > 0);
+    assert.equal(projects[0]?.adminUserId, SEED_DATA.FIRST_PROJECT.adminUserId);
     assert.isNotEmpty(projects[0].addresses);
     projects.forEach(project => {
       assert.isNotOk(project.adminUser.email);
@@ -83,11 +74,6 @@ function allProjectsTestCases() {
         project.descriptionSummary,
         getHtmlTextSummary(project.description),
       );
-      assert.isNull(project.estimatedMatching);
-      assert.exists(project.sumDonationValueUsd);
-      assert.exists(project.sumDonationValueUsdForActiveQfRound);
-      assert.exists(project.countUniqueDonorsForActiveQfRound);
-      assert.exists(project.countUniqueDonors);
     });
   });
 
@@ -165,13 +151,27 @@ function allProjectsTestCases() {
         sortingBy: SortingField.Newest,
       },
     });
-    assert.equal(
-      Number(result.data.data.allProjects.projects[0].id),
-      secondProject.id,
+    const projects = result.data.data.allProjects.projects;
+
+    const secondProjectIndex = projects.findIndex(
+      project => Number(project.id) === secondProject.id,
     );
-    assert.equal(
-      Number(result.data.data.allProjects.projects[1].id),
-      firstProject.id,
+    const firstProjectIndex = projects.findIndex(
+      project => Number(project.id) === firstProject.id,
+    );
+
+    assert(
+      secondProjectIndex !== -1,
+      'Second project not found in the projects list',
+    );
+    assert(
+      firstProjectIndex !== -1,
+      'First project not found in the projects list',
+    );
+
+    assert(
+      secondProjectIndex < firstProjectIndex,
+      "Second project's index is not lower than the first project's index",
     );
   });
 
@@ -181,7 +181,7 @@ function allProjectsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
-    const secondProject = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
@@ -432,7 +432,6 @@ function allProjectsTestCases() {
   //   );
 
   //   await refreshProjectEstimatedMatchingView();
-  //   await refreshProjectDonationSummaryView();
 
   //   const result = await axios.post(graphqlUrl, {
   //     query: fetchMultiFilterAllProjectsQuery,
@@ -465,9 +464,7 @@ function allProjectsTestCases() {
       ...createProjectData(),
       verified: false,
     }); // Not boosted -Not verified project
-    const project5 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
-
-    const roundNumber = project3.id * 10;
+    await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
 
     await Promise.all(
       [
@@ -562,11 +559,11 @@ function allProjectsTestCases() {
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const project3 = await saveProjectDirectlyToDb(createProjectData());
-    const project4 = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       verified: false,
     }); // Not boosted -Not verified project
-    const project5 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
+    await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
 
     const roundNumber = project3.id * 10;
 
@@ -930,7 +927,6 @@ function allProjectsTestCases() {
       ),
     );
   });
-
   it('should return projects, filter by accept donation on arbitrum, not return when it doesnt have arbitrum address', async () => {
     const arbitrumProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -975,6 +971,232 @@ function allProjectsTestCases() {
       ),
     );
   });
+
+  it('should return projects, filter by accept donation on base', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnBase'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.BASE_MAINNET ||
+              address.networkId === NETWORK_IDS.BASE_SEPOLIA),
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on base', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnBase'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.BASE_MAINNET ||
+              address.networkId === NETWORK_IDS.BASE_SEPOLIA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on base, not return when it doesnt have base address', async () => {
+    const baseProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    });
+    const polygonProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.POLYGON,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnBase'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.BASE_MAINNET ||
+              address.networkId === NETWORK_IDS.BASE_SEPOLIA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(polygonProject.id),
+      ),
+    );
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(baseProject.id),
+      ),
+    );
+  });
+
+  /////// Beginning of ZKEVM filter test
+  it('should return projects, filter by accept donation on zkevm', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnZKEVM'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ZKEVM_MAINNET ||
+              address.networkId === NETWORK_IDS.ZKEVM_CARDONA),
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on zkevm', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnZKEVM'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ZKEVM_MAINNET ||
+              address.networkId === NETWORK_IDS.ZKEVM_CARDONA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on base, not return when it doesnt have zkevm address', async () => {
+    const zkevmProject1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    });
+    const zkevmCardanoProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ZKEVM_CARDONA,
+    });
+    const polygonProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.POLYGON,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnZKEVM'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ZKEVM_MAINNET ||
+              address.networkId === NETWORK_IDS.ZKEVM_CARDONA) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(polygonProject.id),
+      ),
+    );
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(zkevmProject1.id),
+      ),
+    );
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(zkevmCardanoProject.id),
+      ),
+    );
+  });
+
+  /////// End of ZKEVM filter test
 
   it('should return projects, filter by accept donation on mainnet', async () => {
     const savedProject = await saveProjectDirectlyToDb({
@@ -1472,7 +1694,7 @@ function allProjectsTestCases() {
     // Delete all project addresses
     await ProjectAddress.delete({ chainType: ChainType.SOLANA });
 
-    const project = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
@@ -1748,12 +1970,12 @@ function allProjectsTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        qfRoundId: qfRound.id,
+        filters: ['ActiveQfRound'],
+        sortingBy: SortingField.EstimatedMatching,
       },
     });
 

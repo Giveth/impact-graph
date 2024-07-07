@@ -1,9 +1,9 @@
 // workers/auth.js
 import { expose } from 'threads/worker';
+import { WorkerModule } from 'threads/dist/types/worker';
 import { FilterField, Project, SortingField } from '../entities/project';
 import { generateProjectFiltersCacheKey } from '../utils/utils';
 import { Reaction } from '../entities/reaction';
-import { WorkerModule } from 'threads/dist/types/worker';
 
 type ProjectsResolverWorkerFunctions =
   | 'hashProjectFilters'

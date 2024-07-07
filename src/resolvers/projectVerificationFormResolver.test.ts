@@ -29,7 +29,7 @@ import {
   ProjectRegistry,
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
-import { Project, ProjStatus, ReviewStatus } from '../entities/project';
+import { ProjStatus, ReviewStatus } from '../entities/project';
 import {
   createProjectVerificationForm,
   findProjectVerificationFormById,
@@ -72,7 +72,7 @@ function createProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -113,7 +113,7 @@ function createProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user1.id),
+      adminUserId: user1.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -144,7 +144,7 @@ function createProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: true,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -168,7 +168,6 @@ function createProjectVerificationFormMutationTestCases() {
   });
   it('should not create project verification because project not found', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projectId = Number(await Project.count()) + 3;
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
       graphqlUrl,
@@ -191,7 +190,7 @@ function createProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -209,7 +208,7 @@ function createProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -324,6 +323,26 @@ function updateProjectVerificationFormMutationTestCases() {
       },
       {
         address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.BASE_MAINNET,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.BASE_SEPOLIA,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.ZKEVM_MAINNET,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.ZKEVM_CARDONA,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
         networkId: NETWORK_IDS.ETC,
         title: 'test title',
       },
@@ -353,7 +372,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -410,7 +429,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -463,7 +482,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -520,7 +539,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -576,7 +595,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -636,7 +655,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -716,7 +735,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -785,7 +804,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -840,7 +859,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -894,7 +913,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -949,7 +968,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1003,7 +1022,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1055,7 +1074,7 @@ function getCurrentProjectVerificationFormTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: true,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1091,7 +1110,7 @@ function getCurrentProjectVerificationFormTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1147,7 +1166,7 @@ function getCurrentProjectVerificationFormTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1203,7 +1222,7 @@ function getCurrentProjectVerificationFormTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1259,7 +1278,7 @@ function getCurrentProjectVerificationFormTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1299,7 +1318,7 @@ function getCurrentProjectVerificationFormTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: true,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1324,7 +1343,7 @@ function getCurrentProjectVerificationFormTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user1.id),
+      adminUserId: user1.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1360,7 +1379,7 @@ function getCurrentProjectVerificationFormTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1432,7 +1451,7 @@ function projectVerificationSendEmailConfirmationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1489,7 +1508,7 @@ function projectVerificationSendEmailConfirmationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1538,7 +1557,7 @@ function projectVerificationConfirmEmailTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
@@ -1605,7 +1624,7 @@ function projectVerificationConfirmEmailTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.active,
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,

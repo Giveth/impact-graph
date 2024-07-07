@@ -18,7 +18,6 @@ const addSubCategory = async (
                     ;`);
 };
 
-// tslint:disable-next-line:class-name
 export class seedNewCategories1665917110542 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await Promise.all([

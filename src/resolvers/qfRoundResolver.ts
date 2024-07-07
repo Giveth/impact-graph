@@ -1,15 +1,30 @@
-import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
-import { Repository } from 'typeorm';
-
+import {
+  Arg,
+  Args,
+  ArgsType,
+  Field,
+  InputType,
+  Int,
+  ObjectType,
+  Query,
+  Resolver,
+} from 'type-graphql';
+import { Service } from 'typedi';
+import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import {
   findActiveQfRound,
-  findAllQfRounds,
+  findQfRounds,
+  findArchivedQfRounds,
   findQfRoundBySlug,
   getProjectDonationsSqrtRootSum,
-  getQfRoundTotalProjectsDonationsSum,
+  QFArchivedRounds,
+  QfArchivedRoundsSortType,
+  getQfRoundStats,
+  getQfRoundTotalSqrtRootSumSquared,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
+import { OrderDirection } from './projectResolver';
 
 @ObjectType()
 export class QfRoundStatsResponse {
@@ -21,6 +36,9 @@ export class QfRoundStatsResponse {
 
   @Field()
   matchingPool: number;
+
+  @Field()
+  qfRound: QfRound;
 }
 
 @ObjectType()
@@ -35,15 +53,70 @@ export class ExpectedMatchingResponse {
   matchingPool: number;
 }
 
-@Resolver(of => User)
+@InputType()
+export class QfArchivedRoundsOrderBy {
+  @Field(_type => QfArchivedRoundsSortType)
+  field: QfArchivedRoundsSortType;
+
+  @Field(_type => OrderDirection)
+  direction: OrderDirection;
+}
+
+@Service()
+@ArgsType()
+class QfArchivedRoundsArgs {
+  @Field(_type => Int, { defaultValue: 0 })
+  @Min(0)
+  skip: number;
+
+  @Field(_type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  limit: number;
+
+  @Field(_type => QfArchivedRoundsOrderBy, {
+    defaultValue: {
+      field: QfArchivedRoundsSortType.beginDate,
+      direction: OrderDirection.DESC,
+    },
+  })
+  orderBy: QfArchivedRoundsOrderBy;
+}
+
+@Service()
+@ArgsType()
+export class QfRoundsArgs {
+  @Field(_type => String, { nullable: true })
+  slug?: string;
+
+  @Field(_type => Boolean, { nullable: true })
+  activeOnly?: boolean;
+}
+
+@Resolver(_of => User)
 export class QfRoundResolver {
-  @Query(returns => [QfRound], { nullable: true })
-  async qfRounds() {
-    return findAllQfRounds();
+  @Query(_returns => [QfRound], { nullable: true })
+  async qfRounds(
+    @Args()
+    { slug, activeOnly }: QfRoundsArgs,
+  ) {
+    if (activeOnly) {
+      const activeQfRound = await findActiveQfRound();
+      return activeQfRound ? [activeQfRound] : [];
+    }
+    return findQfRounds({ slug });
+  }
+
+  @Query(_returns => [QFArchivedRounds], { nullable: true })
+  async qfArchivedRounds(
+    @Args()
+    { limit, skip, orderBy }: QfArchivedRoundsArgs,
+  ): Promise<QFArchivedRounds[] | null> {
+    return findArchivedQfRounds(limit, skip, orderBy);
   }
 
   // This will be the formula data separated by parts so frontend
-  // can calculate the estimated matchin added per new donation
+  // can calculate the estimated matching added per new donation
   @Query(() => ExpectedMatchingResponse, { nullable: true })
   async expectedMatching(
     @Arg('projectId') projectId: number,
@@ -58,18 +131,19 @@ export class QfRoundResolver {
       activeQfRound.id,
     );
 
-    const allProjectsSum = await getQfRoundTotalProjectsDonationsSum(
+    const allProjectsSum = await getQfRoundTotalSqrtRootSumSquared(
       activeQfRound.id,
     );
 
     const matchingPool = activeQfRound.allocatedFund;
 
     return {
-      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
-      allProjectsSum: allProjectsSum.sum,
+      projectDonationsSqrtRootSum,
+      allProjectsSum,
       matchingPool,
     };
   }
+
   @Query(() => QfRoundStatsResponse, { nullable: true })
   async qfRoundStats(
     @Arg('slug') slug: string,
@@ -78,12 +152,12 @@ export class QfRoundResolver {
     if (!qfRound) {
       return null;
     }
-    const { totalDonationsSum, contributorsCount } =
-      await getQfRoundTotalProjectsDonationsSum(qfRound.id);
+    const { uniqueDonors, totalDonationUsd } = await getQfRoundStats(qfRound);
     return {
-      uniqueDonors: contributorsCount,
-      allDonationsUsdValue: totalDonationsSum,
+      uniqueDonors,
+      allDonationsUsdValue: totalDonationUsd,
       matchingPool: qfRound.allocatedFund,
+      qfRound,
     };
   }
 }

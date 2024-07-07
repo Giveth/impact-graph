@@ -1,24 +1,20 @@
 import { Field, ObjectType } from 'type-graphql';
 import {
-  Entity,
   Column,
-  Index,
   PrimaryColumn,
   BaseEntity,
   ViewEntity,
   ManyToOne,
-  RelationId,
   ViewColumn,
   JoinColumn,
 } from 'typeorm';
 import { Project } from './project';
-import { string } from 'joi';
 
 @ViewEntity('project_actual_matching_view', { synchronize: false })
 @ObjectType()
 export class ProjectActualMatchingView extends BaseEntity {
-  @Field(type => Project)
-  @ManyToOne(type => Project, project => project.projectEstimatedMatchingView)
+  @Field(_type => Project)
+  @ManyToOne(_type => Project, project => project.projectEstimatedMatchingView)
   @JoinColumn({ referencedColumnName: 'id' })
   project: Project;
 
@@ -32,6 +28,10 @@ export class ProjectActualMatchingView extends BaseEntity {
   @Field()
   @PrimaryColumn()
   qfRoundId: number;
+
+  @ViewColumn()
+  @Column({ nullable: true })
+  email?: string;
 
   // Sum of the square root of the value in USD of the donations
   @ViewColumn()

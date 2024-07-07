@@ -59,7 +59,7 @@ export class ProjectRegistry {
   organizationDescription?: string;
   @Field({ nullable: true })
   organizationName?: string;
-  @Field(type => [String], { nullable: true })
+  @Field(_type => [String], { nullable: true })
   attachments?: string[];
 }
 
@@ -73,19 +73,19 @@ export class ProjectContacts {
 
 @ObjectType()
 export class Milestones {
-  @Field(type => String, { nullable: true })
-  foundationDate?: String;
+  @Field(_type => String, { nullable: true })
+  foundationDate?: string;
   @Field({ nullable: true })
   mission?: string;
   @Field({ nullable: true })
   achievedMilestones?: string;
-  @Field(type => [String], { nullable: true })
+  @Field(_type => [String], { nullable: true })
   achievedMilestonesProofs?: string[];
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   problem?: string;
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   plans?: string;
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   impact?: string;
 }
 
@@ -97,7 +97,7 @@ export class FormRelatedAddress {
   address: string;
   @Field({ nullable: true })
   networkId: number;
-  @Field(type => ChainType, { defaultValue: ChainType.EVM, nullable: true })
+  @Field(_type => ChainType, { defaultValue: ChainType.EVM, nullable: true })
   chainType?: ChainType;
 }
 
@@ -133,13 +133,13 @@ export class ProjectVerificationForm extends BaseEntity {
    * @see {@link https://github.com/Giveth/giveth-dapps-v2/issues/711#issuecomment-1130001342}
    */
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
   @Index()
-  @Field(type => Project)
-  @OneToOne(type => Project)
+  @Field(_type => Project)
+  @OneToOne(_type => Project)
   @JoinColumn()
   project: Project;
 
@@ -151,8 +151,8 @@ export class ProjectVerificationForm extends BaseEntity {
   projectId: number;
 
   @Index()
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { eager: true })
+  @Field(_type => User, { nullable: true })
+  @ManyToOne(_type => User, { eager: true })
   reviewer?: User;
 
   @RelationId(
@@ -163,8 +163,8 @@ export class ProjectVerificationForm extends BaseEntity {
   reviewerId: number;
 
   @Index()
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { eager: true, nullable: true })
+  @Field(_type => User, { nullable: true })
+  @ManyToOne(_type => User, { eager: true, nullable: true })
   user: User;
 
   @RelationId(
@@ -174,14 +174,14 @@ export class ProjectVerificationForm extends BaseEntity {
   @Column({ nullable: true })
   userId: number;
 
-  @Field(type => [SocialProfile], { nullable: true })
+  @Field(_type => [SocialProfile], { nullable: true })
   @OneToMany(
-    type => SocialProfile,
+    _type => SocialProfile,
     socialProfile => socialProfile.projectVerificationForm,
   )
   socialProfiles?: SocialProfile[];
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({
     type: 'enum',
     enum: PROJECT_VERIFICATION_STATUSES,
@@ -200,59 +200,59 @@ export class ProjectVerificationForm extends BaseEntity {
   verifiedAt: Date;
 
   // https://github.com/typeorm/typeorm/issues/4674#issuecomment-618073862
-  @Field(type => PersonalInfo, { nullable: true })
+  @Field(_type => PersonalInfo, { nullable: true })
   @Column('jsonb', { nullable: true })
   personalInfo: PersonalInfo;
 
-  @Field(type => ProjectRegistry, { nullable: true })
+  @Field(_type => ProjectRegistry, { nullable: true })
   @Column('jsonb', { nullable: true })
   projectRegistry: ProjectRegistry;
 
-  @Field(type => [ProjectContacts], { nullable: true })
+  @Field(_type => [ProjectContacts], { nullable: true })
   @Column('jsonb', { nullable: true })
   projectContacts: ProjectContacts[];
 
-  @Field(type => Milestones, { nullable: true })
+  @Field(_type => Milestones, { nullable: true })
   @Column('jsonb', { nullable: true })
   milestones: Milestones;
 
-  @Field(type => ManagingFunds, { nullable: true })
+  @Field(_type => ManagingFunds, { nullable: true })
   @Column('jsonb', { nullable: true })
   managingFunds: ManagingFunds;
 
-  @Field(type => CommentsSection, { nullable: true })
+  @Field(_type => CommentsSection, { nullable: true })
   @Column('jsonb', { nullable: true })
   commentsSection: CommentsSection;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column('text', { nullable: true })
   lastStep: string | null;
 
-  @Field(type => Boolean, { nullable: false })
+  @Field(_type => Boolean, { nullable: false })
   @Column({ default: false })
   emailConfirmed: boolean;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column('text', { nullable: true })
   email?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column('text', { nullable: true })
   emailConfirmationToken: string | null;
 
-  @Field(type => Date, { nullable: true })
+  @Field(_type => Date, { nullable: true })
   @Column('timestamptz', { nullable: true })
   emailConfirmationTokenExpiredAt: Date | null;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column({ default: false })
   emailConfirmationSent: boolean;
 
-  @Field(type => Date, { nullable: true })
+  @Field(_type => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true })
   emailConfirmationSentAt: Date | null;
 
-  @Field(type => Date, { nullable: true })
+  @Field(_type => Date, { nullable: true })
   @Column({ nullable: true })
   emailConfirmedAt: Date;
 

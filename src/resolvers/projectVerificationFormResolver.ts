@@ -1,4 +1,6 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import * as jwt from 'jsonwebtoken';
+import moment from 'moment';
 import { ApolloContext } from '../types/ApolloContext';
 import {
   errorMessages,
@@ -28,20 +30,15 @@ import {
 } from '../entities/projectVerificationForm';
 import { updateProjectVerificationFormByUser } from '../services/projectVerificationFormService';
 import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdateInput';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
-import * as jwt from 'jsonwebtoken';
 import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
-import { sendMailConfirmationEmail } from '../services/mailerService';
-import moment from 'moment';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
-const dappUrl = process.env.FRONTEND_URL as string;
-
-@Resolver(of => ProjectVerificationForm)
+@Resolver(_of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
   // https://github.com/Giveth/impact-graph/pull/519#issuecomment-1136845612
-  @Mutation(returns => ProjectVerificationForm)
+  @Mutation(_returns => ProjectVerificationForm)
   async projectVerificationConfirmEmail(
     @Arg('emailConfirmationToken') emailConfirmationToken: string,
   ): Promise<ProjectVerificationForm> {
@@ -114,7 +111,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Mutation(returns => ProjectVerificationForm)
+  @Mutation(_returns => ProjectVerificationForm)
   async projectVerificationSendEmailConfirmation(
     @Arg('projectVerificationFormId')
     projectVerificationFormId: number,
@@ -185,7 +182,11 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
 
-      await sendMailConfirmationEmail(email, project, token);
+      await getNotificationAdapter().sendEmailConfirmation({
+        email,
+        project,
+        token,
+      });
 
       return projectVerificationForm;
     } catch (e) {
@@ -194,7 +195,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Mutation(returns => ProjectVerificationForm)
+  @Mutation(_returns => ProjectVerificationForm)
   async createProjectVerificationForm(
     @Arg('slug') slug: string,
     @Ctx() { req: { user } }: ApolloContext,
@@ -216,7 +217,7 @@ export class ProjectVerificationFormResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
       }
-      if (Number(project.admin) !== userId) {
+      if (project.adminUserId !== userId) {
         throw new Error(
           i18n.__(
             translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
@@ -247,7 +248,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Mutation(returns => ProjectVerificationForm)
+  @Mutation(_returns => ProjectVerificationForm)
   async updateProjectVerificationForm(
     @Arg('projectVerificationUpdateInput')
     projectVerificationUpdateInput: ProjectVerificationUpdateInput,
@@ -296,7 +297,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Query(returns => ProjectVerificationForm)
+  @Query(_returns => ProjectVerificationForm)
   async getCurrentProjectVerificationForm(
     @Arg('slug') slug: string,
     @Ctx() { req: { user } }: ApolloContext,
@@ -318,7 +319,7 @@ export class ProjectVerificationFormResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
       }
-      if (Number(project.admin) !== userId) {
+      if (project.adminUserId !== userId) {
         throw new Error(
           i18n.__(
             translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
@@ -341,7 +342,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Query(returns => [Country])
+  @Query(_returns => [Country])
   getAllowedCountries(): Country[] {
     return countriesList;
   }

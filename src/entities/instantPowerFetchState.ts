@@ -6,7 +6,7 @@ import { ColumnBigIntTransformer } from '../utils/entities';
 @ObjectType()
 @Check('"id"')
 export class InstantPowerFetchState extends BaseEntity {
-  @Field(type => Boolean)
+  @Field(_type => Boolean)
   @PrimaryColumn()
   id: boolean;
 

@@ -14,11 +14,11 @@ import { ColumnDateTransformer } from '../utils/entities';
 @Entity()
 @ObjectType()
 export class PowerSnapshot extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(type => Date)
+  @Field(_type => Date)
   @Column({
     type: 'timestamp without time zone',
     transformer: new ColumnDateTransformer(),
@@ -26,7 +26,7 @@ export class PowerSnapshot extends BaseEntity {
   @Index({ unique: true })
   time: Date;
 
-  @Field(type => Int)
+  @Field(_type => Int)
   @Column('integer', { nullable: true })
   @Index({ unique: true })
   blockNumber?: number;
@@ -35,21 +35,21 @@ export class PowerSnapshot extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   roundNumber: number;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column({ nullable: true })
   @Index()
   synced?: boolean;
 
-  @Field(type => [PowerBoostingSnapshot], { nullable: true })
+  @Field(_type => [PowerBoostingSnapshot], { nullable: true })
   @OneToMany(
-    type => PowerBoostingSnapshot,
+    _type => PowerBoostingSnapshot,
     powerBoostingSnapshot => powerBoostingSnapshot.powerSnapshot,
   )
   powerBoostingSnapshots?: PowerBoostingSnapshot[];
 
-  @Field(type => [PowerBalanceSnapshot], { nullable: true })
+  @Field(_type => [PowerBalanceSnapshot], { nullable: true })
   @OneToMany(
-    type => PowerBalanceSnapshot,
+    _type => PowerBalanceSnapshot,
     powerBalanceSnapshot => powerBalanceSnapshot.powerSnapshot,
   )
   powerBalanceSnapshots?: PowerBalanceSnapshot[];

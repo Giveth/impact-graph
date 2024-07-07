@@ -5,25 +5,32 @@ import {
   Entity,
   BaseEntity,
   ManyToMany,
-  ManyToOne,
-  RelationId,
   UpdateDateColumn,
   CreateDateColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
 import { Project } from './project';
-import { MainCategory } from './mainCategory';
+import { Donation } from './donation';
 
 @Entity()
 @ObjectType()
 export class QfRound extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
   @Field({ nullable: true })
   @Column('text', { nullable: true })
   name: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  title: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  description: string;
 
   @Field()
   @Index({ unique: true })
@@ -34,33 +41,61 @@ export class QfRound extends BaseEntity {
   @Column({ nullable: true })
   isActive: boolean;
 
-  @Field(type => Number)
+  @Field(_type => Number)
   @Column()
   allocatedFund: number;
 
-  @Field(type => Number)
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  allocatedFundUSD: number;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ nullable: true })
+  allocatedFundUSDPreferred: boolean;
+
+  @Field(_type => String, { nullable: true })
+  @Column({ nullable: true })
+  allocatedTokenSymbol: string;
+
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  allocatedTokenChainId: number;
+
+  @Field(_type => Number)
   @Column('real', { default: 0.2 })
   maximumReward: number;
 
-  @Field(type => Number)
+  @Field(_type => Number)
   @Column()
   minimumPassportScore: number;
 
-  @Field(type => Number)
+  @Field(_type => Number)
   @Column('real', { default: 1 })
   minimumValidUsdValue: number;
 
-  @Field(type => [Int], { nullable: true }) // Define the new field as an array of integers
+  @Field(_type => [Int], { nullable: true }) // Define the new field as an array of integers
   @Column('integer', { array: true, default: [] })
   eligibleNetworks: number[];
 
-  @Field(type => Date)
+  @Field(_type => Date)
   @Column()
   beginDate: Date;
 
-  @Field(type => Date)
+  @Field(_type => Date)
   @Column()
   endDate: Date;
+
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  bannerBgImage: string;
+
+  @Field(_type => [String])
+  @Column('text', { array: true, default: [] })
+  sponsorsImgs: string[];
+
+  @Field(_type => Boolean)
+  @Column({ default: false })
+  isDataAnalysisDone: boolean;
 
   @UpdateDateColumn()
   updatedAt: Date;
@@ -68,11 +103,14 @@ export class QfRound extends BaseEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToMany(type => Project, project => project.qfRounds)
+  @ManyToMany(_type => Project, project => project.qfRounds)
   projects: Project[];
 
+  @OneToMany(_type => Donation, donation => donation.qfRound)
+  donations: Donation[];
+
   // only projects with status active can be listed automatically
-  isEligibleNetwork(donationNetworkId: number): Boolean {
+  isEligibleNetwork(donationNetworkId: number): boolean {
     // when not specified, all are valid
     if (this.eligibleNetworks.length === 0) return true;
 

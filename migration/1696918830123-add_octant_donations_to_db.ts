@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import moment from 'moment';
 import config from '../src/config';
 import { AppDataSource } from '../src/orm';
-import moment from 'moment';
 import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
 import { calculateGivbackFactor } from '../src/services/givbackService';
@@ -9,9 +9,9 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../src/services/userService';
-import { updateTotalDonationsOfProject } from '../src/services/donationService';
 import { Donation } from '../src/entities/donation';
 import { NETWORK_IDS } from '../src/provider';
+import { updateProjectStatistics } from '../src/services/projectService';
 
 const octantDonationTxHash =
   '0xe70a8ee39511d3c186ea53c4bdd9fcd34f658d68ca7e1bbbc2b231630ac7fa3b';
@@ -82,7 +82,7 @@ export class addOctantDonationsToDb1696918830123 implements MigrationInterface {
     const environment = config.get('ENVIRONMENT') as string;
 
     if (environment !== 'production') {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('We want to create these donations in production DB');
       return;
     }
@@ -108,7 +108,7 @@ export class addOctantDonationsToDb1696918830123 implements MigrationInterface {
                 `);
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
-      await updateTotalDonationsOfProject(tx.projectId as number);
+      await updateProjectStatistics(tx.projectId as number);
     }
   }
 

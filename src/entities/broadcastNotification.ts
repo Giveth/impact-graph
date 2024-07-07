@@ -1,10 +1,9 @@
-import { ObjectType, Field, ID } from 'type-graphql';
+import { Field } from 'type-graphql';
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   RelationId,
@@ -31,8 +30,8 @@ export default class BroadcastNotification extends BaseEntity {
   @Column()
   title: string;
 
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { eager: true, nullable: true })
+  @Field(_type => User, { nullable: true })
+  @ManyToOne(_type => User, { eager: true, nullable: true })
   adminUser: User;
   @RelationId(
     (broadcastNotification: BroadcastNotification) =>

@@ -7,6 +7,7 @@ export class FillProjectDescriptionSummaryProjectUpdateContentSummary16764727605
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     let skip = 0;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const [projects, count] = await queryRunner.manager.findAndCount<Project>(
         Project,
@@ -33,6 +34,7 @@ export class FillProjectDescriptionSummaryProjectUpdateContentSummary16764727605
     }
 
     skip = 0;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const [projectUpdates, count] =
         await queryRunner.manager.findAndCount<ProjectUpdate>(ProjectUpdate, {
@@ -57,5 +59,5 @@ export class FillProjectDescriptionSummaryProjectUpdateContentSummary16764727605
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

@@ -8,26 +8,49 @@ import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import { logger } from '../../utils/logger';
+import { RecurringDonation } from '../../entities/recurringDonation';
 
 export class MockNotificationAdapter implements NotificationAdapterInterface {
+  async subscribeOnboarding(params: { email: string }): Promise<void> {
+    logger.debug('MockNotificationAdapter subscribeOnboarding', params);
+    return Promise.resolve(undefined);
+  }
+
+  async createOrttoProfile(params: User): Promise<void> {
+    logger.debug('MockNotificationAdapter createOrttoProfile', params);
+    return Promise.resolve(undefined);
+  }
+
   async updateOrttoPeople(params: OrttoPerson[]): Promise<void> {
     logger.debug('MockNotificationAdapter updateOrttoPeople', params);
     return Promise.resolve(undefined);
   }
 
-  userSuperTokensCritical(params: {
-    userId: number;
+  async sendEmailConfirmation(params: {
     email: string;
-    criticalDate: string;
-    tokensymbol: string;
-  }): Promise<void> {
+    project: Project;
+    token: string;
+  }) {
+    logger.debug('MockNotificationAdapter sendEmailConfirmation', params);
+    return Promise.resolve(undefined);
+  }
+
+  userSuperTokensCritical(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
   donationReceived(params: {
-    donation: Donation;
+    donation: Donation | RecurringDonation;
     project: Project;
   }): Promise<void> {
+    if (params.donation instanceof RecurringDonation) {
+      logger.debug('MockNotificationAdapter donationReceived', {
+        projectSlug: params.project.slug,
+        donationTxHash: params.donation.txHash,
+        donationNetworkId: params.donation.networkId,
+      });
+      return Promise.resolve(undefined);
+    }
     logger.debug('MockNotificationAdapter donationReceived', {
       projectSlug: params.project.slug,
       donationTxHash: params.donation.transactionId,
@@ -211,7 +234,10 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  verificationFormRejected(params: { project: Project }): Promise<void> {
+  verificationFormRejected(params: {
+    project: Project;
+    reason?: string;
+  }): Promise<void> {
     logger.debug('MockNotificationAdapter verificationFormRejected', {
       projectSlug: params.project.slug,
     });

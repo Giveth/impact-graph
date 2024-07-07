@@ -63,7 +63,6 @@ const givingBlockTokenNames = [
   'Fetch',
 ];
 
-// tslint:disable-next-line:class-name
 export class relateGivingBlocksTokensToOrganization1649133587608
   implements MigrationInterface
 {
@@ -104,5 +103,5 @@ export class relateGivingBlocksTokensToOrganization1649133587608
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

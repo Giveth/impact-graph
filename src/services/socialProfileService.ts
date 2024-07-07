@@ -1,15 +1,9 @@
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 import {
   createSocialProfile,
-  findSocialProfileById,
   isSocialNetworkAddedToVerificationForm,
-  verifySocialProfileById,
 } from '../repositories/socialProfileRepository';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { SocialProfile } from '../entities/socialProfile';
 import { generateRandomString } from '../utils/utils';
 import { getRedisObject, setObjectInRedis } from '../redis';

@@ -1,3 +1,5 @@
+import { assert } from 'chai';
+import moment from 'moment';
 import {
   findProjectById,
   findProjectBySlug,
@@ -16,11 +18,9 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { assert } from 'chai';
 import { createProjectVerificationForm } from './projectVerificationRepository';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { NETWORK_IDS } from '../provider';
-import moment from 'moment';
 import { setPowerRound } from './powerRoundRepository';
 import { refreshProjectPowerView } from './projectPowerViewRepository';
 import {
@@ -248,7 +248,7 @@ function updateProjectWithVerificationFormTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       networkId: NETWORK_IDS.GOERLI,
     });
@@ -298,7 +298,7 @@ function verifyProjectTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     assert.isFalse(project?.verified);
@@ -314,7 +314,7 @@ function verifyProjectTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: true,
     });
     assert.isTrue(project?.verified);
@@ -333,12 +333,12 @@ function verifyMultipleProjectsTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     assert.isFalse(project?.verified);
@@ -357,12 +357,12 @@ function verifyMultipleProjectsTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: true,
     });
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: true,
     });
     assert.isTrue(project?.verified);
@@ -467,9 +467,8 @@ function updateDescriptionSummaryTestCases() {
   });
 
   it('should update description summary on update', async () => {
-    let project: Project | null = await saveProjectDirectlyToDb(
-      createProjectData(),
-    );
+    let project: Project | null =
+      await saveProjectDirectlyToDb(createProjectData());
 
     project.description = SHORT_DESCRIPTION;
     await project.save();

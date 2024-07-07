@@ -1,3 +1,5 @@
+import axios from 'axios';
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -5,9 +7,7 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import axios from 'axios';
 import { getUserProjectPowerQuery } from '../../test/graphqlQueries';
-import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';

@@ -1,19 +1,16 @@
-import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
+import { Field, Float, ID, Int, ObjectType } from 'type-graphql';
 import {
-  PrimaryGeneratedColumn,
-  Column,
-  Entity,
-  OneToMany,
-  ManyToMany,
   BaseEntity,
-  UpdateDateColumn,
+  Column,
   CreateDateColumn,
-  JoinTable,
+  Entity,
+  Index,
+  OneToMany,
   OneToOne,
-  JoinColumn,
-  RelationId,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { Project, ProjStatus, ReviewStatus } from './project';
+import { ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
@@ -22,6 +19,8 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { PowerBoosting } from './powerBoosting';
 import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
 import { ReferredEvent } from './referredEvent';
+import { RecurringDonation } from './recurringDonation';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 
 export const publicSelectionFields = [
   'user.id',
@@ -45,12 +44,18 @@ export enum UserRole {
   OPERATOR = 'operator',
   VERIFICATION_FORM_REVIEWER = 'reviewer',
   CAMPAIGN_MANAGER = 'campaignManager',
+  QF_MANAGER = 'qfManager',
 }
+
+export type UserStreamBalanceWarning =
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_MONTH
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_WEEK
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_DEPLETED;
 
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -61,32 +66,39 @@ export class User extends BaseEntity {
   })
   role: UserRole;
 
-  @Field(type => [AccountVerification], { nullable: true })
+  @Field(_type => [AccountVerification], { nullable: true })
   @OneToMany(
-    type => AccountVerification,
+    _type => AccountVerification,
     accountVerification => accountVerification.user,
   )
   accountVerifications?: AccountVerification[];
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   email?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   firstName?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   lastName?: string;
 
-  @Field(type => String, { nullable: true })
+  @Index('trgm_idx_user_name', { synchronize: false })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   name?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true, unique: true })
   walletAddress?: string;
+
+  @Column({
+    type: 'json',
+    nullable: true,
+  })
+  streamBalanceWarning?: Record<string, UserStreamBalanceWarning | null>;
 
   @Column({ nullable: true })
   password?: string;
@@ -94,23 +106,23 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   encryptedPassword?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   avatar?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   url?: string;
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: null })
   passportScore?: number;
 
-  @Field(type => Number, { nullable: true })
+  @Field(_type => Number, { nullable: true })
   @Column({ nullable: true, default: null })
   passportStamps?: number;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   location?: string;
 
@@ -123,23 +135,17 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   confirmed: boolean;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   chainvineId?: string;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column('bool', { default: false })
   wasReferred: boolean;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column('bool', { default: false })
   isReferrer: boolean;
-
-  @Field(type => Boolean, { nullable: true })
-  @Column('bool', { default: false })
-  // After each QF round Lauren and Griff review the donations and pass me a list of sybil addresses
-  // And then we exclude qfRound donation from those addresses when calculating the real matchingFund
-  knownAsSybilAddress: boolean;
 
   @Field(() => ReferredEvent, { nullable: true })
   @OneToOne(() => ReferredEvent, referredEvent => referredEvent.user, {
@@ -147,39 +153,34 @@ export class User extends BaseEntity {
   })
   referredEvent?: ReferredEvent;
 
-  @Field(type => [Project])
-  @ManyToMany(type => Project, project => project.users)
-  @JoinTable()
-  projects?: Project[];
-
   @Column('bool', { default: false })
   segmentIdentified: boolean;
 
   // Admin Reviewing Forms
-  @Field(type => [ProjectVerificationForm], { nullable: true })
+  @Field(_type => [ProjectVerificationForm], { nullable: true })
   @OneToMany(
-    type => ProjectVerificationForm,
+    _type => ProjectVerificationForm,
     projectVerificationForm => projectVerificationForm.reviewer,
   )
   projectVerificationForms?: ProjectVerificationForm[];
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })
   totalDonated: number;
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })
   totalReceived: number;
 
-  @Field(type => [ProjectStatusHistory], { nullable: true })
+  @Field(_type => [ProjectStatusHistory], { nullable: true })
   @OneToMany(
-    type => ProjectStatusHistory,
+    _type => ProjectStatusHistory,
     projectStatusHistory => projectStatusHistory.user,
   )
   projectStatusHistories?: ProjectStatusHistory[];
 
-  @Field(type => [PowerBoosting], { nullable: true })
-  @OneToMany(type => PowerBoosting, powerBoosting => powerBoosting.user)
+  @Field(_type => [PowerBoosting], { nullable: true })
+  @OneToMany(_type => PowerBoosting, powerBoosting => powerBoosting.user)
   powerBoostings?: PowerBoosting[];
 
   @UpdateDateColumn()
@@ -188,21 +189,43 @@ export class User extends BaseEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   projectsCount?: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   async donationsCount() {
-    const query = await Donation.createQueryBuilder('donation')
-      .where(`donation."userId" = :id`, { id: this.id })
-      .andWhere(`status = :status`, {
+    // Count for non-recurring donations
+    const nonRecurringDonationsCount = await Donation.createQueryBuilder(
+      'donation',
+    )
+      .where(`donation."userId" = :userId`, { userId: this.id })
+      .andWhere(`donation.status = :status`, {
         status: DONATION_STATUS.VERIFIED,
-      });
+      })
+      .andWhere(`donation."recurringDonationId" IS NULL`)
+      .cache(
+        `user-donationsCount-normal-${this.id}`,
+        Number(process.env.USER_STATS_CACHE_TIME || 60000),
+      )
+      .getCount();
 
-    return query.getCount();
+    // Count for recurring donations
+    const recurringDonationsCount = await RecurringDonation.createQueryBuilder(
+      'recurring_donation',
+    )
+      .where(`recurring_donation."donorId" = :donorId`, { donorId: this.id })
+      .andWhere('recurring_donation.totalUsdStreamed > 0')
+      .cache(
+        `user-donationsCount-recurring-${this.id}`,
+        Number(process.env.USER_STATS_CACHE_TIME || 60000),
+      )
+      .getCount();
+
+    // Sum of both counts
+    return nonRecurringDonationsCount + recurringDonationsCount;
   }
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   async likedProjectsCount() {
     const likedProjectsCount = await Reaction.createQueryBuilder('reaction')
       .innerJoinAndSelect('reaction.project', 'project')
@@ -211,12 +234,16 @@ export class User extends BaseEntity {
         `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
         { reviewStatus: ReviewStatus.Listed },
       )
+      .cache(
+        `user-likedProjectsCount-recurring-${this.id}`,
+        Number(process.env.USER_STATS_CACHE_TIME || 60000),
+      )
       .getCount();
 
     return likedProjectsCount;
   }
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   async boostedProjectsCount() {
     return findPowerBoostingsCountByUserId(this.id);
   }

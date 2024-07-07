@@ -1,10 +1,10 @@
+import BigNumber from 'bignumber.js';
+import axios from 'axios';
 import {
   BlockInfo,
   IGivPowerSubgraphAdapter,
   UnipoolBalance,
 } from './IGivPowerSubgraphAdapter';
-import BigNumber from 'bignumber.js';
-import axios from 'axios';
 
 const _toBN = (n: string | number) => new BigNumber(n);
 export const formatGivPowerBalance = (balance: string | number): number =>

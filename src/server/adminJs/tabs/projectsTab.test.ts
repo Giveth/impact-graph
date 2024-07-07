@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -14,7 +15,6 @@ import {
   RevokeSteps,
 } from '../../../entities/project';
 import { User } from '../../../entities/user';
-import { assert } from 'chai';
 import { findOneProjectStatusHistory } from '../../../repositories/projectSatusHistoryRepository';
 import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory';
 import {
@@ -433,7 +433,7 @@ function verifyProjectsTestCases() {
 
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
-      userId: Number(project.admin),
+      userId: project.adminUserId,
     });
 
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
@@ -496,7 +496,7 @@ function verifyProjectsTestCases() {
 
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
-      userId: Number(project.admin),
+      userId: project.adminUserId,
     });
 
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
@@ -583,7 +583,7 @@ function verifyProjectsTestCases() {
     });
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
-      userId: Number(project.admin),
+      userId: project.adminUserId,
     });
 
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;

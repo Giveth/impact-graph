@@ -12,19 +12,18 @@ import {
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
-import { User } from './user';
 
 @Entity()
 @ObjectType()
 @Unique(['round', 'project'])
 export class PreviousRoundRank extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
   @Index()
-  @Field(type => Project)
-  @ManyToOne(type => Project)
+  @Field(_type => Project)
+  @ManyToOne(_type => Project)
   project: Project;
 
   @RelationId(

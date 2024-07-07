@@ -1,19 +1,14 @@
-import { Project, RevokeSteps } from '../../entities/project';
-import {
-  ProjectStatusHistory,
-  HISTORY_DESCRIPTIONS,
-} from '../../entities/projectStatusHistory';
 import { assert } from 'chai';
+import { RevokeSteps } from '../../entities/project';
+
 import { checkProjectVerificationStatus } from './checkProjectVerificationStatus';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
 import { findProjectById } from '../../repositories/projectRepository';
-import { createProjectVerificationForm } from '../../repositories/projectVerificationRepository';
-import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 describe(
@@ -30,8 +25,10 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(46, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment().subtract(46, 'days').endOf('day'),
+      projectUpdateCreationDate: moment()
+        .subtract(46, 'days')
+        .endOf('day')
+        .toDate(),
       verificationStatus: RevokeSteps.Reminder,
     });
 
@@ -51,7 +48,6 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(91, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(91, 'days').endOf('day'),
       verificationStatus: RevokeSteps.Warning,
     });
@@ -72,7 +68,6 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(105, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
       verificationStatus: RevokeSteps.LastChance,
     });

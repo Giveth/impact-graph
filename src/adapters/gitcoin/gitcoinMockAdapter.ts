@@ -1,4 +1,3 @@
-import { generateRandomEtheriumAddress } from '../../../test/testUtils';
 import {
   GitcoinAdapterInterface,
   SigningMessageAndNonceResponse,

@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   createDonationData,
   createProjectData,
@@ -17,7 +18,6 @@ import {
   findUsersWhoLikedProjectExcludeProjectOwner,
   findUsersWhoSupportProject,
 } from './userRepository';
-import { assert } from 'chai';
 import { Reaction } from '../entities/reaction';
 import { insertSinglePowerBoosting } from './powerBoostingRepository';
 
@@ -432,7 +432,7 @@ function findUserByIdTestCases() {
   });
 
   it('should not find  user when userId is undefined', async () => {
-    // @ts-ignore
+    // @ts-expect-error it's a test
     const foundUser = await findUserById(undefined);
     assert.isNull(foundUser);
   });
@@ -488,7 +488,7 @@ function findUsersWhoSupportProjectTestCases() {
     );
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(projectOwner.id),
+      adminUserId: projectOwner.id,
     });
 
     const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

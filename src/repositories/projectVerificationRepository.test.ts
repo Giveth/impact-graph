@@ -1,10 +1,10 @@
+import { assert } from 'chai';
 import {
   ManagingFunds,
   Milestones,
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
   ProjectContacts,
-  ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
 import {
   createProjectData,
@@ -28,9 +28,7 @@ import {
   verifyForm,
   verifyMultipleForms,
 } from './projectVerificationRepository';
-import { assert } from 'chai';
 import { ChainType } from '../types/network';
-import { ProjectAddress } from '../entities/projectAddress';
 
 describe(
   'createProjectVerificationForm test cases',
@@ -75,7 +73,7 @@ function createProjectVerificationFormTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -94,7 +92,7 @@ function updateProjectPersonalInfoOfProjectVerificationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -112,9 +110,7 @@ function updateProjectPersonalInfoOfProjectVerificationTestCases() {
         personalInfo: projectPersonalInfo,
       });
 
-    const test = await findProjectVerificationFormById(
-      projectVerificationForm.id,
-    );
+    await findProjectVerificationFormById(projectVerificationForm.id);
     assert.equal(
       updatedProjectVerification?.personalInfo.email,
       projectPersonalInfo.email,
@@ -127,7 +123,7 @@ function updateProjectRegistryOfProjectVerificationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -157,7 +153,7 @@ function updateProjectContactsOfProjectVerificationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -191,7 +187,7 @@ function updateProjectVerificationLastStepTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -216,7 +212,7 @@ function updateMilestonesOfProjectVerificationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -257,7 +253,7 @@ function updateManagingFundsOfProjectVerificationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -299,7 +295,7 @@ function getInProgressProjectVerificationRequestTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -322,7 +318,7 @@ function getInProgressProjectVerificationRequestTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -348,7 +344,7 @@ function verifyFormTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -378,7 +374,7 @@ function verifyFormTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -411,7 +407,7 @@ function makeFormDraftTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -439,7 +435,7 @@ function makeFormDraftTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -476,7 +472,7 @@ function verifyMultipleFormTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -487,7 +483,7 @@ function verifyMultipleFormTestCases() {
     await projectVerificationForm.save();
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm2 = await createProjectVerificationForm({
@@ -531,7 +527,7 @@ function verifyMultipleFormTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -542,7 +538,7 @@ function verifyMultipleFormTestCases() {
     await projectVerificationForm.save();
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm2 = await createProjectVerificationForm({

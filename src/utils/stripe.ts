@@ -34,11 +34,7 @@ export async function createStripeAccount(project: Project) {
   return account;
 }
 
-export function createStripeAccountLink(
-  accountId: string,
-  refreshUrl: string,
-  returnUrl: string,
-) {
+export function createStripeAccountLink(accountId: string, refreshUrl: string) {
   return stripe.accountLinks.create({
     account: accountId,
     type: 'account_onboarding',

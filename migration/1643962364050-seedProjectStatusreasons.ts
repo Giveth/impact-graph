@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { ProjStatus } from '../src/entities/project';
 
-// tslint:disable-next-line:class-name
 export class seedProjectStatusreasons1643962364050
   implements MigrationInterface
 {
@@ -16,6 +15,5 @@ export class seedProjectStatusreasons1643962364050
                     ;`);
   }
 
-  // tslint:disable-next-line:no-empty
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

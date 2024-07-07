@@ -12,7 +12,7 @@ export class DropUserPassportScoreTable1708511332372
         `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  async down(_queryRunner: QueryRunner): Promise<void> {
     //
   }
 }

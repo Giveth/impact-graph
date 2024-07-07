@@ -13,20 +13,16 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
+import { Max, Min } from 'class-validator';
+import { Service } from 'typedi';
 import { ApolloContext } from '../types/ApolloContext';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 import {
   setMultipleBoosting,
   setSingleBoosting,
   findPowerBoostings,
 } from '../repositories/powerBoostingRepository';
-import { Max, Min } from 'class-validator';
-import { Service } from 'typedi';
 import { logger } from '../utils/logger';
 import { getBottomRank } from '../repositories/projectPowerViewRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
@@ -54,13 +50,13 @@ registerEnumType(PowerBoostingOrderDirection, {
 
 @InputType()
 class PowerBoostingOrderBy {
-  @Field(type => PowerBoostingOrderField, {
+  @Field(_type => PowerBoostingOrderField, {
     nullable: true,
     defaultValue: PowerBoostingOrderField.UpdatedAt,
   })
   field: PowerBoostingOrderField;
 
-  @Field(type => PowerBoostingOrderDirection, {
+  @Field(_type => PowerBoostingOrderDirection, {
     nullable: true,
     defaultValue: PowerBoostingOrderDirection.DESC,
   })
@@ -70,16 +66,16 @@ class PowerBoostingOrderBy {
 @Service()
 @ArgsType()
 export class GetPowerBoostingArgs {
-  @Field(type => Int, { defaultValue: 0 })
+  @Field(_type => Int, { defaultValue: 0 })
   @Min(0)
   skip: number;
 
-  @Field(type => Int, { defaultValue: 1000 })
+  @Field(_type => Int, { defaultValue: 1000 })
   @Min(0)
   @Max(1000)
   take: number;
 
-  @Field(type => PowerBoostingOrderBy, {
+  @Field(_type => PowerBoostingOrderBy, {
     nullable: true,
     defaultValue: {
       field: PowerBoostingOrderField.UpdatedAt,
@@ -88,28 +84,28 @@ export class GetPowerBoostingArgs {
   })
   orderBy: PowerBoostingOrderBy;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   projectId?: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   userId?: number;
 }
 
 @ObjectType()
 class GivPowers {
-  @Field(type => [PowerBoosting])
+  @Field(_type => [PowerBoosting])
   powerBoostings: PowerBoosting[];
 
-  @Field(type => Int)
+  @Field(_type => Int)
   totalCount: number;
 }
 
-@Resolver(of => PowerBoosting)
+@Resolver(_of => PowerBoosting)
 export class PowerBoostingResolver {
-  @Mutation(returns => [PowerBoosting])
+  @Mutation(_returns => [PowerBoosting])
   async setMultiplePowerBoosting(
-    @Arg('projectIds', type => [Int]) projectIds: number[],
-    @Arg('percentages', type => [Float]) percentages: number[],
+    @Arg('projectIds', _type => [Int]) projectIds: number[],
+    @Arg('percentages', _type => [Float]) percentages: number[],
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<PowerBoosting[]> {
     const userId = user?.userId;
@@ -133,10 +129,10 @@ export class PowerBoostingResolver {
     return result;
   }
 
-  @Mutation(returns => [PowerBoosting])
+  @Mutation(_returns => [PowerBoosting])
   async setSinglePowerBoosting(
-    @Arg('projectId', type => Int) projectId: number,
-    @Arg('percentage', type => Float) percentage: number,
+    @Arg('projectId', _type => Int) projectId: number,
+    @Arg('percentage', _type => Float) percentage: number,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<PowerBoosting[]> {
     const userId = user?.userId;
@@ -159,7 +155,7 @@ export class PowerBoostingResolver {
     return result;
   }
 
-  @Query(returns => GivPowers)
+  @Query(_returns => GivPowers)
   async getPowerBoosting(
     @Args()
     { take, skip, projectId, userId, orderBy }: GetPowerBoostingArgs,
@@ -184,8 +180,8 @@ export class PowerBoostingResolver {
     };
   }
 
-  @Query(returns => Number)
-  async getTopPowerRank(): Promise<Number> {
+  @Query(_returns => Number)
+  async getTopPowerRank(): Promise<number> {
     return getBottomRank();
   }
 }

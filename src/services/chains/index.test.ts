@@ -1,14 +1,15 @@
-import { NETWORK_IDS } from '../../provider';
 import { assert } from 'chai';
+import moment from 'moment';
+import { NETWORK_IDS } from '../../provider';
 import { assertThrowsAsync } from '../../../test/testUtils';
 import { errorMessages } from '../../utils/errorMessages';
-import moment from 'moment';
-import { getTransactionInfoFromNetwork } from './index';
 import { ChainType } from '../../types/network';
+import { closeTo, getTransactionInfoFromNetwork } from './index';
 
 const ONE_DAY = 60 * 60 * 24;
 
 describe('getTransactionDetail test cases', getTransactionDetailTestCases);
+describe('closeTo test cases', closeToTestCases);
 
 function getTransactionDetailTestCases() {
   // it('should return transaction detail for normal transfer on gnosis when it belongs to a multisig', async () => {
@@ -88,6 +89,7 @@ function getTransactionDetailTestCases() {
   });
   it('should return transaction detail for DAI transfer on ethereum classic', async () => {
     // https://etc.blockscout.com/tx/0x48e0c03ed99996fac3a7ecaaf05a1582a9191d8e37b6ebdbdd630b83350faf63
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
     const amount = 4492.059297640078891631;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
@@ -424,116 +426,6 @@ function getTransactionDetailTestCases() {
     );
   });
 
-  // it('should return error when transaction amount is different with donation amount', async () => {
-  //   // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
-  //   const amount = 1730;
-  //   const badFunc = async () => {
-  //     await getTransactionInfoFromNetwork({
-  //       txHash:
-  //         '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
-  //       symbol: 'DAI',
-  //       networkId: NETWORK_IDS.MAIN_NET,
-  //       fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
-  //       toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
-  //       amount,
-  //       nonce: 4,
-  //       timestamp: 1624772582,
-  //     });
-  //   };
-  //   await assertThrowsAsync(
-  //     badFunc,
-  //     errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
-  //   );
-  // });
-
-  // Getting 503   in github actions, so I had to comment this
-
-  // it('should return transaction detail for DAI token transfer on mainnet when transaction is invalid but speedup',
-  //   async () => {
-  //   // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
-  //   const amount = 1760;
-  //   const txHash =
-  //     '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e871229';
-  //   const transactionInfo = await getTransactionInfoFromNetwork({
-  //     txHash,
-  //     symbol: 'DAI',
-  //     networkId: NETWORK_IDS.MAIN_NET,
-  //     fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
-  //     toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
-  //     amount,
-  //     nonce: 4,
-  //     timestamp: 1624772582,
-  //   });
-  //   assert.isOk(transactionInfo);
-  //   assert.equal(transactionInfo.currency, 'DAI');
-  //   assert.equal(transactionInfo.amount, amount);
-  //   assert.notEqual(transactionInfo.hash, txHash);
-  // });
-
-  it('should return transaction detail for normal transfer on goerli', async () => {
-    // https://goerli.etherscan.io/tx/0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1
-
-    const amount = 0.117;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1',
-      symbol: 'ETH',
-      networkId: NETWORK_IDS.GOERLI,
-      fromAddress: '0xc18c3cc1cf44e72dedfcbae981ef1ab32256ee60',
-      toAddress: '0x2d2b642c7407ebce201ed80711124fffd1777331',
-      amount,
-      timestamp: 1661114988,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETH');
-    assert.equal(transactionInfo.amount, amount);
-  });
-
-  // TODO: Rewrite this test for goerli or delete
-  // it('should return transaction detail for UNI token transfer on ropsten', async () => {
-  //   // https://ropsten.etherscan.io/tx/0xba3c2627c9d3dd963455648b4f9d7239e8b5c80d0aa85ac354d2b762d99e4441
-  //   const amount = 0.01;
-  //   const transactionInfo = await getTransactionInfoFromNetwork({
-  //     txHash:
-  //       '0xba3c2627c9d3dd963455648b4f9d7239e8b5c80d0aa85ac354d2b762d99e4441',
-  //     symbol: 'UNI',
-  //     networkId: NETWORK_IDS.ROPSTEN,
-  //     fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
-  //     toAddress: '0x8f951903c9360345b4e1b536c7f5ae8f88a64e79',
-  //     amount,
-  //     timestamp: 1615739937,
-  //   });
-  //   assert.isOk(transactionInfo);
-  //   assert.equal(transactionInfo.currency, 'UNI');
-  //   assert.equal(transactionInfo.amount, amount);
-  // });
-
-  // TODO: Rewrite for goerli or delete
-  // it('should return transaction when transactionHash is wrong because of speedup on ropsten', async () => {
-  //   // https://ropsten.etherscan.io/tx/0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7
-  //   const amount = 0.001;
-  //   const txHash =
-  //     '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e331234';
-  //   const transactionInfo = await getTransactionInfoFromNetwork({
-  //     txHash,
-  //     symbol: 'ETH',
-  //     networkId: NETWORK_IDS.ROPSTEN,
-  //     fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
-  //     toAddress: '0x5d28fe1e9f895464aab52287d85ebff32b351674',
-  //     amount,
-  //     nonce: 70,
-  //     timestamp: 1621072452,
-  //   });
-  //   assert.isOk(transactionInfo);
-  //   assert.equal(transactionInfo.currency, 'ETH');
-  //   assert.equal(transactionInfo.amount, amount);
-  //   assert.notEqual(transactionInfo.hash, txHash);
-  //   assert.equal(
-  //     transactionInfo.hash,
-  //     '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7',
-  //   );
-  // });
-
   it('should return transaction detail for normal transfer on polygon', async () => {
     // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
 
@@ -642,6 +534,82 @@ function getTransactionDetailTestCases() {
       toAddress: '0xc11c479473cd06618fc75816dd6b56be4ac80efd',
       amount,
       timestamp: 1708344659,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on Base Mainnet', async () => {
+    // https://basescan.org/tx/0x1cbf53e5a9a0874b9ad97316e4f2e1782e24bec318bacd183d3f48052bfe1523
+
+    const amount = 0.0032;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x1cbf53e5a9a0874b9ad97316e4f2e1782e24bec318bacd183d3f48052bfe1523',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.BASE_MAINNET,
+      fromAddress: '0xbaed383ede0e5d9d72430661f3285daa77e9439f',
+      toAddress: '0xa5401000d255dbb154deb756b82dd5105486d8c9',
+      amount,
+      timestamp: 1716445331,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on Base Sepolia', async () => {
+    // https://sepolia.basescan.org/tx/0x66fdfe46de46fa1fbb77de642cc778cafc85943204039f69694aee6121f764f4
+
+    const amount = 0.001;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x66fdfe46de46fa1fbb77de642cc778cafc85943204039f69694aee6121f764f4',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.BASE_SEPOLIA,
+      fromAddress: '0x9cab0c7ff1c6250e641f4dcd4d9cd9db83bffb71',
+      toAddress: '0xd7eedf8422ababfbcafc0797e809ceae742fc142',
+      amount,
+      timestamp: 1716445488,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on ZKEVM Mainnet', async () => {
+    // https://zkevm.polygonscan.com/tx/0xeba6b0325a2406fe8223bccc187eb7a34692be3a0c4ef76e940e13342e50a897
+
+    const amount = 0.008543881896016492;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xeba6b0325a2406fe8223bccc187eb7a34692be3a0c4ef76e940e13342e50a897',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+      fromAddress: '0x948Bd3799aB39A4DDc7bd4fB83717b230f035FBF',
+      toAddress: '0x0d0794f31c53d4057082889B9bed2D599Eda420d',
+      amount,
+      timestamp: 1718267319,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on ZKEVM Cardano', async () => {
+    // https://cardona-zkevm.polygonscan.com/tx/0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a
+
+    const amount = 0.00001;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.ZKEVM_CARDONA,
+      fromAddress: '0x9AF3049dD15616Fd627A35563B5282bEA5C32E20',
+      toAddress: '0x417a7BA2d8d0060ae6c54fd098590DB854B9C1d5',
+      amount,
+      timestamp: 1718267581,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
@@ -1050,5 +1018,17 @@ function getTransactionDetailTestCases() {
       badFunc,
       errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
+  });
+}
+
+function closeToTestCases() {
+  it('should 0.0008436 and 0.0008658 consider as closed amount', function () {
+    assert.isTrue(closeTo(0.0008436, 0.0008658));
+  });
+  it('should 0.0001 and 0.00011 consider as closed amount', function () {
+    assert.isTrue(closeTo(0.0001, 0.00011));
+  });
+  it('should not consider 0.001 and 0.003 consider as closed amount', function () {
+    assert.isFalse(closeTo(0.001, 0.003));
   });
 }

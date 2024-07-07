@@ -32,13 +32,13 @@ export class SocialProfile extends BaseEntity {
    * @see {@link https://github.com/Giveth/giveth-dapps-v2/issues/711#issuecomment-1128435255}
    */
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
   @Index()
-  @Field(type => Project)
-  @ManyToOne(type => Project, { eager: true })
+  @Field(_type => Project)
+  @ManyToOne(_type => Project, { eager: true })
   project: Project;
 
   @RelationId((socialProfile: SocialProfile) => socialProfile.project)
@@ -46,15 +46,15 @@ export class SocialProfile extends BaseEntity {
   projectId: number;
 
   @Index()
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { eager: true, nullable: true })
+  @Field(_type => User, { nullable: true })
+  @ManyToOne(_type => User, { eager: true, nullable: true })
   user: User;
   @RelationId((socialProfile: SocialProfile) => socialProfile.user)
   userId: number;
 
   @Index()
-  @Field(type => ProjectVerificationForm)
-  @ManyToOne(type => ProjectVerificationForm)
+  @Field(_type => ProjectVerificationForm)
+  @ManyToOne(_type => ProjectVerificationForm)
   projectVerificationForm: ProjectVerificationForm;
   @RelationId(
     (socialProfile: SocialProfile) => socialProfile.projectVerificationForm,

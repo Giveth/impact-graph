@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import moment from 'moment';
 import config from '../src/config';
 import { AppDataSource } from '../src/orm';
-import moment from 'moment';
 import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
 import { calculateGivbackFactor } from '../src/services/givbackService';
@@ -9,13 +9,10 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../src/services/userService';
-import { updateTotalDonationsOfProject } from '../src/services/donationService';
 import { Donation } from '../src/entities/donation';
 import { NETWORK_IDS } from '../src/provider';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../src/services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../src/services/projectViewsService';
+import { updateProjectStatistics } from '../src/services/projectService';
 
 const QF_ROUND_ID = 5;
 const millisecondTimestampToDate = (timestamp: number): Date => {
@@ -236,7 +233,7 @@ export class addMissedOpDonationsToDb1703398409668
     const environment = config.get('ENVIRONMENT') as string;
 
     if (environment !== 'production') {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('We just want to create these donations in production DB');
       return;
     }
@@ -261,27 +258,26 @@ export class addMissedOpDonationsToDb1703398409668
            INSERT INTO donation ("toWalletAddress", "projectId", "fromWalletAddress", "userId", amount, currency, "transactionId", "transactionNetworkId", anonymous, "valueUsd", status,
             "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt", "givbackFactor", "powerRound", "projectRank", "bottomRankInRound", "qfRoundId", "tokenAddress")
            VALUES ('${tx.toWalletAddress?.toLowerCase()}', ${
-        tx.projectId
-      }, '${tx.fromWalletAddress?.toLocaleLowerCase()}', ${user.id}, ${
-        tx.amount
-      }, '${tx.currency}', '${tx.transactionId?.toLocaleLowerCase()}', ${
-        tx.transactionNetworkId
-      }, false, ${tx.valueUsd}, 'verified',
+             tx.projectId
+           }, '${tx.fromWalletAddress?.toLocaleLowerCase()}', ${user.id}, ${
+             tx.amount
+           }, '${tx.currency}', '${tx.transactionId?.toLocaleLowerCase()}', ${
+             tx.transactionNetworkId
+           }, false, ${tx.valueUsd}, 'verified',
              true, true, true, '${createdAt}', ${givbackFactor}, ${powerRound}, ${projectRank}, ${bottomRankInRound}, ${QF_ROUND_ID}, '${
-        tx.tokenAddress
-      }');
+               tx.tokenAddress
+             }');
                 `);
 
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
-      await updateTotalDonationsOfProject(tx.projectId as number);
+      await updateProjectStatistics(tx.projectId as number);
     }
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  async down(_queryRunner: QueryRunner): Promise<void> {
     //
   }
 }

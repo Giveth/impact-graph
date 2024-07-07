@@ -1,10 +1,10 @@
+import { ActionResponse, After } from 'adminjs';
 import { Project, ProjectUpdate } from '../../../entities/project';
 import {
   canAccessProjectUpdateAction,
   ResourceActions,
 } from '../adminJsPermissions';
 import { addFeaturedProjectUpdate } from './projectsTab';
-import { ActionResponse, After } from 'adminjs';
 
 export const setProjectsTitleAndSlug: After<ActionResponse> = async request => {
   if (Number(request?.records?.length) > 0) {
@@ -249,6 +249,8 @@ export const projectUpdateTab = {
       },
       list: {
         isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectUpdateAction({ currentAdmin }, ResourceActions.LIST),
         after: setProjectsTitleAndSlug,
       },
       addFeaturedProjectUpdate: {

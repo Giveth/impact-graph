@@ -7,9 +7,6 @@ import {
   ManyToOne,
   RelationId,
   Index,
-  Unique,
-  Brackets,
-  JoinTable,
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
@@ -47,7 +44,7 @@ export enum SortField {
 @Entity()
 @ObjectType()
 export class Donation extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -69,7 +66,7 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true })
   safeTransactionId?: string;
 
-  @Field(type => String)
+  @Field(_type => String)
   @Column({
     type: 'enum',
     enum: ChainType,
@@ -86,11 +83,11 @@ export class Donation extends BaseEntity {
   @Column('text', { default: DONATION_STATUS.PENDING })
   status: string;
 
-  @Field(type => Boolean)
+  @Field(_type => Boolean)
   @Column({ type: 'boolean', default: false })
   isExternal: boolean;
 
-  @Field(type => Int)
+  @Field(_type => Int)
   @Column('integer', { nullable: true })
   blockNumber?: number;
 
@@ -171,8 +168,8 @@ export class Donation extends BaseEntity {
   bottomRankInRound?: number;
 
   @Index()
-  @Field(type => Project)
-  @ManyToOne(type => Project, { eager: true })
+  @Field(_type => Project)
+  @ManyToOne(_type => Project, { eager: true })
   project: Project;
 
   @RelationId((donation: Donation) => donation.project)
@@ -180,8 +177,8 @@ export class Donation extends BaseEntity {
   projectId: number;
 
   @Index()
-  @Field(type => QfRound, { nullable: true })
-  @ManyToOne(type => QfRound, { eager: true })
+  @Field(_type => QfRound, { nullable: true })
+  @ManyToOne(_type => QfRound, { eager: true })
   qfRound: QfRound;
 
   @RelationId((donation: Donation) => donation.qfRound)
@@ -189,8 +186,8 @@ export class Donation extends BaseEntity {
   qfRoundId: number;
 
   @Index()
-  @Field(type => QfRound, { nullable: true })
-  @ManyToOne(type => QfRound, { eager: true })
+  @Field(_type => QfRound, { nullable: true })
+  @ManyToOne(_type => QfRound, { eager: true })
   distributedFundQfRound: QfRound;
 
   @RelationId((donation: Donation) => donation.distributedFundQfRound)
@@ -198,76 +195,77 @@ export class Donation extends BaseEntity {
   distributedFundQfRoundId: number;
 
   @Index()
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { eager: true, nullable: true })
+  @Field(_type => User, { nullable: true })
+  @ManyToOne(_type => User, { eager: true, nullable: true })
   user?: User;
+
   @RelationId((donation: Donation) => donation.user)
   @Column({ nullable: true })
   userId: number;
 
   @Index()
-  @Field(type => RecurringDonation, { nullable: true })
-  @ManyToOne(type => RecurringDonation, { eager: true, nullable: true })
+  @Field(_type => RecurringDonation, { nullable: true })
+  @ManyToOne(_type => RecurringDonation, { eager: true, nullable: true })
   recurringDonation?: RecurringDonation;
 
   @RelationId((donation: Donation) => donation.recurringDonation)
   @Column({ nullable: true })
   recurringDonationId: number;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column('text', { nullable: true })
   contactEmail?: string | null;
 
-  @Field(type => Number, { nullable: true })
+  @Field(_type => Number, { nullable: true })
   @Column({ nullable: true })
   qfRoundUserScore?: number;
 
   @Index()
-  @Field(type => Date)
+  @Field(_type => Date)
   @Column()
   createdAt: Date;
 
-  @Field(type => Date, { nullable: true })
+  @Field(_type => Date, { nullable: true })
   @Column({ nullable: true })
   importDate: Date;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   donationType?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   onramperTransactionStatus?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   onramperId?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   referrerWallet?: string;
 
-  @Field(type => Date, { nullable: true })
+  @Field(_type => Date, { nullable: true })
   @Column({ nullable: true })
   referralStartTimestamp?: Date;
 
-  @Field(type => Boolean, { nullable: false })
+  @Field(_type => Boolean, { nullable: false })
   @Column({ nullable: false, default: false })
   isReferrerGivbackEligible: boolean;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   transakStatus?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   transakTransactionLink?: string;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column({ nullable: true, default: false })
   segmentNotified: boolean;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column({ nullable: true, default: false })
   isTokenEligibleForGivback: boolean;
 

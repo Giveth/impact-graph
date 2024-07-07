@@ -28,11 +28,7 @@ import {
   updateProjectVerificationStatus,
   updateTermsAndConditionsOfProjectVerification,
 } from '../repositories/projectVerificationRepository';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { ProjectVerificationUpdateInput } from '../resolvers/types/ProjectVerificationUpdateInput';
 import { removeUndefinedFieldsFromObject } from '../utils/utils';
 
@@ -65,7 +61,7 @@ export const updateProjectVerificationFormByUser = async (params: {
   projectVerificationForm: ProjectVerificationForm;
   projectVerificationUpdateInput: ProjectVerificationUpdateInput;
 }): Promise<ProjectVerificationForm> => {
-  const { projectVerificationUpdateInput, projectVerificationForm } = params;
+  const { projectVerificationUpdateInput } = params;
   const { projectVerificationId, step } = projectVerificationUpdateInput;
   const personalInfo =
     projectVerificationUpdateInput.personalInfo as PersonalInfo;
@@ -145,7 +141,7 @@ export const updateProjectVerificationFormByUser = async (params: {
           milestones,
         });
       break;
-    case PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION:
+    case PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION: {
       validateWithJoiSchema(
         {
           isTermAndConditionsAccepted,
@@ -173,6 +169,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         projectVerificationId,
       });
       break;
+    }
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_STEP));
   }

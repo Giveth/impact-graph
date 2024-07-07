@@ -1,15 +1,9 @@
-// import ethers..
-
 import { ethers } from 'ethers';
-import {
-  getLatestBlockNumberFromDonations,
-  isTransactionHashStored,
-} from '../../repositories/donationRepository';
+import moment from 'moment';
+import axios from 'axios';
+import { isTransactionHashStored } from '../../repositories/donationRepository';
 import { DONATION_ORIGINS, Donation } from '../../entities/donation';
-import {
-  findProjectByWalletAddress,
-  findProjectByWalletAddressAndNetwork,
-} from '../../repositories/projectRepository';
+import { findProjectByWalletAddressAndNetwork } from '../../repositories/projectRepository';
 import { NETWORK_IDS } from '../../provider';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { ProjStatus } from '../../entities/project';
@@ -17,7 +11,6 @@ import { Token } from '../../entities/token';
 import {
   getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
-  updateTotalDonationsOfProject,
 } from '../donationService';
 import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
@@ -27,13 +20,12 @@ import {
 } from '../../repositories/userRepository';
 import { logger } from '../../utils/logger';
 import { getGitcoinAdapter } from '../../adapters/adaptersFactory';
-import moment from 'moment';
 import { calculateGivbackFactor } from '../givbackService';
-import axios from 'axios';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
+import { updateProjectStatistics } from '../projectService';
 
 // contract address
 const IDRISS_SUBSQUID_SUBGRAPH_URL =
@@ -209,7 +201,7 @@ export const createIdrissTwitterDonation = async (
       }
     }
 
-    const donation = await Donation.create({
+    const donation = Donation.create({
       amount: Number(idrissDonation.amount),
       transactionId: idrissDonation?.txHash?.toLowerCase(),
       isFiat: false,
@@ -273,7 +265,7 @@ export const createIdrissTwitterDonation = async (
     await updateUserTotalDonated(donation.userId);
 
     // After updating price we update totalDonations
-    await updateTotalDonationsOfProject(donation.projectId);
+    await updateProjectStatistics(donation.projectId);
     await updateUserTotalReceived(
       project?.adminUserId || project?.adminUser?.id,
     );

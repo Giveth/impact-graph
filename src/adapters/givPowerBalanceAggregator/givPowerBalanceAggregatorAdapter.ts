@@ -1,5 +1,3 @@
-// @ts-ignore
-
 import axios from 'axios';
 import {
   BalancesAtTimestampInputParams,

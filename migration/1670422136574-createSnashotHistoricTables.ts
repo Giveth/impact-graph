@@ -1,11 +1,5 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-  Table,
-  TableForeignKey,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class createSnashotHistoricTables1670422136574
   implements MigrationInterface
 {
