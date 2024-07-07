@@ -4796,6 +4796,11 @@ async function donationMetricsTestCases() {
     await Donation.clear();
   });
 
+  // Clear All donations after test
+  after(async () => {
+    await Donation.clear();
+  });
+
   it('should return correct donation metrics', async () => {
     const walletAddress1 = generateRandomEtheriumAddress();
     const walletAddress2 = generateRandomEtheriumAddress();
