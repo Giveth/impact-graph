@@ -3719,11 +3719,12 @@ function donationsByUserIdTestCases() {
       giveBacks: false,
       creationDate: new Date(),
       updatedAt: new Date(),
+      latestUpdateCreationDate: new Date(),
       slug: title,
       // firstUser's id
       adminUserId: user.id,
       qualityScore: 30,
-      // just need the initial value to be different than 0
+      // just need the initial value to be different from 0
       totalDonations: 10,
       totalReactions: 0,
       totalProjectUpdates: 1,
@@ -3799,6 +3800,7 @@ function donationsByUserIdTestCases() {
       giveBacks: false,
       creationDate: new Date(),
       updatedAt: new Date(),
+      latestUpdateCreationDate: new Date(),
       slug: title,
       // firstUser's id
       adminUserId: user.id,
