@@ -15,6 +15,7 @@ import {
   generateUserIdLessAccessToken,
   generateRandomSolanaAddress,
   generateRandomSolanaTxHash,
+  deleteProjectFromDbById,
 } from '../../test/testUtils';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
@@ -4885,5 +4886,9 @@ async function donationMetricsTestCases() {
     assert.equal(donationMetrics.totalDonationsToGiveth, 2);
     assert.equal(donationMetrics.totalUsdValueToGiveth, 150);
     assert.closeTo(donationMetrics.averagePercentageToGiveth, 15, 0.0001);
+
+    // delete created projects to not effects on the other test cases
+    await deleteProjectFromDbById(project1.id);
+    await deleteProjectFromDbById(project2.id);
   });
 }

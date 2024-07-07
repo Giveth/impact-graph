@@ -323,6 +323,23 @@ export const createProjectData = (name?: string): CreateProjectData => {
     projectUpdateCreationDate: new Date(),
   };
 };
+
+export const deleteProjectFromDbById = async (
+  projectId: number,
+): Promise<void> => {
+  // Find the project by ID
+  const project = await Project.findOne({
+    where: { id: projectId },
+  });
+
+  if (!project) {
+    throw new Error(`Project with ID ${projectId} not found`);
+  }
+
+  // Remove the project
+  await Project.remove(project);
+};
+
 export const createDonationData = (params?: {
   status?: string;
   createdAt?: Date;
