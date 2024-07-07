@@ -491,7 +491,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
     await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
-    // should count as 1 as its the same user
+    // should count as 1 as it's the same user
     await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.PENDING,
