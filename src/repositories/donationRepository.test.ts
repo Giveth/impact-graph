@@ -1411,6 +1411,11 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
 }
 
 function findRelevantDonationsTestCases() {
+  // Clear All donations after test
+  after(async () => {
+    await Donation.clear();
+  });
+
   it('should return relevant donations correctly', async () => {
     // Clear existing data
     await Donation.clear();
