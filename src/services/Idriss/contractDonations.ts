@@ -11,7 +11,6 @@ import { Token } from '../../entities/token';
 import {
   getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
-  updateTotalDonationsOfProject,
 } from '../donationService';
 import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
@@ -26,6 +25,7 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
+import { updateProjectStatistics } from '../projectService';
 
 // contract address
 const IDRISS_SUBSQUID_SUBGRAPH_URL =
@@ -265,7 +265,7 @@ export const createIdrissTwitterDonation = async (
     await updateUserTotalDonated(donation.userId);
 
     // After updating price we update totalDonations
-    await updateTotalDonationsOfProject(donation.projectId);
+    await updateProjectStatistics(donation.projectId);
     await updateUserTotalReceived(
       project?.adminUserId || project?.adminUser?.id,
     );

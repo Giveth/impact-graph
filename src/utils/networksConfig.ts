@@ -39,6 +39,8 @@ const networksConfig = {
   '421614': { blockExplorer: 'https://sepolia.arbiscan.io/' },
   '8453': { blockExplorer: 'https://basescan.org/' },
   '84532': { blockExplorer: 'https://sepolia.basescan.org/' },
+  '1101': { blockExplorer: 'https://zkevm.polygonscan.com/' },
+  '2442': { blockExplorer: 'https://cardona-zkevm.polygonscan.com/' },
 };
 
 export default networksConfig;

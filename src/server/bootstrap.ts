@@ -36,9 +36,7 @@ import {
   setI18nLocaleForRequest,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 import { apiGivRouter } from '../routers/apiGivRoutes';
-import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 import { authorizationHandler } from '../services/authorizationServices';
 import {
   oauth2CallbacksRouter,
@@ -302,7 +300,7 @@ export async function bootstrap() {
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
   } catch (err) {
-    logger.error(err);
+    logger.fatal('bootstrap() error', err);
   }
 
   async function continueDbSetup() {
@@ -349,7 +347,6 @@ export async function bootstrap() {
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-    runUpdateDonationsWithoutValueUsdPrices();
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
@@ -359,9 +356,6 @@ export async function bootstrap() {
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
     //   runGivingBlocksProjectSynchronization();
     // }
-    if (process.env.POIGN_ART_SERVICE_ACTIVE === 'true') {
-      runSyncPoignArtDonations();
-    }
 
     if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
       runSyncLostDonations();
@@ -433,7 +427,7 @@ export async function bootstrap() {
     try {
       await continueDbSetup();
     } catch (e) {
-      logger.error('continueDbSetup) error', e);
+      logger.fatal('continueDbSetup() error', e);
     }
     await initializeCronJobs();
   }
