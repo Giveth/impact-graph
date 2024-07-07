@@ -77,6 +77,7 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     await RecurringDonation.delete({ id: recurringDonation.id });
     await AnchorContractAddress.delete({ id: anchorContractAddress.id });
   });
+
   it('should verify transaction from OP Sepolia #2 batchCall', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x1833603bc894448b54cf9c03483fa361508fa101abcfa6c3b6ef51425cab533f
     const projectOwner = await saveUserDirectlyToDb(
@@ -91,7 +92,7 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     );
 
     const donor = await saveUserDirectlyToDb(
-      '0x871cd6353b803ceceb090bb827ecb2f361db81ab',
+      '0xa1179f64638adb613ddaac32d918eb6beb824104',
     );
 
     const anchorContractAddress = await addNewAnchorAddress({
@@ -123,6 +124,7 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     await RecurringDonation.delete({ id: recurringDonation.id });
     await AnchorContractAddress.delete({ id: anchorContractAddress.id });
   });
+
   it('should verify transaction from OP Sepolia when updateFlow function of smart contract has been called', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x74d98ba95c7969746afc38e46748aa64f239e816785be74b03372397cf844986
     const projectOwner = await saveUserDirectlyToDb(
@@ -168,7 +170,7 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     await RecurringDonation.delete({ id: recurringDonation.id });
     await AnchorContractAddress.delete({ id: anchorContractAddress.id });
   });
-  it('should make transaction failed, different toAddress from OP Sepolia', async () => {
+  it('should remain pending, different toAddress from OP Sepolia', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x516567c51c3506afe1291f7055fa0e858cc2ca9ed4079625c747fe92bd125a10
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
@@ -209,12 +211,12 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     const updatedDonation = await updateRecurringDonationStatusWithNetwork({
       donationId: recurringDonation.id,
     });
-    assert.equal(updatedDonation.status, RECURRING_DONATION_STATUS.FAILED);
+    assert.equal(updatedDonation.status, RECURRING_DONATION_STATUS.PENDING);
 
     await RecurringDonation.delete({ id: recurringDonation.id });
     await AnchorContractAddress.delete({ id: anchorContractAddress.id });
   });
-  it('should make transaction failed, different amount from OP Sepolia', async () => {
+  it('should  donation remain pending, different amount from OP Sepolia', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x516567c51c3506afe1291f7055fa0e858cc2ca9ed4079625c747fe92bd125a10
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
@@ -255,7 +257,7 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     const updatedDonation = await updateRecurringDonationStatusWithNetwork({
       donationId: recurringDonation.id,
     });
-    assert.equal(updatedDonation.status, RECURRING_DONATION_STATUS.FAILED);
+    assert.equal(updatedDonation.status, RECURRING_DONATION_STATUS.PENDING);
 
     await RecurringDonation.delete({ id: recurringDonation.id });
     await AnchorContractAddress.delete({ id: anchorContractAddress.id });
@@ -263,7 +265,10 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
 }
 
 function createRelatedDonationsToStreamTestCases() {
-  it('should search by the currency', async () => {
+  // TODO As I changed superFluid adapter to user staging address
+  // And return not mockAdapter in test more this test is not valid anymore
+  // I will skip it for now but we will keep it here for future reference
+  it.skip('should search by the currency', async () => {
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );

@@ -1,7 +1,5 @@
 import { UserResolver } from './userResolver';
 import { ProjectResolver } from './projectResolver';
-import { LoginResolver } from '../user/LoginResolver';
-import { RegisterResolver } from '../user/register/RegisterResolver';
 import { MeResolver } from '../user/MeResolver';
 import { UploadResolver } from './uploadResolver';
 import { CategoryResolver } from './categoryResolver';
@@ -22,6 +20,7 @@ import { ProjectUserInstantPowerViewResolver } from './instantPowerResolver';
 import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
 import { RecurringDonationResolver } from './recurringDonationResolver';
 import { DraftDonationResolver } from './draftDonationResolver';
+import { OnboardingFormResolver } from './onboardingFormResolver';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getResolvers = (): Function[] => {
@@ -31,8 +30,6 @@ export const getResolvers = (): Function[] => {
     ChainvineResolver,
     StatusReasonResolver,
 
-    LoginResolver,
-    RegisterResolver,
     MeResolver,
     UploadResolver,
     CategoryResolver,
@@ -53,5 +50,6 @@ export const getResolvers = (): Function[] => {
 
     AnchorContractAddressResolver,
     RecurringDonationResolver,
+    OnboardingFormResolver,
   ];
 };

@@ -122,6 +122,7 @@ export const createToken = async (
     isGivbackEligible,
     mainnetAddress,
     name,
+    coingeckoId,
     networkId,
     symbol,
     organizations,
@@ -133,6 +134,7 @@ export const createToken = async (
       address: address?.toLowerCase(),
       mainnetAddress: mainnetAddress?.toLowerCase(),
       isGivbackEligible,
+      coingeckoId,
       decimals: Number(decimals),
       networkId: Number(networkId),
     });
@@ -197,6 +199,10 @@ export const generateTokenTab = async () => {
             },
             { value: NETWORK_IDS.ARBITRUM_MAINNET, label: 'ARBITRUM MAINNET' },
             { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'ARBITRUM SEPOLIA' },
+            { value: NETWORK_IDS.BASE_MAINNET, label: 'BASE MAINNET' },
+            { value: NETWORK_IDS.BASE_SEPOLIA, label: 'BASE SEPOLIA' },
+            { value: NETWORK_IDS.ZKEVM_MAINNET, label: 'ZKEVM MAINNET' },
+            { value: NETWORK_IDS.ZKEVM_CARDONA, label: 'ZKEVM CARDANO' },
             { value: NETWORK_IDS.XDAI, label: 'XDAI' },
             { value: NETWORK_IDS.BSC, label: 'BSC' },
             { value: NETWORK_IDS.ETC, label: 'Ethereum Classic' },
@@ -253,6 +259,14 @@ export const generateTokenTab = async () => {
         },
       },
       actions: {
+        list: {
+          isAccessible: ({ currentAdmin }) =>
+            canAccessTokenAction({ currentAdmin }, ResourceActions.LIST),
+        },
+        show: {
+          isAccessible: ({ currentAdmin }) =>
+            canAccessTokenAction({ currentAdmin }, ResourceActions.SHOW),
+        },
         bulkDelete: {
           isVisible: false,
           isAccessible: ({ currentAdmin }) =>

@@ -29,8 +29,10 @@ import {
 import { Project } from '../../../entities/project';
 import { calculateGivbackFactor } from '../../../services/givbackService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
-import { updateTotalDonationsOfProject } from '../../../services/donationService';
-import { updateUserTotalDonated } from '../../../services/userService';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../../../services/userService';
 import { NETWORK_IDS } from '../../../provider';
 import {
   initExportSpreadsheet,
@@ -42,6 +44,7 @@ import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../../../services/chains';
+import { updateProjectStatistics } from '../../../services/projectService';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -149,7 +152,8 @@ export const createDonation = async (
         donation.user = donor;
       }
       await donation.save();
-      await updateTotalDonationsOfProject(project.id);
+      await updateProjectStatistics(project.id);
+      await updateUserTotalReceived(project.adminUserId);
       if (donor) {
         await updateUserTotalDonated(donor.id);
       }
@@ -279,6 +283,7 @@ export const importDonationsFromIdrissTwitter = async (
       },
     };
   } catch (e) {
+    logger.error('importDonationsFromIdrissTwitter() error', e);
     return {
       redirectUrl: '/admin/resources/Donation',
       record: {},
@@ -312,6 +317,7 @@ export const exportDonationsWithFiltersToCsv = async (
       },
     };
   } catch (e) {
+    logger.error('exportDonationsWithFiltersToCsv() error', e);
     return {
       redirectUrl: '/admin/resources/Donation',
       record: {},
@@ -603,6 +609,10 @@ export const donationTab = {
           { value: NETWORK_IDS.CELO_ALFAJORES, label: 'Alfajores' },
           { value: NETWORK_IDS.ARBITRUM_MAINNET, label: 'Arbitrum' },
           { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'Arbitrum Sepolia' },
+          { value: NETWORK_IDS.BASE_MAINNET, label: 'Base' },
+          { value: NETWORK_IDS.BASE_SEPOLIA, label: 'Base Sepolia' },
+          { value: NETWORK_IDS.ZKEVM_MAINNET, label: 'ZKEVM Mainnet' },
+          { value: NETWORK_IDS.ZKEVM_CARDONA, label: 'ZKEVM Cardona' },
         ],
         isVisible: {
           list: true,
@@ -674,6 +684,14 @@ export const donationTab = {
       },
     },
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessDonationAction({ currentAdmin }, ResourceActions.LIST),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessDonationAction({ currentAdmin }, ResourceActions.SHOW),
+      },
       bulkDelete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>

@@ -92,7 +92,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
 
   let query = Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.status', 'status')
-    .leftJoinAndSelect('project.users', 'users')
     .leftJoinAndSelect('project.addresses', 'addresses')
     // We dont need it right now, but I comment it because we may need it later
     // .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
@@ -119,7 +118,11 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
-  if (qfRoundId || activeQfRoundId) {
+
+  const isFilterByQF =
+    !!filters?.find(f => f === FilterField.ActiveQfRound) && activeQfRoundId;
+
+  if (qfRoundId || isFilterByQF) {
     query.innerJoinAndSelect(
       'project.qfRounds',
       'qf_rounds',
@@ -157,6 +160,15 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
+  if (isFilterByQF && sortingBy === SortingField.EstimatedMatching) {
+    query.leftJoin(
+      'project.projectEstimatedMatchingView',
+      'projectEstimatedMatchingView',
+      'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
+      { qfRoundId: activeQfRoundId },
+    );
+  }
+
   switch (sortingBy) {
     case SortingField.MostFunded:
       query.orderBy('project.totalDonations', OrderDirection.DESC);
@@ -185,7 +197,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           'NULLS LAST',
         );
       break;
-    case SortingField.InstantBoosting:
+    case SortingField.InstantBoosting: // This is our default sorting
       query
         .orderBy(`project.verified`, OrderDirection.DESC)
         .addOrderBy(
@@ -193,22 +205,22 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           OrderDirection.DESC,
           'NULLS LAST',
         );
+      if (isFilterByQF) {
+        query.addOrderBy(
+          'project.sumDonationValueUsdForActiveQfRound',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        );
+      } else {
+        query.addOrderBy('project.totalDonations', OrderDirection.DESC);
+      }
+      query.addOrderBy('project.totalReactions', OrderDirection.DESC);
       break;
     case SortingField.ActiveQfRoundRaisedFunds:
       if (activeQfRoundId) {
         query
-          .leftJoin(
-            'project.projectEstimatedMatchingView',
-            'projectEstimatedMatchingView',
-            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
-            { qfRoundId: activeQfRoundId },
-          )
-          .addSelect([
-            'projectEstimatedMatchingView.sumValueUsd',
-            'projectEstimatedMatchingView.qfRoundId',
-          ])
           .orderBy(
-            'projectEstimatedMatchingView.sumValueUsd',
+            'project.sumDonationValueUsdForActiveQfRound',
             OrderDirection.DESC,
             'NULLS LAST',
           )
@@ -218,16 +230,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.EstimatedMatching:
       if (activeQfRoundId) {
         query
-          .leftJoin(
-            'project.projectEstimatedMatchingView',
-            'projectEstimatedMatchingView',
-            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
-            { qfRoundId: activeQfRoundId },
-          )
-          .addSelect([
-            'projectEstimatedMatchingView.sqrtRootSum',
-            'projectEstimatedMatchingView.qfRoundId',
-          ])
+          .addSelect('projectEstimatedMatchingView.sqrtRootSum')
           .orderBy(
             'projectEstimatedMatchingView.sqrtRootSum',
             OrderDirection.DESC,
@@ -255,6 +258,14 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
     .leftJoin('project.projectUpdates', 'projectUpdates')
     .select('project.id', 'projectId')
     .addSelect('MAX(projectUpdates.createdAt)', 'latestUpdate')
+    .where('project.isImported = false')
+    .andWhere('project.verified = true')
+    .andWhere(
+      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
+      {
+        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
+      },
+    )
     .groupBy('project.id')
     .having('MAX(projectUpdates.createdAt) < :date', { date })
     .getRawMany();
@@ -264,21 +275,9 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
   );
 
   const projects = await Project.createQueryBuilder('project')
-    .where('project.isImported = false')
-    .andWhere('project.verified = true')
-    .andWhere(
-      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
-      {
-        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
-      },
-    )
-    .andWhereInIds(validProjectIds)
-    .leftJoinAndSelect(
-      'project.projectVerificationForm',
-      'projectVerificationForm',
-    )
-    .leftJoinAndSelect('project.adminUser', 'user')
-    .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+    .whereInIds(validProjectIds)
+    .leftJoin('project.projectUpdates', 'projectUpdates')
+    .addSelect(['projectUpdates.createdAt', 'projectUpdates.id'])
     .getMany();
 
   projects.forEach(project => {
@@ -306,6 +305,16 @@ export const findProjectBySlug = (slug: string): Promise<Project | null> => {
       })
       .getOne()
   );
+};
+
+export const findProjectIdBySlug = (slug: string): Promise<Project | null> => {
+  // check current slug and previous slugs
+  return Project.createQueryBuilder('project')
+    .select('project.id')
+    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+      slug,
+    })
+    .getOne();
 };
 
 export const findProjectBySlugWithoutAnyJoin = (
@@ -425,7 +434,7 @@ export const userIsOwnerOfProject = async (
 export const totalProjectsPerDate = async (
   fromDate?: string,
   toDate?: string,
-  includesOptimism?: boolean,
+  networkId?: number,
   onlyListed?: boolean,
   onlyVerified?: boolean,
 ): Promise<number> => {
@@ -447,17 +456,17 @@ export const totalProjectsPerDate = async (
     query.andWhere(`project."reviewStatus" = 'Listed'`);
   }
 
-  if (includesOptimism) {
+  if (networkId) {
     query.innerJoin(
       `project.addresses`,
       'addresses',
-      'addresses."networkId" = 10',
+      `addresses."networkId" = ${networkId}`,
     );
   }
 
   query.cache(
     `totalProjectPerDate-${fromDate || ''}-${toDate || ''}-${
-      includesOptimism || 'all'
+      networkId || 'all'
     }-${onlyVerified || 'all'}-${onlyListed || 'all'}`,
     300000,
   );
@@ -468,7 +477,7 @@ export const totalProjectsPerDate = async (
 export const totalProjectsPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
-  includesOptimism?: boolean,
+  networkId?: number,
   onlyListed?: boolean,
   onlyVerified?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
@@ -492,11 +501,11 @@ export const totalProjectsPerDateByMonthAndYear = async (
     query.andWhere(`project."reviewStatus" = 'Listed'`);
   }
 
-  if (includesOptimism) {
+  if (networkId) {
     query.innerJoin(
       `project.addresses`,
       'addresses',
-      'addresses."networkId" = 10',
+      `addresses."networkId" = ${networkId}`,
     );
   }
 
@@ -505,7 +514,7 @@ export const totalProjectsPerDateByMonthAndYear = async (
   query.addOrderBy('month', 'ASC');
   query.cache(
     `totalProjectsPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}-${
-      includesOptimism || 'all'
+      networkId || 'all'
     }-${onlyVerified || 'all'}-${onlyListed || 'all'}`,
     300000,
   );

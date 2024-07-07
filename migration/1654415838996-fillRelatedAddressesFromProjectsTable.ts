@@ -15,7 +15,7 @@ const insertRelatedAddress = async (params: {
                   "networkId", address, "projectId", "userId", "isRecipient")
                   VALUES (${networkId}, '${project.walletAddress?.toLowerCase()}', ${
                     project.id
-                  }, ${Number(project.admin)}, true);
+                  }, ${project.adminUserId}, true);
               `,
   );
 };

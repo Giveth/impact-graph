@@ -1,5 +1,5 @@
 import { Max, Min } from 'class-validator';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, getMetadataArgsStorage, Repository } from 'typeorm';
 import { Service } from 'typedi';
 import {
   Arg,
@@ -7,6 +7,7 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Info,
   InputType,
   Int,
   Mutation,
@@ -15,6 +16,7 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
+import graphqlFields from 'graphql-fields';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { Reaction } from '../entities/reaction';
@@ -40,7 +42,6 @@ import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { ApolloContext } from '../types/ApolloContext';
 import { publicSelectionFields, User } from '../entities/user';
-import config from '../config';
 import { Context } from '../context';
 import SentryLogger from '../sentryLogger';
 import {
@@ -78,15 +79,14 @@ import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
   findProjectById,
-  findProjectBySlugWithoutAnyJoin,
+  findProjectIdBySlug,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
-  userIsOwnerOfProject,
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { NETWORK_IDS } from '../provider';
-import { getVerificationFormByProjectId } from '../repositories/projectVerificationRepository';
+import { getVerificationFormStatusByProjectId } from '../repositories/projectVerificationRepository';
 import {
   resourcePerDateReportValidator,
   validateWithJoiSchema,
@@ -319,40 +319,27 @@ export class ProjectResolver {
     searchTerm?: string,
   ) {
     if (!searchTerm) return query;
-    const similarityThreshold =
-      Number(config.get('PROJECT_SEARCH_SIMILARITY_THRESHOLD')) || 0.4;
 
-    return query.andWhere(
-      new Brackets(qb => {
-        qb.where(
-          'WORD_SIMILARITY(project.title, :searchTerm) > :similarityThreshold',
-          {
-            searchTerm: `%${searchTerm}%`,
-            similarityThreshold,
-          },
+    return (
+      query
+        // For future use! This is the way to use similarity in TypeORM
+        // .addSelect('similarity(project.title, :searchTerm)', 'title_slm')
+        // .addSelect('similarity(project.description, :searchTerm)', 'desc_slm')
+        // .addSelect('similarity(project.impactLocation, :searchTerm)', 'loc_slm')
+        // .setParameter('searchTerm', searchTerm)
+        .andWhere(
+          new Brackets(qb => {
+            qb.where('project.title %> :searchTerm ', {
+              searchTerm,
+            })
+              .orWhere('project.description %> :searchTerm ', {
+                searchTerm,
+              })
+              .orWhere('project.impactLocation %> :searchTerm', {
+                searchTerm,
+              });
+          }),
         )
-          .orWhere(
-            'WORD_SIMILARITY(project.description, :searchTerm) > :similarityThreshold',
-            {
-              searchTerm: `%${searchTerm}%`,
-              similarityThreshold,
-            },
-          )
-          .orWhere(
-            'WORD_SIMILARITY(project.impactLocation, :searchTerm) > :similarityThreshold',
-            {
-              searchTerm: `%${searchTerm}%`,
-              similarityThreshold,
-            },
-          )
-          .orWhere(
-            'WORD_SIMILARITY(user.name, :searchTerm) > :similarityThreshold',
-            {
-              searchTerm: `%${searchTerm}%`,
-              similarityThreshold,
-            },
-          );
-      }),
     );
   }
 
@@ -478,9 +465,9 @@ export class ProjectResolver {
     query: SelectQueryBuilder<Project>,
     take: number,
     skip: number,
-    ownerId?: string | null,
+    ownerId?: number | null,
   ): Promise<AllProjects> {
-    query.andWhere('project.admin = :ownerId', { ownerId });
+    query.andWhere('project.adminUserId = :ownerId', { ownerId });
     const [projects, totalCount] = await query
       .orderBy('project.creationDate', 'DESC')
       .take(take)
@@ -538,6 +525,16 @@ export class ProjectResolver {
         case FilterField.AcceptFundOnArbitrum:
           networkIds.push(NETWORK_IDS.ARBITRUM_MAINNET);
           networkIds.push(NETWORK_IDS.ARBITRUM_SEPOLIA);
+          return;
+
+        case FilterField.AcceptFundOnBase:
+          networkIds.push(NETWORK_IDS.BASE_MAINNET);
+          networkIds.push(NETWORK_IDS.BASE_SEPOLIA);
+          return;
+
+        case FilterField.AcceptFundOnZKEVM:
+          networkIds.push(NETWORK_IDS.ZKEVM_MAINNET);
+          networkIds.push(NETWORK_IDS.ZKEVM_CARDONA);
           return;
 
         case FilterField.AcceptFundOnPolygon:
@@ -727,7 +724,8 @@ export class ProjectResolver {
 
     if (
       sortingBy === SortingField.ActiveQfRoundRaisedFunds ||
-      sortingBy === SortingField.EstimatedMatching
+      sortingBy === SortingField.EstimatedMatching ||
+      sortingBy === SortingField.InstantBoosting
     ) {
       activeQfRoundId = (await findActiveQfRound())?.id;
     }
@@ -834,32 +832,77 @@ export class ProjectResolver {
     @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
+    @Info() info: any,
   ) {
+    const fields = graphqlFields(info);
+
     let query = this.projectRepository
       .createQueryBuilder('project')
       .where(`project.id=:id`, {
         id,
       })
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
-      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-      .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields); // aliased selection
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+      .leftJoinAndSelect('project.status', 'status');
+
+    if (fields.categories) {
+      query = query
+        .leftJoinAndSelect(
+          'project.categories',
+          'categories',
+          'categories.isActive = :isActive',
+          { isActive: true },
+        )
+        .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
+    }
+    if (fields.organization) {
+      query = query.leftJoinAndSelect('project.organization', 'organization');
+    }
+    if (fields.addresses) {
+      query = query.leftJoinAndSelect('project.addresses', 'addresses');
+    }
+    if (fields.socialMedia) {
+      query = query.leftJoinAndSelect('project.socialMedia', 'socialMedia');
+    }
+    if (fields.anchorContracts) {
+      query = query.leftJoinAndSelect(
+        'project.anchorContracts',
+        'anchor_contract_address',
+      );
+    }
+    if (fields.adminUser) {
+      const adminUserFields = Object.keys(fields.adminUser).map(
+        field => `user.${field}`,
+      );
+      const filterByPublicFields = publicSelectionFields.filter(field =>
+        adminUserFields.includes(field),
+      );
+      query = query
+        .leftJoin('project.adminUser', 'user')
+        .addSelect(
+          filterByPublicFields.length > 0
+            ? filterByPublicFields
+            : publicSelectionFields,
+        ); // aliased selection
+    }
+    if (fields.reaction) {
+      query = ProjectResolver.addUserReaction(
+        query,
+        connectedWalletUserId,
+        user,
+      );
+    }
+
     const project = await query.getOne();
 
-    canUserVisitProject(project, String(user?.userId));
+    canUserVisitProject(project, user?.userId);
 
     return project;
+  }
+
+  // Helper method to get the fields of the Project entity
+  private getEntityFields(entity: typeof Project): string[] {
+    const metadata = getMetadataArgsStorage();
+    const columns = metadata.columns.filter(col => col.target === entity);
+    return columns.map(col => col.propertyName);
   }
 
   @Query(_returns => ProjectBySlugResponse)
@@ -868,45 +911,85 @@ export class ProjectResolver {
     @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
+    @Info() info: any,
   ) {
-    const viewerUserId = connectedWalletUserId || user?.userId;
-    let isOwnerOfProject = false;
-
-    // ensure it's the owner
-    if (viewerUserId) {
-      isOwnerOfProject = await userIsOwnerOfProject(viewerUserId, slug);
-    }
-
-    const minimalProject = await findProjectBySlugWithoutAnyJoin(slug);
+    const minimalProject = await findProjectIdBySlug(slug);
     if (!minimalProject) {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
-    const campaignSlugs = (await getAllProjectsRelatedToActiveCampaigns())[
-      minimalProject.id
-    ];
+
+    // Extract requested fields
+    const fields = graphqlFields(info);
+    const projectFields = this.getEntityFields(Project);
+
+    // Filter requested fields to only include those in the Project entity
+    const selectedFields = Object.keys(fields).filter(field =>
+      projectFields.includes(field),
+    );
+
+    // Dynamically build the select fields
+    const selectFields = selectedFields.map(field => `project.${field}`);
 
     let query = this.projectRepository
       .createQueryBuilder('project')
+      .select(selectFields)
       .where(`project.id = :id`, {
         id: minimalProject.id,
       })
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
-      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-      .leftJoinAndSelect('project.projectPower', 'projectPower')
-      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
-      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
-      .leftJoinAndMapMany(
+      .leftJoinAndSelect('project.status', 'status');
+
+    if (fields.categories) {
+      query = query
+        .leftJoinAndSelect(
+          'project.categories',
+          'categories',
+          'categories.isActive = :isActive',
+          { isActive: true },
+        )
+        .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+        .orderBy({
+          'mainCategory.title': 'ASC',
+          'categories.name': 'ASC',
+        });
+    }
+    if (fields.organization) {
+      query = query.leftJoinAndSelect('project.organization', 'organization');
+    }
+    if (fields.addresses) {
+      query = query.leftJoinAndSelect('project.addresses', 'addresses');
+    }
+    if (fields.socialMedia) {
+      query = query.leftJoinAndSelect('project.socialMedia', 'socialMedia');
+    }
+    if (fields.anchorContracts) {
+      query = query.leftJoinAndSelect(
+        'project.anchorContracts',
+        'anchor_contract_address',
+      );
+    }
+    if (fields.projectPower) {
+      query = query.leftJoinAndSelect('project.projectPower', 'projectPower');
+    }
+    if (fields.projectInstantPower) {
+      query = query.leftJoinAndSelect(
+        'project.projectInstantPower',
+        'projectInstantPower',
+      );
+    }
+    if (fields.qfRounds) {
+      query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+    }
+    if (fields.projectFuturePower) {
+      query = query.leftJoinAndSelect(
+        'project.projectFuturePower',
+        'projectFuturePower',
+      );
+    }
+    if (fields.campaigns) {
+      const campaignSlugs = (await getAllProjectsRelatedToActiveCampaigns())[
+        minimalProject.id
+      ];
+      query = query.leftJoinAndMapMany(
         'project.campaigns',
         Campaign,
         'campaigns',
@@ -915,38 +998,48 @@ export class ProjectResolver {
           slug,
           campaignSlugs,
         },
-      )
-      .leftJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields); // aliased selection
-
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-
-    if (isOwnerOfProject) {
-      query = ProjectResolver.addProjectVerificationForm(
+      );
+    }
+    if (fields.adminUser) {
+      const adminUserFields = Object.keys(fields.adminUser).map(
+        field => `user.${field}`,
+      );
+      const filterByPublicFields = publicSelectionFields.filter(field =>
+        adminUserFields.includes(field),
+      );
+      query = query
+        .leftJoin('project.adminUser', 'user')
+        .addSelect(
+          filterByPublicFields.length > 0
+            ? filterByPublicFields
+            : publicSelectionFields,
+        ); // aliased selection
+    }
+    if (fields.reaction) {
+      query = ProjectResolver.addUserReaction(
         query,
         connectedWalletUserId,
         user,
       );
     }
 
-    query = query.orderBy({
-      'mainCategory.title': 'ASC',
-      'categories.name': 'ASC',
-    });
-
     const project = await query.getOne();
-    canUserVisitProject(project, String(user?.userId));
-    const verificationForm =
-      project?.projectVerificationForm ||
-      (await getVerificationFormByProjectId(project?.id as number));
-    if (verificationForm) {
-      (project as Project).verificationFormStatus = verificationForm?.status;
+    canUserVisitProject(project, user?.userId);
+
+    if (fields.verificationFormStatus) {
+      const verificationForm = await getVerificationFormStatusByProjectId(
+        project?.id as number,
+      );
+      if (verificationForm) {
+        (project as Project).verificationFormStatus = verificationForm?.status;
+      }
     }
-
+    if (fields.givbackFactor) {
+      const { givbackFactor } = await calculateGivbackFactor(project!.id);
+      return { ...project, givbackFactor };
+    }
     // We know that we have the project because if we reach this line means minimalProject is not null
-    const { givbackFactor } = await calculateGivbackFactor(project!.id);
-
-    return { ...project, givbackFactor };
+    return project;
   }
 
   @Mutation(_returns => Project)
@@ -967,10 +1060,10 @@ export class ProjectResolver {
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
 
-    logger.debug(`project.admin ---> : ${project.admin}`);
+    logger.debug(`project.adminUserId ---> : ${project.adminUserId}`);
     logger.debug(`user.userId ---> : ${user.userId}`);
     logger.debug(`updateProject, inputData :`, newProjectData);
-    if (project.admin !== String(user.userId))
+    if (project.adminUserId !== user.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
@@ -1076,7 +1169,7 @@ export class ProjectResolver {
       }
     }
 
-    const adminUser = (await findUserById(Number(project.admin))) as User;
+    const adminUser = (await findUserById(project.adminUserId)) as User;
     if (newProjectData.addresses) {
       await removeRecipientAddressOfProject({ project });
       await addBulkNewProjectAddress(
@@ -1129,7 +1222,7 @@ export class ProjectResolver {
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
 
-    if (project.admin !== String(user.userId)) {
+    if (project.adminUserId !== user.userId) {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
@@ -1137,7 +1230,7 @@ export class ProjectResolver {
 
     await validateProjectWalletAddress(address, projectId, chainType);
 
-    const adminUser = (await findUserById(Number(project.admin))) as User;
+    const adminUser = (await findUserById(project.adminUserId)) as User;
     await addNewProjectAddress({
       project,
       user: adminUser,
@@ -1184,6 +1277,7 @@ export class ProjectResolver {
 
         return response;
       } catch (e) {
+        logger.error('upload image failed in project resolver', e);
         throw Error(i18n.__(translationErrorMessagesKeys.UPLOAD_FAILED));
       }
     }
@@ -1197,7 +1291,7 @@ export class ProjectResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('onlyListed', { nullable: true }) onlyListed?: boolean,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
-    @Arg('includesOptimism', { nullable: true }) includesOptimism?: boolean,
+    @Arg('networkId', { nullable: true }) networkId?: number,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -1207,14 +1301,14 @@ export class ProjectResolver {
       const total = await totalProjectsPerDate(
         fromDate,
         toDate,
-        includesOptimism,
+        networkId,
         onlyListed,
         onlyVerified,
       );
       const totalPerMonthAndYear = await totalProjectsPerDateByMonthAndYear(
         fromDate,
         toDate,
-        includesOptimism,
+        networkId,
         onlyListed,
         onlyVerified,
       );
@@ -1325,7 +1419,6 @@ export class ProjectResolver {
 
     const project = Project.create({
       ...projectInput,
-
       categories: categories as Category[],
       organization: organization as Organization,
       image,
@@ -1333,8 +1426,7 @@ export class ProjectResolver {
       updatedAt: now,
       slug: slug.toLowerCase(),
       slugHistory: [],
-      admin: String(ctx.req.user.userId),
-      users: [user],
+      adminUserId: ctx.req.user.userId,
       status: status as ProjectStatus,
       qualityScore,
       totalDonations: 0,
@@ -1439,7 +1531,7 @@ export class ProjectResolver {
 
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
-    if (project.admin !== String(user.userId))
+    if (project.adminUserId !== user.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
@@ -1499,7 +1591,7 @@ export class ProjectResolver {
     const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
-    if (project.admin !== String(user.userId))
+    if (project.adminUserId !== user.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
@@ -1531,7 +1623,7 @@ export class ProjectResolver {
     const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
-    if (project.admin !== String(user.userId))
+    if (project.adminUserId !== user.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
@@ -1724,7 +1816,7 @@ export class ProjectResolver {
       );
     }
 
-    query = query.where('project.admin = :userId', { userId: String(userId) });
+    query = query.where('project.adminUserId = :userId', { userId });
 
     if (userId !== user?.userId) {
       query = query.andWhere(
@@ -1865,7 +1957,7 @@ export class ProjectResolver {
             query,
             take,
             skip,
-            viewedProject?.admin,
+            viewedProject?.adminUserId,
           );
         }
       }

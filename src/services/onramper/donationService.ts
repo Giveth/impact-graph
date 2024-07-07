@@ -7,16 +7,14 @@ import { findProjectById } from '../../repositories/projectRepository';
 import { findUserById } from '../../repositories/userRepository';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
-import {
-  isTokenAcceptableForProject,
-  updateTotalDonationsOfProject,
-} from '../donationService';
+import { isTokenAcceptableForProject } from '../donationService';
 import { OnRamperFiatTransaction, OnRamperMetadata } from './fiatTransaction';
 import SentryLogger from '../../sentryLogger';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
+import { updateProjectStatistics } from '../projectService';
 
 export const createFiatDonationFromOnramper = async (
   fiatTransaction: OnRamperFiatTransaction,
@@ -146,8 +144,8 @@ export const createFiatDonationFromOnramper = async (
     }
 
     // After updating price we update totalDonations
-    await updateTotalDonationsOfProject(project.id);
-    await updateUserTotalReceived(Number(project.admin));
+    await updateProjectStatistics(project.id);
+    await updateUserTotalReceived(project.adminUserId);
   } catch (e) {
     SentryLogger.captureException(e);
     logger.error('createFiatDonationFromOnramper() error', e);

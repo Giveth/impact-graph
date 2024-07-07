@@ -134,7 +134,6 @@ const createGivingProject = async (data: {
       image: givingBlockProject.logo,
       slugHistory: [],
       givingBlocksId: String(givingBlockProject.id),
-      admin: adminId,
       statusId: activeStatus?.id,
       qualityScore,
       totalDonations: 0,

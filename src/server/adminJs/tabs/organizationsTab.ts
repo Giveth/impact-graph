@@ -8,6 +8,14 @@ export const organizationsTab = {
   resource: Organization,
   options: {
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessOrganizationAction({ currentAdmin }, ResourceActions.LIST),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessOrganizationAction({ currentAdmin }, ResourceActions.SHOW),
+      },
       delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>

@@ -4,11 +4,7 @@ import {
   getSuperFluidAdapter,
 } from '../../adapters/adaptersFactory';
 import config from '../../config';
-import {
-  RecurringDonation,
-  RecurringDonationBalanceWarning,
-} from '../../entities/recurringDonation';
-import { superTokensToToken } from '../../provider';
+import { RecurringDonation } from '../../entities/recurringDonation';
 import { redisConfig } from '../../redis';
 import { findUserById } from '../../repositories/userRepository';
 import { logger } from '../../utils/logger';
@@ -17,6 +13,8 @@ import {
   findRecurringDonationById,
 } from '../../repositories/recurringDonationRepository';
 import { getCurrentDateFormatted } from '../../utils/utils';
+import { getNetworkNameById, superTokens } from '../../provider';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 
 const runCheckUserSuperTokenBalancesQueue = new Bull(
   'user-token-balances-stream-queue',
@@ -83,14 +81,12 @@ export function processRecurringDonationBalancesJobs() {
 export const checkRecurringDonationBalances = async (params: {
   recurringDonationId: number;
 }) => {
-  logger.debug(
-    'checkRecurringDonationBalances() has been called for id',
-    params.recurringDonationId,
-  );
   const recurringDonation = await findRecurringDonationById(
     params.recurringDonationId,
   );
-
+  logger.debug(
+    `checkRecurringDonationBalances() has been called for id ${params.recurringDonationId}`,
+  );
   if (!recurringDonation) return;
   await validateDonorSuperTokenBalance(recurringDonation);
 };
@@ -103,47 +99,69 @@ export const validateDonorSuperTokenBalance = async (
   const superFluidAdapter = getSuperFluidAdapter();
   const user = await findUserById(recurringDonation.donorId);
 
-  if (user) return;
+  if (!user) return;
 
   const accountBalances = await superFluidAdapter.accountBalance(
-    user!.walletAddress!,
+    user.walletAddress!,
+  );
+
+  logger.debug(
+    `validateDonorSuperTokenBalance for recurringDonation id ${recurringDonation.id}`,
+    { accountBalances, userId: user.id },
   );
 
   if (!accountBalances || accountBalances.length === 0) return;
 
-  for (const tokenBalance of accountBalances.accountTokenSnapshots) {
+  for (const tokenBalance of accountBalances) {
     const { maybeCriticalAtTimestamp, token } = tokenBalance;
-    if (
-      Object.keys(superTokensToToken).includes(token.symbol) &&
-      maybeCriticalAtTimestamp
-    ) {
-      if (!user!.email) continue;
-      const nowInSec = Number((Date.now() / 1000).toFixed());
-      const balanceLongerThanMonth =
-        nowInSec - maybeCriticalAtTimestamp > monthInSec;
-      if (balanceLongerThanMonth) {
-        recurringDonation.balanceWarning = null;
-        await recurringDonation.save();
-        continue;
+    if (!user!.email) continue;
+    const tokenSymbol = superTokens.find(t => t.id === token.id)
+      ?.underlyingToken.symbol;
+    // We shouldn't notify the user if the token is not the same as the recurring donation
+    if (tokenSymbol !== recurringDonation.currency) continue;
+    const nowInSec = Number((Date.now() / 1000).toFixed());
+    const balanceLongerThanMonth =
+      Math.abs(nowInSec - maybeCriticalAtTimestamp) > monthInSec;
+    if (balanceLongerThanMonth) {
+      if (user.streamBalanceWarning) {
+        user.streamBalanceWarning[tokenSymbol] = null;
+        await user.save();
       }
-      const balanceLongerThanWeek =
-        nowInSec - maybeCriticalAtTimestamp > weekInSec;
-      const balanceWarning = balanceLongerThanWeek
-        ? RecurringDonationBalanceWarning.WEEK
-        : RecurringDonationBalanceWarning.MONTH;
-      // If the balance warning is the same, we've already sent the notification
-      if (recurringDonation.balanceWarning === balanceWarning) continue;
-      recurringDonation.balanceWarning = balanceWarning;
-      await recurringDonation.save();
-      // Notify user their super token is running out
-      await getNotificationAdapter().userSuperTokensCritical({
-        userId: user!.id,
-        email: user!.email,
-        criticalDate: balanceWarning,
-        tokenSymbol: token.symbol,
-        isEnded: recurringDonation.finished,
-        project: recurringDonation.project,
-      });
+      continue;
     }
+    const balanceLongerThanWeek =
+      Math.abs(nowInSec - maybeCriticalAtTimestamp) > weekInSec;
+
+    const depletedBalance =
+      maybeCriticalAtTimestamp === 0 || !maybeCriticalAtTimestamp;
+    const eventName = depletedBalance
+      ? NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_DEPLETED
+      : balanceLongerThanWeek
+        ? NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_MONTH
+        : NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_WEEK;
+
+    // If the balance warning is the same, we've already sent the notification
+    if (
+      user.streamBalanceWarning &&
+      user.streamBalanceWarning[tokenSymbol] === eventName
+    )
+      continue;
+    if (user.streamBalanceWarning) {
+      user.streamBalanceWarning[tokenSymbol] = eventName;
+    } else {
+      user.streamBalanceWarning = {
+        [tokenSymbol]: eventName,
+      };
+    }
+    await user.save();
+    // Notify user their super token is running out
+    await getNotificationAdapter().userSuperTokensCritical({
+      user,
+      eventName,
+      tokenSymbol: tokenSymbol!,
+      isEnded: recurringDonation.finished,
+      project: recurringDonation.project,
+      networkName: getNetworkNameById(recurringDonation.networkId),
+    });
   }
 };

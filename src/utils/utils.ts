@@ -416,6 +416,10 @@ export const getHtmlTextSummary = (
 
 export const isTestEnv = (config.get('ENVIRONMENT') as string) === 'test';
 
+export const isStaging = (config.get('ENVIRONMENT') as string) === 'staging';
+export const isProduction =
+  (config.get('ENVIRONMENT') as string) === 'production';
+
 export const dateToTimestampMs = (date: Date | string | number): number => {
   return new Date(date).valueOf();
 };

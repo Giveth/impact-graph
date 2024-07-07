@@ -52,7 +52,7 @@ export const projectHeaders = [
   'id',
   'title',
   'slug',
-  'admin',
+  'adminUserId',
   'creationDate',
   'updatedAt',
   'impactLocation',

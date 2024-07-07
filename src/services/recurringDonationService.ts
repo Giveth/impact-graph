@@ -5,13 +5,18 @@ import {
   getNotificationAdapter,
   getSuperFluidAdapter,
 } from '../adapters/adaptersFactory';
-import { DONATION_STATUS, Donation } from '../entities/donation';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
 } from '../entities/recurringDonation';
 import { Token } from '../entities/token';
-import { getProvider, NETWORK_IDS, superTokensToToken } from '../provider';
+import {
+  getNetworkNameById,
+  getProvider,
+  NETWORK_IDS,
+  superTokensToToken,
+} from '../provider';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import {
@@ -25,13 +30,14 @@ import { logger } from '../utils/logger';
 import {
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
-  updateTotalDonationsOfProject,
 } from './donationService';
 import { calculateGivbackFactor } from './givbackService';
-import { relatedActiveQfRoundForProject } from './qfRoundService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 import config from '../config';
 import { User } from '../entities/user';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
+import { relatedActiveQfRoundForProject } from './qfRoundService';
+import { updateProjectStatistics } from './projectService';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';
@@ -79,6 +85,14 @@ export const createRelatedDonationsToStream = async (
     recurringDonation.finished = true;
     recurringDonation.status = RECURRING_DONATION_STATUS.ENDED;
     await recurringDonation.save();
+    await getNotificationAdapter().userSuperTokensCritical({
+      user: recurringDonation.donor,
+      eventName: NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_DEPLETED,
+      tokenSymbol: recurringDonation.currency,
+      isEnded: recurringDonation.finished,
+      project: recurringDonation.project,
+      networkName: getNetworkNameById(recurringDonation.networkId),
+    });
   }
 
   const project = await findProjectById(recurringDonation.projectId);
@@ -114,7 +128,7 @@ export const createRelatedDonationsToStream = async (
     try {
       const environment = config.get('ENVIRONMENT') as string;
 
-      const networkId =
+      const networkId: number =
         environment !== 'production'
           ? NETWORK_IDS.OPTIMISM_SEPOLIA
           : NETWORK_IDS.OPTIMISTIC;
@@ -161,8 +175,7 @@ export const createRelatedDonationsToStream = async (
 
       const toAddress = projectRelatedAddress?.address?.toLowerCase();
       const fromAddress = donorUser.walletAddress?.toLowerCase();
-      const transactionTx = streamData.id?.toLowerCase() as string;
-
+      const transactionTx = `${streamData.id?.toLowerCase()}-${streamPeriod.endTime}`;
       const donation = Donation.create({
         amount: normalizeNegativeAmount(
           streamPeriod.amount,
@@ -194,6 +207,11 @@ export const createRelatedDonationsToStream = async (
       });
 
       await donation.save();
+      logger.debug(`Streamed donation has been created successfully`, {
+        donationId: donation.id,
+        recurringDonationId: recurringDonation.id,
+        amount: donation.amount,
+      });
 
       const activeQfRoundForProject = await relatedActiveQfRoundForProject(
         project.id,
@@ -203,7 +221,9 @@ export const createRelatedDonationsToStream = async (
         activeQfRoundForProject &&
         activeQfRoundForProject.isEligibleNetwork(networkId)
       ) {
+        const projectOwner = await User.findOneBy({ id: project.adminUserId });
         donation.qfRound = activeQfRoundForProject;
+        donation.qfRoundUserScore = projectOwner?.passportScore;
       }
 
       const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
@@ -224,15 +244,27 @@ export const createRelatedDonationsToStream = async (
         );
       }
 
+      logger.debug(`Streamed donation After filling valueUsd`, {
+        donationId: donation.id,
+        recurringDonationId: recurringDonation.id,
+        amount: donation.amount,
+        valueUsd: donation.valueUsd,
+      });
       await updateRecurringDonationFromTheStreamDonations(recurringDonation.id);
 
       await updateUserTotalDonated(donation.userId);
 
       // After updating price we update totalDonations
-      await updateTotalDonationsOfProject(donation.projectId);
+      await updateProjectStatistics(donation.projectId);
       await updateUserTotalReceived(project!.adminUser.id);
     } catch (e) {
-      logger.error('createRelatedDonationsToStream() error', e);
+      logger.error(
+        'createRelatedDonationsToStream() error',
+        {
+          recurringDonationId: recurringDonation.id,
+        },
+        e,
+      );
     }
   }
 };
@@ -244,43 +276,59 @@ export function normalizeNegativeAmount(
   return Math.abs(Number(amount)) / 10 ** decimals;
 }
 
-export const updateRecurringDonationStatusWithNetwork = async (params: {
-  donationId: number;
-}): Promise<RecurringDonation> => {
-  // TODO should refactor this function and make it smaller
-  logger.debug(
-    'updateRecurringDonationStatusWithNetwork() has been called',
-    params,
-  );
-  const recurringDonation = await findRecurringDonationById(params.donationId);
-  if (!recurringDonation) {
-    throw new Error('Recurring donation not found');
-  }
+export const getRecurringDonationTxInfo = async (params: {
+  txHash: string;
+  networkId: number;
+  isBatch: boolean;
+}): Promise<
+  {
+    receiver: string;
+    flowRate: string;
+    tokenAddress: string;
+  }[]
+> => {
+  const { txHash, networkId, isBatch } = params;
+  const output: {
+    receiver: string;
+    flowRate: string;
+    tokenAddress: string;
+  }[] = [];
+
+  logger.debug('getRecurringDonationTxInfo() has been called', params);
+
   try {
-    const web3Provider = getProvider(recurringDonation!.networkId);
-    const networkData = await web3Provider.getTransaction(
-      recurringDonation!.txHash,
-    );
+    const web3Provider = getProvider(networkId);
+    const networkData = await web3Provider.getTransaction(txHash);
     if (!networkData) {
-      logger.debug(
+      logger.error(
         'Transaction not found in the network. maybe its not mined yet',
         {
-          recurringDonationId: recurringDonation?.id,
-          txHash: recurringDonation?.txHash,
+          networkId,
+          txHash,
         },
       );
-      return recurringDonation.save();
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
+      );
     }
+
     let receiverLowercase = '';
     let flowRateBigNumber = '';
+    let tokenAddress = '';
 
-    if (!recurringDonation.isBatch) {
+    if (!isBatch) {
       const abiPath = path.join(__dirname, '../abi/superFluidAbi.json');
       const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
       const iface = new ethers.utils.Interface(abi);
       const decodedData = iface.parseTransaction({ data: networkData.data });
+      tokenAddress = decodedData.args[0].toLowerCase();
       receiverLowercase = decodedData.args[2].toLowerCase();
       flowRateBigNumber = decodedData.args[3];
+      output.push({
+        tokenAddress,
+        receiver: receiverLowercase,
+        flowRate: ethers.BigNumber.from(flowRateBigNumber).toString(),
+      });
     } else {
       // ABI comes from https://sepolia-optimism.etherscan.io/address/0x78743a68d52c9d6ccf3ff4558f3af510592e3c2d#code
       const abiPath = path.join(__dirname, '../abi/superFluidAbiBatch.json');
@@ -304,40 +352,52 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
         const finalDecodedData = decodedDataIface.parseTransaction({
           data: decodedOperationData[0],
         });
-
-        if (
-          finalDecodedData.args[1].toLowerCase() ===
-          recurringDonation?.anchorContractAddress?.address?.toLowerCase()
-        ) {
-          receiverLowercase = finalDecodedData.args[1].toLowerCase();
-          flowRateBigNumber = finalDecodedData.args[2];
-          continue;
-        }
+        receiverLowercase = finalDecodedData.args[1].toLowerCase();
+        flowRateBigNumber = finalDecodedData.args[2];
+        tokenAddress = decodedData.args[0].toLowerCase();
+        output.push({
+          tokenAddress,
+          receiver: receiverLowercase,
+          flowRate: ethers.BigNumber.from(flowRateBigNumber).toString(),
+        });
       }
     }
 
-    if (
-      recurringDonation?.anchorContractAddress?.address?.toLowerCase() !==
-      receiverLowercase
-    ) {
-      recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
-      recurringDonation.finished = true;
-      return recurringDonation.save();
-    }
-    const flowRate = ethers.BigNumber.from(flowRateBigNumber).toString();
-    if (recurringDonation?.flowRate !== flowRate) {
-      logger.debug(
-        'Recurring donation flowRate does not match the receiver address of the transaction data.',
-        {
-          recurringDonationId: recurringDonation?.id,
-          donationFlowRate: recurringDonation?.flowRate,
-          flowRate: flowRate,
-          txHash: recurringDonation?.txHash,
-        },
+    return output;
+  } catch (e) {
+    logger.error('getRecurringDonationTxInfo() error', {
+      error: e,
+      params,
+    });
+    throw e;
+  }
+};
+
+export const updateRecurringDonationStatusWithNetwork = async (params: {
+  donationId: number;
+}): Promise<RecurringDonation> => {
+  logger.debug(
+    'updateRecurringDonationStatusWithNetwork() has been called',
+    params,
+  );
+  const recurringDonation = await findRecurringDonationById(params.donationId);
+  if (!recurringDonation) {
+    throw new Error('Recurring donation not found');
+  }
+
+  try {
+    const superFluidAdapter = getSuperFluidAdapter();
+    const txData = await superFluidAdapter.getFlowByTxHash({
+      receiver:
+        recurringDonation?.anchorContractAddress?.address?.toLowerCase() as string,
+      flowRate: recurringDonation.flowRate,
+      sender: recurringDonation?.donor?.walletAddress?.toLowerCase() as string,
+      transactionHash: recurringDonation.txHash,
+    });
+    if (!txData) {
+      throw new Error(
+        `SuperFluid tx not found in the subgraph txHash:${recurringDonation.txHash}`,
       );
-      recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
-      recurringDonation.finished = true;
-      return recurringDonation.save();
     }
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation.save();

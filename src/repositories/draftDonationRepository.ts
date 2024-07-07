@@ -3,6 +3,7 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 import { logger } from '../utils/logger';
+import { AppDataSource } from '../orm';
 
 // mark donation status matched based on fromWalletAddress, toWalletAddress, networkId, tokenAddress and amount
 export async function markDraftDonationStatusMatched(params: {
@@ -57,4 +58,13 @@ export async function delecteExpiredDraftDonations(hours: number) {
   } catch (e) {
     logger.error(`Error in removing expired draft donations, ${e.message}`);
   }
+}
+
+export async function countPendingDraftDonations(): Promise<number> {
+  const query = 'SELECT COUNT(*) FROM draft_donation WHERE status = $1';
+  const values = ['pending'];
+
+  // Query the database
+  const res = await AppDataSource.getDataSource().query(query, values);
+  return parseInt(res[0].count, 10);
 }

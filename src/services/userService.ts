@@ -13,10 +13,14 @@ export const updateUserTotalDonated = async (userId: number) => {
       SET "totalDonated" = (
         SELECT COALESCE(SUM(d."valueUsd"),0)
         FROM donation as d
-        WHERE d."userId" = $1 AND d."status" = 'verified'
+        WHERE d."userId" = $1 AND d."status" = 'verified' AND d."recurringDonationId" IS NULL
+      ) + (
+        SELECT COALESCE(SUM(rd."totalUsdStreamed"), 0)
+        FROM recurring_donation as rd
+        WHERE rd."donorId" = $1
       )
       WHERE "id" = $1
-    `,
+      `,
       [userId],
     );
   } catch (e) {

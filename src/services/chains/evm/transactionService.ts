@@ -174,50 +174,62 @@ export async function getListOfTransactionsByAddress(input: {
   userRecentTransactions: ITxInfo[];
   lastPage: boolean;
 }> {
-  const { address, page = 1, offset = 1000, networkId } = input;
-  // eslint-disable-next-line no-console
-  console.log('data sent*******************', address, page, offset);
-  // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
-  // https://blockscout.com/xdai/mainnet/api-docs#account
-  logger.debug(
-    'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransaction fromAddress:',
-    address,
-    networkId,
-    offset,
-  );
-  const result = await axios.get(getBlockExplorerApiUrl(networkId), {
-    params: {
-      module: 'account',
-      action: 'txlist',
-      page,
-      offset,
+  try {
+    const { address, page = 1, offset = 1000, networkId } = input;
+    // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
+    // https://blockscout.com/xdai/mainnet/api-docs#account
+    logger.debug(
+      'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransaction fromAddress:',
       address,
-      sort: 'desc',
-    },
-  });
-
-  if (result?.data?.status === '0') {
-    // https://docs.gnosisscan.io/support/common-error-messages
-
-    // sample of these errors
-    //  {
-    //    "status": "0",
-    //    "message": "Query Timeout occured. Please select a smaller result dataset",
-    //    "result": null
-    //  }
-    throw new Error(
-      result.data?.message ||
-        `Error while fetching transactions networkId: ${networkId}`,
+      networkId,
+      offset,
     );
-  }
-  const userRecentTransactions = result.data.result.filter(tx => {
-    return tx.from.toLowerCase() === input.address.toLowerCase();
-  });
+    const result = await axios.get(getBlockExplorerApiUrl(networkId), {
+      params: {
+        module: 'account',
+        action: 'txlist',
+        page,
+        offset,
+        address,
+        sort: 'desc',
+      },
+    });
 
-  return {
-    userRecentTransactions,
-    lastPage: result.data.result.length < offset,
-  };
+    if (result?.data?.status === '0') {
+      // https://docs.gnosisscan.io/support/common-error-messages
+
+      /**
+       * sample of these errors
+       {
+           "status": "0",
+           "message": "Query Timeout occured. Please select a smaller result dataset",
+           "result": null
+         }
+       */
+      throw new Error(
+        result.data?.message ||
+          `Error while fetching transactions networkId: ${networkId}`,
+      );
+    }
+    const userRecentTransactions = result.data.result.filter(tx => {
+      return tx.from.toLowerCase() === input.address.toLowerCase();
+    });
+
+    return {
+      userRecentTransactions,
+      lastPage: result.data.result.length < offset,
+    };
+  } catch (e) {
+    logger.error('getListOfTransactionsByAddress() err', {
+      error: e,
+      networkId: input.networkId,
+      address: input.address,
+    });
+    return {
+      userRecentTransactions: [],
+      lastPage: true,
+    };
+  }
 }
 
 export async function getEvmTransactionTimestamp(input: {

@@ -1,0 +1,44 @@
+services:
+  impact-graph-postgres:
+    # Use this postgres image https://github.com/Giveth/postgres-givethio
+    image: ghcr.io/giveth/postgres-givethio:latest
+    restart: always
+    environment:
+      - POSTGRES_DB=givethio
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  impact-graph-postgres-replica:
+    # Read-only replica of the main Postgres container
+    image: ghcr.io/giveth/postgres-givethio:latest
+    restart: always
+    environment:
+      - POSTGRES_DB=givethio
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PRIMARY_HOST=impact-graph-postgres
+      - POSTGRES_PRIMARY_PORT=5432
+      - POSTGRES_PRIMARY_USER=postgres
+      - POSTGRES_PRIMARY_PASSWORD=postgres
+      - POSTGRES_REPLICA=true
+    ports:
+      - "5431:5432"
+    volumes:
+      - db-data-replica:/var/lib/postgresql/data
+    networks:
+      - giveth
+
+
+volumes:
+  db-data:
+  db-data-replica:
+
+
+networks:
+  giveth:

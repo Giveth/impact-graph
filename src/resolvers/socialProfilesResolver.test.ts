@@ -33,7 +33,7 @@ function addNewSocialProfileFormMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -63,7 +63,7 @@ function addNewSocialProfileFormMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -99,7 +99,7 @@ function addNewSocialProfileFormMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -147,7 +147,7 @@ function addNewSocialProfileFormMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -181,7 +181,7 @@ function addNewSocialProfileFormMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -216,7 +216,7 @@ function addNewSocialProfileFormMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -251,7 +251,7 @@ function addNewSocialProfileFormMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -371,7 +371,7 @@ function removeSocialProfileMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -406,7 +406,7 @@ function removeSocialProfileMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
@@ -458,7 +458,7 @@ function removeSocialProfileMutationTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const projectVerificationForm =
