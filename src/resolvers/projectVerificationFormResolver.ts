@@ -33,7 +33,7 @@ import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdat
 import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
-import { sendMailConfirmationEmail } from '../services/mailerService';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 @Resolver(_of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
@@ -182,7 +182,11 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
 
-      await sendMailConfirmationEmail(email, project, token);
+      await getNotificationAdapter().sendEmailConfirmation({
+        email,
+        project,
+        token,
+      });
 
       return projectVerificationForm;
     } catch (e) {

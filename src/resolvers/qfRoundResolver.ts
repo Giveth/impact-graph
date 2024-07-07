@@ -100,7 +100,11 @@ export class QfRoundResolver {
     @Args()
     { slug, activeOnly }: QfRoundsArgs,
   ) {
-    return findQfRounds({ slug, activeOnly });
+    if (activeOnly) {
+      const activeQfRound = await findActiveQfRound();
+      return activeQfRound ? [activeQfRound] : [];
+    }
+    return findQfRounds({ slug });
   }
 
   @Query(_returns => [QFArchivedRounds], { nullable: true })

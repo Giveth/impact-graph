@@ -16,7 +16,7 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
-import { toFixNumber, updateTotalDonationsOfProject } from '../donationService';
+import { toFixNumber } from '../donationService';
 import { refreshProjectEstimatedMatchingView } from '../projectViewsService';
 import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter';
 import { QfRound } from '../../entities/qfRound';
@@ -246,10 +246,9 @@ export const importLostDonations = async () => {
 
         await updateUserTotalDonated(dbUser.id);
         await updateUserTotalReceived(project.adminUser?.id);
-        await updateTotalDonationsOfProject(project.id);
+        await updateProjectStatistics(project.id);
 
         const donationStats = await getUserDonationStats(dbUser.id);
-        await updateProjectStatistics(project.id);
 
         const orttoPerson = getOrttoPersonAttributes({
           userId: dbUser.id.toString(),

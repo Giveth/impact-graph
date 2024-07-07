@@ -43,6 +43,7 @@ import { QfRound } from './qfRound';
 import {
   getQfRoundTotalSqrtRootSumSquared,
   getProjectDonationsSqrtRootSum,
+  findActiveQfRound,
 } from '../repositories/qfRoundRepository';
 import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
@@ -381,6 +382,18 @@ export class Project extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   totalProjectUpdates: number;
 
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', nullable: true })
+  sumDonationValueUsdForActiveQfRound: number;
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  countUniqueDonorsForActiveQfRound: number;
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  countUniqueDonors: number;
+
   @Field(_type => Boolean, { nullable: true })
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
@@ -471,26 +484,10 @@ export class Project extends BaseEntity {
     }).save();
   }
 
-  @Field(_type => Float, { nullable: true })
-  @Column({ type: 'float', nullable: true })
-  sumDonationValueUsdForActiveQfRound: number;
-
-  @Field(_type => Float, { nullable: true })
-  @Column({ type: 'float', nullable: true })
-  sumDonationValueUsd: number;
-
-  @Field(_type => Int, { nullable: true })
-  @Column({ type: 'int', nullable: true })
-  countUniqueDonorsForActiveQfRound: number;
-
-  @Field(_type => Int, { nullable: true })
-  @Column({ type: 'int', nullable: true })
-  countUniqueDonors: number;
-
   // In your main class
   @Field(_type => EstimatedMatching, { nullable: true })
   async estimatedMatching(): Promise<EstimatedMatching | null> {
-    const activeQfRound = this.getActiveQfRound();
+    const activeQfRound = await findActiveQfRound();
     if (!activeQfRound) {
       // TODO should move it to materialized view
       return null;
@@ -511,10 +508,6 @@ export class Project extends BaseEntity {
       allProjectsSum,
       matchingPool,
     };
-  }
-
-  getActiveQfRound(): QfRound | undefined {
-    return this.qfRounds?.find(r => r.isActive === true);
   }
 
   // Status 7 is deleted status
