@@ -33,7 +33,7 @@ import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdat
 import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
-import { sendMailConfirmationEmail } from '../services/mailerService';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 @Resolver(_of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
@@ -182,7 +182,11 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
 
-      await sendMailConfirmationEmail(email, project, token);
+      await getNotificationAdapter().sendEmailConfirmation({
+        email,
+        project,
+        token,
+      });
 
       return projectVerificationForm;
     } catch (e) {
@@ -213,7 +217,7 @@ export class ProjectVerificationFormResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
       }
-      if (Number(project.admin) !== userId) {
+      if (project.adminUserId !== userId) {
         throw new Error(
           i18n.__(
             translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
@@ -260,10 +264,6 @@ export class ProjectVerificationFormResolver {
       const projectVerificationForm = await findProjectVerificationFormById(
         projectVerificationId,
       );
-      logger.debug('updateProjectVerificationForm', {
-        projectVerificationForm,
-        projectVerificationUpdateInput,
-      });
       if (!projectVerificationForm) {
         throw new Error(
           i18n.__(
@@ -319,7 +319,7 @@ export class ProjectVerificationFormResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
       }
-      if (Number(project.admin) !== userId) {
+      if (project.adminUserId !== userId) {
         throw new Error(
           i18n.__(
             translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,

@@ -115,7 +115,7 @@ export const createProjectQuery = `
         title
         description
         descriptionSummary
-        admin
+        adminUserId
         image
         impactLocation
         slug
@@ -166,7 +166,7 @@ export const updateProjectQuery = `
       verified
       slugHistory
       creationDate
-      admin
+      adminUserId
       walletAddress
       impactLocation
       categories {
@@ -203,7 +203,7 @@ export const addRecipientAddressToProjectQuery = `
       slugHistory
       creationDate
       updatedAt
-      admin
+      adminUserId
       walletAddress
       impactLocation
       categories {
@@ -502,14 +502,14 @@ export const fetchNewProjectsPerDate = `
     $toDate: String
     $onlyListed: Boolean
     $onlyVerified: Boolean
-    $includesOptimism: Boolean
+    $networkId: Float
   ) {
     projectsPerDate(
       fromDate: $fromDate
       toDate: $toDate
       onlyListed: $onlyListed
       onlyVerified: $onlyVerified
-      includesOptimism: $includesOptimism
+      networkId: $networkId
     ) {
       total
       totalPerMonthAndYear {
@@ -524,13 +524,13 @@ export const fetchTotalDonationsPerCategoryPerDate = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Float
     $onlyVerified: Boolean
   ) {
     totalDonationsPerCategory(
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
       onlyVerified: $onlyVerified
     ) {
       id
@@ -566,12 +566,12 @@ export const fetchTotalDonors = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Float
   ) {
     totalDonorsCountPerDate(
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
     ) {
       total
       totalPerMonthAndYear {
@@ -586,13 +586,13 @@ export const fetchTotalDonationsUsdAmount = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Float
     $onlyVerified: Boolean
   ) {
     donationsTotalUsdPerDate (
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
       onlyVerified: $onlyVerified
     ) {
       total
@@ -608,13 +608,13 @@ export const fetchTotalDonationsNumberPerDateRange = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Float
     $onlyVerified: Boolean
   ) {
     totalDonationsNumberPerDate (
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
       onlyVerified: $onlyVerified
     ) {
       total
@@ -672,6 +672,10 @@ export const fetchAllDonationsQuery = `
         anonymous
         valueUsd
         amount
+        recurringDonation{
+          id
+          txHash
+        }
         user {
           id
           walletAddress
@@ -683,7 +687,7 @@ export const fetchAllDonationsQuery = `
           reviewStatus
           verified
           slug
-          admin
+          adminUserId
           title
           categories {
             name
@@ -777,7 +781,7 @@ export const fetchFeaturedProjects = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -873,7 +877,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         descriptionSummary
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -937,7 +941,6 @@ export const fetchMultiFilterAllProjectsQuery = `
         totalDonations
         totalTraceDonations
         sumDonationValueUsdForActiveQfRound
-        sumDonationValueUsd
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
         estimatedMatching{
@@ -1026,7 +1029,7 @@ export const fetchProjectBySlugQuery = `
       slug
       creationDate
       updatedAt
-      admin
+      adminUserId
       description
       walletAddress
       impactLocation
@@ -1052,7 +1055,6 @@ export const fetchProjectBySlugQuery = `
         sortingField
         createdAt
         updatedAt
-      
       }
       givbackFactor
       projectPower {
@@ -1082,53 +1084,6 @@ export const fetchProjectBySlugQuery = `
         id
         name
         isActive
-      }
-      projectVerificationForm {
-        status
-        id
-        isTermAndConditionsAccepted
-        emailConfirmationTokenExpiredAt
-        email
-        emailConfirmationToken
-        emailConfirmationSent
-        emailConfirmationSentAt
-        emailConfirmedAt
-        emailConfirmed
-        projectRegistry {
-          organizationDescription
-          isNonProfitOrganization
-          organizationCountry
-          organizationWebsite
-          attachments
-          organizationName
-        }
-        personalInfo {
-          email
-          walletAddress
-          fullName
-        }
-        projectContacts {
-          name
-          url
-        }
-        milestones {
-          mission
-          foundationDate
-          achievedMilestones
-          achievedMilestonesProofs
-          problem
-          plans
-          impact
-        }
-        managingFunds {
-          description
-          relatedAddresses {
-            address
-            networkId
-            chainType
-            title
-          }
-        }
       }
       status {
         id
@@ -1163,6 +1118,7 @@ export const fetchProjectBySlugQuery = `
         email
         firstName
         walletAddress
+        email
       }
       totalReactions
       totalDonations
@@ -1200,7 +1156,7 @@ export const fetchSimilarProjectsBySlugQuery = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -1261,7 +1217,7 @@ export const fetchLikedProjectsQuery = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -1508,7 +1464,7 @@ export const projectsBySlugsQuery = `
           image
           slug
           creationDate
-          admin
+          adminUserId
           walletAddress
           impactLocation
           listed
@@ -1556,7 +1512,7 @@ export const projectsByUserIdQuery = `
           image
           slug
           creationDate
-          admin
+          adminUserId
           walletAddress
           impactLocation
           listed
@@ -1660,7 +1616,7 @@ export const projectByIdQuery = `
       reviewStatus
       description,
       walletAddress
-      admin
+      adminUserId
       categories{
           name
       }
@@ -2306,6 +2262,8 @@ export const fetchQFArchivedRounds = `
       slug
       isActive
       allocatedFund
+      allocatedFundUSD
+      allocatedTokenSymbol
       eligibleNetworks
       beginDate
       endDate
@@ -2427,4 +2385,21 @@ export const updateRecurringDonationQuery = `
             finished
           }
       }
+`;
+
+export const fetchRecurringDonationStatsQuery = `
+  query (
+    $beginDate: String!
+    $endDate: String!
+    $currency: String
+    ) {
+      getRecurringDonationStats(
+        beginDate: $beginDate
+        endDate: $endDate
+        currency: $currency
+      ) {
+        totalStreamedUsdValue,
+        activeRecurringDonationsCount,
+      }
+  }
 `;

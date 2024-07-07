@@ -657,6 +657,74 @@ function donationsTestCases() {
       allDonationsCount,
     );
   });
+  it('should get result with recurring donations joined (for streamed mini donations)', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const anchorAddress = generateRandomEtheriumAddress();
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: user,
+      creator: user,
+      address: anchorAddress,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const currency = 'USD';
+
+    const recurringDonation = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: user,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+      totalUsdStreamed: 1,
+    });
+    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation.save();
+    const donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+      },
+      user.id,
+      project.id,
+    );
+    donation.recurringDonation = recurringDonation;
+    await donation.save();
+
+    // Use moment to parse the createdAt string
+    const momentDate = moment(donation.createdAt, 'YYYYMMDD HH:mm:ss');
+
+    // Create fromDate as one second before
+    const fromDate = momentDate
+      .clone()
+      .subtract(1, 'seconds')
+      .format('YYYYMMDD HH:mm:ss');
+
+    // Create toDate as one second after
+    const toDate = momentDate
+      .clone()
+      .add(1, 'seconds')
+      .format('YYYYMMDD HH:mm:ss');
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchAllDonationsQuery,
+      variables: {
+        fromDate,
+        toDate,
+      },
+    });
+    assert.isOk(donationsResponse.data.data.donations);
+    assert.equal(donationsResponse.data.data.donations.length, 1);
+    assert.equal(
+      Number(donationsResponse.data.data.donations[0].recurringDonation.id),
+      recurringDonation.id,
+    );
+  });
   it('should get result when sending fromDate', async () => {
     const oldDonation = await saveDonationDirectlyToDb(
       createDonationData(),
@@ -806,6 +874,16 @@ function donationsTestCases() {
         d => Number(d.id) === veryNewDonation.id,
       ),
     );
+  });
+  it('should project include categories', async () => {
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchAllDonationsQuery,
+      variables: {},
+    });
+    assert.isOk(donationsResponse.data.data.donations);
+    donationsResponse.data.data.donations.forEach(donation => {
+      assert.isArray(donation.project.categories);
+    });
   });
   it('should project include categories', async () => {
     const donationsResponse = await axios.post(graphqlUrl, {
@@ -2136,7 +2214,7 @@ function createDonationTestCases() {
           transactionNetworkId: NETWORK_IDS.XDAI,
           transactionId: generateRandomEvmTxHash(),
           nonce: 12,
-          amount: 10,
+          amount: 1000,
           token: 'GIV',
         },
       },
@@ -2533,7 +2611,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 11155420, 56, 42220, 44787, 61, 63, 42161, 421614, 101, 102, 103]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 11155420, 56, 42220, 44787, 61, 63, 42161, 421614, 8453, 84532, 1101, 2442, 101, 102, 103]',
     );
   });
   it('should not throw exception when currency is not valid when currency is USDC.e', async () => {
@@ -3643,7 +3721,7 @@ function donationsByUserIdTestCases() {
       updatedAt: new Date(),
       slug: title,
       // firstUser's id
-      admin: String(user.id),
+      adminUserId: user.id,
       qualityScore: 30,
       // just need the initial value to be different than 0
       totalDonations: 10,
@@ -3723,7 +3801,7 @@ function donationsByUserIdTestCases() {
       updatedAt: new Date(),
       slug: title,
       // firstUser's id
-      admin: String(user.id),
+      adminUserId: user.id,
       qualityScore: 30,
       // just need the initial value to be different than 0
       totalDonations: 10,

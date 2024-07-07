@@ -10,7 +10,7 @@ interface ProjectExport {
   id: number;
   title: string;
   slug?: string | null;
-  admin?: string | null;
+  adminUserId?: number | null;
   creationDate: Date;
   updatedAt: Date;
   impactLocation?: string | null;
@@ -159,9 +159,7 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
 }): Promise<void> => {
   try {
     const spreadSheet = await initQfRoundDonationsSpreadsheet();
-
     const currentDate = moment().toDate();
-
     const headers = [
       'projectName',
       'addresses',
@@ -178,14 +176,30 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
       'uniqueUserIdsAfterAnalysis',
       'projectOwnerEmail',
     ];
+
     const { rows, qfRoundId } = params;
 
     const sheet = await spreadSheet.addSheet({
       headerValues: headers,
       title: `QfRound -${qfRoundId} - ${currentDate.toDateString()} ${currentDate.getTime()}`,
     });
+
+    // Modify rows to truncate cells with more than 50000 characters and add "..."
+    const modifiedRows = rows.map(row => {
+      const modifiedRow = {};
+      Object.keys(row).forEach(key => {
+        if (typeof row[key] === 'string' && row[key].length > 50000) {
+          // Truncate the string to the maximum allowed length and append "..."
+          modifiedRow[key] = row[key].substring(0, 49990) + '...';
+        } else {
+          modifiedRow[key] = row[key];
+        }
+      });
+      return modifiedRow;
+    });
+
     logger.debug('addQfRoundDonationsSheetToSpreadsheet', params);
-    await sheet.addRows(rows);
+    await sheet.addRows(modifiedRows);
   } catch (e) {
     logger.error('addQfRoundDonationsSheetToSpreadsheet error', e);
     throw e;

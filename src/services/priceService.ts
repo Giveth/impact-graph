@@ -1,5 +1,4 @@
 import { logger } from '../utils/logger';
-import { fetchGivPrice } from './givPriceService';
 import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
@@ -20,6 +19,7 @@ export const getTokenPrice = async (
   }
   try {
     const { symbol, cryptoCompareId, isStableCoin, coingeckoId } = token;
+    logger.debug('getTokenPrice token', token);
     let priceUsd: number;
     if (isStableCoin) {
       priceUsd = 1;
@@ -27,9 +27,6 @@ export const getTokenPrice = async (
       //   const mpEthPriceInUsd = await fetchMpEthPrice();
       //   donation.priceUsd = toFixNumber(mpEthPriceInUsd, 4);
       //   donation.valueUsd = toFixNumber(donation.amount * mpEthPriceInUsd, 4);
-    } else if (symbol === 'GIV') {
-      const { givPriceInUsd } = await fetchGivPrice();
-      priceUsd = givPriceInUsd;
     } else if (cryptoCompareId) {
       priceUsd = await new CryptoComparePriceAdapter().getTokenPrice({
         symbol: cryptoCompareId,

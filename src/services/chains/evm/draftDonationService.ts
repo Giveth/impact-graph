@@ -15,6 +15,32 @@ import { DonationResolver } from '../../../resolvers/donationResolver';
 import { ApolloContext } from '../../../types/ApolloContext';
 import { logger } from '../../../utils/logger';
 import { DraftDonationWorker } from '../../../workers/draftDonationMatchWorker';
+import { normalizeAmount } from '../../../utils/utils';
+
+export const isAmountWithinTolerance = (
+  callData1,
+  callData2,
+  tokenDecimals,
+) => {
+  // Define the tolerance as 0.001 tokens in terms of the full token amount
+  const tolerance = 0.001; // For a readable number, directly as floating point
+
+  // Function to extract and convert the amount part of the callData using BigInt for precision
+  function extractAmount(callData) {
+    const amountHex = callData.slice(-64); // Last 64 characters are the amount in hexadecimal
+    return BigInt('0x' + amountHex);
+  }
+
+  const amount1 = extractAmount(callData1);
+  const amount2 = extractAmount(callData2);
+
+  // Convert BigInt amounts to string then normalize
+  const normalizedAmount1 = normalizeAmount(amount1.toString(), tokenDecimals);
+  const normalizedAmount2 = normalizeAmount(amount2.toString(), tokenDecimals);
+
+  // Compare within tolerance using normalized floating point numbers
+  return Math.abs(normalizedAmount1 - normalizedAmount2) <= tolerance;
+};
 
 const transferErc20CallData = (to: string, amount: number, decimals = 18) => {
   const iface = new ethers.utils.Interface([
@@ -29,6 +55,7 @@ const transferErc20CallData = (to: string, amount: number, decimals = 18) => {
 export async function matchDraftDonations(
   userDraftDonationsMap: Record<string, DraftDonation[]>,
 ) {
+  logger.debug('matchDraftDonations() has been called');
   for (const user of Object.keys(userDraftDonationsMap)) {
     // group by networkId
     const userDraftDonations = userDraftDonationsMap[user];
@@ -79,6 +106,11 @@ export async function matchDraftDonations(
             networkId: Number(networkId),
             page: _page,
           });
+        logger.debug('matchDraftDonations() userTransactionsCount ', {
+          address: user,
+          networkId: Number(networkId),
+          txCount: userRecentTransactions?.length,
+        });
 
         for (const transaction of userRecentTransactions) {
           if (+transaction.timeStamp < minCreatedAt) {
@@ -90,6 +122,15 @@ export async function matchDraftDonations(
           const draftDonations =
             targetTxAddrToDraftDonationMap.get(targetAddress);
 
+          logger.debug('matchDraftDonations() draftDonations count', {
+            address: user,
+            networkId: Number(networkId),
+            draftDonationsCount: draftDonations?.length,
+            targetTxAddrToDraftDonationMap,
+            targetAddress,
+            userDraftDonationsByNetwork,
+          });
+
           if (draftDonations) {
             // doantions with same target address
             for (const draftDonation of draftDonations!) {
@@ -99,17 +140,29 @@ export async function matchDraftDonations(
                 // native transfer
                 const amount = ethers.utils.formatEther(transaction.value);
                 if (!closeTo(+amount, draftDonation.amount)) {
+                  logger.debug(
+                    'matchDraftDonations() amounts are not closed',
+                    draftDonation,
+                    {
+                      amount,
+                      txHash: transaction.hash,
+                    },
+                  );
                   continue;
                 }
                 await submitMatchedDraftDonation(draftDonation, transaction);
               } else {
+                const token = await findTokenByNetworkAndAddress(
+                  networkId,
+                  targetAddress,
+                );
                 // ERC20 transfer
                 let transferCallData = draftDonation.expectedCallData;
+                logger.debug('matchDraftDonations() transferCallData', {
+                  transferCallData,
+                  transaction,
+                });
                 if (!transferCallData) {
-                  const token = await findTokenByNetworkAndAddress(
-                    networkId,
-                    targetAddress,
-                  );
                   transferCallData = transferErc20CallData(
                     draftDonation.toWalletAddress,
                     draftDonation.amount,
@@ -121,13 +174,41 @@ export async function matchDraftDonations(
                   draftDonation.expectedCallData = transferCallData;
                 }
 
-                if (transaction.input.toLowerCase() !== transferCallData) {
+                const isToAddressAreTheSame =
+                  transferCallData.slice(0, 64).toLowerCase() ===
+                  transaction.input.slice(0, 64).toLocaleLowerCase();
+                if (
+                  // TODO In the future we should compare exact match, but now because we save amount as number not bigInt in our db exact match with return false for some number because of rounding
+                  !isToAddressAreTheSame ||
+                  !isAmountWithinTolerance(
+                    transaction.input,
+                    transferCallData,
+                    token.decimals,
+                  )
+                ) {
+                  logger.debug(
+                    '!isToAddressAreTheSame || !isAmountWithinTolerance(transaction.input, transferCallData, token.decimals)',
+                    {
+                      transferCallData,
+                      transaction,
+                      isToAddressAreTheSame,
+                      isAmountWithinTolerance: isAmountWithinTolerance(
+                        transaction.input,
+                        transferCallData,
+                        token.decimals,
+                      ),
+                    },
+                  );
                   continue;
                 }
 
                 await submitMatchedDraftDonation(draftDonation, transaction);
               }
             }
+          } else {
+            logger.debug('Not any draftDonations', {
+              targetAddress,
+            });
           }
         }
 
@@ -143,6 +224,10 @@ async function submitMatchedDraftDonation(
   draftDonation: DraftDonation,
   tx: ITxInfo,
 ) {
+  logger.debug('submitMatchedDraftDonation()', {
+    draftDonation,
+    tx,
+  });
   // Check whether a donation with same networkId and txHash already exists
   const existingDonation = await Donation.findOne({
     where: {
@@ -206,7 +291,7 @@ async function submitMatchedDraftDonation(
     // draftDonation.status = DRAFT_DONATION_STATUS.MATCHED;
     // draftDonation.matchedDonationId = Number(donationId);
   } catch (e) {
-    logger.error(
+    logger.fatal(
       `Error on creating donation for draftDonation with ID ${draftDonation.id}`,
       e,
     );
@@ -219,6 +304,7 @@ async function submitMatchedDraftDonation(
 let workerIsIdle = true;
 let pool: Pool<ModuleThread<DraftDonationWorker>>;
 export async function runDraftDonationMatchWorker() {
+  logger.debug('runDraftDonationMatchWorker() has been called');
   if (!workerIsIdle) {
     logger.debug('Draft donation matching worker is already running');
     return;
@@ -226,22 +312,31 @@ export async function runDraftDonationMatchWorker() {
   workerIsIdle = false;
 
   if (!pool) {
+    logger.debug(
+      'runDraftDonationMatchWorker() pool is null, need to instantiate it',
+    );
     pool = Pool(
       () => spawn(new Worker('./../../../workers/draftDonationMatchWorker')),
       {
         name: 'draftDonationMatchWorker',
-        concurrency: 4,
-        size: 2,
+        concurrency: 1,
+        maxQueuedJobs: 1,
+        size: 1,
       },
     );
   }
   try {
+    logger.debug('runDraftDonationMatchWorker() before queuing the pool');
     await pool.queue(draftDonationWorker =>
       draftDonationWorker.matchDraftDonations(),
     );
+    logger.debug('runDraftDonationMatchWorker() after queuing the pool');
     await pool.settled(true);
+    logger.debug('runDraftDonationMatchWorker() pool.settled(true)');
   } catch (e) {
-    logger.error(`error in calling draft match worker: ${e.message}`);
+    logger.error(
+      `runDraftDonationMatchWorker() error in calling draft match worker: ${e}`,
+    );
   } finally {
     workerIsIdle = true;
   }

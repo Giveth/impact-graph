@@ -41,14 +41,9 @@ import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
 import {
-  countUniqueDonors,
-  countUniqueDonorsForRound,
-  sumDonationValueUsd,
-  sumDonationValueUsdForQfRound,
-} from '../repositories/donationRepository';
-import {
+  getQfRoundTotalSqrtRootSumSquared,
   getProjectDonationsSqrtRootSum,
-  getQfRoundTotalProjectsDonationsSum,
+  findActiveQfRound,
 } from '../repositories/qfRoundRepository';
 import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
@@ -92,6 +87,8 @@ export enum FilterField {
   AcceptFundOnETC = 'acceptFundOnETC',
   AcceptFundOnCelo = 'acceptFundOnCelo',
   AcceptFundOnArbitrum = 'acceptFundOnArbitrum',
+  AcceptFundOnBase = 'acceptFundOnBase',
+  AcceptFundOnZKEVM = 'acceptFundOnZKEVM',
   AcceptFundOnOptimism = 'acceptFundOnOptimism',
   AcceptFundOnSolana = 'acceptFundOnSolana',
   GivingBlock = 'fromGivingBlock',
@@ -150,10 +147,6 @@ export class Project extends BaseEntity {
   @Field(_type => [String], { nullable: true })
   @Column('text', { array: true, default: '{}' })
   slugHistory?: string[];
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  admin?: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -269,11 +262,6 @@ export class Project extends BaseEntity {
   @Column('jsonb', { nullable: true })
   contacts: ProjectContacts[];
 
-  @ManyToMany(_type => User, user => user.projects)
-  @Field(_type => [User], { nullable: true })
-  @JoinTable()
-  users: User[];
-
   @Field(() => [Reaction], { nullable: true })
   @OneToMany(_type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
@@ -318,6 +306,7 @@ export class Project extends BaseEntity {
   adminUser: User;
 
   @Column({ nullable: true })
+  @Field(_type => Int)
   @RelationId((project: Project) => project.adminUser)
   adminUserId: number;
 
@@ -392,6 +381,18 @@ export class Project extends BaseEntity {
   @Field(_type => Int, { nullable: true })
   @Column({ type: 'integer', nullable: true })
   totalProjectUpdates: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', nullable: true })
+  sumDonationValueUsdForActiveQfRound: number;
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  countUniqueDonorsForActiveQfRound: number;
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  countUniqueDonors: number;
 
   @Field(_type => Boolean, { nullable: true })
   @Column({ type: 'boolean', default: null, nullable: true })
@@ -482,46 +483,11 @@ export class Project extends BaseEntity {
       createdAt: new Date(),
     }).save();
   }
-  /**
-   * Custom Query Builders to chain together
-   */
-
-  @Field(_type => Float, { nullable: true })
-  async sumDonationValueUsdForActiveQfRound() {
-    const activeQfRound = this.getActiveQfRound();
-    return activeQfRound
-      ? await sumDonationValueUsdForQfRound({
-          projectId: this.id,
-          qfRoundId: activeQfRound.id,
-        })
-      : 0;
-  }
-
-  @Field(_type => Float, { nullable: true })
-  async sumDonationValueUsd() {
-    return await sumDonationValueUsd(this.id);
-  }
-
-  @Field(_type => Int, { nullable: true })
-  async countUniqueDonorsForActiveQfRound() {
-    const activeQfRound = this.getActiveQfRound();
-    return activeQfRound
-      ? await countUniqueDonorsForRound({
-          projectId: this.id,
-          qfRoundId: activeQfRound.id,
-        })
-      : 0;
-  }
-
-  @Field(_type => Int, { nullable: true })
-  async countUniqueDonors() {
-    return await countUniqueDonors(this.id);
-  }
 
   // In your main class
   @Field(_type => EstimatedMatching, { nullable: true })
   async estimatedMatching(): Promise<EstimatedMatching | null> {
-    const activeQfRound = this.getActiveQfRound();
+    const activeQfRound = await findActiveQfRound();
     if (!activeQfRound) {
       // TODO should move it to materialized view
       return null;
@@ -531,21 +497,17 @@ export class Project extends BaseEntity {
       activeQfRound.id,
     );
 
-    const allProjectsSum = await getQfRoundTotalProjectsDonationsSum(
+    const allProjectsSum = await getQfRoundTotalSqrtRootSumSquared(
       activeQfRound.id,
     );
 
     const matchingPool = activeQfRound.allocatedFund;
 
     return {
-      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
-      allProjectsSum: allProjectsSum.sum,
+      projectDonationsSqrtRootSum,
+      allProjectsSum,
       matchingPool,
     };
-  }
-
-  getActiveQfRound(): QfRound | undefined {
-    return this.qfRounds?.find(r => r.isActive === true);
   }
 
   // Status 7 is deleted status
@@ -582,10 +544,6 @@ export class Project extends BaseEntity {
     }
   }
 
-  owner() {
-    return this.users[0];
-  }
-
   @BeforeUpdate()
   async updateProjectDescriptionSummary() {
     await Project.update(
@@ -607,7 +565,7 @@ export class ProjectUpdate extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Index('trgm_idx_user_name', { synchronize: false })
+  @Index('trgm_idx_project_title', { synchronize: false })
   @Field(_type => String)
   @Column()
   title: string;

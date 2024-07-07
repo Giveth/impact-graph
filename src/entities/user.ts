@@ -5,14 +5,12 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  JoinTable,
-  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Project, ProjStatus, ReviewStatus } from './project';
+import { ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
@@ -87,7 +85,7 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   lastName?: string;
 
-  @Index('trgm_idx_project_impact_location', { synchronize: false })
+  @Index('trgm_idx_user_name', { synchronize: false })
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   name?: string;
@@ -149,22 +147,11 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   isReferrer: boolean;
 
-  @Field(_type => Boolean, { nullable: true })
-  @Column('bool', { default: false })
-  // After each QF round Lauren and Griff review the donations and pass me a list of sybil addresses
-  // And then we exclude qfRound donation from those addresses when calculating the real matchingFund
-  knownAsSybilAddress: boolean;
-
   @Field(() => ReferredEvent, { nullable: true })
   @OneToOne(() => ReferredEvent, referredEvent => referredEvent.user, {
     cascade: true,
   })
   referredEvent?: ReferredEvent;
-
-  @Field(_type => [Project])
-  @ManyToMany(_type => Project, project => project.users)
-  @JoinTable()
-  projects?: Project[];
 
   @Column('bool', { default: false })
   segmentIdentified: boolean;

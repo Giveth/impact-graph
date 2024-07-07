@@ -36,9 +36,7 @@ import {
   setI18nLocaleForRequest,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 import { apiGivRouter } from '../routers/apiGivRoutes';
-import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 import { authorizationHandler } from '../services/authorizationServices';
 import {
   oauth2CallbacksRouter,
@@ -57,10 +55,7 @@ import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
@@ -71,7 +66,6 @@ import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStr
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
 import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
-import { runDraftRecurringDonationMatchWorkerJob } from '../services/cronJobs/draftRecurringDonationMatchingJob';
 
 Resource.validate = validate;
 
@@ -306,7 +300,7 @@ export async function bootstrap() {
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
   } catch (err) {
-    logger.error(err);
+    logger.fatal('bootstrap() error', err);
   }
 
   async function continueDbSetup() {
@@ -343,16 +337,6 @@ export async function bootstrap() {
         'continueDbSetup() after refreshProjectEstimatedMatchingView() ',
         new Date(),
       );
-
-      logger.debug(
-        'continueDbSetup() before refreshProjectDonationSummaryView() ',
-        new Date(),
-      );
-      await refreshProjectDonationSummaryView();
-      logger.debug(
-        'continueDbSetup() after refreshProjectDonationSummaryView() ',
-        new Date(),
-      );
     }
     logger.debug('continueDbSetup() end of function', new Date());
   }
@@ -363,7 +347,6 @@ export async function bootstrap() {
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-    runUpdateDonationsWithoutValueUsdPrices();
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
@@ -373,9 +356,6 @@ export async function bootstrap() {
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
     //   runGivingBlocksProjectSynchronization();
     // }
-    if (process.env.POIGN_ART_SERVICE_ACTIVE === 'true') {
-      runSyncPoignArtDonations();
-    }
 
     if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
       runSyncLostDonations();
@@ -390,7 +370,8 @@ export async function bootstrap() {
     }
 
     if (process.env.ENABLE_DRAFT_RECURRING_DONATION === 'true') {
-      runDraftRecurringDonationMatchWorkerJob();
+      // TODO now disabling this field would break the recurring donation feature so I commented because otherwise draftDonation worker pool woud not work
+      // runDraftRecurringDonationMatchWorkerJob();
     }
 
     if (process.env.FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE === 'true') {
@@ -443,7 +424,11 @@ export async function bootstrap() {
 
   async function performPostStartTasks() {
     // All heavy and non-critical initializations here
-    await continueDbSetup();
+    try {
+      await continueDbSetup();
+    } catch (e) {
+      logger.fatal('continueDbSetup() error', e);
+    }
     await initializeCronJobs();
   }
 }

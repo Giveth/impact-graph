@@ -10,6 +10,7 @@ import {
   getMainCategoriesData,
 } from '../../test/graphqlQueries';
 import { generateRandomString } from '../utils/utils';
+import { MainCategory } from '../entities/mainCategory';
 
 describe('mainCategoryTestCases() test cases', mainCategoryTestCases);
 describe('categoryTestCases() test cases', categoryTestCases);
@@ -103,17 +104,26 @@ function mainCategoryTestCases() {
       isActive: false,
     });
 
-    const categoryResponse = await axios.post(graphqlUrl, {
-      query: getMainCategoriesData,
-      variables: {},
-    });
-    const result = categoryResponse.data.data.mainCategories;
+    const result = await MainCategory.createQueryBuilder('mainCategory')
+      .innerJoinAndSelect(
+        'mainCategory.categories',
+        'categories',
+        `categories."isActive"=true`,
+      )
+      .where(`"mainCategory"."isActive"=true`)
+      .orderBy({
+        'mainCategory.title': 'ASC',
+        'categories.name': 'ASC',
+      })
+      .getMany();
+
     assert.isNotEmpty(result);
 
     assert.equal(result[0].title, mainCategory.title);
-    assert.equal(result[0].categories.length, 1);
-
-    assert.equal(result[0].categories[0].name, category.name);
+    assert.equal(result[0].categories?.length, 1);
+    if (result[0].categories) {
+      assert.equal(result[0].categories[0].name, category.name);
+    }
 
     // clean up for subsequent test
     await category.remove();

@@ -4,11 +4,12 @@ import { NETWORK_IDS } from '../../provider';
 import { assertThrowsAsync } from '../../../test/testUtils';
 import { errorMessages } from '../../utils/errorMessages';
 import { ChainType } from '../../types/network';
-import { getTransactionInfoFromNetwork } from './index';
+import { closeTo, getTransactionInfoFromNetwork } from './index';
 
 const ONE_DAY = 60 * 60 * 24;
 
 describe('getTransactionDetail test cases', getTransactionDetailTestCases);
+describe('closeTo test cases', closeToTestCases);
 
 function getTransactionDetailTestCases() {
   // it('should return transaction detail for normal transfer on gnosis when it belongs to a multisig', async () => {
@@ -539,6 +540,82 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
+  it('should return transaction detail for normal transfer on Base Mainnet', async () => {
+    // https://basescan.org/tx/0x1cbf53e5a9a0874b9ad97316e4f2e1782e24bec318bacd183d3f48052bfe1523
+
+    const amount = 0.0032;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x1cbf53e5a9a0874b9ad97316e4f2e1782e24bec318bacd183d3f48052bfe1523',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.BASE_MAINNET,
+      fromAddress: '0xbaed383ede0e5d9d72430661f3285daa77e9439f',
+      toAddress: '0xa5401000d255dbb154deb756b82dd5105486d8c9',
+      amount,
+      timestamp: 1716445331,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on Base Sepolia', async () => {
+    // https://sepolia.basescan.org/tx/0x66fdfe46de46fa1fbb77de642cc778cafc85943204039f69694aee6121f764f4
+
+    const amount = 0.001;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x66fdfe46de46fa1fbb77de642cc778cafc85943204039f69694aee6121f764f4',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.BASE_SEPOLIA,
+      fromAddress: '0x9cab0c7ff1c6250e641f4dcd4d9cd9db83bffb71',
+      toAddress: '0xd7eedf8422ababfbcafc0797e809ceae742fc142',
+      amount,
+      timestamp: 1716445488,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on ZKEVM Mainnet', async () => {
+    // https://zkevm.polygonscan.com/tx/0xeba6b0325a2406fe8223bccc187eb7a34692be3a0c4ef76e940e13342e50a897
+
+    const amount = 0.008543881896016492;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xeba6b0325a2406fe8223bccc187eb7a34692be3a0c4ef76e940e13342e50a897',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+      fromAddress: '0x948Bd3799aB39A4DDc7bd4fB83717b230f035FBF',
+      toAddress: '0x0d0794f31c53d4057082889B9bed2D599Eda420d',
+      amount,
+      timestamp: 1718267319,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on ZKEVM Cardano', async () => {
+    // https://cardona-zkevm.polygonscan.com/tx/0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a
+
+    const amount = 0.00001;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.ZKEVM_CARDONA,
+      fromAddress: '0x9AF3049dD15616Fd627A35563B5282bEA5C32E20',
+      toAddress: '0x417a7BA2d8d0060ae6c54fd098590DB854B9C1d5',
+      amount,
+      timestamp: 1718267581,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return transaction detail for OP token transfer on optimistic', async () => {
     // https://optimistic.etherscan.io/tx/0xf11be189d967831bb8a76656882eeeac944a799bd222acbd556f2156fdc02db4
     const amount = 0.453549908802477308;
@@ -941,5 +1018,17 @@ function getTransactionDetailTestCases() {
       badFunc,
       errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
+  });
+}
+
+function closeToTestCases() {
+  it('should 0.0008436 and 0.0008658 consider as closed amount', function () {
+    assert.isTrue(closeTo(0.0008436, 0.0008658));
+  });
+  it('should 0.0001 and 0.00011 consider as closed amount', function () {
+    assert.isTrue(closeTo(0.0001, 0.00011));
+  });
+  it('should not consider 0.001 and 0.003 consider as closed amount', function () {
+    assert.isFalse(closeTo(0.001, 0.003));
   });
 }

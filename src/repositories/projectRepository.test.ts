@@ -248,7 +248,7 @@ function updateProjectWithVerificationFormTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
       networkId: NETWORK_IDS.GOERLI,
     });
@@ -298,7 +298,7 @@ function verifyProjectTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     assert.isFalse(project?.verified);
@@ -314,7 +314,7 @@ function verifyProjectTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: true,
     });
     assert.isTrue(project?.verified);
@@ -333,12 +333,12 @@ function verifyMultipleProjectsTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: false,
     });
     assert.isFalse(project?.verified);
@@ -357,12 +357,12 @@ function verifyMultipleProjectsTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: true,
     });
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(user.id),
+      adminUserId: user.id,
       verified: true,
     });
     assert.isTrue(project?.verified);

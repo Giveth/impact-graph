@@ -13,6 +13,7 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
+  dbIndependentTests,
 } from '../../test/testUtils';
 import {
   insertSinglePowerBoosting,
@@ -44,12 +45,19 @@ describe(
   projectsThatTheirRanksHaveChangedTestCases,
 );
 
-beforeEach(async () => {
-  await AppDataSource.getDataSource().query('truncate power_snapshot cascade');
+beforeEach(async function () {
+  const { title } = this.currentTest?.parent || {};
+
+  if (title && dbIndependentTests.includes(title)) {
+    return;
+  }
+
+  await AppDataSource.getDataSource().query('TRUNCATE power_snapshot CASCADE');
   await PowerBalanceSnapshot.clear();
   await PowerBoostingSnapshot.clear();
   await PreviousRoundRank.clear();
   await PowerRound.clear();
+
   await createSomeSampleProjectsAndPowerViews();
 });
 

@@ -30,13 +30,14 @@ import { logger } from '../utils/logger';
 import {
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
-  updateTotalDonationsOfProject,
 } from './donationService';
 import { calculateGivbackFactor } from './givbackService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 import config from '../config';
 import { User } from '../entities/user';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
+import { relatedActiveQfRoundForProject } from './qfRoundService';
+import { updateProjectStatistics } from './projectService';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';
@@ -212,17 +213,18 @@ export const createRelatedDonationsToStream = async (
         amount: donation.amount,
       });
 
-      // TODO - uncomment this when QF is enabled
-      // const activeQfRoundForProject = await relatedActiveQfRoundForProject(
-      //   project.id,
-      // );
-      //
-      // if (
-      //   activeQfRoundForProject &&
-      //   activeQfRoundForProject.isEligibleNetwork(networkId)
-      // ) {
-      //   donation.qfRound = activeQfRoundForProject;
-      // }
+      const activeQfRoundForProject = await relatedActiveQfRoundForProject(
+        project.id,
+      );
+
+      if (
+        activeQfRoundForProject &&
+        activeQfRoundForProject.isEligibleNetwork(networkId)
+      ) {
+        const projectOwner = await User.findOneBy({ id: project.adminUserId });
+        donation.qfRound = activeQfRoundForProject;
+        donation.qfRoundUserScore = projectOwner?.passportScore;
+      }
 
       const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
         await calculateGivbackFactor(project.id);
@@ -253,7 +255,7 @@ export const createRelatedDonationsToStream = async (
       await updateUserTotalDonated(donation.userId);
 
       // After updating price we update totalDonations
-      await updateTotalDonationsOfProject(donation.projectId);
+      await updateProjectStatistics(donation.projectId);
       await updateUserTotalReceived(project!.adminUser.id);
     } catch (e) {
       logger.error(

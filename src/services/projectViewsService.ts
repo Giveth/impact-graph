@@ -4,31 +4,49 @@ import { logger } from '../utils/logger';
 import { QfRoundDonationRow } from './googleSheets';
 import { ProjectActualMatchingView } from '../entities/ProjectActualMatchingView';
 
+let lastRefreshTimestamp: number | null = null;
+const refreshEstimatedMatchingCacheDuration = Number(
+  process.env.REFRESH_ESTIMATED_MATCHING_CACHE_DURATION || 600000,
+);
+
 export const refreshProjectEstimatedMatchingView = async (): Promise<void> => {
-  logger.debug('Refresh project_estimated_matching_view materialized view');
-  return AppDataSource.getDataSource().query(
-    `
+  if (process.env.NODE_ENV === 'test') {
+    await AppDataSource.getDataSource().query(`
       REFRESH MATERIALIZED VIEW project_estimated_matching_view
-    `,
-  );
+    `);
+    return;
+  }
+  const now = Date.now();
+  if (
+    lastRefreshTimestamp &&
+    now - lastRefreshTimestamp < refreshEstimatedMatchingCacheDuration
+  ) {
+    logger.debug('Skipping refresh as it is within the debounce interval.');
+    return;
+  }
+  logger.debug('Refreshing project_estimated_matching_view materialized view');
+  try {
+    await AppDataSource.getDataSource().query(`
+      REFRESH MATERIALIZED VIEW CONCURRENTLY project_estimated_matching_view
+    `);
+    lastRefreshTimestamp = now;
+  } catch (e) {
+    logger.error('refreshProjectEstimatedMatchingView() error', e);
+    lastRefreshTimestamp = null;
+  }
 };
 
 export const refreshProjectActualMatchingView = async (): Promise<void> => {
   logger.debug('Refresh project_actual_matching_view materialized view');
-  return AppDataSource.getDataSource().query(
-    `
-      REFRESH MATERIALIZED VIEW project_actual_matching_view
-    `,
-  );
-};
-
-export const refreshProjectDonationSummaryView = async (): Promise<void> => {
-  logger.debug('Refresh project_donation_summary_view materialized view');
-  return AppDataSource.getDataSource().query(
-    `
-      REFRESH MATERIALIZED VIEW project_donation_summary_view
-    `,
-  );
+  try {
+    return AppDataSource.getDataSource().query(
+      `
+        REFRESH MATERIALIZED VIEW CONCURRENTLY project_actual_matching_view
+      `,
+    );
+  } catch (e) {
+    logger.error('refreshProjectActualMatchingView() error', e);
+  }
 };
 
 export const getQfRoundActualDonationDetails = async (

@@ -142,7 +142,7 @@ function addNewProjectAddressTestCases() {
       ...createProjectData(),
       walletAddress,
       verified: true,
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newAddress = generateRandomEtheriumAddress();
     const newRelatedAddress = await addNewProjectAddress({
@@ -199,7 +199,7 @@ function addBulkNewProjectAddressTestCases() {
       ...createProjectData(),
       walletAddress,
       verified: true,
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newAddress = generateRandomEtheriumAddress();
     await addBulkNewProjectAddress([
@@ -224,7 +224,7 @@ function addBulkNewProjectAddressTestCases() {
       ...createProjectData(),
       walletAddress,
       verified: true,
-      admin: String(user.id),
+      adminUserId: user.id,
     });
     const newAddress1 = generateRandomEtheriumAddress();
     const newAddress2 = generateRandomEtheriumAddress();

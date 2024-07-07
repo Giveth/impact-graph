@@ -166,6 +166,17 @@ export const updateDonationQueryValidator = Joi.object({
   status: Joi.string().valid(DONATION_STATUS.VERIFIED, DONATION_STATUS.FAILED),
 });
 
+export const getRecurringDonationStatsArgsValidator = Joi.object({
+  beginDate: Joi.string().pattern(resourcePerDateRegex).messages({
+    'string.base': errorMessages.INVALID_FROM_DATE,
+    'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
+  }),
+  endDate: Joi.string().pattern(resourcePerDateRegex).messages({
+    'string.base': errorMessages.INVALID_FROM_DATE,
+    'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
+  }),
+});
+
 export const createProjectVerificationRequestValidator = Joi.object({
   slug: Joi.string().required(),
 });
@@ -232,6 +243,10 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.CELO_ALFAJORES,
         NETWORK_IDS.ARBITRUM_MAINNET,
         NETWORK_IDS.ARBITRUM_SEPOLIA,
+        NETWORK_IDS.BASE_MAINNET,
+        NETWORK_IDS.BASE_SEPOLIA,
+        NETWORK_IDS.ZKEVM_MAINNET,
+        NETWORK_IDS.ZKEVM_CARDONA,
         NETWORK_IDS.OPTIMISTIC,
         NETWORK_IDS.OPTIMISM_SEPOLIA,
         NETWORK_IDS.XDAI,

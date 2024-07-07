@@ -41,6 +41,7 @@ export class DraftDonationResolver {
 
   @Mutation(_returns => Number)
   async createDraftDonation(
+    // TODO we should change it to bigInt in both backend and frontend to not round numbers
     @Arg('amount') amount: number,
     @Arg('networkId') networkId: number,
     @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
@@ -100,10 +101,10 @@ export class DraftDonationResolver {
           createDraftDonationQueryValidator,
         );
       } catch (e) {
-        logger.error(
-          'Error on validating createDraftDonation input',
+        logger.error('Error on validating createDraftDonation input', {
           validaDataInput,
-        );
+          error: e,
+        });
         throw e; // Rethrow the original error
       }
 
@@ -226,10 +227,10 @@ export class DraftDonationResolver {
           createDraftRecurringDonationQueryValidator,
         );
       } catch (e) {
-        logger.error(
-          'Error on validating createDraftRecurringDonation input',
+        logger.error('Error on validating createDraftRecurringDonation input', {
           validaDataInput,
-        );
+          error: e,
+        });
         throw e; // Rethrow the original error
       }
       let recurringDonation: RecurringDonation | null;
