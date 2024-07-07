@@ -224,6 +224,8 @@ const availableNetworkValues = [
   { value: NETWORK_IDS.ZKEVM_CARDONA, label: 'ZKEVM Cardona' },
   { value: NETWORK_IDS.XDAI, label: 'XDAI' },
   { value: NETWORK_IDS.BSC, label: 'BSC' },
+  { value: NETWORK_IDS.SOLANA_MAINNET, label: 'SOLANA' },
+  { value: NETWORK_IDS.SOLANA_TESTNET, label: 'SOLALAN TESTNET' },
 ];
 
 export const qfRoundTab = {

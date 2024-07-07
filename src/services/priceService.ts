@@ -19,6 +19,7 @@ export const getTokenPrice = async (
   }
   try {
     const { symbol, cryptoCompareId, isStableCoin, coingeckoId } = token;
+    logger.debug('getTokenPrice token', token);
     let priceUsd: number;
     if (isStableCoin) {
       priceUsd = 1;

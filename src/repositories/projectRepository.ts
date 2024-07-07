@@ -258,6 +258,14 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
     .leftJoin('project.projectUpdates', 'projectUpdates')
     .select('project.id', 'projectId')
     .addSelect('MAX(projectUpdates.createdAt)', 'latestUpdate')
+    .where('project.isImported = false')
+    .andWhere('project.verified = true')
+    .andWhere(
+      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
+      {
+        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
+      },
+    )
     .groupBy('project.id')
     .having('MAX(projectUpdates.createdAt) < :date', { date })
     .getRawMany();
@@ -267,21 +275,9 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
   );
 
   const projects = await Project.createQueryBuilder('project')
-    .where('project.isImported = false')
-    .andWhere('project.verified = true')
-    .andWhere(
-      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
-      {
-        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
-      },
-    )
-    .andWhereInIds(validProjectIds)
-    .leftJoinAndSelect(
-      'project.projectVerificationForm',
-      'projectVerificationForm',
-    )
-    .leftJoinAndSelect('project.adminUser', 'user')
-    .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+    .whereInIds(validProjectIds)
+    .leftJoin('project.projectUpdates', 'projectUpdates')
+    .addSelect(['projectUpdates.createdAt', 'projectUpdates.id'])
     .getMany();
 
   projects.forEach(project => {
@@ -438,7 +434,7 @@ export const userIsOwnerOfProject = async (
 export const totalProjectsPerDate = async (
   fromDate?: string,
   toDate?: string,
-  includesOptimism?: boolean,
+  networkId?: number,
   onlyListed?: boolean,
   onlyVerified?: boolean,
 ): Promise<number> => {
@@ -460,17 +456,17 @@ export const totalProjectsPerDate = async (
     query.andWhere(`project."reviewStatus" = 'Listed'`);
   }
 
-  if (includesOptimism) {
+  if (networkId) {
     query.innerJoin(
       `project.addresses`,
       'addresses',
-      'addresses."networkId" = 10',
+      `addresses."networkId" = ${networkId}`,
     );
   }
 
   query.cache(
     `totalProjectPerDate-${fromDate || ''}-${toDate || ''}-${
-      includesOptimism || 'all'
+      networkId || 'all'
     }-${onlyVerified || 'all'}-${onlyListed || 'all'}`,
     300000,
   );
@@ -481,7 +477,7 @@ export const totalProjectsPerDate = async (
 export const totalProjectsPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
-  includesOptimism?: boolean,
+  networkId?: number,
   onlyListed?: boolean,
   onlyVerified?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
@@ -505,11 +501,11 @@ export const totalProjectsPerDateByMonthAndYear = async (
     query.andWhere(`project."reviewStatus" = 'Listed'`);
   }
 
-  if (includesOptimism) {
+  if (networkId) {
     query.innerJoin(
       `project.addresses`,
       'addresses',
-      'addresses."networkId" = 10',
+      `addresses."networkId" = ${networkId}`,
     );
   }
 
@@ -518,7 +514,7 @@ export const totalProjectsPerDateByMonthAndYear = async (
   query.addOrderBy('month', 'ASC');
   query.cache(
     `totalProjectsPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}-${
-      includesOptimism || 'all'
+      networkId || 'all'
     }-${onlyVerified || 'all'}-${onlyListed || 'all'}`,
     300000,
   );

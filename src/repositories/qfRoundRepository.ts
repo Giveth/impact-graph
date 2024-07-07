@@ -3,38 +3,31 @@ import { QfRound } from '../entities/qfRound';
 import { Donation } from '../entities/donation';
 import { User } from '../entities/user';
 import { AppDataSource } from '../orm';
-import {
-  QfArchivedRoundsOrderBy,
-  QfRoundsArgs,
-} from '../resolvers/qfRoundResolver';
-import config from '../config';
+import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver';
 import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
-
-const qfRoundsAndMainCategoryCacheDuration =
-  (config.get('QF_ROUND_AND_MAIN_CATEGORIES_CACHE_DURATION') as number) ||
-  1000 * 60 * 15;
+import { Sybil } from '../entities/sybil';
+import { ProjectFraud } from '../entities/projectFraud';
+import config from '../config';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
 );
 
+const qfRoundsCacheDuration =
+  (config.get('QF_ROUND_AND_MAIN_CATEGORIES_CACHE_DURATION') as number) ||
+  1000 * 60 * 2;
+
 export const findQfRounds = async ({
   slug,
-  activeOnly,
-}: QfRoundsArgs): Promise<QfRound[]> => {
+}: {
+  slug?: string;
+}): Promise<QfRound[]> => {
   const query = QfRound.createQueryBuilder('qf_round').addOrderBy(
     'qf_round.id',
     'DESC',
   );
   if (slug) {
     query.where('slug = :slug', { slug });
-  }
-  if (activeOnly) {
-    query
-      .andWhere('"isActive" = true')
-      .cache('findQfRounds-activeOnly', qfRoundsAndMainCategoryCacheDuration);
-  }
-  if (slug || activeOnly) {
     const res = await query.getOne();
     return res ? [res] : [];
   }
@@ -140,9 +133,24 @@ export const findArchivedQfRounds = async (
           .select('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
           .from(Donation, 'donation')
           .leftJoin(User, 'user', 'user.id = donation.userId')
+          .leftJoin(
+            Sybil,
+            'sybil',
+            'sybil.userId = user.id AND sybil.qfRoundId = qfRound.id',
+          )
+          .leftJoin(
+            ProjectFraud,
+            'projectFraud',
+            'projectFraud.projectId = donation.projectId AND projectFraud.qfRoundId = qfRound.id',
+          )
           .where('donation.qfRoundId = qfRound.id')
+          .andWhere('donation.status = :status', { status: 'verified' })
           .andWhere('user.passportScore >= qfRound.minimumPassportScore')
-          .andWhere('user.knownAsSybilAddress = FALSE'),
+          .andWhere('sybil.id IS NULL')
+          .andWhere('projectFraud.id IS NULL')
+          .andWhere(
+            'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
+          ),
       'uniqueDonors',
     )
     .groupBy('qfRound.id')
@@ -151,16 +159,15 @@ export const findArchivedQfRounds = async (
   return fullRounds.slice(skip, skip + limit);
 };
 
-export const findActiveQfRound = async (): Promise<QfRound | null> => {
-  const queryRunner = AppDataSource.getDataSource().createQueryRunner('slave');
-  try {
-    return await AppDataSource.getDataSource()
-      .createQueryBuilder(QfRound, 'qf_round', queryRunner)
-      .where('"isActive" = true')
-      .getOne();
-  } finally {
-    await queryRunner.release();
+export const findActiveQfRound = async (
+  noCache?: boolean,
+): Promise<QfRound | null> => {
+  const query =
+    QfRound.createQueryBuilder('qfRound').where('"isActive" = true');
+  if (noCache) {
+    return query.getOne();
   }
+  return query.cache('findActiveQfRound', qfRoundsCacheDuration).getOne();
 };
 
 export const findQfRoundById = async (id: number): Promise<QfRound | null> => {
