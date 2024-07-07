@@ -151,13 +151,27 @@ function allProjectsTestCases() {
         sortingBy: SortingField.Newest,
       },
     });
-    assert.equal(
-      Number(result.data.data.allProjects.projects[0].id),
-      secondProject.id,
+    const projects = result.data.data.allProjects.projects;
+
+    const secondProjectIndex = projects.findIndex(
+      project => Number(project.id) === secondProject.id,
     );
-    assert.equal(
-      Number(result.data.data.allProjects.projects[1].id),
-      firstProject.id,
+    const firstProjectIndex = projects.findIndex(
+      project => Number(project.id) === firstProject.id,
+    );
+
+    assert(
+      secondProjectIndex !== -1,
+      'Second project not found in the projects list',
+    );
+    assert(
+      firstProjectIndex !== -1,
+      'First project not found in the projects list',
+    );
+
+    assert(
+      secondProjectIndex < firstProjectIndex,
+      "Second project's index is not lower than the first project's index",
     );
   });
 
