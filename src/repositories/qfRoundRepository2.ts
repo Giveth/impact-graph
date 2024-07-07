@@ -20,7 +20,6 @@ export const relateManyProjectsToQfRound = async (params: {
   const projects = await Promise.all(
     params.projectIds.map(id => Project.findOne({ where: { id } })),
   );
-
   if (params.add) {
     query = `
       INSERT INTO project_qf_rounds_qf_round ("projectId", "qfRoundId")
@@ -30,6 +29,22 @@ export const relateManyProjectsToQfRound = async (params: {
         AND EXISTS (SELECT 1 FROM qf_round q WHERE q.id = v.qfRoundId)
       ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;
     `;
+
+    const qfRoundProjects = await Project.createQueryBuilder('project')
+      .leftJoin('project.qfRounds', 'qfRound')
+      .where('qfRound.id = :qfRoundId', { qfRoundId: params.qfRound.id })
+      .getMany();
+    if (qfRoundProjects.length > 0) {
+      const newAddedProjectIds = params.projectIds.filter(
+        projectId => !qfRoundProjects.find(project => project.id === projectId),
+      );
+      if (newAddedProjectIds.length > 0) {
+        await Project.update(newAddedProjectIds, {
+          countUniqueDonorsForActiveQfRound: 0,
+          sumDonationValueUsdForActiveQfRound: 0,
+        });
+      }
+    }
 
     orttoPeople = projects.map(project =>
       getOrttoPersonAttributes({

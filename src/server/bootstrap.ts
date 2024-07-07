@@ -37,7 +37,6 @@ import {
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
 import { apiGivRouter } from '../routers/apiGivRoutes';
-import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 import { authorizationHandler } from '../services/authorizationServices';
 import {
   oauth2CallbacksRouter,
@@ -301,7 +300,7 @@ export async function bootstrap() {
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
   } catch (err) {
-    logger.error('bootstrap() error', err);
+    logger.fatal('bootstrap() error', err);
   }
 
   async function continueDbSetup() {
@@ -348,7 +347,6 @@ export async function bootstrap() {
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-    runUpdateDonationsWithoutValueUsdPrices();
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
@@ -429,7 +427,7 @@ export async function bootstrap() {
     try {
       await continueDbSetup();
     } catch (e) {
-      logger.error('continueDbSetup() error', e);
+      logger.fatal('continueDbSetup() error', e);
     }
     await initializeCronJobs();
   }

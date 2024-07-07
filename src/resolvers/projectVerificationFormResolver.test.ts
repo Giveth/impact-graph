@@ -333,6 +333,16 @@ function updateProjectVerificationFormMutationTestCases() {
       },
       {
         address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.ZKEVM_MAINNET,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.ZKEVM_CARDONA,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
         networkId: NETWORK_IDS.ETC,
         title: 'test title',
       },

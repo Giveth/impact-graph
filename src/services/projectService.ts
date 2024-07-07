@@ -1,10 +1,9 @@
 import { Project } from '../entities/project';
 import {
   countUniqueDonorsAndSumDonationValueUsd,
-  qfRoundStats,
+  getProjectQfRoundStats,
 } from '../repositories/donationRepository';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
-import { logger } from '../utils/logger';
 
 export const getAppropriateSlug = async (
   slugBase: string,
@@ -30,13 +29,12 @@ export const getAppropriateSlug = async (
 
 export const updateProjectStatistics = async (projectId: number) => {
   const activeQfRound = await findActiveQfRound();
-  logger.debug('updateProjectStatistics-activeQfRound', activeQfRound);
   let sumDonationValueUsdForActiveQfRound = 0,
     countUniqueDonorsForActiveQfRound = 0;
   if (activeQfRound) {
-    const qfRoundResult = await qfRoundStats({
+    const qfRoundResult = await getProjectQfRoundStats({
       projectId,
-      qfRoundId: activeQfRound.id,
+      qfRound: activeQfRound,
     });
     sumDonationValueUsdForActiveQfRound = qfRoundResult.sumValueUsd;
     countUniqueDonorsForActiveQfRound = qfRoundResult.uniqueDonorsCount;
@@ -44,18 +42,9 @@ export const updateProjectStatistics = async (projectId: number) => {
 
   const { totalDonations, uniqueDonors } =
     await countUniqueDonorsAndSumDonationValueUsd(projectId);
-  logger.debug(
-    'updateProjectStatistics-countUniqueDonorsAndSumDonationValueUsd',
-    {
-      sumDonationValueUsd: totalDonations,
-      countUniqueDonors: uniqueDonors,
-      sumDonationValueUsdForActiveQfRound,
-      countUniqueDonorsForActiveQfRound,
-    },
-  );
 
   await Project.update(projectId, {
-    sumDonationValueUsd: totalDonations,
+    totalDonations,
     countUniqueDonors: uniqueDonors,
     sumDonationValueUsdForActiveQfRound,
     countUniqueDonorsForActiveQfRound,

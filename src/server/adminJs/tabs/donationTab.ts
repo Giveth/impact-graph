@@ -29,8 +29,10 @@ import {
 import { Project } from '../../../entities/project';
 import { calculateGivbackFactor } from '../../../services/givbackService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
-import { updateTotalDonationsOfProject } from '../../../services/donationService';
-import { updateUserTotalDonated } from '../../../services/userService';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../../../services/userService';
 import { NETWORK_IDS } from '../../../provider';
 import {
   initExportSpreadsheet,
@@ -42,6 +44,7 @@ import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../../../services/chains';
+import { updateProjectStatistics } from '../../../services/projectService';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -149,7 +152,8 @@ export const createDonation = async (
         donation.user = donor;
       }
       await donation.save();
-      await updateTotalDonationsOfProject(project.id);
+      await updateProjectStatistics(project.id);
+      await updateUserTotalReceived(project.adminUserId);
       if (donor) {
         await updateUserTotalDonated(donor.id);
       }
@@ -607,6 +611,8 @@ export const donationTab = {
           { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'Arbitrum Sepolia' },
           { value: NETWORK_IDS.BASE_MAINNET, label: 'Base' },
           { value: NETWORK_IDS.BASE_SEPOLIA, label: 'Base Sepolia' },
+          { value: NETWORK_IDS.ZKEVM_MAINNET, label: 'ZKEVM Mainnet' },
+          { value: NETWORK_IDS.ZKEVM_CARDONA, label: 'ZKEVM Cardona' },
         ],
         isVisible: {
           list: true,
