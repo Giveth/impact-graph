@@ -2216,7 +2216,7 @@ function createDonationTestCases() {
           transactionNetworkId: NETWORK_IDS.XDAI,
           transactionId: generateRandomEvmTxHash(),
           nonce: 12,
-          amount: 10,
+          amount: 1000,
           token: 'GIV',
         },
       },

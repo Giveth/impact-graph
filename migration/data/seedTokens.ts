@@ -28,6 +28,7 @@ const seedTokens: ITokenData[] = [
   {
     name: 'Giveth Token',
     symbol: 'GIV',
+    coingeckoId: 'giveth',
     address: '0x900db999074d9277c5da2a43f252d74366230da0',
     decimals: 18,
     networkId: 1,
@@ -896,6 +897,7 @@ const seedTokens: ITokenData[] = [
   {
     name: 'Giveth Token',
     symbol: 'GIV',
+    coingeckoId: 'giveth',
     address: '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75',
     decimals: 18,
     networkId: 100,
@@ -1066,6 +1068,7 @@ const seedTokens: ITokenData[] = [
   {
     name: 'Optimism Sepolia GIV test token',
     symbol: 'GIV',
+    coingeckoId: 'giveth',
     address: '0x2f2c819210191750F2E11F7CfC5664a0eB4fd5e6',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,

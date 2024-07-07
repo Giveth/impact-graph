@@ -20,7 +20,6 @@ import {
 import { convertExponentialNumber } from '../utils/utils';
 import {
   findDonationById,
-  findStableCoinDonationsWithoutPrice,
   findRelevantDonations,
 } from '../repositories/donationRepository';
 import {
@@ -210,30 +209,6 @@ export const isTokenAcceptableForProject = async (inputData: {
 
 export const toFixNumber = (input: number, digits: number): number => {
   return convertExponentialNumber(Number(input.toFixed(digits)));
-};
-
-export const updateOldStableCoinDonationsPrice = async () => {
-  const donations = await findStableCoinDonationsWithoutPrice();
-  logger.debug(
-    'updateOldStableCoinDonationPrice donations count',
-    donations.length,
-  );
-  for (const donation of donations) {
-    logger.debug(
-      'updateOldStableCoinDonationPrice() updating accurate price, donationId',
-      donation.id,
-    );
-    try {
-      donation.priceUsd = 1;
-      donation.valueUsd = donation.amount;
-      await donation.save();
-      await updateProjectStatistics(donation.projectId);
-      await updateUserTotalDonated(donation.userId);
-      await updateUserTotalReceived(donation.project.adminUserId);
-    } catch (e) {
-      logger.error('Update GIV donation valueUsd error', e.message);
-    }
-  }
 };
 
 const failedVerifiedDonationErrorMessages = [
