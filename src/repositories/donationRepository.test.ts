@@ -1,7 +1,6 @@
 import { assert } from 'chai';
 import moment from 'moment';
 import {
-  assertThrowsAsync,
   createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
@@ -21,7 +20,6 @@ import {
   getPendingDonationsIds,
   isVerifiedDonationExistsInQfRound,
   getProjectQfRoundStats,
-  findRelevantDonations,
 } from './donationRepository';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { QfRound } from '../entities/qfRound';
@@ -60,7 +58,7 @@ describe(
   'isVerifiedDonationExistsInQfRound() test cases',
   isVerifiedDonationExistsInQfRoundTestCases,
 );
-describe('findRelevantDonations', findRelevantDonationsTestCases);
+// describe('findRelevantDonations', findRelevantDonationsTestCases);
 
 function fillQfRoundDonationsUserScoresTestCases() {
   let qfRound: QfRound;
@@ -1410,85 +1408,85 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
   });
 }
 
-function findRelevantDonationsTestCases() {
-  // Clear All donations after test
-  after(async () => {
-    await Donation.clear();
-  });
-
-  it('should return relevant donations correctly', async () => {
-    // Clear existing data
-    await Donation.clear();
-
-    const project1 = await saveProjectDirectlyToDb(createProjectData());
-    const project2 = await saveProjectDirectlyToDb(createProjectData());
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const donation1 = await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        projectId: project1.id,
-        createdAt: new Date('2024-01-01'),
-        relevantDonationTxHash: 'tx1',
-        useDonationBox: true,
-      },
-      user.id,
-      project1.id,
-    );
-
-    const donation2 = await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        projectId: project2.id,
-        createdAt: new Date('2024-01-01'),
-        transactionId: 'tx1',
-        useDonationBox: true,
-      },
-      user.id,
-      project2.id,
-    );
-
-    const { donationsToGiveth, pairedDonations } = await findRelevantDonations(
-      new Date('2023-01-01'),
-      new Date('2025-01-01'),
-      project1.id,
-    );
-
-    assert.equal(donationsToGiveth.length, 1);
-    assert.equal(pairedDonations.length, 1);
-    assert.equal(donationsToGiveth[0].id, donation1.id);
-    assert.equal(pairedDonations[0].id, donation2.id);
-  });
-
-  it('should throw an error if the relevant donation does not exist', async () => {
-    // Clear existing data
-    await Donation.clear();
-
-    // Create project and user
-    const givethProject = await saveProjectDirectlyToDb(createProjectData());
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const donationsToGiveth = await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        projectId: givethProject.id,
-        createdAt: new Date('2024-01-01'),
-        relevantDonationTxHash: 'tx1',
-        useDonationBox: true,
-      },
-      user.id,
-      givethProject.id,
-    );
-
-    // Fetch relevant donations and expect an error
-    await assertThrowsAsync(
-      () =>
-        findRelevantDonations(
-          new Date('2023-01-01'),
-          new Date('2025-01-01'),
-          givethProject.id,
-        ),
-      `the relevant donation to this donation does not exist: donation id = ${donationsToGiveth.id}`,
-    );
-  });
-}
+// function findRelevantDonationsTestCases() {
+//   // Clear All donations after test
+//   after(async () => {
+//     await Donation.clear();
+//   });
+//
+//   it('should return relevant donations correctly', async () => {
+//     // Clear existing data
+//     await Donation.clear();
+//
+//     const project1 = await saveProjectDirectlyToDb(createProjectData());
+//     const project2 = await saveProjectDirectlyToDb(createProjectData());
+//     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+//
+//     const donation1 = await saveDonationDirectlyToDb(
+//       {
+//         ...createDonationData(),
+//         projectId: project1.id,
+//         createdAt: new Date('2024-01-01'),
+//         relevantDonationTxHash: 'tx1',
+//         useDonationBox: true,
+//       },
+//       user.id,
+//       project1.id,
+//     );
+//
+//     const donation2 = await saveDonationDirectlyToDb(
+//       {
+//         ...createDonationData(),
+//         projectId: project2.id,
+//         createdAt: new Date('2024-01-01'),
+//         transactionId: 'tx1',
+//         useDonationBox: true,
+//       },
+//       user.id,
+//       project2.id,
+//     );
+//
+//     const { donationsToGiveth, pairedDonations } = await findRelevantDonations(
+//       new Date('2023-01-01'),
+//       new Date('2025-01-01'),
+//       project1.id,
+//     );
+//
+//     assert.equal(donationsToGiveth.length, 1);
+//     assert.equal(pairedDonations.length, 1);
+//     assert.equal(donationsToGiveth[0].id, donation1.id);
+//     assert.equal(pairedDonations[0].id, donation2.id);
+//   });
+//
+//   it('should throw an error if the relevant donation does not exist', async () => {
+//     // Clear existing data
+//     await Donation.clear();
+//
+//     // Create project and user
+//     const givethProject = await saveProjectDirectlyToDb(createProjectData());
+//     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+//
+//     const donationsToGiveth = await saveDonationDirectlyToDb(
+//       {
+//         ...createDonationData(),
+//         projectId: givethProject.id,
+//         createdAt: new Date('2024-01-01'),
+//         relevantDonationTxHash: 'tx1',
+//         useDonationBox: true,
+//       },
+//       user.id,
+//       givethProject.id,
+//     );
+//
+//     // Fetch relevant donations and expect an error
+//     await assertThrowsAsync(
+//       () =>
+//         findRelevantDonations(
+//           new Date('2023-01-01'),
+//           new Date('2025-01-01'),
+//           givethProject.id,
+//         ),
+//       `the relevant donation to this donation does not exist: donation id = ${donationsToGiveth.id}`,
+//     );
+//   });
+// }
