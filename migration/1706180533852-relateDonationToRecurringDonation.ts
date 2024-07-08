@@ -7,7 +7,6 @@ export class relateDonationToRecurringDonation1706180533852
     await queryRunner.query(`
             ALTER TABLE "donation"
             ADD COLUMN "recurringDonationId" integer,
-            ADD COLUMN "recurringDonation" integer;
         `);
 
     await queryRunner.query(`
@@ -36,7 +35,6 @@ export class relateDonationToRecurringDonation1706180533852
     await queryRunner.query(`
             ALTER TABLE "donation"
             DROP COLUMN "recurringDonationId",
-            DROP COLUMN "recurringDonation";
         `);
   }
 }

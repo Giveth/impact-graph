@@ -35,7 +35,6 @@ const envVars = [
   'DROP_DATABASE',
   'SEED_PASSWORD',
   'APOLLO_KEY',
-  'REGISTER_USERNAME_PASSWORD',
   'STRIPE_KEY',
   'STRIPE_SECRET',
   'STRIPE_APPLICATION_FEE',
@@ -77,7 +76,6 @@ interface requiredEnv {
   DROP_DATABASE: string;
   SEED_PASSWORD: string;
   APOLLO_KEY: string;
-  REGISTER_USERNAME_PASSWORD: string;
 
   STRIPE_KEY: string;
   STRIPE_SECRET: string;
@@ -123,7 +121,7 @@ class Config {
   }
 
   get(envVar: string): string | number {
-    // I thinks it's an unnecessary checking, because may we have some optional config, but this checking make all
+    // I think it's an unnecessary checking, because may we have some optional config, but this checking make all
     // config variables required
 
     // if (!this.env[envVar]) {

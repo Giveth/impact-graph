@@ -12,10 +12,14 @@ export const updateUserTotalDonated = async (userId: number) => {
       SET "totalDonated" = (
         SELECT COALESCE(SUM(d."valueUsd"),0)
         FROM donation as d
-        WHERE d."userId" = $1 AND d."status" = 'verified'
+        WHERE d."userId" = $1 AND d."status" = 'verified' AND d."recurringDonationId" IS NULL
+      ) + (
+        SELECT COALESCE(SUM(rd."totalUsdStreamed"), 0)
+        FROM recurring_donation as rd
+        WHERE rd."donorId" = $1
       )
       WHERE "id" = $1
-    `,
+      `,
       [userId],
     );
   } catch (e) {
@@ -70,8 +74,16 @@ export const fetchAdminAndValidatePassword = async (params: {
 }): Promise<User | undefined> => {
   const { password, email } = params;
   const user = await findAdminUserByEmail(email);
-  if (user && (await bcrypt.compare(password, user.encryptedPassword!))) {
-    return user;
+
+  if (user?.encryptedPassword == null) return;
+
+  try {
+    if (await bcrypt.compare(password, user.encryptedPassword)) {
+      return user;
+    }
+    return;
+  } catch (e) {
+    logger.error('fetchAdminAndValidatePassword() error', e);
+    return;
   }
-  return;
 };

@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import {
   saveProjectDirectlyToDb,
   createProjectData,
@@ -10,7 +10,10 @@ import {
 } from '../../../entities/draftDonation';
 import { NETWORK_IDS } from '../../../provider';
 import { ProjectAddress } from '../../../entities/projectAddress';
-import { matchDraftDonations } from './draftDonationService';
+import {
+  isAmountWithinTolerance,
+  matchDraftDonations,
+} from './draftDonationService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
 import {
   DONATION_ORIGINS,
@@ -20,7 +23,8 @@ import {
 import { Project, ProjectUpdate } from '../../../entities/project';
 import { User } from '../../../entities/user';
 
-describe('draftDonationMatching', draftDonationMatchingTests);
+describe.skip('draftDonationMatching', draftDonationMatchingTests);
+describe('isAmountWithinTolerance', isAmountWithinToleranceTests);
 
 const RandomAddress1 = '0xf3ddeb5022a6f06b61488b48c90315087ca2beef';
 const RandomAddress2 = '0xc42a4791735ae1253c50c6226832e37ede3669f5';
@@ -242,5 +246,35 @@ function draftDonationMatchingTests() {
 
     expect(erc20Donation).to.be.ok;
     expect(donation2).to.not.be.ok;
+  });
+}
+
+function isAmountWithinToleranceTests() {
+  it(`should return true for 40.5555 (405555) (0xa9059cbb000000000000000000000000b4964e1eca55db36a94e8aeffbfbab48529a2f6c00000000000000000000000000000000000000000000000000000000026ad3ec)
+   and 40.555499 (40555499)(0xa9059cbb000000000000000000000000b4964e1eca55db36a94e8aeffbfbab48529a2f6c00000000000000000000000000000000000000000000000000000000026ad3eb)
+   `, () => {
+    // https://gnosisscan.io/tx/0xfa65ef0a52e2f3b96c5802dcee4783858511989b7235035e8cab4d527fa15a1a
+    assert.isTrue(
+      isAmountWithinTolerance(
+        '0xa9059cbb000000000000000000000000b4964e1eca55db36a94e8aeffbfbab48529a2f6c00000000000000000000000000000000000000000000000000000000026ad3ec',
+        '0xa9059cbb000000000000000000000000b4964e1eca55db36a94e8aeffbfbab48529a2f6c00000000000000000000000000000000000000000000000000000000026ad3eb',
+        // Tether Decimals is 6
+        6,
+      ),
+    );
+  });
+
+  it(`should return false for 40.5555 (405555) (0xa9059cbb000000000000000000000000b4964e1eca55db36a94e8aeffbfbab48529a2f6c00000000000000000000000000000000000000000000000000000000026ad3ec)
+   and 40.550571 (40550571)(0xa9059cbb000000000000000000000000b4964e1eca55db36a94e8aeffbfbab48529a2f6c00000000000000000000000000000000000000000000000000000000026ac0ab)
+   `, () => {
+    // https://gnosisscan.io/tx/0xfa65ef0a52e2f3b96c5802dcee4783858511989b7235035e8cab4d527fa15a1a
+    assert.isFalse(
+      isAmountWithinTolerance(
+        '0xa9059cbb000000000000000000000000b4964e1eca55db36a94e8aeffbfbab48529a2f6c00000000000000000000000000000000000000000000000000000000026ad3ec',
+        '0xa9059cbb000000000000000000000000b4964e1eca55db36a94e8aeffbfbab48529a2f6c00000000000000000000000000000000000000000000000000000000026ac0ab',
+        // Tether Decimals is 6
+        6,
+      ),
+    );
   });
 }

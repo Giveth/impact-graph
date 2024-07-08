@@ -89,6 +89,20 @@ export const thirdPartProjectImportTab = {
       },
     },
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessThirdPartyProjectImportAction(
+            { currentAdmin },
+            ResourceActions.LIST,
+          ),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessThirdPartyProjectImportAction(
+            { currentAdmin },
+            ResourceActions.SHOW,
+          ),
+      },
       bulkDelete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>

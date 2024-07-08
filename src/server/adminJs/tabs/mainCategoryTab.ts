@@ -8,6 +8,14 @@ export const mainCategoryTab = {
   resource: MainCategory,
   options: {
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessMainCategoryAction({ currentAdmin }, ResourceActions.LIST),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessMainCategoryAction({ currentAdmin }, ResourceActions.SHOW),
+      },
       delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>

@@ -1,9 +1,15 @@
 import { Project } from '../entities/project';
+import {
+  countUniqueDonorsAndSumDonationValueUsd,
+  getProjectQfRoundStats,
+} from '../repositories/donationRepository';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
 
 export const getAppropriateSlug = async (
   slugBase: string,
   projectId?: number,
 ): Promise<string> => {
+  if (!slugBase) throw new Error('slugBase is required');
   let slug = slugBase.toLowerCase();
   const query = Project.createQueryBuilder('project')
     // check current slug and previous slugs
@@ -19,6 +25,30 @@ export const getAppropriateSlug = async (
     slug = slug + '-' + (projectCount - 1);
   }
   return slug;
+};
+
+export const updateProjectStatistics = async (projectId: number) => {
+  const activeQfRound = await findActiveQfRound();
+  let sumDonationValueUsdForActiveQfRound = 0,
+    countUniqueDonorsForActiveQfRound = 0;
+  if (activeQfRound) {
+    const qfRoundResult = await getProjectQfRoundStats({
+      projectId,
+      qfRound: activeQfRound,
+    });
+    sumDonationValueUsdForActiveQfRound = qfRoundResult.sumValueUsd;
+    countUniqueDonorsForActiveQfRound = qfRoundResult.uniqueDonorsCount;
+  }
+
+  const { totalDonations, uniqueDonors } =
+    await countUniqueDonorsAndSumDonationValueUsd(projectId);
+
+  await Project.update(projectId, {
+    totalDonations,
+    countUniqueDonors: uniqueDonors,
+    sumDonationValueUsdForActiveQfRound,
+    countUniqueDonorsForActiveQfRound,
+  });
 };
 
 // Current Formula: will be changed possibly in the future

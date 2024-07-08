@@ -29,6 +29,10 @@ export class ProjectActualMatchingView extends BaseEntity {
   @PrimaryColumn()
   qfRoundId: number;
 
+  @ViewColumn()
+  @Column({ nullable: true })
+  email?: string;
+
   // Sum of the square root of the value in USD of the donations
   @ViewColumn()
   @Column('double precision')

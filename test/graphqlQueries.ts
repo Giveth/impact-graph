@@ -54,6 +54,30 @@ export const createDraftDonationMutation = `
   }
 `;
 
+export const createDraftRecurringDonationMutation = `
+  mutation (
+    $networkId: Float!
+    $currency: String!
+    $projectId: Float!
+    $recurringDonationId: Float
+    $anonymous: Boolean
+    $isBatch: Boolean
+    $isForUpdate: Boolean
+    $flowRate: String!
+  ) {
+    createDraftRecurringDonation(
+      networkId: $networkId
+      currency: $currency
+      recurringDonationId: $recurringDonationId
+      projectId: $projectId
+      anonymous: $anonymous
+      isBatch: $isBatch
+      isForUpdate: $isForUpdate
+      flowRate: $flowRate
+    )
+  }
+`;
+
 export const updateDonationStatusMutation = `
   mutation (
     $status: String
@@ -91,7 +115,7 @@ export const createProjectQuery = `
         title
         description
         descriptionSummary
-        admin
+        adminUserId
         image
         impactLocation
         slug
@@ -142,7 +166,7 @@ export const updateProjectQuery = `
       verified
       slugHistory
       creationDate
-      admin
+      adminUserId
       walletAddress
       impactLocation
       categories {
@@ -179,7 +203,7 @@ export const addRecipientAddressToProjectQuery = `
       slugHistory
       creationDate
       updatedAt
-      admin
+      adminUserId
       walletAddress
       impactLocation
       categories {
@@ -321,6 +345,7 @@ export const fetchDonationsByProjectIdQuery = `
       }
       totalCount
       totalUsdBalance
+      recurringDonationsCount
     }
   }
 `;
@@ -331,7 +356,8 @@ export const fetchRecurringDonationsByProjectIdQuery = `
     $projectId: Int!
     $searchTerm: String
     $status: String
-    $finishStatus: [Boolean!]
+    $includeArchived: Boolean
+    $finishStatus: FinishStatus
     $orderBy: RecurringDonationSortBy
   ) {
     recurringDonationsByProjectId(
@@ -340,6 +366,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
       projectId: $projectId
       searchTerm: $searchTerm
       status: $status
+      includeArchived: $includeArchived
       finishStatus: $finishStatus
       orderBy: $orderBy
 
@@ -351,6 +378,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
         flowRate
         currency
         anonymous
+        isArchived
         status
         donor {
           id
@@ -370,8 +398,9 @@ export const fetchRecurringDonationsByUserIdQuery = `
     $take: Int
     $skip: Int
     $status: String
+    $includeArchived: Boolean
     $orderBy: RecurringDonationSortBy
-    $finishStatus: [Boolean!]
+    $finishStatus: FinishStatus
     $userId: Int!
     $filteredTokens: [String!]
   ) {
@@ -381,6 +410,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
       orderBy: $orderBy
       userId: $userId
       status: $status
+      includeArchived: $includeArchived
       finishStatus: $finishStatus
       filteredTokens: $filteredTokens
     ) {
@@ -392,6 +422,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
         currency
         anonymous
         status
+        isArchived
         donor {
           id
           walletAddress
@@ -471,14 +502,14 @@ export const fetchNewProjectsPerDate = `
     $toDate: String
     $onlyListed: Boolean
     $onlyVerified: Boolean
-    $includesOptimism: Boolean
+    $networkId: Float
   ) {
     projectsPerDate(
       fromDate: $fromDate
       toDate: $toDate
       onlyListed: $onlyListed
       onlyVerified: $onlyVerified
-      includesOptimism: $includesOptimism
+      networkId: $networkId
     ) {
       total
       totalPerMonthAndYear {
@@ -493,12 +524,14 @@ export const fetchTotalDonationsPerCategoryPerDate = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Float
+    $onlyVerified: Boolean
   ) {
     totalDonationsPerCategory(
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
+      onlyVerified: $onlyVerified
     ) {
       id
       title
@@ -533,12 +566,12 @@ export const fetchTotalDonors = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Float
   ) {
     totalDonorsCountPerDate(
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
     ) {
       total
       totalPerMonthAndYear {
@@ -553,12 +586,14 @@ export const fetchTotalDonationsUsdAmount = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Float
+    $onlyVerified: Boolean
   ) {
     donationsTotalUsdPerDate (
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
+      onlyVerified: $onlyVerified
     ) {
       total
       totalPerMonthAndYear {
@@ -573,18 +608,48 @@ export const fetchTotalDonationsNumberPerDateRange = `
   query (
     $fromDate: String
     $toDate: String
-    $fromOptimismOnly: Boolean
+    $networkId: Float
+    $onlyVerified: Boolean
   ) {
     totalDonationsNumberPerDate (
       fromDate: $fromDate
       toDate: $toDate
-      fromOptimismOnly: $fromOptimismOnly
+      networkId: $networkId
+      onlyVerified: $onlyVerified
     ) {
       total
       totalPerMonthAndYear {
         total
         date
       }
+    }
+  }
+`;
+
+export const fetchNewDonorsCount = `
+  query (
+    $fromDate: String!
+    $toDate: String!
+  ) {
+    newDonorsCountPerDate(
+      fromDate: $fromDate
+      toDate: $toDate
+    ) {
+      total
+    }
+  }
+`;
+
+export const fetchNewDonorsDonationTotalUsd = `
+  query (
+    $fromDate: String!
+    $toDate: String!
+  ) {
+    newDonorsDonationTotalUsdPerDate(
+      fromDate: $fromDate
+      toDate: $toDate
+    ) {
+      total
     }
   }
 `;
@@ -607,6 +672,10 @@ export const fetchAllDonationsQuery = `
         anonymous
         valueUsd
         amount
+        recurringDonation{
+          id
+          txHash
+        }
         user {
           id
           walletAddress
@@ -618,7 +687,7 @@ export const fetchAllDonationsQuery = `
           reviewStatus
           verified
           slug
-          admin
+          adminUserId
           title
           categories {
             name
@@ -712,7 +781,7 @@ export const fetchFeaturedProjects = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -808,7 +877,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         descriptionSummary
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -872,7 +941,6 @@ export const fetchMultiFilterAllProjectsQuery = `
         totalDonations
         totalTraceDonations
         sumDonationValueUsdForActiveQfRound
-        sumDonationValueUsd
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
         estimatedMatching{
@@ -913,6 +981,12 @@ export const qfRoundStatsQuery = `
       uniqueDonors
       allDonationsUsdValue
       matchingPool
+      qfRound{
+        allocatedFund
+        allocatedFundUSD
+        allocatedFundUSDPreferred
+        allocatedTokenSymbol
+      }
     }
   }
 `;
@@ -955,7 +1029,7 @@ export const fetchProjectBySlugQuery = `
       slug
       creationDate
       updatedAt
-      admin
+      adminUserId
       description
       walletAddress
       impactLocation
@@ -981,7 +1055,6 @@ export const fetchProjectBySlugQuery = `
         sortingField
         createdAt
         updatedAt
-      
       }
       givbackFactor
       projectPower {
@@ -1011,53 +1084,6 @@ export const fetchProjectBySlugQuery = `
         id
         name
         isActive
-      }
-      projectVerificationForm {
-        status
-        id
-        isTermAndConditionsAccepted
-        emailConfirmationTokenExpiredAt
-        email
-        emailConfirmationToken
-        emailConfirmationSent
-        emailConfirmationSentAt
-        emailConfirmedAt
-        emailConfirmed
-        projectRegistry {
-          organizationDescription
-          isNonProfitOrganization
-          organizationCountry
-          organizationWebsite
-          attachments
-          organizationName
-        }
-        personalInfo {
-          email
-          walletAddress
-          fullName
-        }
-        projectContacts {
-          name
-          url
-        }
-        milestones {
-          mission
-          foundationDate
-          achievedMilestones
-          achievedMilestonesProofs
-          problem
-          plans
-          impact
-        }
-        managingFunds {
-          description
-          relatedAddresses {
-            address
-            networkId
-            chainType
-            title
-          }
-        }
       }
       status {
         id
@@ -1092,6 +1118,7 @@ export const fetchProjectBySlugQuery = `
         email
         firstName
         walletAddress
+        email
       }
       totalReactions
       totalDonations
@@ -1129,7 +1156,7 @@ export const fetchSimilarProjectsBySlugQuery = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -1190,7 +1217,7 @@ export const fetchLikedProjectsQuery = `
         slug
         creationDate
         updatedAt
-        admin
+        adminUserId
         description
         walletAddress
         impactLocation
@@ -1253,6 +1280,7 @@ export const updateUser = `
     $lastName: String
     $firstName: String
     $avatar: String
+    $newUser: Boolean
   ) {
     updateUser(
       url: $url
@@ -1261,6 +1289,7 @@ export const updateUser = `
       firstName: $firstName
       lastName: $lastName
       avatar: $avatar
+      newUser: $newUser
     )
   }
 `;
@@ -1281,6 +1310,7 @@ export const userByAddress = `
       boostedProjectsCount
       likedProjectsCount
       donationsCount
+      totalDonated
       projectsCount
       passportScore
       passportStamps
@@ -1434,7 +1464,7 @@ export const projectsBySlugsQuery = `
           image
           slug
           creationDate
-          admin
+          adminUserId
           walletAddress
           impactLocation
           listed
@@ -1482,7 +1512,7 @@ export const projectsByUserIdQuery = `
           image
           slug
           creationDate
-          admin
+          adminUserId
           walletAddress
           impactLocation
           listed
@@ -1586,7 +1616,7 @@ export const projectByIdQuery = `
       reviewStatus
       description,
       walletAddress
-      admin
+      adminUserId
       categories{
           name
       }
@@ -2216,6 +2246,33 @@ export const doesDonatedToProjectInQfRoundQuery = `
   }
 `;
 
+export const fetchQFArchivedRounds = `
+  query (
+   $limit: Int
+   $skip: Int
+   $orderBy: QfArchivedRoundsOrderBy
+  ) {
+    qfArchivedRounds(
+      limit: $limit
+      skip: $skip
+      orderBy: $orderBy
+    ) {
+      id
+      name
+      slug
+      isActive
+      allocatedFund
+      allocatedFundUSD
+      allocatedTokenSymbol
+      eligibleNetworks
+      beginDate
+      endDate
+      totalDonations
+      uniqueDonors
+    }
+  }
+`;
+
 export const createAnchorContractAddressQuery = `
   mutation ($projectId: Int!,
             $networkId: Int!, 
@@ -2242,6 +2299,7 @@ export const createRecurringDonationQuery = `
             $flowRate: String!
             $currency: String!
             $anonymous: Boolean
+            $isBatch: Boolean
             ) {
     createRecurringDonation(
       projectId: $projectId 
@@ -2250,12 +2308,50 @@ export const createRecurringDonationQuery = `
       flowRate: $flowRate
       currency:$currency
       anonymous:$anonymous
+      isBatch:$isBatch
         ) {
       txHash
       networkId
       anonymous
+      isArchived
+      isBatch
     }
   }
+`;
+
+export const updateRecurringDonationQueryById = `
+       mutation (
+        $recurringDonationId: Int!,
+        $projectId: Int!,
+        $networkId: Int!,
+        $currency: String!,
+        $txHash: String
+        $flowRate: String
+        $anonymous: Boolean
+        $isArchived: Boolean
+        $status: String
+        ) {
+          updateRecurringDonationParamsById(
+            recurringDonationId: $recurringDonationId
+            projectId: $projectId
+            networkId: $networkId
+            currency:$currency
+            txHash:$txHash
+            anonymous:$anonymous
+            flowRate:$flowRate
+            status:$status
+            isArchived:$isArchived
+        ) {
+            txHash
+            networkId
+            currency
+            flowRate
+            anonymous
+            status
+            isArchived
+            finished
+          }
+      }
 `;
 
 export const updateRecurringDonationQuery = `
@@ -2266,6 +2362,7 @@ export const updateRecurringDonationQuery = `
         $txHash: String
         $flowRate: String
         $anonymous: Boolean
+        $isArchived: Boolean
         $status: String
         ) {
           updateRecurringDonationParams(
@@ -2276,6 +2373,7 @@ export const updateRecurringDonationQuery = `
             anonymous:$anonymous
             flowRate:$flowRate
             status:$status
+            isArchived:$isArchived
         ) {
             txHash
             networkId
@@ -2283,6 +2381,25 @@ export const updateRecurringDonationQuery = `
             flowRate
             anonymous
             status
+            isArchived
+            finished
           }
       }
+`;
+
+export const fetchRecurringDonationStatsQuery = `
+  query (
+    $beginDate: String!
+    $endDate: String!
+    $currency: String
+    ) {
+      getRecurringDonationStats(
+        beginDate: $beginDate
+        endDate: $endDate
+        currency: $currency
+      ) {
+        totalStreamedUsdValue,
+        activeRecurringDonationsCount,
+      }
+  }
 `;

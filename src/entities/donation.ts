@@ -198,6 +198,7 @@ export class Donation extends BaseEntity {
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
   user?: User;
+
   @RelationId((donation: Donation) => donation.user)
   @Column({ nullable: true })
   userId: number;

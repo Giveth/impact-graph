@@ -25,6 +25,14 @@ export const usersTab = {
       },
     },
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessUserAction({ currentAdmin }, ResourceActions.LIST),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessUserAction({ currentAdmin }, ResourceActions.SHOW),
+      },
       delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>

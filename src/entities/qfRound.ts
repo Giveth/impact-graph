@@ -8,8 +8,10 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
 import { Project } from './project';
+import { Donation } from './donation';
 
 @Entity()
 @ObjectType()
@@ -21,6 +23,14 @@ export class QfRound extends BaseEntity {
   @Field({ nullable: true })
   @Column('text', { nullable: true })
   name: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  title: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  description: string;
 
   @Field()
   @Index({ unique: true })
@@ -34,6 +44,22 @@ export class QfRound extends BaseEntity {
   @Field(_type => Number)
   @Column()
   allocatedFund: number;
+
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  allocatedFundUSD: number;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ nullable: true })
+  allocatedFundUSDPreferred: boolean;
+
+  @Field(_type => String, { nullable: true })
+  @Column({ nullable: true })
+  allocatedTokenSymbol: string;
+
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  allocatedTokenChainId: number;
 
   @Field(_type => Number)
   @Column('real', { default: 0.2 })
@@ -59,6 +85,18 @@ export class QfRound extends BaseEntity {
   @Column()
   endDate: Date;
 
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  bannerBgImage: string;
+
+  @Field(_type => [String])
+  @Column('text', { array: true, default: [] })
+  sponsorsImgs: string[];
+
+  @Field(_type => Boolean)
+  @Column({ default: false })
+  isDataAnalysisDone: boolean;
+
   @UpdateDateColumn()
   updatedAt: Date;
 
@@ -67,6 +105,9 @@ export class QfRound extends BaseEntity {
 
   @ManyToMany(_type => Project, project => project.qfRounds)
   projects: Project[];
+
+  @OneToMany(_type => Donation, donation => donation.qfRound)
+  donations: Donation[];
 
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {

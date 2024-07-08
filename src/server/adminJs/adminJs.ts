@@ -33,6 +33,8 @@ import { qfRoundHistoryTab } from './tabs/qfRoundHistoryTab';
 import { SybilTab } from './tabs/sybilTab';
 import { ProjectFraudTab } from './tabs/projectFraudTab';
 import { RecurringDonationTab } from './tabs/recurringDonationTab';
+import { AnchorContractAddressTab } from './tabs/anchorContractAddressTab';
+
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminJsCookie = 'adminjs';
 adminJs.registerAdapter({ Database, Resource });
@@ -113,7 +115,7 @@ export const getCurrentAdminJsSession = async (request: IncomingMessage) => {
       });
     });
   } catch (e) {
-    logger.error(e);
+    logger.error('getCurrentAdminJsSession error', e);
   }
   if (!adminUser) return false;
 
@@ -149,6 +151,7 @@ const getResources = async (): Promise<AdminJsResources> => {
     SybilTab,
     ProjectFraudTab,
     RecurringDonationTab,
+    AnchorContractAddressTab,
   ];
 
   const loggingHook = async (response, request, context) => {
@@ -233,6 +236,7 @@ const getadminJsInstance = async () => {
     },
     rootPath: adminJsRootPath,
   });
+  // adminJsInstance.watch();
   return adminJsInstance;
 };
 

@@ -20,18 +20,10 @@ import {
 } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
-import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
-import { ProjectPowerView1662915983385 } from '../migration/1662915983385-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
-import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-ProjectFuturePowerView';
 import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
-import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
 import { AppDataSource } from '../src/orm';
 import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
-import { CreateProjectInstantPowerView1683191367806 } from '../migration/1683191367806-CreateProjectInstantPowerView';
-import { ProjectDonationSummaryView1685972291645 } from '../migration/1685972291645-ProjectDonationSummaryView';
-import { ProjectEstimatedMatchingView1685958638251 } from '../migration/1685958638251-ProjectEstimatedMatchingView';
-import { CreateProjectUserInstantPowerView1689504711172 } from '../migration/1689504711172-CreateProjectUserInstantPowerView';
 import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
 import { redis } from '../src/redis';
 import { logger } from '../src/utils/logger';
@@ -40,7 +32,16 @@ import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696
 import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
 import { ChainType } from '../src/types/network';
 import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
-import { ProjectActualMatchingV11_1710322367912 } from '../migration/1710322367912-project_actual_matching_v11_';
+import { EnablePgTrgmExtension1713859866338 } from '../migration/1713859866338-enable_pg_trgm_extension';
+import { AddPgTrgmIndexes1715086559930 } from '../migration/1715086559930-add_pg_trgm_indexes';
+import { ProjectPowerViewV21717643739652 } from '../migration/1717643739652-ProjectPowerView_V2';
+import { ProjectEstimatedMatchingViewV21717646357435 } from '../migration/1717646357435-ProjectEstimatedMatchingView_V2';
+import { ProjectActualMatchingViewV161717646612482 } from '../migration/1717646612482-ProjectActualMatchingView_V16';
+import { LastSnapshotProjectPowerViewV21717648491606 } from '../migration/1717648491606-LastSnapshotProjectPowerView_V2';
+import { ProjectFuturePowerViewV21717643016553 } from '../migration/1717643016553-ProjectFuturePowerView_V2';
+import { ProjectUserInstantPowerViewV21717644442966 } from '../migration/1717644442966-ProjectUserInstantPowerView_V2';
+import { ProjectInstantPowerViewV21717648653115 } from '../migration/1717648653115-ProjectInstantPowerView_V2';
+import { UserProjectPowerViewV21717645768886 } from '../migration/1717645768886-UserProjectPowerView_V2';
 
 async function seedDb() {
   await seedUsers();
@@ -70,7 +71,7 @@ async function seedTokens() {
     } else if (token.symbol === 'WETH') {
       (tokenData as any).order = 3;
     }
-    await Token.create(tokenData as Token).save();
+    await Token.create(tokenData).save();
   }
   for (const token of SEED_DATA.TOKENS.mainnet) {
     const tokenData = {
@@ -98,7 +99,6 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
-
   for (const token of SEED_DATA.TOKENS.goerli) {
     const tokenData = {
       ...token,
@@ -112,7 +112,6 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
-
   for (const token of SEED_DATA.TOKENS.polygon) {
     const tokenData = {
       ...token,
@@ -173,6 +172,62 @@ async function seedTokens() {
     const tokenData = {
       ...token,
       networkId: 421614,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.base_mainnet) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.BASE_MAINNET,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.base_sepolia) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.BASE_SEPOLIA,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.zkevm_mainnet) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.ZKEVM_MAINNET,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.zkevm_cardano) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.ZKEVM_CARDONA,
       isGivbackEligible: true,
     };
     if (token.symbol === 'GIV') {
@@ -335,6 +390,7 @@ async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.FOURTH_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.FIFTH_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.SIXTH_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.NON_VERIFIED_PROJECT);
 }
 
 async function seedProjectUpdates() {
@@ -456,19 +512,18 @@ async function runMigrations() {
   await queryRunner.connect();
 
   try {
-    await new UserProjectPowerView1662877385339().up(queryRunner);
-    await new ProjectPowerView1662915983385().up(queryRunner);
-    await new LastSnapshotProjectPowerView1671448387986().up(queryRunner);
-    await new ProjectFuturePowerView1668411738120().up(queryRunner);
+    await new UserProjectPowerViewV21717645768886().up(queryRunner);
+    await new ProjectPowerViewV21717643739652().up(queryRunner);
+    await new LastSnapshotProjectPowerViewV21717648491606().up(queryRunner);
+    await new ProjectFuturePowerViewV21717643016553().up(queryRunner);
     await new TakePowerBoostingSnapshotProcedure1663594895751().up(queryRunner);
     await new createGivPowerHistoricTablesProcedure1670429143091().up(
       queryRunner,
     );
     await new createOrganisatioTokenTable1646302349926().up(queryRunner);
-    await new CreateProjectInstantPowerView1683191367806().up(queryRunner);
-    await new ProjectDonationSummaryView1685972291645().up(queryRunner);
-    await new ProjectEstimatedMatchingView1685958638251().up(queryRunner);
-    await new CreateProjectUserInstantPowerView1689504711172().up(queryRunner);
+    await new ProjectInstantPowerViewV21717648653115().up(queryRunner);
+    await new ProjectEstimatedMatchingViewV21717646357435().up(queryRunner);
+    await new ProjectUserInstantPowerViewV21717644442966().up(queryRunner);
     await new TakePowerBoostingSnapshotProcedureSecondVersion1690723242749().up(
       queryRunner,
     );
@@ -477,7 +532,9 @@ async function runMigrations() {
       queryRunner,
     );
     await new createDonationethUser1701756190381().up(queryRunner);
-    await new ProjectActualMatchingV11_1710322367912().up(queryRunner);
+    await new ProjectActualMatchingViewV161717646612482().up(queryRunner);
+    await new EnablePgTrgmExtension1713859866338().up(queryRunner);
+    await new AddPgTrgmIndexes1715086559930().up(queryRunner);
   } finally {
     await queryRunner.release();
   }

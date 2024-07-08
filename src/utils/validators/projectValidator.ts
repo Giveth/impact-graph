@@ -141,6 +141,10 @@ export const isWalletAddressSmartContract = async (
     NETWORK_IDS.CELO_ALFAJORES,
     NETWORK_IDS.ARBITRUM_MAINNET,
     NETWORK_IDS.ARBITRUM_SEPOLIA,
+    NETWORK_IDS.BASE_MAINNET,
+    NETWORK_IDS.BASE_SEPOLIA,
+    NETWORK_IDS.ZKEVM_MAINNET,
+    NETWORK_IDS.ZKEVM_CARDONA,
   ];
 
   const _isSmartContracts = await Promise.all(
@@ -160,7 +164,7 @@ async function isSmartContract(provider, projectWalletAddress) {
 
 export const canUserVisitProject = (
   project?: Project | null,
-  userId?: string,
+  userId?: number,
 ) => {
   if (!project) {
     throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
@@ -169,7 +173,7 @@ export const canUserVisitProject = (
     (project.status.id === ProjStatus.drafted ||
       project.status.id === ProjStatus.cancelled) &&
     // If project is draft or cancelled, just owner can view it
-    project.admin !== userId
+    project.adminUserId !== userId
   ) {
     throw new Error(
       i18n.__(

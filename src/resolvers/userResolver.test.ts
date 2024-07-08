@@ -7,10 +7,12 @@ import {
   createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
+  generateRandomEvmTxHash,
   generateTestAccessToken,
   graphqlUrl,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
+  saveRecurringDonationDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
@@ -23,6 +25,10 @@ import { errorMessages } from '../utils/errorMessages';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import { DONATION_STATUS } from '../entities/donation';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+import { updateUserTotalDonated } from '../services/userService';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
+import { NETWORK_IDS } from '../provider';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -161,6 +167,288 @@ function userByAddressTestCases() {
     assert.isNotOk(result.data.data.userByAddress.role);
     assert.equal(result.data.data.userByAddress.email, userData.email);
     assert.equal(result.data.data.userByAddress.url, userData.url);
+  });
+  it('Get donationsCount and totalDonated correctly, when there is just one time donations', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const user = await User.create(userData).save();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: 100,
+        valueUsd: 100,
+        currency: 'USDT',
+        status: DONATION_STATUS.VERIFIED,
+      },
+      user.id,
+      project.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: 50,
+        valueUsd: 50,
+        currency: 'USDT',
+        status: DONATION_STATUS.VERIFIED,
+      },
+      user.id,
+      project.id,
+    );
+    await updateUserTotalDonated(user.id);
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userByAddress,
+        variables: {
+          address: userData.walletAddress,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.userByAddress.walletAddress,
+      userData.walletAddress,
+    );
+    assert.equal(result.data.data.userByAddress.donationsCount, 2);
+    assert.equal(result.data.data.userByAddress.totalDonated, 150);
+  });
+  it('Get donationsCount and totalDonated correctly, when there is just recurringDonations, one active', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const user = await User.create(userData).save();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await addNewAnchorAddress({
+      project,
+      owner: project.adminUser,
+      creator: user,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: user.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency: 'USDT',
+        totalUsdStreamed: 200,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+
+    await updateUserTotalDonated(user.id);
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userByAddress,
+        variables: {
+          address: userData.walletAddress,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.userByAddress.walletAddress,
+      userData.walletAddress,
+    );
+    assert.equal(result.data.data.userByAddress.totalDonated, 200);
+    assert.equal(result.data.data.userByAddress.donationsCount, 1);
+  });
+  it('Get donationsCount and totalDonated correctly, when there is just recurringDonations, active, pending, failed, ended', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const user = await User.create(userData).save();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await addNewAnchorAddress({
+      project,
+      owner: project.adminUser,
+      creator: user,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: user.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency: 'USDT',
+        totalUsdStreamed: 200,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: user.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency: 'USDT',
+        status: RECURRING_DONATION_STATUS.PENDING,
+      },
+    });
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: user.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency: 'USDT',
+        totalUsdStreamed: 200,
+        status: RECURRING_DONATION_STATUS.ENDED,
+      },
+    });
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: user.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency: 'USDT',
+        status: RECURRING_DONATION_STATUS.FAILED,
+      },
+    });
+
+    await updateUserTotalDonated(user.id);
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userByAddress,
+        variables: {
+          address: userData.walletAddress,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.userByAddress.walletAddress,
+      userData.walletAddress,
+    );
+    // for totalDonated we consider all recurring donations but for donationsCount we consider only active recurring donations
+    assert.equal(result.data.data.userByAddress.totalDonated, 400);
+    assert.equal(result.data.data.userByAddress.donationsCount, 2);
+  });
+  it('Get donationsCount and totalDonated correctly, when there is both recurringDonations and one time donation', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const user = await User.create(userData).save();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await addNewAnchorAddress({
+      project,
+      owner: project.adminUser,
+      creator: user,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: 50,
+        valueUsd: 50,
+        currency: 'USDT',
+        status: DONATION_STATUS.VERIFIED,
+      },
+      user.id,
+      project.id,
+    );
+    await updateUserTotalDonated(user.id);
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: user.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency: 'USDT',
+        totalUsdStreamed: 200,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+
+    await updateUserTotalDonated(user.id);
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userByAddress,
+        variables: {
+          address: userData.walletAddress,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.userByAddress.walletAddress,
+      userData.walletAddress,
+    );
+
+    assert.equal(result.data.data.userByAddress.totalDonated, 250);
+    assert.equal(result.data.data.userByAddress.donationsCount, 2);
   });
 
   // TODO write test cases for likedProjectsCount, donationsCount, projectsCount fields

@@ -488,7 +488,7 @@ function findUsersWhoSupportProjectTestCases() {
     );
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      admin: String(projectOwner.id),
+      adminUserId: projectOwner.id,
     });
 
     const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

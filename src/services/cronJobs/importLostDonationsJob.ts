@@ -17,16 +17,14 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
-import { toFixNumber, updateTotalDonationsOfProject } from '../donationService';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../projectViewsService';
+import { toFixNumber } from '../donationService';
+import { refreshProjectEstimatedMatchingView } from '../projectViewsService';
 import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter';
 import { QfRound } from '../../entities/qfRound';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
+import { updateProjectStatistics } from '../projectService';
 
 abiDecoder.addABI(erc20ABI);
 
@@ -247,7 +245,7 @@ export const importLostDonations = async () => {
 
         await updateUserTotalDonated(dbUser.id);
         await updateUserTotalReceived(project.adminUser?.id);
-        await updateTotalDonationsOfProject(project.id);
+        await updateProjectStatistics(project.id);
 
         const donationStats = await getUserDonationStats(dbUser.id);
 
@@ -265,14 +263,13 @@ export const importLostDonations = async () => {
         });
         await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
       } catch (e) {
-        logger.error('importLostDonations() error');
+        logger.error('importLostDonations() error', e);
         continue;
       }
     }
 
     // Figure out if its ideal to call this here or once, maybe in a button in adminjs
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   } catch (e) {
     logger.error('importLostDonations() error', e);
   }

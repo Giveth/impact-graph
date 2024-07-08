@@ -21,6 +21,7 @@ export const setI18nLocaleForRequest = async (req, _res, next) => {
 export const errorMessages = {
   FIAT_DONATION_ALREADY_EXISTS: 'Onramper donation already exists',
   CAMPAIGN_NOT_FOUND: 'Campaign not found',
+  QF_ROUND_NOT_FOUND: 'qf round not found',
   NONE_OF_WALLET_ADDRESSES_FOUND_IN_DB:
     'None of the wallet addresses were found in the database',
   NO_VALID_PROJECTS_FOUND: 'No valid project slug found in the CSV',
@@ -194,10 +195,16 @@ export const errorMessages = {
   CHAINVINE_REGISTRATION_ERROR: 'Chainvine ID failed to be generated',
   CHAINVINE_CLICK_EVENT_ERROR: 'Unable to register click event or link donor',
   GITCOIN_ERROR_FETCHING_DATA: 'Unable to fetch gitcoin data, check logs',
+  TX_NOT_FOUND: 'Transaction not found',
+  INVALID_PROJECT_ID: 'Invalid project id',
+  INVALID_PROJECT_OWNER: 'Project owner is invalid',
 };
 
 export const translationErrorMessagesKeys = {
   GITCOIN_ERROR_FETCHING_DATA: 'GITCOIN_ERROR_FETCHING_DATA',
+  TX_NOT_FOUND: 'TX_NOT_FOUND',
+  INVALID_PROJECT_ID: 'INVALID_PROJECT_ID',
+  INVALID_PROJECT_OWNER: 'INVALID_PROJECT_OWNER',
   CHAINVINE_CLICK_EVENT_ERROR: 'CHAINVINE_CLICK_EVENT_ERROR',
   CHAINVINE_REGISTRATION_ERROR: 'CHAINVINE_REGISTRATION_ERROR',
   FIAT_DONATION_ALREADY_EXISTS: 'FIAT_DONATION_ALREADY_EXISTS',
@@ -355,5 +362,6 @@ export const translationErrorMessagesKeys = {
   PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED:
     'PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED',
   DRAFT_DONATION_DISABLED: 'DRAFT_DONATION_DISABLED',
+  DRAFT_RECURRING_DONATION_DISABLED: 'DRAFT_RECURRING_DONATION_DISABLED',
   EVM_SUPPORT_ONLY: 'EVM_SUPPORT_ONLY',
 };
