@@ -2,6 +2,7 @@
   "name": "giveth-graphql-api",
   "version": "1.23.3",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
+  "type": "module",
   "main": "./dist/index.js",
   "dependencies": {
     "@adminjs/design-system": "3.1.5",
@@ -204,7 +205,7 @@
     "test:poignArt": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/poignArt/api.test.ts",
     "test:bootstrap": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/server/bootstrap.test.ts",
     "test:utils": "NODE_ENV=test mocha ./src/utils/utils.test.ts",
-    "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
+    "start": "NODE_ENV=development node --loader ts-node/esm ./src/index.ts",
     "start:test": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./test.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
     "db:migrate:run:test": "NODE_ENV=test npx typeorm-ts-node-commonjs migration:run -d ./src/ormconfig.ts",
