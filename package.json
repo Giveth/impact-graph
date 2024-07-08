@@ -88,7 +88,7 @@
     "@types/express": "^4.17.21",
     "@types/graphql-upload": "15.0.2",
     "@types/html-to-text": "^9.0.0",
-    "@types/jsonwebtoken": "^8.5.0",
+    "@types/jsonwebtoken": "^8.5.9",
     "@types/lodash": "^4.14.197",
     "@types/lodash-es": "^4.17.12",
     "@types/marked": "^4.0.8",
