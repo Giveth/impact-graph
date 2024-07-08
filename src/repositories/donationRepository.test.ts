@@ -1424,7 +1424,7 @@ function findRelevantDonationsTestCases() {
       {
         ...createDonationData(),
         projectId: project1.id,
-        createdAt: new Date('2024-01-01'),
+        createdAt: new Date(),
         relevantDonationTxHash: 'tx1',
         useDonationBox: true,
       },
@@ -1436,7 +1436,7 @@ function findRelevantDonationsTestCases() {
       {
         ...createDonationData(),
         projectId: project2.id,
-        createdAt: new Date('2024-01-01'),
+        createdAt: new Date(),
         transactionId: 'tx1',
         useDonationBox: true,
       },
@@ -1446,7 +1446,7 @@ function findRelevantDonationsTestCases() {
 
     const { donationsToGiveth, pairedDonations } = await findRelevantDonations(
       new Date('2023-01-01'),
-      new Date('2025-01-01'),
+      new Date(),
       project1.id,
     );
 
@@ -1474,7 +1474,7 @@ function findRelevantDonationsTestCases() {
       {
         ...createDonationData(),
         projectId: givethProject.id,
-        createdAt: new Date('2024-01-01'),
+        createdAt: new Date(),
         relevantDonationTxHash: 'tx1',
         useDonationBox: true,
       },
@@ -1487,7 +1487,7 @@ function findRelevantDonationsTestCases() {
       () =>
         findRelevantDonations(
           new Date('2023-01-01'),
-          new Date('2025-01-01'),
+          new Date(),
           givethProject.id,
         ),
       `the relevant donation to this donation does not exist: donation id = ${donationsToGiveth.id}`,
