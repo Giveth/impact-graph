@@ -65,6 +65,7 @@ import {
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
+import { ProjectAddress } from '../entities/projectAddress';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -4883,6 +4884,8 @@ async function donationMetricsTestCases() {
 
     // Clean up
     await Donation.remove([donation1, donation2, donation3, donation4]);
+    await ProjectAddress.delete({ projectId: project1.id });
+    await ProjectAddress.delete({ projectId: project2.id });
     await Project.remove([project1, project2]);
     await User.remove([user1, user2]);
   });

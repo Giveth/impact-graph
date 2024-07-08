@@ -28,6 +28,7 @@ import { QfRound } from '../entities/qfRound';
 import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils';
+import { ProjectAddress } from '../entities/projectAddress';
 
 describe('createDonation test cases', createDonationTestCases);
 
@@ -1456,6 +1457,8 @@ function findRelevantDonationsTestCases() {
 
     // Clean up
     await Donation.remove([donation1, donation2]);
+    await ProjectAddress.delete({ projectId: project1.id });
+    await ProjectAddress.delete({ projectId: project2.id });
     await Project.remove([project1, project2]);
     await User.remove(user);
   });
@@ -1493,6 +1496,7 @@ function findRelevantDonationsTestCases() {
 
     // Clean up
     await Donation.remove(donationsToGiveth);
+    await ProjectAddress.delete({ projectId: givethProject.id });
     await Project.remove(givethProject);
     await User.remove(user);
   });
