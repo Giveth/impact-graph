@@ -15,6 +15,7 @@ import {
   generateUserIdLessAccessToken,
   generateRandomSolanaAddress,
   generateRandomSolanaTxHash,
+  deleteProjectDirectlyFromDb,
 } from '../../test/testUtils';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
@@ -39,7 +40,7 @@ import {
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
-import { Project, ProjStatus, ReviewStatus } from '../entities/project';
+import { ProjStatus, ReviewStatus } from '../entities/project';
 import { Token } from '../entities/token';
 import {
   insertSinglePowerBoosting,
@@ -65,7 +66,6 @@ import {
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
-import { ProjectAddress } from '../entities/projectAddress';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -4884,9 +4884,8 @@ async function donationMetricsTestCases() {
 
     // Clean up
     await Donation.remove([donation1, donation2, donation3, donation4]);
-    await ProjectAddress.delete({ projectId: project1.id });
-    await ProjectAddress.delete({ projectId: project2.id });
-    await Project.remove([project1, project2]);
+    await deleteProjectDirectlyFromDb(project1.id);
+    await deleteProjectDirectlyFromDb(project2.id);
     await User.remove([user1, user2]);
   });
 }

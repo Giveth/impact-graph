@@ -36,6 +36,7 @@ import { ChainType } from '../src/types/network';
 import { RecurringDonation } from '../src/entities/recurringDonation';
 import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
 import { findProjectById } from '../src/repositories/projectRepository';
+import { ProjectAddress } from '../src/entities/projectAddress';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -324,20 +325,22 @@ export const createProjectData = (name?: string): CreateProjectData => {
   };
 };
 
-export const deleteProjectFromDbById = async (
+export const deleteProjectDirectlyFromDb = async (
   projectId: number,
 ): Promise<void> => {
-  // Find the project by ID
-  const project = await Project.findOne({
-    where: { id: projectId },
-  });
+  // Find and delete related project addresses
+  const projectAddresses = await ProjectAddress.find({ where: { projectId } });
+  await ProjectAddress.remove(projectAddresses);
 
-  if (!project) {
-    throw new Error(`Project with ID ${projectId} not found`);
+  // Find and delete related project updates
+  const projectUpdates = await ProjectUpdate.find({ where: { projectId } });
+  await ProjectUpdate.remove(projectUpdates);
+
+  // Delete the project
+  const project = await Project.findOne({ where: { id: projectId } });
+  if (project) {
+    await Project.remove(project);
   }
-
-  // Remove the project
-  await Project.remove(project);
 };
 
 export const createDonationData = (params?: {
