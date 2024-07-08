@@ -41,4 +41,4 @@ const ormConfig: DataSourceOptions = {
 
 export const AppDataSource = new DataSource(ormConfig);
 
-exports = ormConfig;
+export default ormConfig;
