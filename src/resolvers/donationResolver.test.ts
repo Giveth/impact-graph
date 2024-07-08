@@ -4792,11 +4792,6 @@ async function recentDonationsTestCases() {
 }
 
 async function donationMetricsTestCases() {
-  // Clear all other donations before each test
-  beforeEach(async () => {
-    await Donation.clear();
-  });
-
   it('should return correct donation metrics', async () => {
     const walletAddress1 = generateRandomEtheriumAddress();
     const walletAddress2 = generateRandomEtheriumAddress();

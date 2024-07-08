@@ -1413,9 +1413,6 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
 
 function findRelevantDonationsTestCases() {
   it('should return relevant donations correctly', async () => {
-    // Clear existing data
-    await Donation.clear();
-
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -1463,9 +1460,6 @@ function findRelevantDonationsTestCases() {
   });
 
   it('should throw an error if the relevant donation does not exist', async () => {
-    // Clear existing data
-    await Donation.clear();
-
     // Create project and user
     const givethProject = await saveProjectDirectlyToDb(createProjectData());
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
