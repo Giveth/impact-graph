@@ -48,6 +48,50 @@ export class RemoveGivingBlocksProjects1719740998424
             );
         `);
 
+    // Delete previous_round_rank
+    await queryRunner.query(`
+            DELETE FROM "previous_round_rank"
+            WHERE "projectId" IN (
+                SELECT "project"."id"
+                FROM "project"
+                LEFT JOIN "organization" ON "project"."organizationId" = "organization"."id"
+                WHERE "organization"."label" = 'givingBlock' AND "project"."totalDonations" = 0
+            );
+        `);
+
+    // Delete project_status_history
+    await queryRunner.query(`
+            DELETE FROM "project_status_history"
+            WHERE "projectId" IN (
+                SELECT "project"."id"
+                FROM "project"
+                LEFT JOIN "organization" ON "project"."organizationId" = "organization"."id"
+                WHERE "organization"."label" = 'givingBlock' AND "project"."totalDonations" = 0
+            );
+        `);
+
+    // Delete purple_address
+    await queryRunner.query(`
+            DELETE FROM "purple_address"
+            WHERE "projectId" IN (
+                SELECT "project"."id"
+                FROM "project"
+                LEFT JOIN "organization" ON "project"."organizationId" = "organization"."id"
+                WHERE "organization"."label" = 'givingBlock' AND "project"."totalDonations" = 0
+            );
+        `);
+
+    // Delete project_verification_form
+    await queryRunner.query(`
+            DELETE FROM "project_verification_form"
+            WHERE "projectId" IN (
+                SELECT "project"."id"
+                FROM "project"
+                LEFT JOIN "organization" ON "project"."organizationId" = "organization"."id"
+                WHERE "organization"."label" = 'givingBlock' AND "project"."totalDonations" = 0
+            );
+        `);
+
     // Finally, delete the projects
     await queryRunner.query(`
             DELETE FROM "project"

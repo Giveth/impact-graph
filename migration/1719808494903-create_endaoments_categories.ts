@@ -5,24 +5,30 @@ export class CreateEndaomentsCategories1719808494903
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create Main Categories
-    await queryRunner.query(`
-            INSERT INTO "main_category" ("title", "slug", "description", "banner", "isActive")
-            VALUES 
-                ('NGO', 'ngo', 'Non-Governmental Organizations', '', true),
-                ('Art & Culture', 'art-culture', 'Art and Cultural activities', '', true),
-                ('Health & Wellness', 'health-wellness', 'Health and Wellness initiatives', '', true),
-                ('Finance', 'finance', 'Financial Services and Initiatives', '', true);
-        `);
+    // await queryRunner.query(`
+    //         INSERT INTO "main_category" ("title", "slug", "description", "banner", "isActive")
+    //         VALUES
+    //             ('NGO', 'ngo', 'Non-Governmental Organizations', '', true),
+    //             ('Art & Culture', 'art-culture', 'Art and Cultural activities', '', true),
+    //             ('Health & Wellness', 'health-wellness', 'Health and Wellness initiatives', '', true),
+    //             ('Finance', 'finance', 'Financial Services and Initiatives', '', true);
+    //     `);
+
+    // await queryRunner.query(`
+    //         INSERT INTO "main_category" ("title", "slug", "description", "banner", "isActive")
+    //         VALUES
+    //             ('Art & Culture', 'art-culture', 'Art and Cultural activities', '', true)
+    //     `);
 
     // Retrieve Main Category IDs
     const ngoMainCategory = await queryRunner.query(
       `SELECT "id" FROM "main_category" WHERE "slug" = 'ngo' LIMIT 1`,
     );
     const artCultureMainCategory = await queryRunner.query(
-      `SELECT "id" FROM "main_category" WHERE "slug" = 'art-culture' LIMIT 1`,
+      `SELECT "id" FROM "main_category" WHERE "slug" = 'art-and-culture' LIMIT 1`,
     );
     const healthWellnessMainCategory = await queryRunner.query(
-      `SELECT "id" FROM "main_category" WHERE "slug" = 'health-wellness' LIMIT 1`,
+      `SELECT "id" FROM "main_category" WHERE "slug" = 'health-and-wellness' LIMIT 1`,
     );
     const financeMainCategory = await queryRunner.query(
       `SELECT "id" FROM "main_category" WHERE "slug" = 'finance' LIMIT 1`,
@@ -45,11 +51,6 @@ export class CreateEndaomentsCategories1719808494903
     // Delete Sub-Categories
     await queryRunner.query(
       `DELETE FROM "category" WHERE "value" IN ('endaoment', 'religious', 'disaster-relief', 'recreation', 'financial-services', 'international-aid')`,
-    );
-
-    // Delete Main Categories
-    await queryRunner.query(
-      `DELETE FROM "main_category" WHERE "slug" IN ('ngo', 'art-culture', 'health-wellness', 'finance')`,
     );
   }
 }
