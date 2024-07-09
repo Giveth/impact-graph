@@ -17,8 +17,6 @@ export type FetchedSavedFailDonationInterface = {
   symbol: string;
   chainvineReferred?: string;
   safeTransactionId?: string;
-  useDonationBox?: boolean;
-  relevantDonationTxHash?: string;
 };
 
 export interface DonationSaveBackupInterface {

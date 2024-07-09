@@ -84,8 +84,6 @@ export const createBackupDonation = async (
     nonce,
     safeTransactionId,
     chainvineReferred,
-    useDonationBox,
-    relevantDonationTxHash,
   } = donationData;
 
   const chainId = donationData?.chainId || donationData.token.networkId;
@@ -111,9 +109,6 @@ export const createBackupDonation = async (
     } as ApolloContext,
     chainvineReferred,
     safeTransactionId,
-    undefined,
-    useDonationBox,
-    relevantDonationTxHash,
   );
   const donation = (await findDonationById(Number(donationId))) as Donation;
   donation!.createdAt = getCreatedAtFromMongoObjectId(donationData._id);

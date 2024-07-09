@@ -36,7 +36,6 @@ import { ChainType } from '../src/types/network';
 import { RecurringDonation } from '../src/entities/recurringDonation';
 import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
 import { findProjectById } from '../src/repositories/projectRepository';
-import { ProjectAddress } from '../src/entities/projectAddress';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -298,8 +297,8 @@ export const saveProjectDirectlyToDb = async (
     )`);
   return project;
 };
-export const createProjectData = (name?: string): CreateProjectData => {
-  const title = name ? name : String(new Date().getTime());
+export const createProjectData = (): CreateProjectData => {
+  const title = String(new Date().getTime());
   const walletAddress = generateRandomEtheriumAddress();
   return {
     // title: `test project`,
@@ -324,25 +323,6 @@ export const createProjectData = (name?: string): CreateProjectData => {
     projectUpdateCreationDate: new Date(),
   };
 };
-
-export const deleteProjectDirectlyFromDb = async (
-  projectId: number,
-): Promise<void> => {
-  // Find and delete related project addresses
-  const projectAddresses = await ProjectAddress.find({ where: { projectId } });
-  await ProjectAddress.remove(projectAddresses);
-
-  // Find and delete related project updates
-  const projectUpdates = await ProjectUpdate.find({ where: { projectId } });
-  await ProjectUpdate.remove(projectUpdates);
-
-  // Delete the project
-  const project = await Project.findOne({ where: { id: projectId } });
-  if (project) {
-    await Project.remove(project);
-  }
-};
-
 export const createDonationData = (params?: {
   status?: string;
   createdAt?: Date;
@@ -1939,8 +1919,6 @@ export interface CreateDonationData {
   qfRoundId?: number;
   tokenAddress?: string;
   qfRoundUserScore?: number;
-  useDonationBox?: boolean;
-  relevantDonationTxHash?: string;
 }
 
 export interface CategoryData {
