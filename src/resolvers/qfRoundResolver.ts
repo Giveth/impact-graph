@@ -120,7 +120,7 @@ export class QfRoundResolver {
     return findArchivedQfRounds(limit, skip, orderBy);
   }
 
-  @Query(_return => User, { nullable: true })
+  @Query(_returns => User, { nullable: true })
   async scoreUserAddress(
     @Arg('address') address: string,
   ): Promise<User | undefined> {

@@ -11,7 +11,7 @@ export const cachedReferralAddresses = {};
 
 export class GitcoinMockAdapter implements GitcoinAdapterInterface {
   async getUserAnalysisScore(_address: string): Promise<number> {
-    return 0;
+    return 1;
   }
 
   async getWalletAddressScore(
