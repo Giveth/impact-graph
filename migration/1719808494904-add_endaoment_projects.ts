@@ -67,23 +67,39 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
       const projectId = projectIdResult[0].id;
 
       // Insert the project-category relationship in a single query
-      const categoryName = endaomentProjectCategoryMapping[project.nteeCode]; // Example category name
-      const categoryIdResult = await queryRunner.query(`
-                SELECT "id" FROM "category" WHERE "name" = '${categoryName.replace(/'/g, "''")}' LIMIT 1;
-            `);
-      const categoryId = categoryIdResult[0]?.id;
-
-      // Insert the project-category relationship if category exists
-      if (categoryId) {
-        await queryRunner.query(`
-                    INSERT INTO "project_categories_category" ("projectId", "categoryId")
-                    VALUES (${projectId}, ${categoryId});
-                `);
-      } else {
-        // eslint-disable-next-line no-console
-        console.warn(
-          `Category '${categoryName}' not found for project '${project.name}'.`,
+      const getCategoryNames = (nteeCode: string): string[] => {
+        const mapping = endaomentProjectCategoryMapping.find(
+          category => category.nteeCode === nteeCode,
         );
+        return mapping
+          ? [
+              mapping.category1,
+              mapping.category2,
+              mapping.category3,
+              mapping.category4,
+            ].filter(Boolean)
+          : [];
+      };
+      const categoryNames = getCategoryNames(String(project.nteeCode));
+
+      for (const categoryName of categoryNames) {
+        const categoryIdResult = await queryRunner.query(`
+            SELECT "id" FROM "category" WHERE "name" = '${categoryName.replace(/'/g, "''")}' LIMIT 1;
+       `);
+        const categoryId = categoryIdResult[0]?.id;
+
+        // Insert the project-category relationship if category exists
+        if (categoryId) {
+          await queryRunner.query(`
+              INSERT INTO "project_categories_category" ("projectId", "categoryId")
+              VALUES (${projectId}, ${categoryId});
+            `);
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `Category '${categoryName}' not found for project '${project.name}'.`,
+          );
+        }
       }
 
       // Insert the project addresses if provided
