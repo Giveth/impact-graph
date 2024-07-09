@@ -1,4 +1,4 @@
-import { MoreThan } from 'typeorm';
+import { Between, MoreThan } from 'typeorm';
 import moment from 'moment';
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
@@ -559,4 +559,38 @@ export async function isVerifiedDonationExistsInQfRound(params: {
     );
     return false;
   }
+}
+
+export async function findRelevantDonations(
+  startDate: Date,
+  endDate: Date,
+  givethProjectId: number,
+): Promise<{ donationsToGiveth: Donation[]; pairedDonations: Donation[] }> {
+  const donations = await Donation.find({
+    where: {
+      createdAt: Between(startDate, endDate),
+      useDonationBox: true,
+    },
+  });
+
+  const donationsToGiveth: Donation[] = [];
+  const pairedDonations: Donation[] = [];
+
+  donations.forEach(donation => {
+    if (donation.projectId === givethProjectId) {
+      donationsToGiveth.push(donation);
+      const relevantDonation = donations.find(
+        d => d.transactionId === donation.relevantDonationTxHash,
+      );
+      if (relevantDonation) {
+        pairedDonations.push(relevantDonation);
+      } else {
+        throw new Error(
+          `the relevant donation to this donation does not exist: donation id = ${donation.id}`,
+        );
+      }
+    }
+  });
+
+  return { donationsToGiveth, pairedDonations };
 }
