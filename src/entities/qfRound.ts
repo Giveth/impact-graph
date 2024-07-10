@@ -69,7 +69,7 @@ export class QfRound extends BaseEntity {
   @Column()
   minimumPassportScore: number;
 
-  @Field(_type => Number)
+  @Field(_type => Number, { nullable: true })
   @Column({ nullable: true })
   minimumUserAnalysisScore: number;
 
