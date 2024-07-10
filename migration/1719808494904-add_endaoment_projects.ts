@@ -6,7 +6,7 @@ import { generateRandomEtheriumAddress } from '../test/testUtils';
 import { ReviewStatus } from '../src/entities/project';
 import { endaomentProjectCategoryMapping } from './data/endaomentProjectCategoryMapping';
 
-export class AddEndaomentProjects1719808494904 implements MigrationInterface {
+export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Insert the Endaoment organization if it doesn't exist
     await queryRunner.query(`
@@ -21,11 +21,25 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
     `);
     const endaomentOrgId = endaomentOrgIdResult[0].id;
 
-    //TODO should create user for admin
+    //TODO: Add Endaoment admin wallet address
     const endaomentAdminWalletAddress = generateRandomEtheriumAddress();
-    const adminUser = await findUserByWalletAddress(
-      endaomentAdminWalletAddress,
-    );
+
+    let adminUser = (
+      await queryRunner.query(`SELECT * FROM public.user
+        WHERE lower("walletAddress")=lower('${endaomentAdminWalletAddress}')`)
+    )[0];
+    if (!adminUser) {
+      // eslint-disable-next-line no-console
+      console.log('User is not in our DB, creating .... ');
+      await queryRunner.query(`
+                    INSERT INTO public.user ("walletAddress", role,"loginType", name) 
+                    VALUES('${endaomentAdminWalletAddress.toLowerCase()}', 'restricted','wallet', 'Endaoment Admin');
+                    `);
+      adminUser = (
+        await queryRunner.query(`SELECT * FROM public.user
+                        WHERE lower("walletAddress")=lower('${endaomentAdminWalletAddress}')`)
+      )[0];
+    }
 
     // Insert projects and their addresses
     for (const project of endaomentProjects) {
@@ -35,36 +49,43 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
 
       // Insert the project
       await queryRunner.query(`
-        INSERT INTO "project" (
-          "title", "description", "organizationId", "walletAddress", "creationDate", "slug", "image", "slugHistory", "statusId", "totalDonations", "totalReactions", "totalProjectUpdates", "listed", "reviewStatus", "verified", "giveBacks", "isImported", "adminUserId"
-        )
-        VALUES (
-          '${project.name.replace(/'/g, "''")}',
-          '${project.description.replace(/'/g, "''")}',
-          ${endaomentOrgId},
-          '${project.mainnetAddress || ''}',
-          NOW(),
-          '${slug}',
-          '${project.logoUrl}',
-          '{}', -- Empty slug history
-          5, -- statusId 5 is 'Active'
-          0,
-          0,
-          0,
-          true,
-          ${ReviewStatus.Listed},
-          true,
-          true,
-          true,
-          ${adminUser?.id}
-        );
-      `);
+          INSERT INTO "project" (
+            "title", "description", "organizationId", "walletAddress", "creationDate", "slug", "image", "slugHistory", "statusId", "totalDonations", "totalReactions", "totalProjectUpdates", "listed", "reviewStatus", "verified", "giveBacks", "isImported", "adminUserId"
+          )
+          VALUES (
+            '${project.name.replace(/'/g, "")}',
+            '${project.description.replace(/'/g, "")}',
+            ${endaomentOrgId},
+            '${project.mainnetAddress || ''}',
+            NOW(),
+            '${slug}',
+            '/images/defaultProjectImages/1.png', -- Default image
+            '{}', -- Empty slug history
+            5, -- statusId 5 is 'Active'
+            0,
+            0,
+            0,
+            true,
+            '${ReviewStatus.Listed}',
+            true,
+            true,
+            true,
+            ${adminUser?.id}
+          )
+          ON CONFLICT ("slug") DO NOTHING; -- Handle conflict on unique constraint
+          
+        `);
+
 
       // Get the inserted project's ID
       const projectIdResult = await queryRunner.query(`
-        SELECT "id" FROM "project" WHERE "title" = '${project.name.replace(/'/g, "''")}' AND "organizationId" = ${endaomentOrgId};
+        SELECT "id" FROM "project" WHERE "title" = '${project.name.replace(/'/g, "")}' AND "organizationId" = ${endaomentOrgId};
       `);
-      const projectId = projectIdResult[0].id;
+      const projectId = projectIdResult[0]?.id;
+      if(!projectId){
+        // It means we have project with same slug so the creation has failed
+        continue;
+      }
 
       // Insert the project-category relationship in a single query
       const getCategoryNames = (nteeCode: string): string[] => {
@@ -73,11 +94,11 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
         );
         return mapping
           ? [
-              mapping.category1,
-              mapping.category2,
-              mapping.category3,
-              mapping.category4,
-            ].filter(Boolean)
+            mapping.category1,
+            mapping.category2,
+            mapping.category3,
+            mapping.category4,
+          ].filter(Boolean)
           : [];
       };
       const categoryNames = getCategoryNames(String(project.nteeCode));
@@ -92,7 +113,8 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
         if (categoryId) {
           await queryRunner.query(`
             INSERT INTO "project_categories_category" ("projectId", "categoryId")
-            VALUES (${projectId}, ${categoryId});
+            VALUES (${projectId}, ${categoryId})
+            ON CONFLICT DO NOTHING;
           `);
         } else {
           // eslint-disable-next-line no-console
@@ -128,7 +150,7 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
       await queryRunner.query(`
         INSERT INTO "project_update" ("userId", "projectId", "content", "title", "createdAt", "isMain")
         VALUES (
-          (SELECT "id" FROM "user" WHERE "email" = '${adminUser?.email}' LIMIT 1),
+          (SELECT "id" FROM "user" WHERE "email" = '${adminUser?.email || ''}' LIMIT 1),
           ${projectId},
           '',
           '',
@@ -138,15 +160,6 @@ export class AddEndaomentProjects1719808494904 implements MigrationInterface {
       `);
     }
 
-    // try {
-    //   // It returns weird errors on local system so I had to put it on try..catch
-    //   await queryRunner.query(`
-    //       UPDATE "project" SET "listed" = true WHERE "organizationId" = ${endaomentOrgId};
-    //     `);
-    // } catch (e) {
-    //   // eslint-disable-next-line no-console
-    //   console.log('make projects listed:true failed')
-    // }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
