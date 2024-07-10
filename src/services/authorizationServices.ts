@@ -122,6 +122,7 @@ export const validateAuthMicroserviceJwt = async (
       token,
     };
   } catch (e) {
+    logger.error('validateAuthMicroserviceJwt() error', e);
     throw new Error(e);
   }
 };

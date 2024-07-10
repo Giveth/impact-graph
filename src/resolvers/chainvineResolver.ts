@@ -1,6 +1,7 @@
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { logger } from '../utils/logger';
 import { User } from '../entities/user';
 import {
   findUserById,
@@ -37,6 +38,7 @@ export class ChainvineResolver {
 
       return dbUser;
     } catch (e) {
+      logger.error('Chainvine registration error', e);
       throw new Error(
         i18n.__(translationErrorMessagesKeys.CHAINVINE_REGISTRATION_ERROR),
       );
@@ -86,6 +88,7 @@ export class ChainvineResolver {
       dbUser.wasReferred = true;
       return await dbUser.save();
     } catch (e) {
+      logger.error('Chainvine click event error', e);
       throw new Error(
         i18n.__(translationErrorMessagesKeys.CHAINVINE_CLICK_EVENT_ERROR),
       );

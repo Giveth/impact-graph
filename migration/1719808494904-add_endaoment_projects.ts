@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { endaomentProjects } from './data/importedEndaomentProjects';
 import { NETWORK_IDS } from '../src/provider';
-import { findUserByWalletAddress } from '../src/repositories/userRepository';
 import { generateRandomEtheriumAddress } from '../test/testUtils';
 import { ReviewStatus } from '../src/entities/project';
 import { endaomentProjectCategoryMapping } from './data/endaomentProjectCategoryMapping';
@@ -53,8 +52,8 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
             "title", "description", "organizationId", "walletAddress", "creationDate", "slug", "image", "slugHistory", "statusId", "totalDonations", "totalReactions", "totalProjectUpdates", "listed", "reviewStatus", "verified", "giveBacks", "isImported", "adminUserId"
           )
           VALUES (
-            '${project.name.replace(/'/g, "")}',
-            '${project.description.replace(/'/g, "")}',
+            '${project.name.replace(/'/g, '')}',
+            '${project.description.replace(/'/g, '')}',
             ${endaomentOrgId},
             '${project.mainnetAddress || ''}',
             NOW(),
@@ -76,13 +75,12 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
           
         `);
 
-
       // Get the inserted project's ID
       const projectIdResult = await queryRunner.query(`
-        SELECT "id" FROM "project" WHERE "title" = '${project.name.replace(/'/g, "")}' AND "organizationId" = ${endaomentOrgId};
+        SELECT "id" FROM "project" WHERE "title" = '${project.name.replace(/'/g, '')}' AND "organizationId" = ${endaomentOrgId};
       `);
       const projectId = projectIdResult[0]?.id;
-      if(!projectId){
+      if (!projectId) {
         // It means we have project with same slug so the creation has failed
         continue;
       }
@@ -94,11 +92,11 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
         );
         return mapping
           ? [
-            mapping.category1,
-            mapping.category2,
-            mapping.category3,
-            mapping.category4,
-          ].filter(Boolean)
+              mapping.category1,
+              mapping.category2,
+              mapping.category3,
+              mapping.category4,
+            ].filter(Boolean)
           : [];
       };
       const categoryNames = getCategoryNames(String(project.nteeCode));
@@ -159,7 +157,6 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
         );
       `);
     }
-
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

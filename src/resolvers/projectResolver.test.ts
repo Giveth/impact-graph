@@ -184,12 +184,13 @@ function projectsPerDateTestCases() {
       ...createProjectData(),
       creationDate: moment().add(44, 'days').toDate(),
     });
+    const variables = {
+      fromDate: moment().add(9, 'days').toDate().toISOString().split('T')[0],
+      toDate: moment().add(45, 'days').toDate().toISOString().split('T')[0],
+    };
     const projectsResponse = await axios.post(graphqlUrl, {
       query: fetchNewProjectsPerDate,
-      variables: {
-        fromDate: moment().add(9, 'days').toDate().toISOString().split('T')[0],
-        toDate: moment().add(45, 'days').toDate().toISOString().split('T')[0],
-      },
+      variables,
     });
 
     assert.isOk(projectsResponse);
@@ -5491,7 +5492,7 @@ function editProjectUpdateTestCases() {
       {
         query: editProjectUpdateQuery,
         variables: {
-          updateId: Number(projectUpdateCount + 1),
+          updateId: Number(projectUpdateCount + 10),
           content: 'TestProjectUpdateFateme2',
           title: 'testEditProjectUpdateFateme2',
         },
@@ -5606,7 +5607,7 @@ function deleteProjectUpdateTestCases() {
       {
         query: deleteProjectUpdateQuery,
         variables: {
-          updateId: Number(projectUpdateCount + 2),
+          updateId: Number(projectUpdateCount + 10),
         },
       },
       {

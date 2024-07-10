@@ -1,12 +1,10 @@
-import { MoreThan } from 'typeorm';
+import { Between, MoreThan } from 'typeorm';
 import moment from 'moment';
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
 import { logger } from '../utils/logger';
-import { ProjectDonationSummaryView } from '../views/projectDonationSummaryView';
-import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
+import { QfRound } from '../entities/qfRound';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`
@@ -139,7 +137,7 @@ export const findDonationById = async (
 export const donationsTotalAmountPerDateRange = async (
   fromDate?: string,
   toDate?: string,
-  fromOptimismOnly?: boolean,
+  networkId?: number,
   onlyVerified?: boolean,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
@@ -154,8 +152,8 @@ export const donationsTotalAmountPerDateRange = async (
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
 
-  if (fromOptimismOnly) {
-    query.andWhere(`donation."transactionNetworkId" = 10`);
+  if (networkId) {
+    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
   }
 
   if (onlyVerified) {
@@ -164,14 +162,14 @@ export const donationsTotalAmountPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
-  const donationsUsdAmount = await query.getRawOne();
-
-  query.cache(
-    `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}-${
-      fromOptimismOnly || 'all'
-    }-${onlyVerified || 'all'}`,
-    300000,
-  );
+  const donationsUsdAmount = await query
+    .cache(
+      `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}-${
+        networkId || 'all'
+      }-${onlyVerified || 'all'}`,
+      300000,
+    )
+    .getRawOne();
 
   return donationsUsdAmount.sum;
 };
@@ -179,7 +177,7 @@ export const donationsTotalAmountPerDateRange = async (
 export const donationsTotalAmountPerDateRangeByMonth = async (
   fromDate?: string,
   toDate?: string,
-  fromOptimismOnly?: boolean,
+  networkId?: number,
   onlyVerified?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
@@ -197,8 +195,8 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
 
-  if (fromOptimismOnly) {
-    query.andWhere(`donation."transactionNetworkId" = 10`);
+  if (networkId) {
+    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
   }
 
   if (onlyVerified) {
@@ -214,7 +212,7 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
   query.cache(
     `donationsTotalAmountPerDateRangeByMonth-${fromDate || ''}-${
       toDate || ''
-    }-${fromOptimismOnly || 'all'}-${onlyVerified || 'all'}`,
+    }-${networkId || 'all'}-${onlyVerified || 'all'}`,
     300000,
   );
 
@@ -224,7 +222,7 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
 export const donationsNumberPerDateRange = async (
   fromDate?: string,
   toDate?: string,
-  fromOptimismOnly?: boolean,
+  networkId?: number,
   onlyVerified?: boolean,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
@@ -239,8 +237,8 @@ export const donationsNumberPerDateRange = async (
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
 
-  if (fromOptimismOnly) {
-    query.andWhere(`donation."transactionNetworkId" = 10`);
+  if (networkId) {
+    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
   }
 
   if (onlyVerified) {
@@ -249,14 +247,14 @@ export const donationsNumberPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
-  const donationsUsdAmount = await query.getRawOne();
-
-  query.cache(
-    `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
-      fromOptimismOnly || 'all'
-    }-${onlyVerified || 'all'}`,
-    300000,
-  );
+  const donationsUsdAmount = await query
+    .cache(
+      `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
+        networkId || 'all'
+      }-${onlyVerified || 'all'}`,
+      300000,
+    )
+    .getRawOne();
 
   return donationsUsdAmount.count;
 };
@@ -264,7 +262,7 @@ export const donationsNumberPerDateRange = async (
 export const donationsTotalNumberPerDateRangeByMonth = async (
   fromDate?: string,
   toDate?: string,
-  fromOptimismOnly?: boolean,
+  networkId?: number,
   onlyVerified?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
@@ -281,8 +279,8 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
 
-  if (fromOptimismOnly) {
-    query.andWhere(`donation."transactionNetworkId" = 10`);
+  if (networkId) {
+    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
   }
 
   if (onlyVerified) {
@@ -298,7 +296,7 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
   query.cache(
     `donationsTotalNumberPerDateRangeByMonth-${fromDate || ''}-${
       toDate || ''
-    }-${fromOptimismOnly || 'all'}-${onlyVerified || 'all'}`,
+    }-${networkId || 'all'}-${onlyVerified || 'all'}`,
     300000,
   );
 
@@ -308,7 +306,7 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
 export const donorsCountPerDate = async (
   fromDate?: string,
   toDate?: string,
-  fromOptimismOnly?: boolean,
+  networkId?: number,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -325,13 +323,13 @@ export const donorsCountPerDate = async (
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
 
-  if (fromOptimismOnly) {
-    query.andWhere(`donation."transactionNetworkId" = 10`);
+  if (networkId) {
+    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
   }
 
   query.cache(
     `donorsCountPerDate-${fromDate || ''}-${toDate || ''}-${
-      fromOptimismOnly || 'all'
+      networkId || 'all'
     }`,
     300000,
   );
@@ -376,7 +374,7 @@ WHERE d."createdAt" BETWEEN $1 AND $2
 export const donorsCountPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
-  fromOptimismOnly?: boolean,
+  networkId?: number,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -392,8 +390,8 @@ export const donorsCountPerDateByMonthAndYear = async (
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
 
-  if (fromOptimismOnly) {
-    query.andWhere(`donation."transactionNetworkId" = 10`);
+  if (networkId) {
+    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
   }
 
   query.groupBy('year, month');
@@ -402,7 +400,7 @@ export const donorsCountPerDateByMonthAndYear = async (
 
   query.cache(
     `donorsCountPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}-${
-      fromOptimismOnly || 'all'
+      networkId || 'all'
     }`,
     300000,
   );
@@ -419,6 +417,8 @@ export const findStableCoinDonationsWithoutPrice = async (): Promise<
       'token',
       'donation.currency = token.symbol AND donation.transactionNetworkId = token.networkId',
     )
+    .leftJoin('donation.project', 'project')
+    .select('project.adminUserId')
     .where('token.isStableCoin = true')
     .andWhere('donation.valueUsd IS NULL')
     .getMany();
@@ -468,67 +468,43 @@ export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
   });
 };
 
-export async function countUniqueDonorsForRound(params: {
+export async function getProjectQfRoundStats(params: {
   projectId: number;
-  qfRoundId: number;
-}): Promise<number> {
-  const { projectId, qfRoundId } = params;
-  return (await getProjectDonationsSqrtRootSum(projectId, qfRoundId))
-    .uniqueDonorsCount;
-}
-
-export async function sumDonationValueUsdForQfRound(params: {
-  projectId: number;
-  qfRoundId: number;
-}): Promise<number> {
-  const { projectId, qfRoundId } = params;
-  const result = await ProjectEstimatedMatchingView.createQueryBuilder(
-    'projectEstimatedMatchingView',
-  )
-    .select('projectEstimatedMatchingView.sumValueUsd')
-    .where('projectEstimatedMatchingView.projectId = :projectId', {
-      projectId,
+  qfRound: QfRound;
+}): Promise<{ uniqueDonorsCount: number; sumValueUsd: number }> {
+  const { projectId, qfRound } = params;
+  const { id: qfRoundId, beginDate, endDate } = qfRound;
+  const result = await Donation.createQueryBuilder('donation')
+    .select('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
+    .addSelect('COALESCE(SUM(donation.valueUsd), 0)', 'totalDonationValueUsd')
+    .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
+    .andWhere('donation.projectId = :projectId', { projectId })
+    .andWhere('donation.status = :status', { status: 'verified' })
+    .andWhere('donation.createdAt BETWEEN :beginDate AND :endDate', {
+      beginDate,
+      endDate,
     })
-    .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
-      qfRoundId,
-    })
-    .cache(
-      `sumDonationValueUsdForQfRound-${projectId}-${qfRoundId}`,
-      Number(process.env.PROJECT_QFROUND_DONATION_SUMMARY_CACHE_TIME || 60000),
-    )
-    .getOne();
+    .getRawOne();
 
-  return result?.sumValueUsd || 0;
+  return {
+    uniqueDonorsCount: parseInt(result.uniqueDonors, 10) || 0,
+    sumValueUsd: parseFloat(result.totalDonationValueUsd) || 0,
+  };
 }
 
-export async function countUniqueDonors(projectId: number): Promise<number> {
-  const result = await ProjectDonationSummaryView.createQueryBuilder(
-    'projectDonationSummaryView',
-  )
-    .select('projectDonationSummaryView.uniqueDonorsCount')
-    .where('projectDonationSummaryView.projectId = :projectId', { projectId })
-    .cache(
-      `countUniqueDonors-${projectId}`,
-      Number(process.env.PROJECT_DONATION_SUMMARY_CACHE_TIME || 60000),
-    )
-    .getOne();
-
-  return result?.uniqueDonorsCount || 0;
-}
-
-export async function sumDonationValueUsd(projectId: number): Promise<number> {
-  const result = await ProjectDonationSummaryView.createQueryBuilder(
-    `projectDonationSummaryView`,
-  )
-    .select('projectDonationSummaryView.sumVerifiedDonations')
-    .where('projectDonationSummaryView.projectId = :projectId', { projectId })
-    .cache(
-      `sumDonationValueUsd-${projectId}`,
-      Number(process.env.PROJECT_DONATION_SUMMARY_CACHE_TIME || 60000),
-    )
-    .getOne();
-
-  return result?.sumVerifiedDonations || 0;
+export async function countUniqueDonorsAndSumDonationValueUsd(
+  projectId: number,
+): Promise<{ totalDonations: number; uniqueDonors: number }> {
+  const result = await Donation.createQueryBuilder('donation')
+    .select('COALESCE(SUM(donation.valueUsd), 0)', 'totalDonations')
+    .addSelect('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
+    .where('donation.projectId = :projectId', { projectId })
+    .andWhere('donation.status = :status', { status: 'verified' })
+    .getRawOne();
+  return {
+    totalDonations: parseFloat(result.totalDonations) || 0,
+    uniqueDonors: parseInt(result.uniqueDonors) || 0,
+  };
 }
 
 export async function isVerifiedDonationExistsInQfRound(params: {
@@ -559,4 +535,38 @@ export async function isVerifiedDonationExistsInQfRound(params: {
     );
     return false;
   }
+}
+
+export async function findRelevantDonations(
+  startDate: Date,
+  endDate: Date,
+  givethProjectId: number,
+): Promise<{ donationsToGiveth: Donation[]; pairedDonations: Donation[] }> {
+  const donations = await Donation.find({
+    where: {
+      createdAt: Between(startDate, endDate),
+      useDonationBox: true,
+    },
+  });
+
+  const donationsToGiveth: Donation[] = [];
+  const pairedDonations: Donation[] = [];
+
+  donations.forEach(donation => {
+    if (donation.projectId === givethProjectId) {
+      donationsToGiveth.push(donation);
+      const relevantDonation = donations.find(
+        d => d.transactionId === donation.relevantDonationTxHash,
+      );
+      if (relevantDonation) {
+        pairedDonations.push(relevantDonation);
+      } else {
+        throw new Error(
+          `the relevant donation to this donation does not exist: donation id = ${donation.id}`,
+        );
+      }
+    }
+  });
+
+  return { donationsToGiveth, pairedDonations };
 }

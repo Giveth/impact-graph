@@ -52,6 +52,10 @@ export class DraftDonationResolver {
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
+    @Arg('useDonationBox', { nullable: true, defaultValue: false })
+    useDonationBox?: boolean,
+    @Arg('relevantDonationTxHash', { nullable: true })
+    relevantDonationTxHash?: string,
   ): Promise<number> {
     const logData = {
       amount,
@@ -94,6 +98,8 @@ export class DraftDonationResolver {
         referrerId,
         safeTransactionId,
         chainType,
+        useDonationBox,
+        relevantDonationTxHash,
       };
       try {
         validateWithJoiSchema(
@@ -101,10 +107,10 @@ export class DraftDonationResolver {
           createDraftDonationQueryValidator,
         );
       } catch (e) {
-        logger.error(
-          'Error on validating createDraftDonation input',
+        logger.error('Error on validating createDraftDonation input', {
           validaDataInput,
-        );
+          error: e,
+        });
         throw e; // Rethrow the original error
       }
 
@@ -133,6 +139,8 @@ export class DraftDonationResolver {
           anonymous: Boolean(anonymous),
           chainType: chainType as ChainType,
           referrerId,
+          useDonationBox,
+          relevantDonationTxHash,
         })
         .orIgnore()
         .returning('id')
@@ -227,10 +235,10 @@ export class DraftDonationResolver {
           createDraftRecurringDonationQueryValidator,
         );
       } catch (e) {
-        logger.error(
-          'Error on validating createDraftRecurringDonation input',
+        logger.error('Error on validating createDraftRecurringDonation input', {
           validaDataInput,
-        );
+          error: e,
+        });
         throw e; // Rethrow the original error
       }
       let recurringDonation: RecurringDonation | null;

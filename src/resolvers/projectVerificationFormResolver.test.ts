@@ -842,7 +842,7 @@ function updateProjectVerificationFormMutationTestCases() {
 
     assert.equal(
       result.data.data.updateProjectVerificationForm.status,
-      PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm
@@ -896,7 +896,7 @@ function updateProjectVerificationFormMutationTestCases() {
 
     assert.equal(
       result.data.data.updateProjectVerificationForm.status,
-      PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm
@@ -950,7 +950,7 @@ function updateProjectVerificationFormMutationTestCases() {
 
     assert.equal(
       result.data.data.updateProjectVerificationForm.status,
-      PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm
@@ -960,6 +960,52 @@ function updateProjectVerificationFormMutationTestCases() {
     assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
       PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
+    );
+  });
+
+  it('should update project verification form successfully when user completes all steps', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      adminUserId: user.id,
+      verified: false,
+      listed: false,
+      reviewStatus: ReviewStatus.NotListed,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      milestones,
+      projectRegistry,
+      managingFunds,
+      emailConfirmed: true,
+      isTermAndConditionsAccepted: true,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.SUBMIT,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.SUBMITTED,
     );
   });
 

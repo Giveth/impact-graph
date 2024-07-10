@@ -39,10 +39,7 @@ import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostin
 import { updateInstantBoosting } from '../services/instantBoostingServices';
 import { QfRound } from '../entities/qfRound';
 import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
@@ -52,6 +49,10 @@ import { ORGANIZATION_LABELS } from '../entities/organization';
 describe('all projects test cases --->', allProjectsTestCases);
 
 function allProjectsTestCases() {
+  beforeEach(async () => {
+    // Make all existing qfRounds inactive
+    await QfRound.update({}, { isActive: false });
+  });
   it('should return projects search by title', async () => {
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
@@ -74,11 +75,6 @@ function allProjectsTestCases() {
         project.descriptionSummary,
         getHtmlTextSummary(project.description),
       );
-      assert.isNull(project.estimatedMatching);
-      assert.isNull(project.sumDonationValueUsd);
-      assert.isNull(project.sumDonationValueUsdForActiveQfRound);
-      assert.isNull(project.countUniqueDonorsForActiveQfRound);
-      assert.isNull(project.countUniqueDonors);
     });
   });
 
@@ -156,13 +152,27 @@ function allProjectsTestCases() {
         sortingBy: SortingField.Newest,
       },
     });
-    assert.equal(
-      Number(result.data.data.allProjects.projects[0].id),
-      secondProject.id,
+    const projects = result.data.data.allProjects.projects;
+
+    const secondProjectIndex = projects.findIndex(
+      project => Number(project.id) === secondProject.id,
     );
-    assert.equal(
-      Number(result.data.data.allProjects.projects[1].id),
-      firstProject.id,
+    const firstProjectIndex = projects.findIndex(
+      project => Number(project.id) === firstProject.id,
+    );
+
+    assert(
+      secondProjectIndex !== -1,
+      'Second project not found in the projects list',
+    );
+    assert(
+      firstProjectIndex !== -1,
+      'First project not found in the projects list',
+    );
+
+    assert(
+      secondProjectIndex < firstProjectIndex,
+      "Second project's index is not lower than the first project's index",
     );
   });
 
@@ -423,7 +433,6 @@ function allProjectsTestCases() {
   //   );
 
   //   await refreshProjectEstimatedMatchingView();
-  //   await refreshProjectDonationSummaryView();
 
   //   const result = await axios.post(graphqlUrl, {
   //     query: fetchMultiFilterAllProjectsQuery,
@@ -1962,12 +1971,12 @@ function allProjectsTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        qfRoundId: qfRound.id,
+        filters: ['ActiveQfRound'],
+        sortingBy: SortingField.EstimatedMatching,
       },
     });
 

@@ -3,10 +3,8 @@ import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import moment from 'moment';
 import {
   isTokenAcceptableForProject,
-  updateOldStableCoinDonationsPrice,
   sendNotificationForDonation,
   syncDonationStatusWithBlockchainNetwork,
-  updateTotalDonationsOfProject,
   updateDonationPricesAndValues,
   insertDonationsFromQfRoundHistory,
 } from './donationService';
@@ -37,6 +35,7 @@ import {
 } from '../repositories/qfRoundHistoryRepository';
 import { User } from '../entities/user';
 import { QfRoundHistory } from '../entities/qfRoundHistory';
+import { updateProjectStatistics } from './projectService';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -45,7 +44,7 @@ describe(
 );
 describe(
   'updateOldStableCoinDonationsPrice test cases',
-  fillOldStableCoinDonationsPriceTestCases,
+  fillStableCoinDonationsPriceTestCases,
 );
 
 describe(
@@ -827,7 +826,7 @@ function isProjectAcceptTokenTestCases() {
 function fillTotalDonationsOfProjectTestCases() {
   it('should not change updatedAt', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    await updateTotalDonationsOfProject(project.id);
+    await updateProjectStatistics(project.id);
     const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(
       new Date(project.updatedAt).getTime(),
@@ -842,7 +841,7 @@ function fillTotalDonationsOfProjectTestCases() {
       SEED_DATA.FIRST_USER.id,
       project.id,
     );
-    await updateTotalDonationsOfProject(project.id);
+    await updateProjectStatistics(project.id);
     const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(updatedProject.totalDonations, donation.valueUsd);
     assert.equal(
@@ -852,26 +851,7 @@ function fillTotalDonationsOfProjectTestCases() {
   });
 }
 
-function fillOldStableCoinDonationsPriceTestCases() {
-  it('should fill price for XDAI donation that already doesnt have price', async () => {
-    const donation = await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        currency: 'XDAI',
-        valueUsd: undefined,
-        amount: 100,
-        transactionNetworkId: NETWORK_IDS.XDAI,
-      },
-      SEED_DATA.FIRST_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
-    );
-    assert.isNotOk(donation.valueUsd);
-    await updateOldStableCoinDonationsPrice();
-    const updatedDonation = await findDonationById(donation.id);
-    assert.equal(updatedDonation?.valueUsd, updatedDonation?.amount);
-    assert.equal(updatedDonation?.priceUsd, 1);
-  });
-
+function fillStableCoinDonationsPriceTestCases() {
   it('should fill price for Matic donation on the Polygon network', async () => {
     const token = 'MATIC';
     const amount = 100;
