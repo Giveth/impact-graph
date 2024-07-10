@@ -56,7 +56,7 @@ import {
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
-import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
+import { updateProjectUpdatesStatistics } from '../services/projectUpdatesService';
 import { logger } from '../utils/logger';
 import { getLoggedInUser } from '../services/authorizationServices';
 import {
@@ -1424,6 +1424,7 @@ export class ProjectResolver {
       image,
       creationDate: now,
       updatedAt: now,
+      latestUpdateCreationDate: now,
       slug: slug.toLowerCase(),
       slugHistory: [],
       adminUserId: ctx.req.user.userId,
@@ -1551,7 +1552,7 @@ export class ProjectResolver {
       await project.save();
     }
 
-    await updateTotalProjectUpdatesOfAProject(update.projectId);
+    await updateProjectUpdatesStatistics(update.projectId);
 
     await getNotificationAdapter().projectUpdateAdded({
       project,
@@ -1635,7 +1636,7 @@ export class ProjectResolver {
     if (reactionsCount > 0) await Reaction.remove(reactions);
 
     await ProjectUpdate.delete({ id: update.id });
-    await updateTotalProjectUpdatesOfAProject(update.projectId);
+    await updateProjectUpdatesStatistics(update.projectId);
     return true;
   }
 

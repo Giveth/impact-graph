@@ -4,24 +4,34 @@ export class AddUseDonationBoxToDonation1719888339662
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.addColumn(
-      'donation',
-      new TableColumn({
-        name: 'useDonationBox',
-        type: 'boolean',
-        isNullable: true,
-        default: false,
-      }),
+    const table = await queryRunner.getTable('donation');
+    const useDonationBoxColumn = table?.findColumnByName('useDonationBox');
+    const relevantDonationTxHashColumn = table?.findColumnByName(
+      'relevantDonationTxHash',
     );
 
-    await queryRunner.addColumn(
-      'donation',
-      new TableColumn({
-        name: 'relevantDonationTxHash',
-        type: 'varchar',
-        isNullable: true,
-      }),
-    );
+    if (!useDonationBoxColumn) {
+      await queryRunner.addColumn(
+        'donation',
+        new TableColumn({
+          name: 'useDonationBox',
+          type: 'boolean',
+          isNullable: true,
+          default: false,
+        }),
+      );
+    }
+
+    if (!relevantDonationTxHashColumn) {
+      await queryRunner.addColumn(
+        'donation',
+        new TableColumn({
+          name: 'relevantDonationTxHash',
+          type: 'varchar',
+          isNullable: true,
+        }),
+      );
+    }
 
     const givethProjectId = 1;
     const timeDiff = 60 * 1000; // 1 minute in milliseconds

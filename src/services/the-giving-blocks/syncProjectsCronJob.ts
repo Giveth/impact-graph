@@ -128,6 +128,8 @@ const createGivingProject = async (data: {
       categories: [givingBlocksCategory],
       walletAddress,
       creationDate: new Date(),
+      updatedAt: new Date(),
+      latestUpdateCreationDate: new Date(),
       slug,
       youtube,
       website,
