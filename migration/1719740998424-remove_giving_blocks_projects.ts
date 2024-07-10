@@ -104,7 +104,7 @@ export class RemoveGivingBlocksProjects1719740998424
         `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(_queryRunner: QueryRunner): Promise<void> {
     // In this case, it's not possible to fully revert the data deletions
     // So we leave the down method empty
   }
