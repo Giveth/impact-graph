@@ -186,6 +186,10 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   updatedAt: Date;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  latestUpdateCreationDate: Date;
+
   @Field(_type => Organization)
   @ManyToOne(_type => Organization)
   @JoinTable()
@@ -675,7 +679,10 @@ export class ProjectUpdate extends BaseEntity {
   // does not call with createQueryBuilder
   @AfterInsert()
   async updateProjectStampOnCreation() {
-    await Project.update({ id: this.projectId }, { updatedAt: new Date() });
+    await Project.update(
+      { id: this.projectId },
+      { updatedAt: new Date(), latestUpdateCreationDate: new Date() },
+    );
   }
 
   @AfterUpdate()
