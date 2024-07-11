@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { endaomentProjects } from './data/importedEndaomentProjects';
 import { NETWORK_IDS } from '../src/provider';
-import { generateRandomEtheriumAddress } from '../test/testUtils';
 import { ReviewStatus } from '../src/entities/project';
 import { endaomentProjectCategoryMapping } from './data/endaomentProjectCategoryMapping';
 
@@ -20,8 +19,11 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
     `);
     const endaomentOrgId = endaomentOrgIdResult[0].id;
 
-    //TODO: Add Endaoment admin wallet address
-    const endaomentAdminWalletAddress = generateRandomEtheriumAddress();
+    const endaomentAdminWalletAddress = process.env
+      .ENDAOMENT_ADMIN_WALLET_ADDRESS as string;
+    if (!endaomentAdminWalletAddress) {
+      throw new Error('ENDAOMENT_ADMIN_WALLET_ADDRESS env var is required');
+    }
 
     let adminUser = (
       await queryRunner.query(`SELECT * FROM public.user
