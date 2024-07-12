@@ -115,7 +115,7 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
     .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')
     .addSelect('qfRound.beginDate', 'beginDate')
-    .innerJoin(
+    .leftJoin(
       'qfRound.donations',
       'donations',
       'donations.status = :status AND donations.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
