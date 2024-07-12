@@ -5,6 +5,10 @@ import {
   QfArchivedRoundsOrderBy,
   QfRoundsArgs,
 } from '../resolvers/qfRoundResolver';
+import { Donation } from '../entities/donation';
+import { User } from '../entities/user';
+import { Sybil } from '../entities/sybil';
+import { ProjectFraud } from '../entities/projectFraud';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -110,7 +114,7 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
     .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')
     .addSelect('qfRound.beginDate', 'beginDate')
-    .innerJoin(
+    .leftJoin(
       'qfRound.donations',
       'donations',
       'donations.status = :status AND donations.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
