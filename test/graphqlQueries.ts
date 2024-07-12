@@ -2416,3 +2416,19 @@ export const fetchRecurringDonationStatsQuery = `
       }
   }
 `;
+
+export const fetchDonationMetricsQuery = `
+  query (
+    $startDate: String!
+    $endDate: String!
+  ) {
+    donationMetrics(
+      startDate: $startDate
+      endDate: $endDate
+    ) {
+      totalDonationsToGiveth
+      totalUsdValueToGiveth
+      averagePercentageToGiveth
+    }
+  }
+`;
