@@ -7,7 +7,7 @@ import {
 } from './superFluidAdapterInterface';
 
 const superFluidGraphqlUrl =
-  'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet';
+  'https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1';
 const superFluidGraphqlStagingUrl =
   'https://optimism-sepolia.subgraph.x.superfluid.dev';
 
@@ -139,7 +139,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
       );
       return filteredData[0];
     } catch (e) {
-      logger.error(e);
+      logger.error('streamPeriods error', e);
     }
   }
 
@@ -180,7 +180,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
 
       return response.data.data.account?.accountTokenSnapshots;
     } catch (e) {
-      logger.error(e);
+      logger.error('accountBalance error', e);
     }
   }
 
