@@ -5,6 +5,10 @@ import {
   QfArchivedRoundsOrderBy,
   QfRoundsArgs,
 } from '../resolvers/qfRoundResolver';
+import { Donation } from '../entities/donation';
+import { User } from '../entities/user';
+import { Sybil } from '../entities/sybil';
+import { ProjectFraud } from '../entities/projectFraud';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -110,6 +114,39 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
     .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')
     .addSelect('qfRound.beginDate', 'beginDate')
+    .leftJoin(
+      'qfRound.donations',
+      'donations',
+      'donations.status = :status AND donations.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
+      { status: 'verified' },
+    )
+    .addSelect('COALESCE(SUM(donations.valueUsd), 0)', 'totalDonations')
+    .addSelect(
+      qb =>
+        qb
+          .select('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
+          .from(Donation, 'donation')
+          .leftJoin(User, 'user', 'user.id = donation.userId')
+          .leftJoin(
+            Sybil,
+            'sybil',
+            'sybil.userId = user.id AND sybil.qfRoundId = qfRound.id',
+          )
+          .leftJoin(
+            ProjectFraud,
+            'projectFraud',
+            'projectFraud.projectId = donation.projectId AND projectFraud.qfRoundId = qfRound.id',
+          )
+          .where('donation.qfRoundId = qfRound.id')
+          .andWhere('donation.status = :status', { status: 'verified' })
+          .andWhere('user.passportScore >= qfRound.minimumPassportScore')
+          .andWhere('sybil.id IS NULL')
+          .andWhere('projectFraud.id IS NULL')
+          .andWhere(
+            'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
+          ),
+      'uniqueDonors',
+    )
     .groupBy('qfRound.id')
     .orderBy(fieldMap[field], direction, 'NULLS LAST')
     .getRawMany();
