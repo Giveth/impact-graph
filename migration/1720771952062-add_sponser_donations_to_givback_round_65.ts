@@ -66,8 +66,8 @@ const transactions: (Partial<Donation> & {
   // https://etherscan.io/tx/0x97b434979a88f183587975e5bd773037f0959e49e6778288e85eaa6e8349e031
   {
     donorName: 'Public Nouns',
-    donorAddress: '0xda04c025F4d8Ac555Fdb3497B197D28FCEcf4d41',
-    fromWalletAddress: '0x553826Cb0D0Ee63155920F42b4E60aaE6607DFCB',
+    donorAddress: '0x553826Cb0D0Ee63155920F42b4E60aaE6607DFCB',
+    fromWalletAddress: '0xda04c025F4d8Ac555Fdb3497B197D28FCEcf4d41',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     projectId: 1443,
     transactionId:
@@ -84,8 +84,8 @@ const transactions: (Partial<Donation> & {
   // https://etherscan.io/tx/0x4980e0eb628cf55f9914e03afc6bd33d7c92be12c3d402eb66f6ab06806776c0
   {
     donorName: 'Mask',
-    donorAddress: '0x1D22D6b41EcE14E2A2c5B4DE0739c0056A05F0ea',
-    fromWalletAddress: '0xfb3879ced5560dc3eb715c7f6d6e75544662f29c',
+    donorAddress: '0xfb3879ced5560dc3eb715c7f6d6e75544662f29c',
+    fromWalletAddress: '0x1D22D6b41EcE14E2A2c5B4DE0739c0056A05F0ea',
     toWalletAddress: '0x6e8873085530406995170da467010565968c7c62',
     projectId: 1443,
     transactionId:
