@@ -112,13 +112,18 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
     .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')
     .addSelect('qfRound.beginDate', 'beginDate')
-    .leftJoin(
-      'qfRound.donations',
-      'donations',
-      'donations.status = :status AND donations.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
-      { status: 'verified' },
+    .addSelect(
+      qb =>
+        qb
+          .select('COALESCE(SUM(donation.valueUsd), 0)', 'totalDonations')
+          .from(Donation, 'donation')
+          .where('donation.qfRoundId = qfRound.id')
+          .andWhere('donation.status = :status', { status: 'verified' })
+          .andWhere(
+            'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
+          ),
+      'totalDonations',
     )
-    .addSelect('COALESCE(SUM(donations.valueUsd), 0)', 'totalDonations')
     .addSelect(
       qb =>
         qb
