@@ -108,8 +108,6 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.isActive', 'isActive')
     .addSelect('qfRound.endDate', 'endDate')
     .addSelect('qfRound.eligibleNetworks', 'eligibleNetworks')
-    .addSelect('SUM(donation.amount)', 'totalDonations')
-    .addSelect('COUNT(DISTINCT donation.fromWalletAddress)', 'uniqueDonors')
     .addSelect('qfRound.allocatedFund', 'allocatedFund')
     .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
     .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')
