@@ -63,7 +63,7 @@ export const FillPricesForDonationsWithoutPriceInLatestRound = async (
     .getOne();
   if (!latestRound) return;
   const donationsWithoutPrice = await Donation.createQueryBuilder('donation')
-    // .where('donation.qfRoundId = :qfRoundId', { qfRoundId: 105 })
+    .where('donation.qfRoundId = :qfRoundId', { qfRoundId: latestRound.id })
     .andWhere('donation.valueUsd IS NULL')
     .orderBy({ 'donation.createdAt': 'DESC' })
     .getMany();
@@ -74,12 +74,17 @@ export const FillPricesForDonationsWithoutPriceInLatestRound = async (
     donationsWithoutPrice.map(d => d.id),
   );
   for (const donation of donationsWithoutPrice) {
-    const token = await Token.findOneBy({ symbol: donation.currency });
-    if (!token || !token.coingeckoId) continue;
-    const price = await coingeckoAdapter.getTokenPriceAtDate({
-      date: moment(donation.createdAt).format('DD-MM-YYYY'),
-      symbol: token.coingeckoId,
-    });
+    let price: number;
+    try {
+      const token = await Token.findOneBy({ symbol: donation.currency });
+      if (!token || !token.coingeckoId) continue;
+      price = await coingeckoAdapter.getTokenPriceAtDate({
+        date: moment(donation.createdAt).format('DD-MM-YYYY'),
+        symbol: token.coingeckoId,
+      });
+    } catch {
+      continue;
+    }
     donation.valueUsd = donation.amount * price;
     donation.priceUsd = price;
     filledPrices.push({ donationId: donation.id, price });
