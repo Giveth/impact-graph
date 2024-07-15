@@ -120,7 +120,7 @@ export const findArchivedQfRounds = async (
     .addSelect(
       qb =>
         qb
-          .select('SUM(donation.valueUsd)', 'totalDonations')
+          .select('COALESCE(SUM(donation.valueUsd), 0)', 'totalDonations')
           .from(Donation, 'donation')
           .where('donation.qfRoundId = qfRound.id')
           .andWhere('donation.status = :status', { status: 'verified' })
