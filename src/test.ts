@@ -21,6 +21,7 @@ const fun = async () => {
   const pa = await Project.findOneBy({ id: 1 });
   const p = process.env.TYPEORM_DATABASE_NAME;
   const a = config.get('TYPEORM_DATABASE_NAME');
+  // eslint-disable-next-line no-console
   console.log(p, a, pa);
 };
 
