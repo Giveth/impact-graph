@@ -1,6 +1,6 @@
 import { assert } from 'chai';
-import { ModifyAmountOfUsdcRecurringDonations1720939399738 } from './1720939399738-modify_amount_of_usdc_recurring_donations';
-import { AppDataSource } from '../src/orm';
+import { ModifyAmountOfUsdcRecurringDonations1720939399738 } from '../1720939399738-modify_amount_of_usdc_recurring_donations';
+import { AppDataSource } from '../../src/orm';
 import {
   createDonationData,
   createProjectData,
@@ -10,20 +10,20 @@ import {
   saveProjectDirectlyToDb,
   saveRecurringDonationDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../test/testUtils';
-import { addNewAnchorAddress } from '../src/repositories/anchorContractAddressRepository';
-import { NETWORK_IDS } from '../src/provider';
+} from '../../test/testUtils';
+import { addNewAnchorAddress } from '../../src/repositories/anchorContractAddressRepository';
+import { NETWORK_IDS } from '../../src/provider';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
-} from '../src/entities/recurringDonation';
-import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
-import { findDonationById } from '../src/repositories/donationRepository';
-import { Donation } from '../src/entities/donation';
+} from '../../src/entities/recurringDonation';
+import { AnchorContractAddress } from '../../src/entities/anchorContractAddress';
+import { findDonationById } from '../../src/repositories/donationRepository';
+import { Donation } from '../../src/entities/donation';
 import {
   findRecurringDonationById,
   updateRecurringDonationFromTheStreamDonations,
-} from '../src/repositories/recurringDonationRepository';
+} from '../../src/repositories/recurringDonationRepository';
 
 let queryRunner;
 describe('Modify amount of USDC recurring donations', async () => {
