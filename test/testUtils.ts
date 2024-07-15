@@ -571,9 +571,12 @@ export const SEED_DATA = {
       supportCustomTokens: true,
     },
     {
-      name: 'Giving Block',
-      label: ORGANIZATION_LABELS.GIVING_BLOCK,
+      name: 'Endaoment',
+      label: ORGANIZATION_LABELS.ENDAOMENT,
       website: 'https://thegivingblock.com',
+      disableUpdateEnforcement: true,
+      disableNotifications: true,
+      disableRecurringDonations: true,
       supportCustomTokens: false,
     },
     {
