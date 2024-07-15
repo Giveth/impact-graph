@@ -115,6 +115,7 @@
     "eslint:fix": "eslint --fix {src,test,migration}/**/*.ts",
     "test": "NODE_ENV=test mocha --config ./.mocharc.all-test.json",
     "test:syncProjectsRequiredForListing": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/syncProjectsRequiredForListing.test.ts",
+    "test:migrations": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  migration/tests/*.ts",
     "test:backupDonationImport": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/backupDonationImport.test.ts",
     "test:projectEntity": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/entities/project.test.ts",
     "test:projectValidators": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/utils/validators/projectValidator.test.ts",

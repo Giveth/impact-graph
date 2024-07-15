@@ -14,12 +14,12 @@ import {
 import { Donation } from '../entities/donation';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { NETWORK_IDS } from '../provider';
-import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
 } from '../entities/recurringDonation';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
+import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
 
 describe(
   'createRelatedDonationsToStream test cases',
