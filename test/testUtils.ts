@@ -29,15 +29,15 @@ import {
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
-} from '../src/entities/projectVerificationForm';
-import { MainCategory } from '../src/entities/mainCategory';
-import { Category, CATEGORY_NAMES } from '../src/entities/category';
-import { FeaturedUpdate } from '../src/entities/featuredUpdate';
-import { ChainType } from '../src/types/network';
-import { RecurringDonation } from '../src/entities/recurringDonation';
-import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
-import { findProjectById } from '../src/repositories/projectRepository';
-import { ProjectAddress } from '../src/entities/projectAddress';
+} from '../src/entities/projectVerificationForm.js';
+import { MainCategory } from '../src/entities/mainCategory.js';
+import { Category, CATEGORY_NAMES } from '../src/entities/category.js';
+import { FeaturedUpdate } from '../src/entities/featuredUpdate.js';
+import { ChainType } from '../src/types/network.js';
+import { RecurringDonation } from '../src/entities/recurringDonation.js';
+import { AnchorContractAddress } from '../src/entities/anchorContractAddress.js';
+import { findProjectById } from '../src/repositories/projectRepository.js';
+import { ProjectAddress } from '../src/entities/projectAddress.js';
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
 export const serverBaseAddress = 'http://localhost:4000';

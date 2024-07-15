@@ -3,9 +3,9 @@ import moment from 'moment';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
-} from '../../test/testUtils';
-import { Project, ProjectUpdate } from '../entities/project';
-import { updateProjectUpdatesStatistics } from './projectUpdatesService';
+} from '../../test/testUtils.js';
+import { Project, ProjectUpdate } from '../entities/project.js';
+import { updateProjectUpdatesStatistics } from './projectUpdatesService.js';
 
 describe(
   'updateTotalProjectUpdatesOfAProject test cases',

@@ -57,10 +57,10 @@ import {
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
-} from '../utils/validators/projectValidator';
-import { updateProjectUpdatesStatistics } from '../services/projectUpdatesService';
-import { logger } from '../utils/logger';
-import { getLoggedInUser } from '../services/authorizationServices';
+} from '../utils/validators/projectValidator.js';
+import { updateProjectUpdatesStatistics } from '../services/projectUpdatesService.js';
+import { logger } from '../utils/logger.js';
+import { getLoggedInUser } from '../services/authorizationServices.js';
 import {
   getAppropriateSlug,
   getQualityScore,

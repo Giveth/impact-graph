@@ -24,12 +24,12 @@ import { AppDataSource } from '../orm.js';
 import {
   getGitcoinAdapter,
   getNotificationAdapter,
-} from '../adapters/adaptersFactory';
-import { logger } from '../utils/logger';
-import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
-import { addressHasDonated } from '../repositories/donationRepository';
-import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
-import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
+} from '../adapters/adaptersFactory.js';
+import { logger } from '../utils/logger.js';
+import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository.js';
+import { addressHasDonated } from '../repositories/donationRepository.js';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter.js';
+import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository.js';
 
 @ObjectType()
 class UserRelatedAddressResponse {

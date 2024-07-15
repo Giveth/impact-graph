@@ -1,4 +1,4 @@
-import moment from 'moment/moment';
+import moment from 'moment';
 import {
   canAccessQfRoundHistoryAction,
   ResourceActions,
@@ -10,13 +10,13 @@ import {
   AdminJsRequestInterface,
 } from '../adminJs-types.js';
 
-import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository';
-import { insertDonationsFromQfRoundHistory } from '../../../services/donationService';
-import { QfRound } from '../../../entities/qfRound';
-import { Donation } from '../../../entities/donation';
-import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
-import { Token } from '../../../entities/token';
-import { logger } from '../../../utils/logger';
+import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository.js';
+import { insertDonationsFromQfRoundHistory } from '../../../services/donationService.js';
+import { QfRound } from '../../../entities/qfRound.js';
+import { Donation } from '../../../entities/donation.js';
+import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter.js';
+import { Token } from '../../../entities/token.js';
+import { logger } from '../../../utils/logger.js';
 
 export const updateQfRoundHistory = async (
   _request: AdminJsRequestInterface,

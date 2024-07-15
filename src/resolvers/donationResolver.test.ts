@@ -17,9 +17,9 @@ import {
   generateRandomSolanaAddress,
   generateRandomSolanaTxHash,
   deleteProjectDirectlyFromDb,
-} from '../../test/testUtils';
-import { errorMessages } from '../utils/errorMessages';
-import { Donation, DONATION_STATUS } from '../entities/donation';
+} from '../../test/testUtils.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { Donation, DONATION_STATUS } from '../entities/donation.js';
 import {
   fetchDonationsByUserIdQuery,
   fetchDonationsByDonorQuery,
@@ -37,12 +37,12 @@ import {
   fetchNewDonorsCount,
   fetchNewDonorsDonationTotalUsd,
   fetchDonationMetricsQuery,
-} from '../../test/graphqlQueries';
-import { NETWORK_IDS } from '../provider';
-import { User } from '../entities/user';
-import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
-import { ProjStatus, ReviewStatus } from '../entities/project';
-import { Token } from '../entities/token';
+} from '../../test/graphqlQueries.js';
+import { NETWORK_IDS } from '../provider.js';
+import { User } from '../entities/user.js';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization.js';
+import { ProjStatus, ReviewStatus } from '../entities/project.js';
+import { Token } from '../entities/token.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,

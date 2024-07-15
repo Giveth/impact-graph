@@ -19,14 +19,14 @@ import {
   findAllUsers,
   findUserById,
   findUsersWhoSupportProject,
-} from '../../repositories/userRepository';
-import { buildProjectLink } from './NotificationCenterUtils';
-import { buildTxLink } from '../../utils/networks';
-import { RecurringDonation } from '../../entities/recurringDonation';
-import { getTokenPrice } from '../../services/priceService';
-import { Token } from '../../entities/token';
-import { toFixNumber } from '../../services/donationService';
-import { findOrganizationById } from '../../repositories/organizationRepository';
+} from '../../repositories/userRepository.js';
+import { buildProjectLink } from './NotificationCenterUtils.js';
+import { buildTxLink } from '../../utils/networks.js';
+import { RecurringDonation } from '../../entities/recurringDonation.js';
+import { getTokenPrice } from '../../services/priceService.js';
+import { Token } from '../../entities/token.js';
+import { toFixNumber } from '../../services/donationService.js';
+import { findOrganizationById } from '../../repositories/organizationRepository.js';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;

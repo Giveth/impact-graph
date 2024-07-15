@@ -31,19 +31,19 @@ import { ProjectAddress } from '../entities/projectAddress.js';
 import { PowerBoosting } from '../entities/powerBoosting.js';
 import { AppDataSource } from '../orm.js';
 // We are using cache so redis needs to be cleared for tests with same filters
-import { redis } from '../redis';
-import { Campaign, CampaignType } from '../entities/campaign';
-import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
-import { InstantPowerBalance } from '../entities/instantPowerBalance';
-import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
-import { updateInstantBoosting } from '../services/instantBoostingServices';
-import { QfRound } from '../entities/qfRound';
-import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
-import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
-import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
-import { ChainType } from '../types/network';
-import { ORGANIZATION_LABELS } from '../entities/organization';
+import { redis } from '../redis.js';
+import { Campaign, CampaignType } from '../entities/campaign.js';
+import { generateRandomString, getHtmlTextSummary } from '../utils/utils.js';
+import { InstantPowerBalance } from '../entities/instantPowerBalance.js';
+import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository.js';
+import { updateInstantBoosting } from '../services/instantBoostingServices.js';
+import { QfRound } from '../entities/qfRound.js';
+import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils.js';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService.js';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository.js';
+import { ChainType } from '../types/network.js';
+import { ORGANIZATION_LABELS } from '../entities/organization.js';
 
 // search and filters
 describe('all projects test cases --->', allProjectsTestCases);

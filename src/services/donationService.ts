@@ -12,16 +12,16 @@ import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+} from '../utils/errorMessages.js';
 import {
   findProjectById,
   findProjectIdBySlug,
-} from '../repositories/projectRepository';
-import { convertExponentialNumber } from '../utils/utils';
+} from '../repositories/projectRepository.js';
+import { convertExponentialNumber } from '../utils/utils.js';
 import {
   findDonationById,
   findRelevantDonations,
-} from '../repositories/donationRepository';
+} from '../repositories/donationRepository.js';
 import {
   getChainvineAdapter,
   getNotificationAdapter,

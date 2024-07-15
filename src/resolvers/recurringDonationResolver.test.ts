@@ -20,18 +20,18 @@ import {
   updateRecurringDonationQueryById,
   updateRecurringDonationStatusMutation,
   fetchRecurringDonationStatsQuery,
-} from '../../test/graphqlQueries';
+} from '../../test/graphqlQueries.js';
 
 describe(
   'createRecurringDonation test cases',
   createRecurringDonationTestCases,
 );
-import { errorMessages } from '../utils/errorMessages';
-import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
-import { QfRound } from '../entities/qfRound';
-import { generateRandomString } from '../utils/utils';
-import { ORGANIZATION_LABELS } from '../entities/organization';
+import { errorMessages } from '../utils/errorMessages.js';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository.js';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation.js';
+import { QfRound } from '../entities/qfRound.js';
+import { generateRandomString } from '../utils/utils.js';
+import { ORGANIZATION_LABELS } from '../entities/organization.js';
 
 describe(
   'updateRecurringDonation test cases',

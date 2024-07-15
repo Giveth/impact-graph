@@ -18,10 +18,10 @@ import {
   fetchQFArchivedRounds,
   qfRoundStatsQuery,
   scoreUserAddressMutation,
-} from '../../test/graphqlQueries';
-import { generateRandomString } from '../utils/utils';
-import { OrderDirection } from './projectResolver';
-import { QfArchivedRoundsSortType } from '../repositories/qfRoundRepository';
+} from '../../test/graphqlQueries.js';
+import { generateRandomString } from '../utils/utils.js';
+import { OrderDirection } from './projectResolver.js';
+import { QfArchivedRoundsSortType } from '../repositories/qfRoundRepository.js';
 
 describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);
 describe('Fetch qfRoundStats test cases', fetchQfRoundStatesTestCases);
