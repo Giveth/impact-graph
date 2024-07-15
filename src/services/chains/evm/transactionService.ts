@@ -249,7 +249,7 @@ export async function getEvmTransactionTimestamp(input: {
     const block = await getProvider(networkId).getBlock(
       transaction.blockNumber as number,
     );
-    return block.timestamp as number;
+    return block.timestamp * 1000; // convert from seconds to milliseconds
   } catch (e) {
     logger.error('getTransactionTimeFromBlockchain error', e);
     throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
