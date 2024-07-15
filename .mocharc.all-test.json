@@ -3,7 +3,8 @@
   "spec": [
     "./test/pre-test-scripts.ts",
     "./src/**/*.test.ts",
-    "./src/**/**/*.test.ts"
+    "./src/**/**/*.test.ts",
+    "./migration/*.test.ts"
   ],
   "timeout": 90000,
   "exit": true,

@@ -179,7 +179,8 @@ export const createRelatedDonationsToStream = async (
       const donation = Donation.create({
         amount: normalizeNegativeAmount(
           streamPeriod.amount,
-          tokenInDb!.decimals,
+          // All Super fluid tokens have 18 decimals even USDSx https://optimistic.etherscan.io/token/0x8430f084b939208e2eded1584889c9a66b90562f
+          18,
         ),
 
         // prevent setting NaN value for valueUsd
