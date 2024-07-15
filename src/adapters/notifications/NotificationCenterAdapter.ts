@@ -19,14 +19,14 @@ import {
   findAllUsers,
   findUserById,
   findUsersWhoSupportProject,
-} from '../../repositories/userRepository.js';
-import { buildProjectLink } from './NotificationCenterUtils.js';
-import { buildTxLink } from '../../utils/networks.js';
-import { RecurringDonation } from '../../entities/recurringDonation.js';
-import { getTokenPrice } from '../../services/priceService.js';
-import { Token } from '../../entities/token.js';
-import { toFixNumber } from '../../services/donationService.js';
-
+} from '../../repositories/userRepository';
+import { buildProjectLink } from './NotificationCenterUtils';
+import { buildTxLink } from '../../utils/networks';
+import { RecurringDonation } from '../../entities/recurringDonation';
+import { getTokenPrice } from '../../services/priceService';
+import { Token } from '../../entities/token';
+import { toFixNumber } from '../../services/donationService';
+import { findOrganizationById } from '../../repositories/organizationRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -1151,6 +1151,15 @@ const sendProjectRelatedNotification = async (params: {
 }): Promise<void> => {
   const { project, eventName, metadata, user, segment, sendEmail, trackId } =
     params;
+  const organization =
+    project.organization ||
+    (await findOrganizationById(project.organizationId));
+  if (organization?.disableNotifications) {
+    logger.debug(
+      `Organization ${organization.id} has disabled notifications. project ${project.slug} will not receive notification ${eventName}`,
+    );
+    return;
+  }
   const receivedUser = user || (project.adminUser as User);
   const projectLink = buildProjectLink(eventName, project.slug);
   const data: SendNotificationBody = {

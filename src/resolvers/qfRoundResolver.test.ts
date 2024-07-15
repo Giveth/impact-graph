@@ -17,14 +17,43 @@ import { refreshProjectEstimatedMatchingView } from '../services/projectViewsSer
 import {
   fetchQFArchivedRounds,
   qfRoundStatsQuery,
-} from '../../test/graphqlQueries.js';
-import { generateRandomString } from '../utils/utils.js';
-import { OrderDirection } from './projectResolver.js';
-import { QfArchivedRoundsSortType } from '../repositories/qfRoundRepository.js';
+  scoreUserAddressMutation,
+} from '../../test/graphqlQueries';
+import { generateRandomString } from '../utils/utils';
+import { OrderDirection } from './projectResolver';
+import { QfArchivedRoundsSortType } from '../repositories/qfRoundRepository';
 
 describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);
 describe('Fetch qfRoundStats test cases', fetchQfRoundStatesTestCases);
 describe('Fetch archivedQFRounds test cases', fetchArchivedQFRoundsTestCases);
+describe('update scoreUserAddress test cases', scoreUserAddressTestCases);
+
+function scoreUserAddressTestCases() {
+  it('should score the address with new model mocks score', async () => {
+    await QfRound.update({}, { isActive: false });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'test1',
+      slug: generateRandomString(10),
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    const result = await axios.post(graphqlUrl, {
+      query: scoreUserAddressMutation,
+      variables: {
+        address: user.walletAddress,
+      },
+    });
+
+    assert.isOk(result);
+    assert.isTrue(result.data.data.scoreUserAddress.activeQFMBDScore > 0);
+  });
+}
 
 function fetchArchivedQFRoundsTestCases() {
   it('should return correct data when fetching archived QF rounds', async () => {

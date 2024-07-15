@@ -24,6 +24,36 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
     this.ScorerID = process.env.GITCOIN_SCORER_ID || '';
   }
 
+  // New Model API
+  /*
+    address: string;
+    details: {
+      models: {
+        ethereum_activity: {
+          score: number;
+        }
+      }
+    } 
+   */
+  async getUserAnalysisScore(address: string): Promise<number> {
+    try {
+      const result = await axios.get(
+        `${GITCOIN_API_BASE_URL}/passport/analysis/${address.toLowerCase()}`,
+        {
+          headers: {
+            'X-API-KEY': this.GitcoinApiKey,
+          },
+        },
+      );
+      return result.data?.details?.models?.ethereum_activity?.score;
+    } catch (e) {
+      logger.error('getUserAnalysisScore error', e);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
+      );
+    }
+  }
+
   async getWalletAddressScore(
     address: string,
   ): Promise<SubmittedPassportResponse> {

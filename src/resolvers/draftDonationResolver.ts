@@ -53,6 +53,10 @@ export class DraftDonationResolver {
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
+    @Arg('useDonationBox', { nullable: true, defaultValue: false })
+    useDonationBox?: boolean,
+    @Arg('relevantDonationTxHash', { nullable: true })
+    relevantDonationTxHash?: string,
   ): Promise<number> {
     const logData = {
       amount,
@@ -95,6 +99,8 @@ export class DraftDonationResolver {
         referrerId,
         safeTransactionId,
         chainType,
+        useDonationBox,
+        relevantDonationTxHash,
       };
       try {
         validateWithJoiSchema(
@@ -134,6 +140,8 @@ export class DraftDonationResolver {
           anonymous: Boolean(anonymous),
           chainType: chainType as ChainType,
           referrerId,
+          useDonationBox,
+          relevantDonationTxHash,
         })
         .orIgnore()
         .returning('id')

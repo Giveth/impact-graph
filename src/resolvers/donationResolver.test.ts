@@ -16,9 +16,10 @@ import {
   generateUserIdLessAccessToken,
   generateRandomSolanaAddress,
   generateRandomSolanaTxHash,
-} from '../../test/testUtils.js';
-import { errorMessages } from '../utils/errorMessages.js';
-import { Donation, DONATION_STATUS } from '../entities/donation.js';
+  deleteProjectDirectlyFromDb,
+} from '../../test/testUtils';
+import { errorMessages } from '../utils/errorMessages';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
   fetchDonationsByUserIdQuery,
   fetchDonationsByDonorQuery,
@@ -35,12 +36,13 @@ import {
   doesDonatedToProjectInQfRoundQuery,
   fetchNewDonorsCount,
   fetchNewDonorsDonationTotalUsd,
-} from '../../test/graphqlQueries.js';
-import { NETWORK_IDS } from '../provider.js';
-import { User } from '../entities/user.js';
-import { Organization, ORGANIZATION_LABELS } from '../entities/organization.js';
-import { ProjStatus, ReviewStatus } from '../entities/project.js';
-import { Token } from '../entities/token.js';
+  fetchDonationMetricsQuery,
+} from '../../test/graphqlQueries';
+import { NETWORK_IDS } from '../provider';
+import { User } from '../entities/user';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import { ProjStatus, ReviewStatus } from '../entities/project';
+import { Token } from '../entities/token';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
@@ -94,6 +96,7 @@ describe(
   totalDonationsPerCategoryPerDateTestCases,
 );
 describe('recentDonations() test cases', recentDonationsTestCases);
+describe('donationMetrics() test cases', donationMetricsTestCases);
 
 // // describe('tokens() test cases', tokensTestCases);
 
@@ -1809,10 +1812,10 @@ function createDonationTestCases() {
     });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
-  it('should throw error when create GIV donation for givingBlock project on xdai', async () => {
+  it('should throw error when create GIV donation for endaoment project on xdai', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -1844,10 +1847,10 @@ function createDonationTestCases() {
       errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
     );
   });
-  it('should throw error when create GIV donation for givingBlock project on mainnet', async () => {
+  it('should throw error when create GIV donation for endaoment project on mainnet', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -2029,10 +2032,10 @@ function createDonationTestCases() {
       errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
     );
   });
-  it('should create ETH donation for givingBlock project on mainnet successfully', async () => {
+  it('should create ETH donation for endaoment project on mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -3717,11 +3720,12 @@ function donationsByUserIdTestCases() {
       giveBacks: false,
       creationDate: new Date(),
       updatedAt: new Date(),
+      latestUpdateCreationDate: new Date(),
       slug: title,
       // firstUser's id
       adminUserId: user.id,
       qualityScore: 30,
-      // just need the initial value to be different than 0
+      // just need the initial value to be different from 0
       totalDonations: 10,
       totalReactions: 0,
       totalProjectUpdates: 1,
@@ -3797,6 +3801,7 @@ function donationsByUserIdTestCases() {
       giveBacks: false,
       creationDate: new Date(),
       updatedAt: new Date(),
+      latestUpdateCreationDate: new Date(),
       slug: title,
       // firstUser's id
       adminUserId: user.id,
@@ -4783,5 +4788,99 @@ async function recentDonationsTestCases() {
     assert.lengthOf(recentDonations, 2);
     assert.equal(recentDonations[0].id, donation3.id);
     assert.equal(recentDonations[1].id, donation2.id);
+  });
+}
+
+async function donationMetricsTestCases() {
+  it('should return correct donation metrics', async () => {
+    const walletAddress1 = generateRandomEtheriumAddress();
+    const walletAddress2 = generateRandomEtheriumAddress();
+    const project1 = await saveProjectDirectlyToDb(createProjectData('giveth'));
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const user1 = await saveUserDirectlyToDb(walletAddress1);
+    const user2 = await saveUserDirectlyToDb(walletAddress2);
+
+    // Donations to project with ID 1 (giveth)
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({
+          status: DONATION_STATUS.VERIFIED,
+          createdAt: new Date('2024-01-01T00:00:00Z'),
+          valueUsd: 100,
+        }),
+        useDonationBox: true,
+        relevantDonationTxHash: 'tx1',
+      },
+      user1.id,
+      project1.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({
+          status: DONATION_STATUS.VERIFIED,
+          createdAt: new Date('2024-01-01T00:00:30Z'),
+          valueUsd: 50,
+        }),
+        useDonationBox: true,
+        relevantDonationTxHash: 'tx2',
+      },
+      user1.id,
+      project1.id,
+    );
+
+    // Donations to another project
+    const donation3 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({
+          status: DONATION_STATUS.VERIFIED,
+          createdAt: new Date('2024-01-01T00:01:00Z'),
+          valueUsd: 900,
+        }),
+        useDonationBox: true,
+        transactionId: 'tx1',
+      },
+      user1.id,
+      project2.id,
+    );
+
+    const donation4 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({
+          status: DONATION_STATUS.VERIFIED,
+          createdAt: new Date('2023-01-01T00:01:30Z'),
+          valueUsd: 200,
+        }),
+        useDonationBox: true,
+        transactionId: 'tx2',
+      },
+      user2.id,
+      project2.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationMetricsQuery,
+        variables: {
+          startDate: '2023-01-01T00:00:00Z',
+          endDate: '2025-01-02T00:00:00Z',
+        },
+      },
+      {},
+    );
+
+    assert.isOk(result);
+
+    const { donationMetrics } = result.data.data;
+    assert.equal(donationMetrics.totalDonationsToGiveth, 2);
+    assert.equal(donationMetrics.totalUsdValueToGiveth, 150);
+    assert.closeTo(donationMetrics.averagePercentageToGiveth, 15, 0.0001);
+
+    // Clean up
+    await Donation.remove([donation1, donation2, donation3, donation4]);
+    await deleteProjectDirectlyFromDb(project1.id);
+    await deleteProjectDirectlyFromDb(project2.id);
+    await User.remove([user1, user2]);
   });
 }

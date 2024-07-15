@@ -1,3 +1,4 @@
+import moment from 'moment/moment';
 import {
   canAccessQfRoundHistoryAction,
   ResourceActions,
@@ -9,8 +10,13 @@ import {
   AdminJsRequestInterface,
 } from '../adminJs-types.js';
 
-import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository.js';
-import { insertDonationsFromQfRoundHistory } from '../../../services/donationService.js';
+import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository';
+import { insertDonationsFromQfRoundHistory } from '../../../services/donationService';
+import { QfRound } from '../../../entities/qfRound';
+import { Donation } from '../../../entities/donation';
+import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
+import { Token } from '../../../entities/token';
+import { logger } from '../../../utils/logger';
 
 export const updateQfRoundHistory = async (
   _request: AdminJsRequestInterface,
@@ -27,6 +33,7 @@ export const updateQfRoundHistory = async (
     },
   };
 };
+
 export const CreateRelatedDonationsForQfRoundHistoryRecords = async (
   _request: AdminJsRequestInterface,
   _response,
@@ -38,6 +45,58 @@ export const CreateRelatedDonationsForQfRoundHistoryRecords = async (
     record: {},
     notice: {
       message: `Related donations for qfRoundHistory has been added`,
+      type: 'success',
+    },
+  };
+};
+
+export const FillPricesForDonationsWithoutPriceInLatestRound = async (
+  _request: AdminJsRequestInterface,
+  _response,
+  _context: AdminJsContextInterface,
+) => {
+  const latestRound = await QfRound.createQueryBuilder('qfRound')
+    .select('qfRound.id')
+    .orderBy({ 'qfRound.createdAt': 'DESC' })
+    .getOne();
+  if (!latestRound) return;
+  const donationsWithoutPrice = await Donation.createQueryBuilder('donation')
+    .where('donation.qfRoundId = :qfRoundId', { qfRoundId: latestRound.id })
+    .andWhere('donation.valueUsd IS NULL')
+    .orderBy({ 'donation.createdAt': 'DESC' })
+    .getMany();
+  const coingeckoAdapter = new CoingeckoPriceAdapter();
+  const filledPrices: { donationId: number; price: number }[] = [];
+  logger.debug(
+    'FillPricesForDonationsWithoutPriceInLatestRound donation ids',
+    donationsWithoutPrice.map(d => d.id),
+  );
+  for (const donation of donationsWithoutPrice) {
+    let price: number;
+    try {
+      const token = await Token.findOneBy({ symbol: donation.currency });
+      if (!token || !token.coingeckoId) continue;
+      price = await coingeckoAdapter.getTokenPriceAtDate({
+        date: moment(donation.createdAt).format('DD-MM-YYYY'),
+        symbol: token.coingeckoId,
+      });
+    } catch {
+      continue;
+    }
+    donation.valueUsd = donation.amount * price;
+    donation.priceUsd = price;
+    filledPrices.push({ donationId: donation.id, price });
+    await donation.save();
+  }
+  logger.debug(
+    'FillPricesForDonationsWithoutPriceInLatestRound filled prices',
+    filledPrices,
+  );
+  return {
+    redirectUrl: '/admin/resources/QfRoundHistory',
+    record: {},
+    notice: {
+      message: `${donationsWithoutPrice.length} donations without price found. ${filledPrices.length} prices filled`,
       type: 'success',
     },
   };
@@ -154,6 +213,17 @@ export const qfRoundHistoryTab = {
             ResourceActions.RELATE_DONATIONS_WITH_DISTRIBUTED_FUNDS,
           ),
         handler: CreateRelatedDonationsForQfRoundHistoryRecords,
+        component: false,
+      },
+      FillPricesForDonationsWithoutPriceInLatestRound: {
+        actionType: 'resource',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundHistoryAction(
+            { currentAdmin },
+            ResourceActions.FILL_PRICES_FOR_DONATIONS_WITHOUT_PRICE_IN_LATEST_ROUND,
+          ),
+        handler: FillPricesForDonationsWithoutPriceInLatestRound,
         component: false,
       },
     },

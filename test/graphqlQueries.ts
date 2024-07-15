@@ -28,6 +28,19 @@ export const createDonationMutation = `
   }
 `;
 
+export const scoreUserAddressMutation = `
+  query (
+    $address: String!
+  ) {
+    scoreUserAddress(
+      address: $address
+    ) {
+      id
+      activeQFMBDScore
+    }
+  }
+`;
+
 export const createDraftDonationMutation = `
   mutation (
     $networkId: Float!
@@ -2401,5 +2414,21 @@ export const fetchRecurringDonationStatsQuery = `
         totalStreamedUsdValue,
         activeRecurringDonationsCount,
       }
+  }
+`;
+
+export const fetchDonationMetricsQuery = `
+  query (
+    $startDate: String!
+    $endDate: String!
+  ) {
+    donationMetrics(
+      startDate: $startDate
+      endDate: $endDate
+    ) {
+      totalDonationsToGiveth
+      totalUsdValueToGiveth
+      averagePercentageToGiveth
+    }
   }
 `;

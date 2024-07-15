@@ -24,11 +24,12 @@ import { AppDataSource } from '../orm.js';
 import {
   getGitcoinAdapter,
   getNotificationAdapter,
-} from '../adapters/adaptersFactory.js';
-import { logger } from '../utils/logger.js';
-import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository.js';
-import { addressHasDonated } from '../repositories/donationRepository.js';
-import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter.js';
+} from '../adapters/adaptersFactory';
+import { logger } from '../utils/logger';
+import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
+import { addressHasDonated } from '../repositories/donationRepository';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -110,6 +111,13 @@ export class UserResolver {
       }
       if (passportStamps)
         foundUser.passportStamps = passportStamps.items.length;
+
+      const activeQFMBDScore = await retrieveActiveQfRoundUserMBDScore(
+        foundUser.id,
+      );
+      if (activeQFMBDScore) {
+        foundUser.activeQFMBDScore = activeQFMBDScore;
+      }
       await foundUser.save();
     } catch (e) {
       logger.error(`refreshUserScores Error with address ${address}: `, e);

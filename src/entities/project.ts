@@ -89,7 +89,7 @@ export enum FilterField {
   AcceptFundOnZKEVM = 'acceptFundOnZKEVM',
   AcceptFundOnOptimism = 'acceptFundOnOptimism',
   AcceptFundOnSolana = 'acceptFundOnSolana',
-  GivingBlock = 'fromGivingBlock',
+  Endaoment = 'fromEndaoment',
   BoostedWithGivPower = 'boostedWithGivPower',
   ActiveQfRound = 'ActiveQfRound',
 }
@@ -183,6 +183,10 @@ export class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   updatedAt: Date;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  latestUpdateCreationDate: Date;
 
   @Field(_type => Organization)
   @ManyToOne(_type => Organization)
@@ -673,7 +677,10 @@ export class ProjectUpdate extends BaseEntity {
   // does not call with createQueryBuilder
   @AfterInsert()
   async updateProjectStampOnCreation() {
-    await Project.update({ id: this.projectId }, { updatedAt: new Date() });
+    await Project.update(
+      { id: this.projectId },
+      { updatedAt: new Date(), latestUpdateCreationDate: new Date() },
+    );
   }
 
   @AfterUpdate()

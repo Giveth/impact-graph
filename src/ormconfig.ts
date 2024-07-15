@@ -3,7 +3,6 @@ import * as path from 'path';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import dotenv from 'dotenv';
 import { getEntities } from './entities/entities.js';
-import { ENVIRONMENTS } from './utils/utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,10 +23,7 @@ const ormConfig: DataSourceOptions = {
   password: process.env.TYPEORM_DATABASE_PASSWORD,
   database: process.env.TYPEORM_DATABASE_NAME,
   entities: getEntities(),
-  migrations:
-    process.env.NODE_ENV === ENVIRONMENTS.PRODUCTION
-      ? ['migration/*.js']
-      : ['migration/*.ts'],
+  migrations: ['migration/*.ts'],
   // cli: {
   //   migrationsDir: 'migration',
   // },

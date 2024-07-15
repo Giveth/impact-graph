@@ -1,55 +1,56 @@
 import { DataSourceOptions } from 'typeorm';
-import { Organization } from './organization.js';
-import { Category } from './category.js';
-import { Token } from './token.js';
-import { Donation } from './donation.js';
-import { Wallet } from './wallet.js';
-import { ProjectStatus } from './projectStatus.js';
-import { ProjectImage } from './projectImage.js';
-import { BankAccount, StripeTransaction } from './bankAccount.js';
-import { AccountVerification } from './accountVerification.js';
-import { ProjectStatusReason } from './projectStatusReason.js';
-import { ProjectStatusHistory } from './projectStatusHistory.js';
-import { ThirdPartyProjectImport } from './thirdPartyProjectImport.js';
-import { ProjectVerificationForm } from './projectVerificationForm.js';
-import { ProjectAddress } from './projectAddress.js';
-import { SocialProfile } from './socialProfile.js';
-import { MainCategory } from './mainCategory.js';
-import { PowerBoosting } from './powerBoosting.js';
-import { UserProjectPowerView } from '../views/userProjectPowerView.js';
-import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView.js';
-import { PowerRound } from './powerRound.js';
-import { ProjectPowerView } from '../views/projectPowerView.js';
-import { PowerSnapshot } from './powerSnapshot.js';
-import { PowerBalanceSnapshot } from './powerBalanceSnapshot.js';
-import { PowerBoostingSnapshot } from './powerBoostingSnapshot.js';
-import { ProjectFuturePowerView } from '../views/projectFuturePowerView.js';
-import { PowerSnapshotHistory } from './powerSnapshotHistory.js';
-import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory.js';
-import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory.js';
-import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView.js';
-import { User } from './user.js';
-import { Project, ProjectUpdate } from './project.js';
-import { Reaction } from './reaction.js';
-import BroadcastNotification from './broadcastNotification.js';
-import { FeaturedUpdate } from './featuredUpdate.js';
-import { Campaign } from './campaign.js';
-import { PreviousRoundRank } from './previousRoundRank.js';
-import { InstantPowerBalance } from './instantPowerBalance.js';
-import { InstantPowerFetchState } from './instantPowerFetchState.js';
-import { ProjectInstantPowerView } from '../views/projectInstantPowerView.js';
-import { QfRound } from './qfRound.js';
-import { ReferredEvent } from './referredEvent.js';
-import { QfRoundHistory } from './qfRoundHistory.js';
-import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView.js';
-import { AnchorContractAddress } from './anchorContractAddress.js';
-import { RecurringDonation } from './recurringDonation.js';
-import { Sybil } from './sybil.js';
-import { DraftDonation } from './draftDonation.js';
-import { ProjectFraud } from './projectFraud.js';
-import { ProjectActualMatchingView } from './ProjectActualMatchingView.js';
-import { ProjectSocialMedia } from './projectSocialMedia.js';
-import { DraftRecurringDonation } from './draftRecurringDonation.js';
+import { Organization } from './organization';
+import { Category } from './category';
+import { Token } from './token';
+import { Donation } from './donation';
+import { Wallet } from './wallet';
+import { ProjectStatus } from './projectStatus';
+import { ProjectImage } from './projectImage';
+import { BankAccount, StripeTransaction } from './bankAccount';
+import { AccountVerification } from './accountVerification';
+import { ProjectStatusReason } from './projectStatusReason';
+import { ProjectStatusHistory } from './projectStatusHistory';
+import { ThirdPartyProjectImport } from './thirdPartyProjectImport';
+import { ProjectVerificationForm } from './projectVerificationForm';
+import { ProjectAddress } from './projectAddress';
+import { SocialProfile } from './socialProfile';
+import { MainCategory } from './mainCategory';
+import { PowerBoosting } from './powerBoosting';
+import { UserProjectPowerView } from '../views/userProjectPowerView';
+import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView';
+import { PowerRound } from './powerRound';
+import { ProjectPowerView } from '../views/projectPowerView';
+import { PowerSnapshot } from './powerSnapshot';
+import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { PowerSnapshotHistory } from './powerSnapshotHistory';
+import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
+import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
+import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
+import { User } from './user';
+import { Project, ProjectUpdate } from './project';
+import { Reaction } from './reaction';
+import BroadcastNotification from './broadcastNotification';
+import { FeaturedUpdate } from './featuredUpdate';
+import { Campaign } from './campaign';
+import { PreviousRoundRank } from './previousRoundRank';
+import { InstantPowerBalance } from './instantPowerBalance';
+import { InstantPowerFetchState } from './instantPowerFetchState';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
+import { QfRound } from './qfRound';
+import { ReferredEvent } from './referredEvent';
+import { QfRoundHistory } from './qfRoundHistory';
+import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
+import { AnchorContractAddress } from './anchorContractAddress';
+import { RecurringDonation } from './recurringDonation';
+import { Sybil } from './sybil';
+import { DraftDonation } from './draftDonation';
+import { ProjectFraud } from './projectFraud';
+import { ProjectActualMatchingView } from './ProjectActualMatchingView';
+import { ProjectSocialMedia } from './projectSocialMedia';
+import { DraftRecurringDonation } from './draftRecurringDonation';
+import { UserQfRoundModelScore } from './userQfRoundModelScore';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -112,6 +113,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     QfRoundHistory,
     Sybil,
     ProjectFraud,
+    UserQfRoundModelScore,
 
     AnchorContractAddress,
     RecurringDonation,

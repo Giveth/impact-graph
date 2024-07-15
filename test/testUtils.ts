@@ -29,14 +29,15 @@ import {
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
-} from '../src/entities/projectVerificationForm.js';
-import { MainCategory } from '../src/entities/mainCategory.js';
-import { Category, CATEGORY_NAMES } from '../src/entities/category.js';
-import { FeaturedUpdate } from '../src/entities/featuredUpdate.js';
-import { ChainType } from '../src/types/network.js';
-import { RecurringDonation } from '../src/entities/recurringDonation.js';
-import { AnchorContractAddress } from '../src/entities/anchorContractAddress.js';
-import { findProjectById } from '../src/repositories/projectRepository.js';
+} from '../src/entities/projectVerificationForm';
+import { MainCategory } from '../src/entities/mainCategory';
+import { Category, CATEGORY_NAMES } from '../src/entities/category';
+import { FeaturedUpdate } from '../src/entities/featuredUpdate';
+import { ChainType } from '../src/types/network';
+import { RecurringDonation } from '../src/entities/recurringDonation';
+import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
+import { findProjectById } from '../src/repositories/projectRepository';
+import { ProjectAddress } from '../src/entities/projectAddress';
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
 export const serverBaseAddress = 'http://localhost:4000';
@@ -131,6 +132,7 @@ export interface CreateProjectData {
   giveBacks?: boolean;
   creationDate: Date;
   updatedAt: Date;
+  latestUpdateCreationDate: Date;
   statusId?: number;
   organizationLabel?: string;
   qualityScore?: number;
@@ -204,6 +206,7 @@ export const saveProjectVerificationFormDirectlyToDb = async (params: {
     status: status || PROJECT_VERIFICATION_STATUSES.DRAFT,
   }).save();
 };
+
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
   owner?: User,
@@ -295,8 +298,8 @@ export const saveProjectDirectlyToDb = async (
     )`);
   return project;
 };
-export const createProjectData = (): CreateProjectData => {
-  const title = String(new Date().getTime());
+export const createProjectData = (name?: string): CreateProjectData => {
+  const title = name ? name : String(new Date().getTime());
   const walletAddress = generateRandomEtheriumAddress();
   return {
     // title: `test project`,
@@ -310,17 +313,37 @@ export const createProjectData = (): CreateProjectData => {
     giveBacks: false,
     creationDate: new Date(),
     updatedAt: new Date(),
+    latestUpdateCreationDate: new Date(),
     slug: title,
     // firstUser's id
     adminUserId: 1,
     qualityScore: 30,
-    // just need the initial value to be different than 0
+    // just need the initial value to be different from 0
     totalDonations: 10,
     totalReactions: 0,
     totalProjectUpdates: 1,
     projectUpdateCreationDate: new Date(),
   };
 };
+
+export const deleteProjectDirectlyFromDb = async (
+  projectId: number,
+): Promise<void> => {
+  // Find and delete related project addresses
+  const projectAddresses = await ProjectAddress.find({ where: { projectId } });
+  await ProjectAddress.remove(projectAddresses);
+
+  // Find and delete related project updates
+  const projectUpdates = await ProjectUpdate.find({ where: { projectId } });
+  await ProjectUpdate.remove(projectUpdates);
+
+  // Delete the project
+  const project = await Project.findOne({ where: { id: projectId } });
+  if (project) {
+    await Project.remove(project);
+  }
+};
+
 export const createDonationData = (params?: {
   status?: string;
   createdAt?: Date;
@@ -546,9 +569,12 @@ export const SEED_DATA = {
       supportCustomTokens: true,
     },
     {
-      name: 'Giving Block',
-      label: ORGANIZATION_LABELS.GIVING_BLOCK,
+      name: 'Endaoment',
+      label: ORGANIZATION_LABELS.ENDAOMENT,
       website: 'https://thegivingblock.com',
+      disableUpdateEnforcement: true,
+      disableNotifications: true,
+      disableRecurringDonations: true,
       supportCustomTokens: false,
     },
     {
@@ -1917,6 +1943,8 @@ export interface CreateDonationData {
   qfRoundId?: number;
   tokenAddress?: string;
   qfRoundUserScore?: number;
+  useDonationBox?: boolean;
+  relevantDonationTxHash?: string;
 }
 
 export interface CategoryData {

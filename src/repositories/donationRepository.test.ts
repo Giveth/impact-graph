@@ -1,8 +1,10 @@
 import { assert } from 'chai';
 import moment from 'moment';
 import {
+  assertThrowsAsync,
   createDonationData,
   createProjectData,
+  deleteProjectDirectlyFromDb,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
   saveDonationDirectlyToDb,
@@ -20,12 +22,13 @@ import {
   getPendingDonationsIds,
   isVerifiedDonationExistsInQfRound,
   getProjectQfRoundStats,
-} from './donationRepository.js';
-import { Donation, DONATION_STATUS } from '../entities/donation.js';
-import { QfRound } from '../entities/qfRound.js';
-import { Project } from '../entities/project.js';
-import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService.js';
-import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils.js';
+  findRelevantDonations,
+} from './donationRepository';
+import { Donation, DONATION_STATUS } from '../entities/donation';
+import { QfRound } from '../entities/qfRound';
+import { Project } from '../entities/project';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
+import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils';
 
 describe('createDonation test cases', createDonationTestCases);
 
@@ -58,6 +61,7 @@ describe(
   'isVerifiedDonationExistsInQfRound() test cases',
   isVerifiedDonationExistsInQfRoundTestCases,
 );
+describe('findRelevantDonations', findRelevantDonationsTestCases);
 
 function fillQfRoundDonationsUserScoresTestCases() {
   let qfRound: QfRound;
@@ -1404,5 +1408,88 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
 
     qfRound.isActive = false;
     await qfRound.save();
+  });
+}
+
+function findRelevantDonationsTestCases() {
+  it('should return relevant donations correctly', async () => {
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        projectId: project1.id,
+        createdAt: new Date(),
+        relevantDonationTxHash: 'tx1',
+        useDonationBox: true,
+      },
+      user.id,
+      project1.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        projectId: project2.id,
+        createdAt: new Date(),
+        transactionId: 'tx1',
+        useDonationBox: true,
+      },
+      user.id,
+      project2.id,
+    );
+
+    const { donationsToGiveth, pairedDonations } = await findRelevantDonations(
+      new Date('2023-01-01'),
+      new Date(),
+      project1.id,
+    );
+
+    assert.equal(donationsToGiveth.length, 1);
+    assert.equal(pairedDonations.length, 1);
+    assert.equal(donationsToGiveth[0].id, donation1.id);
+    assert.equal(pairedDonations[0].id, donation2.id);
+
+    // Clean up
+    await Donation.remove([donation1, donation2]);
+    await deleteProjectDirectlyFromDb(project1.id);
+    await deleteProjectDirectlyFromDb(project2.id);
+    await User.remove(user);
+  });
+
+  it('should throw an error if the relevant donation does not exist', async () => {
+    // Create project and user
+    const givethProject = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const donationsToGiveth = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        projectId: givethProject.id,
+        createdAt: new Date(),
+        relevantDonationTxHash: 'tx1',
+        useDonationBox: true,
+      },
+      user.id,
+      givethProject.id,
+    );
+
+    // Fetch relevant donations and expect an error
+    await assertThrowsAsync(
+      () =>
+        findRelevantDonations(
+          new Date('2023-01-01'),
+          new Date(),
+          givethProject.id,
+        ),
+      `the relevant donation to this donation does not exist: donation id = ${donationsToGiveth.id}`,
+    );
+
+    // Clean up
+    await Donation.remove(donationsToGiveth);
+    await deleteProjectDirectlyFromDb(givethProject.id);
+    await User.remove(user);
   });
 }

@@ -344,9 +344,9 @@ async function relateOrganizationsToTokens() {
       label: ORGANIZATION_LABELS.TRACE,
     },
   })) as Organization;
-  const givingBlock = (await Organization.findOne({
+  const endaoment = (await Organization.findOne({
     where: {
-      label: ORGANIZATION_LABELS.GIVING_BLOCK,
+      label: ORGANIZATION_LABELS.ENDAOMENT,
     },
   })) as Organization;
   const change = (await Organization.findOne({
@@ -364,8 +364,24 @@ async function relateOrganizationsToTokens() {
       networkId: NETWORK_IDS.MAIN_NET,
     },
   })) as Token;
-  givingBlock.tokens = [etherMainnetToken];
-  await givingBlock?.save();
+  const baseMainnetToken = (await Token.findOne({
+    where: {
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.BASE_MAINNET,
+    },
+  })) as Token;
+  const optimismMainnetToken = (await Token.findOne({
+    where: {
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.OPTIMISTIC,
+    },
+  })) as Token;
+  endaoment.tokens = [
+    etherMainnetToken,
+    baseMainnetToken,
+    optimismMainnetToken,
+  ];
+  await endaoment?.save();
   const changeTokens = await Token.find({
     where: [
       { symbol: 'ETH', networkId: NETWORK_IDS.MAIN_NET },

@@ -104,7 +104,7 @@ function getEvmTransactionTimestampTestCases() {
         '0x42c0f15029557ec35e61515a89366297fc239a334e3ba22fab15a3f1d04ad53f',
       networkId: NETWORK_IDS.XDAI,
     });
-    assert.equal(transactionTime, 1702091620);
+    assert.equal(transactionTime, 1702091620 * 1000);
   });
 
   it('Should throw error if the transaction is not found', async () => {

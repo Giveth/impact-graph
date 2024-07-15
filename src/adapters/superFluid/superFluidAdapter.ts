@@ -7,7 +7,7 @@ import {
 } from './superFluidAdapterInterface.js';
 
 const superFluidGraphqlUrl =
-  'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet';
+  'https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1';
 const superFluidGraphqlStagingUrl =
   'https://optimism-sepolia.subgraph.x.superfluid.dev';
 

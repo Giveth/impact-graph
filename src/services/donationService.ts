@@ -12,10 +12,16 @@ import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages.js';
-import { findProjectById } from '../repositories/projectRepository.js';
-import { convertExponentialNumber } from '../utils/utils.js';
-import { findDonationById } from '../repositories/donationRepository.js';
+} from '../utils/errorMessages';
+import {
+  findProjectById,
+  findProjectIdBySlug,
+} from '../repositories/projectRepository';
+import { convertExponentialNumber } from '../utils/utils';
+import {
+  findDonationById,
+  findRelevantDonations,
+} from '../repositories/donationRepository';
 import {
   getChainvineAdapter,
   getNotificationAdapter,
@@ -514,3 +520,43 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
     logger.error('insertDonationsFromQfRoundHistory error', e);
   }
 };
+
+export async function getDonationToGivethWithDonationBoxMetrics(
+  startDate: Date,
+  endDate: Date,
+) {
+  const givethProject = await findProjectIdBySlug('giveth');
+  if (givethProject === null) {
+    throw new Error('giveth project not found!');
+  }
+
+  const { donationsToGiveth, pairedDonations } = await findRelevantDonations(
+    startDate,
+    endDate,
+    givethProject.id,
+  );
+  const totalDonationsToGiveth = donationsToGiveth.length;
+  const totalUsdValueToGiveth = donationsToGiveth.reduce(
+    (sum, donation) => sum + (donation.valueUsd || 0),
+    0,
+  );
+
+  const donationPercentages = donationsToGiveth.map((donation, index) => {
+    const pairedDonation = pairedDonations[index];
+    const totalValue =
+      (donation.valueUsd || 0) + (pairedDonation.valueUsd || 0);
+    return totalValue > 0 ? (donation.valueUsd || 0) / totalValue : 0;
+  });
+
+  const averagePercentageToGiveth =
+    (donationPercentages.length > 0
+      ? donationPercentages.reduce((sum, percentage) => sum + percentage, 0) /
+        donationPercentages.length
+      : 0) * 100;
+
+  return {
+    totalDonationsToGiveth,
+    totalUsdValueToGiveth,
+    averagePercentageToGiveth,
+  };
+}

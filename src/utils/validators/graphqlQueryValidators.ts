@@ -118,6 +118,8 @@ export const createDonationQueryValidator = Joi.object({
   referrerId: Joi.string().allow(null, ''),
   safeTransactionId: Joi.string().allow(null, ''),
   chainType: Joi.string().required(),
+  useDonationBox: Joi.boolean(),
+  relevantDonationTxHash: Joi.string().allow(null, ''),
 });
 
 export const createDraftDonationQueryValidator = Joi.object({
@@ -143,6 +145,8 @@ export const createDraftDonationQueryValidator = Joi.object({
   referrerId: Joi.string().allow(null, ''),
   safeTransactionId: Joi.string().allow(null, ''),
   chainType: Joi.string().required(),
+  useDonationBox: Joi.boolean(),
+  relevantDonationTxHash: Joi.string().allow(null, ''),
 });
 
 export const createDraftRecurringDonationQueryValidator = Joi.object({

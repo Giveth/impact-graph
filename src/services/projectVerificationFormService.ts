@@ -19,6 +19,7 @@ import {
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators.js';
 import {
+  findProjectVerificationFormById,
   updateManagingFundsOfProjectVerification,
   updateMilestonesOfProjectVerification,
   updateProjectContactsOfProjectVerification,
@@ -153,21 +154,29 @@ export const updateProjectVerificationFormByUser = async (params: {
           projectVerificationId,
           isTermAndConditionsAccepted,
         });
+
+      break;
+    }
+    case PROJECT_VERIFICATION_STEPS.SUBMIT: {
+      const getProjectVerificationData = await findProjectVerificationFormById(
+        projectVerificationId,
+      );
       const data = removeUndefinedFieldsFromObject({
-        projectRegistry: updatedProjectVerificationForm.projectRegistry,
-        projectContacts: updatedProjectVerificationForm.projectContacts,
-        milestones: updatedProjectVerificationForm.milestones,
-        managingFunds: updatedProjectVerificationForm.managingFunds,
-        socialProfiles: updatedProjectVerificationForm.socialProfiles,
-        status: updatedProjectVerificationForm.status,
-        emailConfirmed: updatedProjectVerificationForm.emailConfirmed,
+        projectRegistry: getProjectVerificationData?.projectRegistry,
+        projectContacts: getProjectVerificationData?.projectContacts,
+        milestones: getProjectVerificationData?.milestones,
+        managingFunds: getProjectVerificationData?.managingFunds,
+        socialProfiles: getProjectVerificationData?.socialProfiles,
+        status: getProjectVerificationData?.status,
+        emailConfirmed: getProjectVerificationData?.emailConfirmed,
         isTermAndConditionsAccepted:
-          updatedProjectVerificationForm.isTermAndConditionsAccepted,
+          getProjectVerificationData?.isTermAndConditionsAccepted,
       });
       validateWithJoiSchema(data, submitProjectVerificationStepValidator);
       updatedProjectVerificationForm = await submitProjectVerificationForm({
         projectVerificationId,
       });
+
       break;
     }
     default:

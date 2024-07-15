@@ -120,6 +120,8 @@ export const createProjectFromChangeNonProfit = async (
       categories: [changeCategory],
       walletAddress: nonProfit.crypto.ethereum_address.toLowerCase(),
       creationDate: new Date(),
+      updatedAt: new Date(),
+      latestUpdateCreationDate: new Date(),
       slug,
       youtube: nonProfit.socials.youtube,
       website: nonProfit.website,

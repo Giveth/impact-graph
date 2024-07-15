@@ -202,6 +202,13 @@ export class RecurringDonationResolver {
     if (!project) {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
+    if (project.organization.disableRecurringDonations) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.PROJECT_DOESNT_ACCEPT_RECURRING_DONATION,
+        ),
+      );
+    }
     const currentAnchorProjectAddress = await findActiveAnchorAddress({
       projectId,
       networkId,

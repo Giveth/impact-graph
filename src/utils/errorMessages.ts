@@ -198,6 +198,8 @@ export const errorMessages = {
   TX_NOT_FOUND: 'Transaction not found',
   INVALID_PROJECT_ID: 'Invalid project id',
   INVALID_PROJECT_OWNER: 'Project owner is invalid',
+  PROJECT_DOESNT_ACCEPT_RECURRING_DONATION:
+    'Project does not accept recurring donation',
 };
 
 export const translationErrorMessagesKeys = {
@@ -277,6 +279,8 @@ export const translationErrorMessagesKeys = {
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT',
   PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
+  PROJECT_DOESNT_ACCEPT_RECURRING_DONATION:
+    'Project does not accept recurring donation',
   RECURRING_DONATION_NOT_FOUND: 'Recurring donation not found.',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',

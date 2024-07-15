@@ -10,16 +10,16 @@ import {
 import {
   createRelatedDonationsToStream,
   updateRecurringDonationStatusWithNetwork,
-} from './recurringDonationService.js';
-import { Donation } from '../entities/donation.js';
-import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository.js';
-import { NETWORK_IDS } from '../provider.js';
-import { findRecurringDonationById } from '../repositories/recurringDonationRepository.js';
+} from './recurringDonationService';
+import { Donation } from '../entities/donation';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
+import { NETWORK_IDS } from '../provider';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
-} from '../entities/recurringDonation.js';
-import { AnchorContractAddress } from '../entities/anchorContractAddress.js';
+} from '../entities/recurringDonation';
+import { AnchorContractAddress } from '../entities/anchorContractAddress';
+import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
 
 describe(
   'createRelatedDonationsToStream test cases',
