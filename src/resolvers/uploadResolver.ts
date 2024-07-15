@@ -9,12 +9,12 @@ import {
 } from 'type-graphql';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import { FileUpload } from 'graphql-upload/Upload.js';
-import { ApolloContext } from '../types/ApolloContext';
-import { pinFile, pinFileDataBase64 } from '../middleware/pinataUtils';
-import { logger } from '../utils/logger';
-import { getLoggedInUser } from '../services/authorizationServices';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import SentryLogger from '../sentryLogger';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { pinFile, pinFileDataBase64 } from '../middleware/pinataUtils.js';
+import { logger } from '../utils/logger.js';
+import { getLoggedInUser } from '../services/authorizationServices.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import SentryLogger from '../sentryLogger.js';
 
 @InputType()
 export class FileUploadInputType {

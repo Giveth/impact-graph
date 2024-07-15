@@ -5,10 +5,10 @@ import {
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../../../test/testUtils';
-import { QfRound } from '../../../entities/qfRound';
-import { createProjectFraud } from './projectFraudTab';
-import { errorMessages } from '../../../utils/errorMessages';
+} from '../../../../test/testUtils.js';
+import { QfRound } from '../../../entities/qfRound.js';
+import { createProjectFraud } from './projectFraudTab.js';
+import { errorMessages } from '../../../utils/errorMessages.js';
 
 describe('createSybil test cases', createSybilTestCases);
 

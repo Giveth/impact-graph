@@ -7,8 +7,8 @@ import {
   OneToMany,
   Index,
 } from 'typeorm';
-import { Project } from './project';
-import { ProjectStatusReason } from './projectStatusReason';
+import { Project } from './project.js';
+import { ProjectStatusReason } from './projectStatusReason.js';
 
 @Entity()
 @ObjectType()

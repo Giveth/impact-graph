@@ -7,15 +7,15 @@ import FormData from 'form-data';
 import {
   traceImageUploadQuery,
   uploadImageToIpfsQuery,
-} from '../../test/graphqlQueries';
+} from '../../test/graphqlQueries.js';
 import {
   generateTestAccessToken,
   graphqlUrl,
   SEED_DATA,
-} from '../../test/testUtils';
-import * as pinataUtils from '../middleware/pinataUtils';
-import { errorMessages } from '../utils/errorMessages';
-import { TraceImageOwnerType } from './uploadResolver';
+} from '../../test/testUtils.js';
+import * as pinataUtils from '../middleware/pinataUtils.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { TraceImageOwnerType } from './uploadResolver.js';
 
 // test cases
 describe('upload() test cases', uploadTestCases);
@@ -25,6 +25,8 @@ function uploadTestCases() {
   const IpfsHash = 'MockIpfsHash';
   before(() => {
     sinon.stub(pinataUtils, 'pinFile').resolves({
+      PinSize: 0,
+      Timestamp: '',
       IpfsHash,
     });
   });
@@ -105,6 +107,8 @@ function traceImageUpload() {
     sinon.stub(pinataUtils, 'pinFileDataBase64').returns(
       Promise.resolve({
         IpfsHash,
+        PinSize: 0,
+        Timestamp: '',
       }),
     );
   });

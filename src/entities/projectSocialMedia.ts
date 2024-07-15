@@ -8,9 +8,9 @@ import {
   RelationId,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
-import { User } from './user';
-import { ProjectSocialMediaType } from '../types/projectSocialMediaType';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { ProjectSocialMediaType } from '../types/projectSocialMediaType.js';
 
 @Entity()
 @ObjectType()

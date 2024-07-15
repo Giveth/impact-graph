@@ -11,9 +11,9 @@ import {
 } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
 import { Max, Min, IsNumber } from 'class-validator';
-import { Project } from './project';
-import { User } from './user';
-import { ColumnNumericTransformer } from '../utils/entities';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { ColumnNumericTransformer } from '../utils/entities.js';
 
 @Entity()
 @ObjectType()

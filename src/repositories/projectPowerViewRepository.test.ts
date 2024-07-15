@@ -5,12 +5,12 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   sleep,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from './powerBoostingRepository';
-import { setPowerRound } from './powerRoundRepository';
+} from './powerBoostingRepository.js';
+import { setPowerRound } from './powerRoundRepository.js';
 import {
   getBottomRank,
   getProjectPowers,
@@ -18,15 +18,15 @@ import {
   refreshProjectFuturePowerView,
   getProjectFuturePowers,
   findProjectPowerViewByProjectId,
-} from './projectPowerViewRepository';
-import { Project, ProjStatus } from '../entities/project';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { ProjectStatus } from '../entities/projectStatus';
-import { AppDataSource } from '../orm';
-import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from './powerSnapshotRepository';
+} from './projectPowerViewRepository.js';
+import { Project, ProjStatus } from '../entities/project.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { ProjectStatus } from '../entities/projectStatus.js';
+import { AppDataSource } from '../orm.js';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from './powerSnapshotRepository.js';
 
 describe(
   'projectPowerViewRepository test',

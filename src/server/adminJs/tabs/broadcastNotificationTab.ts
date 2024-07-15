@@ -2,22 +2,24 @@ import adminJs from 'adminjs';
 import {
   ActionResponse,
   After,
+  // @ts-expect-error as d
 } from 'adminjs/src/backend/actions/action.interface';
+// @ts-expect-error as d
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
-} from '../../../entities/broadcastNotification';
+} from '../../../entities/broadcastNotification.js';
 import {
   canAccessBroadcastNotificationAction,
   ResourceActions,
-} from '../adminJsPermissions';
+} from '../adminJsPermissions.js';
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
-} from '../adminJs-types';
-import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
-import { updateBroadcastNotificationStatus } from '../../../repositories/broadcastNotificationRepository';
-import { logger } from '../../../utils/logger';
+} from '../adminJs-types.js';
+import { getNotificationAdapter } from '../../../adapters/adaptersFactory.js';
+import { updateBroadcastNotificationStatus } from '../../../repositories/broadcastNotificationRepository.js';
+import { logger } from '../../../utils/logger.js';
 
 export const sendBroadcastNotification = async (
   response,
@@ -119,6 +121,7 @@ export const broadcastNotificationTab = {
           edit: true,
         },
         components: {
+          // @ts-expect-error as d
           edit: adminJs.bundle('./components/MDtoHTML'),
         },
       },

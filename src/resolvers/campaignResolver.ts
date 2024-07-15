@@ -3,15 +3,15 @@ import {
   Campaign,
   CampaignFilterField,
   CampaignSortingField,
-} from '../entities/campaign';
+} from '../entities/campaign.js';
 import {
   findAllActiveCampaigns,
   findCampaignBySlug,
   findFeaturedCampaign,
-} from '../repositories/campaignRepository';
-import { ApolloContext } from '../types/ApolloContext';
-import { errorMessages } from '../utils/errorMessages';
-import { fillCampaignProjects } from '../services/campaignService';
+} from '../repositories/campaignRepository.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { fillCampaignProjects } from '../services/campaignService.js';
 
 registerEnumType(CampaignSortingField, {
   name: 'CampaignSortingField',

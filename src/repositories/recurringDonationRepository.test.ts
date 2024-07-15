@@ -8,19 +8,19 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { NETWORK_IDS } from '../provider';
-import { addNewAnchorAddress } from './anchorContractAddressRepository';
+} from '../../test/testUtils.js';
+import { NETWORK_IDS } from '../provider.js';
+import { addNewAnchorAddress } from './anchorContractAddressRepository.js';
 import {
   nonZeroRecurringDonationsByProjectId,
   createNewRecurringDonation,
   findRecurringDonationById,
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
   updateRecurringDonationFromTheStreamDonations,
-} from './recurringDonationRepository';
-import { getPendingRecurringDonationsIds } from './recurringDonationRepository';
-import { DONATION_STATUS } from '../entities/donation';
-import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
+} from './recurringDonationRepository.js';
+import { getPendingRecurringDonationsIds } from './recurringDonationRepository.js';
+import { DONATION_STATUS } from '../entities/donation.js';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation.js';
 
 describe(
   'createNewRecurringDonationTestCases',

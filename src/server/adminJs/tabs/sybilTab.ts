@@ -1,11 +1,14 @@
 import csv from 'csvtojson';
-import { Sybil } from '../../../entities/sybil';
-import { canAccessSybilAction, ResourceActions } from '../adminJsPermissions';
-import { AdminJsRequestInterface } from '../adminJs-types';
-import { logger } from '../../../utils/logger';
-import { messages } from '../../../utils/messages';
-import { errorMessages } from '../../../utils/errorMessages';
-import { findUserByWalletAddress } from '../../../repositories/userRepository';
+import { Sybil } from '../../../entities/sybil.js';
+import {
+  canAccessSybilAction,
+  ResourceActions,
+} from '../adminJsPermissions.js';
+import { AdminJsRequestInterface } from '../adminJs-types.js';
+import { logger } from '../../../utils/logger.js';
+import { messages } from '../../../utils/messages.js';
+import { errorMessages } from '../../../utils/errorMessages.js';
+import { findUserByWalletAddress } from '../../../repositories/userRepository.js';
 
 export const createSybil = async (
   request: AdminJsRequestInterface,

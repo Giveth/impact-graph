@@ -9,7 +9,7 @@ import {
   ViewColumn,
   JoinColumn,
 } from 'typeorm';
-import { Project } from './project';
+import { Project } from './project.js';
 
 @ViewEntity('project_estimated_matching_view', { synchronize: false })
 @Index('project_estimated_matching_view_project_id_qfround_id', [

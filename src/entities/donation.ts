@@ -8,11 +8,11 @@ import {
   RelationId,
   Index,
 } from 'typeorm';
-import { Project } from './project';
-import { User } from './user';
-import { QfRound } from './qfRound';
-import { ChainType } from '../types/network';
-import { RecurringDonation } from './recurringDonation';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { QfRound } from './qfRound.js';
+import { ChainType } from '../types/network.js';
+import { RecurringDonation } from './recurringDonation.js';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',

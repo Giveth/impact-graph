@@ -8,8 +8,8 @@ import {
   BaseEntity,
   Unique,
 } from 'typeorm';
-import { Project } from './project';
-import { QfRound } from './qfRound';
+import { Project } from './project.js';
+import { QfRound } from './qfRound.js';
 
 @ObjectType()
 @Entity()

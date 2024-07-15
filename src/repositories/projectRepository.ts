@@ -6,14 +6,17 @@ import {
   ReviewStatus,
   RevokeSteps,
   SortingField,
-} from '../entities/project';
-import { ProjectVerificationForm } from '../entities/projectVerificationForm';
-import { ProjectAddress } from '../entities/projectAddress';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { publicSelectionFields } from '../entities/user';
-import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
-import { getAppropriateNetworkId } from '../services/chains';
+} from '../entities/project.js';
+import { ProjectVerificationForm } from '../entities/projectVerificationForm.js';
+import { ProjectAddress } from '../entities/projectAddress.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { publicSelectionFields } from '../entities/user.js';
+import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver.js';
+import {
+  OrderDirection,
+  ProjectResolver,
+} from '../resolvers/projectResolver.js';
+import { getAppropriateNetworkId } from '../services/chains/index.js';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });

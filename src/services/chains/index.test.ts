@@ -1,10 +1,10 @@
 import { assert } from 'chai';
 import moment from 'moment';
-import { NETWORK_IDS } from '../../provider';
-import { assertThrowsAsync } from '../../../test/testUtils';
-import { errorMessages } from '../../utils/errorMessages';
-import { ChainType } from '../../types/network';
-import { closeTo, getTransactionInfoFromNetwork } from './index';
+import { NETWORK_IDS } from '../../provider.js';
+import { assertThrowsAsync } from '../../../test/testUtils.js';
+import { errorMessages } from '../../utils/errorMessages.js';
+import { ChainType } from '../../types/network.js';
+import { closeTo, getTransactionInfoFromNetwork } from './index.js';
 
 const ONE_DAY = 60 * 60 * 24;
 

@@ -13,10 +13,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
-import { User } from './user';
-import { SocialProfile } from './socialProfile';
-import { ChainType } from '../types/network';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { SocialProfile } from './socialProfile.js';
+import { ChainType } from '../types/network.js';
 
 export enum PROJECT_VERIFICATION_STATUSES {
   VERIFIED = 'verified',

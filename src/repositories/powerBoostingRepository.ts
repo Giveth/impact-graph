@@ -1,18 +1,18 @@
 import { Brackets } from 'typeorm';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { Project } from '../entities/project';
-import { publicSelectionFields, User } from '../entities/user';
-import { logger } from '../utils/logger';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { Project } from '../entities/project.js';
+import { publicSelectionFields, User } from '../entities/user.js';
+import { logger } from '../utils/logger.js';
 import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { PowerSnapshot } from '../entities/powerSnapshot';
-import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
-import { getKeyByValue } from '../utils/utils';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { AppDataSource } from '../orm';
+} from '../utils/errorMessages.js';
+import { PowerSnapshot } from '../entities/powerSnapshot.js';
+import { getRoundNumberByDate } from '../utils/powerBoostingUtils.js';
+import { getKeyByValue } from '../utils/utils.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { AppDataSource } from '../orm.js';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',

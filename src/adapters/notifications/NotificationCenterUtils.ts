@@ -1,4 +1,4 @@
-import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics.js';
 
 export const buildProjectLink = (
   eventName: NOTIFICATIONS_EVENT_NAMES,

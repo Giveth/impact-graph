@@ -7,7 +7,7 @@ import {
   RelationId,
   BaseEntity,
 } from 'typeorm';
-import { User } from './user';
+import { User } from './user.js';
 
 @ObjectType()
 @Entity()

@@ -1,6 +1,6 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
-import { ColumnNumericTransformer } from '../utils/entities';
+import { ColumnNumericTransformer } from '../utils/entities.js';
 
 @Entity()
 @ObjectType()

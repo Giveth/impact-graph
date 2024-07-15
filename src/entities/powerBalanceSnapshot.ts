@@ -8,7 +8,7 @@ import {
   RelationId,
   ManyToOne,
 } from 'typeorm';
-import { PowerSnapshot } from './powerSnapshot';
+import { PowerSnapshot } from './powerSnapshot.js';
 
 @Entity()
 @ObjectType()

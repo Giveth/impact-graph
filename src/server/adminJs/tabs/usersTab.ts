@@ -1,7 +1,7 @@
-import * as bcrypt from 'bcryptjs';
-import { User } from '../../../entities/user';
-import { canAccessUserAction, ResourceActions } from '../adminJsPermissions';
-import { logger } from '../../../utils/logger';
+import bcrypt from 'bcrypt';
+import { User } from '../../../entities/user.js';
+import { canAccessUserAction, ResourceActions } from '../adminJsPermissions.js';
+import { logger } from '../../../utils/logger.js';
 
 export const usersTab = {
   resource: User,

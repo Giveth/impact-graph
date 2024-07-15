@@ -1,20 +1,26 @@
-import { Donation, DONATION_STATUS } from '../../entities/donation';
-import { ProjStatus } from '../../entities/project';
-import { Token } from '../../entities/token';
-import { NETWORK_IDS } from '../../provider';
-import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
-import { findProjectById } from '../../repositories/projectRepository';
-import { findUserById } from '../../repositories/userRepository';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { logger } from '../../utils/logger';
-import { isTokenAcceptableForProject } from '../donationService';
-import { OnRamperFiatTransaction, OnRamperMetadata } from './fiatTransaction';
-import SentryLogger from '../../sentryLogger';
+import { Donation, DONATION_STATUS } from '../../entities/donation.js';
+import { ProjStatus } from '../../entities/project.js';
+import { Token } from '../../entities/token.js';
+import { NETWORK_IDS } from '../../provider.js';
+import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository.js';
+import { findProjectById } from '../../repositories/projectRepository.js';
+import { findUserById } from '../../repositories/userRepository.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
+import { logger } from '../../utils/logger.js';
+import { isTokenAcceptableForProject } from '../donationService.js';
+import {
+  OnRamperFiatTransaction,
+  OnRamperMetadata,
+} from './fiatTransaction.js';
+import SentryLogger from '../../sentryLogger.js';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from '../userService';
-import { updateProjectStatistics } from '../projectService';
+} from '../userService.js';
+import { updateProjectStatistics } from '../projectService.js';
 
 export const createFiatDonationFromOnramper = async (
   fiatTransaction: OnRamperFiatTransaction,

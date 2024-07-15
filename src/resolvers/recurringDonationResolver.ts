@@ -17,37 +17,37 @@ import {
 import { Brackets } from 'typeorm';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { AnchorContractAddress } from '../entities/anchorContractAddress';
-import { findProjectById } from '../repositories/projectRepository';
+import { AnchorContractAddress } from '../entities/anchorContractAddress.js';
+import { findProjectById } from '../repositories/projectRepository.js';
 import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { findActiveAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { ApolloContext } from '../types/ApolloContext';
-import { findUserById } from '../repositories/userRepository';
+} from '../utils/errorMessages.js';
+import { findActiveAnchorAddress } from '../repositories/anchorContractAddressRepository.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { findUserById } from '../repositories/userRepository.js';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
-} from '../entities/recurringDonation';
+} from '../entities/recurringDonation.js';
 import {
   createNewRecurringDonation,
   findRecurringDonationById,
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
   updateRecurringDonation,
-} from '../repositories/recurringDonationRepository';
-import { detectAddressChainType } from '../utils/networks';
-import { logger } from '../utils/logger';
+} from '../repositories/recurringDonationRepository.js';
+import { detectAddressChainType } from '../utils/networks.js';
+import { logger } from '../utils/logger.js';
 import {
   getRecurringDonationStatsArgsValidator,
   updateDonationQueryValidator,
   validateWithJoiSchema,
-} from '../utils/validators/graphqlQueryValidators';
-import { sleep } from '../utils/utils';
-import SentryLogger from '../sentryLogger';
-import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
-import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
+} from '../utils/validators/graphqlQueryValidators.js';
+import { sleep } from '../utils/utils.js';
+import SentryLogger from '../sentryLogger.js';
+import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService.js';
+import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository.js';
 
 @InputType()
 class RecurringDonationSortBy {

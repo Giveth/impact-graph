@@ -1,11 +1,11 @@
 import { Query, Resolver } from 'type-graphql';
 import { Repository } from 'typeorm';
 
-import { User } from '../entities/user';
-import { Category } from '../entities/category';
-import { MainCategory } from '../entities/mainCategory';
-import { AppDataSource } from '../orm';
-import config from '../config';
+import { User } from '../entities/user.js';
+import { Category } from '../entities/category.js';
+import { MainCategory } from '../entities/mainCategory.js';
+import { AppDataSource } from '../orm.js';
+import config from '../config.js';
 
 const qfRoundsAndMainCategoryCacheDuration =
   (config.get('QF_ROUND_AND_MAIN_CATEGORIES_CACHE_DURATION') as number) ||
@@ -15,6 +15,7 @@ const qfRoundsAndMainCategoryCacheDuration =
 export class CategoryResolver {
   constructor(
     private readonly categoryRepository: Repository<Category>,
+    // @ts-expect-error migrate to ESM
     private readonly mainCategoryRepository: Repository<MainCategory>,
   ) {
     this.categoryRepository =

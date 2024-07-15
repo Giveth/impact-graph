@@ -1,8 +1,8 @@
-import { FeaturedUpdate } from '../../../entities/featuredUpdate';
+import { FeaturedUpdate } from '../../../entities/featuredUpdate.js';
 import {
   canAccessFeaturedUpdateAction,
   ResourceActions,
-} from '../adminJsPermissions';
+} from '../adminJsPermissions.js';
 
 export const featuredUpdateTab = {
   resource: FeaturedUpdate,

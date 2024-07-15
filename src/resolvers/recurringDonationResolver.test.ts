@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { assert } from 'chai';
 import axios from 'axios';
-import { NETWORK_IDS } from '../provider';
+import { NETWORK_IDS } from '../provider.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -11,7 +11,7 @@ import {
   saveProjectDirectlyToDb,
   saveRecurringDonationDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   createRecurringDonationQuery,
   fetchRecurringDonationsByProjectIdQuery,
@@ -20,16 +20,16 @@ import {
   updateRecurringDonationQueryById,
   updateRecurringDonationStatusMutation,
   fetchRecurringDonationStatsQuery,
-} from '../../test/graphqlQueries';
+} from '../../test/graphqlQueries.js';
 describe(
   'createRecurringDonation test cases',
   createRecurringDonationTestCases,
 );
-import { errorMessages } from '../utils/errorMessages';
-import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
-import { QfRound } from '../entities/qfRound';
-import { generateRandomString } from '../utils/utils';
+import { errorMessages } from '../utils/errorMessages.js';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository.js';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation.js';
+import { QfRound } from '../entities/qfRound.js';
+import { generateRandomString } from '../utils/utils.js';
 
 describe(
   'updateRecurringDonation test cases',

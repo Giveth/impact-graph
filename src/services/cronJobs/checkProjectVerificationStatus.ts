@@ -1,11 +1,14 @@
 import { schedule } from 'node-cron';
 import moment from 'moment';
-import { Project, RevokeSteps } from '../../entities/project';
-import config from '../../config';
-import { logger } from '../../utils/logger';
-import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { Project, RevokeSteps } from '../../entities/project.js';
+import config from '../../config.js';
+import { logger } from '../../utils/logger.js';
+import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory.js';
 
 const cronJobTime =
   (config.get(

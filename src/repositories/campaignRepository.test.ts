@@ -1,14 +1,14 @@
 import { assert } from 'chai';
-import { Campaign, CampaignType } from '../entities/campaign';
+import { Campaign, CampaignType } from '../entities/campaign.js';
 import {
   findAllActiveCampaigns,
   findCampaignBySlug,
   findFeaturedCampaign,
-} from './campaignRepository';
-import { findProjectById } from './projectRepository';
-import { SEED_DATA } from '../../test/testUtils';
-import { Project } from '../entities/project';
-import { generateRandomString } from '../utils/utils';
+} from './campaignRepository.js';
+import { findProjectById } from './projectRepository.js';
+import { SEED_DATA } from '../../test/testUtils.js';
+import { Project } from '../entities/project.js';
+import { generateRandomString } from '../utils/utils.js';
 
 describe('findAllActiveCampaigns test cases', findAllActiveCampaignsTestCases);
 describe('findCampaignBySlug test cases', findCampaignBySlugTestCases);

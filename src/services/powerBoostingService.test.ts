@@ -5,12 +5,12 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   sleep,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   findUserPowerBoosting,
   setMultipleBoosting,
-} from '../repositories/powerBoostingRepository';
-import { changeUserBoostingsAfterProjectCancelled } from './powerBoostingService';
+} from '../repositories/powerBoostingRepository.js';
+import { changeUserBoostingsAfterProjectCancelled } from './powerBoostingService.js';
 
 describe(
   'changeUserBoostingsAfterProjectCancelled',

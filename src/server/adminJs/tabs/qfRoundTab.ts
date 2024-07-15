@@ -2,32 +2,37 @@ import fs from 'fs';
 import {
   ActionResponse,
   After,
+  // @ts-expect-error as d
 } from 'adminjs/src/backend/actions/action.interface';
 import adminJs, { ValidationError } from 'adminjs';
+// @ts-expect-error as d
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
-import { QfRound } from '../../../entities/qfRound';
-import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
+import { QfRound } from '../../../entities/qfRound.js';
+import {
+  canAccessQfRoundAction,
+  ResourceActions,
+} from '../adminJsPermissions.js';
 import {
   getQfRoundActualDonationDetails,
   refreshProjectActualMatchingView,
   refreshProjectEstimatedMatchingView,
-} from '../../../services/projectViewsService';
+} from '../../../services/projectViewsService.js';
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
-} from '../adminJs-types';
-import { isQfRoundHasEnded } from '../../../services/qfRoundService';
+} from '../adminJs-types.js';
+import { isQfRoundHasEnded } from '../../../services/qfRoundService.js';
 import {
   findQfRoundById,
   getRelatedProjectsOfQfRound,
-} from '../../../repositories/qfRoundRepository';
-import { NETWORK_IDS } from '../../../provider';
-import { logger } from '../../../utils/logger';
-import { messages } from '../../../utils/messages';
-import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
-import { errorMessages } from '../../../utils/errorMessages';
-import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
-import { pinFile } from '../../../middleware/pinataUtils';
+} from '../../../repositories/qfRoundRepository.js';
+import { NETWORK_IDS } from '../../../provider.js';
+import { logger } from '../../../utils/logger.js';
+import { messages } from '../../../utils/messages.js';
+import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets.js';
+import { errorMessages } from '../../../utils/errorMessages.js';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2.js';
+import { pinFile } from '../../../middleware/pinataUtils.js';
 
 let initialProjectIds: number[] = [];
 
@@ -307,6 +312,7 @@ export const qfRoundTab = {
           edit: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/ProjectsInQfRound'),
         },
       },
@@ -319,6 +325,7 @@ export const qfRoundTab = {
           edit: true,
         },
         components: {
+          // @ts-expect-error as d
           edit: adminJs.bundle('./components/QFRoundBannerBg'),
         },
       },
@@ -331,6 +338,7 @@ export const qfRoundTab = {
           edit: true,
         },
         components: {
+          // @ts-expect-error as d
           edit: adminJs.bundle('./components/QFRoundSponsorsImgs'),
         },
       },

@@ -7,7 +7,7 @@ import {
   Index,
   CreateDateColumn,
 } from 'typeorm';
-import { ChainType } from '../types/network';
+import { ChainType } from '../types/network.js';
 
 export const DRAFT_DONATION_STATUS = {
   PENDING: 'pending',

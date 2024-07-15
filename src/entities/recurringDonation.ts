@@ -12,10 +12,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
-import { User } from './user';
-import { AnchorContractAddress } from './anchorContractAddress';
-import { Donation } from './donation';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { AnchorContractAddress } from './anchorContractAddress.js';
+import { Donation } from './donation.js';
 
 export const RECURRING_DONATION_STATUS = {
   PENDING: 'pending',

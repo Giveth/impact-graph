@@ -3,13 +3,16 @@
  */
 
 import pinataSDK, { PinataPinResponse } from '@pinata/sdk';
-import config from '../config';
+import config from '../config.js';
 import ReadableStream = NodeJS.ReadableStream;
 
+// @ts-expect-error migrate to ESM
 let _pinata: pinataSDK;
 
+// @ts-expect-error migrate to ESM
 export const getPinata = (): pinataSDK => {
   if (!_pinata) {
+    // @ts-expect-error migrate to ESM
     _pinata = new pinataSDK({
       pinataApiKey: config.get('PINATA_API_KEY') as string,
       pinataSecretApiKey: config.get('PINATA_SECRET_API_KEY') as string,

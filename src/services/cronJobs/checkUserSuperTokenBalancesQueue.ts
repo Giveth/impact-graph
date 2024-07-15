@@ -2,19 +2,19 @@ import Bull from 'bull';
 import {
   getNotificationAdapter,
   getSuperFluidAdapter,
-} from '../../adapters/adaptersFactory';
-import config from '../../config';
-import { RecurringDonation } from '../../entities/recurringDonation';
-import { redisConfig } from '../../redis';
-import { findUserById } from '../../repositories/userRepository';
-import { logger } from '../../utils/logger';
+} from '../../adapters/adaptersFactory.js';
+import config from '../../config.js';
+import { RecurringDonation } from '../../entities/recurringDonation.js';
+import { redisConfig } from '../../redis.js';
+import { findUserById } from '../../repositories/userRepository.js';
+import { logger } from '../../utils/logger.js';
 import {
   findActiveRecurringDonations,
   findRecurringDonationById,
-} from '../../repositories/recurringDonationRepository';
-import { getCurrentDateFormatted } from '../../utils/utils';
-import { getNetworkNameById, superTokens } from '../../provider';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
+} from '../../repositories/recurringDonationRepository.js';
+import { getCurrentDateFormatted } from '../../utils/utils.js';
+import { getNetworkNameById, superTokens } from '../../provider.js';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics.js';
 
 const runCheckUserSuperTokenBalancesQueue = new Bull(
   'user-token-balances-stream-queue',

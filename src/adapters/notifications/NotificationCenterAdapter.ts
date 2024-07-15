@@ -5,27 +5,27 @@ import {
   NotificationAdapterInterface,
   OrttoPerson,
   ProjectsHaveNewRankingInputParam,
-} from './NotificationAdapterInterface';
-import { Donation } from '../../entities/donation';
-import { Project } from '../../entities/project';
-import { UserStreamBalanceWarning, User } from '../../entities/user';
-import { createBasicAuthentication, isProduction } from '../../utils/utils';
-import { logger } from '../../utils/logger';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
-import { redisConfig } from '../../redis';
-import config from '../../config';
-import { findProjectById } from '../../repositories/projectRepository';
+} from './NotificationAdapterInterface.js';
+import { Donation } from '../../entities/donation.js';
+import { Project } from '../../entities/project.js';
+import { UserStreamBalanceWarning, User } from '../../entities/user.js';
+import { createBasicAuthentication, isProduction } from '../../utils/utils.js';
+import { logger } from '../../utils/logger.js';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics.js';
+import { redisConfig } from '../../redis.js';
+import config from '../../config.js';
+import { findProjectById } from '../../repositories/projectRepository.js';
 import {
   findAllUsers,
   findUserById,
   findUsersWhoSupportProject,
-} from '../../repositories/userRepository';
-import { buildProjectLink } from './NotificationCenterUtils';
-import { buildTxLink } from '../../utils/networks';
-import { RecurringDonation } from '../../entities/recurringDonation';
-import { getTokenPrice } from '../../services/priceService';
-import { Token } from '../../entities/token';
-import { toFixNumber } from '../../services/donationService';
+} from '../../repositories/userRepository.js';
+import { buildProjectLink } from './NotificationCenterUtils.js';
+import { buildTxLink } from '../../utils/networks.js';
+import { RecurringDonation } from '../../entities/recurringDonation.js';
+import { getTokenPrice } from '../../services/priceService.js';
+import { Token } from '../../entities/token.js';
+import { toFixNumber } from '../../services/donationService.js';
 
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;

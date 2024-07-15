@@ -1,9 +1,9 @@
-import { ProjectAddress } from '../entities/projectAddress';
-import { Project } from '../entities/project';
-import { User } from '../entities/user';
-import { ChainType } from '../types/network';
-import { logger } from '../utils/logger';
-import SentryLogger from '../sentryLogger';
+import { ProjectAddress } from '../entities/projectAddress.js';
+import { Project } from '../entities/project.js';
+import { User } from '../entities/user.js';
+import { ChainType } from '../types/network.js';
+import { logger } from '../utils/logger.js';
+import SentryLogger from '../sentryLogger.js';
 
 export const getPurpleListAddresses = async (): Promise<
   { projectAddress: string }[]

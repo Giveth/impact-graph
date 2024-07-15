@@ -1,7 +1,7 @@
 import { assert } from 'chai';
-import { assertThrowsAsync } from '../../test/testUtils';
-import { getPowerRound, setPowerRound } from './powerRoundRepository';
-import { PowerRound } from '../entities/powerRound';
+import { assertThrowsAsync } from '../../test/testUtils.js';
+import { getPowerRound, setPowerRound } from './powerRoundRepository.js';
+import { PowerRound } from '../entities/powerRound.js';
 
 describe('powerRoundRepository testCases', () => {
   it('should return correct round after setting', async () => {

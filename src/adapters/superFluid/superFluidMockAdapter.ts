@@ -1,7 +1,7 @@
 import {
   FlowUpdatedEvent,
   SuperFluidAdapterInterface,
-} from './superFluidAdapterInterface';
+} from './superFluidAdapterInterface.js';
 
 export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
   async streamPeriods() {

@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import * as bcrypt from 'bcryptjs';
-import config from '../src/config';
-import { generateRandomEtheriumAddress } from '../test/testUtils';
-import { UserRole } from '../src/entities/user';
+import bcrypt from 'bcrypt';
+import config from '../src/config.js';
+import { generateRandomEtheriumAddress } from '../test/testUtils.js';
+import { UserRole } from '../src/entities/user.js';
 
 export class createSomeTestAdmiUsers1681125863016
   implements MigrationInterface

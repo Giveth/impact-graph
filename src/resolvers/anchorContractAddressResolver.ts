@@ -3,17 +3,17 @@ import { promises as fs } from 'fs';
 import { ethers } from 'ethers';
 import { Arg, Ctx, Int, Mutation, Resolver } from 'type-graphql';
 
-import { AnchorContractAddress } from '../entities/anchorContractAddress';
-import { findProjectById } from '../repositories/projectRepository';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { AnchorContractAddress } from '../entities/anchorContractAddress.js';
+import { findProjectById } from '../repositories/projectRepository.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
 import {
   addNewAnchorAddress,
   findActiveAnchorAddress,
-} from '../repositories/anchorContractAddressRepository';
-import { ApolloContext } from '../types/ApolloContext';
-import { findUserById } from '../repositories/userRepository';
-import { getProvider } from '../provider';
-import { logger } from '../utils/logger';
+} from '../repositories/anchorContractAddressRepository.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { findUserById } from '../repositories/userRepository.js';
+import { getProvider } from '../provider.js';
+import { logger } from '../utils/logger.js';
 
 @Resolver(_of => AnchorContractAddress)
 export class AnchorContractAddressResolver {

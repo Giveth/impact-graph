@@ -1,19 +1,19 @@
-import { getPowerBalanceAggregatorAdapter } from '../adapters/adaptersFactory';
+import { getPowerBalanceAggregatorAdapter } from '../adapters/adaptersFactory.js';
 import {
   getMaxFetchedUpdatedAtTimestamp,
   getUsersBoostedWithoutInstanceBalance,
   refreshProjectInstantPowerView,
   saveOrUpdateInstantPowerBalances,
   setMaxFetchedUpdatedAtTimestamp,
-} from '../repositories/instantBoostingRepository';
-import { logger } from '../utils/logger';
-import { getBoosterUsersByWalletAddresses } from '../repositories/powerBoostingRepository';
-import { dateToTimestampMs } from '../utils/utils';
-import { InstantPowerBalance } from '../entities/instantPowerBalance';
+} from '../repositories/instantBoostingRepository.js';
+import { logger } from '../utils/logger.js';
+import { getBoosterUsersByWalletAddresses } from '../repositories/powerBoostingRepository.js';
+import { dateToTimestampMs } from '../utils/utils.js';
+import { InstantPowerBalance } from '../entities/instantPowerBalance.js';
 import {
   BalanceResponse,
   IGivPowerBalanceAggregator,
-} from '../types/GivPowerBalanceAggregator';
+} from '../types/GivPowerBalanceAggregator.js';
 
 export const updateInstantBoosting = async (): Promise<void> => {
   logger.debug('updateInstantBoosting() has been called');

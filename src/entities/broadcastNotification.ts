@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   RelationId,
 } from 'typeorm';
-import { User } from './user';
+import { User } from './user.js';
 
 export enum BROAD_CAST_NOTIFICATION_STATUS {
   PENDING = 'pending',

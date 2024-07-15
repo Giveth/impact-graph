@@ -4,8 +4,8 @@ import {
   BalanceResponse,
   LatestBalanceInputParams,
   IGivPowerBalanceAggregator,
-} from '../../types/GivPowerBalanceAggregator';
-import { convertTimeStampToSeconds } from '../../utils/utils';
+} from '../../types/GivPowerBalanceAggregator.js';
+import { convertTimeStampToSeconds } from '../../utils/utils.js';
 
 export class GivPowerBalanceAggregatorAdapterMock
   implements IGivPowerBalanceAggregator

@@ -1,5 +1,5 @@
 import { assert, expect } from 'chai';
-import { fetchMpEthPrice } from './mpEthPriceService';
+import { fetchMpEthPrice } from './mpEthPriceService.js';
 
 describe('fetchMpEthPrice test cases', fetchMpEthPriceTestCases);
 

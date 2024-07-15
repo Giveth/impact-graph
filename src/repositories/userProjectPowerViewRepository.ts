@@ -1,8 +1,8 @@
-import { UserProjectPowerView } from '../views/userProjectPowerView';
-import { publicSelectionFields } from '../entities/user';
-import { logger } from '../utils/logger';
-import { UserPowerOrderBy } from '../resolvers/userProjectPowerResolver';
-import { AppDataSource } from '../orm';
+import { UserProjectPowerView } from '../views/userProjectPowerView.js';
+import { publicSelectionFields } from '../entities/user.js';
+import { logger } from '../utils/logger.js';
+import { UserPowerOrderBy } from '../resolvers/userProjectPowerResolver.js';
+import { AppDataSource } from '../orm.js';
 
 export const getUserProjectPowers = async (params: {
   take: number;

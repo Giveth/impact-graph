@@ -1,9 +1,8 @@
 import { DataSource } from 'typeorm';
-import { PostgresConnectionCredentialsOptions } from 'typeorm/driver/postgres/PostgresConnectionCredentialsOptions';
-import config from './config';
-import { CronJob } from './entities/CronJob';
-import { getEntities } from './entities/entities';
-import { redisConfig } from './redis';
+import config from './config.js';
+import { CronJob } from './entities/CronJob.js';
+import { getEntities } from './entities/entities.js';
+import { redisConfig } from './redis.js';
 
 export class AppDataSource {
   private static datasource: DataSource;
@@ -15,7 +14,7 @@ export class AppDataSource {
       const synchronize = (config.get('ENVIRONMENT') as string) === 'test';
       const entities = getEntities();
       const poolSize = Number(process.env.TYPEORM_DATABASE_POOL_SIZE) || 10; // 10 is the default value
-      const slaves: PostgresConnectionCredentialsOptions[] = [];
+      const slaves: any[] = [];
       if (config.get('TYPEORM_DATABASE_HOST_READONLY')) {
         slaves.push({
           database: config.get('TYPEORM_DATABASE_NAME_READONLY') as string,

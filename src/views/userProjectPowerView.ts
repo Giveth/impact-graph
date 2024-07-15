@@ -9,7 +9,7 @@ import {
   ViewEntity,
 } from 'typeorm';
 import { Field, ObjectType } from 'type-graphql';
-import { User } from '../entities/user';
+import { User } from '../entities/user.js';
 
 @ViewEntity('user_project_power_view', {
   synchronize: false,

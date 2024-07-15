@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { assert } from 'chai';
-import { QfRound } from '../entities/qfRound';
-import { Project } from '../entities/project';
+import { QfRound } from '../entities/qfRound.js';
+import { Project } from '../entities/project.js';
 import {
   createDonationData,
   createProjectData,
@@ -9,16 +9,16 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   refreshProjectActualMatchingView,
   refreshProjectEstimatedMatchingView,
-} from './projectViewsService';
-import { ProjectActualMatchingView } from '../entities/ProjectActualMatchingView';
-import { NETWORK_IDS } from '../provider';
-import { Sybil } from '../entities/sybil';
-import { ProjectFraud } from '../entities/projectFraud';
-import { DONATION_STATUS } from '../entities/donation';
+} from './projectViewsService.js';
+import { ProjectActualMatchingView } from '../entities/ProjectActualMatchingView.js';
+import { NETWORK_IDS } from '../provider.js';
+import { Sybil } from '../entities/sybil.js';
+import { ProjectFraud } from '../entities/projectFraud.js';
+import { DONATION_STATUS } from '../entities/donation.js';
 
 describe('getActualMatchingFund test cases', getActualMatchingFundTests);
 

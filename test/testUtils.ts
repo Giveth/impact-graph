@@ -2,41 +2,41 @@ import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import { Keypair } from '@solana/web3.js';
 import moment from 'moment';
-import config from '../src/config';
-import { NETWORK_IDS } from '../src/provider';
-import { User } from '../src/entities/user';
-import { Donation, DONATION_STATUS } from '../src/entities/donation';
+import config from '../src/config.js';
+import { NETWORK_IDS } from '../src/provider.js';
+import { User } from '../src/entities/user.js';
+import { Donation, DONATION_STATUS } from '../src/entities/donation.js';
 import {
   Project,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
-} from '../src/entities/project';
-import { ProjectStatus } from '../src/entities/projectStatus';
+} from '../src/entities/project.js';
+import { ProjectStatus } from '../src/entities/projectStatus.js';
 import {
   Organization,
   ORGANIZATION_LABELS,
-} from '../src/entities/organization';
+} from '../src/entities/organization.js';
 import {
   findUserById,
   findUserByWalletAddress,
-} from '../src/repositories/userRepository';
+} from '../src/repositories/userRepository.js';
 import {
   addNewProjectAddress,
   findProjectRecipientAddressByProjectId,
   findRelatedAddressByWalletAddress,
-} from '../src/repositories/projectAddressRepository';
+} from '../src/repositories/projectAddressRepository.js';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
-} from '../src/entities/projectVerificationForm';
-import { MainCategory } from '../src/entities/mainCategory';
-import { Category, CATEGORY_NAMES } from '../src/entities/category';
-import { FeaturedUpdate } from '../src/entities/featuredUpdate';
-import { ChainType } from '../src/types/network';
-import { RecurringDonation } from '../src/entities/recurringDonation';
-import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
-import { findProjectById } from '../src/repositories/projectRepository';
+} from '../src/entities/projectVerificationForm.js';
+import { MainCategory } from '../src/entities/mainCategory.js';
+import { Category, CATEGORY_NAMES } from '../src/entities/category.js';
+import { FeaturedUpdate } from '../src/entities/featuredUpdate.js';
+import { ChainType } from '../src/types/network.js';
+import { RecurringDonation } from '../src/entities/recurringDonation.js';
+import { AnchorContractAddress } from '../src/entities/anchorContractAddress.js';
+import { findProjectById } from '../src/repositories/projectRepository.js';
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
 export const serverBaseAddress = 'http://localhost:4000';

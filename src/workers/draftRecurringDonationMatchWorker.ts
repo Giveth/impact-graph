@@ -1,19 +1,13 @@
 import { expose } from 'threads/worker';
-import { WorkerModule } from 'threads/dist/types/worker';
-import { DRAFT_DONATION_STATUS } from '../entities/draftDonation';
-import { matchDraftRecurringDonations } from '../services/chains/evm/draftRecurringDonationService';
-import { logger } from '../utils/logger';
-import { AppDataSource } from '../orm';
-import { DraftRecurringDonation } from '../entities/draftRecurringDonation';
-
-type DraftRecurringDonationWorkerFunctions = 'matchDraftRecurringDonations';
-
-export type DrafRecurringtDonationWorker =
-  WorkerModule<DraftRecurringDonationWorkerFunctions>;
+import { DRAFT_DONATION_STATUS } from '../entities/draftDonation.js';
+import { matchDraftRecurringDonations } from '../services/chains/evm/draftRecurringDonationService.js';
+import { logger } from '../utils/logger.js';
+import { AppDataSource } from '../orm.js';
+import { DraftRecurringDonation } from '../entities/draftRecurringDonation.js';
 
 const TAKE_DRAFT_RECURRING_DONATION = 1000;
 
-const worker: DrafRecurringtDonationWorker = {
+const worker = {
   async matchDraftRecurringDonations() {
     await AppDataSource.initialize(false);
     // const dataSource = await AppDataSource.getDataSource();

@@ -1,6 +1,7 @@
 import { Pool, ModuleThread } from 'threads';
-import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
-import { JwtVerifiedUser } from '../services/authorizationServices';
+// @ts-expect-error migrate to ESM
+import { ProjectResolverWorker } from '../workers/projectsResolverWorker.js';
+import { JwtVerifiedUser } from '../services/authorizationServices.js';
 
 export interface AuthContextRequest {
   token?: string;

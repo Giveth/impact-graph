@@ -1,9 +1,9 @@
 import { schedule } from 'node-cron';
-import { Donation, DONATION_STATUS } from '../../entities/donation';
-import { logger } from '../../utils/logger';
-import { sleep } from '../../utils/utils';
-import config from '../../config';
-import { sendNotificationForDonation } from '../donationService';
+import { Donation, DONATION_STATUS } from '../../entities/donation.js';
+import { logger } from '../../utils/logger.js';
+import { sleep } from '../../utils/utils.js';
+import config from '../../config.js';
+import { sendNotificationForDonation } from '../donationService.js';
 
 const cronJobTime =
   (config.get(

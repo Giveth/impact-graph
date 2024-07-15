@@ -9,11 +9,11 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { Project } from '../entities/project';
-import { QfRound } from '../entities/qfRound';
-import { fillQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
-import { getQfRoundHistoryQuery } from '../../test/graphqlQueries';
+} from '../../test/testUtils.js';
+import { Project } from '../entities/project.js';
+import { QfRound } from '../entities/qfRound.js';
+import { fillQfRoundHistory } from '../repositories/qfRoundHistoryRepository.js';
+import { getQfRoundHistoryQuery } from '../../test/graphqlQueries.js';
 
 describe('Fetch getQfRoundHistory test cases', getQfRoundHistoryTestCases);
 

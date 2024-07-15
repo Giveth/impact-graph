@@ -6,8 +6,8 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { User, UserRole } from '../entities/user';
+} from '../../test/testUtils.js';
+import { User, UserRole } from '../entities/user.js';
 import {
   findAdminUserByEmail,
   findAllUsers,
@@ -17,9 +17,9 @@ import {
   findUsersWhoDonatedToProjectExcludeWhoLiked,
   findUsersWhoLikedProjectExcludeProjectOwner,
   findUsersWhoSupportProject,
-} from './userRepository';
-import { Reaction } from '../entities/reaction';
-import { insertSinglePowerBoosting } from './powerBoostingRepository';
+} from './userRepository.js';
+import { Reaction } from '../entities/reaction.js';
+import { insertSinglePowerBoosting } from './powerBoostingRepository.js';
 
 describe('sql injection test cases', sqlInjectionTestCases);
 

@@ -8,8 +8,8 @@ import {
   OneToMany,
   JoinTable,
 } from 'typeorm';
-import { Project } from './project';
-import { Token } from './token';
+import { Project } from './project.js';
+import { Token } from './token.js';
 
 @Entity()
 @ObjectType()

@@ -10,7 +10,7 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   sleep,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   createProjectVerificationFormMutation,
   getAllowedCountries,
@@ -18,7 +18,7 @@ import {
   projectVerificationConfirmEmail,
   projectVerificationSendEmailConfirmation,
   updateProjectVerificationFormMutation,
-} from '../../test/graphqlQueries';
+} from '../../test/graphqlQueries.js';
 import {
   ManagingFunds,
   Milestones,
@@ -28,19 +28,19 @@ import {
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
-} from '../entities/projectVerificationForm';
-import { ProjStatus, ReviewStatus } from '../entities/project';
+} from '../entities/projectVerificationForm.js';
+import { ProjStatus, ReviewStatus } from '../entities/project.js';
 import {
   createProjectVerificationForm,
   findProjectVerificationFormById,
-} from '../repositories/projectVerificationRepository';
-import { errorMessages } from '../utils/errorMessages';
-import { NETWORK_IDS } from '../provider';
-import { countriesList, generateRandomString } from '../utils/utils';
-import { createSocialProfile } from '../repositories/socialProfileRepository';
-import { SOCIAL_NETWORKS } from '../entities/socialProfile';
-import { ChainType } from '../types/network';
-import { getDefaultSolanaChainId } from '../services/chains';
+} from '../repositories/projectVerificationRepository.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { NETWORK_IDS } from '../provider.js';
+import { countriesList, generateRandomString } from '../utils/utils.js';
+import { createSocialProfile } from '../repositories/socialProfileRepository.js';
+import { SOCIAL_NETWORKS } from '../entities/socialProfile.js';
+import { ChainType } from '../types/network.js';
+import { getDefaultSolanaChainId } from '../services/chains/index.js';
 
 describe(
   'createProjectVerification test cases',

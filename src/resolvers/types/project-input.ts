@@ -5,15 +5,15 @@ import { MaxLength } from 'class-validator';
 import {
   ProjectSocialMediaInput,
   RelatedAddressInputType,
-} from './ProjectVerificationUpdateInput';
+} from './ProjectVerificationUpdateInput.js';
 
 import {
   IMAGE_LINK_MAX_SIZE,
   IMPACT_LOCATION_MAX_SIZE,
   PROJECT_DESCRIPTION_MAX_LENGTH,
   PROJECT_TITLE_MAX_LENGTH,
-} from '../../constants/validators';
-import { errorMessages } from '../../utils/errorMessages';
+} from '../../constants/validators.js';
+import { errorMessages } from '../../utils/errorMessages.js';
 
 @InputType()
 export class ImageUpload {

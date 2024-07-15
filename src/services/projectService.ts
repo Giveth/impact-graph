@@ -1,9 +1,9 @@
-import { Project } from '../entities/project';
+import { Project } from '../entities/project.js';
 import {
   countUniqueDonorsAndSumDonationValueUsd,
   getProjectQfRoundStats,
-} from '../repositories/donationRepository';
-import { findActiveQfRound } from '../repositories/qfRoundRepository';
+} from '../repositories/donationRepository.js';
+import { findActiveQfRound } from '../repositories/qfRoundRepository.js';
 
 export const getAppropriateSlug = async (
   slugBase: string,

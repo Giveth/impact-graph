@@ -3,20 +3,20 @@ import axios from 'axios';
 import {
   refreshProjectUserInstantPowerView,
   saveOrUpdateInstantPowerBalances,
-} from '../repositories/instantBoostingRepository';
-import { InstantPowerBalance } from '../entities/instantPowerBalance';
+} from '../repositories/instantBoostingRepository.js';
+import { InstantPowerBalance } from '../entities/instantPowerBalance.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   graphqlUrl,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { insertSinglePowerBoosting } from './../repositories/powerBoostingRepository';
-import { getProjectUserInstantPowerQuery } from '../../test/graphqlQueries';
-import { User } from '../entities/user';
-import { Project } from '../entities/project';
+} from '../../test/testUtils.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { insertSinglePowerBoosting } from './../repositories/powerBoostingRepository.js';
+import { getProjectUserInstantPowerQuery } from '../../test/graphqlQueries.js';
+import { User } from '../entities/user.js';
+import { Project } from '../entities/project.js';
 
 describe(
   'projectUserInstantPowerView test cases',

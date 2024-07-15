@@ -1,13 +1,13 @@
 import { assert } from 'chai';
 import moment from 'moment';
-import { RevokeSteps } from '../../entities/project';
+import { RevokeSteps } from '../../entities/project.js';
 
-import { checkProjectVerificationStatus } from './checkProjectVerificationStatus';
+import { checkProjectVerificationStatus } from './checkProjectVerificationStatus.js';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
-} from '../../../test/testUtils';
-import { findProjectById } from '../../repositories/projectRepository';
+} from '../../../test/testUtils.js';
+import { findProjectById } from '../../repositories/projectRepository.js';
 
 describe(
   'checkProjectVerificationStatus() test cases',

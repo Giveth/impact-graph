@@ -3,12 +3,12 @@ import {
   NotificationAdapterInterface,
   OrttoPerson,
   ProjectsHaveNewRankingInputParam,
-} from './NotificationAdapterInterface';
-import { Donation } from '../../entities/donation';
-import { Project } from '../../entities/project';
-import { User } from '../../entities/user';
-import { logger } from '../../utils/logger';
-import { RecurringDonation } from '../../entities/recurringDonation';
+} from './NotificationAdapterInterface.js';
+import { Donation } from '../../entities/donation.js';
+import { Project } from '../../entities/project.js';
+import { User } from '../../entities/user.js';
+import { logger } from '../../utils/logger.js';
+import { RecurringDonation } from '../../entities/recurringDonation.js';
 
 export class MockNotificationAdapter implements NotificationAdapterInterface {
   async subscribeOnboarding(params: { email: string }): Promise<void> {

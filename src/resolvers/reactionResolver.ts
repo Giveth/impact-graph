@@ -1,13 +1,13 @@
 import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
-import { Reaction } from '../entities/reaction';
-import { Context } from '../context';
-import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
-import { ApolloContext } from '../types/ApolloContext';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { logger } from '../utils/logger';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { findProjectById } from '../repositories/projectRepository';
-import { AppDataSource } from '../orm';
+import { Reaction } from '../entities/reaction.js';
+import { Context } from '../context.js';
+import { Project, ProjectUpdate, ProjStatus } from '../entities/project.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { logger } from '../utils/logger.js';
+import { getNotificationAdapter } from '../adapters/adaptersFactory.js';
+import { findProjectById } from '../repositories/projectRepository.js';
+import { AppDataSource } from '../orm.js';
 
 @Resolver(_of => Reaction)
 export class ReactionResolver {

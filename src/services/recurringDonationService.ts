@@ -4,40 +4,43 @@ import { ethers } from 'ethers';
 import {
   getNotificationAdapter,
   getSuperFluidAdapter,
-} from '../adapters/adaptersFactory';
-import { Donation, DONATION_STATUS } from '../entities/donation';
+} from '../adapters/adaptersFactory.js';
+import { Donation, DONATION_STATUS } from '../entities/donation.js';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
-} from '../entities/recurringDonation';
-import { Token } from '../entities/token';
+} from '../entities/recurringDonation.js';
+import { Token } from '../entities/token.js';
 import {
   getNetworkNameById,
   getProvider,
   NETWORK_IDS,
   superTokensToToken,
-} from '../provider';
-import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
-import { findProjectById } from '../repositories/projectRepository';
+} from '../provider.js';
+import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository.js';
+import { findProjectById } from '../repositories/projectRepository.js';
 import {
   findRecurringDonationById,
   updateRecurringDonationFromTheStreamDonations,
-} from '../repositories/recurringDonationRepository';
-import { findUserById } from '../repositories/userRepository';
-import { ChainType } from '../types/network';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { logger } from '../utils/logger';
+} from '../repositories/recurringDonationRepository.js';
+import { findUserById } from '../repositories/userRepository.js';
+import { ChainType } from '../types/network.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { logger } from '../utils/logger.js';
 import {
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
-} from './donationService';
-import { calculateGivbackFactor } from './givbackService';
-import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
-import config from '../config';
-import { User } from '../entities/user';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
-import { relatedActiveQfRoundForProject } from './qfRoundService';
-import { updateProjectStatistics } from './projectService';
+} from './donationService.js';
+import { calculateGivbackFactor } from './givbackService.js';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from './userService.js';
+import config from '../config.js';
+import { User } from '../entities/user.js';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics.js';
+import { relatedActiveQfRoundForProject } from './qfRoundService.js';
+import { updateProjectStatistics } from './projectService.js';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';

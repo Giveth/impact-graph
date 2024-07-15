@@ -1,8 +1,8 @@
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 import {
   DRAFT_RECURRING_DONATION_STATUS,
   DraftRecurringDonation,
-} from '../entities/draftRecurringDonation';
+} from '../entities/draftRecurringDonation.js';
 
 // mark donation status matched based on fromWalletAddress, toWalletAddress, networkId, tokenAddress and amount
 export async function markDraftRecurringDonationStatusMatched(params: {

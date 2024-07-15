@@ -1,4 +1,4 @@
-import { Field, Float, ID, ObjectType } from 'type-graphql';
+import { Field, Float, ID, ObjectType, Int } from 'type-graphql';
 import {
   AfterInsert,
   AfterUpdate,
@@ -19,38 +19,37 @@ import {
   JoinTable,
 } from 'typeorm';
 
-import { Int } from 'type-graphql/dist/scalars/aliases';
 import moment from 'moment';
-import { Donation } from './donation';
-import { Reaction } from './reaction';
-import { User } from './user';
-import { ProjectStatus } from './projectStatus';
-import { ProjectStatusHistory } from './projectStatusHistory';
-import { ProjectStatusReason } from './projectStatusReason';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { Organization } from './organization';
-import { findUserById } from '../repositories/userRepository';
-import { SocialProfile } from './socialProfile';
-import { ProjectVerificationForm } from './projectVerificationForm';
-import { ProjectAddress } from './projectAddress';
-import { ProjectContacts } from './projectVerificationForm';
-import { ProjectPowerView } from '../views/projectPowerView';
-import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
-import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
-import { Category } from './category';
-import { FeaturedUpdate } from './featuredUpdate';
-import { getHtmlTextSummary } from '../utils/utils';
-import { QfRound } from './qfRound';
+import { Donation } from './donation.js';
+import { Reaction } from './reaction.js';
+import { User } from './user.js';
+import { ProjectStatus } from './projectStatus.js';
+import { ProjectStatusHistory } from './projectStatusHistory.js';
+import { ProjectStatusReason } from './projectStatusReason.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { Organization } from './organization.js';
+import { findUserById } from '../repositories/userRepository.js';
+import { SocialProfile } from './socialProfile.js';
+import { ProjectVerificationForm } from './projectVerificationForm.js';
+import { ProjectAddress } from './projectAddress.js';
+import { ProjectContacts } from './projectVerificationForm.js';
+import { ProjectPowerView } from '../views/projectPowerView.js';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView.js';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView.js';
+import { Category } from './category.js';
+import { FeaturedUpdate } from './featuredUpdate.js';
+import { getHtmlTextSummary } from '../utils/utils.js';
+import { QfRound } from './qfRound.js';
 import {
   getQfRoundTotalSqrtRootSumSquared,
   getProjectDonationsSqrtRootSum,
   findActiveQfRound,
-} from '../repositories/qfRoundRepository';
-import { EstimatedMatching } from '../types/qfTypes';
-import { Campaign } from './campaign';
-import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
-import { AnchorContractAddress } from './anchorContractAddress';
-import { ProjectSocialMedia } from './projectSocialMedia';
+} from '../repositories/qfRoundRepository.js';
+import { EstimatedMatching } from '../types/qfTypes.js';
+import { Campaign } from './campaign.js';
+import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView.js';
+import { AnchorContractAddress } from './anchorContractAddress.js';
+import { ProjectSocialMedia } from './projectSocialMedia.js';
 
 export enum ProjStatus {
   rejected = 1,

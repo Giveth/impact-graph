@@ -11,8 +11,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
-import { User } from './user';
+import { Project } from './project.js';
+import { User } from './user.js';
 
 @Entity()
 @ObjectType()

@@ -1,10 +1,10 @@
 import { MoreThan } from 'typeorm';
 import moment from 'moment';
-import { Project } from '../entities/project';
-import { Donation, DONATION_STATUS } from '../entities/donation';
-import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { logger } from '../utils/logger';
-import { QfRound } from '../entities/qfRound';
+import { Project } from '../entities/project.js';
+import { Donation, DONATION_STATUS } from '../entities/donation.js';
+import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver.js';
+import { logger } from '../utils/logger.js';
+import { QfRound } from '../entities/qfRound.js';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`

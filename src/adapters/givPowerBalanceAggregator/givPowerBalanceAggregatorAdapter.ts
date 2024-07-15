@@ -6,9 +6,9 @@ import {
   LatestBalanceInputParams,
   NetworksInputParams,
   IGivPowerBalanceAggregator,
-} from '../../types/GivPowerBalanceAggregator';
-import { logger } from '../../utils/logger';
-import { formatGivPowerBalance } from '../givpowerSubgraph/givPowerSubgraphAdapter';
+} from '../../types/GivPowerBalanceAggregator.js';
+import { logger } from '../../utils/logger.js';
+import { formatGivPowerBalance } from '../givpowerSubgraph/givPowerSubgraphAdapter.js';
 
 const formatResponse = (balance: {
   address: string;

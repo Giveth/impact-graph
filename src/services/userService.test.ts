@@ -1,8 +1,8 @@
 import { assert } from 'chai';
 import 'mocha';
-import * as bcrypt from 'bcryptjs';
-import { User, UserRole } from '../entities/user';
-import { DONATION_STATUS } from '../entities/donation';
+import bcrypt from 'bcrypt';
+import { User, UserRole } from '../entities/user.js';
+import { DONATION_STATUS } from '../entities/donation.js';
 import {
   createDonationData,
   createProjectData,
@@ -10,15 +10,15 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   fetchAdminAndValidatePassword,
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from './userService';
-import { ORGANIZATION_LABELS } from '../entities/organization';
-import { generateRandomString } from '../utils/utils';
-import { findUserById } from '../repositories/userRepository';
+} from './userService.js';
+import { ORGANIZATION_LABELS } from '../entities/organization.js';
+import { generateRandomString } from '../utils/utils.js';
+import { findUserById } from '../repositories/userRepository.js';
 
 describe(
   'updateUserTotalDonated() test cases',

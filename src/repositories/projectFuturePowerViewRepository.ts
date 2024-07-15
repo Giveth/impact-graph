@@ -1,4 +1,4 @@
-import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView.js';
 
 export const findFuturePowers = async (
   projectIds: number[] = [],

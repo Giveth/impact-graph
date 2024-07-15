@@ -10,8 +10,8 @@ import {
   Index,
   OneToMany,
 } from 'typeorm';
-import { Project } from './project';
-import { Donation } from './donation';
+import { Project } from './project.js';
+import { Donation } from './donation.js';
 
 @Entity()
 @ObjectType()

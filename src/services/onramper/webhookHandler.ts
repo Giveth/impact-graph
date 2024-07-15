@@ -1,9 +1,9 @@
 import { sha256 } from 'js-sha256';
-import { createFiatDonationFromOnramper } from './donationService';
+import { createFiatDonationFromOnramper } from './donationService.js';
 // import { TransakOrder } from './order';
-import { logger } from '../../utils/logger';
-import { OnRamperFiatTransaction } from './fiatTransaction';
-import { i18n } from '../../utils/errorMessages';
+import { logger } from '../../utils/logger.js';
+import { OnRamperFiatTransaction } from './fiatTransaction.js';
+import { i18n } from '../../utils/errorMessages.js';
 
 const onramperSecret = process.env.ONRAMPER_SECRET as string;
 

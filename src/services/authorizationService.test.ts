@@ -6,11 +6,11 @@ import {
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { User } from '../entities/user';
-import { authorizationHandler } from './authorizationServices';
-import config from '../config';
-import { findUserByWalletAddress } from '../repositories/userRepository';
+} from '../../test/testUtils.js';
+import { User } from '../entities/user.js';
+import { authorizationHandler } from './authorizationServices.js';
+import config from '../config.js';
+import { findUserByWalletAddress } from '../repositories/userRepository.js';
 
 describe('authorizationHandler() test cases', authorizationHandlerTestCases);
 

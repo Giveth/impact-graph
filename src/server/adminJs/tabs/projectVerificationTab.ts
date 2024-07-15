@@ -1,42 +1,44 @@
 import adminJs from 'adminjs';
+// @ts-expect-error as d
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import {
   ActionResponse,
   After,
+  // @ts-expect-error as d
 } from 'adminjs/src/backend/actions/action.interface';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
-} from '../../../entities/projectVerificationForm';
+} from '../../../entities/projectVerificationForm.js';
 import {
   canAccessProjectVerificationFormAction,
   ResourceActions,
-} from '../adminJsPermissions';
+} from '../adminJsPermissions.js';
 
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
-} from '../adminJs-types';
+} from '../adminJs-types.js';
 import {
   findProjectVerificationFormById,
   makeFormDraft,
   verifyForm,
   verifyMultipleForms,
-} from '../../../repositories/projectVerificationRepository';
+} from '../../../repositories/projectVerificationRepository.js';
 import {
   i18n,
   translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
+} from '../../../utils/errorMessages.js';
 import {
   findProjectById,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
-} from '../../../repositories/projectRepository';
-import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
-import { logger } from '../../../utils/logger';
-import { Project } from '../../../entities/project';
-import { fillSocialProfileAndQfRounds } from './projectsTab';
+} from '../../../repositories/projectRepository.js';
+import { getNotificationAdapter } from '../../../adapters/adaptersFactory.js';
+import { logger } from '../../../utils/logger.js';
+import { Project } from '../../../entities/project.js';
+import { fillSocialProfileAndQfRounds } from './projectsTab.js';
 
 const extractLastComment = (verificationForm: ProjectVerificationForm) => {
   const commentsSorted = verificationForm.commentsSection?.comments?.sort(
@@ -412,6 +414,7 @@ export const projectVerificationTab = {
           new: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/VerificationFormSocials'),
         },
       },
@@ -438,6 +441,7 @@ export const projectVerificationTab = {
           new: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/VerificationFormProjectRegistry'),
         },
       },
@@ -470,6 +474,7 @@ export const projectVerificationTab = {
           new: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/VerificationFormMilestones'),
         },
       },

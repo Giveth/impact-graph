@@ -6,18 +6,18 @@ import {
   refreshProjectInstantPowerView,
   saveOrUpdateInstantPowerBalances,
   setMaxFetchedUpdatedAtTimestamp,
-} from './instantBoostingRepository';
-import { InstantPowerBalance } from '../entities/instantPowerBalance';
+} from './instantBoostingRepository.js';
+import { InstantPowerBalance } from '../entities/instantPowerBalance.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { insertSinglePowerBoosting } from './powerBoostingRepository';
-import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
-import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
+} from '../../test/testUtils.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { insertSinglePowerBoosting } from './powerBoostingRepository.js';
+import { InstantPowerFetchState } from '../entities/instantPowerFetchState.js';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView.js';
 
 // describe(
 //   'getLastInstantPowerUpdatedAt test cases',

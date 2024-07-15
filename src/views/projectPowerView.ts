@@ -10,8 +10,8 @@ import {
   Index,
 } from 'typeorm';
 import { Field, Float, Int, ObjectType } from 'type-graphql';
-import { Project } from '../entities/project';
-import { ColumnNumericTransformer } from '../utils/entities';
+import { Project } from '../entities/project.js';
+import { ColumnNumericTransformer } from '../utils/entities.js';
 
 @ViewEntity('project_power_view', { synchronize: false })
 @Index('project_power_view_project_id_unique', ['projectId', 'round'], {

@@ -1,15 +1,15 @@
 import { expect } from 'chai';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { InstantPowerBalance } from '../entities/instantPowerBalance';
-import { updateInstantPowerBalances } from './instantBoostingServices';
-import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
-import { getMaxFetchedUpdatedAtTimestamp } from '../repositories/instantBoostingRepository';
-import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { InstantPowerBalance } from '../entities/instantPowerBalance.js';
+import { updateInstantPowerBalances } from './instantBoostingServices.js';
+import { InstantPowerFetchState } from '../entities/instantPowerFetchState.js';
+import { getMaxFetchedUpdatedAtTimestamp } from '../repositories/instantBoostingRepository.js';
+import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository.js';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 
 describe(
   'updateInstancePowerBalances test cases',

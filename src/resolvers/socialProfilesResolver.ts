@@ -1,15 +1,15 @@
 import { Arg, Ctx, Int, Mutation, Resolver } from 'type-graphql';
-import { SocialProfile } from '../entities/socialProfile';
-import { ApolloContext } from '../types/ApolloContext';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository';
+import { SocialProfile } from '../entities/socialProfile.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository.js';
 import {
   findSocialProfileById,
   removeSocialProfileById,
-} from '../repositories/socialProfileRepository';
-import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
-import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
-import { setOauth2SocialProfileInRedis } from '../services/socialProfileService';
+} from '../repositories/socialProfileRepository.js';
+import { getSocialNetworkAdapter } from '../adapters/adaptersFactory.js';
+import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm.js';
+import { setOauth2SocialProfileInRedis } from '../services/socialProfileService.js';
 
 @Resolver(_of => SocialProfile)
 export class SocialProfilesResolver {

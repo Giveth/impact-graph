@@ -17,9 +17,11 @@ import {
   Resolver,
 } from 'type-graphql';
 import graphqlFields from 'graphql-fields';
+// @ts-expect-error as d
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
+// @ts-expect-error as d
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
-import { Reaction } from '../entities/reaction';
+import { Reaction } from '../entities/reaction.js';
 import {
   FilterField,
   OrderField,
@@ -29,43 +31,43 @@ import {
   ReviewStatus,
   RevokeSteps,
   SortingField,
-} from '../entities/project';
-import { ProjectStatus } from '../entities/projectStatus';
+} from '../entities/project.js';
+import { ProjectStatus } from '../entities/projectStatus.js';
 import {
   CreateProjectInput,
   ImageUpload,
   UpdateProjectInput,
-} from './types/project-input';
-import { pinFile } from '../middleware/pinataUtils';
-import { Category } from '../entities/category';
-import { Donation } from '../entities/donation';
-import { ProjectImage } from '../entities/projectImage';
-import { ApolloContext } from '../types/ApolloContext';
-import { publicSelectionFields, User } from '../entities/user';
-import { Context } from '../context';
-import SentryLogger from '../sentryLogger';
+} from './types/project-input.js';
+import { pinFile } from '../middleware/pinataUtils.js';
+import { Category } from '../entities/category.js';
+import { Donation } from '../entities/donation.js';
+import { ProjectImage } from '../entities/projectImage.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { publicSelectionFields, User } from '../entities/user.js';
+import { Context } from '../context.js';
+import SentryLogger from '../sentryLogger.js';
 import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+} from '../utils/errorMessages.js';
 import {
   canUserVisitProject,
   validateProjectRelatedAddresses,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
-} from '../utils/validators/projectValidator';
-import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
-import { logger } from '../utils/logger';
-import { getLoggedInUser } from '../services/authorizationServices';
+} from '../utils/validators/projectValidator.js';
+import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService.js';
+import { logger } from '../utils/logger.js';
+import { getLoggedInUser } from '../services/authorizationServices.js';
 import {
   getAppropriateSlug,
   getQualityScore,
-} from '../services/projectService';
-import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
-import { Token } from '../entities/token';
-import { findUserById } from '../repositories/userRepository';
+} from '../services/projectService.js';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization.js';
+import { Token } from '../entities/token.js';
+import { findUserById } from '../repositories/userRepository.js';
 import {
   addBulkNewProjectAddress,
   addNewProjectAddress,
@@ -73,8 +75,8 @@ import {
   getPurpleListAddresses,
   isWalletAddressInPurpleList,
   removeRecipientAddressOfProject,
-} from '../repositories/projectAddressRepository';
-import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
+} from '../repositories/projectAddressRepository.js';
+import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput.js';
 import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
@@ -82,37 +84,37 @@ import {
   findProjectIdBySlug,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
-} from '../repositories/projectRepository';
-import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { NETWORK_IDS } from '../provider';
-import { getVerificationFormStatusByProjectId } from '../repositories/projectVerificationRepository';
+} from '../repositories/projectRepository.js';
+import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils.js';
+import { getNotificationAdapter } from '../adapters/adaptersFactory.js';
+import { NETWORK_IDS } from '../provider.js';
+import { getVerificationFormStatusByProjectId } from '../repositories/projectVerificationRepository.js';
 import {
   resourcePerDateReportValidator,
   validateWithJoiSchema,
-} from '../utils/validators/graphqlQueryValidators';
+} from '../utils/validators/graphqlQueryValidators.js';
 import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
-} from '../repositories/projectPowerViewRepository';
-import { ResourcePerDateRange } from './donationResolver';
-import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
-import { AppDataSource } from '../orm';
-import { creteSlugFromProject, isSocialMediaEqual } from '../utils/utils';
-import { findCampaignBySlug } from '../repositories/campaignRepository';
-import { Campaign } from '../entities/campaign';
-import { FeaturedUpdate } from '../entities/featuredUpdate';
-import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
-import { calculateGivbackFactor } from '../services/givbackService';
-import { ProjectBySlugResponse } from './types/projectResolver';
-import { ChainType } from '../types/network';
-import { findActiveQfRound } from '../repositories/qfRoundRepository';
-import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
-import { getAppropriateNetworkId } from '../services/chains';
+} from '../repositories/projectPowerViewRepository.js';
+import { ResourcePerDateRange } from './donationResolver.js';
+import { findUserReactionsByProjectIds } from '../repositories/reactionRepository.js';
+import { AppDataSource } from '../orm.js';
+import { creteSlugFromProject, isSocialMediaEqual } from '../utils/utils.js';
+import { findCampaignBySlug } from '../repositories/campaignRepository.js';
+import { Campaign } from '../entities/campaign.js';
+import { FeaturedUpdate } from '../entities/featuredUpdate.js';
+import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators.js';
+import { calculateGivbackFactor } from '../services/givbackService.js';
+import { ProjectBySlugResponse } from './types/projectResolver.js';
+import { ChainType } from '../types/network.js';
+import { findActiveQfRound } from '../repositories/qfRoundRepository.js';
+import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService.js';
+import { getAppropriateNetworkId } from '../services/chains/index.js';
 import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
-} from '../repositories/projectSocialMediaRepository';
+} from '../repositories/projectSocialMediaRepository.js';
 
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
@@ -633,7 +635,9 @@ export class ProjectResolver {
     private readonly projectUpdateRepository: Repository<ProjectUpdate>,
     private readonly projectStatusRepository: Repository<ProjectStatus>,
     private readonly categoryRepository: Repository<Category>,
+    // @ts-expect-error as d
     private readonly userRepository: Repository<User>,
+    // @ts-expect-error as d
     private readonly donationRepository: Repository<Donation>,
     private readonly projectImageRepository: Repository<ProjectImage>,
   ) {

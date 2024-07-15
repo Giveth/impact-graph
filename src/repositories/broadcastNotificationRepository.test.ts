@@ -1,11 +1,11 @@
 import { assert } from 'chai';
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
-} from '../entities/broadcastNotification';
+} from '../entities/broadcastNotification.js';
 import {
   updateBroadcastNotificationStatus,
   findBroadcastNotificationById,
-} from './broadcastNotificationRepository';
+} from './broadcastNotificationRepository.js';
 
 describe(
   'updateBroadcastNotificationStatus test cases',

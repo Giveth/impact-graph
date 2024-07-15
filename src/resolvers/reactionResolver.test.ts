@@ -6,15 +6,15 @@ import {
   PROJECT_UPDATE_SEED_DATA,
   SEED_DATA,
   dbIndependentTests,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   likeProjectQuery,
   likeProjectUpdateQuery,
   unlikeProjectQuery,
   unlikeProjectUpdateQuery,
-} from '../../test/graphqlQueries';
-import { Project, ProjectUpdate } from '../entities/project';
-import { Reaction } from '../entities/reaction';
+} from '../../test/graphqlQueries.js';
+import { Project, ProjectUpdate } from '../entities/project.js';
+import { Reaction } from '../entities/reaction.js';
 
 describe('like and unlike project test cases --->', likeUnlikeProjectTestCases);
 describe(

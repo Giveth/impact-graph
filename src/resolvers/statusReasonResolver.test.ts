@@ -1,10 +1,10 @@
 import { assert } from 'chai';
 import axios from 'axios';
-import { graphqlUrl } from '../../test/testUtils';
-import { projectStatusReasonsQuery } from '../../test/graphqlQueries';
-import { ProjStatus } from '../entities/project';
-import { ProjectStatusReason } from '../entities/projectStatusReason';
-import { ProjectStatus } from '../entities/projectStatus';
+import { graphqlUrl } from '../../test/testUtils.js';
+import { projectStatusReasonsQuery } from '../../test/graphqlQueries.js';
+import { ProjStatus } from '../entities/project.js';
+import { ProjectStatusReason } from '../entities/projectStatusReason.js';
+import { ProjectStatus } from '../entities/projectStatus.js';
 describe('getStatusReasons() test cases', getStatusReasonsTestCases);
 
 function getStatusReasonsTestCases() {

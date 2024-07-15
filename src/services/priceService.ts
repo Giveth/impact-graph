@@ -1,7 +1,7 @@
-import { logger } from '../utils/logger';
-import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
-import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
-import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
+import { logger } from '../utils/logger.js';
+import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter.js';
+import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter.js';
+import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter.js';
 
 export interface CustomToken {
   symbol: string;

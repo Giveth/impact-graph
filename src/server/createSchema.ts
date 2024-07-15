@@ -2,9 +2,9 @@ import * as TypeGraphQL from 'type-graphql';
 import { Container } from 'typedi';
 import { GraphQLSchema } from 'graphql';
 import { NonEmptyArray } from 'type-graphql';
-import { userCheck } from '../auth/userCheck';
-import { getResolvers } from '../resolvers/resolvers';
-import config from '../config';
+import { userCheck } from '../auth/userCheck.js';
+import { getResolvers } from '../resolvers/resolvers.js';
+import config from '../config.js';
 
 const createSchema = async (): Promise<GraphQLSchema> => {
   // James: removing for safety. We shouldn't need to do this again except on a local dev machine

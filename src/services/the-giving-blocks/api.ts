@@ -1,7 +1,7 @@
 import Axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
-import config from '../../config';
-import { logger } from '../../utils/logger';
+import config from '../../config.js';
+import { logger } from '../../utils/logger.js';
 
 const apiBaseUrl = config.get('GIVING_BLOCKS_URL') as string;
 
@@ -16,6 +16,7 @@ const pledgeAmount = '99999999999';
 const pledgeCurrenty = 'ETH';
 
 // Handle API timeouts and internal server errors with a retry + delay
+// @ts-expect-error as da d
 axiosRetry(Axios, {
   retries: 3,
   retryDelay: retryCount => {

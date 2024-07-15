@@ -4,13 +4,13 @@ import {
   graphqlUrl,
   saveCategoryDirectlyToDb,
   saveMainCategoryDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   getCategoryData,
   getMainCategoriesData,
-} from '../../test/graphqlQueries';
-import { generateRandomString } from '../utils/utils';
-import { MainCategory } from '../entities/mainCategory';
+} from '../../test/graphqlQueries.js';
+import { generateRandomString } from '../utils/utils.js';
+import { MainCategory } from '../entities/mainCategory.js';
 
 describe('mainCategoryTestCases() test cases', mainCategoryTestCases);
 describe('categoryTestCases() test cases', categoryTestCases);

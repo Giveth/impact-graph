@@ -8,8 +8,8 @@ import {
   ManyToOne,
   RelationId,
 } from 'typeorm';
-import { Project } from './project';
-import { MainCategory } from './mainCategory';
+import { Project } from './project.js';
+import { MainCategory } from './mainCategory.js';
 
 export const CATEGORY_NAMES = {
   // There are lots of categories but I put the ones that I use here

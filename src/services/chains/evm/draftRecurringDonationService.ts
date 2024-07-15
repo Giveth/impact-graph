@@ -1,24 +1,25 @@
 import { ModuleThread, Pool, spawn, Worker } from 'threads';
+// @ts-expect-error as d
 import { WorkerModule } from 'threads/dist/types/worker';
-import { DRAFT_DONATION_STATUS } from '../../../entities/draftDonation';
-import { ApolloContext } from '../../../types/ApolloContext';
-import { logger } from '../../../utils/logger';
+import { DRAFT_DONATION_STATUS } from '../../../entities/draftDonation.js';
+import { ApolloContext } from '../../../types/ApolloContext.js';
+import { logger } from '../../../utils/logger.js';
 import {
   DRAFT_RECURRING_DONATION_STATUS,
   DraftRecurringDonation,
   RECURRING_DONATION_ORIGINS,
-} from '../../../entities/draftRecurringDonation';
+} from '../../../entities/draftRecurringDonation.js';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
-} from '../../../entities/recurringDonation';
-import { RecurringDonationResolver } from '../../../resolvers/recurringDonationResolver';
-import { findUserById } from '../../../repositories/userRepository';
-import { findActiveAnchorAddress } from '../../../repositories/anchorContractAddressRepository';
-import { findRecurringDonationById } from '../../../repositories/recurringDonationRepository';
-import { getSuperFluidAdapter } from '../../../adapters/adaptersFactory';
-import { FlowUpdatedEvent } from '../../../adapters/superFluid/superFluidAdapterInterface';
-import { convertTimeStampToSeconds } from '../../../utils/utils';
+} from '../../../entities/recurringDonation.js';
+import { RecurringDonationResolver } from '../../../resolvers/recurringDonationResolver.js';
+import { findUserById } from '../../../repositories/userRepository.js';
+import { findActiveAnchorAddress } from '../../../repositories/anchorContractAddressRepository.js';
+import { findRecurringDonationById } from '../../../repositories/recurringDonationRepository.js';
+import { getSuperFluidAdapter } from '../../../adapters/adaptersFactory.js';
+import { FlowUpdatedEvent } from '../../../adapters/superFluid/superFluidAdapterInterface.js';
+import { convertTimeStampToSeconds } from '../../../utils/utils.js';
 
 type DraftRecurringDonationWorkerFunctions = 'matchDraftRecurringDonations';
 export type DraftRecurringDonationWorker =

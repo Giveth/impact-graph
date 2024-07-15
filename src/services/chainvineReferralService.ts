@@ -1,9 +1,9 @@
 import moment from 'moment';
-import { getChainvineAdapter } from '../adapters/adaptersFactory';
-import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
-import { isFirstTimeDonor } from '../repositories/userRepository';
-import { logger } from '../utils/logger';
-import { findReferredEventByUserId } from '../repositories/referredEventRepository';
+import { getChainvineAdapter } from '../adapters/adaptersFactory.js';
+import { getRoundNumberByDate } from '../utils/powerBoostingUtils.js';
+import { isFirstTimeDonor } from '../repositories/userRepository.js';
+import { logger } from '../utils/logger.js';
+import { findReferredEventByUserId } from '../repositories/referredEventRepository.js';
 
 const isDonationEligibleForReferralReward = (params: {
   firstTimeDonor: boolean;

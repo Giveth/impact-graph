@@ -3,12 +3,12 @@
 // also must support pagination
 
 import axios from 'axios';
-import { logger } from '../../utils/logger';
-import config from '../../config';
+import { logger } from '../../utils/logger.js';
+import config from '../../config.js';
 import {
   DonationSaveBackupInterface,
   FetchedSavedFailDonationInterface,
-} from './DonationSaveBackupInterface';
+} from './DonationSaveBackupInterface.js';
 
 const DONATION_SAVE_BACKUP_API_URL = config.get(
   'DONATION_SAVE_BACKUP_API_URL',

@@ -1,11 +1,12 @@
 import { auth } from 'twitter-api-sdk';
+// @ts-expect-error migrate to ESM
 import { OAuth2User } from 'twitter-api-sdk/dist/OAuth2User';
 import axios from 'axios';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/logger.js';
 import {
   GetUserInfoByOauth2Output,
   SocialNetworkOauth2AdapterInterface,
-} from './SocialNetworkOauth2AdapterInterface';
+} from './SocialNetworkOauth2AdapterInterface.js';
 
 export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
   private authClient: OAuth2User;

@@ -7,10 +7,10 @@ import {
   ManyToOne,
   RelationId,
 } from 'typeorm';
-import { Project } from './project';
-import { ProjectStatus } from './projectStatus';
-import { ProjectStatusReason } from './projectStatusReason';
-import { User } from './user';
+import { Project } from './project.js';
+import { ProjectStatus } from './projectStatus.js';
+import { ProjectStatusReason } from './projectStatusReason.js';
+import { User } from './user.js';
 
 export const HISTORY_DESCRIPTIONS = {
   CHANGED_TO_VERIFIED: 'Changed to verified',

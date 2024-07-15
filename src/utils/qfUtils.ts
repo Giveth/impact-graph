@@ -2,7 +2,7 @@ import {
   findActiveQfRound,
   getQfRoundTotalSqrtRootSumSquared,
   getProjectDonationsSqrtRootSum,
-} from '../repositories/qfRoundRepository';
+} from '../repositories/qfRoundRepository.js';
 
 export const calculateEstimatedMatchingWithParams = async (params: {
   matchingPool: number;

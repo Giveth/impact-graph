@@ -8,9 +8,9 @@ import {
   RelationId,
 } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
-import { User } from './user';
-import { ColumnNumericTransformer } from '../utils/entities';
-import { PowerSnapshot } from './powerSnapshot';
+import { User } from './user.js';
+import { ColumnNumericTransformer } from '../utils/entities.js';
+import { PowerSnapshot } from './powerSnapshot.js';
 
 @Entity()
 @ObjectType()

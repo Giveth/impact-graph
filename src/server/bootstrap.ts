@@ -17,55 +17,56 @@ import bodyParser from 'body-parser';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
-import config from '../config';
-import { handleStripeWebhook } from '../utils/stripe';
-import createSchema from './createSchema';
-import SentryLogger from '../sentryLogger';
+import config from '../config.js';
+import { handleStripeWebhook } from '../utils/stripe.js';
+import createSchema from './createSchema.js';
+import SentryLogger from '../sentryLogger.js';
 
-import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
-import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
-import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
-import { webhookHandler } from '../services/transak/webhookHandler';
+import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork.js';
+import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing.js';
+import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus.js';
+import { webhookHandler } from '../services/transak/webhookHandler.js';
 
-import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
-import { redis } from '../redis';
-import { logger } from '../utils/logger';
-import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
+import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs.js';
+import { redis } from '../redis.js';
+import { logger } from '../utils/logger.js';
+import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment.js';
 import {
   i18n,
   setI18nLocaleForRequest,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { apiGivRouter } from '../routers/apiGivRoutes';
-import { authorizationHandler } from '../services/authorizationServices';
+} from '../utils/errorMessages.js';
+import { apiGivRouter } from '../routers/apiGivRoutes.js';
+import { authorizationHandler } from '../services/authorizationServices.js';
 import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
-} from '../routers/oauth2Callbacks';
+} from '../routers/oauth2Callbacks.js';
 import {
   dropDbCronExtension,
   schedulePowerBoostingSnapshot,
   schedulePowerSnapshotsHistory,
-} from '../repositories/dbCronRepository';
-import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
-import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
-import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
-import { AppDataSource, CronDataSource } from '../orm';
-import { ApolloContext } from '../types/ApolloContext';
-import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
+} from '../repositories/dbCronRepository.js';
+import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances.js';
+import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob.js';
+import { onramperWebhookHandler } from '../services/onramper/webhookHandler.js';
+import { AppDataSource, CronDataSource } from '../orm.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+// @ts-expect-error migrate to ESM
+import { ProjectResolverWorker } from '../workers/projectsResolverWorker.js';
 
-import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
-import { isTestEnv } from '../utils/utils';
-import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
-import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
-import { corsOptions } from './cors';
-import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
-import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
-import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
-import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
-import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
-import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
+import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob.js';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService.js';
+import { isTestEnv } from '../utils/utils.js';
+import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds.js';
+import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob.js';
+import { corsOptions } from './cors.js';
+import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob.js';
+import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob.js';
+import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob.js';
+import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob.js';
+import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob.js';
+import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork.js';
 
 Resource.validate = validate;
 
@@ -220,6 +221,7 @@ export async function bootstrap() {
     );
     app.use(
       '/graphql',
+      // @ts-expect-error as d
       graphqlUploadExpress({
         maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
         maxFiles: 10,

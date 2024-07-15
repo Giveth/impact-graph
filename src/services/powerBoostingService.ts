@@ -1,7 +1,7 @@
 import {
   cancelProjectBoosting,
   findPowerBoostings,
-} from '../repositories/powerBoostingRepository';
+} from '../repositories/powerBoostingRepository.js';
 
 export const changeUserBoostingsAfterProjectCancelled = async (params: {
   projectId: number;

@@ -8,7 +8,7 @@ import {
   ViewColumn,
   JoinColumn,
 } from 'typeorm';
-import { Project } from './project';
+import { Project } from './project.js';
 
 @ViewEntity('project_actual_matching_view', { synchronize: false })
 @ObjectType()

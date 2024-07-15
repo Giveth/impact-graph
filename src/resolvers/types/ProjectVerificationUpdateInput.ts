@@ -1,6 +1,6 @@
 import { Field, InputType } from 'type-graphql';
-import { ChainType } from '../../types/network';
-import { ProjectSocialMediaType } from '../../types/projectSocialMediaType';
+import { ChainType } from '../../types/network.js';
+import { ProjectSocialMediaType } from '../../types/projectSocialMediaType.js';
 
 @InputType()
 class ProjectPersonalInfoInputType {

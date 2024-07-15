@@ -1,10 +1,10 @@
 import { schedule } from 'node-cron';
 import Bull from 'bull';
-import config from '../../config';
-import { redisConfig } from '../../redis';
-import { logger } from '../../utils/logger';
-import { getPendingRecurringDonationsIds } from '../../repositories/recurringDonationRepository';
-import { updateRecurringDonationStatusWithNetwork } from '../recurringDonationService';
+import config from '../../config.js';
+import { redisConfig } from '../../redis.js';
+import { logger } from '../../utils/logger.js';
+import { getPendingRecurringDonationsIds } from '../../repositories/recurringDonationRepository.js';
+import { updateRecurringDonationStatusWithNetwork } from '../recurringDonationService.js';
 
 const verifyRecurringDonationsQueue = new Bull(
   'verify-recurring-donations-queue',

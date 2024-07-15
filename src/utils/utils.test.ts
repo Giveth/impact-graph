@@ -1,7 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import { assert } from 'chai';
-import { getCreatedAtFromMongoObjectId, getHtmlTextSummary } from './utils';
-import { SUMMARY_LENGTH } from '../constants/summary';
+import { getCreatedAtFromMongoObjectId, getHtmlTextSummary } from './utils.js';
+import { SUMMARY_LENGTH } from '../constants/summary.js';
 
 describe('getHtmlTextSummary test cases', getHtmlTextSummaryTestCases);
 describe(

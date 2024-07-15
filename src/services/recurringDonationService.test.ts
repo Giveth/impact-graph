@@ -6,20 +6,20 @@ import {
   saveProjectDirectlyToDb,
   saveRecurringDonationDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   createRelatedDonationsToStream,
   updateRecurringDonationStatusWithNetwork,
-} from './recurringDonationService';
-import { Donation } from '../entities/donation';
-import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { NETWORK_IDS } from '../provider';
-import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
+} from './recurringDonationService.js';
+import { Donation } from '../entities/donation.js';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository.js';
+import { NETWORK_IDS } from '../provider.js';
+import { findRecurringDonationById } from '../repositories/recurringDonationRepository.js';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
-} from '../entities/recurringDonation';
-import { AnchorContractAddress } from '../entities/anchorContractAddress';
+} from '../entities/recurringDonation.js';
+import { AnchorContractAddress } from '../entities/anchorContractAddress.js';
 
 describe(
   'createRelatedDonationsToStream test cases',

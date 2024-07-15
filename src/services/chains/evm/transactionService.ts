@@ -4,26 +4,26 @@ import { ethers } from 'ethers';
 import {
   findTokenByNetworkAndAddress,
   findTokenByNetworkAndSymbol,
-} from '../../../utils/tokenUtils';
+} from '../../../utils/tokenUtils.js';
 import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
-import { erc20ABI } from '../../../assets/erc20ABI';
-import { disperseABI } from '../../../assets/disperseABI';
+} from '../../../utils/errorMessages.js';
+import { erc20ABI } from '../../../assets/erc20ABI.js';
+import { disperseABI } from '../../../assets/disperseABI.js';
 import {
   getBlockExplorerApiUrl,
   getNetworkNativeToken,
   getProvider,
   NETWORK_IDS,
-} from '../../../provider';
-import { logger } from '../../../utils/logger';
-import { gnosisSafeL2ABI } from '../../../assets/gnosisSafeL2ABI';
-import { NetworkTransactionInfo, TransactionDetailInput } from '../index';
-import { normalizeAmount } from '../../../utils/utils';
-import { ONE_HOUR, validateTransactionWithInputData } from '../index';
-import { ITxInfo } from '../../../types/etherscan';
+} from '../../../provider.js';
+import { logger } from '../../../utils/logger.js';
+import { gnosisSafeL2ABI } from '../../../assets/gnosisSafeL2ABI.js';
+import { NetworkTransactionInfo, TransactionDetailInput } from '../index.js';
+import { normalizeAmount } from '../../../utils/utils.js';
+import { ONE_HOUR, validateTransactionWithInputData } from '../index.js';
+import { ITxInfo } from '../../../types/etherscan.js';
 
 abiDecoder.addABI(erc20ABI);
 abiDecoder.addABI(gnosisSafeL2ABI);

@@ -1,5 +1,5 @@
-import { ProjectSocialMedia } from '../entities/projectSocialMedia';
-import { ProjectSocialMediaType } from '../types/projectSocialMediaType';
+import { ProjectSocialMedia } from '../entities/projectSocialMedia.js';
+import { ProjectSocialMediaType } from '../types/projectSocialMediaType.js';
 
 export const addBulkProjectSocialMedia = async (
   socialMediaArray: {

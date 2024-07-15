@@ -16,9 +16,9 @@ import {
   generateUserIdLessAccessToken,
   generateRandomSolanaAddress,
   generateRandomSolanaTxHash,
-} from '../../test/testUtils';
-import { errorMessages } from '../utils/errorMessages';
-import { Donation, DONATION_STATUS } from '../entities/donation';
+} from '../../test/testUtils.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { Donation, DONATION_STATUS } from '../entities/donation.js';
 import {
   fetchDonationsByUserIdQuery,
   fetchDonationsByDonorQuery,
@@ -35,36 +35,36 @@ import {
   doesDonatedToProjectInQfRoundQuery,
   fetchNewDonorsCount,
   fetchNewDonorsDonationTotalUsd,
-} from '../../test/graphqlQueries';
-import { NETWORK_IDS } from '../provider';
-import { User } from '../entities/user';
-import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
-import { ProjStatus, ReviewStatus } from '../entities/project';
-import { Token } from '../entities/token';
+} from '../../test/graphqlQueries.js';
+import { NETWORK_IDS } from '../provider.js';
+import { User } from '../entities/user.js';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization.js';
+import { ProjStatus, ReviewStatus } from '../entities/project.js';
+import { Token } from '../entities/token.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from '../repositories/powerBoostingRepository';
-import { setPowerRound } from '../repositories/powerRoundRepository';
-import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { AppDataSource } from '../orm';
-import { generateRandomString } from '../utils/utils';
-import { getChainvineAdapter } from '../adapters/adaptersFactory';
-import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
-import { QfRound } from '../entities/qfRound';
-import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
-import { ChainType } from '../types/network';
-import { getDefaultSolanaChainId } from '../services/chains';
+} from '../repositories/powerBoostingRepository.js';
+import { setPowerRound } from '../repositories/powerRoundRepository.js';
+import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { AppDataSource } from '../orm.js';
+import { generateRandomString } from '../utils/utils.js';
+import { getChainvineAdapter } from '../adapters/adaptersFactory.js';
+import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository.js';
+import { QfRound } from '../entities/qfRound.js';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository.js';
+import { ChainType } from '../types/network.js';
+import { getDefaultSolanaChainId } from '../services/chains/index.js';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
-} from '../entities/draftDonation';
-import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
-import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
+} from '../entities/draftDonation.js';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository.js';
+import { createNewRecurringDonation } from '../repositories/recurringDonationRepository.js';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation.js';
 
 // TODO Write test cases
 describe('donations() test cases', donationsTestCases);

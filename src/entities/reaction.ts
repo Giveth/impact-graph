@@ -8,8 +8,8 @@ import {
   ManyToOne,
   Index,
 } from 'typeorm';
-import { Project, ProjectUpdate } from './project';
-import { User } from './user';
+import { Project, ProjectUpdate } from './project.js';
+import { User } from './user.js';
 
 @Entity()
 @ObjectType()

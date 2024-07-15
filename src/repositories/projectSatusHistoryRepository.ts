@@ -1,4 +1,4 @@
-import { ProjectStatusHistory } from '../entities/projectStatusHistory';
+import { ProjectStatusHistory } from '../entities/projectStatusHistory.js';
 
 export const findOneProjectStatusHistoryByProjectId = (
   projectId: number,

@@ -1,6 +1,6 @@
-import { AppDataSource } from '../orm';
-import { QfRoundHistory } from '../entities/qfRoundHistory';
-import { logger } from '../utils/logger';
+import { AppDataSource } from '../orm.js';
+import { QfRoundHistory } from '../entities/qfRoundHistory.js';
+import { logger } from '../utils/logger.js';
 
 export const fillQfRoundHistory = async (): Promise<void> => {
   try {

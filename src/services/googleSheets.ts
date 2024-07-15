@@ -1,8 +1,8 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import moment from 'moment';
-import config from '../config';
-import { logger } from '../utils/logger';
-import { ReviewStatus } from '../entities/project';
+import config from '../config.js';
+import { logger } from '../utils/logger.js';
+import { ReviewStatus } from '../entities/project.js';
 
 interface ProjectExport {
   id: number;

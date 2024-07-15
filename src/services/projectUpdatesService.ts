@@ -1,6 +1,6 @@
-import { Project } from '../entities/project';
-import { ProjectUpdate } from '../entities/project';
-import { logger } from '../utils/logger';
+import { Project } from '../entities/project.js';
+import { ProjectUpdate } from '../entities/project.js';
+import { logger } from '../utils/logger.js';
 
 export const updateTotalProjectUpdatesOfAProject = async (
   projectId: number,

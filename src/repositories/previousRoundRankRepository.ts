@@ -1,5 +1,5 @@
-import { PowerSnapshot } from '../entities/powerSnapshot';
-import { PreviousRoundRank } from '../entities/previousRoundRank';
+import { PowerSnapshot } from '../entities/powerSnapshot.js';
+import { PreviousRoundRank } from '../entities/previousRoundRank.js';
 
 export const deleteAllPreviousRoundRanks = async () => {
   return PreviousRoundRank.query(

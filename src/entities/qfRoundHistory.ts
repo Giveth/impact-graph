@@ -11,14 +11,14 @@ import {
   Index,
   Unique,
 } from 'typeorm';
-import { Project } from './project';
-import { QfRound } from './qfRound';
+import { Project } from './project.js';
+import { QfRound } from './qfRound.js';
 import {
   findQfRoundById,
   getQfRoundTotalSqrtRootSumSquared,
   getProjectDonationsSqrtRootSum,
-} from '../repositories/qfRoundRepository';
-import { EstimatedMatching } from '../types/qfTypes';
+} from '../repositories/qfRoundRepository.js';
+import { EstimatedMatching } from '../types/qfTypes.js';
 
 @Entity()
 @ObjectType()

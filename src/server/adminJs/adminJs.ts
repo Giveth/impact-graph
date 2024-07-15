@@ -5,43 +5,45 @@ import { IncomingMessage } from 'connect';
 import cookie from 'cookie';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import { User } from '../../entities/user';
-import config from '../../config';
-import { redis } from '../../redis';
-import { logger } from '../../utils/logger';
-import { findUserById } from '../../repositories/userRepository';
-import { fetchAdminAndValidatePassword } from '../../services/userService';
-import { campaignsTab } from './tabs/campaignsTab';
-import { broadcastNotificationTab } from './tabs/broadcastNotificationTab';
-import { mainCategoryTab } from './tabs/mainCategoryTab';
-import { categoryTab } from './tabs/categoryTab';
-import { projectsTab } from './tabs/projectsTab';
-import { organizationsTab } from './tabs/organizationsTab';
-import { usersTab } from './tabs/usersTab';
-import { projectStatusHistoryTab } from './tabs/projectStatusHistoryTab';
-import { projectStatusReasonTab } from './tabs/projectStatusReasonTab';
-import { projectAddressTab } from './tabs/projectAddressTab';
-import { projectStatusTab } from './tabs/projectStatusTab';
-import { projectUpdateTab } from './tabs/projectUpdateTab';
-import { thirdPartProjectImportTab } from './tabs/thirdPartProjectImportTab';
-import { featuredUpdateTab } from './tabs/featuredUpdateTab';
-import { generateTokenTab } from './tabs/tokenTab';
-import { donationTab } from './tabs/donationTab';
-import { projectVerificationTab } from './tabs/projectVerificationTab';
-import { qfRoundTab } from './tabs/qfRoundTab';
-import { qfRoundHistoryTab } from './tabs/qfRoundHistoryTab';
-import { SybilTab } from './tabs/sybilTab';
-import { ProjectFraudTab } from './tabs/projectFraudTab';
-import { RecurringDonationTab } from './tabs/recurringDonationTab';
-import { AnchorContractAddressTab } from './tabs/anchorContractAddressTab';
+import { User } from '../../entities/user.js';
+import config from '../../config.js';
+import { redis } from '../../redis.js';
+import { logger } from '../../utils/logger.js';
+import { findUserById } from '../../repositories/userRepository.js';
+import { fetchAdminAndValidatePassword } from '../../services/userService.js';
+import { campaignsTab } from './tabs/campaignsTab.js';
+import { broadcastNotificationTab } from './tabs/broadcastNotificationTab.js';
+import { mainCategoryTab } from './tabs/mainCategoryTab.js';
+import { categoryTab } from './tabs/categoryTab.js';
+import { projectsTab } from './tabs/projectsTab.js';
+import { organizationsTab } from './tabs/organizationsTab.js';
+import { usersTab } from './tabs/usersTab.js';
+import { projectStatusHistoryTab } from './tabs/projectStatusHistoryTab.js';
+import { projectStatusReasonTab } from './tabs/projectStatusReasonTab.js';
+import { projectAddressTab } from './tabs/projectAddressTab.js';
+import { projectStatusTab } from './tabs/projectStatusTab.js';
+import { projectUpdateTab } from './tabs/projectUpdateTab.js';
+import { thirdPartProjectImportTab } from './tabs/thirdPartProjectImportTab.js';
+import { featuredUpdateTab } from './tabs/featuredUpdateTab.js';
+import { generateTokenTab } from './tabs/tokenTab.js';
+import { donationTab } from './tabs/donationTab.js';
+import { projectVerificationTab } from './tabs/projectVerificationTab.js';
+import { qfRoundTab } from './tabs/qfRoundTab.js';
+import { qfRoundHistoryTab } from './tabs/qfRoundHistoryTab.js';
+import { SybilTab } from './tabs/sybilTab.js';
+import { ProjectFraudTab } from './tabs/projectFraudTab.js';
+import { RecurringDonationTab } from './tabs/recurringDonationTab.js';
+import { AnchorContractAddressTab } from './tabs/anchorContractAddressTab.js';
 
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminJsCookie = 'adminjs';
+// @ts-expect-error as d
 adminJs.registerAdapter({ Database, Resource });
 
 export const getAdminJsRouter = async () => {
   const RedisStoreModule = await import('connect-redis');
   const RedisStore = RedisStoreModule.default(session);
+  // @ts-expect-error as d
   return adminJsExpress.buildAuthenticatedRouter(
     await getadminJsInstance(),
     {
@@ -200,6 +202,7 @@ const getResources = async (): Promise<AdminJsResources> => {
 
 const getadminJsInstance = async () => {
   const resources = await getResources();
+  // @ts-expect-error as d
   const adminJsInstance = new adminJs({
     branding: {
       logo: 'https://i.imgur.com/cGKo1Tk.png',

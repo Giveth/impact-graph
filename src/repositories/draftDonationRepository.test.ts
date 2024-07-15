@@ -1,16 +1,16 @@
 // Create a draft donation
 
 import { assert, expect } from 'chai';
-import { generateRandomEtheriumAddress } from '../../test/testUtils';
+import { generateRandomEtheriumAddress } from '../../test/testUtils.js';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
-} from '../entities/draftDonation';
+} from '../entities/draftDonation.js';
 import {
   countPendingDraftDonations,
   delecteExpiredDraftDonations,
   markDraftDonationStatusMatched,
-} from './draftDonationRepository';
+} from './draftDonationRepository.js';
 
 // Mark the draft donation as matched
 describe('draftDonationRepository', () => {

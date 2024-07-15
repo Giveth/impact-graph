@@ -7,7 +7,7 @@ import {
   ProjectRegistry,
   ProjectVerificationForm,
   PersonalInfo,
-} from '../entities/projectVerificationForm';
+} from '../entities/projectVerificationForm.js';
 import {
   submitProjectVerificationStepValidator,
   updateProjectVerificationManagingFundsStepValidator,
@@ -17,7 +17,7 @@ import {
   updateProjectVerificationProjectRegistryStepValidator,
   updateProjectVerificationTermsAndConditionsStepValidator,
   validateWithJoiSchema,
-} from '../utils/validators/graphqlQueryValidators';
+} from '../utils/validators/graphqlQueryValidators.js';
 import {
   updateManagingFundsOfProjectVerification,
   updateMilestonesOfProjectVerification,
@@ -27,10 +27,10 @@ import {
   updateProjectVerificationLastStep,
   updateProjectVerificationStatus,
   updateTermsAndConditionsOfProjectVerification,
-} from '../repositories/projectVerificationRepository';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { ProjectVerificationUpdateInput } from '../resolvers/types/ProjectVerificationUpdateInput';
-import { removeUndefinedFieldsFromObject } from '../utils/utils';
+} from '../repositories/projectVerificationRepository.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { ProjectVerificationUpdateInput } from '../resolvers/types/ProjectVerificationUpdateInput.js';
+import { removeUndefinedFieldsFromObject } from '../utils/utils.js';
 
 const updateLastStep = async (params: {
   projectVerificationForm: ProjectVerificationForm;

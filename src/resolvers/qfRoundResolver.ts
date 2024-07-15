@@ -11,7 +11,7 @@ import {
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { User } from '../entities/user';
+import { User } from '../entities/user.js';
 import {
   findActiveQfRound,
   findQfRounds,
@@ -22,9 +22,9 @@ import {
   QfArchivedRoundsSortType,
   getQfRoundStats,
   getQfRoundTotalSqrtRootSumSquared,
-} from '../repositories/qfRoundRepository';
-import { QfRound } from '../entities/qfRound';
-import { OrderDirection } from './projectResolver';
+} from '../repositories/qfRoundRepository.js';
+import { QfRound } from '../entities/qfRound.js';
+import { OrderDirection } from './projectResolver.js';
 
 @ObjectType()
 export class QfRoundStatsResponse {

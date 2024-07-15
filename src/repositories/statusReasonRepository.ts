@@ -1,4 +1,4 @@
-import { ProjectStatusReason } from '../entities/projectStatusReason';
+import { ProjectStatusReason } from '../entities/projectStatusReason.js';
 
 export const findAllStatusReasons = async (): Promise<
   ProjectStatusReason[]

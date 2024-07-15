@@ -1,43 +1,43 @@
 import { getTokenPrices } from '@giveth/monoswap';
-import { Project } from '../entities/project';
-import { Token } from '../entities/token';
-import { Donation, DONATION_STATUS } from '../entities/donation';
-import { TransakOrder } from './transak/order';
-import { logger } from '../utils/logger';
+import { Project } from '../entities/project.js';
+import { Token } from '../entities/token.js';
+import { Donation, DONATION_STATUS } from '../entities/donation.js';
+import { TransakOrder } from './transak/order.js';
+import { logger } from '../utils/logger.js';
 import {
   findUserById,
   findUserByWalletAddress,
-} from '../repositories/userRepository';
+} from '../repositories/userRepository.js';
 import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { findProjectById } from '../repositories/projectRepository';
-import { convertExponentialNumber } from '../utils/utils';
-import { findDonationById } from '../repositories/donationRepository';
+} from '../utils/errorMessages.js';
+import { findProjectById } from '../repositories/projectRepository.js';
+import { convertExponentialNumber } from '../utils/utils.js';
+import { findDonationById } from '../repositories/donationRepository.js';
 import {
   getChainvineAdapter,
   getNotificationAdapter,
-} from '../adapters/adaptersFactory';
-import { calculateGivbackFactor } from './givbackService';
-import SentryLogger from '../sentryLogger';
+} from '../adapters/adaptersFactory.js';
+import { calculateGivbackFactor } from './givbackService.js';
+import SentryLogger from '../sentryLogger.js';
 import {
   getUserDonationStats,
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from './userService';
-import { refreshProjectEstimatedMatchingView } from './projectViewsService';
-import { AppDataSource } from '../orm';
-import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
-import { getPowerRound } from '../repositories/powerRoundRepository';
-import { fetchSafeTransactionHash } from './safeServices';
-import { NETWORKS_IDS_TO_NAME } from '../provider';
-import { getTransactionInfoFromNetwork } from './chains';
-import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
-import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
-import { CustomToken, getTokenPrice } from './priceService';
-import { updateProjectStatistics } from './projectService';
+} from './userService.js';
+import { refreshProjectEstimatedMatchingView } from './projectViewsService.js';
+import { AppDataSource } from '../orm.js';
+import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository.js';
+import { getPowerRound } from '../repositories/powerRoundRepository.js';
+import { fetchSafeTransactionHash } from './safeServices.js';
+import { NETWORKS_IDS_TO_NAME } from '../provider.js';
+import { getTransactionInfoFromNetwork } from './chains/index.js';
+import { getEvmTransactionTimestamp } from './chains/evm/transactionService.js';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter.js';
+import { CustomToken, getTokenPrice } from './priceService.js';
+import { updateProjectStatistics } from './projectService.js';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -310,6 +310,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
           donationId: donation.id,
         }),
       );
+      // @ts-expect-error migrate to esm
       await getChainvineAdapter().notifyChainVine({
         fromWalletAddress: donation.fromWalletAddress,
         amount: donation.amount,

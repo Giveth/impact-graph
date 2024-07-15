@@ -1,14 +1,8 @@
 // workers/auth.js
 import { expose } from 'threads/worker';
-import { WorkerModule } from 'threads/dist/types/worker';
-import { cacheProjectCampaigns } from '../services/campaignService';
+import { cacheProjectCampaigns } from '../services/campaignService.js';
 
-type ProjectsResolverWorkerFunctions = 'cacheSlugsOfCampaignProjects';
-
-export type CacheProjectCampaignsWorker =
-  WorkerModule<ProjectsResolverWorkerFunctions>;
-
-const worker: CacheProjectCampaignsWorker = {
+const worker = {
   async cacheSlugsOfCampaignProjects() {
     await cacheProjectCampaigns();
   },

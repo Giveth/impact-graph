@@ -3,12 +3,12 @@ import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../errorMessages';
-import { NETWORK_IDS } from '../../provider';
-import { DONATION_STATUS } from '../../entities/donation';
-import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
-import { countriesList } from '../utils';
-import { ChainType } from '../../types/network';
+} from '../errorMessages.js';
+import { NETWORK_IDS } from '../../provider.js';
+import { DONATION_STATUS } from '../../entities/donation.js';
+import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm.js';
+import { countriesList } from '../utils.js';
+import { ChainType } from '../../types/network.js';
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 const resourcePerDateRegex = new RegExp(

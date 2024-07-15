@@ -2,9 +2,9 @@ import {
   assertNotThrowsAsync,
   generateRandomEtheriumAddress,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { PowerSnapshot } from '../entities/powerSnapshot';
-import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
+} from '../../test/testUtils.js';
+import { PowerSnapshot } from '../entities/powerSnapshot.js';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository.js';
 
 describe(
   'createPowerSnapshotBalances test cases',

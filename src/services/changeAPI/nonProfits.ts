@@ -1,22 +1,28 @@
 import Axios from 'axios';
 import slugify from 'slugify';
-import config from '../../config';
-import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
+import config from '../../config.js';
+import {
+  Organization,
+  ORGANIZATION_LABELS,
+} from '../../entities/organization.js';
 import {
   Project,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
-} from '../../entities/project';
-import { ProjectStatus } from '../../entities/projectStatus';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { logger } from '../../utils/logger';
-import { getAppropriateSlug, getQualityScore } from '../projectService';
-import { findUserById } from '../../repositories/userRepository';
-import { Category, CATEGORY_NAMES } from '../../entities/category';
-import { addBulkNewProjectAddress } from '../../repositories/projectAddressRepository';
-import { NETWORK_IDS } from '../../provider';
-import { User } from '../../entities/user';
+} from '../../entities/project.js';
+import { ProjectStatus } from '../../entities/projectStatus.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
+import { logger } from '../../utils/logger.js';
+import { getAppropriateSlug, getQualityScore } from '../projectService.js';
+import { findUserById } from '../../repositories/userRepository.js';
+import { Category, CATEGORY_NAMES } from '../../entities/category.js';
+import { addBulkNewProjectAddress } from '../../repositories/projectAddressRepository.js';
+import { NETWORK_IDS } from '../../provider.js';
+import { User } from '../../entities/user.js';
 
 const changeApiNonProfitUrl = config.get(
   'CHANGE_API_NON_PROFITS_SEARCH_URL',
@@ -98,6 +104,7 @@ export const createProjectFromChangeNonProfit = async (
 
     const adminUser = (await findUserById(Number(adminId))) as User;
     if (!adminUser) return;
+    // @ts-expect-error as d
     const slugBase = slugify(nonProfit.name, {
       remove: /[*+~.,()'"!:@]/g,
     });

@@ -10,17 +10,17 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProjStatus, ReviewStatus } from './project';
-import { Donation, DONATION_STATUS } from './donation';
-import { Reaction } from './reaction';
-import { AccountVerification } from './accountVerification';
-import { ProjectStatusHistory } from './projectStatusHistory';
-import { ProjectVerificationForm } from './projectVerificationForm';
-import { PowerBoosting } from './powerBoosting';
-import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
-import { ReferredEvent } from './referredEvent';
-import { RecurringDonation } from './recurringDonation';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
+import { ProjStatus, ReviewStatus } from './project.js';
+import { Donation, DONATION_STATUS } from './donation.js';
+import { Reaction } from './reaction.js';
+import { AccountVerification } from './accountVerification.js';
+import { ProjectStatusHistory } from './projectStatusHistory.js';
+import { ProjectVerificationForm } from './projectVerificationForm.js';
+import { PowerBoosting } from './powerBoosting.js';
+import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository.js';
+import { ReferredEvent } from './referredEvent.js';
+import { RecurringDonation } from './recurringDonation.js';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics.js';
 
 export const publicSelectionFields = [
   'user.id',

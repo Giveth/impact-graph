@@ -1,17 +1,17 @@
 import { assert } from 'chai';
-import { generateRandomEvmTxHash } from '../../../../test/testUtils';
-import { findTokenByTokenAddress } from '../../../repositories/tokenRepository';
+import { generateRandomEvmTxHash } from '../../../../test/testUtils.js';
+import { findTokenByTokenAddress } from '../../../repositories/tokenRepository.js';
 import {
   Organization,
   ORGANIZATION_LABELS,
-} from '../../../entities/organization';
-import { Token } from '../../../entities/token';
+} from '../../../entities/organization.js';
+import { Token } from '../../../entities/token.js';
 import {
   createToken,
   generateOrganizationList,
   linkOrganizations,
   permute,
-} from './tokenTab';
+} from './tokenTab.js';
 
 describe('createToken() test cases', createTokenTestCases);
 describe('linkOrganizations() test cases', linkOrganizationsTestCases);

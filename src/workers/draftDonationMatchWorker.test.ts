@@ -1,19 +1,19 @@
 import {
   DraftDonation,
   DRAFT_DONATION_STATUS,
-} from '../entities/draftDonation';
-import { Project, ProjectUpdate } from '../entities/project';
-import { NETWORK_IDS } from '../provider';
-import { runDraftDonationMatchWorker } from '../services/chains/evm/draftDonationService';
+} from '../entities/draftDonation.js';
+import { Project, ProjectUpdate } from '../entities/project.js';
+import { NETWORK_IDS } from '../provider.js';
+import { runDraftDonationMatchWorker } from '../services/chains/evm/draftDonationService.js';
 import {
   saveUserDirectlyToDb,
   saveProjectDirectlyToDb,
   createProjectData,
-} from '../../test/testUtils';
-import { Donation } from '../entities/donation';
-import { ProjectAddress } from '../entities/projectAddress';
-import { findUserByWalletAddress } from '../repositories/userRepository';
-import { User } from '../entities/user';
+} from '../../test/testUtils.js';
+import { Donation } from '../entities/donation.js';
+import { ProjectAddress } from '../entities/projectAddress.js';
+import { findUserByWalletAddress } from '../repositories/userRepository.js';
+import { User } from '../entities/user.js';
 
 const RandomAddress1 = '0xf3ddeb5022a6f06b61488b48c90315087ca2beef';
 const RandomAddress2 = '0xc42a4791735ae1253c50c6226832e37ede3669f5';

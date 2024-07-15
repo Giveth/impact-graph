@@ -1,14 +1,14 @@
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
-import { ApolloContext } from '../types/ApolloContext';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { logger } from '../utils/logger';
-import { User } from '../entities/user';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { logger } from '../utils/logger.js';
+import { User } from '../entities/user.js';
 import {
   findUserById,
   findUserByWalletAddress,
-} from '../repositories/userRepository';
-import { getChainvineAdapter } from '../adapters/adaptersFactory';
-import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
+} from '../repositories/userRepository.js';
+import { getChainvineAdapter } from '../adapters/adaptersFactory.js';
+import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository.js';
 
 @Resolver(_of => User)
 export class ChainvineResolver {
@@ -29,6 +29,7 @@ export class ChainvineResolver {
 
     try {
       const chainvineId = await getChainvineAdapter().generateChainvineId(
+        // @ts-expect-error migrate to esm
         dbUser.walletAddress,
       );
 
@@ -69,12 +70,14 @@ export class ChainvineResolver {
       }
 
       if (!referredEvent.isDonorClickEventSent) {
+        // @ts-expect-error migrate to esm
         await getChainvineAdapter().registerClickEvent(referrerId);
         referredEvent.isDonorClickEventSent = true;
         await referredEvent.save();
       }
 
       if (!referredEvent.isDonorLinkedToReferrer) {
+        // @ts-expect-error migrate to esm
         await getChainvineAdapter().linkDonorToReferrer({
           walletAddress: dbUser.walletAddress,
           referrerId,

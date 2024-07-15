@@ -13,36 +13,36 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
-import { fetchMultiFilterAllProjectsQuery } from '../../test/graphqlQueries';
-import { Project, ReviewStatus, SortingField } from '../entities/project';
-import { User } from '../entities/user';
-import { NETWORK_IDS } from '../provider';
-import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
-import { setPowerRound } from '../repositories/powerRoundRepository';
+} from '../../test/testUtils.js';
+import { fetchMultiFilterAllProjectsQuery } from '../../test/graphqlQueries.js';
+import { Project, ReviewStatus, SortingField } from '../entities/project.js';
+import { User } from '../entities/user.js';
+import { NETWORK_IDS } from '../provider.js';
+import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository.js';
+import { setPowerRound } from '../repositories/powerRoundRepository.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from '../repositories/powerBoostingRepository';
-import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { ProjectAddress } from '../entities/projectAddress';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { AppDataSource } from '../orm';
+} from '../repositories/powerBoostingRepository.js';
+import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { ProjectAddress } from '../entities/projectAddress.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { AppDataSource } from '../orm.js';
 // We are using cache so redis needs to be cleared for tests with same filters
-import { redis } from '../redis';
-import { Campaign, CampaignType } from '../entities/campaign';
-import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
-import { InstantPowerBalance } from '../entities/instantPowerBalance';
-import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
-import { updateInstantBoosting } from '../services/instantBoostingServices';
-import { QfRound } from '../entities/qfRound';
-import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
-import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
-import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
-import { ChainType } from '../types/network';
+import { redis } from '../redis.js';
+import { Campaign, CampaignType } from '../entities/campaign.js';
+import { generateRandomString, getHtmlTextSummary } from '../utils/utils.js';
+import { InstantPowerBalance } from '../entities/instantPowerBalance.js';
+import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository.js';
+import { updateInstantBoosting } from '../services/instantBoostingServices.js';
+import { QfRound } from '../entities/qfRound.js';
+import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils.js';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService.js';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository.js';
+import { ChainType } from '../types/network.js';
 
 // search and filters
 describe('all projects test cases --->', allProjectsTestCases);

@@ -1,13 +1,13 @@
-import { getProvider, NETWORK_IDS } from '../../provider';
-import { Project, ProjStatus } from '../../entities/project';
-import { i18n, translationErrorMessagesKeys } from '../errorMessages';
-import { logger } from '../logger';
-import { findRelatedAddressByWalletAddress } from '../../repositories/projectAddressRepository';
-import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
-import { findProjectById } from '../../repositories/projectRepository';
-import { titleWithoutSpecialCharacters } from '../utils';
-import { ChainType } from '../../types/network';
-import { detectAddressChainType } from '../networks';
+import { getProvider, NETWORK_IDS } from '../../provider.js';
+import { Project, ProjStatus } from '../../entities/project.js';
+import { i18n, translationErrorMessagesKeys } from '../errorMessages.js';
+import { logger } from '../logger.js';
+import { findRelatedAddressByWalletAddress } from '../../repositories/projectAddressRepository.js';
+import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput.js';
+import { findProjectById } from '../../repositories/projectRepository.js';
+import { titleWithoutSpecialCharacters } from '../utils.js';
+import { ChainType } from '../../types/network.js';
+import { detectAddressChainType } from '../networks.js';
 
 export function isWalletAddressValid(address, chainType?: ChainType) {
   if (!address) {

@@ -9,26 +9,26 @@ import {
 } from 'type-graphql';
 import { Repository } from 'typeorm';
 
-import { User } from '../entities/user';
-import { AccountVerificationInput } from './types/accountVerificationInput';
-import { ApolloContext } from '../types/ApolloContext';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { validateEmail } from '../utils/validators/commonValidators';
+import { User } from '../entities/user.js';
+import { AccountVerificationInput } from './types/accountVerificationInput.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { validateEmail } from '../utils/validators/commonValidators.js';
 import {
   findUserById,
   findUserByWalletAddress,
-} from '../repositories/userRepository';
-import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
-import { UserByAddressResponse } from './types/userResolver';
-import { AppDataSource } from '../orm';
+} from '../repositories/userRepository.js';
+import { createNewAccountVerification } from '../repositories/accountVerificationRepository.js';
+import { UserByAddressResponse } from './types/userResolver.js';
+import { AppDataSource } from '../orm.js';
 import {
   getGitcoinAdapter,
   getNotificationAdapter,
-} from '../adapters/adaptersFactory';
-import { logger } from '../utils/logger';
-import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
-import { addressHasDonated } from '../repositories/donationRepository';
-import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+} from '../adapters/adaptersFactory.js';
+import { logger } from '../utils/logger.js';
+import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository.js';
+import { addressHasDonated } from '../repositories/donationRepository.js';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter.js';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -41,6 +41,7 @@ class UserRelatedAddressResponse {
 
 @Resolver(_of => User)
 export class UserResolver {
+  // @ts-expect-error as d
   constructor(private readonly userRepository: Repository<User>) {
     this.userRepository = AppDataSource.getDataSource().getRepository(User);
   }

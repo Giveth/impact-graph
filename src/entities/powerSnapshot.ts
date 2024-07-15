@@ -7,9 +7,9 @@ import {
   Index,
   OneToMany,
 } from 'typeorm';
-import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
-import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
-import { ColumnDateTransformer } from '../utils/entities';
+import { PowerBoostingSnapshot } from './powerBoostingSnapshot.js';
+import { PowerBalanceSnapshot } from './powerBalanceSnapshot.js';
+import { ColumnDateTransformer } from '../utils/entities.js';
 
 @Entity()
 @ObjectType()

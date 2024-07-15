@@ -6,25 +6,25 @@ import {
   graphqlUrl,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { getPowerAmountRankQuery } from '../../test/graphqlQueries';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+} from '../../test/testUtils.js';
+import { getPowerAmountRankQuery } from '../../test/graphqlQueries.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
 import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
-} from '../repositories/projectPowerViewRepository';
-import { User } from '../entities/user';
-import { Project } from '../entities/project';
+} from '../repositories/projectPowerViewRepository.js';
+import { User } from '../entities/user.js';
+import { Project } from '../entities/project.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from '../repositories/powerBoostingRepository';
-import { setPowerRound } from '../repositories/powerRoundRepository';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { AppDataSource } from '../orm';
-import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
+} from '../repositories/powerBoostingRepository.js';
+import { setPowerRound } from '../repositories/powerRoundRepository.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { AppDataSource } from '../orm.js';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository.js';
 
 describe('userProjectPowers test cases', projectPowersTestCases);
 

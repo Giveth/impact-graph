@@ -4,8 +4,9 @@ import {
   BlockInfo,
   IGivPowerSubgraphAdapter,
   UnipoolBalance,
-} from './IGivPowerSubgraphAdapter';
+} from './IGivPowerSubgraphAdapter.js';
 
+// @ts-expect-error migrate to ESM
 const _toBN = (n: string | number) => new BigNumber(n);
 export const formatGivPowerBalance = (balance: string | number): number =>
   Number(

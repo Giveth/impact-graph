@@ -1,9 +1,9 @@
 import {
   findInCompletePowerSnapShots,
   updatePowerSnapShots,
-} from '../repositories/powerSnapshotRepository';
-import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
-import { logger } from '../utils/logger';
+} from '../repositories/powerSnapshotRepository.js';
+import { getRoundNumberByDate } from '../utils/powerBoostingUtils.js';
+import { logger } from '../utils/logger.js';
 
 export const fillIncompletePowerSnapshots = async (): Promise<void> => {
   const incompletePowerSnapshots = await findInCompletePowerSnapShots();

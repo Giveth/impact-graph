@@ -6,7 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Category } from './category';
+import { Category } from './category.js';
 
 @Entity()
 @ObjectType()

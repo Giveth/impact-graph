@@ -1,4 +1,4 @@
-import { RecurringDonation } from '../../../entities/recurringDonation';
+import { RecurringDonation } from '../../../entities/recurringDonation.js';
 
 export const RecurringDonationTab = {
   resource: RecurringDonation,

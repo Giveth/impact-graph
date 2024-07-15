@@ -1,17 +1,17 @@
-import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
+import { getSocialNetworkAdapter } from '../adapters/adaptersFactory.js';
 import {
   createSocialProfile,
   isSocialNetworkAddedToVerificationForm,
-} from '../repositories/socialProfileRepository';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { SocialProfile } from '../entities/socialProfile';
-import { generateRandomString } from '../utils/utils';
-import { getRedisObject, setObjectInRedis } from '../redis';
-import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository';
+} from '../repositories/socialProfileRepository.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { SocialProfile } from '../entities/socialProfile.js';
+import { generateRandomString } from '../utils/utils.js';
+import { getRedisObject, setObjectInRedis } from '../redis.js';
+import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository.js';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
-} from '../entities/projectVerificationForm';
+} from '../entities/projectVerificationForm.js';
 
 export const getProjectVerificationFormByState = async (params: {
   state: string;

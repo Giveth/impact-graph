@@ -7,8 +7,8 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { QfRound } from '../entities/qfRound';
+} from '../../test/testUtils.js';
+import { QfRound } from '../entities/qfRound.js';
 import {
   deactivateExpiredQfRounds,
   findQfRoundById,
@@ -17,10 +17,10 @@ import {
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalSqrtRootSumSquared,
   getQfRoundStats,
-} from './qfRoundRepository';
-import { Project } from '../entities/project';
-import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
-import { getProjectQfRoundStats } from './donationRepository';
+} from './qfRoundRepository.js';
+import { Project } from '../entities/project.js';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService.js';
+import { getProjectQfRoundStats } from './donationRepository.js';
 
 describe(
   'getProjectDonationsSqrtRootSum test cases',

@@ -8,23 +8,23 @@ import {
   generateRandomEvmTxHash,
   generateRandomEtheriumAddress,
   saveRecurringDonationDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   createDraftDonationMutation,
   createDraftRecurringDonationMutation,
-} from '../../test/graphqlQueries';
-import { NETWORK_IDS } from '../provider';
-import { User } from '../entities/user';
-import { generateRandomString } from '../utils/utils';
-import { ChainType } from '../types/network';
+} from '../../test/graphqlQueries.js';
+import { NETWORK_IDS } from '../provider.js';
+import { User } from '../entities/user.js';
+import { generateRandomString } from '../utils/utils.js';
+import { ChainType } from '../types/network.js';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
-} from '../entities/draftDonation';
+} from '../entities/draftDonation.js';
 import {
   DRAFT_RECURRING_DONATION_STATUS,
   DraftRecurringDonation,
-} from '../entities/draftRecurringDonation';
+} from '../entities/draftRecurringDonation.js';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 describe(

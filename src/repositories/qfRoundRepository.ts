@@ -1,13 +1,13 @@
 import { Field, Float, Int, ObjectType, registerEnumType } from 'type-graphql';
-import { QfRound } from '../entities/qfRound';
-import { Donation } from '../entities/donation';
-import { User } from '../entities/user';
-import { AppDataSource } from '../orm';
-import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver';
-import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
-import { Sybil } from '../entities/sybil';
-import { ProjectFraud } from '../entities/projectFraud';
-import config from '../config';
+import { QfRound } from '../entities/qfRound.js';
+import { Donation } from '../entities/donation.js';
+import { User } from '../entities/user.js';
+import { AppDataSource } from '../orm.js';
+import { QfArchivedRoundsOrderBy } from '../resolvers/qfRoundResolver.js';
+import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView.js';
+import { Sybil } from '../entities/sybil.js';
+import { ProjectFraud } from '../entities/projectFraud.js';
+import config from '../config.js';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,

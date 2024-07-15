@@ -1,5 +1,5 @@
 import Axios from 'axios';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 
 const mpEthSubgraphUrl = process.env.MPETH_GRAPHQL_PRICES_URL as string;
 

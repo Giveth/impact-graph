@@ -10,7 +10,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './user';
+import { User } from './user.js';
 
 @Entity()
 @ObjectType()

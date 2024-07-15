@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType, Int } from 'type-graphql';
 import {
   BaseEntity,
   Column,
@@ -11,8 +11,7 @@ import {
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
-import { Int } from 'type-graphql/dist/scalars/aliases';
-import { Project, ProjectUpdate } from './project';
+import { Project, ProjectUpdate } from './project.js';
 
 @Entity()
 @ObjectType()

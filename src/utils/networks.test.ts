@@ -1,6 +1,6 @@
 import { assert } from 'chai';
-import { detectAddressChainType } from './networks';
-import { ChainType } from '../types/network';
+import { detectAddressChainType } from './networks.js';
+import { ChainType } from '../types/network.js';
 
 describe('networks - ' + detectAddressChainType.name, () => {
   it('detect solana address - 1', () => {

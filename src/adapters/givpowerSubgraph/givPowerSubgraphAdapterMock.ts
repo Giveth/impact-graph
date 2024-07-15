@@ -2,8 +2,8 @@ import {
   IGivPowerSubgraphAdapter,
   BlockInfo,
   UnipoolBalance,
-} from './IGivPowerSubgraphAdapter';
-import { sleep } from '../../utils/utils';
+} from './IGivPowerSubgraphAdapter.js';
+import { sleep } from '../../utils/utils.js';
 
 export class GivPowerSubgraphAdapterMock implements IGivPowerSubgraphAdapter {
   nextCallResult: any = null;

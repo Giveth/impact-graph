@@ -3,9 +3,9 @@ import moment from 'moment';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
-} from '../../../test/testUtils';
-import { Project, ProjStatus, ReviewStatus } from '../../entities/project';
-import { updateProjectListing } from './syncProjectsRequiredForListing';
+} from '../../../test/testUtils.js';
+import { Project, ProjStatus, ReviewStatus } from '../../entities/project.js';
+import { updateProjectListing } from './syncProjectsRequiredForListing.js';
 
 describe('updateProjectListing() test cases', updateProjectListingTestCases);
 

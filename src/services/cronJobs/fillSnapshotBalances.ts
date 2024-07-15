@@ -1,15 +1,15 @@
 import Bull from 'bull';
 import { schedule } from 'node-cron';
 import _ from 'lodash';
-import { redisConfig } from '../../redis';
-import { logger } from '../../utils/logger';
-import config from '../../config';
-import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory';
+import { redisConfig } from '../../redis.js';
+import { logger } from '../../utils/logger.js';
+import config from '../../config.js';
+import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory.js';
 import {
   getPowerBoostingSnapshotWithoutBalance,
   GetPowerBoostingSnapshotWithoutBalanceOutput,
-} from '../../repositories/powerSnapshotRepository';
-import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
+} from '../../repositories/powerSnapshotRepository.js';
+import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository.js';
 
 // Constants
 const FILL_SNAPSHOT_BALANCE_QUEUE_NAME = 'fill-snapshot-balance-aggregator';

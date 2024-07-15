@@ -1,10 +1,10 @@
 import { Arg, Query, Resolver } from 'type-graphql';
-import { ProjectStatusReason } from '../entities/projectStatusReason';
+import { ProjectStatusReason } from '../entities/projectStatusReason.js';
 import {
   findAllStatusReasons,
   findStatusReasonsByStatusId,
-} from '../repositories/statusReasonRepository';
-import { logger } from '../utils/logger';
+} from '../repositories/statusReasonRepository.js';
+import { logger } from '../utils/logger.js';
 
 @Resolver(_of => ProjectStatusReason)
 export class StatusReasonResolver {

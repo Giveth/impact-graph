@@ -5,7 +5,7 @@ import {
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   cancelProjectBoosting,
   findPowerBoostings,
@@ -15,13 +15,13 @@ import {
   setMultipleBoosting,
   setSingleBoosting,
   takePowerBoostingSnapshot,
-} from './powerBoostingRepository';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { PowerSnapshot } from '../entities/powerSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { errorMessages } from '../utils/errorMessages';
-import { AppDataSource } from '../orm';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+} from './powerBoostingRepository.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { PowerSnapshot } from '../entities/powerSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { AppDataSource } from '../orm.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
 
 describe('findUserPowerBoosting() testCases', findUserPowerBoostingTestCases);
 describe('findPowerBoostings() testCases', findPowerBoostingsTestCases);

@@ -7,7 +7,7 @@ import {
   ManyToOne,
   RelationId,
 } from 'typeorm';
-import { Project } from './project';
+import { Project } from './project.js';
 
 @Entity()
 @ObjectType()

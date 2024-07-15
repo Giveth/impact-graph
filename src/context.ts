@@ -1,4 +1,4 @@
-import { User } from './entities/user';
+import { User } from './entities/user.js';
 
 export interface Context {
   user: User;

@@ -8,7 +8,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import { Field, Int, ObjectType } from 'type-graphql';
-import { Project } from '../entities/project';
+import { Project } from '../entities/project.js';
 
 @ViewEntity('project_future_power_view', { synchronize: false })
 @ObjectType()

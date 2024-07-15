@@ -1,10 +1,10 @@
 import { schedule } from 'node-cron';
-import config from '../../config';
-import { logger } from '../../utils/logger';
+import config from '../../config.js';
+import { logger } from '../../utils/logger.js';
 import {
   processRecurringDonationStreamJobs,
   updateRecurringDonationsStream,
-} from '../recurringDonationStreamQueue';
+} from '../recurringDonationStreamQueue.js';
 
 const cronJobTime =
   (config.get('UPDATE_RECURRING_DONATIONS_STREAM') as string) || '0 0 * * *'; // one day at 00:00

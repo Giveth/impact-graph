@@ -1,8 +1,8 @@
 import {
   findProjectPowerViewByProjectId,
   getBottomRank,
-} from '../repositories/projectPowerViewRepository';
-import { getPowerRound } from '../repositories/powerRoundRepository';
+} from '../repositories/projectPowerViewRepository.js';
+import { getPowerRound } from '../repositories/powerRoundRepository.js';
 
 export const calculateGivbackFactor = async (
   projectId: number,

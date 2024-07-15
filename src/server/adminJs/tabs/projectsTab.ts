@@ -3,7 +3,9 @@ import { SelectQueryBuilder } from 'typeorm';
 import {
   ActionResponse,
   After,
+  // @ts-expect-error as d
 } from 'adminjs/src/backend/actions/action.interface';
+// @ts-expect-error as d
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import {
   Project,
@@ -11,48 +13,51 @@ import {
   ProjStatus,
   ReviewStatus,
   RevokeSteps,
-} from '../../../entities/project';
-import { canAccessProjectAction, ResourceActions } from '../adminJsPermissions';
+} from '../../../entities/project.js';
+import {
+  canAccessProjectAction,
+  ResourceActions,
+} from '../adminJsPermissions.js';
 import {
   findProjectById,
   findProjectsByIdArray,
-} from '../../../repositories/projectRepository';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../../analytics/analytics';
-import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory';
-import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
-import { changeUserBoostingsAfterProjectCancelled } from '../../../services/powerBoostingService';
-import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository';
+} from '../../../repositories/projectRepository.js';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../../analytics/analytics.js';
+import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory.js';
+import { getNotificationAdapter } from '../../../adapters/adaptersFactory.js';
+import { changeUserBoostingsAfterProjectCancelled } from '../../../services/powerBoostingService.js';
+import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository.js';
 import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
-} from '../../../repositories/projectPowerViewRepository';
-import { logger } from '../../../utils/logger';
-import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
-import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
+} from '../../../repositories/projectPowerViewRepository.js';
+import { logger } from '../../../utils/logger.js';
+import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository.js';
+import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository.js';
 import {
   AdminJsContextInterface,
   AdminJsProjectsQuery,
   AdminJsRequestInterface,
   projectHeaders,
-} from '../adminJs-types';
-import { ProjectStatus } from '../../../entities/projectStatus';
-import { messages } from '../../../utils/messages';
+} from '../adminJs-types.js';
+import { ProjectStatus } from '../../../entities/projectStatus.js';
+import { messages } from '../../../utils/messages.js';
 import {
   addProjectsSheetToSpreadsheet,
   initExportSpreadsheet,
-} from '../../../services/googleSheets';
-import { NETWORKS_IDS_TO_NAME } from '../../../provider';
+} from '../../../services/googleSheets.js';
+import { NETWORKS_IDS_TO_NAME } from '../../../provider.js';
 import {
   getVerificationFormByProjectId,
   makeFormDraft,
   makeFormVerified,
-} from '../../../repositories/projectVerificationRepository';
-import { FeaturedUpdate } from '../../../entities/featuredUpdate';
-import { findActiveQfRound } from '../../../repositories/qfRoundRepository';
-import { User } from '../../../entities/user';
-import { refreshProjectEstimatedMatchingView } from '../../../services/projectViewsService';
-import { extractAdminJsReferrerUrlParams } from '../adminJs';
-import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
+} from '../../../repositories/projectVerificationRepository.js';
+import { FeaturedUpdate } from '../../../entities/featuredUpdate.js';
+import { findActiveQfRound } from '../../../repositories/qfRoundRepository.js';
+import { User } from '../../../entities/user.js';
+import { refreshProjectEstimatedMatchingView } from '../../../services/projectViewsService.js';
+import { extractAdminJsReferrerUrlParams } from '../adminJs.js';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2.js';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -647,6 +652,7 @@ export const projectsTab = {
           new: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/VerificationFormSocials'),
         },
       },
@@ -731,6 +737,7 @@ export const projectsTab = {
         },
 
         components: {
+          // @ts-expect-error migrate to ESM
           show: adminJs.bundle('./components/ClickableLink'),
         },
       },
@@ -809,6 +816,7 @@ export const projectsTab = {
           new: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/ListProjectAddresses'),
         },
       },
@@ -835,6 +843,7 @@ export const projectsTab = {
           edit: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/ProjectUpdates'),
         },
       },
@@ -847,6 +856,7 @@ export const projectsTab = {
           edit: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/QfRoundsInProject'),
         },
       },

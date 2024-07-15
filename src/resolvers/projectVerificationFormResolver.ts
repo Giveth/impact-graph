@@ -1,39 +1,39 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import * as jwt from 'jsonwebtoken';
 import moment from 'moment';
-import { ApolloContext } from '../types/ApolloContext';
+import { ApolloContext } from '../types/ApolloContext.js';
 import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+} from '../utils/errorMessages.js';
 import {
   createProjectVerificationRequestValidator,
   getCurrentProjectVerificationRequestValidator,
   validateWithJoiSchema,
-} from '../utils/validators/graphqlQueryValidators';
-import { logger } from '../utils/logger';
+} from '../utils/validators/graphqlQueryValidators.js';
+import { logger } from '../utils/logger.js';
 import {
   findProjectById,
   findProjectBySlug,
-} from '../repositories/projectRepository';
+} from '../repositories/projectRepository.js';
 import {
   createProjectVerificationForm,
   findProjectVerificationFormByEmailConfirmationToken,
   findProjectVerificationFormById,
   getVerificationFormByProjectId,
-} from '../repositories/projectVerificationRepository';
+} from '../repositories/projectVerificationRepository.js';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
   PROJECT_VERIFICATION_STEPS,
-} from '../entities/projectVerificationForm';
-import { updateProjectVerificationFormByUser } from '../services/projectVerificationFormService';
-import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdateInput';
-import config from '../config';
-import { countriesList } from '../utils/utils';
-import { Country } from '../entities/Country';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
+} from '../entities/projectVerificationForm.js';
+import { updateProjectVerificationFormByUser } from '../services/projectVerificationFormService.js';
+import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdateInput.js';
+import config from '../config.js';
+import { countriesList } from '../utils/utils.js';
+import { Country } from '../entities/Country.js';
+import { getNotificationAdapter } from '../adapters/adaptersFactory.js';
 
 @Resolver(_of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {

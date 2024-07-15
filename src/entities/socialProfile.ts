@@ -10,9 +10,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
-import { User } from './user';
-import { ProjectVerificationForm } from './projectVerificationForm';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { ProjectVerificationForm } from './projectVerificationForm.js';
 
 export const SOCIAL_NETWORKS = {
   FACEBOOK: 'facebook',

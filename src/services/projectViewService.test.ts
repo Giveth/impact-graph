@@ -3,10 +3,10 @@ import { assert } from 'chai';
 import {
   getQfRoundActualDonationDetails,
   refreshProjectActualMatchingView,
-} from './projectViewsService';
-import { QfRound } from '../entities/qfRound';
-import { Project } from '../entities/project';
-import { NETWORK_IDS } from '../provider';
+} from './projectViewsService.js';
+import { QfRound } from '../entities/qfRound.js';
+import { Project } from '../entities/project.js';
+import { NETWORK_IDS } from '../provider.js';
 import {
   createDonationData,
   createProjectData,
@@ -14,7 +14,7 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 
 describe(
   'getQfRoundActualDonationDetails test cases',

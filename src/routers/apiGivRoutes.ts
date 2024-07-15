@@ -1,21 +1,21 @@
 import express, { Request, Response } from 'express';
-import { apiGivAuthentication } from '../middleware/apiGivAuthentication';
-import { findDonationsByTransactionId } from '../repositories/donationRepository';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { Donation } from '../entities/donation';
-import { findProjectByWalletAddress } from '../repositories/projectRepository';
-import { findTokenByTokenAddress } from '../repositories/tokenRepository';
-import { ProjStatus } from '../entities/project';
-import { logger } from '../utils/logger';
-import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
-import { ApiGivStandardError, handleExpressError } from './standardError';
-import { findUserByWalletAddress } from '../repositories/userRepository';
-import { User } from '../entities/user';
-import { updateProjectStatistics } from '../services/projectService';
+import { apiGivAuthentication } from '../middleware/apiGivAuthentication.js';
+import { findDonationsByTransactionId } from '../repositories/donationRepository.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { Donation } from '../entities/donation.js';
+import { findProjectByWalletAddress } from '../repositories/projectRepository.js';
+import { findTokenByTokenAddress } from '../repositories/tokenRepository.js';
+import { ProjStatus } from '../entities/project.js';
+import { logger } from '../utils/logger.js';
+import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils.js';
+import { ApiGivStandardError, handleExpressError } from './standardError.js';
+import { findUserByWalletAddress } from '../repositories/userRepository.js';
+import { User } from '../entities/user.js';
+import { updateProjectStatistics } from '../services/projectService.js';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from '../services/userService';
+} from '../services/userService.js';
 
 export const apiGivRouter = express.Router();
 apiGivRouter.post(

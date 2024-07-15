@@ -4,47 +4,47 @@ import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
-} from '../../../entities/donation';
+} from '../../../entities/donation.js';
 import {
   canAccessDonationAction,
   ResourceActions,
-} from '../adminJsPermissions';
+} from '../adminJsPermissions.js';
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
   AdminJsDonationsQuery,
   donationHeaders,
-} from '../adminJs-types';
-import { messages } from '../../../utils/messages';
-import { logger } from '../../../utils/logger';
+} from '../adminJs-types.js';
+import { messages } from '../../../utils/messages.js';
+import { logger } from '../../../utils/logger.js';
 import {
   findEvmTransactionByHash,
   getCsvAirdropTransactions,
   getGnosisSafeTransactions,
-} from '../../../services/chains/evm/transactionService';
+} from '../../../services/chains/evm/transactionService.js';
 import {
   i18n,
   translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
-import { Project } from '../../../entities/project';
-import { calculateGivbackFactor } from '../../../services/givbackService';
-import { findUserByWalletAddress } from '../../../repositories/userRepository';
+} from '../../../utils/errorMessages.js';
+import { Project } from '../../../entities/project.js';
+import { calculateGivbackFactor } from '../../../services/givbackService.js';
+import { findUserByWalletAddress } from '../../../repositories/userRepository.js';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from '../../../services/userService';
-import { NETWORK_IDS } from '../../../provider';
+} from '../../../services/userService.js';
+import { NETWORK_IDS } from '../../../provider.js';
 import {
   initExportSpreadsheet,
   addDonationsSheetToSpreadsheet,
-} from '../../../services/googleSheets';
-import { extractAdminJsReferrerUrlParams } from '../adminJs';
-import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
+} from '../../../services/googleSheets.js';
+import { extractAdminJsReferrerUrlParams } from '../adminJs.js';
+import { getTwitterDonations } from '../../../services/Idriss/contractDonations.js';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
-} from '../../../services/chains';
-import { updateProjectStatistics } from '../../../services/projectService';
+} from '../../../services/chains/index.js';
+import { updateProjectStatistics } from '../../../services/projectService.js';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,

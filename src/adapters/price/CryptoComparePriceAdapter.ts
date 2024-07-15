@@ -2,9 +2,9 @@ import axios from 'axios';
 import {
   GetTokenPriceParams,
   PriceAdapterInterface,
-} from './PriceAdapterInterface';
-import { getRedisObject, setObjectInRedis } from '../../redis';
-import { logger } from '../../utils/logger';
+} from './PriceAdapterInterface.js';
+import { getRedisObject, setObjectInRedis } from '../../redis.js';
+import { logger } from '../../utils/logger.js';
 
 const cryptoCompareCacheExpirationInSeconds =
   Number(process.env.COINGECKO_CACHE_EXPIRATION_IN_SECONDS) || 60 * 60 * 24 * 7; // 1 hour

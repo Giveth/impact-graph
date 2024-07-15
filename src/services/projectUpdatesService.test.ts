@@ -2,10 +2,10 @@ import { assert } from 'chai';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
-} from '../../test/testUtils';
-import { Project, ProjectUpdate } from '../entities/project';
-import { updateTotalProjectUpdatesOfAProject } from './projectUpdatesService';
-import { findProjectById } from '../repositories/projectRepository';
+} from '../../test/testUtils.js';
+import { Project, ProjectUpdate } from '../entities/project.js';
+import { updateTotalProjectUpdatesOfAProject } from './projectUpdatesService.js';
+import { findProjectById } from '../repositories/projectRepository.js';
 
 describe(
   'updateTotalProjectUpdatesOfAProject test cases',

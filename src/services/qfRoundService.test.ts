@@ -3,9 +3,9 @@ import moment from 'moment';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
-} from '../../test/testUtils';
-import { QfRound } from '../entities/qfRound';
-import { relatedActiveQfRoundForProject } from './qfRoundService';
+} from '../../test/testUtils.js';
+import { QfRound } from '../entities/qfRound.js';
+import { relatedActiveQfRoundForProject } from './qfRoundService.js';
 
 describe(
   'relatedActiveQfRoundForProject',

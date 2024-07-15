@@ -5,23 +5,29 @@ import {
   ProjStatus,
   ProjectUpdate,
   ReviewStatus,
-} from '../../entities/project';
-import { Category, CATEGORY_NAMES } from '../../entities/category';
-import { sleep } from '../../utils/utils';
+} from '../../entities/project.js';
+import { Category, CATEGORY_NAMES } from '../../entities/category.js';
+import { sleep } from '../../utils/utils.js';
 import {
   loginGivingBlocks,
   fetchGivingBlockProjects,
   generateGivingBlockDepositAddress,
   fetchOrganizationById,
   GivingBlockProject,
-} from './api';
-import config from '../../config';
-import { ProjectStatus } from '../../entities/projectStatus';
-import { logger } from '../../utils/logger';
-import { getAppropriateSlug, getQualityScore } from '../projectService';
-import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
-import { findUserById } from '../../repositories/userRepository';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+} from './api.js';
+import config from '../../config.js';
+import { ProjectStatus } from '../../entities/projectStatus.js';
+import { logger } from '../../utils/logger.js';
+import { getAppropriateSlug, getQualityScore } from '../projectService.js';
+import {
+  Organization,
+  ORGANIZATION_LABELS,
+} from '../../entities/organization.js';
+import { findUserById } from '../../repositories/userRepository.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
 
 // Every week once on sunday at 0 hours
 const cronJobTime =
@@ -112,6 +118,7 @@ const createGivingProject = async (data: {
     const website = organization?.websiteBlocks?.url?.value;
 
     // Remove special characters including ,
+    // @ts-expect-error old package
     const slugBase = slugify(givingBlockProject.name, {
       remove: /[*+~.,()'"!:@]/g,
     });

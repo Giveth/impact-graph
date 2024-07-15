@@ -6,21 +6,21 @@ import {
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
   saveRecurringDonationDirectlyToDb,
-} from '../../../../test/testUtils';
-import { NETWORK_IDS } from '../../../provider';
-import { Project } from '../../../entities/project';
-import { User } from '../../../entities/user';
+} from '../../../../test/testUtils.js';
+import { NETWORK_IDS } from '../../../provider.js';
+import { Project } from '../../../entities/project.js';
+import { User } from '../../../entities/user.js';
 import {
   DraftRecurringDonation,
   RECURRING_DONATION_ORIGINS,
-} from '../../../entities/draftRecurringDonation';
-import { AnchorContractAddress } from '../../../entities/anchorContractAddress';
+} from '../../../entities/draftRecurringDonation.js';
+import { AnchorContractAddress } from '../../../entities/anchorContractAddress.js';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
-} from '../../../entities/recurringDonation';
-import { addNewAnchorAddress } from '../../../repositories/anchorContractAddressRepository';
-import { matchDraftRecurringDonations } from './draftRecurringDonationService';
+} from '../../../entities/recurringDonation.js';
+import { addNewAnchorAddress } from '../../../repositories/anchorContractAddressRepository.js';
+import { matchDraftRecurringDonations } from './draftRecurringDonationService.js';
 
 describe('matchDraftRecurringDonations', matchDraftRecurringDonationsTests);
 

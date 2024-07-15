@@ -7,8 +7,8 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Field, Float, ObjectType } from 'type-graphql';
-import { ColumnNumericTransformer } from '../utils/entities';
-import { User } from '../entities/user';
+import { ColumnNumericTransformer } from '../utils/entities.js';
+import { User } from '../entities/user.js';
 
 @ViewEntity('project_user_instant_power_view', { synchronize: false })
 @ObjectType()

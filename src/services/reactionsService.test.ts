@@ -4,11 +4,11 @@ import {
   createProjectData,
   saveProjectDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
-import { Project } from '../entities/project';
-import { updateTotalReactionsOfAProject } from './reactionsService';
-import { Reaction } from '../entities/reaction';
-import { findProjectById } from '../repositories/projectRepository';
+} from '../../test/testUtils.js';
+import { Project } from '../entities/project.js';
+import { updateTotalReactionsOfAProject } from './reactionsService.js';
+import { Reaction } from '../entities/reaction.js';
+import { findProjectById } from '../repositories/projectRepository.js';
 
 describe(
   'updateTotalReactionsOfAProject test cases',

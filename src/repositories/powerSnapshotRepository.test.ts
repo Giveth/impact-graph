@@ -1,20 +1,20 @@
 import { assert } from 'chai';
-import { PowerSnapshot } from '../entities/powerSnapshot';
+import { PowerSnapshot } from '../entities/powerSnapshot.js';
 import {
   getPowerBoostingSnapshotWithoutBalance,
   updatePowerSnapshotSyncedFlag,
-} from './powerSnapshotRepository';
+} from './powerSnapshotRepository.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { AppDataSource } from '../orm';
-import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
-import { getTimestampInSeconds } from '../utils/utils';
+} from '../../test/testUtils.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { AppDataSource } from '../orm.js';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository.js';
+import { getTimestampInSeconds } from '../utils/utils.js';
 
 describe('findPowerSnapshotById() test cases', findPowerSnapshotByIdTestCases);
 describe('test balance snapshot functions', balanceSnapshotTestCases);

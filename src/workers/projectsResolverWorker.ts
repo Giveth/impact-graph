@@ -1,18 +1,10 @@
 // workers/auth.js
 import { expose } from 'threads/worker';
-import { WorkerModule } from 'threads/dist/types/worker';
-import { FilterField, Project, SortingField } from '../entities/project';
-import { generateProjectFiltersCacheKey } from '../utils/utils';
-import { Reaction } from '../entities/reaction';
+import { FilterField, Project, SortingField } from '../entities/project.js';
+import { generateProjectFiltersCacheKey } from '../utils/utils.js';
+import { Reaction } from '../entities/reaction.js';
 
-type ProjectsResolverWorkerFunctions =
-  | 'hashProjectFilters'
-  | 'mergeUserReactionsToProjects';
-
-export type ProjectResolverWorker =
-  WorkerModule<ProjectsResolverWorkerFunctions>;
-
-const worker: ProjectResolverWorker = {
+const worker = {
   async hashProjectFilters(args: {
     limit?: number;
     skip?: number;

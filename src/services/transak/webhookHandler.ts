@@ -1,7 +1,7 @@
 import { verify } from 'jsonwebtoken';
-import { updateDonationByTransakData } from '../donationService';
-import { TransakOrder } from './order';
-import { logger } from '../../utils/logger';
+import { updateDonationByTransakData } from '../donationService.js';
+import { TransakOrder } from './order.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * Returns status 200 always, most providers require this or they will keep sending requests indefinitely

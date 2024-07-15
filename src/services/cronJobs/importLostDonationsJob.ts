@@ -2,29 +2,32 @@ import abiDecoder from 'abi-decoder';
 import { schedule } from 'node-cron';
 import moment from 'moment';
 import { ethers } from 'ethers';
-import config from '../../config';
-import { Donation } from '../../entities/donation';
-import { logger } from '../../utils/logger';
-import { NetworkTransactionInfo } from '../chains';
-import { getProvider, NETWORKS_IDS_TO_NAME } from '../../provider';
-import { erc20ABI } from '../../assets/erc20ABI';
-import { User } from '../../entities/user';
-import { Token } from '../../entities/token';
-import { Project } from '../../entities/project';
-import { calculateGivbackFactor } from '../givbackService';
+import config from '../../config.js';
+import { Donation } from '../../entities/donation.js';
+import { logger } from '../../utils/logger.js';
+import { NetworkTransactionInfo } from '../chains/index.js';
+import { getProvider, NETWORKS_IDS_TO_NAME } from '../../provider.js';
+import { erc20ABI } from '../../assets/erc20ABI.js';
+import { User } from '../../entities/user.js';
+import { Token } from '../../entities/token.js';
+import { Project } from '../../entities/project.js';
+import { calculateGivbackFactor } from '../givbackService.js';
 import {
   getUserDonationStats,
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from '../userService';
-import { toFixNumber } from '../donationService';
-import { refreshProjectEstimatedMatchingView } from '../projectViewsService';
-import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter';
-import { QfRound } from '../../entities/qfRound';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { getNotificationAdapter } from '../../adapters/adaptersFactory';
-import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
-import { updateProjectStatistics } from '../projectService';
+} from '../userService.js';
+import { toFixNumber } from '../donationService.js';
+import { refreshProjectEstimatedMatchingView } from '../projectViewsService.js';
+import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter.js';
+import { QfRound } from '../../entities/qfRound.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory.js';
+import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter.js';
+import { updateProjectStatistics } from '../projectService.js';
 
 abiDecoder.addABI(erc20ABI);
 

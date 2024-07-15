@@ -1,4 +1,4 @@
-import { ReferredEvent } from '../entities/referredEvent';
+import { ReferredEvent } from '../entities/referredEvent.js';
 
 export const firstOrCreateReferredEventByUserId = async (
   userId: number,

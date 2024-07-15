@@ -5,7 +5,7 @@ import {
   SubmittedPassportResponse,
   SubmittedPassportsResponse,
   GetPassportStampsResponse,
-} from './gitcoinAdapterInterface';
+} from './gitcoinAdapterInterface.js';
 
 export const cachedReferralAddresses = {};
 

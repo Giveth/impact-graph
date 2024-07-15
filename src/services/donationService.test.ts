@@ -1,4 +1,5 @@
 import { assert, expect } from 'chai';
+// @ts-expect-error as d
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import moment from 'moment';
 import {
@@ -7,8 +8,8 @@ import {
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
   insertDonationsFromQfRoundHistory,
-} from './donationService';
-import { NETWORK_IDS } from '../provider';
+} from './donationService.js';
+import { NETWORK_IDS } from '../provider.js';
 import {
   createDonationData,
   createProjectData,
@@ -18,24 +19,24 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
-import { Token } from '../entities/token';
-import { ORGANIZATION_LABELS } from '../entities/organization';
-import { Project } from '../entities/project';
-import { Donation, DONATION_STATUS } from '../entities/donation';
-import { errorMessages } from '../utils/errorMessages';
-import { findDonationById } from '../repositories/donationRepository';
-import { findProjectById } from '../repositories/projectRepository';
-import { findUserByWalletAddress } from '../repositories/userRepository';
-import { QfRound } from '../entities/qfRound';
+} from '../../test/testUtils.js';
+import { Token } from '../entities/token.js';
+import { ORGANIZATION_LABELS } from '../entities/organization.js';
+import { Project } from '../entities/project.js';
+import { Donation, DONATION_STATUS } from '../entities/donation.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { findDonationById } from '../repositories/donationRepository.js';
+import { findProjectById } from '../repositories/projectRepository.js';
+import { findUserByWalletAddress } from '../repositories/userRepository.js';
+import { QfRound } from '../entities/qfRound.js';
 import {
   fillQfRoundHistory,
   getQfRoundHistoriesThatDontHaveRelatedDonations,
   getQfRoundHistory,
-} from '../repositories/qfRoundHistoryRepository';
-import { User } from '../entities/user';
-import { QfRoundHistory } from '../entities/qfRoundHistory';
-import { updateProjectStatistics } from './projectService';
+} from '../repositories/qfRoundHistoryRepository.js';
+import { User } from '../entities/user.js';
+import { QfRoundHistory } from '../entities/qfRoundHistory.js';
+import { updateProjectStatistics } from './projectService.js';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(

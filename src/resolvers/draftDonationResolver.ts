@@ -1,30 +1,30 @@
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { Repository } from 'typeorm';
-import { ApolloContext } from '../types/ApolloContext';
-import { User } from '../entities/user';
-import SentryLogger from '../sentryLogger';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { User } from '../entities/user.js';
+import SentryLogger from '../sentryLogger.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
 import {
   createDraftDonationQueryValidator,
   createDraftRecurringDonationQueryValidator,
   validateWithJoiSchema,
-} from '../utils/validators/graphqlQueryValidators';
-import { logger } from '../utils/logger';
-import { findUserById } from '../repositories/userRepository';
-import { AppDataSource } from '../orm';
-import { detectAddressChainType } from '../utils/networks';
-import { ChainType } from '../types/network';
-import { getAppropriateNetworkId } from '../services/chains';
+} from '../utils/validators/graphqlQueryValidators.js';
+import { logger } from '../utils/logger.js';
+import { findUserById } from '../repositories/userRepository.js';
+import { AppDataSource } from '../orm.js';
+import { detectAddressChainType } from '../utils/networks.js';
+import { ChainType } from '../types/network.js';
+import { getAppropriateNetworkId } from '../services/chains/index.js';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
-} from '../entities/draftDonation';
-import { DraftRecurringDonation } from '../entities/draftRecurringDonation';
+} from '../entities/draftDonation.js';
+import { DraftRecurringDonation } from '../entities/draftRecurringDonation.js';
 import {
   findRecurringDonationById,
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
-} from '../repositories/recurringDonationRepository';
-import { RecurringDonation } from '../entities/recurringDonation';
+} from '../repositories/recurringDonationRepository.js';
+import { RecurringDonation } from '../entities/recurringDonation.js';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 const draftRecurringDonationEnabled =
@@ -32,6 +32,7 @@ const draftRecurringDonationEnabled =
 
 @Resolver(_of => User)
 export class DraftDonationResolver {
+  // @ts-expect-error migrate to ESM
   private readonly donationRepository: Repository<DraftDonation>;
 
   constructor() {

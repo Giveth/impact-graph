@@ -1,4 +1,4 @@
-import { ProjectUpdate } from '../entities/project';
+import { ProjectUpdate } from '../entities/project.js';
 
 export const findProjectUpdatesByProjectId = async (
   projectId: number,
