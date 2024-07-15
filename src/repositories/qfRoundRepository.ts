@@ -9,6 +9,7 @@ import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchi
 import { Sybil } from '../entities/sybil';
 import { ProjectFraud } from '../entities/projectFraud';
 import config from '../config';
+import { logger } from '../utils/logger';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -277,21 +278,38 @@ export const getUserMBDScore = async (
 ): Promise<number | null> => {
   if (!userId || !qfRoundId) return null;
 
-  const result = await UserQfRoundModelScore.createQueryBuilder(
-    'user_qf_round_model_score',
-  )
-    .select('score')
-    .where('"userId" = :userId', { userId })
-    .andWhere('"qfRoundId" = :qfRoundId', { qfRoundId })
-    .getRawOne();
+  try {
+    const result = await UserQfRoundModelScore.createQueryBuilder(
+      'user_qf_round_model_score',
+    )
+      .select('score')
+      .where('"userId" = :userId', { userId })
+      .andWhere('"qfRoundId" = :qfRoundId', { qfRoundId })
+      .getRawOne();
 
-  return result?.score ?? null;
+    return result?.score ?? null;
+  } catch (error) {
+    logger.error('Error retrieving user MBD score', {
+      error,
+      userId,
+      qfRoundId,
+    });
+    return null;
+  }
 };
 
 export const retrieveActiveQfRoundUserMBDScore = async (
   userId: number,
 ): Promise<number | null> => {
-  const activeQfRound = await findActiveQfRound();
-  if (!activeQfRound) return null;
-  return getUserMBDScore(activeQfRound.id, userId);
+  try {
+    const activeQfRound = await findActiveQfRound();
+    if (!activeQfRound) return null;
+    return getUserMBDScore(activeQfRound.id, userId);
+  } catch (error) {
+    logger.error('Error retrieving active QF round user MBD score', {
+      error,
+      userId,
+    });
+    return null;
+  }
 };

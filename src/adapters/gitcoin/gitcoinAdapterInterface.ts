@@ -7,17 +7,6 @@ export interface SubmitPassportInput {
   address: string;
 }
 
-// export interface UserAnalysisModelResponse {
-//   address: string;
-//   details: {
-//     models: {
-//       ethereum_activity: {
-//         score: number;
-//       }
-//     }
-//   }
-// }
-
 export interface SubmittedPassportResponse {
   address: string;
   score: string | undefined | null;
