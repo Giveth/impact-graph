@@ -322,7 +322,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -407,7 +407,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -468,7 +468,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -528,7 +528,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -590,7 +590,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -656,7 +656,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -736,7 +736,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -812,7 +812,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -882,7 +882,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -952,7 +952,7 @@ function updateRecurringDonationTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1077,7 +1077,7 @@ function updateRecurringDonationByIdTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1162,7 +1162,7 @@ function updateRecurringDonationByIdTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1223,7 +1223,7 @@ function updateRecurringDonationByIdTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1283,7 +1283,7 @@ function updateRecurringDonationByIdTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1345,7 +1345,7 @@ function updateRecurringDonationByIdTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1411,7 +1411,7 @@ function updateRecurringDonationByIdTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1491,7 +1491,7 @@ function updateRecurringDonationByIdTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1562,7 +1562,7 @@ function updateRecurringDonationByIdTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1633,7 +1633,7 @@ function updateRecurringDonationByIdTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency,
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -2807,7 +2807,7 @@ function updateRecurringDonationStatusTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -2856,7 +2856,7 @@ function updateRecurringDonationStatusTestCases() {
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
-      timestamp: 1647069070,
+      timestamp: 1647069070 * 1000,
     };
     await saveProjectDirectlyToDb({
       ...createProjectData(),

@@ -12,7 +12,7 @@ const payload = {
     onramperTxId: 'O4x_YoHNLTEcgHDYnTHTbA--',
     txId: '6c4d4395-97dc-46f6-86c2-ff80278d6068',
     gatewayIdentifier: 'Transak',
-    timestamp: 1669671063842,
+    timestamp: 1669671063842 * 1000,
     inCurrency: 'CHF',
     inAmount: 29,
     outCurrency: 'ETH',

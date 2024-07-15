@@ -22,7 +22,7 @@ function getTransactionDetailTestCases() {
   //     networkId: NETWORK_IDS.XDAI,
   //     fromAddress: '0xad2386a6F21F028CC0D167411e59C5C3F9829B2c',
   //     toAddress: '0x9924285ff2207d6e36642b6832a515a6a3aedcab',
-  //     timestamp: 1696324809,
+  //     timestamp: 1696324809 * 1000,
   //     safeTxHash: 'xxxxxx',
   //     amount,
   //   });
@@ -41,7 +41,7 @@ function getTransactionDetailTestCases() {
       networkId: NETWORK_IDS.XDAI,
       fromAddress: '0x76884f5147f7b6d1f3d15cd8224235ea84036f9e',
       toAddress: '0x9924285ff2207d6e36642b6832a515a6a3aedcab',
-      timestamp: 1696324809,
+      timestamp: 1696324809 * 1000,
       safeTxHash: 'xxxxx',
       amount,
     });
@@ -60,7 +60,7 @@ function getTransactionDetailTestCases() {
   //     networkId: NETWORK_IDS.XDAI,
   //     fromAddress: '0x8d0846e68a457D457c71124d14D2b43988a17E4f',
   //     toAddress: '0x216D44960291E4129435c719217a7ECAe8c29927',
-  //     timestamp: 1696324809,
+  //     timestamp: 1696324809 * 1000,
   //     amount,
   //   });
   //   assert.isOk(transactionInfo);
@@ -78,7 +78,7 @@ function getTransactionDetailTestCases() {
       networkId: NETWORK_IDS.ETC,
       fromAddress: '0x8d0846e68a457D457c71124d14D2b43988a17E4f',
       toAddress: '0x216D44960291E4129435c719217a7ECAe8c29927',
-      timestamp: 1696324809,
+      timestamp: 1696324809 * 1000,
       nonce: 28,
       amount,
     });
@@ -98,7 +98,7 @@ function getTransactionDetailTestCases() {
       networkId: NETWORK_IDS.ETC,
       fromAddress: '0x1a50354Cb666BD015760399D49b4b4D8a8f4a978',
       toAddress: '0x40E3780e5Bec58629ac4C5Dc3bcA3dF2d7FD0C35',
-      timestamp: 1668186000,
+      timestamp: 1668186000 * 1000,
       amount,
     });
     assert.isOk(transactionInfo);
@@ -116,7 +116,7 @@ function getTransactionDetailTestCases() {
         networkId: NETWORK_IDS.ETC,
         fromAddress: '0x1a50354Cb666BD015760399D49b4b4D8a8f4a978',
         toAddress: '0x40E3780e5Bec58629ac4C5Dc3bcA3dF2d7FD0C35',
-        timestamp: 1668186000,
+        timestamp: 1668186000 * 1000,
 
         nonce: 99999999,
       });
@@ -173,7 +173,7 @@ function getTransactionDetailTestCases() {
         networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
         fromAddress: '0x1a50354Cb666BD015760399D49b4b4D8a8f4a978',
         toAddress: '0x40E3780e5Bec58629ac4C5Dc3bcA3dF2d7FD0C35',
-        timestamp: 1668186000,
+        timestamp: 1668186000 * 1000,
 
         nonce: 99999999,
       });
@@ -194,7 +194,7 @@ function getTransactionDetailTestCases() {
   //     networkId: NETWORK_IDS.MAIN_NET,
   //     fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
   //     toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
-  //     timestamp: 1607360947,
+  //     timestamp: 1607360947 * 1000,
   //     amount,
   //   });
   //   assert.isOk(transactionInfo);
@@ -212,7 +212,7 @@ function getTransactionDetailTestCases() {
   //     networkId: NETWORK_IDS.MAIN_NET,
   //     fromAddress: '0xed8db37778804a913670d9367aaf4f043aad938b',
   //     toAddress: '0x236daa98f115caa9991a3894ae387cdc13eaad1b',
-  //     timestamp: 1638994045,
+  //     timestamp: 1638994045 * 1000,
   //     amount,
   //   });
   //   assert.isOk(transactionInfo);
@@ -232,7 +232,7 @@ function getTransactionDetailTestCases() {
         toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
         amount: 0.04,
         nonce: 99999999,
-        timestamp: 1607360947,
+        timestamp: 1607360947 * 1000,
       });
     };
     await assertThrowsAsync(
@@ -253,7 +253,7 @@ function getTransactionDetailTestCases() {
   //       fromAddress: '0x2ea846dc38c6b6451909f1e7ff2bf613a96dc1f3',
   //       toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
   //       amount,
-  //       timestamp: 1607360947,
+  //       timestamp: 1607360947 * 1000,
   //     });
   //   };
   //   await assertThrowsAsync(
@@ -274,7 +274,7 @@ function getTransactionDetailTestCases() {
   //       fromAddress: '0x2ea846dc38c6b6451909f1e7ff2bf613a96dc1f3',
   //       toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
   //       amount,
-  //       timestamp: 1607360947,
+  //       timestamp: 1607360947 * 1000,
   //     });
   //   };
   //   await assertThrowsAsync(
@@ -295,7 +295,7 @@ function getTransactionDetailTestCases() {
   //       fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
   //       toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
   //       amount,
-  //       timestamp: 1607360950 + ONE_DAY,
+  //       timestamp: (1607360950 + ONE_DAY) * 1000,
   //     });
   //   };
   //   await assertThrowsAsync(
@@ -317,7 +317,7 @@ function getTransactionDetailTestCases() {
   //     toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
   //     nonce: 3938,
   //     amount,
-  //     timestamp: 1607360947,
+  //     timestamp: 1607360947 * 1000,
   //   });
   //   assert.isOk(transactionInfo);
   //   assert.equal(transactionInfo.currency, 'ETH');
@@ -336,7 +336,7 @@ function getTransactionDetailTestCases() {
   //     fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
   //     toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
   //     amount,
-  //     timestamp: 1624772582,
+  //     timestamp: 1624772582 * 1000,
   //   });
   //   assert.isOk(transactionInfo);
   //   assert.equal(transactionInfo.currency, 'DAI');
@@ -354,7 +354,7 @@ function getTransactionDetailTestCases() {
   //     fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
   //     toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
   //     amount,
-  //     timestamp: 1624772582,
+  //     timestamp: 1624772582 * 1000,
   //   });
   //   assert.isOk(transactionInfo);
   //   assert.equal(transactionInfo.currency, 'DAI');
@@ -374,7 +374,7 @@ function getTransactionDetailTestCases() {
   //       toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
   //       amount,
   //       nonce: 4,
-  //       timestamp: 1624772582,
+  //       timestamp: 1624772582 * 1000,
   //     });
   //   };
   //   await assertThrowsAsync(
@@ -396,7 +396,7 @@ function getTransactionDetailTestCases() {
   //       toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F4',
   //       amount,
   //       nonce: 4,
-  //       timestamp: 1624772582,
+  //       timestamp: 1624772582 * 1000,
   //     });
   //   };
   //   await assertThrowsAsync(
@@ -417,7 +417,7 @@ function getTransactionDetailTestCases() {
         toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
         amount,
         nonce: 99999999,
-        timestamp: 1624772582,
+        timestamp: 1624772582 * 1000,
       });
     };
     await assertThrowsAsync(
@@ -438,7 +438,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
       toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
       amount,
-      timestamp: 1677400082,
+      timestamp: 1677400082 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'MATIC');
@@ -457,7 +457,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x625bcc1142e97796173104a6e817ee46c593b3c5',
       toAddress: '0x73f9b3f48ebc96ac55cb76c11053b068669a8a67',
       amount,
-      timestamp: 1708954960,
+      timestamp: 1708954960 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
@@ -476,7 +476,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0xf6436829cf96ea0f8bc49d300c536fcc4f84c4ed',
       toAddress: '0x95b75068b8bc97716a458bedcf4df1cace802c12',
       amount,
-      timestamp: 1680072295,
+      timestamp: 1680072295 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'CELO');
@@ -495,7 +495,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x54b6ce742fbc89632d5bf94828b7caba6f8e3d65',
       toAddress: '0xffcf8fdee72ac11b5c542428b35eef5769c409f0',
       amount,
-      timestamp: 1680081702,
+      timestamp: 1680081702 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'CELO');
@@ -514,7 +514,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x015e6fbce5119c32db66e7c544365749bb26cf8b',
       toAddress: '0x5c66fef6ea22f37e7c1f7eee49e4e116d3fbfc68',
       amount,
-      timestamp: 1708342629,
+      timestamp: 1708342629 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
@@ -533,7 +533,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0xefc58dbf0e606c327868b55334998aacb27f9ef2',
       toAddress: '0xc11c479473cd06618fc75816dd6b56be4ac80efd',
       amount,
-      timestamp: 1708344659,
+      timestamp: 1708344659 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
@@ -552,7 +552,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0xbaed383ede0e5d9d72430661f3285daa77e9439f',
       toAddress: '0xa5401000d255dbb154deb756b82dd5105486d8c9',
       amount,
-      timestamp: 1716445331,
+      timestamp: 1716445331 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
@@ -571,7 +571,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x9cab0c7ff1c6250e641f4dcd4d9cd9db83bffb71',
       toAddress: '0xd7eedf8422ababfbcafc0797e809ceae742fc142',
       amount,
-      timestamp: 1716445488,
+      timestamp: 1716445488 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
@@ -590,7 +590,7 @@ function getTransactionDetailTestCases() {
   //     fromAddress: '0x948Bd3799aB39A4DDc7bd4fB83717b230f035FBF',
   //     toAddress: '0x0d0794f31c53d4057082889B9bed2D599Eda420d',
   //     amount,
-  //     timestamp: 1718267319,
+  //     timestamp: 1718267319 * 1000,
   //   });
   //   assert.isOk(transactionInfo);
   //   assert.equal(transactionInfo.currency, 'ETH');
@@ -609,7 +609,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x9AF3049dD15616Fd627A35563B5282bEA5C32E20',
       toAddress: '0x417a7BA2d8d0060ae6c54fd098590DB854B9C1d5',
       amount,
-      timestamp: 1718267581,
+      timestamp: 1718267581 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
@@ -627,7 +627,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0xbd928f6016b73066d9ad28351a4708174f18ae99',
       toAddress: '0xa01cf08937103a30e06a5c3b4477f9243a4cbef1',
       amount,
-      timestamp: 1679384460,
+      timestamp: 1679384460 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'OP');
@@ -645,7 +645,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
       toAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
       amount,
-      timestamp: 1679484540,
+      timestamp: 1679484540 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
@@ -663,7 +663,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
       toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
       amount,
-      timestamp: 1621241124,
+      timestamp: 1621241124 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'XDAI');
@@ -681,7 +681,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x57748ecb251f2ec36027bf8b7b2c13b69b8e5222',
       toAddress: '0x2c0d12ecee29f36c39510ac41d6dd1287d4fbf8a',
       amount,
-      timestamp: 1659325170,
+      timestamp: 1659325170 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'XDAI');
@@ -700,7 +700,7 @@ function getTransactionDetailTestCases() {
         toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
         amount,
         nonce: 99999,
-        timestamp: 1621241124,
+        timestamp: 1621241124 * 1000,
       });
     };
     await assertThrowsAsync(
@@ -720,7 +720,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
       toAddress: '0x5A5a0732c1231D99DB8FFcA38DbEf1c8316fD3E1',
       amount,
-      timestamp: 1617903449,
+      timestamp: 1617903449 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'HNY');
@@ -738,7 +738,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x5D28FE1e9F895464aab52287d85Ebff32B351674',
       toAddress: '0x1079F830C09A886122eA11b46f450d9e4C4c0150',
       amount,
-      timestamp: 1658953955,
+      timestamp: 1658953955 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'GIV');
@@ -756,7 +756,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x89E12F054526B985188b946063dDc874a62fEd45',
       toAddress: '0xECb179EA5910D652eDa6988E919c7930F5Ffcf11',
       amount,
-      timestamp: 1640408645,
+      timestamp: 1640408645 * 1000,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'GIV');
@@ -774,7 +774,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
       toAddress: '0x87f1c862c166b0ceb79da7ad8d0864d53468d076',
       amount,
-      timestamp: 1626278641,
+      timestamp: 162627864 * 10001,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'USDC');
@@ -792,7 +792,7 @@ function getTransactionDetailTestCases() {
         fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
         toAddress: '0x5A5a0732c1231D99DB8FFcA38DbEf1c8316fD3E1',
         amount,
-        timestamp: 1617903450 + ONE_DAY,
+        timestamp: (1617903450 + ONE_DAY) * 1000,
       });
     };
     await assertThrowsAsync(
@@ -812,7 +812,7 @@ function getTransactionDetailTestCases() {
         toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
         amount,
         nonce: 0, // for it to skip nonce if
-        timestamp: new Date().getTime() / 1000,
+        timestamp: new Date().getTime(),
       });
     };
     await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND);
@@ -829,7 +829,7 @@ function getTransactionDetailTestCases() {
         toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
         amount,
         nonce: 0, // for it to skip nonce if
-        timestamp: moment().add(2, 'hour').toDate().getTime() / 1000,
+        timestamp: moment().add(2, 'hour').toDate().getTime(),
       });
     };
     await assertThrowsAsync(
@@ -852,7 +852,7 @@ function getTransactionDetailTestCases() {
   //     toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
   //     amount,
   //     nonce: 10,
-  //     timestamp: 1621241124,
+  //     timestamp: 1621241124 * 1000,
   //   });
   //   assert.isOk(transactionInfo);
   //   assert.equal(transactionInfo.currency, 'XDAI');
@@ -871,7 +871,7 @@ function getTransactionDetailTestCases() {
   //     toAddress: '0x5A5a0732c1231D99DB8FFcA38DbEf1c8316fD3E1',
   //     amount,
   //     nonce: 41,
-  //     timestamp: 1617903449,
+  //     timestamp: 1617903449 * 1000,
   //   });
   //   assert.isOk(transactionInfo);
   //   assert.equal(transactionInfo.currency, 'HNY');
@@ -890,7 +890,7 @@ function getTransactionDetailTestCases() {
       networkId: NETWORK_IDS.SOLANA_DEVNET,
       fromAddress: '5GECDSGSWmMuw6nMfmdBLapa91ZHDZeHqRP1fqvQokjY',
       toAddress: 'DvWdrYYkwyM9mnTetpr3HBHUBKZ22QdbFEXQ8oquE7Zb',
-      timestamp: 1702931400,
+      timestamp: 1702931400 * 1000,
       amount,
     });
     assert.isOk(transactionInfo);
@@ -909,7 +909,7 @@ function getTransactionDetailTestCases() {
       networkId: NETWORK_IDS.SOLANA_DEVNET,
       fromAddress: '9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g',
       toAddress: 'GEhUKKZeENY1TmaavqvLJ5GbbQs9GkzECFSE2bpjzz3k',
-      timestamp: 1701289800,
+      timestamp: 1701289800 * 1000,
       amount,
     });
     assert.isOk(transactionInfo);
@@ -930,7 +930,7 @@ function getTransactionDetailTestCases() {
         networkId: NETWORK_IDS.SOLANA_DEVNET,
         fromAddress: '5GECDSGSWmMuw6nMfmdBLapa91ZHDZeHqRP1fqvQokjY',
         toAddress: 'DvWdrYYkwyM9mnTetpr3HBHUBKZ22QdbFEXQ8oquE7Zb',
-        timestamp: 1702931400 + ONE_DAY,
+        timestamp: (1702931400 + ONE_DAY) * 1000,
         amount,
       });
     };
@@ -951,7 +951,7 @@ function getTransactionDetailTestCases() {
       networkId: NETWORK_IDS.SOLANA_DEVNET,
       fromAddress: 'BxUK9tDLeMT7AkTR2jBTQQYUxGGw6nuWbQqGtiHHfftn',
       toAddress: 'FAMREy7d73N5jPdoKowQ4QFm6DKPWuYxZh6cwjNAbpkY',
-      timestamp: 1704357745,
+      timestamp: 1704357745 * 1000,
       amount,
     });
     assert.isOk(transactionInfo);
@@ -970,7 +970,7 @@ function getTransactionDetailTestCases() {
       networkId: NETWORK_IDS.SOLANA_DEVNET,
       fromAddress: '26Aks2rN6mfqxdYRXKZbn8CS4GBv6fCMGFYfGWvfFfcx',
       toAddress: '7TJgw4hDHh5wdKep3EsBkGMSvtf9LsxdXf89LA48uHoq',
-      timestamp: 1704699701,
+      timestamp: 1704699701 * 1000,
       amount,
     });
     assert.isOk(transactionInfo);
@@ -989,7 +989,7 @@ function getTransactionDetailTestCases() {
       networkId: NETWORK_IDS.SOLANA_MAINNET,
       fromAddress: 'FAMREy7d73N5jPdoKowQ4QFm6DKPWuYxZh6cwjNAbpkY',
       toAddress: '6U29tmuvaGsTQqamf9Vt4o15JHTNq5RdJxoRW6NJxRdx',
-      timestamp: 1706429516,
+      timestamp: 1706429516 * 1000,
       amount,
     });
     assert.isOk(transactionInfo);
@@ -1010,7 +1010,7 @@ function getTransactionDetailTestCases() {
         networkId: NETWORK_IDS.SOLANA_DEVNET,
         fromAddress: 'BxUK9tDLeMT7AkTR2jBTQQYUxGGw6nuWbQqGtiHHfftn',
         toAddress: 'FAMREy7d73N5jPdoKowQ4QFm6DKPWuYxZh6cwjNAbpkY',
-        timestamp: 1704357745 + ONE_DAY,
+        timestamp: (1704357745 + ONE_DAY) * 1000,
         amount,
       });
     };
