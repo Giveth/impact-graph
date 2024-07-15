@@ -21,6 +21,7 @@ import {
   updateRecurringDonationStatusMutation,
   fetchRecurringDonationStatsQuery,
 } from '../../test/graphqlQueries';
+
 describe(
   'createRecurringDonation test cases',
   createRecurringDonationTestCases,
@@ -30,6 +31,7 @@ import { addNewAnchorAddress } from '../repositories/anchorContractAddressReposi
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 import { QfRound } from '../entities/qfRound';
 import { generateRandomString } from '../utils/utils';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 
 describe(
   'updateRecurringDonation test cases',
@@ -309,6 +311,48 @@ function createRecurringDonationTestCases() {
     assert.equal(
       result.data.errors[0].message,
       errorMessages.THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
+    );
+  });
+
+  it('should return error when project belongs to endaoment and doesnt accepp recurring donation', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      {
+        ...createProjectData(),
+        networkId: NETWORK_IDS.MAIN_NET,
+        organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+      },
+      projectOwner,
+    );
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const accessToken = await generateTestAccessToken(donor.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          txHash: generateRandomEvmTxHash(),
+          flowRate: '100',
+          currency: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isNull(result.data.data.createRecurringDonation);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.PROJECT_DOESNT_ACCEPT_RECURRING_DONATION,
     );
   });
 }
@@ -1751,6 +1795,7 @@ function updateRecurringDonationByIdTestCases() {
     );
   });
 }
+
 function recurringDonationsByProjectIdTestCases() {
   it('should sort by the createdAt DESC', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
