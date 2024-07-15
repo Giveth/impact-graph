@@ -6,7 +6,7 @@ export class AddLatestUpdateCreationDateToProject1720095110381
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
         ALTER TABLE project
-        ADD COLUMN "latestUpdateCreationDate" TIMESTAMP WITHOUT TIME ZONE;
+        ADD COLUMN IF NOT EXISTS "latestUpdateCreationDate" TIMESTAMP WITHOUT TIME ZONE;
     `);
 
     await queryRunner.query(`

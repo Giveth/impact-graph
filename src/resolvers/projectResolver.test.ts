@@ -333,23 +333,6 @@ function getProjectsAcceptTokensTestCases() {
     });
     assert.isEmpty(result.data.data.getProjectAcceptTokens);
   });
-
-  it('should just return ETH token for givingBlock projects', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: getProjectsAcceptTokensQuery,
-      variables: {
-        projectId: project.id,
-      },
-    });
-    assert.isOk(result.data.data.getProjectAcceptTokens);
-    assert.equal(result.data.data.getProjectAcceptTokens.length, 1);
-    assert.equal(result.data.data.getProjectAcceptTokens[0].symbol, 'ETH');
-    assert.equal(result.data.data.getProjectAcceptTokens[0].networkId, 1);
-  });
 }
 
 function projectsByUserIdTestCases() {

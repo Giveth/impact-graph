@@ -690,7 +690,7 @@ export const projectsTab = {
           list: true,
           filter: true,
           show: true,
-          edit: true,
+          edit: false,
           new: false,
         },
       },

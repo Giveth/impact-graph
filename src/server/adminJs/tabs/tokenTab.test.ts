@@ -190,7 +190,7 @@ function linkOrganizationsTestCases() {
           name: 'DragonToken',
           networkId: 1,
           symbol: 'DRGT',
-          organizations: ORGANIZATION_LABELS.GIVING_BLOCK,
+          organizations: ORGANIZATION_LABELS.ENDAOMENT,
         },
       },
     });
@@ -200,7 +200,7 @@ function linkOrganizationsTestCases() {
     assert.isTrue(tokenUpdated!.organizations.length === 1);
     assert.equal(
       tokenUpdated!.organizations[0].label,
-      ORGANIZATION_LABELS.GIVING_BLOCK,
+      ORGANIZATION_LABELS.ENDAOMENT,
     );
   });
 }
