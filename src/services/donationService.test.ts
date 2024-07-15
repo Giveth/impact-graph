@@ -1170,7 +1170,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
       donations[0].transactionId,
       qfRoundHistory?.distributedFundTxHash,
     );
-    assert.equal(donations[0].createdAt.getTime(), 1702091620);
+    assert.equal(donations[0].createdAt.getTime(), 1702091620000);
 
     const updatedProject = await findProjectById(firstProject.id);
     assert.equal(

@@ -4340,7 +4340,7 @@ function donationsToWalletsTestCases() {
 //       fromAddress: '0x00d18ca9782be1caef611017c2fbc1a39779a57c',
 //       toAddress: '0x90b31c07fb0310b4b0d88368169dad8fe0cbb6da',
 //       currency: 'XDAI',
-//       timestamp: 1647483910 * 1000,
+//       timestamp: 1647483910,
 //     };
 //     const project = await saveProjectDirectlyToDb({
 //       ...createProjectData(),
@@ -4394,7 +4394,7 @@ function donationsToWalletsTestCases() {
 //       fromAddress: generateRandomEtheriumAddress(),
 //       toAddress: '0x42a7d872dec08d309f4b93d05e5b9de183765858',
 //       currency: 'GIV',
-//       timestamp: 1647069070 * 1000,
+//       timestamp: 1647069070,
 //     };
 //     const project = await saveProjectDirectlyToDb({
 //       ...createProjectData(),
@@ -4454,7 +4454,7 @@ function donationsToWalletsTestCases() {
 //   //     fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
 //   //     toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
 //   //     amount: 0.04,
-//   //     timestamp: 1607360947 * 1000,
+//   //     timestamp: 1607360947,
 //   //   };
 //   //   const project = await saveProjectDirectlyToDb({
 //   //     ...createProjectData(),
@@ -4511,7 +4511,7 @@ function donationsToWalletsTestCases() {
 //       fromAddress: generateRandomEtheriumAddress(),
 //       toAddress: generateRandomEtheriumAddress(),
 //       currency: 'GIV',
-//       timestamp: 1647069070 * 1000,
+//       timestamp: 1647069070,
 //     };
 //     const project = await saveProjectDirectlyToDb({
 //       ...createProjectData(),
@@ -4567,7 +4567,7 @@ function donationsToWalletsTestCases() {
 //       fromAddress: '0x5d28fe1e9f895464aab52287d85ebff32b351674',
 //       toAddress: '0x0eed1566f46b0421d53d2143a3957bb22016ef4b',
 //       currency: 'GIV',
-//       timestamp: 1646704855 * 1000,
+//       timestamp: 1646704855,
 //     };
 //     const project = await saveProjectDirectlyToDb({
 //       ...createProjectData(),
@@ -4624,7 +4624,7 @@ function donationsToWalletsTestCases() {
 //       fromAddress: '0x5d28fe1e9f895464aab52287d85ebff32b351674',
 //       toAddress: generateRandomEtheriumAddress(),
 //       currency: 'GIV',
-//       timestamp: 1646725075 * 1000,
+//       timestamp: 1646725075,
 //     };
 //     const project = await saveProjectDirectlyToDb({
 //       ...createProjectData(),
@@ -4681,7 +4681,7 @@ function donationsToWalletsTestCases() {
 //       fromAddress: generateRandomEtheriumAddress(),
 //       toAddress: generateRandomEtheriumAddress(),
 //       currency: 'GIV',
-//       timestamp: 1647069070 * 1000,
+//       timestamp: 1647069070,
 //     };
 //     const project = await saveProjectDirectlyToDb({
 //       ...createProjectData(),
