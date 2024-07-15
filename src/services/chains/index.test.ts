@@ -295,7 +295,7 @@ function getTransactionDetailTestCases() {
   //       fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
   //       toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
   //       amount,
-  //       timestamp: (1607360950 + ONE_DAY),
+  //       timestamp: 1607360950 + ONE_DAY,
   //     });
   //   };
   //   await assertThrowsAsync(
@@ -774,7 +774,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
       toAddress: '0x87f1c862c166b0ceb79da7ad8d0864d53468d076',
       amount,
-      timestamp: 162627864 * 10001,
+      timestamp: 1626278641,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'USDC');
@@ -812,7 +812,7 @@ function getTransactionDetailTestCases() {
         toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
         amount,
         nonce: 0, // for it to skip nonce if
-        timestamp: new Date().getTime(),
+        timestamp: new Date().getTime() / 1000,
       });
     };
     await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND);
@@ -829,7 +829,7 @@ function getTransactionDetailTestCases() {
         toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
         amount,
         nonce: 0, // for it to skip nonce if
-        timestamp: moment().add(2, 'hour').toDate().getTime(),
+        timestamp: moment().add(2, 'hour').toDate().getTime() / 1000,
       });
     };
     await assertThrowsAsync(
