@@ -93,7 +93,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
       toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
       amount,
-      timestamp: 1677400082,
+      timestamp: 1677400082 * 1000,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -138,7 +138,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0xf6436829cf96ea0f8bc49d300c536fcc4f84c4ed',
       toAddress: '0x95b75068b8bc97716a458bedcf4df1cace802c12',
       amount,
-      timestamp: 1680072295,
+      timestamp: 1680072295 * 1000,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -182,7 +182,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0x015e6fbce5119c32db66e7c544365749bb26cf8b',
       toAddress: '0x5c66fef6ea22f37e7c1f7eee49e4e116d3fbfc68',
       amount,
-      timestamp: 1708342629,
+      timestamp: 1708342629 * 1000,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -226,7 +226,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0x62383739d68dd0f844103db8dfb05a7eded5bbe6',
       toAddress: '0x513b8c84fb6e36512b641b67de55a18704118fe7',
       amount,
-      timestamp: 1708343905,
+      timestamp: 1708343905 * 1000,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -270,7 +270,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0xefc58dbf0e606c327868b55334998aacb27f9ef2',
       toAddress: '0xc11c479473cd06618fc75816dd6b56be4ac80efd',
       amount,
-      timestamp: 1708344659,
+      timestamp: 1708344659 * 1000,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -314,7 +314,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0x6a446d9d0d153aa07811de2ac8096b87baad305b',
       toAddress: '0xf888186663aae1600282c6fb23b764a61937b913',
       amount,
-      timestamp: 1708344801,
+      timestamp: 1708344801 * 1000,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -358,7 +358,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
       toAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
       amount,
-      timestamp: 1679484540,
+      timestamp: 1679484540 * 1000,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -402,7 +402,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0x625bcc1142e97796173104a6e817ee46c593b3c5',
       toAddress: '0x73f9b3f48ebc96ac55cb76c11053b068669a8a67',
       amount,
-      timestamp: 1708954960,
+      timestamp: 1708954960 * 1000,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -443,7 +443,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
   //     networkId: NETWORK_IDS.MAIN_NET,
   //     fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
   //     toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
-  //     timestamp: 1607360947,
+  //     timestamp: 1607360947 * 1000,
   //     amount: 0.04,
   //   };
 
@@ -488,7 +488,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
       toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
       amount: 0.001,
-      timestamp: 1621241124,
+      timestamp: 1621241124 * 1000,
     };
 
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
@@ -532,7 +532,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732000',
       toAddress: '0x5A5a0732c1231D99DB8FFcA38DbEf1c8316fD3E1',
       amount: 0.001,
-      timestamp: 1617903449,
+      timestamp: 1617903449 * 1000,
     };
 
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
@@ -578,7 +578,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       fromAddress: '0x89E12F054526B985188b946063dDc874a62fEd45',
       toAddress: '0xECb179EA5910D652eDa6988E919c7930F5Ffcf00',
       amount: 1500,
-      timestamp: 1640408645,
+      timestamp: 1640408645 * 1000,
     };
 
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
