@@ -21,8 +21,9 @@ export class ProjectStatusReason extends BaseEntity {
   description: string;
 
   @Field(_type => ProjectStatus)
-  @ManyToOne(_type => ProjectStatus)
-  status: ProjectStatus;
+  // @ts-expect-error migrate to ESM
+  @ManyToOne(() => import('./projectStatus.js').then(m => m.projectStatus))
+  status: Promise<ProjectStatus>;
 
   @RelationId(
     (projectStatusReason: ProjectStatusReason) => projectStatusReason.status,

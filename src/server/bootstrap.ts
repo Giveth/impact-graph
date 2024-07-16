@@ -27,7 +27,6 @@ import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncP
 import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus.js';
 import { webhookHandler } from '../services/transak/webhookHandler.js';
 
-import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs.js';
 import { redis } from '../redis.js';
 import { logger } from '../utils/logger.js';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment.js';
@@ -300,7 +299,7 @@ export async function bootstrap() {
     });
 
     // AdminJs!
-    app.use(adminJsRootPath, await getAdminJsRouter());
+    // app.use(adminJsRootPath, await getAdminJsRouter());
   } catch (err) {
     logger.fatal('bootstrap() error', err);
   }

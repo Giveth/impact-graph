@@ -42,8 +42,11 @@ export class AccountVerification extends BaseEntity {
 
   @Index()
   @Field(_type => User)
-  @ManyToOne(_type => User, { eager: true })
-  user: User;
+  // @ts-expect-error migrate to ESM
+  @ManyToOne(() => import('./user.js').then(m => m.user), {
+    eager: true,
+  })
+  user: Promise<User>;
 
   @RelationId(
     (accountVerification: AccountVerification) => accountVerification.user,

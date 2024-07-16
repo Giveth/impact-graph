@@ -1,7 +1,6 @@
 import { logger } from '../utils/logger.js';
 import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter.js';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter.js';
-import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter.js';
 
 export interface CustomToken {
   symbol: string;
@@ -18,7 +17,7 @@ export const getTokenPrice = async (
     return 0;
   }
   try {
-    const { symbol, cryptoCompareId, isStableCoin, coingeckoId } = token;
+    const { cryptoCompareId, isStableCoin, coingeckoId } = token;
     logger.debug('getTokenPrice token', token);
     let priceUsd: number;
     if (isStableCoin) {
@@ -38,10 +37,11 @@ export const getTokenPrice = async (
         networkId: chainId,
       });
     } else {
-      priceUsd = await new MonoswapPriceAdapter().getTokenPrice({
-        symbol,
-        networkId: chainId,
-      });
+      priceUsd = 0;
+      // priceUsd = await new MonoswapPriceAdapter().getTokenPrice({
+      //   symbol,
+      //   networkId: chainId,
+      // });
     }
     return Number(priceUsd || 0);
   } catch (error) {
