@@ -7,6 +7,7 @@ import {
   ManyToOne,
   ViewColumn,
   JoinColumn,
+  Relation,
 } from 'typeorm';
 import { Project } from './project.js';
 
@@ -16,7 +17,7 @@ export class ProjectActualMatchingView extends BaseEntity {
   @Field(_type => Project)
   @ManyToOne(_type => Project, project => project.projectEstimatedMatchingView)
   @JoinColumn({ referencedColumnName: 'id' })
-  project: Project;
+  project: Relation<Project>;
 
   @Field()
   @ViewColumn()

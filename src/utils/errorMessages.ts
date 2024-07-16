@@ -1,8 +1,11 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
 import _i18n from 'i18n';
 
 export const i18n = _i18n;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // global config, where ever its exported
 i18n.configure({
   locales: ['en', 'es'],

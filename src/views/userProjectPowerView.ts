@@ -4,6 +4,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
+  Relation,
   RelationId,
   ViewColumn,
   ViewEntity,
@@ -24,7 +25,7 @@ export class UserProjectPowerView extends BaseEntity {
   @Field(_type => User, { nullable: true })
   @JoinColumn({ referencedColumnName: 'id' })
   @ManyToOne(() => User, { eager: true })
-  user?: User;
+  user?: Relation<User>;
 
   @ViewColumn()
   @Field()

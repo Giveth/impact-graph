@@ -6,6 +6,7 @@ import {
   BaseEntity,
   ManyToOne,
   RelationId,
+  Relation,
 } from 'typeorm';
 import { ProjectStatus } from './projectStatus.js';
 
@@ -20,10 +21,8 @@ export class ProjectStatusReason extends BaseEntity {
   @Column({ nullable: true })
   description: string;
 
-  @Field(_type => ProjectStatus)
-  // @ts-expect-error migrate to ESM
-  @ManyToOne(() => import('./projectStatus.js').then(m => m.projectStatus))
-  status: Promise<ProjectStatus>;
+  @ManyToOne(_type => ProjectStatus)
+  status: Relation<ProjectStatus>;
 
   @RelationId(
     (projectStatusReason: ProjectStatusReason) => projectStatusReason.status,

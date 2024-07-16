@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   JoinColumn,
+  Relation,
 } from 'typeorm';
 import { User } from './user.js';
 
@@ -38,7 +39,7 @@ export class ReferredEvent extends BaseEntity {
   @Field(_type => User, { nullable: true })
   @OneToOne(_type => User, { nullable: true })
   @JoinColumn()
-  user: User;
+  user: Relation<User>;
 
   @Field(_type => ID, { nullable: true })
   @RelationId((referredEvent: ReferredEvent) => referredEvent.user)

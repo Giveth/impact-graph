@@ -6,6 +6,7 @@ import {
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
 } from 'typeorm';
 import { User } from './user.js';
@@ -32,7 +33,8 @@ export default class BroadcastNotification extends BaseEntity {
 
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
-  adminUser: User;
+  adminUser: Relation<User>;
+
   @RelationId(
     (broadcastNotification: BroadcastNotification) =>
       broadcastNotification.adminUser,

@@ -6,6 +6,7 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
@@ -39,7 +40,7 @@ export class SocialProfile extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((socialProfile: SocialProfile) => socialProfile.project)
   @Column({ nullable: true })
@@ -48,14 +49,16 @@ export class SocialProfile extends BaseEntity {
   @Index()
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
-  user: User;
+  user: Relation<User>;
+
   @RelationId((socialProfile: SocialProfile) => socialProfile.user)
   userId: number;
 
   @Index()
   @Field(_type => ProjectVerificationForm)
   @ManyToOne(_type => ProjectVerificationForm)
-  projectVerificationForm: ProjectVerificationForm;
+  projectVerificationForm: Relation<ProjectVerificationForm>;
+
   @RelationId(
     (socialProfile: SocialProfile) => socialProfile.projectVerificationForm,
   )

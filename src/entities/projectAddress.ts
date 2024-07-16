@@ -6,6 +6,7 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   Unique,
   UpdateDateColumn,
@@ -48,7 +49,7 @@ export class ProjectAddress extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.project)
   @Column({ nullable: true })
@@ -57,7 +58,7 @@ export class ProjectAddress extends BaseEntity {
   @Index()
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
-  user: User;
+  user: Relation<User>;
 
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.user)
   @Column({ nullable: true })

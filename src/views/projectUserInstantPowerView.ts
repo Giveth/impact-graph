@@ -5,6 +5,7 @@ import {
   PrimaryColumn,
   Column,
   ManyToOne,
+  Relation,
 } from 'typeorm';
 import { Field, Float, ObjectType } from 'type-graphql';
 import { ColumnNumericTransformer } from '../utils/entities.js';
@@ -24,7 +25,7 @@ export class ProjectUserInstantPowerView extends BaseEntity {
 
   @Field(_type => User)
   @ManyToOne(_type => User, { eager: true })
-  user?: User;
+  user?: Relation<User>;
 
   @ViewColumn()
   @Field()

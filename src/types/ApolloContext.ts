@@ -15,5 +15,5 @@ export interface ContextRequest {
 
 export interface ApolloContext {
   req: ContextRequest;
-  projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>>;
+  projectsFiltersThreadPool?: Pool<ModuleThread<ProjectResolverWorker>>;
 }

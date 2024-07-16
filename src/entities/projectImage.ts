@@ -6,6 +6,7 @@ import {
   BaseEntity,
   ManyToOne,
   RelationId,
+  Relation,
 } from 'typeorm';
 import { Project } from './project.js';
 
@@ -18,7 +19,7 @@ export class ProjectImage extends BaseEntity {
 
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((projectImage: ProjectImage) => projectImage.project)
   @Column({ nullable: true })

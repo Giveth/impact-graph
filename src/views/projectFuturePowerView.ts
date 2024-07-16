@@ -6,6 +6,7 @@ import {
   RelationId,
   BaseEntity,
   PrimaryColumn,
+  Relation,
 } from 'typeorm';
 import { Field, Int, ObjectType } from 'type-graphql';
 import { Project } from '../entities/project.js';
@@ -29,7 +30,7 @@ export class ProjectFuturePowerView extends BaseEntity {
   @Field(_type => Project)
   @OneToOne(_type => Project, project => project.projectFuturePower)
   @JoinColumn({ referencedColumnName: 'id' })
-  project: Project;
+  project: Relation<Project>;
 
   @ViewColumn()
   @Field(_type => Int)

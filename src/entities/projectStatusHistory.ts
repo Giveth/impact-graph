@@ -6,6 +6,7 @@ import {
   BaseEntity,
   ManyToOne,
   RelationId,
+  Relation,
 } from 'typeorm';
 import { Project } from './project.js';
 import { ProjectStatus } from './projectStatus.js';
@@ -30,7 +31,7 @@ export class ProjectStatusHistory extends BaseEntity {
 
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId(
     (projectStatusHistory: ProjectStatusHistory) =>
@@ -72,7 +73,7 @@ export class ProjectStatusHistory extends BaseEntity {
 
   @Field(_type => User)
   @ManyToOne(_type => User)
-  user?: User;
+  user?: Relation<User>;
 
   @RelationId(
     (projectStatusHistory: ProjectStatusHistory) => projectStatusHistory.user,

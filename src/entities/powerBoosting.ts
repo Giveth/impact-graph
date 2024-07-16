@@ -6,6 +6,7 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
@@ -25,7 +26,7 @@ export class PowerBoosting extends BaseEntity {
 
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
-  project: Project;
+  project: Relation<Project>;
 
   @Index()
   @RelationId((powerBoosting: PowerBoosting) => powerBoosting.project)
@@ -34,7 +35,7 @@ export class PowerBoosting extends BaseEntity {
 
   @Field(_type => User)
   @ManyToOne(_type => User, { eager: true })
-  user: User;
+  user: Relation<User>;
 
   @Index()
   @RelationId((powerBoosting: PowerBoosting) => powerBoosting.user)

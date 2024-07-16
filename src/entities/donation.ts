@@ -7,6 +7,7 @@ import {
   ManyToOne,
   RelationId,
   Index,
+  Relation,
 } from 'typeorm';
 import { Project } from './project.js';
 import { User } from './user.js';
@@ -170,7 +171,7 @@ export class Donation extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((donation: Donation) => donation.project)
   @Column({ nullable: true })

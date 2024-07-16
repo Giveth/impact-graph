@@ -5,6 +5,7 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
 } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
@@ -30,7 +31,7 @@ export class PowerBoostingSnapshot extends BaseEntity {
 
   @Field(_type => User, { nullable: false })
   @ManyToOne(_type => User, { nullable: false })
-  user: User;
+  user: Relation<User>;
 
   @Field(_type => ID)
   @Column()

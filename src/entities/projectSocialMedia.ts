@@ -5,6 +5,7 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
@@ -34,7 +35,7 @@ export class ProjectSocialMedia extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((relatedAddress: ProjectSocialMedia) => relatedAddress.project)
   @Column({ nullable: true })
@@ -43,7 +44,7 @@ export class ProjectSocialMedia extends BaseEntity {
   @Index()
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
-  user: User;
+  user: Relation<User>;
 
   @RelationId((relatedAddress: ProjectSocialMedia) => relatedAddress.user)
   @Column({ nullable: true })

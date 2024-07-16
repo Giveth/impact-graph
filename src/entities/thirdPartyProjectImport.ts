@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   RelationId,
+  Relation,
 } from 'typeorm';
 import { Project } from './project.js';
 import { User } from './user.js';
@@ -32,7 +33,7 @@ export class ThirdPartyProjectImport extends BaseEntity {
   // History of who exported
   @Field(_type => User)
   @ManyToOne(_type => User)
-  user?: User;
+  user?: Relation<User>;
 
   @RelationId(
     (thirdPartyProjectImport: ThirdPartyProjectImport) =>
@@ -43,7 +44,7 @@ export class ThirdPartyProjectImport extends BaseEntity {
   // Link to project
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project?: Project;
+  project?: Relation<Project>;
 
   @RelationId(
     (thirdPartyProjectImport: ThirdPartyProjectImport) =>

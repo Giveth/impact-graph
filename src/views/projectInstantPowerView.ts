@@ -7,6 +7,7 @@ import {
   BaseEntity,
   PrimaryColumn,
   Column,
+  Relation,
 } from 'typeorm';
 import { Field, Float, ObjectType } from 'type-graphql';
 import { Project } from '../entities/project.js';
@@ -34,7 +35,7 @@ export class ProjectInstantPowerView extends BaseEntity {
   @Field(_type => Project)
   @OneToOne(_type => Project, project => project.projectPower)
   @JoinColumn({ referencedColumnName: 'id' })
-  project: Project;
+  project: Relation<Project>;
 
   @ViewColumn()
   @Field()

@@ -10,7 +10,7 @@ import express, { json, Request } from 'express';
 import { Container } from 'typedi';
 import { Resource } from '@adminjs/typeorm';
 import { validate } from 'class-validator';
-import { ModuleThread, Pool, spawn, Worker } from 'threads';
+// import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { DataSource } from 'typeorm';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -51,8 +51,8 @@ import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoun
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler.js';
 import { AppDataSource, CronDataSource } from '../orm.js';
 import { ApolloContext } from '../types/ApolloContext.js';
-// @ts-expect-error migrate to ESM
-import { ProjectResolverWorker } from '../workers/projectsResolverWorker.js';
+
+// import { ProjectResolverWorker } from '../workers/projectsResolverWorker.js';
 
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob.js';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService.js';
@@ -69,14 +69,14 @@ import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/s
 
 Resource.validate = validate;
 
-const options = {
-  concurrency: Number(
-    process.env.PROJECT_FILTERS_THREADS_POOL_CONCURRENCY || 1,
-  ),
-  name:
-    process.env.PROJECT_FILTERS_THREADS_POOL_NAME || 'ProjectFiltersThreadPool',
-  size: Number(process.env.PROJECT_FILTERS_THREADS_POOL_SIZE || 4),
-};
+// const options = {
+//   concurrency: Number(
+//     process.env.PROJECT_FILTERS_THREADS_POOL_CONCURRENCY || 1,
+//   ),
+//   name:
+//     process.env.PROJECT_FILTERS_THREADS_POOL_NAME || 'ProjectFiltersThreadPool',
+//   size: Number(process.env.PROJECT_FILTERS_THREADS_POOL_SIZE || 4),
+// };
 
 export async function bootstrap() {
   try {
@@ -111,11 +111,11 @@ export async function bootstrap() {
     const schema = await createSchema();
 
     // instantiate pool once and pass as context
-    const projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>> =
-      Pool(
-        () => spawn(new Worker('../workers/projectsResolverWorker')),
-        options,
-      );
+    // const projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>> =
+    //   Pool(
+    //     () => spawn(new Worker('../workers/projectsResolverWorker')),
+    //     options,
+    //   );
 
     const apolloServerPlugins = [
       process.env.DISABLE_APOLLO_PLAYGROUND !== 'true'
@@ -261,7 +261,7 @@ export async function bootstrap() {
           }
 
           const apolloContext: ApolloContext = {
-            projectsFiltersThreadPool,
+            // projectsFiltersThreadPool,
             req: { user, auth },
           };
           return apolloContext;

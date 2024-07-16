@@ -7,6 +7,7 @@ import {
   RelationId,
   BaseEntity,
   Unique,
+  Relation,
 } from 'typeorm';
 import { Project } from './project.js';
 import { QfRound } from './qfRound.js';
@@ -21,7 +22,7 @@ export class ProjectFraud extends BaseEntity {
 
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((projectFraud: ProjectFraud) => projectFraud.project)
   @Column()

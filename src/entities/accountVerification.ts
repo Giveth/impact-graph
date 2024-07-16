@@ -9,6 +9,7 @@ import {
   Index,
   CreateDateColumn,
   UpdateDateColumn,
+  Relation,
 } from 'typeorm';
 import { User } from './user.js';
 
@@ -42,11 +43,8 @@ export class AccountVerification extends BaseEntity {
 
   @Index()
   @Field(_type => User)
-  // @ts-expect-error migrate to ESM
-  @ManyToOne(() => import('./user.js').then(m => m.user), {
-    eager: true,
-  })
-  user: Promise<User>;
+  @ManyToOne(_type => User, { eager: true })
+  user: Relation<User>;
 
   @RelationId(
     (accountVerification: AccountVerification) => accountVerification.user,

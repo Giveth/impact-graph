@@ -9,6 +9,7 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
@@ -141,7 +142,7 @@ export class ProjectVerificationForm extends BaseEntity {
   @Field(_type => Project)
   @OneToOne(_type => Project)
   @JoinColumn()
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId(
     (projectVerificationForm: ProjectVerificationForm) =>
@@ -153,7 +154,7 @@ export class ProjectVerificationForm extends BaseEntity {
   @Index()
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true })
-  reviewer?: User;
+  reviewer?: Relation<User>;
 
   @RelationId(
     (projectVerificationForm: ProjectVerificationForm) =>
@@ -165,7 +166,7 @@ export class ProjectVerificationForm extends BaseEntity {
   @Index()
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
-  user: User;
+  user: Relation<User>;
 
   @RelationId(
     (projectVerificationForm: ProjectVerificationForm) =>

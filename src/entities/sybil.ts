@@ -7,6 +7,7 @@ import {
   RelationId,
   BaseEntity,
   Unique,
+  Relation,
 } from 'typeorm';
 import { User } from './user.js';
 import { QfRound } from './qfRound.js';
@@ -21,7 +22,7 @@ export class Sybil extends BaseEntity {
 
   @Field(_type => User)
   @ManyToOne(_type => User, { eager: true })
-  user: User;
+  user: Relation<User>;
 
   @RelationId((sybil: Sybil) => sybil.user)
   @Column()

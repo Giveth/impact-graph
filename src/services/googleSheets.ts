@@ -27,6 +27,7 @@ interface ProjectExport {
   secondWalletAddress: string;
   secondWalletAddressNetwork: string;
 }
+
 export interface QfRoundDonationRow {
   projectName: string;
   // Pattern is networkId-projectAddress,... Example: 1-0x123...456,10,ETH,0x123...456

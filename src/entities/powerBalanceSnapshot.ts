@@ -7,6 +7,7 @@ import {
   Index,
   RelationId,
   ManyToOne,
+  Relation,
 } from 'typeorm';
 import { PowerSnapshot } from './powerSnapshot.js';
 
@@ -38,5 +39,5 @@ export class PowerBalanceSnapshot extends BaseEntity {
 
   @Field(_type => PowerSnapshot, { nullable: false })
   @ManyToOne(_type => PowerSnapshot, { nullable: false })
-  powerSnapshot: PowerSnapshot;
+  powerSnapshot: Relation<PowerSnapshot>;
 }

@@ -7,6 +7,7 @@ import {
   RelationId,
   ManyToOne,
   Index,
+  Relation,
 } from 'typeorm';
 import { Project, ProjectUpdate } from './project.js';
 import { User } from './user.js';
@@ -20,9 +21,8 @@ export class Reaction extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  // @ts-expect-error migrate to ESM
-  @ManyToOne(() => import('./project.js').then(m => m.ProjectUpdate))
-  projectUpdate: Promise<ProjectUpdate>;
+  @ManyToOne(_type => ProjectUpdate)
+  projectUpdate: Relation<ProjectUpdate>;
 
   @Index()
   @RelationId((reaction: Reaction) => reaction.projectUpdate)
@@ -41,9 +41,8 @@ export class Reaction extends BaseEntity {
   @Column()
   reaction: string;
 
-  // @ts-expect-error migrate to ESM
-  @ManyToOne(() => import('./project.js').then(m => m.Project))
-  project: Promise<Project>;
+  @ManyToOne(_type => Project)
+  project: Relation<Project>;
 
   @Index()
   @Field(_type => ID, { nullable: true })

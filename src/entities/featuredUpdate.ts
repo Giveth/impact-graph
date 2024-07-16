@@ -8,6 +8,7 @@ import {
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
@@ -24,7 +25,7 @@ export class FeaturedUpdate extends BaseEntity {
   @Field(_type => Project)
   @OneToOne(_type => Project)
   @JoinColumn()
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((featuredUpdate: FeaturedUpdate) => featuredUpdate.project)
   @Column({ nullable: true })
@@ -34,7 +35,7 @@ export class FeaturedUpdate extends BaseEntity {
   @Field(_type => ProjectUpdate)
   @OneToOne(_type => ProjectUpdate)
   @JoinColumn()
-  projectUpdate: ProjectUpdate;
+  projectUpdate: Relation<ProjectUpdate>;
 
   @RelationId((featuredUpdate: FeaturedUpdate) => featuredUpdate.projectUpdate)
   @Column({ nullable: true })

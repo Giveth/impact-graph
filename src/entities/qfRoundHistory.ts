@@ -10,6 +10,7 @@ import {
   CreateDateColumn,
   Index,
   Unique,
+  Relation,
 } from 'typeorm';
 import { Project } from './project.js';
 import { QfRound } from './qfRound.js';
@@ -30,7 +31,7 @@ export class QfRoundHistory extends BaseEntity {
   id: number;
 
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @Index()
   @Field(_type => ID, { nullable: true })

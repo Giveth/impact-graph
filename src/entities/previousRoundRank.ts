@@ -6,6 +6,7 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   Unique,
   UpdateDateColumn,
@@ -24,7 +25,7 @@ export class PreviousRoundRank extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId(
     (previousRoundRank: PreviousRoundRank) => previousRoundRank.project,
