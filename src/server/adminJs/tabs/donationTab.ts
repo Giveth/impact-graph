@@ -272,6 +272,7 @@ export const buildDonationsQuery = (
 export const FillPricesForDonationsWithoutPrice = async () => {
   const donationsWithoutPrice = await Donation.createQueryBuilder('donation')
     .where('donation.valueUsd IS NULL')
+    .andWhere('donation.status = :status', { status: DONATION_STATUS.VERIFIED })
     .orderBy({ 'donation.createdAt': 'DESC' })
     .getMany();
   const coingeckoAdapter = new CoingeckoPriceAdapter();
@@ -281,14 +282,21 @@ export const FillPricesForDonationsWithoutPrice = async () => {
     donationsWithoutPrice.map(d => d.id),
   );
   for (const donation of donationsWithoutPrice) {
-    let price: number;
     try {
       const token = await Token.findOneBy({ symbol: donation.currency });
       if (!token || !token.coingeckoId) continue;
-      price = await coingeckoAdapter.getTokenPriceAtDate({
+      const price = await coingeckoAdapter.getTokenPriceAtDate({
         date: moment(donation.createdAt).format('DD-MM-YYYY'),
         symbol: token.coingeckoId,
       });
+      donation.valueUsd = donation.amount * price;
+      donation.priceUsd = price;
+      filledPrices.push({ donationId: donation.id, price });
+      await donation.save();
+      await updateProjectStatistics(donation.projectId);
+      await updateUserTotalDonated(donation.userId);
+      const owner = await findUserByWalletAddress(donation.toWalletAddress);
+      if (owner?.id) await updateUserTotalReceived(owner.id);
     } catch {
       return {
         redirectUrl: '/admin/resources/Donation',
@@ -299,10 +307,6 @@ export const FillPricesForDonationsWithoutPrice = async () => {
         },
       };
     }
-    donation.valueUsd = donation.amount * price;
-    donation.priceUsd = price;
-    filledPrices.push({ donationId: donation.id, price });
-    await donation.save();
   }
   logger.debug(
     'FillPricesForDonationsWithoutPrice filled prices',
