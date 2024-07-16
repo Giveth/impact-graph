@@ -16,7 +16,7 @@ export const endaomentProjects: EndaomentProject[] = [
     logoUrl: '',
     nteeCode: 'W00',
     nteeDescription: 'Public & Societal Benefit',
-    mainnetAddress: '0xdef3f7548a789da782a4868d86e5d6c5dacbd4a',
+    mainnetAddress: '0xdef3f7548a789da782a4868d86e5d6c5dacbd4a2',
     opAddress: '0xdef3f7548a789da782a4868d86e5d6c5dacbd4a2',
     baseAddress: '0x831b59936bf2012ad63658f48d579cba1fd3bf74',
   },

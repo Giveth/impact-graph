@@ -127,22 +127,22 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
       // Insert the project addresses if provided
       if (project.mainnetAddress) {
         await queryRunner.query(`
-          INSERT INTO "project_address" ("projectId", "address", "networkId")
-          VALUES (${projectId}, '${project.mainnetAddress}', ${NETWORK_IDS.MAIN_NET});
+          INSERT INTO "project_address" ("projectId", "address", "networkId", "isRecipient")
+          VALUES (${projectId}, '${project.mainnetAddress}', ${NETWORK_IDS.MAIN_NET}, true);
         `);
       }
 
       if (project.opAddress) {
         await queryRunner.query(`
-          INSERT INTO "project_address" ("projectId", "address", "networkId")
-          VALUES (${projectId}, '${project.opAddress}', ${NETWORK_IDS.OPTIMISTIC});
+          INSERT INTO "project_address" ("projectId", "address", "networkId", "isRecipient")
+          VALUES (${projectId}, '${project.opAddress}', ${NETWORK_IDS.OPTIMISTIC}, true);
         `);
       }
 
       if (project.baseAddress) {
         await queryRunner.query(`
-          INSERT INTO "project_address" ("projectId", "address", "networkId")
-          VALUES (${projectId}, '${project.baseAddress}', ${NETWORK_IDS.BASE_MAINNET});
+          INSERT INTO "project_address" ("projectId", "address", "networkId", "isRecipient")
+          VALUES (${projectId}, '${project.baseAddress}', ${NETWORK_IDS.BASE_MAINNET}, true);
         `);
       }
 
