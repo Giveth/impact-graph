@@ -1,7 +1,9 @@
 import { assert } from 'chai';
 import {
   createProjectData,
+  generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
+  saveUserDirectlyToDb,
 } from '../../../../test/testUtils';
 import { NETWORK_IDS } from '../../../provider';
 import {
@@ -9,9 +11,56 @@ import {
   DONATION_STATUS,
   DONATION_TYPES,
 } from '../../../entities/donation';
-import { createDonation } from './donationTab';
+import {
+  createDonation,
+  FillPricesForDonationsWithoutPrice,
+} from './donationTab';
+import { User } from '../../../entities/user';
+import { Project } from '../../../entities/project';
 
 describe('createDonation() test cases', createDonationTestCases);
+describe('updateDonationPrice() test cases', updateDonationPriceTestCases);
+
+function updateDonationPriceTestCases() {
+  it('Should update donation price', async () => {
+    const donorAddress = generateRandomEtheriumAddress();
+    const projectOwnerAddress = generateRandomEtheriumAddress();
+    const donor = await saveUserDirectlyToDb(donorAddress);
+    const projectOwner = await saveUserDirectlyToDb(projectOwnerAddress);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      adminUserId: projectOwner.id,
+      totalDonations: 0,
+    });
+    const donationWithoutPrice = await Donation.create({
+      transactionNetworkId: 1,
+      status: DONATION_STATUS.VERIFIED,
+      toWalletAddress: projectOwnerAddress,
+      fromWalletAddress: donorAddress,
+      tokenAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      projectId: project.id,
+      anonymous: false,
+      amount: 1000,
+      userId: donor.id,
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    }).save();
+    await FillPricesForDonationsWithoutPrice();
+    const donationWithPrice = await Donation.findOneBy({
+      id: donationWithoutPrice.id,
+    });
+    const donorUpdated = await User.findOneBy({ id: donor.id });
+    const projectOwnerUpdated = await User.findOneBy({ id: projectOwner.id });
+    const projectUpdated = await Project.findOneBy({ id: project.id });
+    assert.equal(donationWithPrice?.valueUsd, donorUpdated?.totalDonated);
+    assert.equal(
+      donationWithPrice?.valueUsd,
+      projectOwnerUpdated?.totalReceived,
+    );
+    assert.equal(projectUpdated?.totalDonations, donationWithPrice?.valueUsd);
+    assert.isOk(donationWithPrice?.valueUsd);
+  });
+}
 
 function createDonationTestCases() {
   it('Should create donations for csv airDrop', async () => {
