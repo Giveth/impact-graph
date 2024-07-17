@@ -1290,7 +1290,7 @@ export class ProjectResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('onlyListed', { nullable: true }) onlyListed?: boolean,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
-    @Arg('includesOptimism', { nullable: true }) includesOptimism?: boolean,
+    @Arg('networkId', { nullable: true }) networkId?: number,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -1300,14 +1300,14 @@ export class ProjectResolver {
       const total = await totalProjectsPerDate(
         fromDate,
         toDate,
-        includesOptimism,
+        networkId,
         onlyListed,
         onlyVerified,
       );
       const totalPerMonthAndYear = await totalProjectsPerDateByMonthAndYear(
         fromDate,
         toDate,
-        includesOptimism,
+        networkId,
         onlyListed,
         onlyVerified,
       );
