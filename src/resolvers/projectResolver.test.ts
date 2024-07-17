@@ -5491,7 +5491,7 @@ function editProjectUpdateTestCases() {
       {
         query: editProjectUpdateQuery,
         variables: {
-          updateId: Number(projectUpdateCount + 1),
+          updateId: Number(projectUpdateCount + 10),
           content: 'TestProjectUpdateFateme2',
           title: 'testEditProjectUpdateFateme2',
         },
@@ -5606,7 +5606,7 @@ function deleteProjectUpdateTestCases() {
       {
         query: deleteProjectUpdateQuery,
         variables: {
-          updateId: Number(projectUpdateCount + 2),
+          updateId: Number(projectUpdateCount + 10),
         },
       },
       {

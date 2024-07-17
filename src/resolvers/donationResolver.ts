@@ -4,6 +4,7 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Float,
   InputType,
   Int,
   Mutation,
@@ -24,6 +25,7 @@ import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
+  getDonationToGivethWithDonationBoxMetrics,
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
@@ -198,6 +200,18 @@ class DonationCurrencyStats {
 
   @Field(_type => Number, { nullable: true })
   currencyPercentage?: number;
+}
+
+@ObjectType()
+class DonationMetrics {
+  @Field(_type => Int, { nullable: true })
+  totalDonationsToGiveth: number;
+
+  @Field(_type => Float, { nullable: true })
+  totalUsdValueToGiveth: number;
+
+  @Field(_type => Float, { nullable: true })
+  averagePercentageToGiveth: number;
 }
 
 @Resolver(_of => User)
@@ -676,6 +690,10 @@ export class DonationResolver {
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
     @Arg('draftDonationId', { nullable: true }) draftDonationId?: number,
+    @Arg('useDonationBox', { nullable: true, defaultValue: false })
+    useDonationBox?: boolean,
+    @Arg('relevantDonationTxHash', { nullable: true })
+    relevantDonationTxHash?: string,
   ): Promise<number> {
     const logData = {
       amount,
@@ -719,6 +737,8 @@ export class DonationResolver {
         referrerId,
         safeTransactionId,
         chainType,
+        useDonationBox,
+        relevantDonationTxHash,
       };
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
@@ -817,6 +837,8 @@ export class DonationResolver {
         anonymous: Boolean(anonymous),
         safeTransactionId,
         chainType: chainType as ChainType,
+        useDonationBox,
+        relevantDonationTxHash,
       });
       if (referrerId) {
         // Fill referrer data if referrerId is valid
@@ -998,5 +1020,26 @@ export class DonationResolver {
       qfRoundId,
       userId,
     });
+  }
+
+  @Query(_returns => DonationMetrics)
+  async donationMetrics(
+    @Arg('startDate', _type => String, { nullable: false }) startDate: string,
+    @Arg('endDate', _type => String, { nullable: false }) endDate: string,
+  ): Promise<DonationMetrics> {
+    try {
+      const metrics = await getDonationToGivethWithDonationBoxMetrics(
+        new Date(startDate),
+        new Date(endDate),
+      );
+      return {
+        totalDonationsToGiveth: metrics.totalDonationsToGiveth,
+        totalUsdValueToGiveth: metrics.totalUsdValueToGiveth,
+        averagePercentageToGiveth: metrics.averagePercentageToGiveth,
+      };
+    } catch (e) {
+      logger.error('donationMetrics query error', e);
+      throw e;
+    }
   }
 }
