@@ -23,7 +23,6 @@ import {
   findStableCoinDonationsWithoutPrice,
   getPendingDonationsIds,
   isVerifiedDonationExistsInQfRound,
-  getProjectQfRoundStats,
   findRelevantDonations,
   sumDonationValueUsd,
   sumDonationValueUsdForQfRound,
