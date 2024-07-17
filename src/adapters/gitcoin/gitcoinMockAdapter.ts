@@ -10,6 +10,10 @@ import {
 export const cachedReferralAddresses = {};
 
 export class GitcoinMockAdapter implements GitcoinAdapterInterface {
+  async getUserAnalysisScore(_address: string): Promise<number> {
+    return 1;
+  }
+
   async getWalletAddressScore(
     address: string,
   ): Promise<SubmittedPassportResponse> {

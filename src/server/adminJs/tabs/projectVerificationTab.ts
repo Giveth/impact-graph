@@ -38,6 +38,19 @@ import { logger } from '../../../utils/logger';
 import { Project } from '../../../entities/project';
 import { fillSocialProfileAndQfRounds } from './projectsTab';
 
+const extractLastComment = (verificationForm: ProjectVerificationForm) => {
+  const commentsSorted = verificationForm.commentsSection?.comments?.sort(
+    (a, b) => {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    },
+  );
+  const lastComment =
+    commentsSorted &&
+    commentsSorted.length > 0 &&
+    commentsSorted[commentsSorted.length - 1];
+  return lastComment ? lastComment.content : undefined;
+};
+
 export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
   response,
   request,
@@ -115,14 +128,14 @@ export const verifySingleVerificationForm = async (
 
     if (verified) {
       await updateProjectWithVerificationForm(verificationForm, project);
-    }
-    if (verified) {
       await getNotificationAdapter().projectVerified({
         project,
       });
     } else {
+      const reason = extractLastComment(verificationForm);
       await getNotificationAdapter().verificationFormRejected({
         project,
+        reason,
       });
     }
 
@@ -262,8 +275,10 @@ export const verifyVerificationForms = async (
           project,
         });
       } else {
+        const reason = extractLastComment(verificationForm);
         await getNotificationAdapter().verificationFormRejected({
           project,
+          reason,
         });
       }
     }
@@ -311,7 +326,7 @@ export const projectVerificationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: true,
+          edit: false,
           new: true,
         },
       },
@@ -374,7 +389,7 @@ export const projectVerificationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: true,
+          edit: false,
           new: false,
         },
       },

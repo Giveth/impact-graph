@@ -1,5 +1,6 @@
 import { SelectQueryBuilder } from 'typeorm';
 import { ActionContext } from 'adminjs';
+import moment from 'moment';
 import {
   Donation,
   DONATION_STATUS,
@@ -7,6 +8,7 @@ import {
 } from '../../../entities/donation';
 import {
   canAccessDonationAction,
+  canAccessQfRoundHistoryAction,
   ResourceActions,
 } from '../adminJsPermissions';
 import {
@@ -29,8 +31,10 @@ import {
 import { Project } from '../../../entities/project';
 import { calculateGivbackFactor } from '../../../services/givbackService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
-import { updateTotalDonationsOfProject } from '../../../services/donationService';
-import { updateUserTotalDonated } from '../../../services/userService';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../../../services/userService';
 import { NETWORK_IDS } from '../../../provider';
 import {
   initExportSpreadsheet,
@@ -42,6 +46,9 @@ import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../../../services/chains';
+import { updateProjectStatistics } from '../../../services/projectService';
+import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
+import { Token } from '../../../entities/token';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -149,7 +156,8 @@ export const createDonation = async (
         donation.user = donor;
       }
       await donation.save();
-      await updateTotalDonationsOfProject(project.id);
+      await updateProjectStatistics(project.id);
+      await updateUserTotalReceived(project.adminUserId);
       if (donor) {
         await updateUserTotalDonated(donor.id);
       }
@@ -261,6 +269,63 @@ export const buildDonationsQuery = (
   return query;
 };
 
+export const FillPricesForDonationsWithoutPrice = async () => {
+  const donationsWithoutPrice = await Donation.createQueryBuilder('donation')
+    .where('donation.valueUsd IS NULL')
+    .andWhere('donation.status = :status', { status: DONATION_STATUS.VERIFIED })
+    .orderBy({ 'donation.createdAt': 'DESC' })
+    .getMany();
+  const coingeckoAdapter = new CoingeckoPriceAdapter();
+  const filledPrices: { donationId: number; price: number }[] = [];
+  logger.debug(
+    'FillPricesForDonationsWithoutPrice donation ids',
+    donationsWithoutPrice.map(d => d.id),
+  );
+  for (const donation of donationsWithoutPrice) {
+    try {
+      const token = await Token.findOneBy({ symbol: donation.currency });
+      if (!token || !token.coingeckoId) continue;
+      const price = await coingeckoAdapter.getTokenPriceAtDate({
+        date: moment(donation.createdAt).format('DD-MM-YYYY'),
+        symbol: token.coingeckoId,
+      });
+      donation.valueUsd = donation.amount * price;
+      donation.priceUsd = price;
+      filledPrices.push({ donationId: donation.id, price });
+      await donation.save();
+      await updateProjectStatistics(donation.projectId);
+      await updateUserTotalDonated(donation.userId);
+      const owner = await findUserByWalletAddress(donation.toWalletAddress);
+      if (owner?.id) await updateUserTotalReceived(owner.id);
+    } catch {
+      logger.debug(
+        'FillPricesForDonationsWithoutPrice filled prices',
+        filledPrices,
+      );
+      return {
+        redirectUrl: '/admin/resources/Donation',
+        record: {},
+        notice: {
+          message: `${donationsWithoutPrice.length} donations without price found. ${filledPrices.length} prices filled`,
+          type: 'success',
+        },
+      };
+    }
+  }
+  logger.debug(
+    'FillPricesForDonationsWithoutPrice filled prices',
+    filledPrices,
+  );
+  return {
+    redirectUrl: '/admin/resources/Donation',
+    record: {},
+    notice: {
+      message: `${donationsWithoutPrice.length} donations without price found. ${filledPrices.length} prices filled`,
+      type: 'success',
+    },
+  };
+};
+
 export const importDonationsFromIdrissTwitter = async (
   _request: ActionContext,
   _response,
@@ -279,6 +344,7 @@ export const importDonationsFromIdrissTwitter = async (
       },
     };
   } catch (e) {
+    logger.error('importDonationsFromIdrissTwitter() error', e);
     return {
       redirectUrl: '/admin/resources/Donation',
       record: {},
@@ -312,6 +378,7 @@ export const exportDonationsWithFiltersToCsv = async (
       },
     };
   } catch (e) {
+    logger.error('exportDonationsWithFiltersToCsv() error', e);
     return {
       redirectUrl: '/admin/resources/Donation',
       record: {},
@@ -744,6 +811,17 @@ export const donationTab = {
         isVisible: true,
         isAccessible: true,
         handler: importDonationsFromIdrissTwitter,
+        component: false,
+      },
+      FillPricesForDonationsWithoutPrice: {
+        actionType: 'resource',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundHistoryAction(
+            { currentAdmin },
+            ResourceActions.FILL_PRICES_FOR_DONATIONS_WITHOUT_PRICE,
+          ),
+        handler: FillPricesForDonationsWithoutPrice,
         component: false,
       },
     },

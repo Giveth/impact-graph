@@ -30,7 +30,6 @@ import { logger } from '../utils/logger';
 import {
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
-  updateTotalDonationsOfProject,
 } from './donationService';
 import { calculateGivbackFactor } from './givbackService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
@@ -38,6 +37,7 @@ import config from '../config';
 import { User } from '../entities/user';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
+import { updateProjectStatistics } from './projectService';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';
@@ -256,7 +256,7 @@ export const createRelatedDonationsToStream = async (
       await updateUserTotalDonated(donation.userId);
 
       // After updating price we update totalDonations
-      await updateTotalDonationsOfProject(donation.projectId);
+      await updateProjectStatistics(donation.projectId);
       await updateUserTotalReceived(project!.adminUser.id);
     } catch (e) {
       logger.error(

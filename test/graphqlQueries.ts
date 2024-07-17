@@ -28,6 +28,19 @@ export const createDonationMutation = `
   }
 `;
 
+export const scoreUserAddressMutation = `
+  query (
+    $address: String!
+  ) {
+    scoreUserAddress(
+      address: $address
+    ) {
+      id
+      activeQFMBDScore
+    }
+  }
+`;
+
 export const createDraftDonationMutation = `
   mutation (
     $networkId: Float!
@@ -941,7 +954,6 @@ export const fetchMultiFilterAllProjectsQuery = `
         totalDonations
         totalTraceDonations
         sumDonationValueUsdForActiveQfRound
-        sumDonationValueUsd
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
         estimatedMatching{

@@ -29,6 +29,7 @@ import { logger } from '../utils/logger';
 import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
 import { addressHasDonated } from '../repositories/donationRepository';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -109,6 +110,13 @@ export class UserResolver {
       }
       if (passportStamps)
         foundUser.passportStamps = passportStamps.items.length;
+
+      const activeQFMBDScore = await retrieveActiveQfRoundUserMBDScore(
+        foundUser.id,
+      );
+      if (activeQFMBDScore) {
+        foundUser.activeQFMBDScore = activeQFMBDScore;
+      }
       await foundUser.save();
     } catch (e) {
       logger.error(`refreshUserScores Error with address ${address}: `, e);

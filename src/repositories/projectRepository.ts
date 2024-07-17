@@ -160,7 +160,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
-  if (isFilterByQF) {
+  if (isFilterByQF && sortingBy === SortingField.EstimatedMatching) {
     query.leftJoin(
       'project.projectEstimatedMatchingView',
       'projectEstimatedMatchingView',
@@ -198,12 +198,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         );
       break;
     case SortingField.InstantBoosting: // This is our default sorting
-      if (isFilterByQF) {
-        query.addSelect([
-          'projectEstimatedMatchingView.sumValueUsd',
-          'projectEstimatedMatchingView.qfRoundId',
-        ]);
-      }
       query
         .orderBy(`project.verified`, OrderDirection.DESC)
         .addOrderBy(
@@ -213,7 +207,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         );
       if (isFilterByQF) {
         query.addOrderBy(
-          'projectEstimatedMatchingView.sumValueUsd',
+          'project.sumDonationValueUsdForActiveQfRound',
           OrderDirection.DESC,
           'NULLS LAST',
         );
@@ -225,12 +219,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.ActiveQfRoundRaisedFunds:
       if (activeQfRoundId) {
         query
-          .addSelect([
-            'projectEstimatedMatchingView.sumValueUsd',
-            'projectEstimatedMatchingView.qfRoundId',
-          ])
           .orderBy(
-            'projectEstimatedMatchingView.sumValueUsd',
+            'project.sumDonationValueUsdForActiveQfRound',
             OrderDirection.DESC,
             'NULLS LAST',
           )
@@ -240,10 +230,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.EstimatedMatching:
       if (activeQfRoundId) {
         query
-          .addSelect([
-            'projectEstimatedMatchingView.sqrtRootSum',
-            'projectEstimatedMatchingView.qfRoundId',
-          ])
+          .addSelect('projectEstimatedMatchingView.sqrtRootSum')
           .orderBy(
             'projectEstimatedMatchingView.sqrtRootSum',
             OrderDirection.DESC,
@@ -271,6 +258,14 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
     .leftJoin('project.projectUpdates', 'projectUpdates')
     .select('project.id', 'projectId')
     .addSelect('MAX(projectUpdates.createdAt)', 'latestUpdate')
+    .where('project.isImported = false')
+    .andWhere('project.verified = true')
+    .andWhere(
+      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
+      {
+        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
+      },
+    )
     .groupBy('project.id')
     .having('MAX(projectUpdates.createdAt) < :date', { date })
     .getRawMany();
@@ -280,21 +275,11 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
   );
 
   const projects = await Project.createQueryBuilder('project')
-    .where('project.isImported = false')
-    .andWhere('project.verified = true')
-    .andWhere(
-      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
-      {
-        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
-      },
-    )
-    .andWhereInIds(validProjectIds)
-    .leftJoinAndSelect(
-      'project.projectVerificationForm',
-      'projectVerificationForm',
-    )
-    .leftJoinAndSelect('project.adminUser', 'user')
-    .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+    .whereInIds(validProjectIds)
+    .leftJoin('project.projectUpdates', 'projectUpdates')
+    .addSelect(['projectUpdates.createdAt', 'projectUpdates.id'])
+    .leftJoinAndSelect('project.organization', 'organization')
+    .andWhere('organization.disableUpdateEnforcement = false')
     .getMany();
 
   projects.forEach(project => {
