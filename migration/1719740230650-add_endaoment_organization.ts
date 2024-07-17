@@ -22,7 +22,7 @@ export class AddEndaomentOrganization1719740230650
 
     for (const token of tokens) {
       // Add all Base tokens to Giveth organization
-      await queryRunner.query(`INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
+      await queryRunner.query(`  INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
         (${token.id}, ${endaomentOrganization!.id})
         ON CONFLICT DO NOTHING;
       ;`);
