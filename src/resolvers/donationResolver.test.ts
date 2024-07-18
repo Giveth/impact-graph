@@ -66,6 +66,7 @@ import {
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
+import { findProjectIdBySlug } from '../repositories/projectRepository';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -4797,7 +4798,10 @@ async function donationMetricsTestCases() {
   it('should return correct donation metrics', async () => {
     const walletAddress1 = generateRandomEtheriumAddress();
     const walletAddress2 = generateRandomEtheriumAddress();
-    const project1 = await saveProjectDirectlyToDb(createProjectData('giveth'));
+    const givethProject = await findProjectIdBySlug('giveth');
+    const project1 = givethProject
+      ? givethProject
+      : await saveProjectDirectlyToDb(createProjectData('giveth'));
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const user1 = await saveUserDirectlyToDb(walletAddress1);
     const user2 = await saveUserDirectlyToDb(walletAddress2);
