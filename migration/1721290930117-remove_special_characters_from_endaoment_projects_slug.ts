@@ -24,7 +24,7 @@ export class RemoveSpecialCharactersFromEndaomentProjectsSlug1721290930117
         `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(_queryRunner: QueryRunner): Promise<void> {
     // This down migration does not revert the slugs back to their original state
     // because we cannot determine the original character from '-'.
     // If you need a reversible migration, consider storing the original slugs in a separate table before modifying them.
