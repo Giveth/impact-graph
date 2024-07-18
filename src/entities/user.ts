@@ -192,7 +192,7 @@ export class User extends BaseEntity {
   @Field(_type => Int, { nullable: true })
   projectsCount?: number;
 
-  @Field(_type => Int, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   activeQFMBDScore?: number;
 
   @Field(_type => Int, { nullable: true })
