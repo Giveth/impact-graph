@@ -546,9 +546,10 @@ export async function getDonationToGivethWithDonationBoxMetrics(
   for (const donation of donationsToGiveth) {
     if (
       donation.donationPercentage !== null &&
-      donation.donationPercentage !== undefined
+      donation.donationPercentage !== undefined &&
+      donation.donationPercentage !== 0
     ) {
-      totalPercentage += donation.donationPercentage;
+      totalPercentage += Number(donation.donationPercentage);
       count++;
     }
   }
