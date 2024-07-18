@@ -46,7 +46,11 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
     for (const project of endaomentProjects) {
       // Prepare slug and quality score
       const slugBase = project.name.replace(/[*+~.,()'"!:@]/g, '');
-      const slug = slugBase.toLowerCase().replace(/ /g, '-');
+      const slug = slugBase
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace('/', '-')
+        .replace('\\', '-');
 
       // Insert the project
       await queryRunner.query(`
