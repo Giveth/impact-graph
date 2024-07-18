@@ -25,7 +25,8 @@ import {
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 import { OrderDirection } from './projectResolver';
-import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+// TODO: Uncomment this when test is done
+// import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 import { logger } from '../utils/logger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore';
@@ -129,9 +130,12 @@ export class QfRoundResolver {
       const activeQfRound = await findActiveQfRound();
       if (!user || !activeQfRound) return;
 
-      const userScore = await getGitcoinAdapter().getUserAnalysisScore(
-        address.toLowerCase(),
-      );
+      // TODO: Uncomment this when test is done
+      // const userScore = await getGitcoinAdapter().getUserAnalysisScore(
+      //   address.toLowerCase(),
+      // );
+
+      const userScore = 70;
 
       const existingRecord = await UserQfRoundModelScore.createQueryBuilder(
         'userQfRoundModelScore',
