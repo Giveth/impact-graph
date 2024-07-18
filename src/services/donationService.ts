@@ -20,7 +20,7 @@ import {
 import { convertExponentialNumber } from '../utils/utils';
 import {
   findDonationById,
-  findRelevantDonations,
+  findDonationsToGiveth,
 } from '../repositories/donationRepository';
 import {
   getChainvineAdapter,
@@ -529,7 +529,7 @@ export async function getDonationToGivethWithDonationBoxMetrics(
     throw new Error('giveth project not found!');
   }
 
-  const { donationsToGiveth, pairedDonations } = await findRelevantDonations(
+  const donationsToGiveth = await findDonationsToGiveth(
     startDate,
     endDate,
     givethProject.id,
@@ -540,18 +540,20 @@ export async function getDonationToGivethWithDonationBoxMetrics(
     0,
   );
 
-  const donationPercentages = donationsToGiveth.map((donation, index) => {
-    const pairedDonation = pairedDonations[index];
-    const totalValue =
-      (donation.valueUsd || 0) + (pairedDonation.valueUsd || 0);
-    return totalValue > 0 ? (donation.valueUsd || 0) / totalValue : 0;
-  });
+  let totalPercentage = 0;
+  let count = 0;
 
-  const averagePercentageToGiveth =
-    (donationPercentages.length > 0
-      ? donationPercentages.reduce((sum, percentage) => sum + percentage, 0) /
-        donationPercentages.length
-      : 0) * 100;
+  for (const donation of donationsToGiveth) {
+    if (
+      donation.donationPercentage !== null &&
+      donation.donationPercentage !== undefined
+    ) {
+      totalPercentage += donation.donationPercentage;
+      count++;
+    }
+  }
+
+  const averagePercentageToGiveth = count > 0 ? totalPercentage / count : 0;
 
   return {
     totalDonationsToGiveth,

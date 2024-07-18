@@ -537,11 +537,11 @@ export async function isVerifiedDonationExistsInQfRound(params: {
   }
 }
 
-export async function findRelevantDonations(
+export async function findDonationsToGiveth(
   startDate: Date,
   endDate: Date,
   givethProjectId: number,
-): Promise<{ donationsToGiveth: Donation[]; pairedDonations: Donation[] }> {
+): Promise<Donation[]> {
   const donations = await Donation.find({
     where: {
       createdAt: Between(startDate, endDate),
@@ -549,24 +549,5 @@ export async function findRelevantDonations(
     },
   });
 
-  const donationsToGiveth: Donation[] = [];
-  const pairedDonations: Donation[] = [];
-
-  donations.forEach(donation => {
-    if (donation.projectId === givethProjectId) {
-      donationsToGiveth.push(donation);
-      const relevantDonation = donations.find(
-        d => d.transactionId === donation.relevantDonationTxHash,
-      );
-      if (relevantDonation) {
-        pairedDonations.push(relevantDonation);
-      } else {
-        throw new Error(
-          `the relevant donation to this donation does not exist: donation id = ${donation.id}`,
-        );
-      }
-    }
-  });
-
-  return { donationsToGiveth, pairedDonations };
+  return donations.filter(donation => donation.projectId === givethProjectId);
 }
