@@ -4799,9 +4799,10 @@ async function donationMetricsTestCases() {
     const walletAddress1 = generateRandomEtheriumAddress();
     const walletAddress2 = generateRandomEtheriumAddress();
     const givethProject = await findProjectIdBySlug('giveth');
-    const project1 = givethProject
-      ? givethProject
-      : await saveProjectDirectlyToDb(createProjectData('giveth'));
+    if (givethProject) {
+      await deleteProjectDirectlyFromDb(givethProject.id);
+    }
+    const project1 = await saveProjectDirectlyToDb(createProjectData('giveth'));
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const user1 = await saveUserDirectlyToDb(walletAddress1);
     const user2 = await saveUserDirectlyToDb(walletAddress2);
@@ -4816,7 +4817,7 @@ async function donationMetricsTestCases() {
         }),
         useDonationBox: true,
         relevantDonationTxHash: 'tx1',
-        donationPercentage: 100 / 1000,
+        donationPercentage: (100 / 1000) * 100,
       },
       user1.id,
       project1.id,
@@ -4831,7 +4832,7 @@ async function donationMetricsTestCases() {
         }),
         useDonationBox: true,
         relevantDonationTxHash: 'tx2',
-        donationPercentage: 50 / 250,
+        donationPercentage: (50 / 250) * 100,
       },
       user1.id,
       project1.id,
