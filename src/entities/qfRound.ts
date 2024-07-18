@@ -71,7 +71,7 @@ export class QfRound extends BaseEntity {
 
   @Field(_type => Float, { nullable: true })
   @Column({ type: 'float', nullable: true })
-  minimumUserAnalysisScore: number;
+  minMBDScore: number;
 
   @Field(_type => Number)
   @Column('real', { default: 1 })
