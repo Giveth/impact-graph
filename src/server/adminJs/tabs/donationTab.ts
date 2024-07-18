@@ -298,6 +298,10 @@ export const FillPricesForDonationsWithoutPrice = async () => {
       const owner = await findUserByWalletAddress(donation.toWalletAddress);
       if (owner?.id) await updateUserTotalReceived(owner.id);
     } catch {
+      logger.debug(
+        'FillPricesForDonationsWithoutPrice filled prices',
+        filledPrices,
+      );
       return {
         redirectUrl: '/admin/resources/Donation',
         record: {},
