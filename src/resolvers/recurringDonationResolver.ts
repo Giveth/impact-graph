@@ -4,7 +4,6 @@ import {
   ArgsType,
   Ctx,
   Field,
-  Float,
   InputType,
   Int,
   Mutation,
@@ -40,15 +39,21 @@ import {
 import { detectAddressChainType } from '../utils/networks';
 import { logger } from '../utils/logger';
 import {
-  getRecurringDonationStatsArgsValidator,
+  resourcePerDateReportValidator,
   updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { sleep } from '../utils/utils';
 import SentryLogger from '../sentryLogger';
-import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
+import {
+  updateRecurringDonationStatusWithNetwork,
+  recurringDonationsCountPerDateRange,
+  recurringDonationsCountPerDateRangePerMonth,
+  recurringDonationsStreamedCUsdTotal,
+  recurringDonationsStreamedCUsdTotalPerMonth,
+} from '../services/recurringDonationService';
 import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
-
+import { ResourcePerDateRange } from './donationResolver';
 @InputType()
 class RecurringDonationSortBy {
   @Field(_type => RecurringDonationSortField)
@@ -154,28 +159,6 @@ class UserRecurringDonations {
 
   @Field(_type => Int)
   totalCount: number;
-}
-
-@Service()
-@ArgsType()
-class GetRecurringDonationStatsArgs {
-  @Field(_type => String)
-  beginDate: string;
-
-  @Field(_type => String)
-  endDate: string;
-
-  @Field(_type => String, { nullable: true })
-  currency?: string;
-}
-
-@ObjectType()
-class RecurringDonationStats {
-  @Field(_type => Float)
-  activeRecurringDonationsCount: number;
-
-  @Field(_type => Float)
-  totalStreamedUsdValue: number;
 }
 
 @Resolver(_of => AnchorContractAddress)
@@ -662,40 +645,76 @@ export class RecurringDonationResolver {
     }
   }
 
-  @Query(_returns => RecurringDonationStats)
-  async getRecurringDonationStats(
-    @Args() { beginDate, endDate, currency }: GetRecurringDonationStatsArgs,
-  ): Promise<RecurringDonationStats> {
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  async recurringDonationsCountPerDate(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('networkId', { nullable: true }) networkId?: number,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
+  ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
-        { beginDate, endDate },
-        getRecurringDonationStatsArgsValidator,
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
       );
-
-      const query = RecurringDonation.createQueryBuilder('recurring_donation')
-        .select([
-          'COUNT(CASE WHEN recurring_donation.status = :active THEN 1 END)',
-          'SUM(recurring_donation.totalUsdStreamed)',
-        ])
-        .setParameter('active', 'active')
-        .where(
-          `recurring_donation.createdAt >= :beginDate AND recurring_donation.createdAt <= :endDate`,
-          { beginDate, endDate },
+      const total = await recurringDonationsCountPerDateRange(
+        fromDate,
+        toDate,
+        networkId,
+        onlyVerified,
+      );
+      const totalPerMonthAndYear =
+        await recurringDonationsCountPerDateRangePerMonth(
+          fromDate,
+          toDate,
+          networkId,
+          onlyVerified,
         );
 
-      if (currency) {
-        query.andWhere(`recurring_donation.currency = :currency`, { currency });
-      }
-
-      const [result] = await query.getRawMany();
-
       return {
-        activeRecurringDonationsCount: parseInt(result.count),
-        totalStreamedUsdValue: parseFloat(result.sum) || 0,
+        total,
+        totalPerMonthAndYear,
       };
     } catch (e) {
-      SentryLogger.captureException(e);
-      logger.error('getRecurringDonationStats() error ', e);
+      logger.error('recurringDonationsCountPerDate query error', e);
+      throw e;
+    }
+  }
+
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  async recurringDonationsTotalStreamedUsdPerDate(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('networkId', { nullable: true }) networkId?: number,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
+  ): Promise<ResourcePerDateRange> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await recurringDonationsStreamedCUsdTotal(
+        fromDate,
+        toDate,
+        networkId,
+        onlyVerified,
+      );
+      const totalPerMonthAndYear =
+        await recurringDonationsStreamedCUsdTotalPerMonth(
+          fromDate,
+          toDate,
+          networkId,
+          onlyVerified,
+        );
+
+      return {
+        total,
+        totalPerMonthAndYear,
+      };
+    } catch (e) {
+      logger.error('recurringDonationsTotalStreamedUsdPerDate query error', e);
       throw e;
     }
   }
