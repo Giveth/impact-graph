@@ -1090,8 +1090,8 @@ export class ProjectResolver {
       const [c] = await this.categoryRepository.find({
         where: {
           name: category,
-
           isActive: true,
+          canUseOnFrontend: true,
         },
       });
       if (!c) {
@@ -1351,6 +1351,7 @@ export class ProjectResolver {
               where: {
                 name: category,
                 isActive: true,
+                canUseOnFrontend: true,
               },
             });
             if (!c) {

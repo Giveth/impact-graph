@@ -788,6 +788,48 @@ function createProjectTestCases() {
       errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
     );
   });
+  it('Should get error, when selected category canUseOnFrontend is false', async () => {
+    const mainCategory = await MainCategory.findOne({ where: {} });
+    const nonActiveCategory = await Category.create({
+      name: 'nonActiveCategory',
+      value: 'nonActiveCategory',
+      isActive: true,
+      canUseOnFrontend: false,
+      source: 'adhoc',
+      mainCategory: mainCategory as MainCategory,
+    }).save();
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [nonActiveCategory.name],
+      description: 'description',
+      adminUserId: SEED_DATA.FIRST_USER.id,
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    );
+  });
   it('Should get error, when more than 5 categories sent', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
