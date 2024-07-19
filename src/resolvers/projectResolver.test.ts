@@ -791,8 +791,8 @@ function createProjectTestCases() {
   it('Should get error, when selected category canUseOnFrontend is false', async () => {
     const mainCategory = await MainCategory.findOne({ where: {} });
     const nonActiveCategory = await Category.create({
-      name: 'nonActiveCategory',
-      value: 'nonActiveCategory',
+      name: new Date().toISOString(),
+      value: new Date().toISOString(),
       isActive: true,
       canUseOnFrontend: false,
       source: 'adhoc',
