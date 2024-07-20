@@ -766,6 +766,10 @@ export class ProjectResolver {
 
     const categoriesResolver = Category.find({
       cache: projectFiltersCacheDuration,
+      where: {
+        isActive: true,
+        canUseOnFrontend: true,
+      },
     });
 
     // eslint-disable-next-line prefer-const
