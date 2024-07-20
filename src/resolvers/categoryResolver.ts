@@ -29,7 +29,7 @@ export class CategoryResolver {
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.mainCategory', 'mainCategory')
       .where(`category."isActive"=true`)
-      .andWhere(`category."isActive"=true AND category."canUseOnFrontend"=true`)
+      .andWhere(`category."canUseOnFrontend"=true`)
       .orderBy({
         'category.name': 'ASC',
       })
@@ -41,7 +41,7 @@ export class CategoryResolver {
       .innerJoinAndSelect(
         'mainCategory.categories',
         'categories',
-        `categories."isActive"=true`,
+        `categories."isActive"=true  AND  categories."canUseOnFrontend"=true`,
       )
       .where(`"mainCategory"."isActive"=true`)
       .orderBy({
