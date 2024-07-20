@@ -1429,7 +1429,6 @@ export const fetchLatestProjectUpdates = `
           totalReactions
         }
       }
-      count
     }
   }
 `;

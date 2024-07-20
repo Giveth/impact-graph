@@ -146,9 +146,6 @@ class TopProjects {
 class ProjectUpdatesResponse {
   @Field(_type => [ProjectUpdate])
   projectUpdates: ProjectUpdate[];
-
-  @Field(_type => Int, { nullable: false })
-  count: number;
 }
 
 export enum OrderDirection {
@@ -2009,11 +2006,10 @@ export class ProjectResolver {
         user.userId,
       );
 
-    const [projectUpdates, count] = await query.getManyAndCount();
+    const projectUpdates = await query.getMany();
 
     return {
       projectUpdates,
-      count,
     };
   }
 
