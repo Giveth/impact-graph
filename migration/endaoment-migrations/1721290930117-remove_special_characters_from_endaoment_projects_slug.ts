@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { ORGANIZATION_LABELS } from '../src/entities/organization';
+import { ORGANIZATION_LABELS } from '../../src/entities/organization';
 
 export class RemoveSpecialCharactersFromEndaomentProjectsSlug1721290930117
   implements MigrationInterface
