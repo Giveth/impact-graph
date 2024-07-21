@@ -19,6 +19,7 @@ import {
 import graphqlFields from 'graphql-fields';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
+import { GraphQLResolveInfo } from 'graphql/type';
 import { Reaction } from '../entities/reaction';
 import {
   FilterField,
@@ -113,6 +114,8 @@ import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
 } from '../repositories/projectSocialMediaRepository';
+
+const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
@@ -831,7 +834,7 @@ export class ProjectResolver {
     @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
-    @Info() info: any,
+    @Info() info: GraphQLResolveInfo,
   ) {
     const fields = graphqlFields(info);
 
@@ -898,7 +901,9 @@ export class ProjectResolver {
   }
 
   // Helper method to get the fields of the Project entity
-  private getEntityFields(entity: typeof Project): string[] {
+  private getEntityFields(
+    entity: typeof Project | typeof ProjectUpdate,
+  ): string[] {
     const metadata = getMetadataArgsStorage();
     const columns = metadata.columns.filter(col => col.target === entity);
     return columns.map(col => col.propertyName);
@@ -910,7 +915,7 @@ export class ProjectResolver {
     @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
-    @Info() info: any,
+    @Info() info: GraphQLResolveInfo,
   ) {
     const minimalProject = await findProjectIdBySlug(slug);
     if (!minimalProject) {
@@ -1974,19 +1979,26 @@ export class ProjectResolver {
   async projectUpdates(
     @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
+    @Info() info: GraphQLResolveInfo,
   ): Promise<ProjectUpdatesResponse> {
     const projectsWithLatestUpdates = await Project.createQueryBuilder(
       'project',
     )
+      .select(['project.id', 'project.latestUpdateCreationDate'])
       .where('project.statusId = :statusId', { statusId: ProjStatus.active })
       .andWhere('project.reviewStatus = :reviewStatus', {
         reviewStatus: ReviewStatus.Listed,
       })
-      .andWhere('project.latestUpdateCreationDate != project.creationDate')
+      .andWhere(
+        "DATE_TRUNC('minute', project.latestUpdateCreationDate) != DATE_TRUNC('minute', project.creationDate)",
+      )
       .orderBy('project.latestUpdateCreationDate', 'DESC')
       .limit(take)
       .offset(skip)
-      .cache(`projectsWithLatestUpdates-${take}-${skip}`, 600000)
+      .cache(
+        `projectsWithLatestUpdates-${take}-${skip}`,
+        projectUpdatsCacheDuration,
+      )
       .getMany();
 
     const projectUpdateDates = projectsWithLatestUpdates.map(
@@ -1994,10 +2006,33 @@ export class ProjectResolver {
     );
     const projectIds = projectsWithLatestUpdates.map(p => p.id);
 
+    // Extract requested fields
+    const fields = graphqlFields(info);
+    const projectUpdateFields = this.getEntityFields(ProjectUpdate);
+    const projectFields = this.getEntityFields(Project);
+
+    // Filter requested fields to only include those in the entity
+    const projectUpdateSelectedFields = Object.keys(
+      fields.projectUpdates,
+    ).filter(field => projectUpdateFields.includes(field));
+    const projectSelectedFields = Object.keys(
+      fields.projectUpdates.project,
+    ).filter(field => projectFields.includes(field));
+
+    // Dynamically build the select fields
+    const projectUpdateSelectFields = projectUpdateSelectedFields.map(
+      field => `projectUpdate.${field}`,
+    );
+    const projectSelectFields = projectSelectedFields.map(
+      field => `project.${field}`,
+    );
+
     const projectUpdates = await ProjectUpdate.createQueryBuilder(
       'projectUpdate',
     )
-      .innerJoinAndSelect('projectUpdate.project', 'project')
+      .select(projectUpdateSelectFields)
+      .innerJoin('projectUpdate.project', 'project')
+      .addSelect(projectSelectFields)
       .where('projectUpdate.projectId IN (:...projectIds)', {
         projectIds,
       })
@@ -2006,7 +2041,7 @@ export class ProjectResolver {
         dates: projectUpdateDates,
       })
       .orderBy('projectUpdate.createdAt', 'DESC')
-      .cache(`projectUpdates-${take}-${skip}`, 600000)
+      .cache(`projectUpdates-${take}-${skip}`, projectUpdatsCacheDuration)
       .getMany();
 
     return {
