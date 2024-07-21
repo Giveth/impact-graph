@@ -107,10 +107,10 @@ export class DraftDonationResolver {
           createDraftDonationQueryValidator,
         );
       } catch (e) {
-        logger.error(
-          'Error on validating createDraftDonation input',
+        logger.error('Error on validating createDraftDonation input', {
           validaDataInput,
-        );
+          error: e,
+        });
         throw e; // Rethrow the original error
       }
 
@@ -235,10 +235,10 @@ export class DraftDonationResolver {
           createDraftRecurringDonationQueryValidator,
         );
       } catch (e) {
-        logger.error(
-          'Error on validating createDraftRecurringDonation input',
+        logger.error('Error on validating createDraftRecurringDonation input', {
           validaDataInput,
-        );
+          error: e,
+        });
         throw e; // Rethrow the original error
       }
       let recurringDonation: RecurringDonation | null;

@@ -5,6 +5,11 @@ import { User } from '../entities/user';
 import { Category } from '../entities/category';
 import { MainCategory } from '../entities/mainCategory';
 import { AppDataSource } from '../orm';
+import config from '../config';
+
+const qfRoundsAndMainCategoryCacheDuration =
+  (config.get('QF_ROUND_AND_MAIN_CATEGORIES_CACHE_DURATION') as number) ||
+  1000 * 60 * 15;
 
 @Resolver(_of => User)
 export class CategoryResolver {
@@ -24,6 +29,7 @@ export class CategoryResolver {
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.mainCategory', 'mainCategory')
       .where(`category."isActive"=true`)
+      .andWhere(`category."isActive"=true`)
       .orderBy({
         'category.name': 'ASC',
       })
@@ -42,6 +48,7 @@ export class CategoryResolver {
         'mainCategory.title': 'ASC',
         'categories.name': 'ASC',
       })
+      .cache('mainCategories', qfRoundsAndMainCategoryCacheDuration)
       .getMany();
   }
 }

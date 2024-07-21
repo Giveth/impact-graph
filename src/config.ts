@@ -117,7 +117,7 @@ class Config {
   }
 
   get(envVar: string): string | number {
-    // I thinks it's an unnecessary checking, because may we have some optional config, but this checking make all
+    // I think it's an unnecessary checking, because may we have some optional config, but this checking make all
     // config variables required
 
     // if (!this.env[envVar]) {

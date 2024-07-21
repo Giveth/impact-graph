@@ -83,7 +83,7 @@ function updateUserTotalReceivedTestCases() {
     await saveProjectDirectlyToDb({
       ...createProjectData(),
       adminUserId: user.id,
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
       totalDonations: 180,
     });
     const owner = (await findUserById(user.id)) as User;

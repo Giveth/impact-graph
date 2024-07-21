@@ -26,7 +26,7 @@ export enum ResourceActions {
   UPDATE_QF_ROUND_HISTORIES = 'updateQfRoundHistories',
   RETURN_ALL_DONATIONS_DATA = 'returnAllDonationData',
   RELATE_DONATIONS_WITH_DISTRIBUTED_FUNDS = 'relateDonationsWithDistributedFunds',
-  FILL_PRICES_FOR_DONATIONS_WITHOUT_PRICE_IN_LATEST_ROUND = 'fillPricesForDonationsWithoutPriceInLatestRound',
+  FILL_PRICES_FOR_DONATIONS_WITHOUT_PRICE = 'fillPricesForDonationsWithoutPrice',
 }
 
 // All permissions listed per resource, per role and action
@@ -156,7 +156,7 @@ const qfRoundHistoryPermissions = {
     edit: true,
     updateQfRoundHistories: true,
     relateDonationsWithDistributedFunds: true,
-    fillPricesForDonationsWithoutPriceInLatestRound: true,
+    fillPricesForDonationsWithoutPrice: true,
   },
   [UserRole.OPERATOR]: {
     list: true,

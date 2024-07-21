@@ -25,8 +25,10 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(46, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment().subtract(46, 'days').endOf('day'),
+      latestUpdateCreationDate: moment()
+        .subtract(46, 'days')
+        .endOf('day')
+        .toDate(),
       verificationStatus: RevokeSteps.Reminder,
     });
 
@@ -46,8 +48,7 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(91, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment().subtract(91, 'days').endOf('day'),
+      latestUpdateCreationDate: moment().subtract(91, 'days').endOf('day'),
       verificationStatus: RevokeSteps.Warning,
     });
 
@@ -67,8 +68,7 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(105, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
+      latestUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
       verificationStatus: RevokeSteps.LastChance,
     });
 
@@ -83,6 +83,23 @@ function checkProjectVerificationStatusTestCases() {
       lastWarningProjectUpdated!.verificationStatus,
       RevokeSteps.UpForRevoking,
     );
+  });
+  it('should not check updates for imported projects', async () => {
+    const importedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      latestUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
+      isImported: true,
+    });
+
+    await checkProjectVerificationStatus();
+
+    const importedProjectUpdated = await findProjectById(importedProject.id);
+
+    assert.isTrue(importedProjectUpdated!.verified);
+    assert.equal(importedProjectUpdated!.verificationStatus, null);
   });
   // it('should revoke project verification after last chance time frame expired', async () => {
   //   const revokableProject = await saveProjectDirectlyToDb({

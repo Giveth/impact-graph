@@ -50,7 +50,7 @@ import { ProjectFraud } from './projectFraud';
 import { ProjectActualMatchingView } from './ProjectActualMatchingView';
 import { ProjectSocialMedia } from './projectSocialMedia';
 import { DraftRecurringDonation } from './draftRecurringDonation';
-import { ProjectDonationSummaryView } from '../views/projectDonationSummaryView';
+import { UserQfRoundModelScore } from './userQfRoundModelScore';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -95,7 +95,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectUserInstantPowerView,
     ProjectEstimatedMatchingView,
     ProjectActualMatchingView,
-    ProjectDonationSummaryView,
 
     // historic snapshots
     PowerSnapshotHistory,
@@ -114,6 +113,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     QfRoundHistory,
     Sybil,
     ProjectFraud,
+    UserQfRoundModelScore,
 
     AnchorContractAddress,
     RecurringDonation,

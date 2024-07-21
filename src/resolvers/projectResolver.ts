@@ -56,7 +56,7 @@ import {
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
-import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
+import { updateProjectUpdatesStatistics } from '../services/projectUpdatesService';
 import { logger } from '../utils/logger';
 import { getLoggedInUser } from '../services/authorizationServices';
 import {
@@ -493,8 +493,10 @@ export class ProjectResolver {
         case FilterField.AcceptGiv:
           // only giving Blocks do not accept Giv
           return query.andWhere(`project.${filter} IS NULL`);
-        case FilterField.GivingBlock:
-          return query.andWhere('project.givingBlocksId IS NOT NULL');
+        case FilterField.Endaoment:
+          return query.andWhere('organization.label = :label', {
+            label: ORGANIZATION_LABELS.ENDAOMENT,
+          });
         case FilterField.BoostedWithGivPower:
           return query.andWhere(`projectPower.totalPower > 0`);
         case FilterField.ActiveQfRound:
@@ -1088,8 +1090,8 @@ export class ProjectResolver {
       const [c] = await this.categoryRepository.find({
         where: {
           name: category,
-
           isActive: true,
+          canUseOnFrontend: true,
         },
       });
       if (!c) {
@@ -1277,6 +1279,7 @@ export class ProjectResolver {
 
         return response;
       } catch (e) {
+        logger.error('upload image failed in project resolver', e);
         throw Error(i18n.__(translationErrorMessagesKeys.UPLOAD_FAILED));
       }
     }
@@ -1348,6 +1351,7 @@ export class ProjectResolver {
               where: {
                 name: category,
                 isActive: true,
+                canUseOnFrontend: true,
               },
             });
             if (!c) {
@@ -1423,6 +1427,7 @@ export class ProjectResolver {
       image,
       creationDate: now,
       updatedAt: now,
+      latestUpdateCreationDate: now,
       slug: slug.toLowerCase(),
       slugHistory: [],
       adminUserId: ctx.req.user.userId,
@@ -1550,7 +1555,7 @@ export class ProjectResolver {
       await project.save();
     }
 
-    await updateTotalProjectUpdatesOfAProject(update.projectId);
+    await updateProjectUpdatesStatistics(update.projectId);
 
     await getNotificationAdapter().projectUpdateAdded({
       project,
@@ -1634,7 +1639,7 @@ export class ProjectResolver {
     if (reactionsCount > 0) await Reaction.remove(reactions);
 
     await ProjectUpdate.delete({ id: update.id });
-    await updateTotalProjectUpdatesOfAProject(update.projectId);
+    await updateProjectUpdatesStatistics(update.projectId);
     return true;
   }
 
@@ -2121,6 +2126,7 @@ export class ProjectResolver {
       throw error;
     }
   }
+
   @Mutation(_returns => Boolean)
   async activateProject(
     @Arg('projectId') projectId: number,

@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, Int } from 'type-graphql';
+import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -69,6 +69,10 @@ export class QfRound extends BaseEntity {
   @Column()
   minimumPassportScore: number;
 
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', nullable: true })
+  minMBDScore: number;
+
   @Field(_type => Number)
   @Column('real', { default: 1 })
   minimumValidUsdValue: number;
@@ -92,6 +96,10 @@ export class QfRound extends BaseEntity {
   @Field(_type => [String])
   @Column('text', { array: true, default: [] })
   sponsorsImgs: string[];
+
+  @Field(_type => Boolean)
+  @Column({ default: false })
+  isDataAnalysisDone: boolean;
 
   @UpdateDateColumn()
   updatedAt: Date;

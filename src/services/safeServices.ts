@@ -14,7 +14,7 @@ export const fetchSafeTransactionHash = async (
     const tx = await safeService.getTransaction(safeMessageHash);
     safeTransactionHash = tx?.transactionHash;
   } catch (e) {
-    logger.error(e);
+    logger.error('fetchSafeTransactionHash() error', e);
   }
 
   return safeTransactionHash;

@@ -22,6 +22,18 @@ export class Organization extends BaseEntity {
   @Column('text')
   name: string;
 
+  @Field()
+  @Column('boolean', { default: false })
+  disableNotifications: boolean;
+
+  @Field()
+  @Column('boolean', { default: false })
+  disableRecurringDonations: boolean;
+
+  @Field()
+  @Column('boolean', { default: false })
+  disableUpdateEnforcement: boolean;
+
   // It should not change during the time, because we are assuming they are readonly
   @Field()
   @Column('text')
@@ -49,5 +61,7 @@ export const ORGANIZATION_LABELS = {
   GIVETH: 'giveth',
   TRACE: 'trace',
   CHANGE: 'change',
-  GIVING_BLOCK: 'givingBlock',
+  // We removed giving blocks projects except the ones that received donations
+  // GIVING_BLOCK: 'givingBlock',
+  ENDAOMENT: 'endaoment',
 };

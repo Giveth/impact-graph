@@ -160,7 +160,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
-  if (isFilterByQF) {
+  if (isFilterByQF && sortingBy === SortingField.EstimatedMatching) {
     query.leftJoin(
       'project.projectEstimatedMatchingView',
       'projectEstimatedMatchingView',
@@ -198,12 +198,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         );
       break;
     case SortingField.InstantBoosting: // This is our default sorting
-      if (isFilterByQF) {
-        query.addSelect([
-          'projectEstimatedMatchingView.sumValueUsd',
-          'projectEstimatedMatchingView.qfRoundId',
-        ]);
-      }
       query
         .orderBy(`project.verified`, OrderDirection.DESC)
         .addOrderBy(
@@ -213,7 +207,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         );
       if (isFilterByQF) {
         query.addOrderBy(
-          'projectEstimatedMatchingView.sumValueUsd',
+          'project.sumDonationValueUsdForActiveQfRound',
           OrderDirection.DESC,
           'NULLS LAST',
         );
@@ -225,12 +219,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.ActiveQfRoundRaisedFunds:
       if (activeQfRoundId) {
         query
-          .addSelect([
-            'projectEstimatedMatchingView.sumValueUsd',
-            'projectEstimatedMatchingView.qfRoundId',
-          ])
           .orderBy(
-            'projectEstimatedMatchingView.sumValueUsd',
+            'project.sumDonationValueUsdForActiveQfRound',
             OrderDirection.DESC,
             'NULLS LAST',
           )
@@ -240,10 +230,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.EstimatedMatching:
       if (activeQfRoundId) {
         query
-          .addSelect([
-            'projectEstimatedMatchingView.sqrtRootSum',
-            'projectEstimatedMatchingView.qfRoundId',
-          ])
+          .addSelect('projectEstimatedMatchingView.sqrtRootSum')
           .orderBy(
             'projectEstimatedMatchingView.sqrtRootSum',
             OrderDirection.DESC,
@@ -265,21 +252,15 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
 export const projectsWithoutUpdateAfterTimeFrame = async (
   date: Date,
 ): Promise<Project[]> => {
-  const projectsWithLatestUpdateBeforeCutOff = await Project.createQueryBuilder(
-    'project',
-  )
-    .leftJoin('project.projectUpdates', 'projectUpdates')
-    .select('project.id', 'projectId')
-    .addSelect('MAX(projectUpdates.createdAt)', 'latestUpdate')
-    .groupBy('project.id')
-    .having('MAX(projectUpdates.createdAt) < :date', { date })
-    .getRawMany();
-
-  const validProjectIds = projectsWithLatestUpdateBeforeCutOff.map(
-    item => item.projectId,
-  );
-
-  const projects = await Project.createQueryBuilder('project')
+  return await Project.createQueryBuilder('project')
+    .select([
+      'project.id',
+      'project.slug',
+      'project.verificationStatus',
+      'project.adminUserId',
+      'project.latestUpdateCreationDate',
+      'project.title',
+    ])
     .where('project.isImported = false')
     .andWhere('project.verified = true')
     .andWhere(
@@ -288,22 +269,8 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
         statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
       },
     )
-    .andWhereInIds(validProjectIds)
-    .leftJoinAndSelect(
-      'project.projectVerificationForm',
-      'projectVerificationForm',
-    )
-    .leftJoinAndSelect('project.adminUser', 'user')
-    .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+    .andWhere('project.latestUpdateCreationDate < :date', { date })
     .getMany();
-
-  projects.forEach(project => {
-    project.projectUpdates?.sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  });
-
-  return projects;
 };
 
 export const findProjectBySlug = (slug: string): Promise<Project | null> => {

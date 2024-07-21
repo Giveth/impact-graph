@@ -14,29 +14,21 @@ import {
 } from '../../test/testUtils';
 import { User, UserRole } from '../entities/user';
 import {
-  countUniqueDonors,
-  countUniqueDonorsForRound,
+  countUniqueDonorsAndSumDonationValueUsd,
   createDonation,
   fillQfRoundDonationsUserScores,
   findDonationById,
   findDonationsByTransactionId,
-  findStableCoinDonationsWithoutPrice,
-  getPendingDonationsIds,
-  isVerifiedDonationExistsInQfRound,
   findRelevantDonations,
-  sumDonationValueUsd,
-  sumDonationValueUsdForQfRound,
+  getPendingDonationsIds,
+  getProjectQfRoundStats,
+  isVerifiedDonationExistsInQfRound,
 } from './donationRepository';
-import { updateOldStableCoinDonationsPrice } from '../services/donationService';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { QfRound } from '../entities/qfRound';
 import { Project } from '../entities/project';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils';
-import { NETWORK_IDS } from '../provider';
 
 describe('createDonation test cases', createDonationTestCases);
 
@@ -48,10 +40,7 @@ describe(
   'getPendingDonationsIds() test cases',
   getPendingDonationsIdsTestCases,
 );
-describe(
-  'findStableCoinDonationsWithoutPrice() test cases',
-  findStableCoinDonationsWithoutPriceTestCases,
-);
+
 describe('findDonationById() test cases', findDonationByIdTestCases);
 describe(
   'countUniqueDonorsForActiveQfRound() test cases',
@@ -205,7 +194,6 @@ function estimatedMatchingTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const firstProjectMatch = await calculateEstimateMatchingForProjectById({
       projectId: firstProject.id,
@@ -265,7 +253,6 @@ function estimatedMatchingTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
     const firstProjectMatch = await calculateEstimateMatchingForProjectById({
       projectId: firstProject.id,
@@ -379,93 +366,6 @@ function findDonationByIdTestCases() {
   });
 }
 
-function findStableCoinDonationsWithoutPriceTestCases() {
-  it('should just return stable coin donations without price', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const donationData1 = { ...createDonationData(), currency: 'USDC' };
-    delete donationData1.valueUsd;
-
-    const donationData2 = { ...createDonationData(), currency: 'USDC' };
-
-    const donationData3 = { ...createDonationData(), currency: 'USDT' };
-    delete donationData3.valueUsd;
-
-    const donationData4 = { ...createDonationData(), currency: 'USDT' };
-    donationData4.currency = 'USDT';
-
-    const donationData5 = {
-      ...createDonationData(),
-      currency: 'WXDAI',
-      transactionNetworkId: NETWORK_IDS.XDAI,
-    };
-    delete donationData5.valueUsd;
-
-    const donationData6 = {
-      ...createDonationData(),
-      currency: 'WXDAI',
-      transactionNetworkId: NETWORK_IDS.XDAI,
-    };
-
-    const donationData7 = {
-      ...createDonationData(),
-      currency: 'WXDAI',
-      transactionNetworkId: NETWORK_IDS.XDAI,
-    };
-    delete donationData7.valueUsd;
-
-    const donationData8 = {
-      ...createDonationData(),
-      currency: 'WXDAI',
-      transactionNetworkId: NETWORK_IDS.XDAI,
-    };
-
-    const donationData9 = createDonationData();
-    delete donationData9.valueUsd;
-
-    await saveDonationDirectlyToDb(donationData1, donor.id, project.id);
-    await saveDonationDirectlyToDb(donationData2, donor.id, project.id);
-    await saveDonationDirectlyToDb(donationData3, donor.id, project.id);
-    await saveDonationDirectlyToDb(donationData4, donor.id, project.id);
-    await saveDonationDirectlyToDb(donationData5, donor.id, project.id);
-    await saveDonationDirectlyToDb(donationData6, donor.id, project.id);
-    await saveDonationDirectlyToDb(donationData7, donor.id, project.id);
-    await saveDonationDirectlyToDb(donationData8, donor.id, project.id);
-    await saveDonationDirectlyToDb(donationData9, donor.id, project.id);
-
-    const donations = await findStableCoinDonationsWithoutPrice();
-    assert.equal(donations.length, 4);
-    assert.isOk(
-      donations.find(
-        donation => donation.transactionId === donationData1.transactionId,
-      ),
-    );
-    assert.isOk(
-      donations.find(
-        donation => donation.transactionId === donationData3.transactionId,
-      ),
-    );
-    assert.isOk(
-      donations.find(
-        donation => donation.transactionId === donationData5.transactionId,
-      ),
-    );
-    assert.isOk(
-      donations.find(
-        donation => donation.transactionId === donationData7.transactionId,
-      ),
-    );
-
-    await updateOldStableCoinDonationsPrice();
-
-    // Shoud fill valuUsd of all stable coin donations
-    const stableDonationsWithoutPrice =
-      await findStableCoinDonationsWithoutPrice();
-    assert.isEmpty(stableDonationsWithoutPrice);
-  });
-}
-
 function createDonationTestCases() {
   it('should create donation ', async () => {
     const email = `${new Date().getTime()}@giveth.io`;
@@ -576,12 +476,12 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
     }).save();
     project.qfRounds = [qfRound];
     await project.save();
-    const donorCount = await countUniqueDonorsForRound({
+    const donorCount = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donorCount, 0);
+    assert.equal(donorCount.uniqueDonorsCount, 0);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -628,12 +528,12 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       project.id,
     );
 
-    const donorCount = await countUniqueDonorsForRound({
+    const donorCount = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donorCount, 0);
+    assert.equal(donorCount.uniqueDonorsCount, 0);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -670,15 +570,12 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       project.id,
     );
 
-    await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
-
-    const donorCount = await countUniqueDonorsForRound({
+    const donorCount = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donorCount, 0);
+    assert.equal(donorCount.uniqueDonorsCount, 0);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -716,14 +613,13 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
-    const donorCount = await countUniqueDonorsForRound({
+    const donorCount = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donorCount, 1);
+    assert.equal(donorCount.uniqueDonorsCount, 1);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -783,14 +679,13 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
-    const donorCount = await countUniqueDonorsForRound({
+    const donorCount = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donorCount, 2);
+    assert.equal(donorCount.uniqueDonorsCount, 2);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -804,10 +699,10 @@ function countUniqueDonorsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
-
-    const donorCount = await countUniqueDonors(project.id);
-
-    assert.equal(donorCount, 0);
+    const { uniqueDonors } = await countUniqueDonorsAndSumDonationValueUsd(
+      project.id,
+    );
+    assert.equal(uniqueDonors, 0);
   });
 
   it('should not count unverified donations', async () => {
@@ -828,9 +723,11 @@ function countUniqueDonorsTestCases() {
       project.id,
     );
 
-    const donorCount = await countUniqueDonors(project.id);
+    const { uniqueDonors } = await countUniqueDonorsAndSumDonationValueUsd(
+      project.id,
+    );
 
-    assert.equal(donorCount, 0);
+    assert.equal(uniqueDonors, 0);
   });
   it('should return correctly when there is one  donation', async () => {
     const project = await saveProjectDirectlyToDb({
@@ -852,10 +749,11 @@ function countUniqueDonorsTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
-    const donorCount = await countUniqueDonors(project.id);
-    assert.equal(donorCount, 1);
+    const { uniqueDonors } = await countUniqueDonorsAndSumDonationValueUsd(
+      project.id,
+    );
+    assert.equal(uniqueDonors, 1);
   });
   it('should return correctly when there is some donations', async () => {
     // 3 donations with 2 different donor
@@ -897,11 +795,12 @@ function countUniqueDonorsTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
-    const donorCount = await countUniqueDonors(project.id);
+    const { uniqueDonors } = await countUniqueDonorsAndSumDonationValueUsd(
+      project.id,
+    );
 
-    assert.equal(donorCount, 2);
+    assert.equal(uniqueDonors, 2);
   });
 }
 
@@ -924,12 +823,12 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     }).save();
     project.qfRounds = [qfRound];
     await project.save();
-    const donationSum = await sumDonationValueUsdForQfRound({
+    const { sumValueUsd } = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donationSum, 0);
+    assert.equal(sumValueUsd, 0);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -981,15 +880,12 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       project.id,
     );
 
-    await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
-
-    const donationSum = await countUniqueDonorsForRound({
+    const donationSum = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donationSum, 0);
+    assert.equal(donationSum.uniqueDonorsCount, 0);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -1029,19 +925,18 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
-    const qfRoundUniqueDonorsCount = await countUniqueDonorsForRound({
+    const { uniqueDonorsCount } = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(qfRoundUniqueDonorsCount, 0);
+    assert.equal(uniqueDonorsCount, 0);
 
     qfRound.isActive = false;
     await qfRound.save();
   });
-  it('should not count donations usd values when donors  have less than minimum passport score', async () => {
+  it('should not count donations usd values when donors have less than minimum passport score', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -1073,18 +968,18 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       donor.id,
       project.id,
     );
-    await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
-    const donationQfRoundSum = await sumDonationValueUsdForQfRound({
+    const { sumValueUsd } = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donationQfRoundSum, 0);
+    assert.equal(sumValueUsd, 0);
 
-    const donationSum = await sumDonationValueUsd(project.id);
-    assert.equal(donationSum, valueUsd);
+    const { totalDonations } = await countUniqueDonorsAndSumDonationValueUsd(
+      project.id,
+    );
+    assert.equal(totalDonations, valueUsd);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -1124,13 +1019,12 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
-    const donationSum = await sumDonationValueUsdForQfRound({
+    const { sumValueUsd } = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donationSum, valueUsd);
+    assert.equal(sumValueUsd, valueUsd);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -1197,14 +1091,13 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
-    const donationSum = await sumDonationValueUsdForQfRound({
+    const { sumValueUsd } = await getProjectQfRoundStats({
       projectId: project.id,
-      qfRoundId: qfRound.id,
+      qfRound,
     });
 
-    assert.equal(donationSum, valueUsd1 + valueUsd2 + valueUsd3);
+    assert.equal(sumValueUsd, valueUsd1 + valueUsd2 + valueUsd3);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -1219,8 +1112,10 @@ function sumDonationValueUsdTestCases() {
       slug: String(new Date().getTime()),
     });
 
-    const donationSum = await sumDonationValueUsd(project.id);
-    assert.equal(donationSum, 0);
+    const { totalDonations } = await countUniqueDonorsAndSumDonationValueUsd(
+      project.id,
+    );
+    assert.equal(totalDonations, 0);
   });
 
   it('should not count unverified donations', async () => {
@@ -1258,11 +1153,12 @@ function sumDonationValueUsdTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
-    const donationSum = await sumDonationValueUsd(project.id);
+    const { totalDonations } = await countUniqueDonorsAndSumDonationValueUsd(
+      project.id,
+    );
 
-    assert.equal(donationSum, valueUsd2);
+    assert.equal(totalDonations, valueUsd2);
   });
 
   it('should return correctly when there is some verified donation', async () => {
@@ -1313,11 +1209,12 @@ function sumDonationValueUsdTestCases() {
     );
 
     await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
 
-    const donationSum = await sumDonationValueUsd(project.id);
+    const { totalDonations } = await countUniqueDonorsAndSumDonationValueUsd(
+      project.id,
+    );
 
-    assert.equal(donationSum, valueUsd1 + valueUsd2 + valueUsd3);
+    assert.equal(totalDonations, valueUsd1 + valueUsd2 + valueUsd3);
   });
 }
 

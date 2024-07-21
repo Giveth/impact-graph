@@ -12,6 +12,7 @@ export enum ProjectSocialMediaType {
   LENS = 'LENS',
   WEBSITE = 'WEBSITE',
   TELEGRAM = 'TELEGRAM',
+  GITHUB = 'GITHUB',
 }
 
 registerEnumType(ProjectSocialMediaType, {

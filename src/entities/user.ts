@@ -147,12 +147,6 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   isReferrer: boolean;
 
-  @Field(_type => Boolean, { nullable: true })
-  @Column('bool', { default: false })
-  // After each QF round Lauren and Griff review the donations and pass me a list of sybil addresses
-  // And then we exclude qfRound donation from those addresses when calculating the real matchingFund
-  knownAsSybilAddress: boolean;
-
   @Field(() => ReferredEvent, { nullable: true })
   @OneToOne(() => ReferredEvent, referredEvent => referredEvent.user, {
     cascade: true,
@@ -197,6 +191,9 @@ export class User extends BaseEntity {
 
   @Field(_type => Int, { nullable: true })
   projectsCount?: number;
+
+  @Field(_type => Float, { nullable: true })
+  activeQFMBDScore?: number;
 
   @Field(_type => Int, { nullable: true })
   async donationsCount() {

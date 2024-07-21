@@ -184,12 +184,13 @@ function projectsPerDateTestCases() {
       ...createProjectData(),
       creationDate: moment().add(44, 'days').toDate(),
     });
+    const variables = {
+      fromDate: moment().add(9, 'days').toDate().toISOString().split('T')[0],
+      toDate: moment().add(45, 'days').toDate().toISOString().split('T')[0],
+    };
     const projectsResponse = await axios.post(graphqlUrl, {
       query: fetchNewProjectsPerDate,
-      variables: {
-        fromDate: moment().add(9, 'days').toDate().toISOString().split('T')[0],
-        toDate: moment().add(45, 'days').toDate().toISOString().split('T')[0],
-      },
+      variables,
     });
 
     assert.isOk(projectsResponse);
@@ -331,23 +332,6 @@ function getProjectsAcceptTokensTestCases() {
       },
     });
     assert.isEmpty(result.data.data.getProjectAcceptTokens);
-  });
-
-  it('should just return ETH token for givingBlock projects', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: getProjectsAcceptTokensQuery,
-      variables: {
-        projectId: project.id,
-      },
-    });
-    assert.isOk(result.data.data.getProjectAcceptTokens);
-    assert.equal(result.data.data.getProjectAcceptTokens.length, 1);
-    assert.equal(result.data.data.getProjectAcceptTokens[0].symbol, 'ETH');
-    assert.equal(result.data.data.getProjectAcceptTokens[0].networkId, 1);
   });
 }
 
@@ -769,6 +753,48 @@ function createProjectTestCases() {
       name: 'nonActiveCategory',
       value: 'nonActiveCategory',
       isActive: false,
+      source: 'adhoc',
+      mainCategory: mainCategory as MainCategory,
+    }).save();
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [nonActiveCategory.name],
+      description: 'description',
+      adminUserId: SEED_DATA.FIRST_USER.id,
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    );
+  });
+  it('Should get error, when selected category canUseOnFrontend is false', async () => {
+    const mainCategory = await MainCategory.findOne({ where: {} });
+    const nonActiveCategory = await Category.create({
+      name: new Date().toISOString(),
+      value: new Date().toISOString(),
+      isActive: true,
+      canUseOnFrontend: false,
       source: 'adhoc',
       mainCategory: mainCategory as MainCategory,
     }).save();
