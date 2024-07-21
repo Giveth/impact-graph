@@ -21,8 +21,6 @@ import {
   findDonationsByTransactionId,
   getPendingDonationsIds,
   isVerifiedDonationExistsInQfRound,
-  getProjectQfRoundStats,
-  findRelevantDonations,
 } from './donationRepository';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { QfRound } from '../entities/qfRound';
