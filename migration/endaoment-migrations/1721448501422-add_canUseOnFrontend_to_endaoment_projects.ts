@@ -1,19 +1,21 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddFieldToCategoryToCanUseOnFrontend1721377038761
+export class AddCanUseOnFrontendToEndaomentProjects1721448501422
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            ALTER TABLE "category"
-            ADD COLUMN "canUseOnFrontend" boolean DEFAULT true;
+            UPDATE "category"
+            SET "canUseOnFrontend" = false
+            WHERE "value" = 'Endaoment';
         `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            ALTER TABLE "category"
-            DROP COLUMN "canUseOnFrontend";
+            UPDATE "category"
+            SET "canUseOnFrontend" = true
+            WHERE "value" = 'Endaoment';
         `);
   }
 }

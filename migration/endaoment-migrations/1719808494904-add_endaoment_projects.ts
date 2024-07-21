@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { endaomentProjects } from './data/importedEndaomentProjects';
-import { NETWORK_IDS } from '../src/provider';
-import { ReviewStatus } from '../src/entities/project';
-import { endaomentProjectCategoryMapping } from './data/endaomentProjectCategoryMapping';
+import { endaomentProjectCategoryMapping } from '../data/endaomentProjectCategoryMapping';
+import { endaomentProjects } from '../data/importedEndaomentProjects';
+import { NETWORK_IDS } from '../../src/provider';
+import { ReviewStatus } from '../../src/entities/project';
 
 export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -10,7 +10,6 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
     await queryRunner.query(`
       INSERT INTO "organization" ("name", "disableNotifications", "disableRecurringDonations", "disableUpdateEnforcement", "label", "website", "supportCustomTokens")
       VALUES ('Endaoment', false, false, false, 'endaoment', NULL, false)
-      ON CONFLICT DO NOTHING;
     `);
 
     // Get the organization ID for Endaoment
@@ -33,7 +32,7 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
       // eslint-disable-next-line no-console
       console.log('User is not in our DB, creating .... ');
       await queryRunner.query(`
-                    INSERT INTO public.user ("walletAddress", role,"loginType", name) 
+                    INSERT INTO public.user ("walletAddress", role,"loginType", name)
                     VALUES('${endaomentAdminWalletAddress.toLowerCase()}', 'restricted','wallet', 'Endaoment Admin');
                     `);
       adminUser = (
@@ -78,7 +77,7 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
             ${adminUser?.id}
           )
           ON CONFLICT ("slug") DO NOTHING; -- Handle conflict on unique constraint
-          
+
         `);
 
       // Get the inserted project's ID
