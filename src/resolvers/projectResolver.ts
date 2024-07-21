@@ -1986,6 +1986,7 @@ export class ProjectResolver {
       .orderBy('project.latestUpdateCreationDate', 'DESC')
       .limit(take)
       .offset(skip)
+      .cache(`projectsWithLatestUpdates-${take}-${skip}`, 600000)
       .getMany();
 
     const projectUpdateDates = projectsWithLatestUpdates.map(
@@ -2005,6 +2006,7 @@ export class ProjectResolver {
         dates: projectUpdateDates,
       })
       .orderBy('projectUpdate.createdAt', 'DESC')
+      .cache(`projectUpdates-${take}-${skip}`, 600000)
       .getMany();
 
     return {
