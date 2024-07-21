@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { ORGANIZATION_LABELS } from '../src/entities/organization';
+import { ORGANIZATION_LABELS } from '../../src/entities/organization';
 
 export class FillDescriptionSummaryToEndaomentProjects1721286322530
   implements MigrationInterface
