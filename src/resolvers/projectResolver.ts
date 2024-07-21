@@ -1974,39 +1974,38 @@ export class ProjectResolver {
   async projectUpdates(
     @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
-    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdatesResponse> {
-    const latestProjectUpdates = await ProjectUpdate.query(`
-      SELECT pu.id, pu."projectId"
-      FROM public.project_update AS pu
-      WHERE pu."isMain" = false
-      GROUP BY pu."projectId", pu.id
-      ORDER BY MAX(pu."createdAt") DESC
-      LIMIT ${take}
-      OFFSET ${skip};
-    `);
-
-    // When using distinctOn with joins and orderBy, typeorm threw errors
-    // So separated into two queries
-    let query = ProjectUpdate.createQueryBuilder('projectUpdate')
-      .innerJoinAndMapOne(
-        'projectUpdate.project',
-        Project,
-        'project',
-        `project.id = projectUpdate.projectId AND projectUpdate.isMain = false AND project.statusId = ${ProjStatus.active} AND project.reviewStatus = '${ReviewStatus.Listed}'`,
-      )
-      .where('projectUpdate.id IN (:...ids)', {
-        ids: latestProjectUpdates.map(p => p.id),
+    const projectsWithLatestUpdates = await Project.createQueryBuilder(
+      'project',
+    )
+      .where('project.statusId = :statusId', { statusId: ProjStatus.active })
+      .andWhere('project.reviewStatus = :reviewStatus', {
+        reviewStatus: ReviewStatus.Listed,
       })
-      .orderBy('projectUpdate.createdAt', 'DESC');
+      .andWhere('project.latestUpdateCreationDate != project.creationDate')
+      .orderBy('project.latestUpdateCreationDate', 'DESC')
+      .limit(take)
+      .offset(skip)
+      .getMany();
 
-    if (user && user?.userId)
-      query = ProjectResolver.addReactionToProjectsUpdateQuery(
-        query,
-        user.userId,
-      );
+    const projectUpdateDates = projectsWithLatestUpdates.map(
+      p => p.latestUpdateCreationDate,
+    );
+    const projectIds = projectsWithLatestUpdates.map(p => p.id);
 
-    const projectUpdates = await query.getMany();
+    const projectUpdates = await ProjectUpdate.createQueryBuilder(
+      'projectUpdate',
+    )
+      .innerJoinAndSelect('projectUpdate.project', 'project')
+      .where('projectUpdate.projectId IN (:...projectIds)', {
+        projectIds,
+      })
+      .andWhere('projectUpdate.isMain = false')
+      .andWhere('projectUpdate.createdAt IN (:...dates)', {
+        dates: projectUpdateDates,
+      })
+      .orderBy('projectUpdate.createdAt', 'DESC')
+      .getMany();
 
     return {
       projectUpdates,
