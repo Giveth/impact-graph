@@ -19,7 +19,9 @@ import {
   fillQfRoundDonationsUserScores,
   findDonationById,
   findDonationsByTransactionId,
+  findRelevantDonations,
   getPendingDonationsIds,
+  getProjectQfRoundStats,
   isVerifiedDonationExistsInQfRound,
 } from './donationRepository';
 import { Donation, DONATION_STATUS } from '../entities/donation';
