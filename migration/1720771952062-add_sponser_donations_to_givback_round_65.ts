@@ -148,9 +148,7 @@ export class AddSponserDonationsToGivbackRound651720771952062
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
       await updateProjectStatistics(tx.projectId as number);
-
     }
-
   }
 
   async down(_queryRunner: QueryRunner): Promise<void> {
