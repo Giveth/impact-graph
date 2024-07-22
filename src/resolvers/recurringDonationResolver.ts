@@ -51,6 +51,8 @@ import {
   recurringDonationsCountPerDateRangePerMonth,
   recurringDonationsStreamedCUsdTotal,
   recurringDonationsStreamedCUsdTotalPerMonth,
+  recurringDonationsTotalPerToken,
+  recurringDonationsCountPerToken,
 } from '../services/recurringDonationService';
 import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
 import { ResourcePerDateRange } from './donationResolver';
@@ -70,6 +72,21 @@ class FinishStatus {
 
   @Field(_type => Boolean)
   ended: boolean;
+}
+
+@ObjectType()
+class RDTataPerToken {
+  @Field(_type => String)
+  token: string;
+
+  @Field(_type => Number)
+  total: number;
+}
+
+@ObjectType()
+class RDRessourcePerDateRange extends ResourcePerDateRange {
+  @Field(_type => [RDTataPerToken], { nullable: true })
+  totalPerToken: RDTataPerToken[];
 }
 
 export enum RecurringDonationSortField {
@@ -645,14 +662,14 @@ export class RecurringDonationResolver {
     }
   }
 
-  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  @Query(_returns => RDRessourcePerDateRange, { nullable: true })
   async recurringDonationsCountPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
-  ): Promise<ResourcePerDateRange> {
+  ): Promise<RDRessourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
@@ -671,10 +688,17 @@ export class RecurringDonationResolver {
           networkId,
           onlyVerified,
         );
+      const totalPerToken = await recurringDonationsCountPerToken({
+        fromDate,
+        toDate,
+        networkId,
+        onlyVerified,
+      });
 
       return {
         total,
         totalPerMonthAndYear,
+        totalPerToken,
       };
     } catch (e) {
       logger.error('recurringDonationsCountPerDate query error', e);
@@ -682,14 +706,14 @@ export class RecurringDonationResolver {
     }
   }
 
-  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  @Query(_returns => RDRessourcePerDateRange, { nullable: true })
   async recurringDonationsTotalStreamedUsdPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
-  ): Promise<ResourcePerDateRange> {
+  ): Promise<RDRessourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
@@ -708,10 +732,17 @@ export class RecurringDonationResolver {
           networkId,
           onlyVerified,
         );
+      const totalPerToken = await recurringDonationsTotalPerToken({
+        fromDate,
+        toDate,
+        networkId,
+        onlyVerified,
+      });
 
       return {
         total,
         totalPerMonthAndYear,
+        totalPerToken,
       };
     } catch (e) {
       logger.error('recurringDonationsTotalStreamedUsdPerDate query error', e);
