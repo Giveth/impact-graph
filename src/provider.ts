@@ -322,7 +322,7 @@ export function getProvider(networkId: number) {
     case NETWORK_IDS.MORDOR_ETC_TESTNET:
       url =
         (process.env.MORDOR_ETC_TESTNET as string) ||
-        `https://rpc.mordor.etccooperative.org/`;
+        `https://rpc.mordor.etccooperative.org`;
       break;
     case NETWORK_IDS.ETC:
       url = process.env.ETC_NODE_HTTP_URL as string;
