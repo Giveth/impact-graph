@@ -11,11 +11,6 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../src/services/userService';
-import { updateTotalDonationsOfProject } from '../src/services/donationService';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../src/services/projectViewsService';
 import { updateProjectStatistics } from '../src/services/projectService';
 
 const millisecondTimestampToDate = (timestamp: number): Date => {
@@ -152,12 +147,10 @@ export class AddSponserDonationsToGivbackRound651720771952062
 
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
-      await updateTotalDonationsOfProject(tx.projectId as number);
       await updateProjectStatistics(tx.projectId as number);
+
     }
 
-    await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
   }
 
   async down(_queryRunner: QueryRunner): Promise<void> {
