@@ -1400,33 +1400,19 @@ export const unlikeProjectUpdateQuery = `
 `;
 
 export const fetchLatestProjectUpdates = `
-  query (
-    $take: Int,
-    $skip: Int
+  query FetchProjectUpdates (
+    $takeLatestUpdates: Int,
+    $skipLatestUpdates: Int,
   ) {
-    projectUpdates(
-      take: $take,
-      skip: $skip
-    ) {
+    projectUpdates(take: $takeLatestUpdates, skip: $skipLatestUpdates) {
       projectUpdates {
         id
         title
-        projectId
-        userId
-        content
-        isMain
-        totalReactions
+        contentSummary
         createdAt
-        reaction {
-          id
-          userId
-          reaction
-          projectUpdateId
-        }
         project {
-          id
           slug
-          totalReactions
+          image
         }
       }
     }
