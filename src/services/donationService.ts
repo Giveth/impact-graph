@@ -17,7 +17,7 @@ import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import {
   findDonationById,
-  findDonationsByProjectIdWitchUseDonationBox,
+  findDonationsByProjectIdWhichUseDonationBox,
 } from '../repositories/donationRepository';
 import {
   getChainvineAdapter,
@@ -523,7 +523,7 @@ export async function getDonationToGivethWithDonationBoxMetrics(
 ) {
   const givethProjectId = 1;
 
-  const donationsToGiveth = await findDonationsByProjectIdWitchUseDonationBox(
+  const donationsToGiveth = await findDonationsByProjectIdWhichUseDonationBox(
     startDate,
     endDate,
     givethProjectId,

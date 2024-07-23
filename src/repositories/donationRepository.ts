@@ -537,7 +537,7 @@ export async function isVerifiedDonationExistsInQfRound(params: {
   }
 }
 
-export async function findDonationsByProjectIdWitchUseDonationBox(
+export async function findDonationsByProjectIdWhichUseDonationBox(
   startDate: Date,
   endDate: Date,
   givethProjectId: number,

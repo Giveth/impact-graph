@@ -17,7 +17,7 @@ import {
   createDonation,
   fillQfRoundDonationsUserScores,
   findDonationById,
-  findDonationsByProjectIdWitchUseDonationBox,
+  findDonationsByProjectIdWhichUseDonationBox,
   findDonationsByTransactionId,
   getPendingDonationsIds,
   getProjectQfRoundStats,
@@ -1440,7 +1440,7 @@ function findDonationsToGivethTestCases() {
       project2.id,
     );
 
-    const donationsToGiveth = await findDonationsByProjectIdWitchUseDonationBox(
+    const donationsToGiveth = await findDonationsByProjectIdWhichUseDonationBox(
       new Date('2023-01-01'),
       new Date(),
       project1.id,
