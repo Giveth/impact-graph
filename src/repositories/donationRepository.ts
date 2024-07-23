@@ -537,17 +537,16 @@ export async function isVerifiedDonationExistsInQfRound(params: {
   }
 }
 
-export async function findDonationsToGiveth(
+export async function findDonationsByIdWitchUseDonationBox(
   startDate: Date,
   endDate: Date,
   givethProjectId: number,
 ): Promise<Donation[]> {
-  const donations = await Donation.find({
+  return await Donation.find({
     where: {
       createdAt: Between(startDate, endDate),
       useDonationBox: true,
+      projectId: givethProjectId,
     },
   });
-
-  return donations.filter(donation => donation.projectId === givethProjectId);
 }

@@ -13,14 +13,11 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import {
-  findProjectById,
-  findProjectIdBySlug,
-} from '../repositories/projectRepository';
+import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import {
   findDonationById,
-  findDonationsToGiveth,
+  findDonationsByIdWitchUseDonationBox,
 } from '../repositories/donationRepository';
 import {
   getChainvineAdapter,
@@ -524,15 +521,12 @@ export async function getDonationToGivethWithDonationBoxMetrics(
   startDate: Date,
   endDate: Date,
 ) {
-  const givethProject = await findProjectIdBySlug('giveth');
-  if (givethProject === null) {
-    throw new Error('giveth project not found!');
-  }
+  const givethProjectId = 1;
 
-  const donationsToGiveth = await findDonationsToGiveth(
+  const donationsToGiveth = await findDonationsByIdWitchUseDonationBox(
     startDate,
     endDate,
-    givethProject.id,
+    givethProjectId,
   );
   const totalDonationsToGiveth = donationsToGiveth.length;
   const totalUsdValueToGiveth = donationsToGiveth.reduce(

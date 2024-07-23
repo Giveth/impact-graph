@@ -21,7 +21,7 @@ import {
   getPendingDonationsIds,
   isVerifiedDonationExistsInQfRound,
   getProjectQfRoundStats,
-  findDonationsToGiveth,
+  findDonationsByIdWitchUseDonationBox,
 } from './donationRepository';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { QfRound } from '../entities/qfRound';
@@ -1440,7 +1440,7 @@ function findDonationsToGivethTestCases() {
       project2.id,
     );
 
-    const donationsToGiveth = await findDonationsToGiveth(
+    const donationsToGiveth = await findDonationsByIdWitchUseDonationBox(
       new Date('2023-01-01'),
       new Date(),
       project1.id,
