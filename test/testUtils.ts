@@ -1948,6 +1948,7 @@ export interface CreateDonationData {
   qfRoundUserScore?: number;
   useDonationBox?: boolean;
   relevantDonationTxHash?: string;
+  donationPercentage?: number;
 }
 
 export interface CategoryData {
