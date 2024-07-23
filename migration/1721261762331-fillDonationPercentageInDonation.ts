@@ -1,4 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import config from '../src/config';
 
 interface DonationUpdate {
   id: number;
@@ -9,6 +10,12 @@ export class FillDonationPercentageInDonation1721261762331
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const environment = config.get('ENVIRONMENT') as string;
+
+    if (environment === 'test') {
+      return;
+    }
+
     // Load all donations with useDonationBox set to true
     const donations = await queryRunner.query(
       `SELECT id, "userId", "projectId", "createdAt", "transactionId", amount, "relevantDonationTxHash"
