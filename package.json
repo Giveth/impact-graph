@@ -215,7 +215,7 @@
     "prettify": "prettier --write '**/*.ts*' '**/*.test.ts*'",
     "db:migrate:seedToken:run": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:run",
     "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert",
-    "build": "rm -rf ./build && tsc && mkdir -p ./build/config && cp config/* ./build/config/ && cp -r src/server/adminJs/tabs/components ./build/src/server/adminJs/tabs/components && cp -r ./src/utils/locales ./build/src/utils/locales && cp -r ./src/abi build/src/abi ",
+    "build": "rm -rf ./build && tsc && [ -d config ] && cp -r config ./build/config || mkdir ./build/config && cp -r src/server/adminJs/tabs/components ./build/src/server/adminJs/tabs/components && cp -r ./src/utils/locales ./build/src/utils/locales && cp -r ./src/abi build/src/abi ",
     "dev": "NODE_ENV=development node ./build/src/index.js",
     "production": "NODE_ENV=production node ./build/src/index.js",
     "start:docker:server": "npm run db:migrate:run:production && npm run production",
