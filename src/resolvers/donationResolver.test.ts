@@ -66,7 +66,6 @@ import {
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
-import { findProjectIdBySlug } from '../repositories/projectRepository';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -4798,11 +4797,6 @@ async function donationMetricsTestCases() {
   it('should return correct donation metrics', async () => {
     const walletAddress1 = generateRandomEtheriumAddress();
     const walletAddress2 = generateRandomEtheriumAddress();
-    const givethProject = await findProjectIdBySlug('giveth');
-    if (givethProject) {
-      await deleteProjectDirectlyFromDb(givethProject.id);
-    }
-    const project1 = await saveProjectDirectlyToDb(createProjectData('giveth'));
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const user1 = await saveUserDirectlyToDb(walletAddress1);
     const user2 = await saveUserDirectlyToDb(walletAddress2);
@@ -4820,7 +4814,7 @@ async function donationMetricsTestCases() {
         donationPercentage: (100 / 1000) * 100,
       },
       user1.id,
-      project1.id,
+      1, // giveth project id
     );
 
     const donation2 = await saveDonationDirectlyToDb(
@@ -4835,7 +4829,7 @@ async function donationMetricsTestCases() {
         donationPercentage: (50 / 250) * 100,
       },
       user1.id,
-      project1.id,
+      1, // giveth project id
     );
 
     // Donations to another project
@@ -4888,7 +4882,6 @@ async function donationMetricsTestCases() {
 
     // Clean up
     await Donation.remove([donation1, donation2, donation3, donation4]);
-    await deleteProjectDirectlyFromDb(project1.id);
     await deleteProjectDirectlyFromDb(project2.id);
     await User.remove([user1, user2]);
   });
