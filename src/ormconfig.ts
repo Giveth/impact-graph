@@ -29,7 +29,7 @@ const ormConfig: DataSourceOptions = {
   password: process.env.TYPEORM_DATABASE_PASSWORD,
   database: process.env.TYPEORM_DATABASE_NAME,
   entities: getEntities(),
-  migrations: ['migration/*.ts'],
+  migrations: [path.join(__dirname, '../migration/*.js')],
   // cli: {
   //   migrationsDir: 'migration',
   // },
