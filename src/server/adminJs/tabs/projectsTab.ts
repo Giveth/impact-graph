@@ -663,7 +663,6 @@ export const projectsTab = {
         },
       },
       adminUserId: {
-        type: 'Number',
         isVisible: {
           list: true,
           filter: false,
