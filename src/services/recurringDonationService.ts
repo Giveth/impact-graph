@@ -38,6 +38,7 @@ import { User } from '../entities/user';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
 import { updateProjectStatistics } from './projectService';
+import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';
@@ -417,4 +418,298 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
     });
     return recurringDonation;
   }
+};
+
+export const recurringDonationsCountPerDateRange = async (
+  fromDate?: string,
+  toDate?: string,
+  networkId?: number,
+  onlyVerified?: boolean,
+): Promise<number> => {
+  const query = RecurringDonation.createQueryBuilder('recurringDonation')
+    .select('COALESCE(COUNT(recurringDonation.id), 0)', 'count')
+    .where('recurringDonation.status = :status', {
+      status: RECURRING_DONATION_STATUS.ACTIVE,
+    });
+
+  if (fromDate) {
+    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+      fromDate: new Date(fromDate),
+    });
+  }
+
+  if (toDate) {
+    query.andWhere('recurringDonation.createdAt <= :toDate', {
+      toDate: new Date(toDate),
+    });
+  }
+
+  if (networkId) {
+    query.andWhere('recurringDonation.networkId = :networkId', {
+      networkId,
+    });
+  }
+
+  if (onlyVerified) {
+    query
+      .leftJoin('recurringDonation.project', 'project')
+      .andWhere('project.verified = :verified', {
+        verified: true,
+      });
+  }
+
+  const recurringDonationsCount = await query
+    .cache(
+      `recurringDonationsCountPerDateRange-${fromDate || ''}-${toDate || ''}-${networkId || 'all'}-${onlyVerified || 'all'}`,
+      300000,
+    )
+    .getRawOne();
+
+  return recurringDonationsCount.count;
+};
+
+export const recurringDonationsCountPerDateRangePerMonth = async (
+  fromDate?: string,
+  toDate?: string,
+  networkId?: number,
+  onlyVerified?: boolean,
+): Promise<ResourcesTotalPerMonthAndYear[]> => {
+  const query = RecurringDonation.createQueryBuilder('recurringDonation')
+    .select('COUNT(recurringDonation.id)', 'total')
+    .addSelect("TO_CHAR(recurringDonation.createdAt, 'YYYY/MM')", 'date')
+    .where('recurringDonation.status = :status', {
+      status: RECURRING_DONATION_STATUS.ACTIVE,
+    });
+
+  if (fromDate) {
+    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+      fromDate: new Date(fromDate),
+    });
+  }
+
+  if (toDate) {
+    query.andWhere('recurringDonation.createdAt <= :toDate', {
+      toDate: new Date(toDate),
+    });
+  }
+
+  if (networkId) {
+    query.andWhere('recurringDonation.networkId = :networkId', {
+      networkId,
+    });
+  }
+
+  if (onlyVerified) {
+    query
+      .leftJoin('recurringDonation.project', 'project')
+      .andWhere('project.verified = :verified', {
+        verified: true,
+      });
+  }
+
+  query.groupBy('date');
+  query.orderBy('date', 'ASC');
+
+  query.cache(
+    `recurringDonationsCountPerDateRangePerMonthAndYear-${fromDate || ''}-${toDate || ''}-${networkId || 'all'}-${onlyVerified || 'all'}`,
+    300000,
+  );
+
+  return query.getRawMany();
+};
+
+export const recurringDonationsStreamedCUsdTotal = async (
+  fromDate?: string,
+  toDate?: string,
+  networkId?: number,
+  onlyVerified?: boolean,
+): Promise<number> => {
+  const query = RecurringDonation.createQueryBuilder(
+    'recurringDonation',
+  ).select('COALESCE(SUM(recurringDonation.totalUsdStreamed), 0)', 'total');
+
+  if (fromDate) {
+    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+      fromDate: new Date(fromDate),
+    });
+  }
+
+  if (toDate) {
+    query.andWhere('recurringDonation.createdAt <= :toDate', {
+      toDate: new Date(toDate),
+    });
+  }
+
+  if (networkId) {
+    query.andWhere('recurringDonation.networkId = :networkId', {
+      networkId,
+    });
+  }
+
+  if (onlyVerified) {
+    query
+      .leftJoin('recurringDonation.project', 'project')
+      .andWhere('project.verified = :verified', {
+        verified: true,
+      });
+  }
+
+  const recurringDonationsTotal = await query
+    .cache(
+      `recurringDonationsStreamedCUsdTotal-${fromDate || ''}-${toDate || ''}-${networkId || 'all'}-${onlyVerified || 'all'}`,
+      300000,
+    )
+    .getRawOne();
+
+  return recurringDonationsTotal.total;
+};
+
+export const recurringDonationsStreamedCUsdTotalPerMonth = async (
+  fromDate?: string,
+  toDate?: string,
+  networkId?: number,
+  onlyVerified?: boolean,
+): Promise<ResourcesTotalPerMonthAndYear[]> => {
+  const query = RecurringDonation.createQueryBuilder('recurringDonation')
+    .select('SUM(recurringDonation.totalUsdStreamed)', 'total')
+    .addSelect("TO_CHAR(recurringDonation.createdAt, 'YYYY/MM')", 'date');
+
+  if (fromDate) {
+    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+      fromDate: new Date(fromDate),
+    });
+  }
+
+  if (toDate) {
+    query.andWhere('recurringDonation.createdAt <= :toDate', {
+      toDate: new Date(toDate),
+    });
+  }
+
+  if (networkId) {
+    query.andWhere('recurringDonation.networkId = :networkId', {
+      networkId,
+    });
+  }
+
+  if (onlyVerified) {
+    query
+      .leftJoin('recurringDonation.project', 'project')
+      .andWhere('project.verified = :verified', {
+        verified: true,
+      });
+  }
+
+  query.groupBy('date');
+  query.orderBy('date', 'ASC');
+
+  const recurringDonationsTotal = await query
+    .cache(
+      `recurringDonationsStreamedCUsdTotalPerMonth-${fromDate || ''}-${toDate || ''}-${networkId || 'all'}-${onlyVerified || 'all'}`,
+      300000,
+    )
+    .getRawMany();
+
+  return recurringDonationsTotal;
+};
+
+export const recurringDonationsTotalPerToken = async (params: {
+  fromDate?: string;
+  toDate?: string;
+  networkId?: number;
+  onlyVerified?: boolean;
+}): Promise<{ token: string; total: number }[]> => {
+  const { fromDate, toDate, networkId, onlyVerified } = params;
+  const query = RecurringDonation.createQueryBuilder('recurringDonation')
+    .select('recurringDonation.currency', 'token')
+    .addSelect('COALESCE(SUM(recurringDonation.totalUsdStreamed), 0)', 'total')
+    .groupBy('recurringDonation.currency')
+    .having('SUM(recurringDonation.totalUsdStreamed) > 0');
+
+  if (fromDate) {
+    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+      fromDate: new Date(fromDate),
+    });
+  }
+
+  if (toDate) {
+    query.andWhere('recurringDonation.createdAt <= :toDate', {
+      toDate: new Date(toDate),
+    });
+  }
+
+  if (networkId) {
+    query.andWhere('recurringDonation.networkId = :networkId', {
+      networkId,
+    });
+  }
+
+  if (onlyVerified) {
+    query
+      .leftJoin('recurringDonation.project', 'project')
+      .andWhere('project.verified = :verified', {
+        verified: true,
+      });
+  }
+
+  const recurringDonationsTotal = await query
+    .cache(
+      `recurringDonationsTotalPerToken-${fromDate || ''}-${toDate || ''}-${networkId || 'all'}-${onlyVerified || 'all'}`,
+      300000,
+    )
+    .getRawMany();
+
+  return recurringDonationsTotal;
+};
+
+export const recurringDonationsCountPerToken = async (params: {
+  fromDate?: string;
+  toDate?: string;
+  networkId?: number;
+  onlyVerified?: boolean;
+}): Promise<{ token: string; total: number }[]> => {
+  const { fromDate, toDate, networkId, onlyVerified } = params;
+  const query = RecurringDonation.createQueryBuilder('recurringDonation')
+    .select('recurringDonation.currency', 'token')
+    .addSelect('COALESCE(COUNT(recurringDonation.id), 0)', 'total')
+    .where('recurringDonation.status = :status', {
+      status: RECURRING_DONATION_STATUS.ACTIVE,
+    })
+    .groupBy('recurringDonation.currency')
+    .having('COUNT(recurringDonation.id) > 0');
+
+  if (fromDate) {
+    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+      fromDate: new Date(fromDate),
+    });
+  }
+
+  if (toDate) {
+    query.andWhere('recurringDonation.createdAt <= :toDate', {
+      toDate: new Date(toDate),
+    });
+  }
+
+  if (networkId) {
+    query.andWhere('recurringDonation.networkId = :networkId', {
+      networkId,
+    });
+  }
+
+  if (onlyVerified) {
+    query
+      .leftJoin('recurringDonation.project', 'project')
+      .andWhere('project.verified = :verified', {
+        verified: true,
+      });
+  }
+
+  const recurringDonationsTotal = await query
+    .cache(
+      `recurringDonationsCountPerToken-${fromDate || ''}-${toDate || ''}-${networkId || 'all'}-${onlyVerified || 'all'}`,
+      300000,
+    )
+    .getRawMany();
+
+  return recurringDonationsTotal;
 };
