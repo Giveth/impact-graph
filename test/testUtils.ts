@@ -129,6 +129,7 @@ export interface CreateProjectData {
   walletAddress: string;
   categories: string[];
   verified?: boolean;
+  isImported?: boolean;
   listed?: boolean;
   reviewStatus: ReviewStatus;
   giveBacks?: boolean;

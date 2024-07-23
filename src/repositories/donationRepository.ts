@@ -162,14 +162,14 @@ export const donationsTotalAmountPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
-  const donationsUsdAmount = await query
-    .cache(
-      `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}-${
-        networkId || 'all'
-      }-${onlyVerified || 'all'}`,
-      300000,
-    )
-    .getRawOne();
+  const donationsUsdAmount = await query.getRawOne();
+
+  query.cache(
+    `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}-${
+      networkId || 'all'
+    }-${onlyVerified || 'all'}`,
+    300000,
+  );
 
   return donationsUsdAmount.sum;
 };
@@ -247,14 +247,14 @@ export const donationsNumberPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
-  const donationsUsdAmount = await query
-    .cache(
-      `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
-        networkId || 'all'
-      }-${onlyVerified || 'all'}`,
-      300000,
-    )
-    .getRawOne();
+  const donationsUsdAmount = await query.getRawOne();
+
+  query.cache(
+    `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
+      networkId || 'all'
+    }-${onlyVerified || 'all'}`,
+    300000,
+  );
 
   return donationsUsdAmount.count;
 };
@@ -537,7 +537,7 @@ export async function isVerifiedDonationExistsInQfRound(params: {
   }
 }
 
-export async function findDonationsByIdWitchUseDonationBox(
+export async function findDonationsByProjectIdWitchUseDonationBox(
   startDate: Date,
   endDate: Date,
   givethProjectId: number,

@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { ORGANIZATION_LABELS } from '../src/entities/organization';
-import { NETWORK_IDS } from '../src/provider';
+import { ORGANIZATION_LABELS } from '../../src/entities/organization';
+import { NETWORK_IDS } from '../../src/provider';
 
 export class AddEndaomentOrganization1719740230650
   implements MigrationInterface
@@ -9,7 +9,6 @@ export class AddEndaomentOrganization1719740230650
     await queryRunner.query(`
         INSERT INTO "organization" ("name", "disableNotifications", "disableRecurringDonations", "disableUpdateEnforcement", "label", "website", "supportCustomTokens")
         VALUES ('Endaoment', true, true, true, '${ORGANIZATION_LABELS.ENDAOMENT}', 'https://endaoment.org', false)
-        ON CONFLICT ("label") DO NOTHING;
       `);
 
     const endaomentOrganization = (

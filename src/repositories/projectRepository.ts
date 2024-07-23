@@ -252,12 +252,15 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
 export const projectsWithoutUpdateAfterTimeFrame = async (
   date: Date,
 ): Promise<Project[]> => {
-  const projectsWithLatestUpdateBeforeCutOff = await Project.createQueryBuilder(
-    'project',
-  )
-    .leftJoin('project.projectUpdates', 'projectUpdates')
-    .select('project.id', 'projectId')
-    .addSelect('MAX(projectUpdates.createdAt)', 'latestUpdate')
+  return await Project.createQueryBuilder('project')
+    .select([
+      'project.id',
+      'project.slug',
+      'project.verificationStatus',
+      'project.adminUserId',
+      'project.latestUpdateCreationDate',
+      'project.title',
+    ])
     .where('project.isImported = false')
     .andWhere('project.verified = true')
     .andWhere(
@@ -266,29 +269,8 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
         statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
       },
     )
-    .groupBy('project.id')
-    .having('MAX(projectUpdates.createdAt) < :date', { date })
-    .getRawMany();
-
-  const validProjectIds = projectsWithLatestUpdateBeforeCutOff.map(
-    item => item.projectId,
-  );
-
-  const projects = await Project.createQueryBuilder('project')
-    .whereInIds(validProjectIds)
-    .leftJoin('project.projectUpdates', 'projectUpdates')
-    .addSelect(['projectUpdates.createdAt', 'projectUpdates.id'])
-    .leftJoinAndSelect('project.organization', 'organization')
-    .andWhere('organization.disableUpdateEnforcement = false')
+    .andWhere('project.latestUpdateCreationDate < :date', { date })
     .getMany();
-
-  projects.forEach(project => {
-    project.projectUpdates?.sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  });
-
-  return projects;
 };
 
 export const findProjectBySlug = (slug: string): Promise<Project | null> => {
