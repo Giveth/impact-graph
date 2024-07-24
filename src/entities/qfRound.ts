@@ -66,7 +66,7 @@ export class QfRound extends BaseEntity {
   maximumReward: number;
 
   @Field(_type => Number)
-  @Column()
+  @Column('real')
   minimumPassportScore: number;
 
   @Field(_type => Float, { nullable: true })
