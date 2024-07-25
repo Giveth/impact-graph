@@ -224,19 +224,31 @@ export class DonationResolver {
   }
 
   @Query(_returns => [DonationCurrencyStats])
-  async getDonationStats(): Promise<DonationCurrencyStats[]> {
-    const query = `
+  async getDonationStats(
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('networkId', { nullable: true }) networkId?: number,
+  ): Promise<DonationCurrencyStats[]> {
+    const query = Donation.query(`
       SELECT
         currency,
         COUNT(DISTINCT "userId") AS "uniqueDonorCount",
         COUNT(DISTINCT "userId") * 100.0 / SUM(COUNT(DISTINCT "userId")) OVER () AS "currencyPercentage"
       FROM public.donation
       GROUP BY currency
-      ORDER BY currency;
-    `;
-
-    const result = await Donation.query(query);
-    return result;
+      ORDER BY "currencyPercentage";
+    `);
+    const typeormQuery = await query;
+    if (fromDate) {
+      typeormQuery.andWhere(`donation."createdAt" >= '${fromDate}'`);
+    }
+    if (toDate) {
+      typeormQuery.andWhere(`donation."createdAt" <= '${toDate}'`);
+    }
+    if (networkId) {
+      typeormQuery.where(`donations."transactionNetworkId" = ${networkId}`);
+    }
+    return await query;
   }
 
   @Query(_returns => [Donation], { nullable: true })
