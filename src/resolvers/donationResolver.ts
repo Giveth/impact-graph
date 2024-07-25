@@ -813,6 +813,17 @@ export class DonationResolver {
         transactionTx = transactionId?.toLowerCase() as string;
       }
 
+      let donationPercentage = 0;
+      if (relevantDonationTxHash) {
+        const relevantDonation = await Donation.findOne({
+          where: { transactionId: relevantDonationTxHash },
+        });
+
+        if (relevantDonation) {
+          const totalValue = amount + relevantDonation.amount;
+          donationPercentage = (amount / totalValue) * 100;
+        }
+      }
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionTx,
@@ -835,6 +846,7 @@ export class DonationResolver {
         chainType: chainType as ChainType,
         useDonationBox,
         relevantDonationTxHash,
+        donationPercentage,
       });
       if (referrerId) {
         // Fill referrer data if referrerId is valid
