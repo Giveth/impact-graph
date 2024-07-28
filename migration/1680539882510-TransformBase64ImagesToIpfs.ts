@@ -1,6 +1,6 @@
 import { Like, MigrationInterface, QueryRunner } from 'typeorm';
-import { Project, ProjectUpdate } from '../src/entities/project';
-import { changeBase64ToIpfsImageInHTML } from '../src/utils/documents';
+import { Project, ProjectUpdate } from '../src/entities/project.js';
+import { changeBase64ToIpfsImageInHTML } from '../src/utils/documents.js';
 
 export class TransformBase64ImagesToIpfs1680539882510
   implements MigrationInterface

@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import config from '../src/config';
+import config from '../src/config.js';
 
 interface DonationUpdate {
   id: number;

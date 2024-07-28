@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import config from '../src/config';
+import config from '../src/config.js';
 
 // validated this list names from the frontend list manually
 // removed eth as this is related on another migration

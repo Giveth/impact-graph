@@ -1,17 +1,17 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import moment from 'moment';
-import config from '../src/config';
-import { AppDataSource } from '../src/orm';
-import { findProjectById } from '../src/repositories/projectRepository';
-import { Project } from '../src/entities/project';
-import { calculateGivbackFactor } from '../src/services/givbackService';
+import config from '../src/config.js';
+import { AppDataSource } from '../src/orm.js';
+import { findProjectById } from '../src/repositories/projectRepository.js';
+import { Project } from '../src/entities/project.js';
+import { calculateGivbackFactor } from '../src/services/givbackService.js';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from '../src/services/userService';
-import { Donation } from '../src/entities/donation';
-import { NETWORK_IDS } from '../src/provider';
-import { updateProjectStatistics } from '../src/services/projectService';
+} from '../src/services/userService.js';
+import { Donation } from '../src/entities/donation.js';
+import { NETWORK_IDS } from '../src/provider.js';
+import { updateProjectStatistics } from '../src/services/projectService.js';
 
 const octantDonationTxHash =
   '0xe70a8ee39511d3c186ea53c4bdd9fcd34f658d68ca7e1bbbc2b231630ac7fa3b';
