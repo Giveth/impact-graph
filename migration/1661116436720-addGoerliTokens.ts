@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Token } from '../src/entities/token';
-import seedTokens from './data/seedTokens';
-import config from '../src/config';
+import { Token } from '../src/entities/token.js';
+import seedTokens from './data/seedTokens.js';
+import config from '../src/config.js';
 
 export class addGoerliTokens1661116436720 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {

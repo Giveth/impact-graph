@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { endaomentProjectCategoryMapping } from '../data/endaomentProjectCategoryMapping';
-import { endaomentProjects } from '../data/importedEndaomentProjects';
-import { NETWORK_IDS } from '../../src/provider';
-import { ReviewStatus } from '../../src/entities/project';
+import { endaomentProjectCategoryMapping } from '../data/endaomentProjectCategoryMapping.js';
+import { endaomentProjects } from '../data/importedEndaomentProjects.js';
+import { NETWORK_IDS } from '../../src/provider.js';
+import { ReviewStatus } from '../../src/entities/project.js';
 
 export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

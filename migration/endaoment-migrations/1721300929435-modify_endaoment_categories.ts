@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { endaomentProjectCategoryMapping } from '../data/endaomentProjectCategoryMapping';
-import { endaomentProjects } from '../data/importedEndaomentProjects';
+import { endaomentProjectCategoryMapping } from '../data/endaomentProjectCategoryMapping.js';
+import { endaomentProjects } from '../data/importedEndaomentProjects.js';
 
 export class ModifyEndaomentCategories1721300929435
   implements MigrationInterface
