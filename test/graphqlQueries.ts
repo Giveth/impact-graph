@@ -1400,36 +1400,21 @@ export const unlikeProjectUpdateQuery = `
 `;
 
 export const fetchLatestProjectUpdates = `
-  query (
-    $take: Int,
-    $skip: Int
+  query FetchProjectUpdates (
+    $takeLatestUpdates: Int,
+    $skipLatestUpdates: Int,
   ) {
-    projectUpdates(
-      take: $take,
-      skip: $skip
-    ) {
+    projectUpdates(take: $takeLatestUpdates, skip: $skipLatestUpdates) {
       projectUpdates {
         id
         title
-        projectId
-        userId
-        content
-        isMain
-        totalReactions
+        contentSummary
         createdAt
-        reaction {
-          id
-          userId
-          reaction
-          projectUpdateId
-        }
         project {
-          id
           slug
-          totalReactions
+          image
         }
       }
-      count
     }
   }
 `;
@@ -2400,20 +2385,47 @@ export const updateRecurringDonationQuery = `
       }
 `;
 
-export const fetchRecurringDonationStatsQuery = `
+export const fetchRecurringDonationsCount = `
   query (
-    $beginDate: String!
-    $endDate: String!
-    $currency: String
+    $fromDate: String
+    $toDate: String
+    $networkId: Float
+    $onlyVerified: Boolean
+  ) {
+    recurringDonationsCountPerDate (
+      fromDate: $fromDate
+      toDate: $toDate
+      networkId: $networkId
+      onlyVerified: $onlyVerified
     ) {
-      getRecurringDonationStats(
-        beginDate: $beginDate
-        endDate: $endDate
-        currency: $currency
-      ) {
-        totalStreamedUsdValue,
-        activeRecurringDonationsCount,
+      total
+      totalPerMonthAndYear {
+        total
+        date
       }
+    }
+  }
+`;
+
+export const fetchRecurringDonationsTotalUSD = `
+  query (
+    $fromDate: String
+    $toDate: String
+    $networkId: Float
+    $onlyVerified: Boolean
+  ) {
+    recurringDonationsTotalStreamedUsdPerDate (
+      fromDate: $fromDate
+      toDate: $toDate
+      networkId: $networkId
+      onlyVerified: $onlyVerified
+    ) {
+      total
+      totalPerMonthAndYear {
+        total
+        date
+      }
+    }
   }
 `;
 

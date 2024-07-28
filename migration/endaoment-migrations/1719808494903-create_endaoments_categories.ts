@@ -4,22 +4,6 @@ export class CreateEndaomentsCategories1719808494903
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Create Main Categories
-    // await queryRunner.query(`
-    //         INSERT INTO "main_category" ("title", "slug", "description", "banner", "isActive")
-    //         VALUES
-    //             ('NGO', 'ngo', 'Non-Governmental Organizations', '', true),
-    //             ('Art & Culture', 'art-culture', 'Art and Cultural activities', '', true),
-    //             ('Health & Wellness', 'health-wellness', 'Health and Wellness initiatives', '', true),
-    //             ('Finance', 'finance', 'Financial Services and Initiatives', '', true);
-    //     `);
-
-    // await queryRunner.query(`
-    //         INSERT INTO "main_category" ("title", "slug", "description", "banner", "isActive")
-    //         VALUES
-    //             ('Art & Culture', 'art-culture', 'Art and Cultural activities', '', true)
-    //     `);
-
     // Retrieve Main Category IDs
     const ngoMainCategory = await queryRunner.query(
       `SELECT "id" FROM "main_category" WHERE "slug" = 'ngo' LIMIT 1`,
@@ -37,7 +21,7 @@ export class CreateEndaomentsCategories1719808494903
     // Create Sub-Categories
     await queryRunner.query(`
             INSERT INTO "category" ("name", "value", "source", "mainCategoryId", "isActive")
-            VALUES 
+            VALUES
                 ('Endaoment', 'endaoment', '', ${ngoMainCategory[0].id}, true),
                 ('Religious', 'religious', '', ${artCultureMainCategory[0].id}, true),
                 ('Disaster Relief', 'disaster-relief', '', ${ngoMainCategory[0].id}, true),

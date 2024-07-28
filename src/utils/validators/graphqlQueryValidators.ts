@@ -168,17 +168,6 @@ export const updateDonationQueryValidator = Joi.object({
   status: Joi.string().valid(DONATION_STATUS.VERIFIED, DONATION_STATUS.FAILED),
 });
 
-export const getRecurringDonationStatsArgsValidator = Joi.object({
-  beginDate: Joi.string().pattern(resourcePerDateRegex).messages({
-    'string.base': errorMessages.INVALID_FROM_DATE,
-    'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
-  }),
-  endDate: Joi.string().pattern(resourcePerDateRegex).messages({
-    'string.base': errorMessages.INVALID_FROM_DATE,
-    'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
-  }),
-});
-
 export const createProjectVerificationRequestValidator = Joi.object({
   slug: Joi.string().required(),
 });

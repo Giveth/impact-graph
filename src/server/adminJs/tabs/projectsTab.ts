@@ -644,7 +644,7 @@ export const projectsTab = {
         isVisible: { list: false, filter: false, show: true, edit: false },
       },
       organizationId: {
-        isVisible: { list: false, filter: false, show: true, edit: true },
+        isVisible: { list: false, filter: true, show: true, edit: true },
       },
       statusId: {
         isVisible: { list: true, filter: true, show: true, edit: true },

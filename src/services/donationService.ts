@@ -12,16 +12,13 @@ import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages.js';
-import {
-  findProjectById,
-  findProjectIdBySlug,
-} from '../repositories/projectRepository.js';
-import { convertExponentialNumber } from '../utils/utils.js';
+} from '../utils/errorMessages';
+import { findProjectById } from '../repositories/projectRepository';
+import { convertExponentialNumber } from '../utils/utils';
 import {
   findDonationById,
-  findRelevantDonations,
-} from '../repositories/donationRepository.js';
+  findDonationsByProjectIdWhichUseDonationBox,
+} from '../repositories/donationRepository';
 import {
   getChainvineAdapter,
   getNotificationAdapter,
@@ -525,15 +522,12 @@ export async function getDonationToGivethWithDonationBoxMetrics(
   startDate: Date,
   endDate: Date,
 ) {
-  const givethProject = await findProjectIdBySlug('giveth');
-  if (givethProject === null) {
-    throw new Error('giveth project not found!');
-  }
+  const givethProjectId = 1;
 
-  const { donationsToGiveth, pairedDonations } = await findRelevantDonations(
+  const donationsToGiveth = await findDonationsByProjectIdWhichUseDonationBox(
     startDate,
     endDate,
-    givethProject.id,
+    givethProjectId,
   );
   const totalDonationsToGiveth = donationsToGiveth.length;
   const totalUsdValueToGiveth = donationsToGiveth.reduce(
@@ -541,18 +535,21 @@ export async function getDonationToGivethWithDonationBoxMetrics(
     0,
   );
 
-  const donationPercentages = donationsToGiveth.map((donation, index) => {
-    const pairedDonation = pairedDonations[index];
-    const totalValue =
-      (donation.valueUsd || 0) + (pairedDonation.valueUsd || 0);
-    return totalValue > 0 ? (donation.valueUsd || 0) / totalValue : 0;
-  });
+  let totalPercentage = 0;
+  let count = 0;
 
-  const averagePercentageToGiveth =
-    (donationPercentages.length > 0
-      ? donationPercentages.reduce((sum, percentage) => sum + percentage, 0) /
-        donationPercentages.length
-      : 0) * 100;
+  for (const donation of donationsToGiveth) {
+    if (
+      donation.donationPercentage !== null &&
+      donation.donationPercentage !== undefined &&
+      donation.donationPercentage !== 0
+    ) {
+      totalPercentage += Number(donation.donationPercentage);
+      count++;
+    }
+  }
+
+  const averagePercentageToGiveth = count > 0 ? totalPercentage / count : 0;
 
   return {
     totalDonationsToGiveth,

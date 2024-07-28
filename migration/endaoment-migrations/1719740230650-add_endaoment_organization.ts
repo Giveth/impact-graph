@@ -1,15 +1,16 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { ORGANIZATION_LABELS } from '../src/entities/organization';
-import { NETWORK_IDS } from '../src/provider';
+import { ORGANIZATION_LABELS } from '../../src/entities/organization';
+import { NETWORK_IDS } from '../../src/provider';
 
 export class AddEndaomentOrganization1719740230650
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            INSERT INTO "organization" ("name", "disableNotifications", "disableRecurringDonations", "disableUpdateEnforcement", "label", "website", "supportCustomTokens")
-            VALUES ('Endaoment', true, true, true, '${ORGANIZATION_LABELS.ENDAOMENT}', 'https://endaoment.org', false);
-        `);
+        INSERT INTO "organization" ("name", "disableNotifications", "disableRecurringDonations", "disableUpdateEnforcement", "label", "website", "supportCustomTokens")
+        VALUES ('Endaoment', true, true, true, '${ORGANIZATION_LABELS.ENDAOMENT}', 'https://endaoment.org', false)
+      `);
+
     const endaomentOrganization = (
       await queryRunner.query(`SELECT * FROM organization
         WHERE label='${ORGANIZATION_LABELS.ENDAOMENT}'`)

@@ -162,14 +162,14 @@ export const donationsTotalAmountPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
-  const donationsUsdAmount = await query
-    .cache(
-      `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}-${
-        networkId || 'all'
-      }-${onlyVerified || 'all'}`,
-      300000,
-    )
-    .getRawOne();
+  const donationsUsdAmount = await query.getRawOne();
+
+  query.cache(
+    `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}-${
+      networkId || 'all'
+    }-${onlyVerified || 'all'}`,
+    300000,
+  );
 
   return donationsUsdAmount.sum;
 };
@@ -247,14 +247,14 @@ export const donationsNumberPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
-  const donationsUsdAmount = await query
-    .cache(
-      `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
-        networkId || 'all'
-      }-${onlyVerified || 'all'}`,
-      300000,
-    )
-    .getRawOne();
+  const donationsUsdAmount = await query.getRawOne();
+
+  query.cache(
+    `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
+      networkId || 'all'
+    }-${onlyVerified || 'all'}`,
+    300000,
+  );
 
   return donationsUsdAmount.count;
 };
@@ -537,36 +537,16 @@ export async function isVerifiedDonationExistsInQfRound(params: {
   }
 }
 
-export async function findRelevantDonations(
+export async function findDonationsByProjectIdWhichUseDonationBox(
   startDate: Date,
   endDate: Date,
-  givethProjectId: number,
-): Promise<{ donationsToGiveth: Donation[]; pairedDonations: Donation[] }> {
-  const donations = await Donation.find({
+  projectId: number,
+): Promise<Donation[]> {
+  return await Donation.find({
     where: {
       createdAt: Between(startDate, endDate),
       useDonationBox: true,
+      projectId: projectId,
     },
   });
-
-  const donationsToGiveth: Donation[] = [];
-  const pairedDonations: Donation[] = [];
-
-  donations.forEach(donation => {
-    if (donation.projectId === givethProjectId) {
-      donationsToGiveth.push(donation);
-      const relevantDonation = donations.find(
-        d => d.transactionId === donation.relevantDonationTxHash,
-      );
-      if (relevantDonation) {
-        pairedDonations.push(relevantDonation);
-      } else {
-        throw new Error(
-          `the relevant donation to this donation does not exist: donation id = ${donation.id}`,
-        );
-      }
-    }
-  });
-
-  return { donationsToGiveth, pairedDonations };
 }

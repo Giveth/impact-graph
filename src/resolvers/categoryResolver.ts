@@ -30,6 +30,7 @@ export class CategoryResolver {
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.mainCategory', 'mainCategory')
       .where(`category."isActive"=true`)
+      .andWhere(`category."isActive"=true`)
       .orderBy({
         'category.name': 'ASC',
       })

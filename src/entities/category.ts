@@ -48,6 +48,11 @@ export class Category extends BaseEntity {
   // To use them anymore on project creation/updating, so we change set the isActive false for them
   isActive: boolean;
 
+  @Field()
+  @Column({ default: true })
+  // We want to show active categories but dont allow frontend to use them when create/update projects
+  canUseOnFrontend: boolean;
+
   @RelationId((category: Category) => category.mainCategory)
   @Column()
   mainCategoryId: number;

@@ -79,45 +79,40 @@ export const checkProjectVerificationStatus = async () => {
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
   // We don't revoke verification badge for any projects.
-  if (
-    !project ||
-    !project.projectUpdates ||
-    project.projectUpdates.length === 0
-  ) {
+  if (!project || !project.latestUpdateCreationDate) {
     return;
   }
-  const latestUpdate = project.projectUpdates[0].createdAt;
+  const { verificationStatus, latestUpdateCreationDate } = project;
   logger.debug('remindUpdatesOrRevokeVerification() has been called', {
     projectId: project.id,
-    projectVerificationStatus: project.verificationStatus,
-    latestUpdate,
+    projectVerificationStatus: verificationStatus,
   });
-  const { verificationStatus } = project;
   let newVerificationStatus = verificationStatus?.slice();
   if (
     (!verificationStatus || verificationStatus === RevokeSteps.Reminder) &&
-    latestUpdate <= maxDaysForSendingUpdateWarning
+    latestUpdateCreationDate <= maxDaysForSendingUpdateWarning
   ) {
     newVerificationStatus = RevokeSteps.Warning;
   } else if (
-    latestUpdate <= maxDaysForSendingUpdateLastWarning &&
+    latestUpdateCreationDate <= maxDaysForSendingUpdateLastWarning &&
     verificationStatus === RevokeSteps.Warning
   ) {
     newVerificationStatus = RevokeSteps.LastChance;
   } else if (
-    latestUpdate <= maxDaysForRevokingBadge &&
+    latestUpdateCreationDate <= maxDaysForRevokingBadge &&
     verificationStatus === RevokeSteps.LastChance
   ) {
     newVerificationStatus = RevokeSteps.UpForRevoking;
   }
 
   if (project.verificationStatus !== newVerificationStatus) {
-    project.verificationStatus = newVerificationStatus?.slice();
-    await project.save();
+    await Project.update(project.id, {
+      verificationStatus: newVerificationStatus,
+    });
     await sendProperNotification(project, project.verificationStatus as string);
     logger.debug('remindUpdatesOrRevokeVerification() save project', {
       projectId: project.id,
-      verificationStatus: project.verificationStatus,
+      verificationStatus: newVerificationStatus,
     });
   }
 };

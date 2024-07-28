@@ -127,6 +127,7 @@ export interface CreateProjectData {
   walletAddress: string;
   categories: string[];
   verified?: boolean;
+  isImported?: boolean;
   listed?: boolean;
   reviewStatus: ReviewStatus;
   giveBacks?: boolean;
@@ -1945,6 +1946,7 @@ export interface CreateDonationData {
   qfRoundUserScore?: number;
   useDonationBox?: boolean;
   relevantDonationTxHash?: string;
+  donationPercentage?: number;
 }
 
 export interface CategoryData {

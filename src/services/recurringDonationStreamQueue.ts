@@ -25,14 +25,20 @@ setInterval(async () => {
 }, TWO_MINUTES);
 
 export const updateRecurringDonationsStream = async () => {
-  logger.debug('addJobToQueue() has been called');
+  logger.debug('updateRecurringDonationsStream Job Queue has been called');
 
   const recurringDonations = await findActiveRecurringDonations();
-  logger.debug('Active recurring donations length', recurringDonations.length);
+  logger.debug(
+    'updateRecurringDonationsStream-Active recurring donations length',
+    recurringDonations.length,
+  );
   recurringDonations.forEach(recurringDonation => {
-    logger.debug('Add pending recurringDonation to queue', {
-      recurringDonationId: recurringDonation.id,
-    });
+    logger.debug(
+      'updateRecurringDonationsStream-Add pending recurringDonation to queue',
+      {
+        recurringDonationId: recurringDonation.id,
+      },
+    );
     updateRecurringDonationsStreamQueue.add(
       {
         recurringDonationId: recurringDonation.id,

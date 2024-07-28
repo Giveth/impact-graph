@@ -79,7 +79,7 @@ function projectsWithoutUpdateAfterTimeFrameTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       updatedAt: moment().subtract(1001, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment()
+      latestUpdateCreationDate: moment()
         .subtract(1001, 'days')
         .endOf('day')
         .toDate(),

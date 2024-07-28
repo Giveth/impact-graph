@@ -50,7 +50,7 @@ const actionsPerRole = Object.freeze({
       'bulkDelete',
       'updateQfRoundHistories',
       'relateDonationsWithDistributedFunds',
-      'fillPricesForDonationsWithoutPriceInLatestRound',
+      'fillPricesForDonationsWithoutPrice',
     ],
     projectStatusReason: ['list', 'show', 'new', 'edit'],
     projectAddress: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
