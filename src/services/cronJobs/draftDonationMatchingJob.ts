@@ -1,7 +1,6 @@
 import { schedule } from 'node-cron';
 import config from '../../config.js';
 import { logger } from '../../utils/logger.js';
-import { runDraftDonationMatchWorker } from '../chains/evm/draftDonationService.js';
 import {
   countPendingDraftDonations,
   delecteExpiredDraftDonations,
@@ -22,12 +21,12 @@ export const runDraftDonationMatchWorkerJob = async () => {
   const hours = Number(process.env.DRAFT_DONATION_MATCH_EXPIRATION_HOURS || 48);
   schedule(cronJobTime, async () => {
     await delecteExpiredDraftDonations(hours);
-    await runDraftDonationMatchWorker();
+    // await runDraftDonationMatchWorker();
   });
 
   // Execute first time when running
   await delecteExpiredDraftDonations(hours);
-  await runDraftDonationMatchWorker();
+  // await runDraftDonationMatchWorker();
   setInterval(async () => {
     try {
       logger.debug(
