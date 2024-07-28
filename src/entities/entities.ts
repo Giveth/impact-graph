@@ -1,5 +1,4 @@
 import { DataSourceOptions } from 'typeorm';
-import { Organization } from './organization.js';
 import { Category } from './category.js';
 import { Token } from './token.js';
 import { Donation } from './donation.js';
@@ -51,6 +50,7 @@ import { ProjectActualMatchingView } from './ProjectActualMatchingView.js';
 import { ProjectSocialMedia } from './projectSocialMedia.js';
 import { DraftRecurringDonation } from './draftRecurringDonation.js';
 import { UserQfRoundModelScore } from './userQfRoundModelScore.js';
+import { Organization } from './organization.js';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [

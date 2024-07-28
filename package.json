@@ -219,7 +219,7 @@
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
     "db:migrate:run:test": "NODE_ENV=test npx typeorm-ts-node-esm migration:run -d ./src/ormconfig.ts",
     "db:migrate:revert:test": "NODE_ENV=test npx typeorm-ts-node-esm migration:revert -d ./src/ormconfig.ts",
-    "db:migrate:run:local": "NODE_ENV=development npx typeorm-ts-node-esm migration:run -d ./src/ormconfig.ts",
+    "db:migrate:run:local": "NODE_ENV=development npx typeorm-ts-node-esm migration:run -d ./src/migration.config.ts",
     "db:migrate:revert:local": "NODE_ENV=development npx typeorm-ts-node-esm migration:revert -d ./src/ormconfig.ts",
     "db:migrate:run:production": "NODE_ENV=production npx typeorm-ts-node-esm migration:run -d ./src/ormconfig.ts",
     "db:migrate:rever:productiont": "NODE_ENV=production npx typeorm-ts-node-esm migration:revert -d ./src/ormconfig.ts",
