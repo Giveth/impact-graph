@@ -22,12 +22,12 @@ import {
   getPendingDonationsIds,
   getProjectQfRoundStats,
   isVerifiedDonationExistsInQfRound,
-} from './donationRepository';
-import { Donation, DONATION_STATUS } from '../entities/donation';
-import { QfRound } from '../entities/qfRound';
-import { Project } from '../entities/project';
-import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
-import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils';
+} from './donationRepository.js';
+import { Donation, DONATION_STATUS } from '../entities/donation.js';
+import { QfRound } from '../entities/qfRound.js';
+import { Project } from '../entities/project.js';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService.js';
+import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils.js';
 
 describe('createDonation test cases', createDonationTestCases);
 

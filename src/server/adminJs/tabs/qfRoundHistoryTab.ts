@@ -9,8 +9,8 @@ import {
   AdminJsRequestInterface,
 } from '../adminJs-types.js';
 
-import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository';
-import { insertDonationsFromQfRoundHistory } from '../../../services/donationService';
+import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository.js';
+import { insertDonationsFromQfRoundHistory } from '../../../services/donationService.js';
 
 export const updateQfRoundHistory = async (
   _request: AdminJsRequestInterface,

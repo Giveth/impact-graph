@@ -4,19 +4,19 @@ import {
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../../../test/testUtils';
-import { NETWORK_IDS } from '../../../provider';
+} from '../../../../test/testUtils.js';
+import { NETWORK_IDS } from '../../../provider.js';
 import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
-} from '../../../entities/donation';
+} from '../../../entities/donation.js';
 import {
   createDonation,
   FillPricesForDonationsWithoutPrice,
-} from './donationTab';
-import { User } from '../../../entities/user';
-import { Project } from '../../../entities/project';
+} from './donationTab.js';
+import { User } from '../../../entities/user.js';
+import { Project } from '../../../entities/project.js';
 
 describe('createDonation() test cases', createDonationTestCases);
 describe('updateDonationPrice() test cases', updateDonationPriceTestCases);

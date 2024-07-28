@@ -19,7 +19,7 @@ import {
   updateRecurringDonationQuery,
   updateRecurringDonationQueryById,
   updateRecurringDonationStatusMutation,
-} from '../../test/graphqlQueries';
+} from '../../test/graphqlQueries.js';
 
 describe(
   'createRecurringDonation test cases',

@@ -42,9 +42,9 @@ import {
   resourcePerDateReportValidator,
   updateDonationQueryValidator,
   validateWithJoiSchema,
-} from '../utils/validators/graphqlQueryValidators';
-import { sleep } from '../utils/utils';
-import SentryLogger from '../sentryLogger';
+} from '../utils/validators/graphqlQueryValidators.js';
+import { sleep } from '../utils/utils.js';
+import SentryLogger from '../sentryLogger.js';
 import {
   updateRecurringDonationStatusWithNetwork,
   recurringDonationsCountPerDateRange,
@@ -53,9 +53,9 @@ import {
   recurringDonationsStreamedCUsdTotalPerMonth,
   recurringDonationsTotalPerToken,
   recurringDonationsCountPerToken,
-} from '../services/recurringDonationService';
-import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
-import { ResourcePerDateRange } from './donationResolver';
+} from '../services/recurringDonationService.js';
+import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository.js';
+import { ResourcePerDateRange } from './donationResolver.js';
 @InputType()
 class RecurringDonationSortBy {
   @Field(_type => RecurringDonationSortField)

@@ -22,7 +22,7 @@ import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 // @ts-expect-error as d
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { GraphQLResolveInfo } from 'graphql/type';
-import { Reaction } from '../entities/reaction';
+import { Reaction } from '../entities/reaction.js';
 import {
   FilterField,
   OrderField,

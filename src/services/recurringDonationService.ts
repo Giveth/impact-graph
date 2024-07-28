@@ -30,15 +30,18 @@ import { logger } from '../utils/logger.js';
 import {
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
-} from './donationService';
-import { calculateGivbackFactor } from './givbackService';
-import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
-import config from '../config';
-import { User } from '../entities/user';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
-import { relatedActiveQfRoundForProject } from './qfRoundService';
-import { updateProjectStatistics } from './projectService';
-import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
+} from './donationService.js';
+import { calculateGivbackFactor } from './givbackService.js';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from './userService.js';
+import config from '../config.js';
+import { User } from '../entities/user.js';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics.js';
+import { relatedActiveQfRoundForProject } from './qfRoundService.js';
+import { updateProjectStatistics } from './projectService.js';
+import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver.js';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';

@@ -12,13 +12,13 @@ import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { findProjectById } from '../repositories/projectRepository';
-import { convertExponentialNumber } from '../utils/utils';
+} from '../utils/errorMessages.js';
+import { findProjectById } from '../repositories/projectRepository.js';
+import { convertExponentialNumber } from '../utils/utils.js';
 import {
   findDonationById,
   findDonationsByProjectIdWhichUseDonationBox,
-} from '../repositories/donationRepository';
+} from '../repositories/donationRepository.js';
 import {
   getChainvineAdapter,
   getNotificationAdapter,

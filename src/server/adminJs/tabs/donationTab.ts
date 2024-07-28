@@ -40,10 +40,10 @@ import { getTwitterDonations } from '../../../services/Idriss/contractDonations.
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
-} from '../../../services/chains';
-import { updateProjectStatistics } from '../../../services/projectService';
-import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
-import { Token } from '../../../entities/token';
+} from '../../../services/chains/index.js';
+import { updateProjectStatistics } from '../../../services/projectService.js';
+import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter.js';
+import { Token } from '../../../entities/token.js';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
