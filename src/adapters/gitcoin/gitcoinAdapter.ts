@@ -35,14 +35,14 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
   async getUserAnalysisScore(address: string): Promise<number> {
     try {
       const result = await axios.get(
-        `${GITCOIN_API_BASE_URL}/passport/analysis/${address.toLowerCase()}`,
+        `${GITCOIN_API_BASE_URL}/passport/analysis/${address.toLowerCase()}?model_list=ethereum_activity`,
         {
           headers: {
             'X-API-KEY': this.GitcoinApiKey,
           },
         },
       );
-      return result.data?.details?.models?.aggregate?.score;
+      return result.data?.details?.models?.ethereum_activity?.score;
     } catch (e) {
       logger.error('getUserAnalysisScore error', e);
       throw new Error(
