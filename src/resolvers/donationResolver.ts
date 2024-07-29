@@ -224,19 +224,34 @@ export class DonationResolver {
   }
 
   @Query(_returns => [DonationCurrencyStats])
-  async getDonationStats(): Promise<DonationCurrencyStats[]> {
-    const query = `
-      SELECT
-        currency,
-        COUNT(DISTINCT "userId") AS "uniqueDonorCount",
-        COUNT(DISTINCT "userId") * 100.0 / SUM(COUNT(DISTINCT "userId")) OVER () AS "currencyPercentage"
-      FROM public.donation
-      GROUP BY currency
-      ORDER BY currency;
-    `;
+  async getDonationStats(
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('networkId', { nullable: true }) networkId?: number,
+  ): Promise<DonationCurrencyStats[]> {
+    const query = this.donationRepository
+      .createQueryBuilder('donation')
+      .select('currency')
+      .addSelect('COUNT(DISTINCT "userId")', 'uniqueDonorCount')
+      .addSelect(
+        'COUNT(DISTINCT "userId") * 100.0 / SUM(COUNT(DISTINCT "userId")) OVER ()',
+        'currencyPercentage',
+      )
+      .groupBy('currency')
+      .orderBy('currency');
 
-    const result = await Donation.query(query);
-    return result;
+    if (fromDate) {
+      query.andWhere('donation.createdAt >= :fromDate', { fromDate });
+    }
+    if (toDate) {
+      query.andWhere('donation.createdAt <= :toDate', { toDate });
+    }
+    if (networkId) {
+      query.andWhere('donation.transactionNetworkId = :networkId', {
+        networkId,
+      });
+    }
+    return await query.getRawMany();
   }
 
   @Query(_returns => [Donation], { nullable: true })
@@ -824,7 +839,7 @@ export class DonationResolver {
           donationPercentage = (amount / totalValue) * 100;
         }
       }
-      const donation = await Donation.create({
+      const donation = Donation.create({
         amount: Number(amount),
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
