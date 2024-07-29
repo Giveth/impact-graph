@@ -1,4 +1,4 @@
-import { Between, MoreThan } from 'typeorm';
+import { MoreThan } from 'typeorm';
 import moment from 'moment';
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
@@ -542,11 +542,13 @@ export async function findDonationsByProjectIdWhichUseDonationBox(
   endDate: Date,
   projectId: number,
 ): Promise<Donation[]> {
-  return await Donation.find({
-    where: {
-      createdAt: Between(startDate, endDate),
-      useDonationBox: true,
-      projectId: projectId,
-    },
-  });
+  return await Donation.query(
+    `
+  SELECT * FROM donation
+  WHERE "createdAt" BETWEEN $1 AND $2
+  AND "useDonationBox" = $3
+  AND "projectId" = $4
+`,
+    [startDate, endDate, true, projectId],
+  );
 }
