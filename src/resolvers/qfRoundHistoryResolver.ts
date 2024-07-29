@@ -1,6 +1,6 @@
 import { Arg, Int, Query, Resolver } from 'type-graphql';
-import { QfRoundHistory } from '../entities/qfRoundHistory';
-import { getQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
+import { QfRoundHistory } from '../entities/qfRoundHistory.js';
+import { getQfRoundHistory } from '../repositories/qfRoundHistoryRepository.js';
 
 @Resolver(_of => QfRoundHistory)
 export class QfRoundHistoryResolver {

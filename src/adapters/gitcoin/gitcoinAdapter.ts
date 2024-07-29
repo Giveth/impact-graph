@@ -6,9 +6,12 @@ import {
   SubmittedPassportResponse,
   SubmittedPassportsResponse,
   GetPassportStampsResponse,
-} from './gitcoinAdapterInterface';
-import { logger } from '../../utils/logger';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+} from './gitcoinAdapterInterface.js';
+import { logger } from '../../utils/logger.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
 
 const GITCOIN_API_BASE_URL = 'https://api.scorer.gitcoin.co';
 

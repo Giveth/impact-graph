@@ -3,9 +3,9 @@ import 'mocha';
 import {
   getDisperseTransactions,
   getEvmTransactionTimestamp,
-} from './transactionService';
-import { assertThrowsAsync } from '../../../../test/testUtils';
-import { NETWORK_IDS } from '../../../provider';
+} from './transactionService.js';
+import { assertThrowsAsync } from '../../../../test/testUtils.js';
+import { NETWORK_IDS } from '../../../provider.js';
 describe(
   'getDisperseTransactions test cases',
   getDisperseTransactionsTestCases,

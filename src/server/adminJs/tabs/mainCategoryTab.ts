@@ -1,8 +1,8 @@
-import { MainCategory } from '../../../entities/mainCategory';
+import { MainCategory } from '../../../entities/mainCategory.js';
 import {
   canAccessMainCategoryAction,
   ResourceActions,
-} from '../adminJsPermissions';
+} from '../adminJsPermissions.js';
 
 export const mainCategoryTab = {
   resource: MainCategory,

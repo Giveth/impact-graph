@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { updateRecurringDonationFromTheStreamDonations } from '../src/repositories/recurringDonationRepository';
+import { updateRecurringDonationFromTheStreamDonations } from '../src/repositories/recurringDonationRepository.js';
 
 export class ModifyAmountOfUsdcRecurringDonations1720939399738
   implements MigrationInterface

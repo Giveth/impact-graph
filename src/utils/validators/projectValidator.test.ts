@@ -4,7 +4,7 @@ import {
   isWalletAddressValid,
   validateProjectTitle,
   validateProjectWalletAddress,
-} from './projectValidator';
+} from './projectValidator.js';
 import {
   assertThrowsAsync,
   createProjectData,
@@ -12,13 +12,13 @@ import {
   generateRandomSolanaAddress,
   saveProjectDirectlyToDb,
   SEED_DATA,
-} from '../../../test/testUtils';
+} from '../../../test/testUtils.js';
 import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../errorMessages';
-import { ChainType } from '../../types/network';
+} from '../errorMessages.js';
+import { ChainType } from '../../types/network.js';
 
 describe('isWalletAddressValid() test cases', isWalletAddressValidTestCases);
 

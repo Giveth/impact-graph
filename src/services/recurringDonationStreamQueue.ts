@@ -1,13 +1,13 @@
 import Bull from 'bull';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 import {
   findActiveRecurringDonations,
   findRecurringDonationById,
-} from '../repositories/recurringDonationRepository';
-import { redisConfig } from '../redis';
-import config from '../config';
-import { getCurrentDateFormatted } from '../utils/utils';
-import { createRelatedDonationsToStream } from './recurringDonationService';
+} from '../repositories/recurringDonationRepository.js';
+import { redisConfig } from '../redis.js';
+import config from '../config.js';
+import { getCurrentDateFormatted } from '../utils/utils.js';
+import { createRelatedDonationsToStream } from './recurringDonationService.js';
 
 const updateRecurringDonationsStreamQueue = new Bull(
   'update-recurring-donations-stream-queue',

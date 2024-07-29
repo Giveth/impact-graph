@@ -5,12 +5,13 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
 } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
-import { User } from './user';
-import { ColumnNumericTransformer } from '../utils/entities';
-import { PowerSnapshot } from './powerSnapshot';
+import { User } from './user.js';
+import { ColumnNumericTransformer } from '../utils/entities.js';
+import { PowerSnapshot } from './powerSnapshot.js';
 
 @Entity()
 @ObjectType()
@@ -30,7 +31,7 @@ export class PowerBoostingSnapshot extends BaseEntity {
 
   @Field(_type => User, { nullable: false })
   @ManyToOne(_type => User, { nullable: false })
-  user: User;
+  user: Relation<User>;
 
   @Field(_type => ID)
   @Column()

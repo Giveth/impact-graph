@@ -3,21 +3,21 @@ import sinon from 'sinon';
 import {
   addFillPowerSnapshotBalanceJobsToQueue,
   processFillPowerSnapshotJobs,
-} from './fillSnapshotBalances';
-import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository';
+} from './fillSnapshotBalances.js';
+import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   sleep,
-} from '../../../test/testUtils';
-import { PowerSnapshot } from '../../entities/powerSnapshot';
-import { PowerBoostingSnapshot } from '../../entities/powerBoostingSnapshot';
-import { AppDataSource } from '../../orm';
-import { PowerBalanceSnapshot } from '../../entities/powerBalanceSnapshot';
-import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory';
-import { convertTimeStampToSeconds } from '../../utils/utils';
+} from '../../../test/testUtils.js';
+import { PowerSnapshot } from '../../entities/powerSnapshot.js';
+import { PowerBoostingSnapshot } from '../../entities/powerBoostingSnapshot.js';
+import { AppDataSource } from '../../orm.js';
+import { PowerBalanceSnapshot } from '../../entities/powerBalanceSnapshot.js';
+import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory.js';
+import { convertTimeStampToSeconds } from '../../utils/utils.js';
 
 describe(
   'processFillPowerSnapshotJobs test cases',

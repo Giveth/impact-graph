@@ -1,16 +1,16 @@
 import { assert } from 'chai';
-import { createBackupDonation } from './backupDonationImportJob';
+import { createBackupDonation } from './backupDonationImportJob.js';
 import {
   assertThrowsAsync,
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
   saveProjectDirectlyToDb,
-} from '../../../test/testUtils';
-import { User } from '../../entities/user';
-import { NETWORK_IDS } from '../../provider';
-import { DONATION_STATUS } from '../../entities/donation';
-import { findTokenByNetworkAndSymbol } from '../../utils/tokenUtils';
+} from '../../../test/testUtils.js';
+import { User } from '../../entities/user.js';
+import { NETWORK_IDS } from '../../provider.js';
+import { DONATION_STATUS } from '../../entities/donation.js';
+import { findTokenByNetworkAndSymbol } from '../../utils/tokenUtils.js';
 
 describe('createBackupDonation test cases', createBackupDonationTestCases);
 

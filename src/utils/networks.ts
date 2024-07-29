@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { PublicKey } from '@solana/web3.js';
-import { ChainType } from '../types/network';
-import networksConfig from './networksConfig';
+import { ChainType } from '../types/network.js';
+import networksConfig from './networksConfig.js';
 
 export const SOLANA_SYSTEM_PROGRAM = '11111111111111111111111111111111';
 

@@ -2,32 +2,33 @@ import fs from 'fs';
 import {
   ActionResponse,
   After,
+  // @ts-expect-error as d
 } from 'adminjs/src/backend/actions/action.interface';
 import adminJs, { ValidationError } from 'adminjs';
+// @ts-expect-error as d
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
-import { QfRound } from '../../../entities/qfRound';
-import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
+import { QfRound } from '../../../entities/qfRound.js';
 import {
-  getQfRoundActualDonationDetails,
+  canAccessQfRoundAction,
+  ResourceActions,
+} from '../adminJsPermissions.js';
+import {
   refreshProjectActualMatchingView,
   refreshProjectEstimatedMatchingView,
-} from '../../../services/projectViewsService';
+} from '../../../services/projectViewsService.js';
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
-} from '../adminJs-types';
-import { isQfRoundHasEnded } from '../../../services/qfRoundService';
+} from '../adminJs-types.js';
+import { isQfRoundHasEnded } from '../../../services/qfRoundService.js';
 import {
   findQfRoundById,
   getRelatedProjectsOfQfRound,
-} from '../../../repositories/qfRoundRepository';
-import { NETWORK_IDS } from '../../../provider';
-import { logger } from '../../../utils/logger';
-import { messages } from '../../../utils/messages';
-import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
-import { errorMessages } from '../../../utils/errorMessages';
-import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
-import { pinFile } from '../../../middleware/pinataUtils';
+} from '../../../repositories/qfRoundRepository.js';
+import { NETWORK_IDS } from '../../../provider.js';
+import { errorMessages } from '../../../utils/errorMessages.js';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2.js';
+import { pinFile } from '../../../middleware/pinataUtils.js';
 
 let initialProjectIds: number[] = [];
 
@@ -71,40 +72,40 @@ export const fillProjects: After<ActionResponse> = async (
   return response;
 };
 
-const returnAllQfRoundDonationAnalysis = async (
-  context: AdminJsContextInterface,
-  request: AdminJsRequestInterface,
-) => {
-  const { record, currentAdmin } = context;
-  const qfRoundId = Number(request?.params?.recordId);
-  let type = 'success';
-  logger.debug(
-    'returnAllQfRoundDonationAnalysis() has been called, qfRoundId',
-    qfRoundId,
-  );
-  let message = messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY;
-  try {
-    const qfRoundDonationsRows =
-      await getQfRoundActualDonationDetails(qfRoundId);
-    logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
-    await addQfRoundDonationsSheetToSpreadsheet({
-      rows: qfRoundDonationsRows,
-      qfRoundId,
-    });
-  } catch (e) {
-    logger.error('returnAllQfRoundDonationAnalysis() error', e);
-    message = e.message;
-    type = 'danger';
-  }
-
-  return {
-    record: record.toJSON(currentAdmin),
-    notice: {
-      message,
-      type,
-    },
-  };
-};
+// const returnAllQfRoundDonationAnalysis = async (
+//   context: AdminJsContextInterface,
+//   request: AdminJsRequestInterface,
+// ) => {
+//   const { record, currentAdmin } = context;
+//   const qfRoundId = Number(request?.params?.recordId);
+//   let type = 'success';
+//   logger.debug(
+//     'returnAllQfRoundDonationAnalysis() has been called, qfRoundId',
+//     qfRoundId,
+//   );
+//   let message = messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY;
+//   try {
+//     const qfRoundDonationsRows =
+//       await getQfRoundActualDonationDetails(qfRoundId);
+//     logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
+//     await addQfRoundDonationsSheetToSpreadsheet({
+//       rows: qfRoundDonationsRows,
+//       qfRoundId,
+//     });
+//   } catch (e) {
+//     logger.error('returnAllQfRoundDonationAnalysis() error', e);
+//     message = e.message;
+//     type = 'danger';
+//   }
+//
+//   return {
+//     record: record.toJSON(currentAdmin),
+//     notice: {
+//       message,
+//       type,
+//     },
+//   };
+// };
 
 async function handleSponsorsImgs(payload: {
   [key: string]: any;
@@ -307,6 +308,7 @@ export const qfRoundTab = {
           edit: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/ProjectsInQfRound'),
         },
       },
@@ -319,6 +321,7 @@ export const qfRoundTab = {
           edit: true,
         },
         components: {
+          // @ts-expect-error as d
           edit: adminJs.bundle('./components/QFRoundBannerBg'),
         },
       },
@@ -331,6 +334,7 @@ export const qfRoundTab = {
           edit: true,
         },
         components: {
+          // @ts-expect-error as d
           edit: adminJs.bundle('./components/QFRoundSponsorsImgs'),
         },
       },
@@ -390,20 +394,20 @@ export const qfRoundTab = {
         after: refreshMaterializedViews,
       },
 
-      returnAllDonationData: {
-        // https://docs.adminjs.co/basics/action#record-type-actions
-        actionType: 'record',
-        isVisible: true,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction(
-            { currentAdmin },
-            ResourceActions.RETURN_ALL_DONATIONS_DATA,
-          ),
-        handler: async (request, response, context) => {
-          return returnAllQfRoundDonationAnalysis(context, request);
-        },
-        component: false,
-      },
+      // returnAllDonationData: {
+      //   // https://docs.adminjs.co/basics/action#record-type-actions
+      //   actionType: 'record',
+      //   isVisible: true,
+      //   isAccessible: ({ currentAdmin }) =>
+      //     canAccessQfRoundAction(
+      //       { currentAdmin },
+      //       ResourceActions.RETURN_ALL_DONATIONS_DATA,
+      //     ),
+      //   handler: async (request, response, context) => {
+      //     return returnAllQfRoundDonationAnalysis(context, request);
+      //   },
+      //   component: false,
+      // },
     },
   },
 };

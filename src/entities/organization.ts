@@ -7,9 +7,10 @@ import {
   ManyToMany,
   OneToMany,
   JoinTable,
+  Relation,
 } from 'typeorm';
-import { Project } from './project';
-import { Token } from './token';
+import { Project } from './project.js';
+import { Token } from './token.js';
 
 @Entity()
 @ObjectType()
@@ -49,12 +50,12 @@ export class Organization extends BaseEntity {
 
   @Field(_type => [Project], { nullable: true })
   @OneToMany(_type => Project, project => project.organization)
-  projects?: Project[];
+  projects?: Relation<Project>[];
 
   @Field(_type => [Token], { nullable: true })
   @ManyToMany(_type => Token, token => token.organizations)
   @JoinTable()
-  tokens: Token[];
+  tokens: Relation<Token>[];
 }
 
 export const ORGANIZATION_LABELS = {

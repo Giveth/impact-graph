@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Token } from '../src/entities/token';
-import { NETWORK_IDS } from '../src/provider';
+import { Token } from '../src/entities/token.js';
+import { NETWORK_IDS } from '../src/provider.js';
 
 const optimisticTokens = [
   {

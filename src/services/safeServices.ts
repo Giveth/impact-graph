@@ -1,5 +1,5 @@
 import SafeApiKit from '@safe-global/api-kit';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 
 export const fetchSafeTransactionHash = async (
   safeMessageHash: string,
@@ -7,6 +7,7 @@ export const fetchSafeTransactionHash = async (
 ) => {
   let safeTransactionHash;
   try {
+    // @ts-expect-error as d
     const safeService = new SafeApiKit({
       chainId: BigInt(networkId),
     });

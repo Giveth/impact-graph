@@ -1,31 +1,34 @@
 import { ethers } from 'ethers';
 import moment from 'moment';
 import axios from 'axios';
-import { isTransactionHashStored } from '../../repositories/donationRepository';
-import { DONATION_ORIGINS, Donation } from '../../entities/donation';
-import { findProjectByWalletAddressAndNetwork } from '../../repositories/projectRepository';
-import { NETWORK_IDS } from '../../provider';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { ProjStatus } from '../../entities/project';
-import { Token } from '../../entities/token';
+import { isTransactionHashStored } from '../../repositories/donationRepository.js';
+import { DONATION_ORIGINS, Donation } from '../../entities/donation.js';
+import { findProjectByWalletAddressAndNetwork } from '../../repositories/projectRepository.js';
+import { NETWORK_IDS } from '../../provider.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
+import { ProjStatus } from '../../entities/project.js';
+import { Token } from '../../entities/token.js';
 import {
   getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
-} from '../donationService';
-import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
-import { relatedActiveQfRoundForProject } from '../qfRoundService';
+} from '../donationService.js';
+import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository.js';
+import { relatedActiveQfRoundForProject } from '../qfRoundService.js';
 import {
   createUserWithPublicAddress,
   findUserByWalletAddress,
-} from '../../repositories/userRepository';
-import { logger } from '../../utils/logger';
-import { getGitcoinAdapter } from '../../adapters/adaptersFactory';
-import { calculateGivbackFactor } from '../givbackService';
+} from '../../repositories/userRepository.js';
+import { logger } from '../../utils/logger.js';
+import { getGitcoinAdapter } from '../../adapters/adaptersFactory.js';
+import { calculateGivbackFactor } from '../givbackService.js';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from '../userService';
-import { updateProjectStatistics } from '../projectService';
+} from '../userService.js';
+import { updateProjectStatistics } from '../projectService.js';
 
 // contract address
 const IDRISS_SUBSQUID_SUBGRAPH_URL =

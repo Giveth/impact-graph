@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Project, ProjectUpdate } from '../src/entities/project';
-import { getHtmlTextSummary } from '../src/utils/utils';
+import { Project, ProjectUpdate } from '../src/entities/project.js';
+import { getHtmlTextSummary } from '../src/utils/utils.js';
 
 export class FillProjectDescriptionSummaryProjectUpdateContentSummary1676472760533
   implements MigrationInterface

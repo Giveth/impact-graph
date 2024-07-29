@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import seedTokens from './data/seedTokens';
-import config from '../src/config';
-import { NETWORK_IDS } from '../src/provider';
+import seedTokens from './data/seedTokens.js';
+import config from '../src/config.js';
+import { NETWORK_IDS } from '../src/provider.js';
 
 export class AddPolygonZkevmTokens1718177138564 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

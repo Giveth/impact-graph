@@ -1,4 +1,4 @@
-import BroadcastNotification from '../entities/broadcastNotification';
+import BroadcastNotification from '../entities/broadcastNotification.js';
 
 export const updateBroadcastNotificationStatus = async (
   id: number,

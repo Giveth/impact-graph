@@ -1,9 +1,8 @@
-import { User } from '../entities/user';
-import { Donation } from '../entities/donation';
-import { logger } from '../utils/logger';
-import { findAdminUserByEmail } from '../repositories/userRepository';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt';
+import { User } from '../entities/user.js';
+import { Donation } from '../entities/donation.js';
+import { logger } from '../utils/logger.js';
+import { findAdminUserByEmail } from '../repositories/userRepository.js';
 
 export const updateUserTotalDonated = async (userId: number) => {
   try {

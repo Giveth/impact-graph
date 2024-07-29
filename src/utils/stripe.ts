@@ -1,9 +1,9 @@
 import Stripe from 'stripe';
 
-import config from '../config';
-import { StripeTransaction } from '../entities/bankAccount';
-import { Project } from '../entities/project';
-import { logger } from './logger';
+import config from '../config.js';
+import { StripeTransaction } from '../entities/bankAccount.js';
+import { Project } from '../entities/project.js';
+import { logger } from './logger.js';
 
 const stripe = new Stripe(config.get('STRIPE_SECRET').toString(), {
   apiVersion: '2020-08-27',

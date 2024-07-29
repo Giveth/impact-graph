@@ -1,5 +1,5 @@
 import { Field, ObjectType } from 'type-graphql';
-import { User } from '../../entities/user';
+import { User } from '../../entities/user.js';
 
 @ObjectType()
 export class UserByAddressResponse extends User {

@@ -1,17 +1,17 @@
 import SolanaWeb3, { ParsedInstruction } from '@solana/web3.js';
-import { logger } from '../../../utils/logger';
+import { logger } from '../../../utils/logger.js';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
   validateTransactionWithInputData,
-} from '../index';
-import { normalizeAmount } from '../../../utils/utils';
+} from '../index.js';
+import { normalizeAmount } from '../../../utils/utils.js';
 import {
   i18n,
   translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
-import { findTokenByNetworkAndSymbol } from '../../../utils/tokenUtils';
-import { NETWORK_IDS } from '../../../provider';
+} from '../../../utils/errorMessages.js';
+import { findTokenByNetworkAndSymbol } from '../../../utils/tokenUtils.js';
+import { NETWORK_IDS } from '../../../provider.js';
 
 const solanaProviders = new Map<number, SolanaWeb3.Connection>();
 

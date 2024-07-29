@@ -1,7 +1,7 @@
-import { Donation } from '../../entities/donation';
-import { Project } from '../../entities/project';
-import { UserStreamBalanceWarning, User } from '../../entities/user';
-import { RecurringDonation } from '../../entities/recurringDonation';
+import { Donation } from '../../entities/donation.js';
+import { Project } from '../../entities/project.js';
+import { UserStreamBalanceWarning, User } from '../../entities/user.js';
+import { RecurringDonation } from '../../entities/recurringDonation.js';
 
 export interface BroadCastNotificationInputParams {
   broadCastNotificationId: number;

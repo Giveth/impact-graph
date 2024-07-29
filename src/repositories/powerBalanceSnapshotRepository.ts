@@ -1,4 +1,4 @@
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
 
 type PowerBalanceSnapshotParams = Pick<
   PowerBalanceSnapshot,

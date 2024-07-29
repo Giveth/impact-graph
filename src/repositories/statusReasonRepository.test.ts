@@ -1,11 +1,11 @@
 import { assert } from 'chai';
-import { ProjectStatusReason } from '../entities/projectStatusReason';
+import { ProjectStatusReason } from '../entities/projectStatusReason.js';
 import {
   findAllStatusReasons,
   findStatusReasonsByStatusId,
-} from './statusReasonRepository';
-import { ProjectStatus } from '../entities/projectStatus';
-import { ProjStatus } from '../entities/project';
+} from './statusReasonRepository.js';
+import { ProjectStatus } from '../entities/projectStatus.js';
+import { ProjStatus } from '../entities/project.js';
 
 describe('findAllStatusReasons test cases', () => {
   it('should find all status reasons', async () => {

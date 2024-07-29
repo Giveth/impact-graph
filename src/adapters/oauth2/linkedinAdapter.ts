@@ -3,9 +3,12 @@ import axios from 'axios';
 import {
   GetUserInfoByOauth2Output,
   SocialNetworkOauth2AdapterInterface,
-} from './SocialNetworkOauth2AdapterInterface';
-import { logger } from '../../utils/logger';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+} from './SocialNetworkOauth2AdapterInterface.js';
+import { logger } from '../../utils/logger.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
 
 const clientId = process.env.LINKEDIN_CLIENT_ID;
 const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;

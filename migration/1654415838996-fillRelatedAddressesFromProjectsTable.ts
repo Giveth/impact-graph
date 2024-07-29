@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Project } from '../src/entities/project';
-import { NETWORK_IDS } from '../src/provider';
-import { ENVIRONMENTS } from '../src/utils/utils';
+import { Project } from '../src/entities/project.js';
+import { NETWORK_IDS } from '../src/provider.js';
+import { ENVIRONMENTS } from '../src/utils/utils.js';
 
 const insertRelatedAddress = async (params: {
   queryRunner: QueryRunner;

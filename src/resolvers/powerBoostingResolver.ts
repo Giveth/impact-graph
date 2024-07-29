@@ -15,17 +15,17 @@ import {
 } from 'type-graphql';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
-import { ApolloContext } from '../types/ApolloContext';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { PowerBoosting } from '../entities/powerBoosting';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
 import {
   setMultipleBoosting,
   setSingleBoosting,
   findPowerBoostings,
-} from '../repositories/powerBoostingRepository';
-import { logger } from '../utils/logger';
-import { getBottomRank } from '../repositories/projectPowerViewRepository';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
+} from '../repositories/powerBoostingRepository.js';
+import { logger } from '../utils/logger.js';
+import { getBottomRank } from '../repositories/projectPowerViewRepository.js';
+import { getNotificationAdapter } from '../adapters/adaptersFactory.js';
 
 enum PowerBoostingOrderDirection {
   ASC = 'ASC',

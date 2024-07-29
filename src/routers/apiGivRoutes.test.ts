@@ -5,10 +5,10 @@ import {
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
   saveProjectDirectlyToDb,
-} from '../../test/testUtils';
-import { createBasicAuthentication } from '../utils/utils';
-import { NETWORK_IDS } from '../provider';
-import { DONATION_STATUS } from '../entities/donation';
+} from '../../test/testUtils.js';
+import { createBasicAuthentication } from '../utils/utils.js';
+import { NETWORK_IDS } from '../provider.js';
+import { DONATION_STATUS } from '../entities/donation.js';
 
 export const restUrl = 'http://localhost:4000/apigive';
 

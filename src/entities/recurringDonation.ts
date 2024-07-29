@@ -7,15 +7,16 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
-import { User } from './user';
-import { AnchorContractAddress } from './anchorContractAddress';
-import { Donation } from './donation';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { AnchorContractAddress } from './anchorContractAddress.js';
+import { Donation } from './donation.js';
 
 export const RECURRING_DONATION_STATUS = {
   PENDING: 'pending',
@@ -69,7 +70,7 @@ export class RecurringDonation extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId(
     (recurringDonation: RecurringDonation) => recurringDonation.project,
@@ -112,7 +113,7 @@ export class RecurringDonation extends BaseEntity {
   @Index()
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
-  donor: User;
+  donor: Relation<User>;
 
   @RelationId((recurringDonation: RecurringDonation) => recurringDonation.donor)
   @Column({ nullable: true })

@@ -1,4 +1,4 @@
-import { bootstrap } from '../src/server/bootstrap';
+import { bootstrap } from '../src/server/bootstrap.js';
 import {
   saveProjectDirectlyToDb,
   saveDonationDirectlyToDb,
@@ -6,42 +6,42 @@ import {
   DONATION_SEED_DATA,
   REACTION_SEED_DATA,
   PROJECT_UPDATE_SEED_DATA,
-} from './testUtils';
-import { User } from '../src/entities/user';
-import { Category } from '../src/entities/category';
-import { ProjectStatus } from '../src/entities/projectStatus';
-import { Project, ProjectUpdate } from '../src/entities/project';
-import { Reaction } from '../src/entities/reaction';
-import { Token } from '../src/entities/token';
-import { ProjectStatusReason } from '../src/entities/projectStatusReason';
+} from './testUtils.js';
+import { User } from '../src/entities/user.js';
+import { Category } from '../src/entities/category.js';
+import { ProjectStatus } from '../src/entities/projectStatus.js';
+import { Project, ProjectUpdate } from '../src/entities/project.js';
+import { Reaction } from '../src/entities/reaction.js';
+import { Token } from '../src/entities/token.js';
+import { ProjectStatusReason } from '../src/entities/projectStatusReason.js';
 import {
   Organization,
   ORGANIZATION_LABELS,
-} from '../src/entities/organization';
-import { NETWORK_IDS } from '../src/provider';
-import { MainCategory } from '../src/entities/mainCategory';
-import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
-import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
-import { AppDataSource } from '../src/orm';
-import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
-import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
-import { redis } from '../src/redis';
-import { logger } from '../src/utils/logger';
-import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens';
-import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
-import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
-import { ChainType } from '../src/types/network';
-import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
-import { EnablePgTrgmExtension1713859866338 } from '../migration/1713859866338-enable_pg_trgm_extension';
-import { AddPgTrgmIndexes1715086559930 } from '../migration/1715086559930-add_pg_trgm_indexes';
-import { ProjectPowerViewV21717643739652 } from '../migration/1717643739652-ProjectPowerView_V2';
-import { ProjectEstimatedMatchingViewV21717646357435 } from '../migration/1717646357435-ProjectEstimatedMatchingView_V2';
-import { ProjectActualMatchingViewV161717646612482 } from '../migration/1717646612482-ProjectActualMatchingView_V16';
-import { LastSnapshotProjectPowerViewV21717648491606 } from '../migration/1717648491606-LastSnapshotProjectPowerView_V2';
-import { ProjectFuturePowerViewV21717643016553 } from '../migration/1717643016553-ProjectFuturePowerView_V2';
-import { ProjectUserInstantPowerViewV21717644442966 } from '../migration/1717644442966-ProjectUserInstantPowerView_V2';
-import { ProjectInstantPowerViewV21717648653115 } from '../migration/1717648653115-ProjectInstantPowerView_V2';
-import { UserProjectPowerViewV21717645768886 } from '../migration/1717645768886-UserProjectPowerView_V2';
+} from '../src/entities/organization.js';
+import { NETWORK_IDS } from '../src/provider.js';
+import { MainCategory } from '../src/entities/mainCategory.js';
+import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure.js';
+import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure.js';
+import { AppDataSource } from '../src/orm.js';
+import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable.js';
+import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion.js';
+import { redis } from '../src/redis.js';
+import { logger } from '../src/utils/logger.js';
+import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens.js';
+import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table.js';
+import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user.js';
+import { ChainType } from '../src/types/network.js';
+import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter.js';
+import { EnablePgTrgmExtension1713859866338 } from '../migration/1713859866338-enable_pg_trgm_extension.js';
+import { AddPgTrgmIndexes1715086559930 } from '../migration/1715086559930-add_pg_trgm_indexes.js';
+import { ProjectPowerViewV21717643739652 } from '../migration/1717643739652-ProjectPowerView_V2.js';
+import { ProjectEstimatedMatchingViewV21717646357435 } from '../migration/1717646357435-ProjectEstimatedMatchingView_V2.js';
+import { ProjectActualMatchingViewV161717646612482 } from '../migration/1717646612482-ProjectActualMatchingView_V16.js';
+import { LastSnapshotProjectPowerViewV21717648491606 } from '../migration/1717648491606-LastSnapshotProjectPowerView_V2.js';
+import { ProjectFuturePowerViewV21717643016553 } from '../migration/1717643016553-ProjectFuturePowerView_V2.js';
+import { ProjectUserInstantPowerViewV21717644442966 } from '../migration/1717644442966-ProjectUserInstantPowerView_V2.js';
+import { ProjectInstantPowerViewV21717648653115 } from '../migration/1717648653115-ProjectInstantPowerView_V2.js';
+import { UserProjectPowerViewV21717645768886 } from '../migration/1717645768886-UserProjectPowerView_V2.js';
 
 async function seedDb() {
   await seedUsers();

@@ -1,4 +1,4 @@
-import { Reaction } from '../entities/reaction';
+import { Reaction } from '../entities/reaction.js';
 
 export const findUserReactionsByProjectIds = async (
   authenticatedUserId: number,

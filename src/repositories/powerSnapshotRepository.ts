@@ -1,5 +1,5 @@
-import { PowerSnapshot } from '../entities/powerSnapshot';
-import { AppDataSource } from '../orm';
+import { PowerSnapshot } from '../entities/powerSnapshot.js';
+import { AppDataSource } from '../orm.js';
 
 export const findInCompletePowerSnapShots = async (): Promise<
   PowerSnapshot[]

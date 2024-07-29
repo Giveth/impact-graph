@@ -2,10 +2,10 @@ import { assert } from 'chai';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
-} from '../../test/testUtils';
-import { ProjectUpdate } from '../entities/project';
-import { SUMMARY_LENGTH } from '../constants/summary';
-import { getHtmlTextSummary } from '../utils/utils';
+} from '../../test/testUtils.js';
+import { ProjectUpdate } from '../entities/project.js';
+import { SUMMARY_LENGTH } from '../constants/summary.js';
+import { getHtmlTextSummary } from '../utils/utils.js';
 
 describe('update contentSummary test cases', updateContentSummaryTestCases);
 

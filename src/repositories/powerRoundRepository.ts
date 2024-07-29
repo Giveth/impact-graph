@@ -1,4 +1,4 @@
-import { PowerRound } from '../entities/powerRound';
+import { PowerRound } from '../entities/powerRound.js';
 
 export const setPowerRound = async (round: number): Promise<PowerRound> => {
   let powerRound = await PowerRound.findOne({ where: {} });

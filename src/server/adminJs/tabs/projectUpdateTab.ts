@@ -1,10 +1,10 @@
 import { ActionResponse, After } from 'adminjs';
-import { Project, ProjectUpdate } from '../../../entities/project';
+import { Project, ProjectUpdate } from '../../../entities/project.js';
 import {
   canAccessProjectUpdateAction,
   ResourceActions,
-} from '../adminJsPermissions';
-import { addFeaturedProjectUpdate } from './projectsTab';
+} from '../adminJsPermissions.js';
+import { addFeaturedProjectUpdate } from './projectsTab.js';
 
 export const setProjectsTitleAndSlug: After<ActionResponse> = async request => {
   if (Number(request?.records?.length) > 0) {

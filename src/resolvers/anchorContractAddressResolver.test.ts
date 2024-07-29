@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import axios from 'axios';
-import { NETWORK_IDS } from '../provider';
+import { NETWORK_IDS } from '../provider.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -9,15 +9,15 @@ import {
   graphqlUrl,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { createAnchorContractAddressQuery } from '../../test/graphqlQueries';
+} from '../../test/testUtils.js';
+import { createAnchorContractAddressQuery } from '../../test/graphqlQueries.js';
 import {
   errorMessages,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { AnchorContractAddress } from '../entities/anchorContractAddress';
-import { findUserByWalletAddress } from '../repositories/userRepository';
+} from '../utils/errorMessages.js';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository.js';
+import { AnchorContractAddress } from '../entities/anchorContractAddress.js';
+import { findUserByWalletAddress } from '../repositories/userRepository.js';
 
 describe(
   'addAnchorContractAddress test cases',

@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { decodeBasicAuthentication } from '../utils/utils';
-import { logger } from '../utils/logger';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { decodeBasicAuthentication } from '../utils/utils.js';
+import { logger } from '../utils/logger.js';
 import {
   ApiGivStandardError,
   handleExpressError,
-} from '../routers/standardError';
+} from '../routers/standardError.js';
 
 export const apiGivAuthentication = (
   req: Request,

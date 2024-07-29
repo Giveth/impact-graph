@@ -11,7 +11,7 @@ import {
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { User } from '../entities/user';
+import { User } from '../entities/user.js';
 import {
   findActiveQfRound,
   findQfRounds,
@@ -22,14 +22,14 @@ import {
   QfArchivedRoundsSortType,
   getQfRoundStats,
   getQfRoundTotalSqrtRootSumSquared,
-} from '../repositories/qfRoundRepository';
-import { QfRound } from '../entities/qfRound';
-import { OrderDirection } from './projectResolver';
-import { getGitcoinAdapter } from '../adapters/adaptersFactory';
-import { logger } from '../utils/logger';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore';
-import { findUserByWalletAddress } from '../repositories/userRepository';
+} from '../repositories/qfRoundRepository.js';
+import { QfRound } from '../entities/qfRound.js';
+import { OrderDirection } from './projectResolver.js';
+import { getGitcoinAdapter } from '../adapters/adaptersFactory.js';
+import { logger } from '../utils/logger.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore.js';
+import { findUserByWalletAddress } from '../repositories/userRepository.js';
 
 @ObjectType()
 export class QfRoundStatsResponse {

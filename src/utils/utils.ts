@@ -1,16 +1,15 @@
+import { createHash } from 'node:crypto';
 import { convert } from 'html-to-text';
 import slugify from 'slugify';
 import stringify from 'json-stable-stringify';
-import { isEqual } from 'lodash';
-import { Country } from '../entities/Country';
-import { FilterField, SortingField } from '../entities/project';
+import { isEqual } from 'lodash-es';
+import { Country } from '../entities/Country.js';
+import { FilterField, SortingField } from '../entities/project.js';
 
-import { SUMMARY_LENGTH } from '../constants/summary';
-import config from '../config';
-import { ProjectSocialMedia } from '../entities/projectSocialMedia';
-import { ProjectSocialMediaInput } from '../resolvers/types/ProjectVerificationUpdateInput';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { createHash } = require('node:crypto');
+import { SUMMARY_LENGTH } from '../constants/summary.js';
+import config from '../config.js';
+import { ProjectSocialMedia } from '../entities/projectSocialMedia.js';
+import { ProjectSocialMediaInput } from '../resolvers/types/ProjectVerificationUpdateInput.js';
 
 export const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -63,6 +62,7 @@ export const titleWithoutSpecialCharacters = (title: string): string => {
 };
 
 export const creteSlugFromProject = (title: string): string => {
+  // @ts-expect-error old package
   return slugify(titleWithoutSpecialCharacters(title));
 };
 

@@ -1,22 +1,17 @@
 import path from 'path';
-import * as dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const configPath = path.resolve(
   __dirname,
   `../config/${process.env.NODE_ENV || ''}.env`,
 );
-const loadConfigResult = dotenv.config({
+dotenv.config({
   path: configPath,
 });
-
-if (loadConfigResult.error) {
-  // eslint-disable-next-line no-console
-  console.log('Load process.env error', {
-    path: configPath,
-    error: loadConfigResult.error,
-  });
-  throw loadConfigResult.error;
-}
 
 const envVars = [
   'JWT_SECRET',

@@ -6,13 +6,14 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
-import { User } from './user';
+import { Project } from './project.js';
+import { User } from './user.js';
 
 @Entity()
 @ObjectType()
@@ -43,7 +44,7 @@ export class AnchorContractAddress extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((relatedAddress: AnchorContractAddress) => relatedAddress.project)
   @Column({ nullable: true })
@@ -52,7 +53,7 @@ export class AnchorContractAddress extends BaseEntity {
   @Index()
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
-  creator: User;
+  creator: Relation<User>;
 
   @RelationId(
     (anchorContractAddress: AnchorContractAddress) =>
@@ -64,7 +65,7 @@ export class AnchorContractAddress extends BaseEntity {
   @Index()
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
-  owner: User;
+  owner: Relation<User>;
 
   @RelationId(
     (anchorContractAddress: AnchorContractAddress) =>

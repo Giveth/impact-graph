@@ -1,27 +1,26 @@
-import { SocialNetworkOauth2AdapterInterface } from './oauth2/SocialNetworkOauth2AdapterInterface';
-import { DiscordAdapter } from './oauth2/discordAdapter';
-import { SOCIAL_NETWORKS } from '../entities/socialProfile';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { GoogleAdapter } from './oauth2/googleAdapter';
-import { LinkedinAdapter } from './oauth2/linkedinAdapter';
-import { TwitterAdapter } from './oauth2/twitterAdapter';
-import { NotificationAdapterInterface } from './notifications/NotificationAdapterInterface';
-import { NotificationCenterAdapter } from './notifications/NotificationCenterAdapter';
-import { MockNotificationAdapter } from './notifications/MockNotificationAdapter';
-import { GivPowerSubgraphAdapter } from './givpowerSubgraph/givPowerSubgraphAdapter';
-import { GivPowerSubgraphAdapterMock } from './givpowerSubgraph/givPowerSubgraphAdapterMock';
-import { ChainvineAdapter } from './chainvine/chainvineAdapter';
-import { ChainvineMockAdapter } from './chainvine/chainvineMockAdapter';
-import { IGivPowerSubgraphAdapter } from './givpowerSubgraph/IGivPowerSubgraphAdapter';
-import { GitcoinAdapter } from './gitcoin/gitcoinAdapter';
-import { GitcoinMockAdapter } from './gitcoin/gitcoinMockAdapter';
-import { GivPowerBalanceAggregatorAdapter } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapter';
-import { GivPowerBalanceAggregatorAdapterMock } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapterMock';
-import { DonationSaveBackupAdapter } from './donationSaveBackup/donationSaveBackupAdapter';
-import { DonationSaveBackupMockAdapter } from './donationSaveBackup/DonationSaveBackupMockAdapter';
-import { SuperFluidAdapter } from './superFluid/superFluidAdapter';
-import { SuperFluidMockAdapter } from './superFluid/superFluidMockAdapter';
-import { SuperFluidAdapterInterface } from './superFluid/superFluidAdapterInterface';
+import { SocialNetworkOauth2AdapterInterface } from './oauth2/SocialNetworkOauth2AdapterInterface.js';
+import { DiscordAdapter } from './oauth2/discordAdapter.js';
+import { SOCIAL_NETWORKS } from '../entities/socialProfile.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { GoogleAdapter } from './oauth2/googleAdapter.js';
+import { LinkedinAdapter } from './oauth2/linkedinAdapter.js';
+import { TwitterAdapter } from './oauth2/twitterAdapter.js';
+import { NotificationAdapterInterface } from './notifications/NotificationAdapterInterface.js';
+import { NotificationCenterAdapter } from './notifications/NotificationCenterAdapter.js';
+import { MockNotificationAdapter } from './notifications/MockNotificationAdapter.js';
+import { GivPowerSubgraphAdapter } from './givpowerSubgraph/givPowerSubgraphAdapter.js';
+import { GivPowerSubgraphAdapterMock } from './givpowerSubgraph/givPowerSubgraphAdapterMock.js';
+import { ChainvineMockAdapter } from './chainvine/chainvineMockAdapter.js';
+import { IGivPowerSubgraphAdapter } from './givpowerSubgraph/IGivPowerSubgraphAdapter.js';
+import { GitcoinAdapter } from './gitcoin/gitcoinAdapter.js';
+import { GitcoinMockAdapter } from './gitcoin/gitcoinMockAdapter.js';
+import { GivPowerBalanceAggregatorAdapter } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapter.js';
+import { GivPowerBalanceAggregatorAdapterMock } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapterMock.js';
+import { DonationSaveBackupAdapter } from './donationSaveBackup/donationSaveBackupAdapter.js';
+import { DonationSaveBackupMockAdapter } from './donationSaveBackup/DonationSaveBackupMockAdapter.js';
+import { SuperFluidAdapter } from './superFluid/superFluidAdapter.js';
+import { SuperFluidMockAdapter } from './superFluid/superFluidMockAdapter.js';
+import { SuperFluidAdapterInterface } from './superFluid/superFluidAdapterInterface.js';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -77,13 +76,12 @@ export const getGivPowerSubgraphAdapter = (): IGivPowerSubgraphAdapter => {
   }
 };
 
-const chainvineAdapter = new ChainvineAdapter();
 const mockChainvineAdapter = new ChainvineMockAdapter();
 
 export const getChainvineAdapter = () => {
   switch (process.env.CHAINVINE_ADAPTER) {
     case 'chainvine':
-      return chainvineAdapter;
+      return mockChainvineAdapter;
     case 'mock':
       return mockChainvineAdapter;
     default:

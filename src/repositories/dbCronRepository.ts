@@ -1,6 +1,6 @@
-import { CronJob } from '../entities/CronJob';
-import { logger } from '../utils/logger';
-import { AppDataSource, CronDataSource } from '../orm';
+import { CronJob } from '../entities/CronJob.js';
+import { logger } from '../utils/logger.js';
+import { AppDataSource, CronDataSource } from '../orm.js';
 
 export const POWER_BOOSTING_SNAPSHOT_TASK_NAME =
   'take givpower boosting snapshot';

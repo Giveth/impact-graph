@@ -1,7 +1,7 @@
 import { Arg, Field, Int, ObjectType, Query, Resolver } from 'type-graphql';
 
-import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView';
-import { getProjectUserInstantPowerView } from '../repositories/instantBoostingRepository';
+import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView.js';
+import { getProjectUserInstantPowerView } from '../repositories/instantBoostingRepository.js';
 
 @ObjectType()
 class PaginatedProjectUserInstantPowerView {

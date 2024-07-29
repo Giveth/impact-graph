@@ -6,12 +6,13 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
+import { Project } from './project.js';
 
 @Entity()
 @ObjectType()
@@ -24,7 +25,7 @@ export class PreviousRoundRank extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId(
     (previousRoundRank: PreviousRoundRank) => previousRoundRank.project,

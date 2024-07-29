@@ -7,9 +7,10 @@ import {
   RelationId,
   ManyToOne,
   Index,
+  Relation,
 } from 'typeorm';
-import { Project, ProjectUpdate } from './project';
-import { User } from './user';
+import { Project, ProjectUpdate } from './project.js';
+import { User } from './user.js';
 
 @Entity()
 @ObjectType()
@@ -21,7 +22,7 @@ export class Reaction extends BaseEntity {
   readonly id: number;
 
   @ManyToOne(_type => ProjectUpdate)
-  projectUpdate: ProjectUpdate;
+  projectUpdate: Relation<ProjectUpdate>;
 
   @Index()
   @RelationId((reaction: Reaction) => reaction.projectUpdate)
@@ -41,7 +42,7 @@ export class Reaction extends BaseEntity {
   reaction: string;
 
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @Index()
   @Field(_type => ID, { nullable: true })

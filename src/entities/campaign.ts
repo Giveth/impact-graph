@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { Project } from './project';
+import { Project } from './project.js';
 
 // Copied from projects enums
 export enum CampaignSortingField {

@@ -1,12 +1,16 @@
 import adminJs from 'adminjs';
+// @ts-expect-error as d
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
-import { Token } from '../../../entities/token';
-import { NETWORK_IDS } from '../../../provider';
-import { canAccessTokenAction, ResourceActions } from '../adminJsPermissions';
-import { AdminJsRequestInterface } from '../adminJs-types';
-import { Organization } from '../../../entities/organization';
-import { logger } from '../../../utils/logger';
-import { findTokenByTokenId } from '../../../repositories/tokenRepository';
+import { Token } from '../../../entities/token.js';
+import { NETWORK_IDS } from '../../../provider.js';
+import {
+  canAccessTokenAction,
+  ResourceActions,
+} from '../adminJsPermissions.js';
+import { AdminJsRequestInterface } from '../adminJs-types.js';
+import { Organization } from '../../../entities/organization.js';
+import { logger } from '../../../utils/logger.js';
+import { findTokenByTokenId } from '../../../repositories/tokenRepository.js';
 
 // generates orderly permutations and maps then into an array which is later flatten into 1 dimension
 // Current length is the length of selected items from the total items
@@ -252,7 +256,9 @@ export const generateTokenTab = async () => {
             list: true,
           },
           components: {
+            // @ts-expect-error as d
             show: adminJs.bundle('./components/ListOrganizationsNames'),
+            // @ts-expect-error as d
             list: adminJs.bundle('./components/ListOrganizationsNames'),
           },
           availableValues: await generateOrganizationList(),

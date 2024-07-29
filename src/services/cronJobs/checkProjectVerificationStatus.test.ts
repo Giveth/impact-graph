@@ -1,15 +1,13 @@
 import { assert } from 'chai';
-import { RevokeSteps } from '../../entities/project';
+import moment from 'moment';
+import { RevokeSteps } from '../../entities/project.js';
 
-import { checkProjectVerificationStatus } from './checkProjectVerificationStatus';
+import { checkProjectVerificationStatus } from './checkProjectVerificationStatus.js';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
-} from '../../../test/testUtils';
-import { findProjectById } from '../../repositories/projectRepository';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment');
+} from '../../../test/testUtils.js';
+import { findProjectById } from '../../repositories/projectRepository.js';
 
 describe(
   'checkProjectVerificationStatus() test cases',
@@ -48,7 +46,10 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      latestUpdateCreationDate: moment().subtract(91, 'days').endOf('day'),
+      latestUpdateCreationDate: moment()
+        .subtract(91, 'days')
+        .endOf('day')
+        .toDate(),
       verificationStatus: RevokeSteps.Warning,
     });
 
@@ -68,7 +69,10 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      latestUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
+      latestUpdateCreationDate: moment()
+        .subtract(105, 'days')
+        .endOf('day')
+        .toDate(),
       verificationStatus: RevokeSteps.LastChance,
     });
 
@@ -90,7 +94,10 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      latestUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
+      latestUpdateCreationDate: moment()
+        .subtract(105, 'days')
+        .endOf('day')
+        .toDate(),
       isImported: true,
     });
 

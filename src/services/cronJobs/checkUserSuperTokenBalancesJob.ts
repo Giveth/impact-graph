@@ -1,10 +1,10 @@
 import { schedule } from 'node-cron';
-import config from '../../config';
-import { logger } from '../../utils/logger';
+import config from '../../config.js';
+import { logger } from '../../utils/logger.js';
 import {
   processRecurringDonationBalancesJobs,
   runCheckUserSuperTokenBalances,
-} from './checkUserSuperTokenBalancesQueue';
+} from './checkUserSuperTokenBalancesQueue.js';
 
 const cronJobTime =
   (config.get('CHECK_USERS_SUPER_TOKEN_BALANCES_CRONJOB_TIME') as string) ||

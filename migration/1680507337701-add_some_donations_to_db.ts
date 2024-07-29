@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import moment from 'moment';
-import config from '../src/config';
-import { Donation } from '../src/entities/donation';
-import { NETWORK_IDS } from '../src/provider';
+import config from '../src/config.js';
+import { Donation } from '../src/entities/donation.js';
+import { NETWORK_IDS } from '../src/provider.js';
 
 // For seeing donations detail you can see this message ( if you have access to channel)
 // https://discord.com/channels/679428761438912522/928813033600475207/1089868809302724618

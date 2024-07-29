@@ -21,8 +21,8 @@ import {
   canAccessCampaignAction,
   canAccessSybilAction,
   canAccessProjectFraudAction,
-} from './adminJsPermissions';
-import { UserRole } from '../../entities/user';
+} from './adminJsPermissions.js';
+import { UserRole } from '../../entities/user.js';
 
 const roles = Object.freeze([
   UserRole.ADMIN,

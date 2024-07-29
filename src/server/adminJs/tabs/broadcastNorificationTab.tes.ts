@@ -1,9 +1,9 @@
 import { assert } from 'chai';
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
-} from '../../../entities/broadcastNotification';
-import { findBroadcastNotificationById } from '../../../repositories/broadcastNotificationRepository';
-import { sendBroadcastNotification } from './broadcastNotificationTab';
+} from '../../../entities/broadcastNotification.js';
+import { findBroadcastNotificationById } from '../../../repositories/broadcastNotificationRepository.js';
+import { sendBroadcastNotification } from './broadcastNotificationTab.js';
 
 describe(
   'sendBroadcastNotification() test cases',

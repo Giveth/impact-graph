@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import config from '../src/config';
-import { Token } from '../src/entities/token';
-import { ChainType } from '../src/types/network';
+import config from '../src/config.js';
+import { Token } from '../src/entities/token.js';
+import { ChainType } from '../src/types/network.js';
 
 type TokenData = {
   networkId: number;

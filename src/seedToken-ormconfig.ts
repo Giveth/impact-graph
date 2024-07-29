@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 
 import { DataSourceOptions } from 'typeorm';
-import { getEntities } from './entities/entities';
+import { getEntities } from './entities/entities.js';
 dotenv.config({
   path: path.resolve(__dirname, `./config/${process.env.NODE_ENV || ''}.env`),
 });
@@ -21,4 +21,4 @@ const ormConfig: DataSourceOptions = {
   // },
 };
 
-export = ormConfig;
+export default ormConfig;

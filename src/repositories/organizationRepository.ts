@@ -1,4 +1,4 @@
-import { Organization } from '../entities/organization';
+import { Organization } from '../entities/organization.js';
 
 export const findOrganizationById = async (
   id: number,

@@ -1,17 +1,17 @@
 import { schedule } from 'node-cron';
-import config from '../../config';
-import { logger } from '../../utils/logger';
-import { isTestEnv } from '../../utils/utils';
+import config from '../../config.js';
+import { logger } from '../../utils/logger.js';
+import { isTestEnv } from '../../utils/utils.js';
 import {
   deactivateExpiredQfRounds,
   getExpiredActiveQfRounds,
-} from '../../repositories/qfRoundRepository';
+} from '../../repositories/qfRoundRepository.js';
 import {
   refreshProjectActualMatchingView,
   refreshProjectEstimatedMatchingView,
-} from '../projectViewsService';
-import { fillQfRoundHistory } from '../../repositories/qfRoundHistoryRepository';
-import { fillQfRoundDonationsUserScores } from '../../repositories/donationRepository';
+} from '../projectViewsService.js';
+import { fillQfRoundHistory } from '../../repositories/qfRoundHistoryRepository.js';
+import { fillQfRoundDonationsUserScores } from '../../repositories/donationRepository.js';
 
 // every 10 minutes
 const cronJobTime =

@@ -3,7 +3,9 @@ import { SelectQueryBuilder } from 'typeorm';
 import {
   ActionResponse,
   After,
+  // @ts-expect-error as d
 } from 'adminjs/src/backend/actions/action.interface';
+// @ts-expect-error as d
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import {
   Project,
@@ -11,48 +13,45 @@ import {
   ProjStatus,
   ReviewStatus,
   RevokeSteps,
-} from '../../../entities/project';
-import { canAccessProjectAction, ResourceActions } from '../adminJsPermissions';
+} from '../../../entities/project.js';
+import {
+  canAccessProjectAction,
+  ResourceActions,
+} from '../adminJsPermissions.js';
 import {
   findProjectById,
   findProjectsByIdArray,
-} from '../../../repositories/projectRepository';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../../analytics/analytics';
-import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory';
-import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
-import { changeUserBoostingsAfterProjectCancelled } from '../../../services/powerBoostingService';
-import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository';
+} from '../../../repositories/projectRepository.js';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../../analytics/analytics.js';
+import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory.js';
+import { getNotificationAdapter } from '../../../adapters/adaptersFactory.js';
+import { changeUserBoostingsAfterProjectCancelled } from '../../../services/powerBoostingService.js';
+import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository.js';
 import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
-} from '../../../repositories/projectPowerViewRepository';
-import { logger } from '../../../utils/logger';
-import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
-import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
+} from '../../../repositories/projectPowerViewRepository.js';
+import { logger } from '../../../utils/logger.js';
+import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository.js';
+import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository.js';
 import {
   AdminJsContextInterface,
   AdminJsProjectsQuery,
   AdminJsRequestInterface,
-  projectHeaders,
-} from '../adminJs-types';
-import { ProjectStatus } from '../../../entities/projectStatus';
-import { messages } from '../../../utils/messages';
-import {
-  addProjectsSheetToSpreadsheet,
-  initExportSpreadsheet,
-} from '../../../services/googleSheets';
-import { NETWORKS_IDS_TO_NAME } from '../../../provider';
+} from '../adminJs-types.js';
+import { ProjectStatus } from '../../../entities/projectStatus.js';
+import { messages } from '../../../utils/messages.js';
+
 import {
   getVerificationFormByProjectId,
   makeFormDraft,
   makeFormVerified,
-} from '../../../repositories/projectVerificationRepository';
-import { FeaturedUpdate } from '../../../entities/featuredUpdate';
-import { findActiveQfRound } from '../../../repositories/qfRoundRepository';
-import { User } from '../../../entities/user';
-import { refreshProjectEstimatedMatchingView } from '../../../services/projectViewsService';
-import { extractAdminJsReferrerUrlParams } from '../adminJs';
-import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
+} from '../../../repositories/projectVerificationRepository.js';
+import { FeaturedUpdate } from '../../../entities/featuredUpdate.js';
+import { findActiveQfRound } from '../../../repositories/qfRoundRepository.js';
+import { User } from '../../../entities/user.js';
+import { refreshProjectEstimatedMatchingView } from '../../../services/projectViewsService.js';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2.js';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -460,44 +459,44 @@ export const fillSocialProfileAndQfRounds: After<
   return response;
 };
 
-const sendProjectsToGoogleSheet = async (
-  projects: Project[],
-): Promise<void> => {
-  const spreadsheet = await initExportSpreadsheet();
-
-  // parse data and set headers
-  const projectRows = projects.map((project: Project) => {
-    const projectAddresses = project.addresses || [];
-
-    return {
-      id: project.id,
-      title: project.title,
-      slug: project.slug,
-      admin: project.adminUserId,
-      creationDate: project.creationDate,
-      updatedAt: project.updatedAt,
-      impactLocation: project.impactLocation || '',
-      walletAddress: project.walletAddress,
-      statusId: project.statusId,
-      qualityScore: project.qualityScore,
-      verified: Boolean(project.verified),
-      listed: Boolean(project.listed),
-      reviewStatus: project.reviewStatus,
-      totalDonations: project.totalDonations,
-      totalProjectUpdates: project.totalProjectUpdates,
-      website: project.website || '',
-      email: project?.adminUser?.email || '',
-      firstWalletAddress: projectAddresses![0]?.address,
-      firstWalletAddressNetwork:
-        NETWORKS_IDS_TO_NAME[projectAddresses![0]?.networkId] || '',
-      secondWalletAddress: projectAddresses![1]?.address || '',
-      secondWalletAddressNetwork:
-        NETWORKS_IDS_TO_NAME[projectAddresses![1]?.networkId] || '',
-    };
-  });
-
-  await addProjectsSheetToSpreadsheet(spreadsheet, projectHeaders, projectRows);
-};
+// const sendProjectsToGoogleSheet = async (
+//   projects: Project[],
+// ): Promise<void> => {
+//   const spreadsheet = await initExportSpreadsheet();
+//
+//   // parse data and set headers
+//   const projectRows = projects.map((project: Project) => {
+//     const projectAddresses = project.addresses || [];
+//
+//     return {
+//       id: project.id,
+//       title: project.title,
+//       slug: project.slug,
+//       admin: project.adminUserId,
+//       creationDate: project.creationDate,
+//       updatedAt: project.updatedAt,
+//       impactLocation: project.impactLocation || '',
+//       walletAddress: project.walletAddress,
+//       statusId: project.statusId,
+//       qualityScore: project.qualityScore,
+//       verified: Boolean(project.verified),
+//       listed: Boolean(project.listed),
+//       reviewStatus: project.reviewStatus,
+//       totalDonations: project.totalDonations,
+//       totalProjectUpdates: project.totalProjectUpdates,
+//       website: project.website || '',
+//       email: project?.adminUser?.email || '',
+//       firstWalletAddress: projectAddresses![0]?.address,
+//       firstWalletAddressNetwork:
+//         NETWORKS_IDS_TO_NAME[projectAddresses![0]?.networkId] || '',
+//       secondWalletAddress: projectAddresses![1]?.address || '',
+//       secondWalletAddressNetwork:
+//         NETWORKS_IDS_TO_NAME[projectAddresses![1]?.networkId] || '',
+//     };
+//   });
+//
+//   await addProjectsSheetToSpreadsheet(spreadsheet, projectHeaders, projectRows);
+// };
 
 export const listDelist = async (
   context: AdminJsContextInterface,
@@ -578,39 +577,40 @@ export const listDelist = async (
   };
 };
 
-export const exportProjectsWithFiltersToCsv = async (
-  _request,
-  _response,
-  context: AdminJsContextInterface,
-) => {
-  try {
-    const { records } = context;
-    const queryStrings = extractAdminJsReferrerUrlParams(_request);
-    const projectsQuery = buildProjectsQuery(queryStrings);
-    const projects = await projectsQuery.getMany();
+// export const exportProjectsWithFiltersToCsv = async (
+//   _request,
+//   _response,
+//   context: AdminJsContextInterface,
+// ) => {
+//   try {
+//     const { records } = context;
+//     const queryStrings = extractAdminJsReferrerUrlParams(_request);
+//     const projectsQuery = buildProjectsQuery(queryStrings);
+//     const projects = await projectsQuery.getMany();
+//
+//     await sendProjectsToGoogleSheet(projects);
+//
+//     return {
+//       redirectUrl: '/admin/resources/Project',
+//       records,
+//       notice: {
+//         message: `Project(s) successfully exported`,
+//         type: 'success',
+//       },
+//     };
+//   } catch (e) {
+//     logger.error('exportProjectsWithFiltersToCsv() error', e);
+//     return {
+//       redirectUrl: '/admin/resources/Project',
+//       record: {},
+//       notice: {
+//         message: e.message,
+//         type: 'danger',
+//       },
+//     };
+//   }
+// };
 
-    await sendProjectsToGoogleSheet(projects);
-
-    return {
-      redirectUrl: '/admin/resources/Project',
-      records,
-      notice: {
-        message: `Project(s) successfully exported`,
-        type: 'success',
-      },
-    };
-  } catch (e) {
-    logger.error('exportProjectsWithFiltersToCsv() error', e);
-    return {
-      redirectUrl: '/admin/resources/Project',
-      record: {},
-      notice: {
-        message: e.message,
-        type: 'danger',
-      },
-    };
-  }
-};
 export const projectsTab = {
   resource: Project,
   options: {
@@ -659,6 +659,7 @@ export const projectsTab = {
           new: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/VerificationFormSocials'),
         },
       },
@@ -743,6 +744,7 @@ export const projectsTab = {
         },
 
         components: {
+          // @ts-expect-error migrate to ESM
           show: adminJs.bundle('./components/ClickableLink'),
         },
       },
@@ -821,6 +823,7 @@ export const projectsTab = {
           new: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/ListProjectAddresses'),
         },
       },
@@ -847,6 +850,7 @@ export const projectsTab = {
           edit: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/ProjectUpdates'),
         },
       },
@@ -859,6 +863,7 @@ export const projectsTab = {
           edit: false,
         },
         components: {
+          // @ts-expect-error as d
           show: adminJs.bundle('./components/QfRoundsInProject'),
         },
       },
@@ -1117,17 +1122,17 @@ export const projectsTab = {
           return request;
         },
       },
-      exportFilterToCsv: {
-        actionType: 'resource',
-        isVisible: true,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessProjectAction(
-            { currentAdmin },
-            ResourceActions.EXPORT_FILTER_TO_CSV,
-          ),
-        handler: exportProjectsWithFiltersToCsv,
-        component: false,
-      },
+      // exportFilterToCsv: {
+      //   actionType: 'resource',
+      //   isVisible: true,
+      //   isAccessible: ({ currentAdmin }) =>
+      //     canAccessProjectAction(
+      //       { currentAdmin },
+      //       ResourceActions.EXPORT_FILTER_TO_CSV,
+      //     ),
+      //   handler: exportProjectsWithFiltersToCsv,
+      //   component: false,
+      // },
       listProject: {
         actionType: 'bulk',
         isVisible: true,

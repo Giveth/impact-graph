@@ -1,4 +1,4 @@
-import { getTimestampInSeconds } from './utils';
+import { getTimestampInSeconds } from './utils.js';
 
 const firstGivbackRoundTimeStamp = Number(
   process.env.FIRST_GIVBACK_ROUND_TIME_STAMP,

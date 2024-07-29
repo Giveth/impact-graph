@@ -1,5 +1,6 @@
 import gql from 'graphql-tag';
 
+// @ts-expect-error migrate to ESM
 const FETCH_PROJECTS = gql`
   query FetchProjects($limit: Int, $skip: Int, $orderBy: OrderBy) {
     topProjects(take: $limit, skip: $skip, orderBy: $orderBy) {
@@ -25,6 +26,7 @@ const FETCH_PROJECTS = gql`
   }
 `;
 
+// @ts-expect-error migrate to ESM
 const FETCH_PROJECT = gql`
   query Project($id: ID!) {
     project(id: $id) {
@@ -43,6 +45,7 @@ const FETCH_PROJECT = gql`
   }
 `;
 
+// @ts-expect-error migrate to ESM
 const FETCH_PROJECT_BY_SLUG = gql`
   query ProjectBySlug($slug: String!) {
     projectBySlug(slug: $slug) {
@@ -61,6 +64,7 @@ const FETCH_PROJECT_BY_SLUG = gql`
   }
 `;
 
+// @ts-expect-error migrate to ESM
 const ADD_BANK_ACCOUNT = gql`
   mutation AddBankAccount($id: ID!) {
     addBankAccount(projectId: $id, source: "") {
@@ -70,6 +74,7 @@ const ADD_BANK_ACCOUNT = gql`
   }
 `;
 
+// @ts-expect-error migrate to ESM
 const GET_LINK_BANK_CREATION = gql`
   query SetProjectBankAccount(
     $projectId: Float!
@@ -83,6 +88,7 @@ const GET_LINK_BANK_CREATION = gql`
     )
   }
 `;
+// @ts-expect-error as d
 const GET_DONATION_SESSION = gql`
   query GetStripeProjectDonationSession(
     $projectId: Float!
@@ -112,6 +118,7 @@ const GET_DONATION_SESSION = gql`
 //   }
 // `
 
+// @ts-expect-error as d
 const GET_STRIPE_DONATION_PDF = gql`
   query GetStripeDonationPDF($sessionId: Float!) {
     getStripeDonationPDF(sessionId: $sessionId) {
@@ -147,6 +154,7 @@ const GET_STRIPE_DONATION_PDF = gql`
 //   }
 // `
 
+// @ts-expect-error as d
 const GET_STRIPE_PROJECT_DONATIONS = gql`
   query GetStripeDonations($projectId: Float!) {
     getStripeProjectDonations(projectId: $projectId) {
@@ -161,6 +169,7 @@ const GET_STRIPE_PROJECT_DONATIONS = gql`
     }
   }
 `;
+// @ts-expect-error as d
 const ADD_PROJECT = gql`
   mutation ($project: ProjectInput!) {
     addProject(project: $project) {
@@ -181,6 +190,7 @@ const ADD_PROJECT = gql`
 /*
  ** PROJECT UPDATES
  */
+// @ts-expect-error as d
 const ADD_PROJECT_UPDATE = gql`
   mutation ($projectId: Float!, $title: String!, $content: String!) {
     addProjectUpdate(projectId: $projectId, title: $title, content: $content) {
@@ -192,6 +202,7 @@ const ADD_PROJECT_UPDATE = gql`
   }
 `;
 
+// @ts-expect-error as d
 const GET_PROJECT_UPDATES = gql`
   query GetProjectUpdates(
     $projectId: Float!

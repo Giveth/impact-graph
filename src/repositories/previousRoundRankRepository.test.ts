@@ -3,10 +3,10 @@ import {
   copyProjectRanksToPreviousRoundRankTable,
   deleteAllPreviousRoundRanks,
   projectsThatTheirRanksHaveChanged,
-} from './previousRoundRankRepository';
-import { AppDataSource } from '../orm';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+} from './previousRoundRankRepository.js';
+import { AppDataSource } from '../orm.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -14,23 +14,23 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
   dbIndependentTests,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from './powerBoostingRepository';
-import { getPowerRound, setPowerRound } from './powerRoundRepository';
+} from './powerBoostingRepository.js';
+import { getPowerRound, setPowerRound } from './powerRoundRepository.js';
 import {
   getProjectPowers,
   refreshProjectPowerView,
-} from './projectPowerViewRepository';
-import { Project } from '../entities/project';
-import { PreviousRoundRank } from '../entities/previousRoundRank';
-import { ProjectPowerView } from '../views/projectPowerView';
-import { findProjectById } from './projectRepository';
-import { PowerRound } from '../entities/powerRound';
-import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from './powerSnapshotRepository';
+} from './projectPowerViewRepository.js';
+import { Project } from '../entities/project.js';
+import { PreviousRoundRank } from '../entities/previousRoundRank.js';
+import { ProjectPowerView } from '../views/projectPowerView.js';
+import { findProjectById } from './projectRepository.js';
+import { PowerRound } from '../entities/powerRound.js';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from './powerSnapshotRepository.js';
 
 describe(
   'copyProjectRanksToPreviousRoundRankTable test cases',

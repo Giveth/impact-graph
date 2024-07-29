@@ -1,8 +1,8 @@
-import { Category } from '../../../entities/category';
+import { Category } from '../../../entities/category.js';
 import {
   canAccessCategoryAction,
   ResourceActions,
-} from '../adminJsPermissions';
+} from '../adminJsPermissions.js';
 
 export const categoryTab = {
   resource: Category,

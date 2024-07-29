@@ -1,6 +1,6 @@
 import { BaseEntity, Check, Column, Entity, PrimaryColumn } from 'typeorm';
 import { Field, ObjectType } from 'type-graphql';
-import { ColumnBigIntTransformer } from '../utils/entities';
+import { ColumnBigIntTransformer } from '../utils/entities.js';
 
 @Entity()
 @ObjectType()

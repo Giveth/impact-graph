@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Token } from '../src/entities/token';
-import seedTokens from './data/seedTokens';
-import config from '../src/config';
-import { NETWORK_IDS } from '../src/provider';
+import { Token } from '../src/entities/token.js';
+import seedTokens from './data/seedTokens.js';
+import config from '../src/config.js';
+import { NETWORK_IDS } from '../src/provider.js';
 
 export class addCeloTokens1680014857601 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {

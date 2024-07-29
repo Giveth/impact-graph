@@ -5,26 +5,26 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   sleep,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from './powerBoostingRepository';
-import { setPowerRound } from './powerRoundRepository';
+} from './powerBoostingRepository.js';
+import { setPowerRound } from './powerRoundRepository.js';
 import {
   getUserProjectPowers,
   refreshUserProjectPowerView,
-} from './userProjectPowerViewRepository';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { PowerBoosting } from '../entities/powerBoosting';
+} from './userProjectPowerViewRepository.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
 import {
   UserPowerOrderDirection,
   UserPowerOrderField,
-} from '../resolvers/userProjectPowerResolver';
-import { AppDataSource } from '../orm';
-import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from './powerSnapshotRepository';
+} from '../resolvers/userProjectPowerResolver.js';
+import { AppDataSource } from '../orm.js';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from './powerSnapshotRepository.js';
 
 describe('userProjectPowerViewRepository test', () => {
   beforeEach(async () => {

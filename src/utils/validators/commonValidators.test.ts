@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { validateEmail } from './commonValidators';
+import { validateEmail } from './commonValidators.js';
 
 describe('validateEmail() test cases', validateEmailTestCases);
 

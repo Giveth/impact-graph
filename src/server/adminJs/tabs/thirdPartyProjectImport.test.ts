@@ -1,16 +1,16 @@
 import { assert } from 'chai';
 import sinon from 'sinon';
-import { findUserById } from '../../../repositories/userRepository';
+import { findUserById } from '../../../repositories/userRepository.js';
 import {
   generateRandomEtheriumAddress,
   SEED_DATA,
-} from '../../../../test/testUtils';
-import * as ChangeAPI from '../../../services/changeAPI/nonProfits';
-import { errorMessages } from '../../../utils/errorMessages';
-import { User } from '../../../entities/user';
-import { Project } from '../../../entities/project';
-import { ProjectAddress } from '../../../entities/projectAddress';
-import { importThirdPartyProject } from './thirdPartProjectImportTab';
+} from '../../../../test/testUtils.js';
+import * as ChangeAPI from '../../../services/changeAPI/nonProfits.js';
+import { errorMessages } from '../../../utils/errorMessages.js';
+import { User } from '../../../entities/user.js';
+import { Project } from '../../../entities/project.js';
+import { ProjectAddress } from '../../../entities/projectAddress.js';
+import { importThirdPartyProject } from './thirdPartProjectImportTab.js';
 
 describe(
   'importThirdPartyProject() test cases',

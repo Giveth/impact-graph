@@ -1,8 +1,11 @@
 import {
   GetUserInfoByOauth2Output,
   SocialNetworkOauth2AdapterInterface,
-} from './SocialNetworkOauth2AdapterInterface';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+} from './SocialNetworkOauth2AdapterInterface.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
 
 export class MockOauth2Adapter implements SocialNetworkOauth2AdapterInterface {
   async getAuthUrl(): Promise<string> {

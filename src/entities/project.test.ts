@@ -1,13 +1,13 @@
 import { assert } from 'chai';
-import { Project, ProjectUpdate, ProjStatus } from './project';
+import { Project, ProjectUpdate, ProjStatus } from './project.js';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
-import { ProjectStatus } from './projectStatus';
-import { ProjectStatusReason } from './projectStatusReason';
-import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSatusHistoryRepository';
+} from '../../test/testUtils.js';
+import { ProjectStatus } from './projectStatus.js';
+import { ProjectStatusReason } from './projectStatusReason.js';
+import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSatusHistoryRepository.js';
 
 describe(
   'addProjectStatusHistoryRecord() test cases',

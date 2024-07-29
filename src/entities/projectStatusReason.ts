@@ -6,8 +6,9 @@ import {
   BaseEntity,
   ManyToOne,
   RelationId,
+  Relation,
 } from 'typeorm';
-import { ProjectStatus } from './projectStatus';
+import { ProjectStatus } from './projectStatus.js';
 
 @Entity()
 @ObjectType()
@@ -20,9 +21,8 @@ export class ProjectStatusReason extends BaseEntity {
   @Column({ nullable: true })
   description: string;
 
-  @Field(_type => ProjectStatus)
   @ManyToOne(_type => ProjectStatus)
-  status: ProjectStatus;
+  status: Relation<ProjectStatus>;
 
   @RelationId(
     (projectStatusReason: ProjectStatusReason) => projectStatusReason.status,

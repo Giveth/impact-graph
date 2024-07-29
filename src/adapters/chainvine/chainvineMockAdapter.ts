@@ -1,8 +1,8 @@
-import { ChainvineAdapterInterface } from './chainvineAdapterInterface';
+import { ChainvineAdapterInterface } from './chainvineAdapterInterface.js';
 import {
   generateRandomEtheriumAddress,
   generateHexNumber,
-} from '../../../test/testUtils';
+} from '../../../test/testUtils.js';
 
 export const cachedReferralIds = {};
 

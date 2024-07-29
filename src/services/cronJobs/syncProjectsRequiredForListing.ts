@@ -1,10 +1,10 @@
 import { schedule } from 'node-cron';
-import { Project } from '../../entities/project';
+import { Project } from '../../entities/project.js';
 
-import config from '../../config';
-import { logger } from '../../utils/logger';
-import { getNotificationAdapter } from '../../adapters/adaptersFactory';
-import { makeProjectListed } from '../../repositories/projectRepository';
+import config from '../../config.js';
+import { logger } from '../../utils/logger.js';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory.js';
+import { makeProjectListed } from '../../repositories/projectRepository.js';
 
 const cronJobTime =
   (config.get('MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB_EXPRESSION') as string) ||

@@ -9,18 +9,18 @@ import {
   getPurpleListAddresses,
   isWalletAddressInPurpleList,
   removeRecipientAddressOfProject,
-} from './projectAddressRepository';
+} from './projectAddressRepository.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomSolanaAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { NETWORK_IDS } from '../provider';
-import { ProjectStatus } from '../entities/projectStatus';
-import { ProjStatus } from '../entities/project';
-import { ChainType } from '../types/network';
+} from '../../test/testUtils.js';
+import { NETWORK_IDS } from '../provider.js';
+import { ProjectStatus } from '../entities/projectStatus.js';
+import { ProjStatus } from '../entities/project.js';
+import { ChainType } from '../types/network.js';
 
 describe('getPurpleListAddresses test cases', getPurpleListAddressesTestCases);
 describe(

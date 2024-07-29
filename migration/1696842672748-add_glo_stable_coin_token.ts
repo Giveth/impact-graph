@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { NETWORK_IDS } from '../src/provider';
-import { Token } from '../src/entities/token';
+import { NETWORK_IDS } from '../src/provider.js';
+import { Token } from '../src/entities/token.js';
 
 const newTokens = [
   {

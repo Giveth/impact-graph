@@ -1,12 +1,12 @@
 import { schedule } from 'node-cron';
-import config from '../../config';
-import { logger } from '../../utils/logger';
+import config from '../../config.js';
+import { logger } from '../../utils/logger.js';
 import {
   DRAFT_RECURRING_DONATION_STATUS,
   DraftRecurringDonation,
-} from '../../entities/draftRecurringDonation';
-import { runDraftRecurringDonationMatchWorker } from '../chains/evm/draftRecurringDonationService';
-import { deleteExpiredDraftRecurringDonations } from '../../repositories/draftRecurringDonationRepository';
+} from '../../entities/draftRecurringDonation.js';
+import { runDraftRecurringDonationMatchWorker } from '../chains/evm/draftRecurringDonationService.js';
+import { deleteExpiredDraftRecurringDonations } from '../../repositories/draftRecurringDonationRepository.js';
 
 const cronJobTime =
   (config.get('MATCH_DRAFT_DONATION_CRONJOB_EXPRESSION') as string) ||

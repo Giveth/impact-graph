@@ -1,7 +1,7 @@
 import { schedule } from 'node-cron';
-import config from '../../config';
-import { logger } from '../../utils/logger';
-import { cacheProjectCampaigns } from '../campaignService';
+import config from '../../config.js';
+import { logger } from '../../utils/logger.js';
+import { cacheProjectCampaigns } from '../campaignService.js';
 
 // every 10 minutes
 const cronJobTime =

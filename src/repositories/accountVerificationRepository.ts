@@ -1,4 +1,4 @@
-import { AccountVerification } from '../entities/accountVerification';
+import { AccountVerification } from '../entities/accountVerification.js';
 
 export const createNewAccountVerification = async (
   associatedVerifications,

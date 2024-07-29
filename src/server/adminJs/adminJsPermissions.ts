@@ -1,4 +1,4 @@
-import { UserRole } from '../../entities/user';
+import { UserRole } from '../../entities/user.js';
 
 // Current Actions Enum
 export enum ResourceActions {

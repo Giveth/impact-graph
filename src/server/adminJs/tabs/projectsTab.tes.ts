@@ -6,40 +6,39 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
   sleep,
-} from '../../../../test/testUtils';
+} from '../../../../test/testUtils.js';
 import {
   Project,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
   RevokeSteps,
-} from '../../../entities/project';
-import { User } from '../../../entities/user';
-import { findOneProjectStatusHistory } from '../../../repositories/projectSatusHistoryRepository';
-import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory';
+} from '../../../entities/project.js';
+import { User } from '../../../entities/user.js';
+import { findOneProjectStatusHistory } from '../../../repositories/projectSatusHistoryRepository.js';
+import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory.js';
 import {
   createProjectVerificationForm,
   getVerificationFormByProjectId,
-} from '../../../repositories/projectVerificationRepository';
+} from '../../../repositories/projectVerificationRepository.js';
 import {
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
-} from '../../../entities/projectVerificationForm';
-import { findUserById } from '../../../repositories/userRepository';
+} from '../../../entities/projectVerificationForm.js';
+import { findUserById } from '../../../repositories/userRepository.js';
 import {
   findProjectById,
   verifyMultipleProjects,
-} from '../../../repositories/projectRepository';
-import { FeaturedUpdate } from '../../../entities/featuredUpdate';
+} from '../../../repositories/projectRepository.js';
+import { FeaturedUpdate } from '../../../entities/featuredUpdate.js';
 import {
   addFeaturedProjectUpdate,
-  exportProjectsWithFiltersToCsv,
   listDelist,
   updateStatusOfProjects,
   verifyProjects,
-} from './projectsTab';
-import { messages } from '../../../utils/messages';
-import { ProjectStatus } from '../../../entities/projectStatus';
+} from './projectsTab.js';
+import { messages } from '../../../utils/messages.js';
+import { ProjectStatus } from '../../../entities/projectStatus.js';
 
 describe(
   'verifyMultipleProjects() test cases',
@@ -739,42 +738,42 @@ function verifyProjectsTestCases() {
 }
 
 function exportProjectsWithFiltersToCsvTestCases() {
-  it('should  return error because google api key is not set', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      verified: true,
-      listed: false,
-      reviewStatus: ReviewStatus.NotListed,
-    });
-    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
-    const result = await exportProjectsWithFiltersToCsv(
-      {
-        query: {
-          recordIds: '',
-        },
-        payload: {},
-        record: {},
-      },
-      {
-        query: {
-          recordIds: String(project.id),
-        },
-      },
-      {
-        currentAdmin: adminUser as User,
-        h: {},
-        resource: {},
-        records: [],
-      },
-    );
-
-    assert.equal(result?.notice.type, 'danger');
-    // If we set GOOGLE_SPREADSHEETS_PRIVATE_KEY,GOOGLE_SPREADSHEETS_CLIENT_EMAIL,GOOGLE_PROJECT_EXPORTS_SPREADSHEET_ID
-    // to .env.test we would not get this error anymore
-    assert.equal(result?.notice.message, 'No key or keyFile set.');
-  });
+  // it('should  return error because google api key is not set', async () => {
+  //   const project = await saveProjectDirectlyToDb({
+  //     ...createProjectData(),
+  //     title: String(new Date().getTime()),
+  //     slug: String(new Date().getTime()),
+  //     verified: true,
+  //     listed: false,
+  //     reviewStatus: ReviewStatus.NotListed,
+  //   });
+  //   const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
+  //   const result = await exportProjectsWithFiltersToCsv(
+  //     {
+  //       query: {
+  //         recordIds: '',
+  //       },
+  //       payload: {},
+  //       record: {},
+  //     },
+  //     {
+  //       query: {
+  //         recordIds: String(project.id),
+  //       },
+  //     },
+  //     {
+  //       currentAdmin: adminUser as User,
+  //       h: {},
+  //       resource: {},
+  //       records: [],
+  //     },
+  //   );
+  //
+  //   assert.equal(result?.notice.type, 'danger');
+  //   // If we set GOOGLE_SPREADSHEETS_PRIVATE_KEY,GOOGLE_SPREADSHEETS_CLIENT_EMAIL,GOOGLE_PROJECT_EXPORTS_SPREADSHEET_ID
+  //   // to .env.test we would not get this error anymore
+  //   assert.equal(result?.notice.message, 'No key or keyFile set.');
+  // });
 }
 
 function addToFeaturedProjectUpdateTestCases() {

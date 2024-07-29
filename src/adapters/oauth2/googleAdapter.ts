@@ -1,12 +1,15 @@
 import { stringify } from 'querystring';
 import axios from 'axios';
-import { decode, JwtPayload } from 'jsonwebtoken';
+import { decode, JwtPayload } from 'jsonwebtoken-esm';
 import {
   GetUserInfoByOauth2Output,
   SocialNetworkOauth2AdapterInterface,
-} from './SocialNetworkOauth2AdapterInterface';
-import { logger } from '../../utils/logger';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+} from './SocialNetworkOauth2AdapterInterface.js';
+import { logger } from '../../utils/logger.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
 
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;

@@ -1,8 +1,8 @@
-import { Campaign } from '../../../entities/campaign';
+import { Campaign } from '../../../entities/campaign.js';
 import {
   canAccessCampaignAction,
   ResourceActions,
-} from '../adminJsPermissions';
+} from '../adminJsPermissions.js';
 
 export const campaignsTab = {
   resource: Campaign,

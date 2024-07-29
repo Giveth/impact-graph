@@ -1,15 +1,16 @@
 import { ModuleThread, Pool } from 'threads';
-import { Campaign, CampaignType } from '../entities/campaign';
+import { Campaign, CampaignType } from '../entities/campaign.js';
 import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
-} from '../repositories/projectRepository';
-import { FilterField, Project, SortingField } from '../entities/project';
-import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
-import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
-import { findAllActiveCampaigns } from '../repositories/campaignRepository';
-import { logger } from '../utils/logger';
-import { getRedisObject, setObjectInRedis } from '../redis';
+} from '../repositories/projectRepository.js';
+import { FilterField, Project, SortingField } from '../entities/project.js';
+import { findUserReactionsByProjectIds } from '../repositories/reactionRepository.js';
+// @ts-expect-error migrate to ESM
+import { ProjectResolverWorker } from '../workers/projectsResolverWorker.js';
+import { findAllActiveCampaigns } from '../repositories/campaignRepository.js';
+import { logger } from '../utils/logger.js';
+import { getRedisObject, setObjectInRedis } from '../redis.js';
 
 const projectFiltersCacheDuration =
   Number(process.env.PROJECT_FILTERS_THREADS_POOL_DURATION) || 60000;

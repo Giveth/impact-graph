@@ -9,15 +9,15 @@ import {
   saveProjectVerificationFormDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   addNewSocialProfileMutation,
   removeSocialProfileMutation,
-} from '../../test/graphqlQueries';
-import { SOCIAL_NETWORKS } from '../entities/socialProfile';
-import { errorMessages } from '../utils/errorMessages';
-import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
-import { createSocialProfile } from '../repositories/socialProfileRepository';
+} from '../../test/graphqlQueries.js';
+import { SOCIAL_NETWORKS } from '../entities/socialProfile.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm.js';
+import { createSocialProfile } from '../repositories/socialProfileRepository.js';
 
 describe(
   'addNewSocialProfile test cases',

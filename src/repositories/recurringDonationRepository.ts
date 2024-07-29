@@ -1,13 +1,13 @@
 import moment from 'moment';
 import { MoreThan } from 'typeorm';
-import { Project } from '../entities/project';
-import { User } from '../entities/user';
+import { Project } from '../entities/project.js';
+import { User } from '../entities/user.js';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
-} from '../entities/recurringDonation';
-import { AnchorContractAddress } from '../entities/anchorContractAddress';
-import { logger } from '../utils/logger';
+} from '../entities/recurringDonation.js';
+import { AnchorContractAddress } from '../entities/anchorContractAddress.js';
+import { logger } from '../utils/logger.js';
 
 export const createNewRecurringDonation = async (params: {
   project: Project;

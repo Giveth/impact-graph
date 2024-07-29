@@ -1,24 +1,24 @@
 import { schedule } from 'node-cron';
-import config from '../../config';
-import { logger } from '../../utils/logger';
+import config from '../../config.js';
+import { logger } from '../../utils/logger.js';
 import {
   getPowerRound,
   setPowerRound,
-} from '../../repositories/powerRoundRepository';
-import { getRoundNumberByDate } from '../../utils/powerBoostingUtils';
+} from '../../repositories/powerRoundRepository.js';
+import { getRoundNumberByDate } from '../../utils/powerBoostingUtils.js';
 import {
   refreshProjectPowerView,
   refreshProjectFuturePowerView,
   getBottomRank,
-} from '../../repositories/projectPowerViewRepository';
-import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
+} from '../../repositories/projectPowerViewRepository.js';
+import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository.js';
 import {
   copyProjectRanksToPreviousRoundRankTable,
   projectsThatTheirRanksHaveChanged,
-} from '../../repositories/previousRoundRankRepository';
-import { getNotificationAdapter } from '../../adapters/adaptersFactory';
-import { sleep } from '../../utils/utils';
-import { fillIncompletePowerSnapshots } from '../powerSnapshotServices';
+} from '../../repositories/previousRoundRankRepository.js';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory.js';
+import { sleep } from '../../utils/utils.js';
+import { fillIncompletePowerSnapshots } from '../powerSnapshotServices.js';
 
 const cronJobTime =
   (config.get('UPDATE_POWER_ROUND_CRONJOB_EXPRESSION') as string) ||

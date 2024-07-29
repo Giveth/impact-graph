@@ -1,11 +1,11 @@
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql';
 
 import { Repository } from 'typeorm';
-import { User } from '../entities/user';
-import { Project } from '../entities/project';
-import { ApolloContext } from '../types/ApolloContext';
-import { getLoggedInUser } from '../services/authorizationServices';
-import { AppDataSource } from '../orm';
+import { User } from '../entities/user.js';
+import { Project } from '../entities/project.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+import { getLoggedInUser } from '../services/authorizationServices.js';
+import { AppDataSource } from '../orm.js';
 
 @Resolver()
 export class MeResolver {

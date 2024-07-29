@@ -5,14 +5,14 @@ import {
   saveProjectDirectlyToDb,
   saveProjectVerificationFormDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   createSocialProfile,
   findSocialProfileById,
   findSocialProfilesByProjectId,
   removeSocialProfileById,
-} from './socialProfileRepository';
-import { SOCIAL_NETWORKS } from '../entities/socialProfile';
+} from './socialProfileRepository.js';
+import { SOCIAL_NETWORKS } from '../entities/socialProfile.js';
 
 describe(
   'removeSocialProfileById test cases',

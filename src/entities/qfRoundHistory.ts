@@ -10,15 +10,16 @@ import {
   CreateDateColumn,
   Index,
   Unique,
+  Relation,
 } from 'typeorm';
-import { Project } from './project';
-import { QfRound } from './qfRound';
+import { Project } from './project.js';
+import { QfRound } from './qfRound.js';
 import {
   findQfRoundById,
   getQfRoundTotalSqrtRootSumSquared,
   getProjectDonationsSqrtRootSum,
-} from '../repositories/qfRoundRepository';
-import { EstimatedMatching } from '../types/qfTypes';
+} from '../repositories/qfRoundRepository.js';
+import { EstimatedMatching } from '../types/qfTypes.js';
 
 @Entity()
 @ObjectType()
@@ -30,7 +31,7 @@ export class QfRoundHistory extends BaseEntity {
   id: number;
 
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @Index()
   @Field(_type => ID, { nullable: true })

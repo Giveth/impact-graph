@@ -1,4 +1,4 @@
-import { Token } from '../entities/token';
+import { Token } from '../entities/token.js';
 
 export const findTokenByTokenAddress = async (
   tokenAddress: string,

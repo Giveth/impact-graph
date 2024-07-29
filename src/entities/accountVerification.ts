@@ -9,8 +9,9 @@ import {
   Index,
   CreateDateColumn,
   UpdateDateColumn,
+  Relation,
 } from 'typeorm';
-import { User } from './user';
+import { User } from './user.js';
 
 @Entity()
 @ObjectType()
@@ -43,7 +44,7 @@ export class AccountVerification extends BaseEntity {
   @Index()
   @Field(_type => User)
   @ManyToOne(_type => User, { eager: true })
-  user: User;
+  user: Relation<User>;
 
   @RelationId(
     (accountVerification: AccountVerification) => accountVerification.user,

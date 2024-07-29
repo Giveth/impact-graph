@@ -4,18 +4,19 @@ import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
-} from '../../../entities/draftDonation';
-import { getNetworkNativeToken } from '../../../provider';
-import { getListOfTransactionsByAddress } from './transactionService';
-import { closeTo } from '..';
-import { findTokenByNetworkAndAddress } from '../../../utils/tokenUtils';
-import { ITxInfo } from '../../../types/etherscan';
-import { DONATION_ORIGINS, Donation } from '../../../entities/donation';
-import { DonationResolver } from '../../../resolvers/donationResolver';
-import { ApolloContext } from '../../../types/ApolloContext';
-import { logger } from '../../../utils/logger';
-import { DraftDonationWorker } from '../../../workers/draftDonationMatchWorker';
-import { normalizeAmount } from '../../../utils/utils';
+} from '../../../entities/draftDonation.js';
+import { getNetworkNativeToken } from '../../../provider.js';
+import { getListOfTransactionsByAddress } from './transactionService.js';
+import { closeTo } from '../index.js';
+import { findTokenByNetworkAndAddress } from '../../../utils/tokenUtils.js';
+import { ITxInfo } from '../../../types/etherscan.js';
+import { DONATION_ORIGINS, Donation } from '../../../entities/donation.js';
+import { DonationResolver } from '../../../resolvers/donationResolver.js';
+import { ApolloContext } from '../../../types/ApolloContext.js';
+import { logger } from '../../../utils/logger.js';
+// @ts-expect-error migrate to ESM
+import { DraftDonationWorker } from '../../../workers/draftDonationMatchWorker.js';
+import { normalizeAmount } from '../../../utils/utils.js';
 
 export const isAmountWithinTolerance = (
   callData1,

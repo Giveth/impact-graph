@@ -1,6 +1,5 @@
+import RotatingFileStream from 'bunyan-rotating-file-stream';
 import { createLogger, levelFromName, DEBUG } from 'bunyan';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const RotatingFileStream = require('bunyan-rotating-file-stream');
 
 function createBunyanLogger() {
   const logDir = process.env.LOG_PATH || './logs/impact-graph.log';

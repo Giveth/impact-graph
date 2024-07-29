@@ -1,10 +1,11 @@
+// @ts-expect-error migrate to ESM
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import {
   GetTokenPriceParams,
   PriceAdapterInterface,
-} from './PriceAdapterInterface';
-import { getMonoSwapTokenPrices } from '../../services/donationService';
-import { logger } from '../../utils/logger';
+} from './PriceAdapterInterface.js';
+import { getMonoSwapTokenPrices } from '../../services/donationService.js';
+import { logger } from '../../utils/logger.js';
 
 export class MonoswapPriceAdapter implements PriceAdapterInterface {
   async getTokenPrice(params: GetTokenPriceParams): Promise<number> {

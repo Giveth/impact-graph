@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
-import config from './config';
-import { i18n, translationErrorMessagesKeys } from './utils/errorMessages';
-import { logger } from './utils/logger';
+import config from './config.js';
+import { i18n, translationErrorMessagesKeys } from './utils/errorMessages.js';
+import { logger } from './utils/logger.js';
 
 const INFURA_ID = config.get('INFURA_ID');
 

@@ -5,7 +5,7 @@ import {
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
   ProjectContacts,
-} from '../entities/projectVerificationForm';
+} from '../entities/projectVerificationForm.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -13,7 +13,7 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   createProjectVerificationForm,
   findProjectVerificationFormById,
@@ -27,8 +27,8 @@ import {
   updateProjectVerificationLastStep,
   verifyForm,
   verifyMultipleForms,
-} from './projectVerificationRepository';
-import { ChainType } from '../types/network';
+} from './projectVerificationRepository.js';
+import { ChainType } from '../types/network.js';
 
 describe(
   'createProjectVerificationForm test cases',

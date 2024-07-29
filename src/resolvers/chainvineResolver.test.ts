@@ -6,12 +6,12 @@ import {
   generateTestAccessToken,
   graphqlUrl,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   registerClickOnChainvineQuery,
   registerOnChainvineQuery,
-} from '../../test/graphqlQueries';
-import { findReferredEventByUserId } from '../repositories/referredEventRepository';
+} from '../../test/graphqlQueries.js';
+import { findReferredEventByUserId } from '../repositories/referredEventRepository.js';
 
 describe('Register on chainvine test cases', registerOnChainvineTestCases);
 describe(

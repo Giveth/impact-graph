@@ -1,4 +1,4 @@
-import { Campaign } from '../entities/campaign';
+import { Campaign } from '../entities/campaign.js';
 
 export const findAllActiveCampaigns = async (): Promise<Campaign[]> => {
   return Campaign.createQueryBuilder('campaign')

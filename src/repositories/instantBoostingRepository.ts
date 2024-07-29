@@ -1,8 +1,8 @@
-import { InstantPowerBalance } from '../entities/instantPowerBalance';
-import { logger } from '../utils/logger';
-import { AppDataSource } from '../orm';
-import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
-import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView';
+import { InstantPowerBalance } from '../entities/instantPowerBalance.js';
+import { logger } from '../utils/logger.js';
+import { AppDataSource } from '../orm.js';
+import { InstantPowerFetchState } from '../entities/instantPowerFetchState.js';
+import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView.js';
 
 export const saveOrUpdateInstantPowerBalances = async (
   instances: Partial<InstantPowerBalance>[],

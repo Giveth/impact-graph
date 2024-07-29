@@ -11,10 +11,10 @@ import {
 } from 'type-graphql';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { UserProjectPowerView } from '../views/userProjectPowerView';
-import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { UserProjectPowerView } from '../views/userProjectPowerView.js';
+import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository.js';
 
 export enum UserPowerOrderDirection {
   ASC = 'ASC',

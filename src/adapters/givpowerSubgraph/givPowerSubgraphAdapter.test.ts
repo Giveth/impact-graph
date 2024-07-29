@@ -1,7 +1,7 @@
 import { assert } from 'chai';
-import { formatGivPowerBalance } from './givPowerSubgraphAdapter';
-import { generateRandomEtheriumAddress } from '../../../test/testUtils';
-import { givPowerSubgraphAdapter } from '../adaptersFactory';
+import { formatGivPowerBalance } from './givPowerSubgraphAdapter.js';
+import { generateRandomEtheriumAddress } from '../../../test/testUtils.js';
+import { givPowerSubgraphAdapter } from '../adaptersFactory.js';
 
 describe(
   'getUserPowerBalanceInBlockNumber() test cases',

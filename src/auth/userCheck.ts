@@ -1,5 +1,5 @@
 import { AuthChecker } from 'type-graphql';
-import { Context } from '../context';
+import { Context } from '../context.js';
 
 export const userCheck: AuthChecker<Context> = () => {
   // here we can read the user from context

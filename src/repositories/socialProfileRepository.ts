@@ -1,6 +1,6 @@
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { SocialProfile } from '../entities/socialProfile';
-import { findProjectVerificationFormById } from './projectVerificationRepository';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { SocialProfile } from '../entities/socialProfile.js';
+import { findProjectVerificationFormById } from './projectVerificationRepository.js';
 // TODO should write test cases for all of these functions
 
 export const createSocialProfile = async (params: {

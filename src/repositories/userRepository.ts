@@ -1,10 +1,10 @@
-import { publicSelectionFields, User, UserRole } from '../entities/user';
-import { Donation } from '../entities/donation';
-import { Reaction } from '../entities/reaction';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { Project, ProjStatus, ReviewStatus } from '../entities/project';
-import { isEvmAddress } from '../utils/networks';
-import { retrieveActiveQfRoundUserMBDScore } from './qfRoundRepository';
+import { publicSelectionFields, User, UserRole } from '../entities/user.js';
+import { Donation } from '../entities/donation.js';
+import { Reaction } from '../entities/reaction.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { Project, ProjStatus, ReviewStatus } from '../entities/project.js';
+import { isEvmAddress } from '../utils/networks.js';
+import { retrieveActiveQfRoundUserMBDScore } from './qfRoundRepository.js';
 
 export const findAdminUserByEmail = async (
   email: string,

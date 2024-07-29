@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
-import { logger } from '../utils/logger';
-import { SOCIAL_NETWORKS } from '../entities/socialProfile';
+import { logger } from '../utils/logger.js';
+import { SOCIAL_NETWORKS } from '../entities/socialProfile.js';
 import {
   getProjectVerificationFormByState,
   oauth2CallbackHandler,
-} from '../services/socialProfileService';
-import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository';
+} from '../services/socialProfileService.js';
+import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository.js';
 
 export const oauth2CallbacksRouter = express.Router();
 

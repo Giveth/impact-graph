@@ -7,26 +7,26 @@ import {
   Query,
   Resolver,
 } from 'type-graphql';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { findPowerBalances } from '../repositories/powerBalanceSnapshotRepository';
-import { PowerSnapshot } from '../entities/powerSnapshot';
-import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
-import { PowerRound } from '../entities/powerRound';
-import { getPowerRound } from '../repositories/powerRoundRepository';
-import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
-import { findFuturePowers } from '../repositories/projectFuturePowerViewRepository';
-import { findProjectsPowers } from '../repositories/projectPowerViewRepository';
-import { ProjectPowerView } from '../views/projectPowerView';
-import { UserProjectPowerView } from '../views/userProjectPowerView';
-import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository';
-import { UserProjectPowerArgs } from './userProjectPowerResolver';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { findPowerBalances } from '../repositories/powerBalanceSnapshotRepository.js';
+import { PowerSnapshot } from '../entities/powerSnapshot.js';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository.js';
+import { PowerRound } from '../entities/powerRound.js';
+import { getPowerRound } from '../repositories/powerRoundRepository.js';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView.js';
+import { findFuturePowers } from '../repositories/projectFuturePowerViewRepository.js';
+import { findProjectsPowers } from '../repositories/projectPowerViewRepository.js';
+import { ProjectPowerView } from '../views/projectPowerView.js';
+import { UserProjectPowerView } from '../views/userProjectPowerView.js';
+import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository.js';
+import { UserProjectPowerArgs } from './userProjectPowerResolver.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
 import {
   findUserPowerBoostings,
   findUserProjectPowerBoostingsSnapshots,
-} from '../repositories/powerBoostingRepository';
-import { PowerBoosting } from '../entities/powerBoosting';
+} from '../repositories/powerBoostingRepository.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
 
 const enableGivPower = process.env.ENABLE_GIV_POWER_TESTING as string;
 

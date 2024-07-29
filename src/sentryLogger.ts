@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node';
-import config from './config';
+import config from './config.js';
 
 const sentryId = config.get('SENTRY_ID').toString();
 const sentryToken = config.get('SENTRY_TOKEN').toString();

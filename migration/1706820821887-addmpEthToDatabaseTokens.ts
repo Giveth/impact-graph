@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { NETWORK_IDS } from '../src/provider';
-import { ChainType } from '../src/types/network';
-import { Token } from '../src/entities/token';
+import { NETWORK_IDS } from '../src/provider.js';
+import { ChainType } from '../src/types/network.js';
+import { Token } from '../src/entities/token.js';
 
 const mpEthTokens = [
   {

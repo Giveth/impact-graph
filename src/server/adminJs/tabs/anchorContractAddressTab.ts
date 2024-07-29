@@ -1,4 +1,4 @@
-import { AnchorContractAddress } from '../../../entities/anchorContractAddress';
+import { AnchorContractAddress } from '../../../entities/anchorContractAddress.js';
 
 export const AnchorContractAddressTab = {
   resource: AnchorContractAddress,

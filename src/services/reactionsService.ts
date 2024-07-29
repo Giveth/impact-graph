@@ -1,6 +1,6 @@
-import { Project } from '../entities/project';
-import { Reaction } from '../entities/reaction';
-import { logger } from '../utils/logger';
+import { Project } from '../entities/project.js';
+import { Reaction } from '../entities/reaction.js';
+import { logger } from '../utils/logger.js';
 
 export const updateTotalReactionsOfAProject = async (projectId: number) => {
   try {

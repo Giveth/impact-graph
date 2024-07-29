@@ -1,9 +1,12 @@
-import { ChainType } from '../../types/network';
-import { getSolanaTransactionInfoFromNetwork } from './solana/transactionService';
-import { getEvmTransactionInfoFromNetwork } from './evm/transactionService';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { logger } from '../../utils/logger';
-import { NETWORK_IDS } from '../../provider';
+import { ChainType } from '../../types/network.js';
+import { getSolanaTransactionInfoFromNetwork } from './solana/transactionService.js';
+import { getEvmTransactionInfoFromNetwork } from './evm/transactionService.js';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages.js';
+import { logger } from '../../utils/logger.js';
+import { NETWORK_IDS } from '../../provider.js';
 
 export interface NetworkTransactionInfo {
   hash: string;

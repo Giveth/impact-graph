@@ -1,5 +1,5 @@
-import { User } from '../../entities/user';
-import { ReviewStatus } from '../../entities/project';
+import { User } from '../../entities/user.js';
+import { ReviewStatus } from '../../entities/project.js';
 
 export interface AdminJsContextInterface {
   h: any;

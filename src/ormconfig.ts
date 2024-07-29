@@ -1,25 +1,19 @@
+import { fileURLToPath } from 'url';
 import * as path from 'path';
-import * as dotenv from 'dotenv';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import dotenv from 'dotenv';
+import { getEntities } from './entities/entities.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const configPath = path.resolve(
   __dirname,
   `../config/${process.env.NODE_ENV || ''}.env`,
 );
-const loadConfigResult = dotenv.config({
+dotenv.config({
   path: configPath,
 });
-
-if (loadConfigResult.error) {
-  // eslint-disable-next-line no-console
-  console.log('Load process.env error', {
-    path: configPath,
-    error: loadConfigResult.error,
-  });
-  throw loadConfigResult.error;
-}
-
-import { DataSource, DataSourceOptions } from 'typeorm';
-import { getEntities } from './entities/entities';
 
 const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -37,4 +31,4 @@ const ormConfig: DataSourceOptions = {
 
 export const AppDataSource = new DataSource(ormConfig);
 
-exports = ormConfig;
+export default ormConfig;

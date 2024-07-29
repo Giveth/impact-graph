@@ -1,11 +1,12 @@
 import { Not, MoreThan } from 'typeorm';
+// @ts-expect-error migrate to ESM
 import { FindOneOptions } from 'typeorm/find-options/FindOneOptions';
-import { ProjectPowerView } from '../views/projectPowerView';
-import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
-import { logger } from '../utils/logger';
-import { updatePowerSnapshotSyncedFlag } from './powerSnapshotRepository';
-import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
-import { AppDataSource } from '../orm';
+import { ProjectPowerView } from '../views/projectPowerView.js';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView.js';
+import { logger } from '../utils/logger.js';
+import { updatePowerSnapshotSyncedFlag } from './powerSnapshotRepository.js';
+import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView.js';
+import { AppDataSource } from '../orm.js';
 
 export const getProjectPowers = async (
   take: number = 50,

@@ -1,9 +1,9 @@
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
-} from '../entities/draftDonation';
-import { logger } from '../utils/logger';
-import { AppDataSource } from '../orm';
+} from '../entities/draftDonation.js';
+import { logger } from '../utils/logger.js';
+import { AppDataSource } from '../orm.js';
 
 // mark donation status matched based on fromWalletAddress, toWalletAddress, networkId, tokenAddress and amount
 export async function markDraftDonationStatusMatched(params: {

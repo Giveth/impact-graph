@@ -1,18 +1,18 @@
-import { ThirdPartyProjectImport } from '../../../entities/thirdPartyProjectImport';
+import { ThirdPartyProjectImport } from '../../../entities/thirdPartyProjectImport.js';
 import {
   canAccessThirdPartyProjectImportAction,
   ResourceActions,
-} from '../adminJsPermissions';
-import { AdminJsRequestInterface } from '../adminJs-types';
-import { logger } from '../../../utils/logger';
+} from '../adminJsPermissions.js';
+import { AdminJsRequestInterface } from '../adminJs-types.js';
+import { logger } from '../../../utils/logger.js';
 import {
   createProjectFromChangeNonProfit,
   getChangeNonProfitByNameOrIEN,
-} from '../../../services/changeAPI/nonProfits';
+} from '../../../services/changeAPI/nonProfits.js';
 import {
   i18n,
   translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
+} from '../../../utils/errorMessages.js';
 
 export const importThirdPartyProject = async (
   request: AdminJsRequestInterface,

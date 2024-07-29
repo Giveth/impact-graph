@@ -6,11 +6,12 @@ import {
   BaseEntity,
   ManyToOne,
   RelationId,
+  Relation,
 } from 'typeorm';
-import { Project } from './project';
-import { ProjectStatus } from './projectStatus';
-import { ProjectStatusReason } from './projectStatusReason';
-import { User } from './user';
+import { Project } from './project.js';
+import { ProjectStatus } from './projectStatus.js';
+import { ProjectStatusReason } from './projectStatusReason.js';
+import { User } from './user.js';
 
 export const HISTORY_DESCRIPTIONS = {
   CHANGED_TO_VERIFIED: 'Changed to verified',
@@ -30,7 +31,7 @@ export class ProjectStatusHistory extends BaseEntity {
 
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId(
     (projectStatusHistory: ProjectStatusHistory) =>
@@ -72,7 +73,7 @@ export class ProjectStatusHistory extends BaseEntity {
 
   @Field(_type => User)
   @ManyToOne(_type => User)
-  user?: User;
+  user?: Relation<User>;
 
   @RelationId(
     (projectStatusHistory: ProjectStatusHistory) => projectStatusHistory.user,

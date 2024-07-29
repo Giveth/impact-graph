@@ -5,50 +5,45 @@ import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
-} from '../../../entities/donation';
+} from '../../../entities/donation.js';
 import {
   canAccessDonationAction,
   canAccessQfRoundHistoryAction,
   ResourceActions,
-} from '../adminJsPermissions';
+} from '../adminJsPermissions.js';
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
   AdminJsDonationsQuery,
-  donationHeaders,
-} from '../adminJs-types';
-import { messages } from '../../../utils/messages';
-import { logger } from '../../../utils/logger';
+} from '../adminJs-types.js';
+import { messages } from '../../../utils/messages.js';
+import { logger } from '../../../utils/logger.js';
 import {
   findEvmTransactionByHash,
   getCsvAirdropTransactions,
   getGnosisSafeTransactions,
-} from '../../../services/chains/evm/transactionService';
+} from '../../../services/chains/evm/transactionService.js';
 import {
   i18n,
   translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
-import { Project } from '../../../entities/project';
-import { calculateGivbackFactor } from '../../../services/givbackService';
-import { findUserByWalletAddress } from '../../../repositories/userRepository';
+} from '../../../utils/errorMessages.js';
+import { Project } from '../../../entities/project.js';
+import { calculateGivbackFactor } from '../../../services/givbackService.js';
+import { findUserByWalletAddress } from '../../../repositories/userRepository.js';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from '../../../services/userService';
-import { NETWORK_IDS } from '../../../provider';
-import {
-  initExportSpreadsheet,
-  addDonationsSheetToSpreadsheet,
-} from '../../../services/googleSheets';
-import { extractAdminJsReferrerUrlParams } from '../adminJs';
-import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
+} from '../../../services/userService.js';
+import { NETWORK_IDS } from '../../../provider.js';
+
+import { getTwitterDonations } from '../../../services/Idriss/contractDonations.js';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
-} from '../../../services/chains';
-import { updateProjectStatistics } from '../../../services/projectService';
-import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
-import { Token } from '../../../entities/token';
+} from '../../../services/chains/index.js';
+import { updateProjectStatistics } from '../../../services/projectService.js';
+import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter.js';
+import { Token } from '../../../entities/token.js';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -356,83 +351,83 @@ export const importDonationsFromIdrissTwitter = async (
   }
 };
 
-export const exportDonationsWithFiltersToCsv = async (
-  _request: ActionContext,
-  _response,
-  context: AdminJsContextInterface,
-) => {
-  try {
-    const { records } = context;
-    const queryStrings = extractAdminJsReferrerUrlParams(_request);
-    const projectsQuery = buildDonationsQuery(queryStrings);
-    const projects = await projectsQuery.getMany();
-
-    await sendDonationsToGoogleSheet(projects);
-
-    return {
-      redirectUrl: '/admin/resources/Donation',
-      records,
-      notice: {
-        message: `Donation(s) successfully exported`,
-        type: 'success',
-      },
-    };
-  } catch (e) {
-    logger.error('exportDonationsWithFiltersToCsv() error', e);
-    return {
-      redirectUrl: '/admin/resources/Donation',
-      record: {},
-      notice: {
-        message: e.message,
-        type: 'danger',
-      },
-    };
-  }
-};
+// export const exportDonationsWithFiltersToCsv = async (
+//   _request: ActionContext,
+//   _response,
+//   context: AdminJsContextInterface,
+// ) => {
+//   try {
+//     const { records } = context;
+//     const queryStrings = extractAdminJsReferrerUrlParams(_request);
+//     const projectsQuery = buildDonationsQuery(queryStrings);
+//     const projects = await projectsQuery.getMany();
+//
+//     await sendDonationsToGoogleSheet(projects);
+//
+//     return {
+//       redirectUrl: '/admin/resources/Donation',
+//       records,
+//       notice: {
+//         message: `Donation(s) successfully exported`,
+//         type: 'success',
+//       },
+//     };
+//   } catch (e) {
+//     logger.error('exportDonationsWithFiltersToCsv() error', e);
+//     return {
+//       redirectUrl: '/admin/resources/Donation',
+//       record: {},
+//       notice: {
+//         message: e.message,
+//         type: 'danger',
+//       },
+//     };
+//   }
+// };
 
 // Spreadsheet filters included
-const sendDonationsToGoogleSheet = async (
-  donations: Donation[],
-): Promise<void> => {
-  const spreadsheet = await initExportSpreadsheet();
-
-  // parse data and set headers
-  const donationRows = donations.map((donation: Donation) => {
-    return {
-      id: donation.id,
-      transactionId: donation.transactionId,
-      transactionNetworkId: donation.transactionNetworkId,
-      isProjectVerified: Boolean(donation.isProjectVerified),
-      status: donation.status,
-      toWalletAddress: donation.toWalletAddress,
-      fromWalletAddress: donation.fromWalletAddress,
-      tokenAddress: donation.tokenAddress || '',
-      currency: donation.currency,
-      anonymous: Boolean(donation.anonymous),
-      amount: donation.amount,
-      isFiat: Boolean(donation.isFiat),
-      isCustomToken: Boolean(donation.isCustomToken),
-      valueEth: donation.valueEth,
-      valueUsd: donation.valueUsd,
-      priceEth: donation.priceEth,
-      priceUsd: donation.priceUsd,
-      projectId: donation?.project?.id || '',
-      userId: donation?.user?.id || '',
-      contactEmail: donation?.contactEmail || '',
-      createdAt: donation?.createdAt.toISOString(),
-      referrerWallet: donation?.referrerWallet || '',
-      isTokenEligibleForGivback: Boolean(donation?.isTokenEligibleForGivback),
-      qfRoundId: donation?.qfRound?.id || '',
-      qfRoundUserScore: donation?.qfRoundUserScore || '',
-    };
-  });
-
-  await addDonationsSheetToSpreadsheet(
-    spreadsheet,
-    donationHeaders,
-    donationRows,
-  );
-};
+// const sendDonationsToGoogleSheet = async (
+//   donations: Donation[],
+// ): Promise<void> => {
+//   const spreadsheet = await initExportSpreadsheet();
+//
+//   // parse data and set headers
+//   const donationRows = donations.map((donation: Donation) => {
+//     return {
+//       id: donation.id,
+//       transactionId: donation.transactionId,
+//       transactionNetworkId: donation.transactionNetworkId,
+//       isProjectVerified: Boolean(donation.isProjectVerified),
+//       status: donation.status,
+//       toWalletAddress: donation.toWalletAddress,
+//       fromWalletAddress: donation.fromWalletAddress,
+//       tokenAddress: donation.tokenAddress || '',
+//       currency: donation.currency,
+//       anonymous: Boolean(donation.anonymous),
+//       amount: donation.amount,
+//       isFiat: Boolean(donation.isFiat),
+//       isCustomToken: Boolean(donation.isCustomToken),
+//       valueEth: donation.valueEth,
+//       valueUsd: donation.valueUsd,
+//       priceEth: donation.priceEth,
+//       priceUsd: donation.priceUsd,
+//       projectId: donation?.project?.id || '',
+//       userId: donation?.user?.id || '',
+//       contactEmail: donation?.contactEmail || '',
+//       createdAt: donation?.createdAt.toISOString(),
+//       referrerWallet: donation?.referrerWallet || '',
+//       isTokenEligibleForGivback: Boolean(donation?.isTokenEligibleForGivback),
+//       qfRoundId: donation?.qfRound?.id || '',
+//       qfRoundUserScore: donation?.qfRoundUserScore || '',
+//     };
+//   });
+//
+//   await addDonationsSheetToSpreadsheet(
+//     spreadsheet,
+//     donationHeaders,
+//     donationRows,
+//   );
+// };
 
 export const donationTab = {
   resource: Donation,
@@ -795,17 +790,17 @@ export const donationTab = {
         isAccessible: ({ currentAdmin }) =>
           canAccessDonationAction({ currentAdmin }, ResourceActions.NEW),
       },
-      exportFilterToCsv: {
-        actionType: 'resource',
-        isVisible: true,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessDonationAction(
-            { currentAdmin },
-            ResourceActions.EXPORT_FILTER_TO_CSV,
-          ),
-        handler: exportDonationsWithFiltersToCsv,
-        component: false,
-      },
+      // exportFilterToCsv: {
+      //   actionType: 'resource',
+      //   isVisible: true,
+      //   isAccessible: ({ currentAdmin }) =>
+      //     canAccessDonationAction(
+      //       { currentAdmin },
+      //       ResourceActions.EXPORT_FILTER_TO_CSV,
+      //     ),
+      //   handler: exportDonationsWithFiltersToCsv,
+      //   component: false,
+      // },
       importIdrissDonations: {
         actionType: 'resource',
         isVisible: true,

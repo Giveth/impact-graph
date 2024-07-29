@@ -1,4 +1,4 @@
-import { AppDataSource } from '../orm';
+import { AppDataSource } from '../orm.js';
 
 export const getQfRoundHistoriesThatDontHaveRelatedDonations = async () => {
   return AppDataSource.getDataSource().query(

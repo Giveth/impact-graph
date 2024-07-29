@@ -7,7 +7,7 @@ import {
   ViewEntity,
 } from 'typeorm';
 import { Field, Float, Int, ObjectType } from 'type-graphql';
-import { ColumnNumericTransformer } from '../utils/entities';
+import { ColumnNumericTransformer } from '../utils/entities.js';
 
 @ViewEntity('last_snapshot_project_power_view', { synchronize: false })
 @ObjectType()

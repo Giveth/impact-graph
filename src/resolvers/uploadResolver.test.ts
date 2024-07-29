@@ -1,23 +1,21 @@
 import { createReadStream, readFileSync } from 'fs';
+import path from 'path';
 import { assert } from 'chai';
 import sinon from 'sinon';
 import axios from 'axios';
+import FormData from 'form-data';
 import {
   traceImageUploadQuery,
   uploadImageToIpfsQuery,
-} from '../../test/graphqlQueries';
+} from '../../test/graphqlQueries.js';
 import {
   generateTestAccessToken,
   graphqlUrl,
   SEED_DATA,
-} from '../../test/testUtils';
-import * as pinataUtils from '../middleware/pinataUtils';
-import { errorMessages } from '../utils/errorMessages';
-import { TraceImageOwnerType } from './uploadResolver';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require('path');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const FormData = require('form-data');
+} from '../../test/testUtils.js';
+import * as pinataUtils from '../middleware/pinataUtils.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { TraceImageOwnerType } from './uploadResolver.js';
 
 // test cases
 describe('upload() test cases', uploadTestCases);
@@ -27,6 +25,8 @@ function uploadTestCases() {
   const IpfsHash = 'MockIpfsHash';
   before(() => {
     sinon.stub(pinataUtils, 'pinFile').resolves({
+      PinSize: 0,
+      Timestamp: '',
       IpfsHash,
     });
   });
@@ -107,6 +107,8 @@ function traceImageUpload() {
     sinon.stub(pinataUtils, 'pinFileDataBase64').returns(
       Promise.resolve({
         IpfsHash,
+        PinSize: 0,
+        Timestamp: '',
       }),
     );
   });

@@ -8,15 +8,15 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { QfRound } from '../entities/qfRound';
-import { Project } from '../entities/project';
+} from '../../test/testUtils.js';
+import { QfRound } from '../entities/qfRound.js';
+import { Project } from '../entities/project.js';
 
 import {
   fillQfRoundHistory,
   getQfRoundHistoriesThatDontHaveRelatedDonations,
   getQfRoundHistory,
-} from './qfRoundHistoryRepository';
+} from './qfRoundHistoryRepository.js';
 
 describe('fillQfRoundHistory test cases', fillQfRoundHistoryTestCases);
 describe(

@@ -1,8 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Token } from '../src/entities/token';
-import seedTokens from './data/seedTokens';
-import { NETWORK_IDS } from '../src/provider';
-import config from '../src/config';
+import { Token } from '../src/entities/token.js';
+import seedTokens from './data/seedTokens.js';
+import { NETWORK_IDS } from '../src/provider.js';
+import config from '../src/config.js';
+
 export class AddOptimismSepoliaTokens1708954413087
   implements MigrationInterface
 {

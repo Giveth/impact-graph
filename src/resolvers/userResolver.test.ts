@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 import { assert } from 'chai';
-import { User } from '../entities/user';
+import { User } from '../entities/user.js';
 import {
   createDonationData,
   createProjectData,
@@ -15,20 +15,20 @@ import {
   saveRecurringDonationDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   refreshUserScores,
   updateUser,
   userByAddress,
-} from '../../test/graphqlQueries';
-import { errorMessages } from '../utils/errorMessages';
-import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
-import { DONATION_STATUS } from '../entities/donation';
-import { getGitcoinAdapter } from '../adapters/adaptersFactory';
-import { updateUserTotalDonated } from '../services/userService';
-import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { NETWORK_IDS } from '../provider';
-import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
+} from '../../test/graphqlQueries.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository.js';
+import { DONATION_STATUS } from '../entities/donation.js';
+import { getGitcoinAdapter } from '../adapters/adaptersFactory.js';
+import { updateUserTotalDonated } from '../services/userService.js';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository.js';
+import { NETWORK_IDS } from '../provider.js';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation.js';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);

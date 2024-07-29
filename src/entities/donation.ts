@@ -7,12 +7,13 @@ import {
   ManyToOne,
   RelationId,
   Index,
+  Relation,
 } from 'typeorm';
-import { Project } from './project';
-import { User } from './user';
-import { QfRound } from './qfRound';
-import { ChainType } from '../types/network';
-import { RecurringDonation } from './recurringDonation';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { QfRound } from './qfRound.js';
+import { ChainType } from '../types/network.js';
+import { RecurringDonation } from './recurringDonation.js';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -170,7 +171,7 @@ export class Donation extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((donation: Donation) => donation.project)
   @Column({ nullable: true })

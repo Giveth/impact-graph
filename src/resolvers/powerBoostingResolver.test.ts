@@ -8,26 +8,26 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   getBottomPowerRankQuery,
   getPowerBoostingsQuery,
   setMultiplePowerBoostingMutation,
   setSinglePowerBoostingMutation,
-} from '../../test/graphqlQueries';
-import { errorMessages } from '../utils/errorMessages';
-import { PowerBoosting } from '../entities/powerBoosting';
+} from '../../test/graphqlQueries.js';
+import { errorMessages } from '../utils/errorMessages.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from '../repositories/powerBoostingRepository';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { setPowerRound } from '../repositories/powerRoundRepository';
-import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
-import { AppDataSource } from '../orm';
-import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
+} from '../repositories/powerBoostingRepository.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { setPowerRound } from '../repositories/powerRoundRepository.js';
+import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository.js';
+import { AppDataSource } from '../orm.js';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository.js';
 
 describe(
   'setSinglePowerBoostingMutation test cases',

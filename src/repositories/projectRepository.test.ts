@@ -11,32 +11,32 @@ import {
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
-} from './projectRepository';
+} from './projectRepository.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { createProjectVerificationForm } from './projectVerificationRepository';
-import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
-import { NETWORK_IDS } from '../provider';
-import { setPowerRound } from './powerRoundRepository';
-import { refreshProjectPowerView } from './projectPowerViewRepository';
+} from '../../test/testUtils.js';
+import { createProjectVerificationForm } from './projectVerificationRepository.js';
+import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm.js';
+import { NETWORK_IDS } from '../provider.js';
+import { setPowerRound } from './powerRoundRepository.js';
+import { refreshProjectPowerView } from './projectPowerViewRepository.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from './powerBoostingRepository';
-import { Project } from '../entities/project';
-import { User } from '../entities/user';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { AppDataSource } from '../orm';
-import { SUMMARY_LENGTH } from '../constants/summary';
-import { getHtmlTextSummary } from '../utils/utils';
-import { generateRandomString } from '../utils/utils';
-import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from './powerSnapshotRepository';
+} from './powerBoostingRepository.js';
+import { Project } from '../entities/project.js';
+import { User } from '../entities/user.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { AppDataSource } from '../orm.js';
+import { SUMMARY_LENGTH } from '../constants/summary.js';
+import { getHtmlTextSummary } from '../utils/utils.js';
+import { generateRandomString } from '../utils/utils.js';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from './powerSnapshotRepository.js';
 
 describe(
   'findProjectByWalletAddress test cases',

@@ -1,7 +1,7 @@
 import {
   DonationSaveBackupInterface,
   FetchedSavedFailDonationInterface,
-} from './DonationSaveBackupInterface';
+} from './DonationSaveBackupInterface.js';
 
 export class DonationSaveBackupMockAdapter
   implements DonationSaveBackupInterface

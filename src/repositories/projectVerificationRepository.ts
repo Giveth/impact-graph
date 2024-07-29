@@ -8,13 +8,13 @@ import {
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
-} from '../entities/projectVerificationForm';
-import { findProjectById } from './projectRepository';
-import { findUserById } from './userRepository';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { User } from '../entities/user';
-import { getAppropriateNetworkId } from '../services/chains';
-import { logger } from '../utils/logger';
+} from '../entities/projectVerificationForm.js';
+import { findProjectById } from './projectRepository.js';
+import { findUserById } from './userRepository.js';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { User } from '../entities/user.js';
+import { getAppropriateNetworkId } from '../services/chains/index.js';
+import { logger } from '../utils/logger.js';
 
 export const createProjectVerificationForm = async (params: {
   userId: number;

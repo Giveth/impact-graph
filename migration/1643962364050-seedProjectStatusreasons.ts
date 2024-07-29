@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { ProjStatus } from '../src/entities/project';
+import { ProjStatus } from '../src/entities/project.js';
 
 export class seedProjectStatusreasons1643962364050
   implements MigrationInterface

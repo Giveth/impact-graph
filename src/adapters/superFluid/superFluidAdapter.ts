@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { logger } from '../../utils/logger';
-import { isProduction } from '../../utils/utils';
+import { logger } from '../../utils/logger.js';
+import { isProduction } from '../../utils/utils.js';
 import {
   FlowUpdatedEvent,
   SuperFluidAdapterInterface,
-} from './superFluidAdapterInterface';
+} from './superFluidAdapterInterface.js';
 
 const superFluidGraphqlUrl =
   'https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1';

@@ -2,12 +2,12 @@ import csv from 'csvtojson';
 import {
   canAccessProjectFraudAction,
   ResourceActions,
-} from '../adminJsPermissions';
-import { AdminJsRequestInterface } from '../adminJs-types';
-import { logger } from '../../../utils/logger';
-import { messages } from '../../../utils/messages';
-import { ProjectFraud } from '../../../entities/projectFraud';
-import { errorMessages } from '../../../utils/errorMessages';
+} from '../adminJsPermissions.js';
+import { AdminJsRequestInterface } from '../adminJs-types.js';
+import { logger } from '../../../utils/logger.js';
+import { messages } from '../../../utils/messages.js';
+import { ProjectFraud } from '../../../entities/projectFraud.js';
+import { errorMessages } from '../../../utils/errorMessages.js';
 
 export const createProjectFraud = async (
   request: AdminJsRequestInterface,

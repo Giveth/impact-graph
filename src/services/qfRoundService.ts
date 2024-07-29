@@ -1,5 +1,5 @@
-import { findProjectById } from '../repositories/projectRepository';
-import { QfRound } from '../entities/qfRound';
+import { findProjectById } from '../repositories/projectRepository.js';
+import { QfRound } from '../entities/qfRound.js';
 
 export const relatedActiveQfRoundForProject = async (
   projectId: number,

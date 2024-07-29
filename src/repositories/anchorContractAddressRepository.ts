@@ -1,6 +1,6 @@
-import { AnchorContractAddress } from '../entities/anchorContractAddress';
-import { Project } from '../entities/project';
-import { User } from '../entities/user';
+import { AnchorContractAddress } from '../entities/anchorContractAddress.js';
+import { Project } from '../entities/project.js';
+import { User } from '../entities/user.js';
 
 export const addNewAnchorAddress = async (params: {
   project: Project;

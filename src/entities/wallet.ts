@@ -6,8 +6,9 @@ import {
   ManyToOne,
   RelationId,
   BaseEntity,
+  Relation,
 } from 'typeorm';
-import { User } from './user';
+import { User } from './user.js';
 
 @ObjectType()
 @Entity()
@@ -22,7 +23,8 @@ export class Wallet extends BaseEntity {
 
   @Field(_type => User)
   @ManyToOne(_type => User, { eager: true })
-  user: User;
+  user: Relation<User>;
+
   @RelationId((donation: Wallet) => donation.user)
   @Column()
   userId: number;

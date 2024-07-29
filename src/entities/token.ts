@@ -7,8 +7,8 @@ import {
   ManyToMany,
   Index,
 } from 'typeorm';
-import { Organization } from './organization';
-import { ChainType } from '../types/network';
+import { Organization } from './organization.js';
+import { ChainType } from '../types/network.js';
 
 @Entity()
 @ObjectType()

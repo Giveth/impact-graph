@@ -5,14 +5,17 @@ import {
   graphqlUrl,
   saveProjectDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
-import { fetchCampaignBySlug, getCampaigns } from '../../test/graphqlQueries';
+} from '../../test/testUtils.js';
+import {
+  fetchCampaignBySlug,
+  getCampaigns,
+} from '../../test/graphqlQueries.js';
 import {
   Campaign,
   CampaignFilterField,
   CampaignType,
-} from '../entities/campaign';
-import { generateRandomString } from '../utils/utils';
+} from '../entities/campaign.js';
+import { generateRandomString } from '../utils/utils.js';
 
 describe('Fetch campaigns test cases', fetchCampaignsTestCases);
 describe('Fetch campaignBySlug test cases', fetchCampaignBySlugTestCases);

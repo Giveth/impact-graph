@@ -8,29 +8,29 @@ import {
   schedulePowerBoostingSnapshot,
   setupPgCronExtension,
   unSchedulePowerBoostingSnapshot,
-} from './dbCronRepository';
-import config from '../config';
+} from './dbCronRepository.js';
+import config from '../config.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   sleep,
-} from '../../test/testUtils';
-import { PowerSnapshot } from '../entities/powerSnapshot';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+} from '../../test/testUtils.js';
+import { PowerSnapshot } from '../entities/powerSnapshot.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from './powerBoostingRepository';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { setPowerRound } from './powerRoundRepository';
-import { PowerSnapshotHistory } from '../entities/powerSnapshotHistory';
-import { PowerBoostingSnapshotHistory } from '../entities/powerBoostingSnapshotHistory';
-import { PowerBalanceSnapshotHistory } from '../entities/powerBalanceSnapshotHistory';
-import { AppDataSource } from '../orm';
-import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
+} from './powerBoostingRepository.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { setPowerRound } from './powerRoundRepository.js';
+import { PowerSnapshotHistory } from '../entities/powerSnapshotHistory.js';
+import { PowerBoostingSnapshotHistory } from '../entities/powerBoostingSnapshotHistory.js';
+import { PowerBalanceSnapshotHistory } from '../entities/powerBalanceSnapshotHistory.js';
+import { AppDataSource } from '../orm.js';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository.js';
 
 describe(
   'db cron job historic procedures tests cases',

@@ -4,9 +4,9 @@ import {
   ChainvineAdapterInterface,
   LinkDonorToChainvineReferrerType,
   NotifyChainVineInputType,
-} from './chainvineAdapterInterface';
-import { errorMessages } from '../../utils/errorMessages';
-import { logger } from '../../utils/logger';
+} from './chainvineAdapterInterface.js';
+import { errorMessages } from '../../utils/errorMessages.js';
+import { logger } from '../../utils/logger.js';
 
 export interface ChainvineRetrieveWalletResponse extends Response {
   wallet_address?: string;

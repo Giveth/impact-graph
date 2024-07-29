@@ -4,12 +4,13 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
+  Relation,
   RelationId,
   ViewColumn,
   ViewEntity,
 } from 'typeorm';
 import { Field, ObjectType } from 'type-graphql';
-import { User } from '../entities/user';
+import { User } from '../entities/user.js';
 
 @ViewEntity('user_project_power_view', {
   synchronize: false,
@@ -24,7 +25,7 @@ export class UserProjectPowerView extends BaseEntity {
   @Field(_type => User, { nullable: true })
   @JoinColumn({ referencedColumnName: 'id' })
   @ManyToOne(() => User, { eager: true })
-  user?: User;
+  user?: Relation<User>;
 
   @ViewColumn()
   @Field()

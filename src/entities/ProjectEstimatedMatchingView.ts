@@ -8,8 +8,9 @@ import {
   ManyToOne,
   ViewColumn,
   JoinColumn,
+  Relation,
 } from 'typeorm';
-import { Project } from './project';
+import { Project } from './project.js';
 
 @ViewEntity('project_estimated_matching_view', { synchronize: false })
 @Index('project_estimated_matching_view_project_id_qfround_id', [
@@ -22,7 +23,7 @@ export class ProjectEstimatedMatchingView extends BaseEntity {
   @Field(_type => Project)
   @ManyToOne(_type => Project, project => project.projectEstimatedMatchingView)
   @JoinColumn({ referencedColumnName: 'id' })
-  project: Project;
+  project: Relation<Project>;
 
   @Field()
   @ViewColumn()

@@ -1,21 +1,16 @@
 import { expose } from 'threads/worker';
-import { WorkerModule } from 'threads/dist/types/worker';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
-} from '../entities/draftDonation';
-import { matchDraftDonations } from '../services/chains/evm/draftDonationService';
-import { logger } from '../utils/logger';
-import { AppDataSource } from '../orm';
-
-type DraftDonationWorkerFunctions = 'matchDraftDonations';
-
-export type DraftDonationWorker = WorkerModule<DraftDonationWorkerFunctions>;
+} from '../entities/draftDonation.js';
+import { matchDraftDonations } from '../services/chains/evm/draftDonationService.js';
+import { logger } from '../utils/logger.js';
+import { AppDataSource } from '../orm.js';
 
 const TAKE_USER = 100;
 const TAKE_DRAFT_DONATION = 1000;
 
-const worker: DraftDonationWorker = {
+const worker = {
   async matchDraftDonations() {
     logger.debug('matchDraftDonations() has been called');
     // const dataSource = await AppDataSource.getDataSource();

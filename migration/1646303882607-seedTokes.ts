@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Token } from '../src/entities/token';
-import seedTokens from './data/seedTokens';
-import { ChainType } from '../src/types/network';
+import { Token } from '../src/entities/token.js';
+import seedTokens from './data/seedTokens.js';
+import { ChainType } from '../src/types/network.js';
 
 export class seedTokes1646303882607 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {

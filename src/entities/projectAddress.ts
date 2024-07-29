@@ -6,14 +6,15 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
-import { User } from './user';
-import { ChainType } from '../types/network';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { ChainType } from '../types/network.js';
 
 @Entity()
 @ObjectType()
@@ -48,7 +49,7 @@ export class ProjectAddress extends BaseEntity {
   @Index()
   @Field(_type => Project)
   @ManyToOne(_type => Project)
-  project: Project;
+  project: Relation<Project>;
 
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.project)
   @Column({ nullable: true })
@@ -57,7 +58,7 @@ export class ProjectAddress extends BaseEntity {
   @Index()
   @Field(_type => User, { nullable: true })
   @ManyToOne(_type => User, { eager: true, nullable: true })
-  user: User;
+  user: Relation<User>;
 
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.user)
   @Column({ nullable: true })

@@ -1,6 +1,6 @@
 import { Arg, Query, Resolver, Int } from 'type-graphql';
-import { getPowerAmountRank } from '../repositories/projectPowerViewRepository';
-import { ProjectPowerView } from '../views/projectPowerView';
+import { getPowerAmountRank } from '../repositories/projectPowerViewRepository.js';
+import { ProjectPowerView } from '../views/projectPowerView.js';
 
 @Resolver(_of => ProjectPowerView)
 export class ProjectPowerResolver {

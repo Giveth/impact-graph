@@ -13,7 +13,7 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
-} from '../../test/testUtils';
+} from '../../test/testUtils.js';
 import {
   activateProjectQuery,
   addProjectUpdateQuery,
@@ -38,74 +38,77 @@ import {
   updateProjectQuery,
   walletAddressIsPurpleListed,
   walletAddressIsValid,
-} from '../../test/graphqlQueries';
-import { CreateProjectInput, UpdateProjectInput } from './types/project-input';
+} from '../../test/graphqlQueries.js';
+import {
+  CreateProjectInput,
+  UpdateProjectInput,
+} from './types/project-input.js';
 import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+} from '../utils/errorMessages.js';
 import {
   Project,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
   RevokeSteps,
-} from '../entities/project';
-import { Category } from '../entities/category';
-import { Reaction } from '../entities/reaction';
-import { ProjectStatus } from '../entities/projectStatus';
-import { User } from '../entities/user';
-import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
-import { Token } from '../entities/token';
-import { NETWORK_IDS } from '../provider';
+} from '../entities/project.js';
+import { Category } from '../entities/category.js';
+import { Reaction } from '../entities/reaction.js';
+import { ProjectStatus } from '../entities/projectStatus.js';
+import { User } from '../entities/user.js';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization.js';
+import { Token } from '../entities/token.js';
+import { NETWORK_IDS } from '../provider.js';
 import {
   addNewProjectAddress,
   findAllRelatedAddressByWalletAddress,
   removeRecipientAddressOfProject,
-} from '../repositories/projectAddressRepository';
+} from '../repositories/projectAddressRepository.js';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
-} from '../entities/projectVerificationForm';
-import { MainCategory } from '../entities/mainCategory';
-import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSatusHistoryRepository';
-import { setPowerRound } from '../repositories/powerRoundRepository';
+} from '../entities/projectVerificationForm.js';
+import { MainCategory } from '../entities/mainCategory.js';
+import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSatusHistoryRepository.js';
+import { setPowerRound } from '../repositories/powerRoundRepository.js';
 import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
-} from '../repositories/powerBoostingRepository';
+} from '../repositories/powerBoostingRepository.js';
 import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
-} from '../repositories/projectPowerViewRepository';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { ProjectAddress } from '../entities/projectAddress';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
-import { AppDataSource } from '../orm';
+} from '../repositories/projectPowerViewRepository.js';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot.js';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot.js';
+import { ProjectAddress } from '../entities/projectAddress.js';
+import { PowerBoosting } from '../entities/powerBoosting.js';
+import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository.js';
+import { AppDataSource } from '../orm.js';
 // We are using cache so redis needs to be cleared for tests with same filters
 import {
   Campaign,
   CampaignFilterField,
   CampaignSortingField,
   CampaignType,
-} from '../entities/campaign';
-import { generateRandomString } from '../utils/utils';
-import { FeaturedUpdate } from '../entities/featuredUpdate';
+} from '../entities/campaign.js';
+import { generateRandomString } from '../utils/utils.js';
+import { FeaturedUpdate } from '../entities/featuredUpdate.js';
 import {
   PROJECT_DESCRIPTION_MAX_LENGTH,
   PROJECT_TITLE_MAX_LENGTH,
-} from '../constants/validators';
-import { InstantPowerBalance } from '../entities/instantPowerBalance';
-import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
-import { updateInstantBoosting } from '../services/instantBoostingServices';
-import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
-import { cacheProjectCampaigns } from '../services/campaignService';
-import { ChainType } from '../types/network';
-import { QfRound } from '../entities/qfRound';
+} from '../constants/validators.js';
+import { InstantPowerBalance } from '../entities/instantPowerBalance.js';
+import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository.js';
+import { updateInstantBoosting } from '../services/instantBoostingServices.js';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository.js';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository.js';
+import { cacheProjectCampaigns } from '../services/campaignService.js';
+import { ChainType } from '../types/network.js';
+import { QfRound } from '../entities/qfRound.js';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },

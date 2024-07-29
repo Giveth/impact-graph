@@ -5,11 +5,11 @@ import {
   createDonationData,
   saveDonationDirectlyToDb,
   SEED_DATA,
-} from '../../../test/testUtils';
-import { Donation, DONATION_STATUS } from '../../entities/donation';
-import { notifyMissingDonationsWithSegment } from './notifyDonationsWithSegment';
-import * as utils from '../../utils/utils';
-import { findDonationById } from '../../repositories/donationRepository';
+} from '../../../test/testUtils.js';
+import { Donation, DONATION_STATUS } from '../../entities/donation.js';
+import { notifyMissingDonationsWithSegment } from './notifyDonationsWithSegment.js';
+import * as utils from '../../utils/utils.js';
+import { findDonationById } from '../../repositories/donationRepository.js';
 
 describe(
   'notifyMissingDonationsWithSegment() test cases',

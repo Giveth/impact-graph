@@ -1,13 +1,13 @@
 import { assert } from 'chai';
-import { addNewAnchorAddress } from './anchorContractAddressRepository';
+import { addNewAnchorAddress } from './anchorContractAddressRepository.js';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import { NETWORK_IDS } from '../provider';
+} from '../../test/testUtils.js';
+import { NETWORK_IDS } from '../provider.js';
 
 describe('addNewAnchorAddressTestCases', addNewAnchorAddressTestCases);
 

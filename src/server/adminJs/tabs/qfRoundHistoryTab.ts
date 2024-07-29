@@ -1,16 +1,16 @@
 import {
   canAccessQfRoundHistoryAction,
   ResourceActions,
-} from '../adminJsPermissions';
+} from '../adminJsPermissions.js';
 
-import { QfRoundHistory } from '../../../entities/qfRoundHistory';
+import { QfRoundHistory } from '../../../entities/qfRoundHistory.js';
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
-} from '../adminJs-types';
+} from '../adminJs-types.js';
 
-import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository';
-import { insertDonationsFromQfRoundHistory } from '../../../services/donationService';
+import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository.js';
+import { insertDonationsFromQfRoundHistory } from '../../../services/donationService.js';
 
 export const updateQfRoundHistory = async (
   _request: AdminJsRequestInterface,

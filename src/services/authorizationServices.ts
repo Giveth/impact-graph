@@ -1,15 +1,15 @@
 import Axios from 'axios';
 import * as jwt from 'jsonwebtoken';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { ApolloContext } from '../types/ApolloContext';
-import SentryLogger from '../sentryLogger';
-import { logger } from '../utils/logger';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages.js';
+import { ApolloContext } from '../types/ApolloContext.js';
+import SentryLogger from '../sentryLogger.js';
+import { logger } from '../utils/logger.js';
 import {
   createUserWithPublicAddress,
   findUserById,
   findUserByWalletAddress,
-} from '../repositories/userRepository';
-import config from '../config';
+} from '../repositories/userRepository.js';
+import config from '../config.js';
 
 // Add any other service that checks auth on a query or mutation
 export const checkIfUserInRequest = (ctx: ApolloContext) => {

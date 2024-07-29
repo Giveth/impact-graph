@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { assert } from 'chai';
-import { serverBaseAddress } from '../../../test/testUtils';
-import { Donation } from '../../entities/donation';
+import { serverBaseAddress } from '../../../test/testUtils.js';
+import { Donation } from '../../entities/donation.js';
 
 describe('onramperWebhookHandlerTestCases', onramperWebhookHandlerTestCases);
 

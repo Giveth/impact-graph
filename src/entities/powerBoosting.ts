@@ -6,14 +6,15 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
 import { Max, Min, IsNumber } from 'class-validator';
-import { Project } from './project';
-import { User } from './user';
-import { ColumnNumericTransformer } from '../utils/entities';
+import { Project } from './project.js';
+import { User } from './user.js';
+import { ColumnNumericTransformer } from '../utils/entities.js';
 
 @Entity()
 @ObjectType()
@@ -25,7 +26,7 @@ export class PowerBoosting extends BaseEntity {
 
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
-  project: Project;
+  project: Relation<Project>;
 
   @Index()
   @RelationId((powerBoosting: PowerBoosting) => powerBoosting.project)
@@ -34,7 +35,7 @@ export class PowerBoosting extends BaseEntity {
 
   @Field(_type => User)
   @ManyToOne(_type => User, { eager: true })
-  user: User;
+  user: Relation<User>;
 
   @Index()
   @RelationId((powerBoosting: PowerBoosting) => powerBoosting.user)

@@ -1,6 +1,6 @@
 import { Arg, Query, Resolver } from 'type-graphql';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { logger } from '../utils/logger';
+import { getNotificationAdapter } from '../adapters/adaptersFactory.js';
+import { logger } from '../utils/logger.js';
 
 @Resolver()
 export class OnboardingFormResolver {

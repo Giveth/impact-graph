@@ -3,11 +3,11 @@ import { assert } from 'chai';
 import {
   generateRandomEtheriumAddress,
   saveUserDirectlyToDb,
-} from '../../../../test/testUtils';
-import { QfRound } from '../../../entities/qfRound';
-import { createSybil } from './sybilTab';
-import { errorMessages } from '../../../utils/errorMessages';
-import { Sybil } from '../../../entities/sybil';
+} from '../../../../test/testUtils.js';
+import { QfRound } from '../../../entities/qfRound.js';
+import { createSybil } from './sybilTab.js';
+import { errorMessages } from '../../../utils/errorMessages.js';
+import { Sybil } from '../../../entities/sybil.js';
 
 describe('createSybil test cases', createSybilTestCases);
 
