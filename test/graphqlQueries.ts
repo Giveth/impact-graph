@@ -2444,3 +2444,36 @@ export const fetchDonationMetricsQuery = `
     }
   }
 `;
+
+export const fetchRecurringDonationsByDate = `
+  query (
+    $projectId: Int!
+    $startDate: String!
+    $endDate: String!
+  ) {
+    recurringDonationsByDate(
+      projectId: $projectId
+      startDate: $startDate
+      endDate: $endDate
+    ) {
+      recurringDonations {
+        id
+        txHash
+        networkId
+        flowRate
+        currency
+        anonymous
+        isArchived
+        status
+        donor {
+          id
+          walletAddress
+          firstName
+          email
+        }
+        createdAt
+      }
+      totalCount
+    }
+  }
+`;
