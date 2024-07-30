@@ -2403,6 +2403,10 @@ export const fetchRecurringDonationsCount = `
         total
         date
       }
+      totalPerToken {
+        token
+        total
+      }
     }
   }
 `;
@@ -2424,6 +2428,10 @@ export const fetchRecurringDonationsTotalUSD = `
       totalPerMonthAndYear {
         total
         date
+      }
+      totalPerToken {
+        token
+        total
       }
     }
   }
