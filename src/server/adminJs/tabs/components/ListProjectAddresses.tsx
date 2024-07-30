@@ -1,15 +1,11 @@
 import React from 'react';
 import { withTheme } from 'styled-components';
 import { Label, Section } from '@adminjs/design-system';
+import { NETWORKS_IDS_TO_NAME } from '../../../../provider';
 
 const ListProjectAddresses = props => {
   const project = props.record.params;
-  const NETWORK_IDS = {
-    1: 'MAIN_NET',
-    3: 'ROPSTEN',
-    100: 'GNOSIS',
-    56: 'BSC',
-  };
+
   // Filter addresses from params format
   const projectKeys = Object.keys(project);
   const addressesCount = projectKeys.filter(
@@ -37,7 +33,7 @@ const ListProjectAddresses = props => {
               </Section>
               <Section>
                 <Label>Network</Label>
-                {NETWORK_IDS[projectAddress.network] || ''}
+                {NETWORKS_IDS_TO_NAME[projectAddress.network] || ''}
               </Section>
               <Section>
                 <Label>This address is recipient for project</Label>
