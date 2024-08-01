@@ -439,6 +439,10 @@ export class Project extends BaseEntity {
   @Field(_type => [Campaign], { nullable: true })
   campaigns: Campaign[];
 
+  @Field(_type => [String], { nullable: true })
+  @Column('text', { array: true, nullable: true })
+  adminAddressHistory: string[];
+
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
     const maxDaysForListing = moment()

@@ -715,6 +715,17 @@ export const projectsTab = {
         },
         position: 1,
       },
+      adminAddressHistory: {
+        type: 'string[]',
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+        position: 2,
+      },
       contacts: {
         isVisible: {
           list: false,
@@ -1030,6 +1041,14 @@ export const projectsTab = {
               const adminUser = await User.findOne({
                 where: { id: request?.record?.params?.newAdminId },
               });
+              const previousAdminAddress = project.adminUser.walletAddress;
+              if (previousAdminAddress) {
+                if (project.adminAddressHistory) {
+                  project.adminAddressHistory.push(previousAdminAddress);
+                } else {
+                  project.adminAddressHistory = [previousAdminAddress];
+                }
+              }
               project.adminUser = adminUser!;
               await project.save();
             }
