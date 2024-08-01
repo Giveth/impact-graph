@@ -485,6 +485,9 @@ export const fillSocialProfileAndQfRounds: After<
   const socials = await findSocialProfilesByProjectId({ projectId });
   const projectUpdates = await findProjectUpdatesByProjectId(projectId);
   const project = await findProjectById(projectId);
+  const adminUser = await User.findOne({
+    where: { id: project?.adminUserId },
+  });
   const adminJsBaseUrl = process.env.SERVER_URL;
   response.record = {
     ...record,
@@ -497,6 +500,7 @@ export const fillSocialProfileAndQfRounds: After<
       qfRounds: project?.qfRounds,
       projectUpdates,
       adminJsBaseUrl,
+      adminUserAddress: adminUser?.walletAddress,
     },
   };
   return response;
@@ -715,6 +719,18 @@ export const projectsTab = {
         },
         position: 1,
       },
+      adminUserAddress: {
+        type: 'string',
+        isVirtual: true,
+        isVisible: {
+          filter: false,
+          list: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+        position: 2,
+      },
       adminAddressHistory: {
         type: 'string[]',
         isVisible: {
@@ -724,7 +740,7 @@ export const projectsTab = {
           edit: false,
           new: false,
         },
-        position: 2,
+        position: 3,
       },
       contacts: {
         isVisible: {
