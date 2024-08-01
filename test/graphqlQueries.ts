@@ -1222,6 +1222,7 @@ export const fetchLikedProjectsQuery = `
       take: $take
       skip: $skip
     ) {
+
       projects {
         id
         title
@@ -1265,6 +1266,11 @@ export const fetchLikedProjectsQuery = `
         }
         organization {
           label
+        }
+        qfRound {
+          id
+          name
+          isActive
         }
         totalReactions
         totalDonations
