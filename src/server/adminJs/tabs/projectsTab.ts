@@ -7,6 +7,7 @@ import {
   After,
 } from 'adminjs/src/backend/actions/action.interface';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import moment from 'moment/moment';
 import {
   Project,
   ProjectUpdate,
@@ -1030,8 +1031,19 @@ export const projectsTab = {
               const adminUser = await User.findOne({
                 where: { id: request?.record?.params?.newAdminId },
               });
+              const changeLog =
+                'previous admin user address: ' +
+                project.adminUser.walletAddress;
               project.adminUser = adminUser!;
               await project.save();
+              await ProjectUpdate.insert({
+                userId: currentAdmin.id,
+                projectId: project.id,
+                content: changeLog,
+                title: 'admin user changed',
+                createdAt: moment().toDate(),
+                isMain: false,
+              });
             }
             // Not required for now
             // Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
