@@ -1267,11 +1267,6 @@ export const fetchLikedProjectsQuery = `
         organization {
           label
         }
-        qfRound {
-          id
-          name
-          isActive
-        }
         totalReactions
         totalDonations
         totalTraceDonations
