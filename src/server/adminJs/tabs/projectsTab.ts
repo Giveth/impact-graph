@@ -1,12 +1,13 @@
 import fs from 'fs';
 import path from 'path';
-import adminJs from 'adminjs';
+import adminJs, { ValidationError } from 'adminjs';
 import { SelectQueryBuilder } from 'typeorm';
 import {
   ActionResponse,
   After,
 } from 'adminjs/src/backend/actions/action.interface';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import { ethers } from 'ethers';
 import {
   Project,
   ProjectUpdate,
@@ -726,7 +727,7 @@ export const projectsTab = {
           filter: false,
           list: false,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
         position: 2,
@@ -968,7 +969,7 @@ export const projectsTab = {
           canAccessProjectAction({ currentAdmin }, ResourceActions.EDIT),
 
         before: async (request: AdminJsRequestInterface) => {
-          const { verified, reviewStatus } = request.payload;
+          const { verified, reviewStatus, adminUserAddress } = request.payload;
           const statusChanges: string[] = [];
           if (request?.payload?.id) {
             // remove addresses from payload to avoid updating them
@@ -1037,6 +1038,33 @@ export const projectsTab = {
               request.payload.adminChanged = true;
               request.payload.newAdminId = newID;
             }
+            if (adminUserAddress) {
+              if (!ethers.utils.isAddress(adminUserAddress)) {
+                throw new ValidationError({
+                  adminUserAddress: {
+                    message:
+                      'The address is malformed or not a valid Ethereum address',
+                  },
+                });
+              }
+
+              const newAdminUser = await User.findOne({
+                where: { walletAddress: adminUserAddress },
+              });
+              if (!newAdminUser) {
+                throw new ValidationError({
+                  adminUserAddress: {
+                    message:
+                      'The address does not correspond to a valid user profile',
+                  },
+                });
+              }
+
+              if (newAdminUser.id !== project?.adminUserId) {
+                request.payload.adminChanged = true;
+                request.payload.newAdminId = newAdminUser.id;
+              }
+            }
 
             // We put these status changes in payload, so in after hook we would know to send notification for users
             request.payload.statusChanges = statusChanges.join(',');
@@ -1057,7 +1085,7 @@ export const projectsTab = {
               const adminUser = await User.findOne({
                 where: { id: request?.record?.params?.newAdminId },
               });
-              const previousAdminAddress = project.adminUser.walletAddress;
+              const previousAdminAddress = project.adminUser?.walletAddress;
               if (previousAdminAddress) {
                 if (project.adminAddressHistory) {
                   project.adminAddressHistory.push(previousAdminAddress);
