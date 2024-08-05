@@ -19,6 +19,12 @@ export interface ProjectsHaveNewRankingInputParam {
   newBottomRank: number;
 }
 
+export interface ProjectOwnershipChangedParams {
+  previousOwnerUser: User | null;
+  newOwnerUser: User | null;
+  projectName: string;
+}
+
 export interface OrttoPerson {
   fields: {
     'str::first': string;
@@ -114,4 +120,7 @@ export interface NotificationAdapterInterface {
     params: BroadCastNotificationInputParams,
   ): Promise<void>;
   projectsHaveNewRank(params: ProjectsHaveNewRankingInputParam): Promise<void>;
+  notifyProjectOwnershipChange(
+    params: ProjectOwnershipChangedParams,
+  ): Promise<void>;
 }

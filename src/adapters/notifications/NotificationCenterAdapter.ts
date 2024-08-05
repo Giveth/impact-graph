@@ -4,6 +4,7 @@ import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
   OrttoPerson,
+  ProjectOwnershipChangedParams,
   ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
@@ -987,6 +988,29 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         },
         trackId: `project-has-new-rank-${param.round}-${param.projectId}`,
       });
+    }
+  }
+
+  async notifyProjectOwnershipChange(
+    params: ProjectOwnershipChangedParams,
+  ): Promise<void> {
+    try {
+      const payload = {
+        previousOwnerEmail: params.previousOwnerUser?.email,
+        newOwnerEmail: params.newOwnerUser?.email,
+        projectName: params.projectName,
+        previousOwnerName: params.previousOwnerUser?.name,
+        newOwnerName: params.newOwnerUser?.name,
+      };
+
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED,
+        segment: {
+          payload,
+        },
+      });
+    } catch (e) {
+      logger.error('notifyProjectOwnershipChange >> error', e);
     }
   }
 }
