@@ -56,6 +56,7 @@ import { User } from '../../../entities/user';
 import { refreshProjectEstimatedMatchingView } from '../../../services/projectViewsService';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
+import { NotificationCenterAdapter } from '../../../adapters/notifications/NotificationCenterAdapter';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -658,6 +659,22 @@ export const exportProjectsWithFiltersToCsv = async (
     };
   }
 };
+
+async function sendOwnershipChangeEmails(
+  project: Project,
+  previousOwnerUser: User | null,
+  newOwnerUser: User | null,
+) {
+  const notificationCenter = new NotificationCenterAdapter();
+
+  const params = {
+    previousOwnerUser,
+    newOwnerUser,
+    projectName: project.title,
+  };
+  await notificationCenter.notifyProjectOwnershipChange(params);
+}
+
 export const projectsTab = {
   resource: Project,
   options: {
@@ -1082,9 +1099,10 @@ export const projectsTab = {
           });
           if (project) {
             if (request?.record?.params?.adminChanged) {
-              const adminUser = await User.findOne({
+              const newAdminUser = await User.findOne({
                 where: { id: request?.record?.params?.newAdminId },
               });
+              const previousAdminUser = project.adminUser;
               const previousAdminAddress = project.adminUser?.walletAddress;
               if (previousAdminAddress) {
                 if (project.adminAddressHistory) {
@@ -1093,8 +1111,13 @@ export const projectsTab = {
                   project.adminAddressHistory = [previousAdminAddress];
                 }
               }
-              project.adminUser = adminUser!;
+              project.adminUser = newAdminUser!;
               await project.save();
+              await sendOwnershipChangeEmails(
+                project,
+                previousAdminUser,
+                newAdminUser,
+              );
             }
             // Not required for now
             // Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
