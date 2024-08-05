@@ -505,8 +505,8 @@ export class RecurringDonationResolver {
   async recurringDonationsByDate(
     @Ctx() _ctx: ApolloContext,
     @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
-    @Arg('startDate', { nullable: true }) startDate: string,
-    @Arg('endtDate', { nullable: true }) endtDate: string,
+    @Arg('startDate', { nullable: true }) startDate?: string,
+    @Arg('endDate', { nullable: true }) endDate?: string,
   ) {
     const project = await findProjectById(projectId);
     if (!project) {
@@ -535,9 +535,9 @@ export class RecurringDonationResolver {
       });
     }
 
-    if (endtDate) {
-      query.andWhere('recurringDonation.createdAt <= :endtDate', {
-        endtDate: new Date(endtDate),
+    if (endDate) {
+      query.andWhere('recurringDonation.createdAt <= :endDate', {
+        endDate: new Date(endDate),
       });
     }
 

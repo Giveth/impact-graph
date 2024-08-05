@@ -2453,11 +2453,11 @@ export const fetchDonationMetricsQuery = `
   }
 `;
 
-export const fetchRecurringDonationsByDate = `
+export const fetchRecurringDonationsByDateQuery = `
   query (
     $projectId: Int!
-    $startDate: String!
-    $endDate: String!
+    $startDate: String
+    $endDate: String
   ) {
     recurringDonationsByDate(
       projectId: $projectId
