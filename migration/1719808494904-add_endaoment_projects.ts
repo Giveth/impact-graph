@@ -7,7 +7,6 @@ import {
   creteSlugFromProject,
   titleWithoutSpecialCharacters,
 } from '../src/utils/utils';
-import { getAppropriateSlug } from '../src/services/projectService';
 
 export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
