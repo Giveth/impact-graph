@@ -13148,7 +13148,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x5838d2ff1d0ca706df1470d6c66903c88ff9fce0',
   },
   {
-    name: 'National Network of Abortion Funds',
+    name: 'National Network of Abortion Funds 2',
     description:
       'Texas Equal Access Fund helps low-income people in northern Texas who want an abortion and cannot afford it.',
     logoUrl: '',
@@ -18362,7 +18362,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x9089d131eec13cf7d04960931156c7396a4418f9',
   },
   {
-    name: 'The Fred Hollows Foundation',
+    name: 'The Fred Hollows Foundation 2',
     description:
       "The Fred Hollows Foundation is a international development organisation working to restore sight to people who are blind or vision impaired. Globally there are 1.1 billion people who are blind or vision impaired. 90% of these cases are preventable or avoidable. You can help restore sight for as little as $25 and change someone's life forever.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/99197/orglogo.png',
@@ -28154,7 +28154,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x958c4a1a7ee17e4a83523538f9d64edc9372d865',
   },
   {
-    name: 'Impact Church',
+    name: 'Impact Church 2',
     description:
       'Impact Church is dedicated to rebuilding the spirit of the community with Jesus Christ as its cornerstone.',
     logoUrl:
@@ -30891,7 +30891,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x9f89cab43ad0a29f4b5c1748c32478f3c85c5217',
   },
   {
-    name: 'Transformation Church Inc',
+    name: 'Transformation Church Inc 2',
     description:
       'We exist to Re-Present God to the lost and found for transformation in Christ. We are a multi-church. Meaning we are a multi-generational, multi-ethnic, multi-plying, and multi-campus.',
     logoUrl:
@@ -36110,7 +36110,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x1645ed004fa10bf611674d8f9354f41aa4ba0e07',
   },
   {
-    name: 'Choose Love',
+    name: 'Choose Love 2',
     description:
       'We are pioneering a new movement in humanitarian aid: fast, flexible, transparent and accountable.<br><br>We are a lean, passionate team driving a fast-paced global movement across 15 countries.<br><br>We have raised millions to support refugees and created a movement of people putting love into action around the world.',
     logoUrl:
@@ -38654,7 +38654,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x9f3413edebf38d27182b59b81be67d11c5db55ae',
   },
   {
-    name: "St. Jude Children's Research Hospital",
+    name: "St. Jude Children's Research Hospital 2",
     description:
       'St. Jude Children’s Research Hospital is leading the way the world understands, treats and defeats childhood cancer and other life-threatening diseases. Our purpose is clear: Finding cures. Saving children.®<br><br>We are the only National Cancer Institute-designated Comprehensive Cancer Center devoted solely to children. Treatments invented at St. Jude have helped push the overall childhood cancer survival rate from 20 percent to more than 80 percent since we opened more than 50 years ago. And we won’t stop until no child dies from cancer.<br><br>Families never receive a bill from St. Jude for treatment, travel, housing or food – because all a family should worry about is helping their child live.',
     logoUrl:

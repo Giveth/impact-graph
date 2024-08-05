@@ -1,8 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { endaomentProjectCategoryMapping } from '../data/endaomentProjectCategoryMapping';
-import { endaomentProjects } from '../data/importedEndaomentProjects';
-import { NETWORK_IDS } from '../../src/provider';
-import { ReviewStatus } from '../../src/entities/project';
+import { endaomentProjectCategoryMapping } from './data/endaomentProjectCategoryMapping';
+import { endaomentProjects } from './data/importedEndaomentProjects';
+import { NETWORK_IDS } from '../src/provider';
+import { ReviewStatus } from '../src/entities/project';
+import {
+  creteSlugFromProject,
+  titleWithoutSpecialCharacters,
+} from '../src/utils/utils';
+import { getAppropriateSlug } from '../src/services/projectService';
 
 export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -44,20 +49,19 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
     // Insert projects and their addresses
     for (const project of endaomentProjects) {
       // Prepare slug and quality score
-      const slugBase = project.name.replace(/[*+~.,()'"!:@]/g, '');
-      const slug = slugBase
-        .toLowerCase()
-        .replace(/ /g, '-')
-        .replace('/', '-')
-        .replace('\\', '-');
+      const title = titleWithoutSpecialCharacters(project.name);
+      const slugBase = creteSlugFromProject(title);
+      // const slug = await getAppropriateSlug(slugBase)
+      const slug = slugBase;
 
       // Insert the project
       await queryRunner.query(`
           INSERT INTO "project" (
-            "title", "description", "organizationId", "walletAddress", "creationDate", "slug", "image", "slugHistory", "statusId", "totalDonations", "totalReactions", "totalProjectUpdates", "listed", "reviewStatus", "verified", "giveBacks", "isImported", "adminUserId"
+            "title", "description", "descriptionSummary", "organizationId", "walletAddress", "creationDate", "slug", "image", "slugHistory", "statusId", "totalDonations", "totalReactions", "totalProjectUpdates", "listed", "reviewStatus", "verified", "giveBacks", "isImported", "adminUserId"
           )
           VALUES (
-            '${project.name.replace(/'/g, '')}',
+            '${title}',
+            '${project.description.replace(/'/g, '')}',
             '${project.description.replace(/'/g, '')}',
             ${endaomentOrgId},
             '${project.mainnetAddress || ''}',
@@ -76,13 +80,13 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
             true,
             ${adminUser?.id}
           )
-          ON CONFLICT ("slug") DO NOTHING; -- Handle conflict on unique constraint
 
         `);
+      //           ON CONFLICT ("slug") DO NOTHING; -- Handle conflict on unique constraint
 
       // Get the inserted project's ID
       const projectIdResult = await queryRunner.query(`
-        SELECT "id" FROM "project" WHERE "title" = '${project.name.replace(/'/g, '')}' AND "organizationId" = ${endaomentOrgId};
+        SELECT "id" FROM "project" WHERE "slug" = '${slug}' AND "organizationId" = ${endaomentOrgId};
       `);
       const projectId = projectIdResult[0]?.id;
       if (!projectId) {
@@ -108,7 +112,7 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
 
       for (const categoryName of categoryNames) {
         const categoryIdResult = await queryRunner.query(`
-          SELECT "id" FROM "category" WHERE "name" = '${categoryName.replace(/'/g, "''")}' LIMIT 1;
+          SELECT "id" FROM "category" WHERE "value" = '${categoryName.replace(/'/g, "''")}' LIMIT 1;
         `);
         const categoryId = categoryIdResult[0]?.id;
 
@@ -153,7 +157,7 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
       await queryRunner.query(`
         INSERT INTO "project_update" ("userId", "projectId", "content", "title", "createdAt", "isMain")
         VALUES (
-          (SELECT "id" FROM "user" WHERE "email" = '${adminUser?.email || ''}' LIMIT 1),
+          ${adminUser?.id},
           ${projectId},
           '',
           '',
