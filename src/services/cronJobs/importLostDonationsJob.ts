@@ -10,7 +10,6 @@ import { erc20ABI } from '../../assets/erc20ABI';
 import { User } from '../../entities/user';
 import { Token } from '../../entities/token';
 import { Project } from '../../entities/project';
-import { calculateGivbackFactor } from '../givbackService';
 import {
   getUserDonationStats,
   updateUserTotalDonated,
@@ -205,9 +204,6 @@ export const importLostDonations = async () => {
           );
         }
 
-        const { givbackFactor, projectRank, powerRound, bottomRankInRound } =
-          await calculateGivbackFactor(project.id as number);
-
         let dbDonation: Donation;
         try {
           dbDonation = Donation.create({
@@ -225,10 +221,6 @@ export const importLostDonations = async () => {
             ),
             transactionNetworkId: networkId,
             createdAt: donationDateDbFormat,
-            givbackFactor,
-            projectRank,
-            powerRound,
-            bottomRankInRound,
             status: 'verified',
             anonymous: false,
             segmentNotified: true,
@@ -258,7 +250,6 @@ export const importLostDonations = async () => {
           totalDonated: donationStats?.totalDonated,
           donationsCount: donationStats?.donationsCount,
           lastDonationDate: donationStats?.lastDonationDate,
-          GIVbacksRound: dbDonation.powerRound,
           QFDonor: dbDonation.qfRound?.name,
           donationChain: NETWORKS_IDS_TO_NAME[dbDonation.transactionNetworkId],
         });

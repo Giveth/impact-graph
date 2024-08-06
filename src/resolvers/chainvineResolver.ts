@@ -10,6 +10,7 @@ import {
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => User)
 export class ChainvineResolver {
   @Mutation(_returns => User, { nullable: true })

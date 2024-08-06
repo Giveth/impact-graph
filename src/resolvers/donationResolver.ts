@@ -214,6 +214,7 @@ class DonationMetrics {
   averagePercentageToGiveth: number;
 }
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => User)
 export class DonationResolver {
   private readonly donationRepository: Repository<Donation>;
@@ -268,13 +269,7 @@ export class DonationResolver {
         .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project')
         .leftJoinAndSelect('donation.recurringDonation', 'recurringDonation')
-        .leftJoinAndSelect('project.categories', 'categories')
-        .leftJoin('project.projectPower', 'projectPower')
-        .addSelect([
-          'projectPower.totalPower',
-          'projectPower.powerRank',
-          'projectPower.round',
-        ]);
+        .leftJoinAndSelect('project.categories', 'categories');
 
       if (fromDate) {
         query.andWhere(`donation."createdAt" >= '${fromDate}'`);

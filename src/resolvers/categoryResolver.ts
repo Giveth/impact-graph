@@ -11,6 +11,7 @@ const qfRoundsAndMainCategoryCacheDuration =
   (config.get('QF_ROUND_AND_MAIN_CATEGORIES_CACHE_DURATION') as number) ||
   1000 * 60 * 15;
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => User)
 export class CategoryResolver {
   constructor(

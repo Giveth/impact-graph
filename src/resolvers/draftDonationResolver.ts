@@ -30,6 +30,7 @@ const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 const draftRecurringDonationEnabled =
   process.env.ENABLE_DRAFT_RECURRING_DONATION === 'true';
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => User)
 export class DraftDonationResolver {
   private readonly donationRepository: Repository<DraftDonation>;

@@ -35,6 +35,7 @@ import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
   // https://github.com/Giveth/impact-graph/pull/519#issuecomment-1136845612

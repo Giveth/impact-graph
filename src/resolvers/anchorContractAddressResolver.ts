@@ -15,6 +15,7 @@ import { findUserById } from '../repositories/userRepository';
 import { getProvider } from '../provider';
 import { logger } from '../utils/logger';
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => AnchorContractAddress)
 export class AnchorContractAddressResolver {
   @Mutation(_returns => AnchorContractAddress, { nullable: true })

@@ -178,6 +178,7 @@ class UserRecurringDonations {
   totalCount: number;
 }
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => AnchorContractAddress)
 export class RecurringDonationResolver {
   @Mutation(_returns => RecurringDonation, { nullable: true })

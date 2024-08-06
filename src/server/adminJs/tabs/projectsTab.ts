@@ -22,12 +22,6 @@ import {
 import { NOTIFICATIONS_EVENT_NAMES } from '../../../analytics/analytics';
 import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory';
 import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
-import { changeUserBoostingsAfterProjectCancelled } from '../../../services/powerBoostingService';
-import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository';
-import {
-  refreshProjectFuturePowerView,
-  refreshProjectPowerView,
-} from '../../../repositories/projectPowerViewRepository';
 import { logger } from '../../../utils/logger';
 import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
 import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
@@ -268,12 +262,6 @@ export const verifyProjects = async (
         }
       }
     }
-
-    await Promise.all([
-      refreshUserProjectPowerView(),
-      refreshProjectPowerView(),
-      refreshProjectFuturePowerView(),
-    ]);
   } catch (error) {
     logger.error('verifyProjects() error', error);
     throw error;
@@ -342,9 +330,6 @@ export const updateStatusOfProjects = async (
         await getNotificationAdapter().projectCancelled({
           project: projectWithAdmin,
         });
-        await changeUserBoostingsAfterProjectCancelled({
-          projectId: project.id,
-        });
       } else if (status === ProjStatus.active) {
         await getNotificationAdapter().projectReactivated({
           project: projectWithAdmin,
@@ -355,11 +340,6 @@ export const updateStatusOfProjects = async (
         });
       }
     }
-    await Promise.all([
-      refreshUserProjectPowerView(),
-      refreshProjectFuturePowerView(),
-      refreshProjectPowerView(),
-    ]);
   }
   return {
     redirectUrl: '/admin/resources/Project',
@@ -1140,22 +1120,7 @@ export const projectsTab = {
               project.listed = null;
               await project.save();
             }
-
-            if (
-              statusChanges?.includes(
-                NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
-              )
-            ) {
-              await changeUserBoostingsAfterProjectCancelled({
-                projectId: project.id,
-              });
-            }
           }
-          await Promise.all([
-            refreshUserProjectPowerView(),
-            refreshProjectFuturePowerView(),
-            refreshProjectPowerView(),
-          ]);
           return request;
         },
       },

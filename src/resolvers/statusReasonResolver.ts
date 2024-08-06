@@ -6,6 +6,7 @@ import {
 } from '../repositories/statusReasonRepository';
 import { logger } from '../utils/logger';
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => ProjectStatusReason)
 export class StatusReasonResolver {
   @Query(_returns => [ProjectStatusReason])

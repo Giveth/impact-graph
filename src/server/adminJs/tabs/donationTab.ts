@@ -29,7 +29,6 @@ import {
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
 import { Project } from '../../../entities/project';
-import { calculateGivbackFactor } from '../../../services/givbackService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
 import {
   updateUserTotalDonated,
@@ -126,13 +125,7 @@ export const createDonation = async (
         continue;
       }
 
-      const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
-        await calculateGivbackFactor(project.id);
       const donation = Donation.create({
-        givbackFactor,
-        projectRank,
-        bottomRankInRound,
-        powerRound,
         fromWalletAddress: transactionInfo?.from,
         toWalletAddress: transactionInfo?.to,
         transactionId: txHash,
@@ -501,18 +494,6 @@ export const donationTab = {
           edit: false,
           new: false,
         },
-      },
-      givbackFactor: {
-        isVisible: false,
-      },
-      projectRank: {
-        isVisible: false,
-      },
-      bottomRankInRound: {
-        isVisible: false,
-      },
-      powerRound: {
-        isVisible: false,
       },
       referrerWallet: {
         isVisible: {

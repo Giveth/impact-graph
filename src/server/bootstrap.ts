@@ -44,7 +44,6 @@ import {
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
 import { dropDbCronExtension } from '../repositories/dbCronRepository';
-import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 import { AppDataSource, CronDataSource } from '../orm';
 import { ApolloContext } from '../types/ApolloContext';
@@ -356,12 +355,6 @@ export async function bootstrap() {
       // runDraftRecurringDonationMatchWorkerJob();
     }
 
-    if (process.env.UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE === 'true') {
-      runUpdatePowerRoundCronJob();
-    }
-    if (process.env.ENABLE_INSTANT_BOOSTING_UPDATE === 'true') {
-      runInstantBoostingUpdateCronJob();
-    }
     if (process.env.ENABLE_UPDATE_RECURRING_DONATION_STREAM === 'true') {
       runUpdateRecurringDonationStream();
       runCheckUserSuperTokenBalancesJob();

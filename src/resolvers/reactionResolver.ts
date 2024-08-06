@@ -9,6 +9,7 @@ import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => Reaction)
 export class ReactionResolver {
   @Query(_returns => [Reaction])

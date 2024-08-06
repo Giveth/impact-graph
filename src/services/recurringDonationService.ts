@@ -31,7 +31,6 @@ import {
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
 } from './donationService';
-import { calculateGivbackFactor } from './givbackService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 import config from '../config';
 import { User } from '../entities/user';
@@ -227,13 +226,6 @@ export const createRelatedDonationsToStream = async (
         donation.qfRound = activeQfRoundForProject;
         donation.qfRoundUserScore = projectOwner?.passportScore;
       }
-
-      const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
-        await calculateGivbackFactor(project.id);
-      donation.givbackFactor = givbackFactor;
-      donation.projectRank = projectRank;
-      donation.bottomRankInRound = bottomRankInRound;
-      donation.powerRound = powerRound;
 
       await donation.save();
 

@@ -40,6 +40,7 @@ class UserRelatedAddressResponse {
   hasDonated: boolean;
 }
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => User)
 export class UserResolver {
   constructor(private readonly userRepository: Repository<User>) {
