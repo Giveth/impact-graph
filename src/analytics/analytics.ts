@@ -49,5 +49,6 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   SUBSCRIBE_ONBOARDING = 'Subscribe onboarding',
   CREATE_ORTTO_PROFILE = 'Create Ortto profile',
   SEND_EMAIL_CONFIRMATION = 'Send email confirmation',
-  PROJECT_OWNERSHIP_CHANGED = 'Project ownership changed',
+  PROJECT_OWNERSHIP_CHANGED_TO = 'Project ownership changed to',
+  PROJECT_OWNERSHIP_CHANGED_FROM = 'Project ownership changed from',
 }

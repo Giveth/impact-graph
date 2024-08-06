@@ -995,18 +995,29 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     params: ProjectOwnershipChangedParams,
   ): Promise<void> {
     try {
-      const payload = {
-        previousOwnerEmail: params.previousOwnerUser?.email,
-        newOwnerEmail: params.newOwnerUser?.email,
+      const newOwnerPayload = {
+        ownerEmail: params.newOwnerUser?.email,
+        ownerName: params.newOwnerUser?.name,
         projectName: params.projectName,
-        previousOwnerName: params.previousOwnerUser?.name,
-        newOwnerName: params.newOwnerUser?.name,
       };
 
       await callSendNotification({
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED_TO,
         segment: {
-          payload,
+          payload: newOwnerPayload,
+        },
+      });
+
+      const oldOwnerPayload = {
+        ownerEmail: params.previousOwnerUser?.email,
+        ownerName: params.previousOwnerUser?.name,
+        projectName: params.projectName,
+      };
+
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED_FROM,
+        segment: {
+          payload: oldOwnerPayload,
         },
       });
     } catch (e) {
