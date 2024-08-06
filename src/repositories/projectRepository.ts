@@ -2,6 +2,7 @@ import { UpdateResult } from 'typeorm';
 import {
   FilterField,
   Project,
+  ProjectUpdate,
   ProjStatus,
   ReviewStatus,
   RevokeSteps,
@@ -14,6 +15,13 @@ import { publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
 import { getAppropriateNetworkId } from '../services/chains';
+import { AnchorContractAddress } from '../entities/anchorContractAddress';
+import { Donation } from '../entities/donation';
+import { FeaturedUpdate } from '../entities/featuredUpdate';
+import { ProjectSocialMedia } from '../entities/projectSocialMedia';
+import { ProjectStatusHistory } from '../entities/projectStatusHistory';
+import { Reaction } from '../entities/reaction';
+import { SocialProfile } from '../entities/socialProfile';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -532,4 +540,64 @@ export const findProjectsBySlugArray = async (
     }
   });
   return projects;
+};
+
+export const removeProjectAndRelatedEntities = async (
+  projectId: number,
+): Promise<void> => {
+  // Delete related entities
+  await Donation.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await Reaction.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await ProjectAddress.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await ProjectSocialMedia.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await AnchorContractAddress.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await ProjectStatusHistory.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await ProjectVerificationForm.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await FeaturedUpdate.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await SocialProfile.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await ProjectUpdate.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await Project.createQueryBuilder()
+    .delete()
+    .where('id = :id', { id: projectId })
+    .execute();
 };
