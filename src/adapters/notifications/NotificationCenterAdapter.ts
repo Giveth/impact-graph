@@ -996,7 +996,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   ): Promise<void> {
     try {
       const newOwnerPayload = {
-        ownerEmail: params.newOwnerUser?.email,
+        email: params.newOwnerUser?.email,
         ownerName: params.newOwnerUser?.name,
         projectName: params.projectName,
       };
@@ -1009,7 +1009,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       });
 
       const oldOwnerPayload = {
-        ownerEmail: params.previousOwnerUser?.email,
+        email: params.previousOwnerUser?.email,
         ownerName: params.previousOwnerUser?.name,
         projectName: params.projectName,
       };
