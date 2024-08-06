@@ -4,6 +4,7 @@ import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
   OrttoPerson,
+  ProjectOwnershipChangedParams,
   ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
@@ -987,6 +988,46 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         },
         trackId: `project-has-new-rank-${param.round}-${param.projectId}`,
       });
+    }
+  }
+
+  async notifyProjectOwnershipChange(
+    params: ProjectOwnershipChangedParams,
+  ): Promise<void> {
+    try {
+      const newOwnerPayload = {
+        email: params.newOwnerUser?.email,
+        userId: params.newOwnerUser?.id || 0,
+        ownerName: params.newOwnerUser?.name || '',
+        projectName: params.projectName,
+      };
+
+      if (newOwnerPayload.email) {
+        await callSendNotification({
+          eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED_TO,
+          segment: {
+            payload: newOwnerPayload,
+          },
+        });
+      }
+
+      const oldOwnerPayload = {
+        email: params.previousOwnerUser?.email,
+        userId: params.previousOwnerUser?.id || 0,
+        ownerName: params.previousOwnerUser?.name || '',
+        projectName: params.projectName,
+      };
+
+      if (oldOwnerPayload.email) {
+        await callSendNotification({
+          eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED_FROM,
+          segment: {
+            payload: oldOwnerPayload,
+          },
+        });
+      }
+    } catch (e) {
+      logger.error('notifyProjectOwnershipChange >> error', e);
     }
   }
 }
