@@ -997,29 +997,33 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     try {
       const newOwnerPayload = {
         email: params.newOwnerUser?.email,
-        ownerName: params.newOwnerUser?.name,
+        ownerName: params.newOwnerUser?.name || '',
         projectName: params.projectName,
       };
 
-      await callSendNotification({
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED_TO,
-        segment: {
-          payload: newOwnerPayload,
-        },
-      });
+      if (newOwnerPayload.email) {
+        await callSendNotification({
+          eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED_TO,
+          segment: {
+            payload: newOwnerPayload,
+          },
+        });
+      }
 
       const oldOwnerPayload = {
         email: params.previousOwnerUser?.email,
-        ownerName: params.previousOwnerUser?.name,
+        ownerName: params.previousOwnerUser?.name || '',
         projectName: params.projectName,
       };
 
-      await callSendNotification({
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED_FROM,
-        segment: {
-          payload: oldOwnerPayload,
-        },
-      });
+      if (oldOwnerPayload.email) {
+        await callSendNotification({
+          eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_OWNERSHIP_CHANGED_FROM,
+          segment: {
+            payload: oldOwnerPayload,
+          },
+        });
+      }
     } catch (e) {
       logger.error('notifyProjectOwnershipChange >> error', e);
     }
