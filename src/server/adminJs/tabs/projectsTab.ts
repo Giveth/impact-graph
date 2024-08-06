@@ -1060,6 +1060,14 @@ export const projectsTab = {
                 });
               }
 
+              if (!newAdminUser.name || !newAdminUser.email) {
+                throw new ValidationError({
+                  adminUserAddress: {
+                    message: 'The user profile is not completed',
+                  },
+                });
+              }
+
               if (newAdminUser.id !== project?.adminUserId) {
                 request.payload.adminChanged = true;
                 request.payload.newAdminId = newAdminUser.id;
