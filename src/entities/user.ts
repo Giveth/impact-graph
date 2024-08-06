@@ -16,8 +16,6 @@ import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
-import { PowerBoosting } from './powerBoosting';
-import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
 import { ReferredEvent } from './referredEvent';
 import { RecurringDonation } from './recurringDonation';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
@@ -179,10 +177,6 @@ export class User extends BaseEntity {
   )
   projectStatusHistories?: ProjectStatusHistory[];
 
-  @Field(_type => [PowerBoosting], { nullable: true })
-  @OneToMany(_type => PowerBoosting, powerBoosting => powerBoosting.user)
-  powerBoostings?: PowerBoosting[];
-
   @UpdateDateColumn()
   updatedAt: Date;
 
@@ -244,11 +238,6 @@ export class User extends BaseEntity {
       .getCount();
 
     return likedProjectsCount;
-  }
-
-  @Field(_type => Int, { nullable: true })
-  async boostedProjectsCount() {
-    return findPowerBoostingsCountByUserId(this.id);
   }
 
   segmentUserId() {

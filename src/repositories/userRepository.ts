@@ -1,7 +1,6 @@
 import { publicSelectionFields, User, UserRole } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { Reaction } from '../entities/reaction';
-import { PowerBoosting } from '../entities/powerBoosting';
 import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import { isEvmAddress } from '../utils/networks';
 import { retrieveActiveQfRoundUserMBDScore } from './qfRoundRepository';
@@ -114,26 +113,6 @@ export const createUserWithPublicAddress = async (
   }).save();
 };
 
-export const findUsersWhoBoostedProject = async (
-  projectId: number,
-): Promise<{ walletAddress: string; email?: string }[]> => {
-  return PowerBoosting.createQueryBuilder('powerBoosting')
-    .leftJoin('powerBoosting.user', 'user')
-    .leftJoinAndSelect('powerBoosting.project', 'project')
-    .leftJoinAndSelect(
-      User,
-      'projectOwner',
-      'project.adminUserId = projectOwner.id',
-    )
-    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
-    .where(`"projectId"=:projectId`, {
-      projectId,
-    })
-    .andWhere(`percentage > 0`)
-    .andWhere(`user.id != projectOwner.id`)
-    .getRawMany();
-};
-
 export const findUsersWhoLikedProjectExcludeProjectOwner = async (
   projectId: number,
 ): Promise<{ walletAddress: string; email?: string }[]> => {
@@ -184,16 +163,13 @@ export const findUsersWhoDonatedToProjectExcludeWhoLiked = async (
 export const findUsersWhoSupportProject = async (
   projectId: number,
 ): Promise<{ walletAddress: string; email?: string }[]> => {
-  const [usersWhoBoosted, usersWhoLiked, usersWhoDonated] = await Promise.all([
-    findUsersWhoBoostedProject(projectId),
+  const [usersWhoLiked, usersWhoDonated] = await Promise.all([
     findUsersWhoLikedProjectExcludeProjectOwner(projectId),
     findUsersWhoDonatedToProjectExcludeWhoLiked(projectId),
   ]);
 
   const users: { walletAddress: string; email?: string }[] = [];
-  for (const user of usersWhoDonated
-    .concat(usersWhoLiked)
-    .concat(usersWhoBoosted)) {
+  for (const user of usersWhoDonated.concat(usersWhoLiked)) {
     // Make sure we dont add repetitive users
     if (!users.find(u => u.walletAddress === user.walletAddress)) {
       users.push(user);

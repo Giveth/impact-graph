@@ -43,19 +43,13 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import {
-  dropDbCronExtension,
-  schedulePowerBoostingSnapshot,
-  schedulePowerSnapshotsHistory,
-} from '../repositories/dbCronRepository';
-import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
+import { dropDbCronExtension } from '../repositories/dbCronRepository';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 import { AppDataSource, CronDataSource } from '../orm';
 import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
-import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
@@ -313,26 +307,6 @@ export async function bootstrap() {
 
   async function continueDbSetup() {
     logger.debug('continueDbSetup() has been called', new Date());
-
-    const enableDbCronJob =
-      config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
-    if (enableDbCronJob) {
-      try {
-        const scheduleExpression = config.get(
-          'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
-        ) as string;
-        const powerSnapshotsHistoricScheduleExpression = config.get(
-          'ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA_CRONJOB_EXPRESSION',
-        ) as string;
-        await schedulePowerBoostingSnapshot(scheduleExpression);
-        await schedulePowerSnapshotsHistory(
-          powerSnapshotsHistoricScheduleExpression,
-        );
-      } catch (e) {
-        logger.error('Enabling power boosting snapshot ', e);
-      }
-    }
-
     if (!isTestEnv) {
       // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
       // relation "project_estimated_matching_view" does not exist
@@ -382,23 +356,6 @@ export async function bootstrap() {
       // runDraftRecurringDonationMatchWorkerJob();
     }
 
-    if (process.env.FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE === 'true') {
-      runFillPowerSnapshotBalanceCronJob();
-    }
-    logger.debug('Running givPower cron jobs info ', {
-      UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE: config.get(
-        'UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE',
-      ),
-      ENABLE_INSTANT_BOOSTING_UPDATE: config.get(
-        'ENABLE_INSTANT_BOOSTING_UPDATE',
-      ),
-      INSTANT_BOOSTING_UPDATE_CRONJOB_EXPRESSION: config.get(
-        'INSTANT_BOOSTING_UPDATE_CRONJOB_EXPRESSION',
-      ),
-      UPDATE_POWER_ROUND_CRONJOB_EXPRESSION: config.get(
-        'UPDATE_POWER_ROUND_CRONJOB_EXPRESSION',
-      ),
-    });
     if (process.env.UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE === 'true') {
       runUpdatePowerRoundCronJob();
     }

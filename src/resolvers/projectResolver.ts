@@ -218,7 +218,7 @@ class GetProjectsArgs {
 
   @Field(_type => OrderBy, {
     defaultValue: {
-      field: OrderField.GIVPower,
+      field: OrderField.CreationAt,
       direction: OrderDirection.DESC,
     },
   })
@@ -497,8 +497,6 @@ export class ProjectResolver {
           return query.andWhere('organization.label = :label', {
             label: ORGANIZATION_LABELS.ENDAOMENT,
           });
-        case FilterField.BoostedWithGivPower:
-          return query.andWhere(`projectPower.totalPower > 0`);
         case FilterField.ActiveQfRound:
           return query.andWhere(
             `EXISTS (

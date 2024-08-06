@@ -22,7 +22,6 @@ import {
   userByAddress,
 } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
-import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import { DONATION_STATUS } from '../entities/donation';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 import { updateUserTotalDonated } from '../services/userService';
@@ -451,44 +450,6 @@ function userByAddressTestCases() {
     assert.equal(result.data.data.userByAddress.donationsCount, 2);
   });
 
-  // TODO write test cases for likedProjectsCount, donationsCount, projectsCount fields
-  it('Return boostedProjectsCount of a user', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const secondProject = await saveProjectDirectlyToDb(createProjectData());
-    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
-    await insertSinglePowerBoosting({
-      user,
-      project: firstProject,
-      percentage: 10,
-    });
-    await insertSinglePowerBoosting({
-      user,
-      project: secondProject,
-      percentage: 15,
-    });
-    await insertSinglePowerBoosting({
-      user,
-      project: thirdProject,
-      percentage: 20,
-    });
-    const accessToken = await generateTestAccessToken(user.id);
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: userByAddress,
-        variables: {
-          address: user.walletAddress,
-        },
-      },
-      {
-        headers: {
-          authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(result.data.data.userByAddress.boostedProjectsCount, 3);
-  });
   it('Returns null when no user is found', async () => {
     const result = await axios.post(graphqlUrl, {
       query: userByAddress,

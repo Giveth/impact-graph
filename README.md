@@ -71,10 +71,6 @@ You can see logs beautifully with this command
 
 ```
 
-## Features
-
-- [Power Boosting Specs](./docs/powerBoosting.md)
-
 ### Authentication
 
 ### Start fast
@@ -246,20 +242,6 @@ in below image links
 
 [![](https://mermaid.ink/img/pako:eNrFVcFu2zAM_RXCl7VAmgA9-hCga9euQJcNS7tTgEGVaEeNLXkSnSwo-u-jJDtJ03TYgA7zyYbI98j3aOoxk1Zhlmcef7RoJF5oUTpRzwzwIyRZB3ceXfpuhCMtdSMMwaWzhtColyfvhVwcPJhOQHiYWqlFBROklXULCGEzk4J7TDgZj3uYHM5FVYFQaoKrlPvF2UJXCHVLgrQ1cOQ5UJsSfDzvoQUjNc4-oKRv6HShZQy_tK6-VseJ0lhCsEt0W74pEmjTtARKkOBXcKi0j3AlGnSCUwSQ4wQmPWcBX8X6JEIItK6C-zXISqOhazWIiI7ruuODAQyHw4TQ5cFJEKBXI4evDql1JsAcEGo64YgOD1o2C8h2SoDppVDKofcpm32IBMHYHM78YpPlUCiQ1rCeFPutbKk7c0I0bAhvwsFLom5uKoIL7aV13RT0rLu2vih55Hfd9SPJvt9z9EglKFhpmvNMSm7kO1lGCd7w2Lo1eHKs85ZsI-R4HKq9Yktj_doUNjiRUG4DyPMK90pMsveZKXQz26HNK2vLCt-iyzIiDVKX4a_8o-6iGdPwEVOYoORe_6q9neDouVZJ3W3mgcG-wFRiFwtHoOmdh4cVHXc_Smr5OgheOFsDzdHhjoJbDW-0WbBM5i1UrDqs_6bjvnb7HHGbzYkan49GotHDvuKhtPVoeTqq8TdUYdG9Oo8HbLqKu6y3IO2xKMzu9oqG0dzZFeBPiU3cqbpIjjIoLEWlX-c4560RN-IyLllU8MyciO6wCjGagrIHdjIUvJS3E_H57O7242naPuDbKOxhSbdLsuh3YtmuPfi5bSt-10tkvbi4IHNg4UZZg6Z1jfW4J-AefSG4fPWPebNBVqOrhVZ8Cz_G2zDjX4WnIMv5VWEh2opm2cw8cWjb8J2EH5TmiznLC1F5HGSiJTtdG5nl5Frsg7qbvIt6-gW6nqHe)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNrFVcFu2zAM_RXCl7VAmgA9-hCga9euQJcNS7tTgEGVaEeNLXkSnSwo-u-jJDtJ03TYgA7zyYbI98j3aOoxk1Zhlmcef7RoJF5oUTpRzwzwIyRZB3ceXfpuhCMtdSMMwaWzhtColyfvhVwcPJhOQHiYWqlFBROklXULCGEzk4J7TDgZj3uYHM5FVYFQaoKrlPvF2UJXCHVLgrQ1cOQ5UJsSfDzvoQUjNc4-oKRv6HShZQy_tK6-VseJ0lhCsEt0W74pEmjTtARKkOBXcKi0j3AlGnSCUwSQ4wQmPWcBX8X6JEIItK6C-zXISqOhazWIiI7ruuODAQyHw4TQ5cFJEKBXI4evDql1JsAcEGo64YgOD1o2C8h2SoDppVDKofcpm32IBMHYHM78YpPlUCiQ1rCeFPutbKk7c0I0bAhvwsFLom5uKoIL7aV13RT0rLu2vih55Hfd9SPJvt9z9EglKFhpmvNMSm7kO1lGCd7w2Lo1eHKs85ZsI-R4HKq9Yktj_doUNjiRUG4DyPMK90pMsveZKXQz26HNK2vLCt-iyzIiDVKX4a_8o-6iGdPwEVOYoORe_6q9neDouVZJ3W3mgcG-wFRiFwtHoOmdh4cVHXc_Smr5OgheOFsDzdHhjoJbDW-0WbBM5i1UrDqs_6bjvnb7HHGbzYkan49GotHDvuKhtPVoeTqq8TdUYdG9Oo8HbLqKu6y3IO2xKMzu9oqG0dzZFeBPiU3cqbpIjjIoLEWlX-c4560RN-IyLllU8MyciO6wCjGagrIHdjIUvJS3E_H57O7242naPuDbKOxhSbdLsuh3YtmuPfi5bSt-10tkvbi4IHNg4UZZg6Z1jfW4J-AefSG4fPWPebNBVqOrhVZ8Cz_G2zDjX4WnIMv5VWEh2opm2cw8cWjb8J2EH5TmiznLC1F5HGSiJTtdG5nl5Frsg7qbvIt6-gW6nqHe)
 
-### Power Snapshot
-
-Impact graph supports ranking projects based on power boosted by users.
-Users who have GIVpower, can boost a project by allocating a portion (percentage) of their GIVpower to that project and after that impact-graph regularly takes snapshot of user GIVpower balance and boost percentages.
-At the end of each givback round (14 days), average of allocated power will be the effective power balance of each project.
-
-Snapshotting mechanism is implemented in by the hlp of database cron job and impact graph support of historic user balance on blockchain.
-
-##### Database Snapshot
-
-Snapshot taking on database is implemented by the help `pg_cron` extension on Postgres database.
-On regular interval (defined by cron job expression), calls a db procedure called public."TAKE_POWER_BOOSTING_SNAPSHOT".
-This procedure creates a new record of power_snapshot and copies power boosting percentages content to another table and associates them to the new power_snapshot record.
-
 ###### Cron Job Creation
 
 Cron job creation for test environment is already implemented in dbCronRepository.ts and a modified docker with enabled `pg_cron` extension.
@@ -303,8 +285,3 @@ SELECT CRON.schedule(
     '*/5 * * * *',
     $$CALL public."ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA"()$$);
 ```
-
-##### User GIVpower balance snapshot
-
-impact-graph monitors power_snapshot table and whenever a new record is created it find corresponding ethereum blockchain block number and fills in the snapshot record.
-Then for every user who has a percentage snapshot, fills balance snapshot table with the user balance at the corresponding block number by the help of impact graph block filter.

@@ -13,13 +13,11 @@ import {
   findAllUsers,
   findUserById,
   findUserByWalletAddress,
-  findUsersWhoBoostedProject,
   findUsersWhoDonatedToProjectExcludeWhoLiked,
   findUsersWhoLikedProjectExcludeProjectOwner,
   findUsersWhoSupportProject,
 } from './userRepository';
 import { Reaction } from '../entities/reaction';
-import { insertSinglePowerBoosting } from './powerBoostingRepository';
 
 describe('sql injection test cases', sqlInjectionTestCases);
 
@@ -39,11 +37,6 @@ describe(
 describe(
   'findUsersWhoLikedProjectExcludeProjectOwner() test cases',
   findUsersWhoLikedProjectTestCases,
-);
-
-describe(
-  'findUsersWhoBoostedProject() testCases',
-  findUsersWhoBoostedProjectTests,
 );
 
 describe(
@@ -106,59 +99,6 @@ function findUsersWhoDonatedToProjectTestCases() {
     );
     assert.isOk(
       users.find(user => user.walletAddress === donor3.walletAddress),
-    );
-  });
-}
-
-function findUsersWhoBoostedProjectTests() {
-  it('should find wallet addresses of who boosted a project', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const secondUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const thirdUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const fourthUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project,
-      percentage: 1,
-    });
-    await insertSinglePowerBoosting({
-      user: secondUser,
-      project,
-      percentage: 2,
-    });
-    await insertSinglePowerBoosting({
-      user: thirdUser,
-      project,
-      percentage: 3,
-    });
-    await insertSinglePowerBoosting({
-      user: fourthUser,
-      project,
-      percentage: 0,
-    });
-
-    const users = await findUsersWhoBoostedProject(project.id);
-    assert.equal(users.length, 3);
-    assert.isOk(
-      users.find(user => user.walletAddress === firstUser.walletAddress),
-    );
-    assert.isOk(
-      users.find(user => user.walletAddress === secondUser.walletAddress),
-    );
-    assert.isOk(
-      users.find(user => user.walletAddress === thirdUser.walletAddress),
-    );
-    assert.isNotOk(
-      users.find(user => user.walletAddress === fourthUser.walletAddress),
     );
   });
 }
@@ -482,7 +422,7 @@ function sqlInjectionTestCases() {
 }
 
 function findUsersWhoSupportProjectTestCases() {
-  it('should find wallet addresses of who donated to a project + who liked + who boosted and not having repetitive items - projectOwner', async () => {
+  it('should find wallet addresses of who donated to a project + who liked and not having repetitive items - projectOwner', async () => {
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );
@@ -541,28 +481,6 @@ function findUsersWhoSupportProjectTestCases() {
       userId: projectOwner.id,
       reaction: 'heart',
     }).save();
-
-    // Add power boostings
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project,
-      percentage: 1,
-    });
-    await insertSinglePowerBoosting({
-      user: secondUser,
-      project,
-      percentage: 2,
-    });
-    await insertSinglePowerBoosting({
-      user: thirdUser,
-      project,
-      percentage: 3,
-    });
-    await insertSinglePowerBoosting({
-      user: fourthUser,
-      project,
-      percentage: 5,
-    });
 
     const users = await findUsersWhoSupportProject(project.id);
     assert.equal(users.length, 7);

@@ -20,28 +20,10 @@ import {
 } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
-import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
-import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
-import { AppDataSource } from '../src/orm';
-import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
-import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
 import { redis } from '../src/redis';
 import { logger } from '../src/utils/logger';
-import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens';
-import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
-import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
 import { ChainType } from '../src/types/network';
 import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
-import { EnablePgTrgmExtension1713859866338 } from '../migration/1713859866338-enable_pg_trgm_extension';
-import { AddPgTrgmIndexes1715086559930 } from '../migration/1715086559930-add_pg_trgm_indexes';
-import { ProjectPowerViewV21717643739652 } from '../migration/1717643739652-ProjectPowerView_V2';
-import { ProjectEstimatedMatchingViewV21717646357435 } from '../migration/1717646357435-ProjectEstimatedMatchingView_V2';
-import { ProjectActualMatchingViewV161717646612482 } from '../migration/1717646612482-ProjectActualMatchingView_V16';
-import { LastSnapshotProjectPowerViewV21717648491606 } from '../migration/1717648491606-LastSnapshotProjectPowerView_V2';
-import { ProjectFuturePowerViewV21717643016553 } from '../migration/1717643016553-ProjectFuturePowerView_V2';
-import { ProjectUserInstantPowerViewV21717644442966 } from '../migration/1717644442966-ProjectUserInstantPowerView_V2';
-import { ProjectInstantPowerViewV21717648653115 } from '../migration/1717648653115-ProjectInstantPowerView_V2';
-import { UserProjectPowerViewV21717645768886 } from '../migration/1717645768886-UserProjectPowerView_V2';
 
 async function seedDb() {
   await seedUsers();
@@ -523,46 +505,12 @@ async function seedStatusReasons() {
   }
 }
 
-async function runMigrations() {
-  const queryRunner = AppDataSource.getDataSource().createQueryRunner();
-  await queryRunner.connect();
-
-  try {
-    await new UserProjectPowerViewV21717645768886().up(queryRunner);
-    await new ProjectPowerViewV21717643739652().up(queryRunner);
-    await new LastSnapshotProjectPowerViewV21717648491606().up(queryRunner);
-    await new ProjectFuturePowerViewV21717643016553().up(queryRunner);
-    await new TakePowerBoostingSnapshotProcedure1663594895751().up(queryRunner);
-    await new createGivPowerHistoricTablesProcedure1670429143091().up(
-      queryRunner,
-    );
-    await new createOrganisatioTokenTable1646302349926().up(queryRunner);
-    await new ProjectInstantPowerViewV21717648653115().up(queryRunner);
-    await new ProjectEstimatedMatchingViewV21717646357435().up(queryRunner);
-    await new ProjectUserInstantPowerViewV21717644442966().up(queryRunner);
-    await new TakePowerBoostingSnapshotProcedureSecondVersion1690723242749().up(
-      queryRunner,
-    );
-    await new addIsStableCoinFieldToTokenTable1696421249293().up(queryRunner);
-    await new addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387().up(
-      queryRunner,
-    );
-    await new createDonationethUser1701756190381().up(queryRunner);
-    await new ProjectActualMatchingViewV161717646612482().up(queryRunner);
-    await new EnablePgTrgmExtension1713859866338().up(queryRunner);
-    await new AddPgTrgmIndexes1715086559930().up(queryRunner);
-  } finally {
-    await queryRunner.release();
-  }
-}
-
 before(async () => {
   try {
     logger.debug('Clear Redis: ', await redis.flushall());
 
     await bootstrap();
     await seedDb();
-    await runMigrations();
   } catch (e) {
     throw new Error(`Could not setup tests requirements \n${e.message}`);
   }

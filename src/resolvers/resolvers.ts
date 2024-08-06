@@ -8,10 +8,7 @@ import { ReactionResolver } from './reactionResolver';
 import { StatusReasonResolver } from './statusReasonResolver';
 import { ProjectVerificationFormResolver } from './projectVerificationFormResolver';
 import { SocialProfilesResolver } from './socialProfilesResolver';
-import { PowerBoostingResolver } from './powerBoostingResolver';
 import { UserProjectPowerResolver } from './userProjectPowerResolver';
-import { GivPowerTestingResolver } from './givPowerTestingResolver';
-import { ProjectPowerResolver } from './projectPowerResolver';
 import { CampaignResolver } from './campaignResolver';
 import { ChainvineResolver } from './chainvineResolver';
 import { QfRoundResolver } from './qfRoundResolver';
@@ -38,10 +35,7 @@ export const getResolvers = (): Function[] => {
     ReactionResolver,
     ProjectVerificationFormResolver,
     SocialProfilesResolver,
-    PowerBoostingResolver,
     UserProjectPowerResolver,
-    ProjectPowerResolver,
-    GivPowerTestingResolver,
     ProjectUserInstantPowerViewResolver,
 
     CampaignResolver,

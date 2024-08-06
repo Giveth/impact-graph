@@ -15,29 +15,12 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { SocialProfile } from './socialProfile';
 import { MainCategory } from './mainCategory';
-import { PowerBoosting } from './powerBoosting';
-import { UserProjectPowerView } from '../views/userProjectPowerView';
-import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView';
-import { PowerRound } from './powerRound';
-import { ProjectPowerView } from '../views/projectPowerView';
-import { PowerSnapshot } from './powerSnapshot';
-import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
-import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
-import { PowerSnapshotHistory } from './powerSnapshotHistory';
-import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
-import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
-import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
 import { User } from './user';
 import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
 import BroadcastNotification from './broadcastNotification';
 import { FeaturedUpdate } from './featuredUpdate';
 import { Campaign } from './campaign';
-import { PreviousRoundRank } from './previousRoundRank';
-import { InstantPowerBalance } from './instantPowerBalance';
-import { InstantPowerFetchState } from './instantPowerFetchState';
-import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { QfRound } from './qfRound';
 import { ReferredEvent } from './referredEvent';
 import { QfRoundHistory } from './qfRoundHistory';
@@ -80,34 +63,14 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectSocialMedia,
     SocialProfile,
     MainCategory,
-    PowerBoosting,
-    PowerRound,
-    PowerSnapshot,
-    PowerBalanceSnapshot,
-    PowerBoostingSnapshot,
 
-    // View
-    UserProjectPowerView,
-    ProjectPowerView,
-    ProjectFuturePowerView,
-    LastSnapshotProjectPowerView,
-    ProjectInstantPowerView,
-    ProjectUserInstantPowerView,
     ProjectEstimatedMatchingView,
     ProjectActualMatchingView,
 
     // historic snapshots
-    PowerSnapshotHistory,
-    PowerBalanceSnapshotHistory,
-    PowerBoostingSnapshotHistory,
     BroadcastNotification,
 
     Campaign,
-
-    PreviousRoundRank,
-
-    InstantPowerBalance,
-    InstantPowerFetchState,
 
     QfRound,
     QfRoundHistory,
