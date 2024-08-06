@@ -2,6 +2,7 @@ import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
   OrttoPerson,
+  ProjectOwnershipChangedParams,
   ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
@@ -263,6 +264,15 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
 
   projectsHaveNewRank(params: ProjectsHaveNewRankingInputParam): Promise<void> {
     logger.debug('MockNotificationAdapter projectHasNewRank', {
+      params,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  notifyProjectOwnershipChange(
+    params: ProjectOwnershipChangedParams,
+  ): Promise<void> {
+    logger.debug('MockNotificationAdapter notifyProjectOwnershipChange', {
       params,
     });
     return Promise.resolve(undefined);
