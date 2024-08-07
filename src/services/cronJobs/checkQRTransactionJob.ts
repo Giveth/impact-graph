@@ -12,8 +12,12 @@ import { findProjectById } from '../../repositories/projectRepository';
 import { updateDraftDonationStatus } from '../../repositories/draftDonationRepository';
 import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter';
 
-const STELLAR_HORIZON_API = (config.get('STELLAR_HORIZON_API_URL') as string) || 'https://horizon.stellar.org';
-const cronJobTime = (config.get('CHECK_QR_TRANSACTIONS_CRONJOB_EXPRESSION') as string) || '0 */3 * * * *';
+const STELLAR_HORIZON_API =
+  (config.get('STELLAR_HORIZON_API_URL') as string) ||
+  'https://horizon.stellar.org';
+const cronJobTime =
+  (config.get('CHECK_QR_TRANSACTIONS_CRONJOB_EXPRESSION') as string) ||
+  '0 */3 * * * *';
 
 async function getPendingDraftDonations() {
   return await DraftDonation.createQueryBuilder('draftDonation')
