@@ -100,7 +100,6 @@ import { findCampaignBySlug } from '../repositories/campaignRepository';
 import { Campaign } from '../entities/campaign';
 import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
-import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
