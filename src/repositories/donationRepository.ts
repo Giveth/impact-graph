@@ -83,59 +83,54 @@ export const createDonation = async (data: {
   status?: string;
   isQRDonation?: boolean;
   toWalletMemo?: string;
-}): Promise<Donation | undefined> => {
-  try {
-    const {
-      amount,
-      transactionId,
-      transactionNetworkId,
-      donorUser,
-      tokenAddress,
-      project,
-      isTokenEligibleForGivback,
-      isProjectVerified,
-      donationAnonymous,
-      toWalletAddress,
-      fromWalletAddress,
-      transakId,
-      token,
-      chainType,
-      valueUsd,
-      priceUsd,
-      status,
-      isQRDonation,
-      toWalletMemo,
-    } = data;
+}): Promise<Donation> => {
+  const {
+    amount,
+    transactionId,
+    transactionNetworkId,
+    donorUser,
+    tokenAddress,
+    project,
+    isTokenEligibleForGivback,
+    isProjectVerified,
+    donationAnonymous,
+    toWalletAddress,
+    fromWalletAddress,
+    transakId,
+    token,
+    chainType,
+    valueUsd,
+    priceUsd,
+    status,
+    isQRDonation,
+    toWalletMemo,
+  } = data;
 
-    const donation = await Donation.create({
-      amount: Number(amount),
-      transactionId: transactionId?.toLowerCase() || transakId,
-      isFiat: Boolean(transakId),
-      transactionNetworkId: Number(transactionNetworkId),
-      currency: token,
-      user: donorUser,
-      tokenAddress,
-      project,
-      isTokenEligibleForGivback,
-      isProjectVerified,
-      createdAt: new Date(),
-      segmentNotified: true,
-      toWalletAddress,
-      fromWalletAddress,
-      anonymous: donationAnonymous,
-      chainType,
-      valueUsd,
-      priceUsd,
-      status,
-      isQRDonation,
-      toWalletMemo,
-    }).save();
+  const donation = await Donation.create({
+    amount: Number(amount),
+    transactionId: transactionId?.toLowerCase() || transakId,
+    isFiat: Boolean(transakId),
+    transactionNetworkId: Number(transactionNetworkId),
+    currency: token,
+    user: donorUser,
+    tokenAddress,
+    project,
+    isTokenEligibleForGivback,
+    isProjectVerified,
+    createdAt: new Date(),
+    segmentNotified: true,
+    toWalletAddress,
+    fromWalletAddress,
+    anonymous: donationAnonymous,
+    chainType,
+    valueUsd,
+    priceUsd,
+    status,
+    isQRDonation,
+    toWalletMemo,
+  }).save();
 
-    return donation;
-  } catch (err) {
-    logger.error('Error creating donation', err);
-    return;
-  }
+  return donation;
 };
 
 export const findDonationsByTransactionId = async (
