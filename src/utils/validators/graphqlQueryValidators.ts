@@ -131,7 +131,7 @@ export const createDraftDonationQueryValidator = Joi.object({
     .required()
     .valid(...Object.values(NETWORK_IDS)),
   tokenAddress: Joi.when('chainType', {
-    is: Joi.alternatives().try(
+    switch: [
       {
         is: ChainType.SOLANA,
         then: Joi.string().pattern(solanaProgramIdRegex),
@@ -144,7 +144,7 @@ export const createDraftDonationQueryValidator = Joi.object({
         is: ChainType.EVM,
         then: Joi.string().pattern(ethereumWalletAddressRegex),
       },
-    ),
+    ],
   }).messages({
     'string.pattern.base': i18n.__(
       translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
