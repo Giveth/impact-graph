@@ -91,7 +91,7 @@ export class DraftDonationResolver {
 
       const chainType = isQRDonation
         ? detectAddressChainType(toAddress)
-        : detectAddressChainType(donorUser?.walletAddress!);
+        : detectAddressChainType(donorUser?.walletAddress ?? '');
 
       const _networkId = getAppropriateNetworkId({
         networkId,
