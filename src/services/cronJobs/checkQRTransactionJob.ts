@@ -11,6 +11,9 @@ import {
 import { findProjectById } from '../../repositories/projectRepository';
 import { updateDraftDonationStatus } from '../../repositories/draftDonationRepository';
 import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter';
+import { findUserById } from '../../repositories/userRepository';
+import { relatedActiveQfRoundForProject } from '../qfRoundService';
+import { QfRound } from '../../entities/qfRound';
 
 const STELLAR_HORIZON_API =
   (config.get('STELLAR_HORIZON_API_URL') as string) ||
@@ -64,27 +67,47 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
           return;
         }
 
+        // Check if donation already exists
         const existingDonation = await findDonationsByTransactionId(
           transaction.transaction_hash?.toLowerCase(),
         );
         if (existingDonation) return;
 
+        // Retrieve token object
         const token = await getToken('STELLAR', 'XLM');
         if (!token) {
           logger.debug('Token not found for donation ID', donation.id);
           return;
         }
 
+        // Retrieve project object
         const project = await findProjectById(donation.projectId);
         if (!project) {
           logger.debug(`Project not found for donation ID ${donation.id}`);
           return;
         }
 
+        // Get token price
         const tokenPrice = await new CoingeckoPriceAdapter().getTokenPrice({
           symbol: token.coingeckoId,
           networkId: token.networkId,
         });
+
+        // Retrieve donor object
+        const donor = await findUserById(donation.userId);
+
+        // Check if there is an active QF round for the project and check if the token is eligible for the network
+        const activeQfRoundForProject = await relatedActiveQfRoundForProject(
+          project.id,
+        );
+
+        let qfRound: QfRound | undefined;
+        if (
+          activeQfRoundForProject &&
+          activeQfRoundForProject.isEligibleNetwork(token.networkId)
+        ) {
+          qfRound = activeQfRoundForProject;
+        }
 
         const returnedDonation = await createDonation({
           amount: donation.amount,
@@ -94,7 +117,7 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
           transactionId: transaction.transaction_hash,
           tokenAddress: donation.tokenAddress,
           isProjectVerified: project.verified,
-          donorUser: donation.userId,
+          donorUser: donor,
           isTokenEligibleForGivback: token.isGivbackEligible,
           segmentNotified: false,
           toWalletAddress: donation.toWalletAddress,
@@ -106,6 +129,8 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
           status: transaction.transaction_successful ? 'verified' : 'failed',
           isQRDonation: true,
           toWalletMemo,
+          qfRound,
+          chainType: token.chainType,
         });
 
         if (!returnedDonation) {
@@ -115,6 +140,7 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
           return;
         }
 
+        // Update draft donation status to matched and add matched donation ID with source address
         await updateDraftDonationStatus({
           donationId: donation.id,
           status: transaction.transaction_successful ? 'matched' : 'failed',

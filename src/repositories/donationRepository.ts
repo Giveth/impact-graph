@@ -83,6 +83,7 @@ export const createDonation = async (data: {
   status?: string;
   isQRDonation?: boolean;
   toWalletMemo?: string;
+  qfRound?: QfRound;
 }): Promise<Donation> => {
   const {
     amount,
@@ -104,6 +105,7 @@ export const createDonation = async (data: {
     status,
     isQRDonation,
     toWalletMemo,
+    qfRound,
   } = data;
 
   const donation = await Donation.create({
@@ -128,6 +130,7 @@ export const createDonation = async (data: {
     status,
     isQRDonation,
     toWalletMemo,
+    qfRound,
   }).save();
 
   return donation;
