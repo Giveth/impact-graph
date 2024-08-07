@@ -66,6 +66,7 @@ import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStr
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
 import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
+import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
 
 Resource.validate = validate;
 
@@ -420,6 +421,8 @@ export async function bootstrap() {
       'initializeCronJobs() after runUpdateProjectCampaignsCacheJob() ',
       new Date(),
     );
+
+    runCheckQRTransactionJob();
   }
 
   async function performPostStartTasks() {

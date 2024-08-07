@@ -28,6 +28,9 @@ export const NETWORK_IDS = {
   ZKEVM_MAINNET: 1101,
   ZKEVM_CARDONA: 2442,
 
+  STELLAR_MAINNET: 1500,
+  STELLAR_TESTNET: 1501,
+
   // https://docs.particle.network/developers/other-services/node-service/solana-api
   SOLANA_MAINNET: 101,
   SOLANA_TESTNET: 102,
@@ -166,6 +169,9 @@ const NETWORK_NAMES = {
 
   ZKEVM_CARDONA: 'ZKEVM Cardona',
   ZKEVM_MAINNET: 'ZKEVM Mainnet',
+
+  STELLAR_MAINNET: 'Stellar Mainnet',
+  STELLAR_TESTNET: 'Stellar Testnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -187,6 +193,8 @@ const NETWORK_NATIVE_TOKENS = {
   BASE_SEPOLIA: 'ETH',
   ZKEVM_MAINNET: 'ETH',
   ZKEVM_CARDONA: 'ETH',
+  STELLAR_MAINNET: 'XLM',
+  STELLAR_TESTNET: 'XLM',
 };
 
 const networkNativeTokensList = [
@@ -279,6 +287,16 @@ const networkNativeTokensList = [
     networkName: NETWORK_NAMES.ZKEVM_CARDONA,
     networkId: NETWORK_IDS.ZKEVM_CARDONA,
     nativeToken: NETWORK_NATIVE_TOKENS.ZKEVM_CARDONA,
+  },
+  {
+    networkName: NETWORK_NAMES.STELLAR_MAINNET,
+    networkId: NETWORK_IDS.STELLAR_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.STELLAR_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.STELLAR_TESTNET,
+    networkId: NETWORK_IDS.STELLAR_TESTNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.STELLAR_TESTNET,
   },
 ];
 
@@ -386,6 +404,14 @@ export function getProvider(networkId: number) {
       url = process.env.ZKEVM_CARDONA_NODE_HTTP_URL as string;
       break;
 
+    case NETWORK_IDS.STELLAR_MAINNET:
+      url = process.env.STELLAR_MAINNET_NODE_HTTP_URL as string;
+      break;
+
+    case NETWORK_IDS.STELLAR_TESTNET:
+      url = process.env.STELLAR_TESTNET_NODE_HTTP_URL as string;
+      break;
+
     default: {
       // Use infura
       const connectionInfo = ethers.providers.InfuraProvider.getUrl(
@@ -480,6 +506,14 @@ export function getBlockExplorerApiUrl(networkId: number): string {
     case NETWORK_IDS.ZKEVM_CARDONA:
       apiUrl = config.get('ZKEVM_CARDONA_SCAN_API_URL');
       apiKey = config.get('ZKEVM_CARDONA_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.STELLAR_MAINNET:
+      apiUrl = config.get('STELLAR_MAINNET_SCAN_API_URL');
+      apiKey = config.get('STELLAR_MAINNET_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.STELLAR_TESTNET:
+      apiUrl = config.get('STELLAR_TESTNET_SCAN_API_URL');
+      apiKey = config.get('STELLAR_TESTNET_SCAN_API_KEY');
       break;
     default:
       logger.error(

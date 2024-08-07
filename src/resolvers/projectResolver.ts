@@ -1183,6 +1183,7 @@ export class ProjectResolver {
             user: adminUser,
             address: relatedAddress.address,
             chainType: relatedAddress.chainType,
+            memo: relatedAddress.memo,
 
             // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
             networkId: getAppropriateNetworkId({
@@ -1463,7 +1464,7 @@ export class ProjectResolver {
     // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
       projectInput?.addresses.map(relatedAddress => {
-        const { networkId, address, chainType } = relatedAddress;
+        const { networkId, address, chainType, memo } = relatedAddress;
         return {
           project,
           user,
@@ -1475,6 +1476,7 @@ export class ProjectResolver {
             chainType,
           }),
           isRecipient: true,
+          memo,
         };
       }),
     );
@@ -2195,6 +2197,25 @@ export class ProjectResolver {
       logger.error('projectResolver.activateProject() error', error);
       SentryLogger.captureException(error);
       throw error;
+    }
+  }
+
+  @Query(_returns => Token)
+  async getTokensDetails(
+    @Arg('address') address: string,
+    @Arg('networkId') networkId: number,
+  ): Promise<Token> {
+    try {
+      const token = await Token.findOne({
+        where: { address, networkId },
+      });
+      if (!token) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
+      }
+      return token;
+    } catch (e) {
+      logger.error('getTokensDetails error', e);
+      throw e;
     }
   }
 }
