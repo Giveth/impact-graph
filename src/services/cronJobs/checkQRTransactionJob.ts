@@ -98,7 +98,7 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
           isTokenEligibleForGivback: token.isGivbackEligible,
           segmentNotified: false,
           toWalletAddress: donation.toWalletAddress,
-          donationAnonymous: donation.userId ? false : true,
+          donationAnonymous: !donation.userId,
           transakId: '',
           token: donation.currency,
           valueUsd: donation.amount * tokenPrice,

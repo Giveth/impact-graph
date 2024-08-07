@@ -21,7 +21,7 @@ export const DRAFT_DONATION_STATUS = {
 @Index(
   ['fromWalletAddress', 'toWalletAddress', 'networkId', 'amount', 'currency'],
   {
-    where: `status = '${DRAFT_DONATION_STATUS.PENDING}' AND isQRDonation = false`,
+    where: `status = '${DRAFT_DONATION_STATUS.PENDING}' AND "isQRDonation" = false`,
     unique: true,
   },
 )
