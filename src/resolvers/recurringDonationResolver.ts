@@ -501,6 +501,52 @@ export class RecurringDonationResolver {
     };
   }
 
+  @Query(_retuns => PaginateRecurringDonations, { nullable: true })
+  async recurringDonationsByDate(
+    @Ctx() _ctx: ApolloContext,
+    @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
+    @Arg('startDate', { nullable: true }) startDate?: string,
+    @Arg('endDate', { nullable: true }) endDate?: string,
+  ) {
+    const project = await findProjectById(projectId);
+    if (!project) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+
+    const query = RecurringDonation.createQueryBuilder('recurringDonation')
+      .leftJoin('recurringDonation.donor', 'donor')
+      .addSelect([
+        'donor.id',
+        'donor.walletAddress',
+        'donor.name',
+        'donor.firstName',
+        'donor.lastName',
+        'donor.url',
+        'donor.avatar',
+        'donor.totalDonated',
+        'donor.totalReceived',
+        'donor.passportScore',
+        'donor.passportStamps',
+      ])
+      .where(`recurringDonation.projectId = ${projectId}`);
+    if (startDate) {
+      query.andWhere('recurringDonation.createdAt >= :startDate', {
+        startDate: new Date(startDate),
+      });
+    }
+
+    if (endDate) {
+      query.andWhere('recurringDonation.createdAt <= :endDate', {
+        endDate: new Date(endDate),
+      });
+    }
+
+    const [recurringDonations, donationsCount] = await query.getManyAndCount();
+    return {
+      recurringDonations,
+      totalCount: donationsCount,
+    };
+  }
   @Query(_returns => UserRecurringDonations, { nullable: true })
   async recurringDonationsByUserId(
     @Args()
