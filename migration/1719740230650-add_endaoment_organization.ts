@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { ORGANIZATION_LABELS } from '../../src/entities/organization';
-import { NETWORK_IDS } from '../../src/provider';
+import { ORGANIZATION_LABELS } from '../src/entities/organization';
+import { NETWORK_IDS } from '../src/provider';
 
 export class AddEndaomentOrganization1719740230650
   implements MigrationInterface

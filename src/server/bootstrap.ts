@@ -1,4 +1,5 @@
 // @ts-check
+import path from 'path';
 import http from 'http';
 import { rateLimit } from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
@@ -180,6 +181,13 @@ export async function bootstrap() {
     const app = express();
     const bodyParserJson = bodyParser.json({
       limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
+    });
+
+    // To download email addresses of projects in AdminJS projects tab
+    app.get('/admin/download/:filename', (req, res) => {
+      const filename = req.params.filename;
+      const filePath = path.join(__dirname, '/adminJs/tabs/exports', filename);
+      res.download(filePath);
     });
 
     app.use(setI18nLocaleForRequest); // accept-language header
