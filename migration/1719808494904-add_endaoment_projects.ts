@@ -10,6 +10,46 @@ import {
 
 export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const imageCategoryMapping = {
+      'Public Goods': 'community',
+      'Peace & Justice': 'community',
+      'Sustainable Cities & Communities': 'nature',
+      Housing: 'community',
+      'Social Services': 'community',
+      'Family & Children': 'community',
+      'Health Care': 'community',
+      'Registered Non-profits': 'non-profit',
+      Research: 'education',
+      'Mental Health': 'health-wellness',
+      Animals: 'nature',
+      Nutrition: 'health-wellness',
+      Religious: 'community',
+      Art: 'art-culture',
+      Food: 'health-wellness',
+      'Disaster Relief': 'non-profit',
+      'Conservation & Biodiversity': 'nature',
+      Education: 'education',
+      'Industry & Innovation': 'economics-infrastructure',
+      'Financial Services': 'finance',
+      Schooling: 'education',
+      Inclusion: 'equality',
+      Climate: 'nature',
+      'Water & Sanitation': 'community',
+      Tech: 'technology',
+      Employment: 'finance',
+      Infrastructure: 'economics-infrastructure',
+      'International Aid': 'non-profit',
+      Other: '1',
+      Recreation: 'community',
+      culture: 'art-culture',
+      Recycling: 'nature',
+      Agriculture: 'nature',
+      Grassroots: 'community',
+      'BIPOC Communities': 'equality',
+      Fundraising: 'non-profit',
+      'Registred Non-profits': 'non-profit',
+      'Gender Equality': 'equality',
+    };
     // Insert the Endaoment organization if it doesn't exist
     await queryRunner.query(`
       INSERT INTO "organization" ("name", "disableNotifications", "disableRecurringDonations", "disableUpdateEnforcement", "label", "website", "supportCustomTokens")
@@ -53,6 +93,24 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
       // const slug = await getAppropriateSlug(slugBase)
       const slug = slugBase;
 
+      // Insert the project-category relationship in a single query
+      const getCategoryNames = (nteeCode: string): string[] => {
+        const mapping = endaomentProjectCategoryMapping.find(
+          category => category.nteeCode === nteeCode,
+        );
+        return mapping
+          ? [
+              mapping.category1,
+              mapping.category2,
+              mapping.category3,
+              mapping.category4,
+            ].filter(Boolean)
+          : [];
+      };
+      const categoryNames = getCategoryNames(String(project.nteeCode));
+
+      const bannerImage = `/images/defaultProjectImages/${imageCategoryMapping[categoryNames[1]] || '1'}.png`;
+
       // Insert the project
       await queryRunner.query(`
           INSERT INTO "project" (
@@ -66,7 +124,7 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
             '${project.mainnetAddress || ''}',
             NOW(),
             '${slug}',
-            '/images/defaultProjectImages/1.png', -- Default image
+            '${bannerImage}',
             '{}', -- Empty slug history
             5, -- statusId 5 is 'Active'
             0,
@@ -92,22 +150,6 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
         // It means we have project with same slug so the creation has failed
         continue;
       }
-
-      // Insert the project-category relationship in a single query
-      const getCategoryNames = (nteeCode: string): string[] => {
-        const mapping = endaomentProjectCategoryMapping.find(
-          category => category.nteeCode === nteeCode,
-        );
-        return mapping
-          ? [
-              mapping.category1,
-              mapping.category2,
-              mapping.category3,
-              mapping.category4,
-            ].filter(Boolean)
-          : [];
-      };
-      const categoryNames = getCategoryNames(String(project.nteeCode));
 
       for (const categoryName of categoryNames) {
         const categoryIdResult = await queryRunner.query(`
