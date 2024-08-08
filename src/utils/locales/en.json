@@ -104,10 +104,6 @@
 	"There is not anchor address for this project": "There is not anchor address for this project",
 	"DRAFT_DONATION_DISABLED": "Draft donation is disabled",
 	"EVM_SUPPORT_ONLY": "Only EVM support",
-	"Recurring donation not found": "Recurring donation not found",
-	"Recurring donation not found.": "Recurring donation not found.",
 	"INVALID_PROJECT_ID": "INVALID_PROJECT_ID",
-	"TX_NOT_FOUND": "TX_NOT_FOUND",
-	"PROJECT_DOESNT_ACCEPT_RECURRING_DONATION": "PROJECT_DOESNT_ACCEPT_RECURRING_DONATION",
-	"Project does not accept recurring donation": "Project does not accept recurring donation"
+	"TX_NOT_FOUND": "TX_NOT_FOUND"
 }

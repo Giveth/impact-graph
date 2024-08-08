@@ -56,10 +56,7 @@ import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updatePr
 import { corsOptions } from './cors';
 import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
 import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
-import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
-import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
-import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
 
 Resource.validate = validate;
 
@@ -325,10 +322,8 @@ export async function bootstrap() {
   async function initializeCronJobs() {
     logger.debug('initializeCronJobs() has been called', new Date());
     runCheckPendingDonationsCronJob();
-    runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
     }
@@ -350,15 +345,6 @@ export async function bootstrap() {
       runDraftDonationMatchWorkerJob();
     }
 
-    if (process.env.ENABLE_DRAFT_RECURRING_DONATION === 'true') {
-      // TODO now disabling this field would break the recurring donation feature so I commented because otherwise draftDonation worker pool woud not work
-      // runDraftRecurringDonationMatchWorkerJob();
-    }
-
-    if (process.env.ENABLE_UPDATE_RECURRING_DONATION_STREAM === 'true') {
-      runUpdateRecurringDonationStream();
-      runCheckUserSuperTokenBalancesJob();
-    }
     logger.debug(
       'initializeCronJobs() before runCheckActiveStatusOfQfRounds() ',
       new Date(),

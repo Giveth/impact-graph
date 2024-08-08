@@ -13,7 +13,6 @@ import { ChainvineResolver } from './chainvineResolver';
 import { QfRoundResolver } from './qfRoundResolver';
 import { QfRoundHistoryResolver } from './qfRoundHistoryResolver';
 import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
-import { RecurringDonationResolver } from './recurringDonationResolver';
 import { DraftDonationResolver } from './draftDonationResolver';
 import { OnboardingFormResolver } from './onboardingFormResolver';
 
@@ -39,7 +38,6 @@ export const getResolvers = (): Function[] => {
     QfRoundHistoryResolver,
 
     AnchorContractAddressResolver,
-    RecurringDonationResolver,
     OnboardingFormResolver,
   ];
 };

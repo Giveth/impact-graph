@@ -103,12 +103,9 @@ export const errorMessages = {
     'There is already an anchor address for this project',
   THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
     'There is not anchor address for this project',
-  PROJECT_DOESNT_HAVE_ANY_ADDRESS_ON_THIS_NETWORK_FOR_RECURRING_DONATION:
-    'Project doesnt have any address on this network for recurring donation',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
   PROJECT_IS_NOT_ACTIVE: 'Project is not active.',
-  RECURRING_DONATION_NOT_FOUND: 'Recurring donation not found.',
   INVALID_FUNCTION: 'Invalid function name of transaction',
   PROJECT_UPDATE_NOT_FOUND: 'Project update not found.',
   DONATION_NOT_FOUND: 'donation not found',
@@ -185,8 +182,6 @@ export const errorMessages = {
   TX_NOT_FOUND: 'Transaction not found',
   INVALID_PROJECT_ID: 'Invalid project id',
   INVALID_PROJECT_OWNER: 'Project owner is invalid',
-  PROJECT_DOESNT_ACCEPT_RECURRING_DONATION:
-    'Project does not accept recurring donation',
 };
 
 export const translationErrorMessagesKeys = {
@@ -265,17 +260,12 @@ export const translationErrorMessagesKeys = {
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT',
   PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
-  PROJECT_DOESNT_ACCEPT_RECURRING_DONATION:
-    'Project does not accept recurring donation',
-  RECURRING_DONATION_NOT_FOUND: 'Recurring donation not found.',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
   THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
     'There is already an anchor address for this project',
   THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
     'There is not anchor address for this project',
-  PROJECT_DOESNT_HAVE_ANY_ADDRESS_ON_THIS_NETWORK_FOR_RECURRING_DONATION:
-    'Project doesnt have any address on this network for recurring donation',
   PROJECT_IS_NOT_ACTIVE: 'PROJECT_IS_NOT_ACTIVE',
   INVALID_FUNCTION: 'INVALID_FUNCTION',
   PROJECT_UPDATE_NOT_FOUND: 'PROJECT_UPDATE_NOT_FOUND',
@@ -340,6 +330,5 @@ export const translationErrorMessagesKeys = {
   PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED:
     'PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED',
   DRAFT_DONATION_DISABLED: 'DRAFT_DONATION_DISABLED',
-  DRAFT_RECURRING_DONATION_DISABLED: 'DRAFT_RECURRING_DONATION_DISABLED',
   EVM_SUPPORT_ONLY: 'EVM_SUPPORT_ONLY',
 };

@@ -22,10 +22,6 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
-import { RecurringDonation } from '../../entities/recurringDonation';
-import { getTokenPrice } from '../../services/priceService';
-import { Token } from '../../entities/token';
-import { toFixNumber } from '../../services/donationService';
 import { findOrganizationById } from '../../repositories/organizationRepository';
 
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
@@ -123,7 +119,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       metadata: {
         ...payload,
         networkName,
-        recurringDonationTab: `${process.env.WEBSITE_URL}/account?tab=recurring-donations`,
       },
       segment: {
         payload,
@@ -213,44 +208,21 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async donationReceived(params: {
-    donation: Donation | RecurringDonation;
+    donation: Donation;
     project: Project;
     user: User | null;
   }): Promise<void> {
     const { project, donation, user } = params;
-    const isRecurringDonation = donation instanceof RecurringDonation;
-    let transactionId: string, transactionNetworkId: number;
-    if (isRecurringDonation) {
-      transactionId = donation.txHash;
-      transactionNetworkId = donation.networkId;
-      const token = await Token.findOneBy({
-        symbol: donation.currency,
-        networkId: transactionNetworkId,
-      });
-      const amount =
-        (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
-      const price = await getTokenPrice(transactionNetworkId, token!);
-      const donationValueUsd = toFixNumber(amount * price, 4);
-      logger.debug('donationReceived (recurring) has been called', {
-        params,
-        amount,
-        price,
-        donationValueUsd,
-        token,
-      });
-      if (donationValueUsd <= 5) return;
-    } else {
-      transactionId = donation.transactionId;
-      transactionNetworkId = donation.transactionNetworkId;
-      const donationValueUsd = donation.valueUsd;
-      logger.debug('donationReceived has been called', {
-        params,
-        transactionId,
-        transactionNetworkId,
-        donationValueUsd,
-      });
-      if (donationValueUsd <= 1) return;
-    }
+    const transactionId = donation.transactionId;
+    const transactionNetworkId = donation.transactionNetworkId;
+    const donationValueUsd = donation.valueUsd;
+    logger.debug('donationReceived has been called', {
+      params,
+      transactionId,
+      transactionNetworkId,
+      donationValueUsd,
+    });
+    if (donationValueUsd <= 1) return;
 
     await sendProjectRelatedNotificationsQueue.add({
       project,
@@ -268,12 +240,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         }),
       },
       trackId:
-        'donation-received-' +
-        transactionNetworkId +
-        '-' +
-        transactionId +
-        '-' +
-        isRecurringDonation,
+        'donation-received-' + transactionNetworkId + '-' + transactionId,
     });
   }
 
@@ -957,35 +924,16 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 const getEmailDataDonationAttributes = async (params: {
   user: User;
   project: Project;
-  donation: Donation | RecurringDonation;
+  donation: Donation;
 }) => {
   const { user, project, donation } = params;
-  const isRecurringDonation = donation instanceof RecurringDonation;
-  let amount: number,
-    transactionId: string,
-    transactionNetworkId: number,
-    toWalletAddress: string | undefined,
-    donationValueUsd: number | undefined,
-    donationValueEth: number | undefined,
-    transakStatus: string | undefined;
-  if (isRecurringDonation) {
-    transactionId = donation.txHash;
-    transactionNetworkId = donation.networkId;
-    const token = await Token.findOneBy({
-      symbol: donation.currency,
-      networkId: transactionNetworkId,
-    });
-    amount =
-      (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
-  } else {
-    amount = Number(donation.amount);
-    transactionId = donation.transactionId;
-    transactionNetworkId = donation.transactionNetworkId;
-    toWalletAddress = donation.toWalletAddress.toLowerCase();
-    donationValueUsd = donation.valueUsd;
-    donationValueEth = donation.valueEth;
-    transakStatus = donation.transakStatus;
-  }
+  const amount = Number(donation.amount);
+  const transactionId = donation.transactionId;
+  const transactionNetworkId = donation.transactionNetworkId;
+  const toWalletAddress = donation.toWalletAddress.toLowerCase();
+  const donationValueUsd = donation.valueUsd;
+  const donationValueEth = donation.valueEth;
+  const transakStatus = donation.transakStatus;
   return {
     email: user.email,
     title: project.title,
@@ -994,7 +942,6 @@ const getEmailDataDonationAttributes = async (params: {
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     amount,
-    isRecurringDonation,
     token: donation.currency,
     transactionId: transactionId.toLowerCase(),
     transactionNetworkId: Number(transactionNetworkId),

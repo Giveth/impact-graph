@@ -52,9 +52,6 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
-import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
-import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -647,74 +644,6 @@ function donationsTestCases() {
     assert.equal(
       donationsResponse.data.data.donations.length,
       allDonationsCount,
-    );
-  });
-  it.skip('should get result with recurring donations joined (for streamed mini donations)', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const anchorAddress = generateRandomEtheriumAddress();
-
-    const anchorContractAddress = await addNewAnchorAddress({
-      project,
-      owner: user,
-      creator: user,
-      address: anchorAddress,
-      networkId: NETWORK_IDS.OPTIMISTIC,
-      txHash: generateRandomEvmTxHash(),
-    });
-    const currency = 'USD';
-
-    const recurringDonation = await createNewRecurringDonation({
-      txHash: generateRandomEvmTxHash(),
-      networkId: NETWORK_IDS.OPTIMISTIC,
-      donor: user,
-      anchorContractAddress,
-      flowRate: '100',
-      currency,
-      project,
-      anonymous: false,
-      isBatch: false,
-      totalUsdStreamed: 1,
-    });
-    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
-    await recurringDonation.save();
-    const donation = await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-      },
-      user.id,
-      project.id,
-    );
-    donation.recurringDonation = recurringDonation;
-    await donation.save();
-
-    // Use moment to parse the createdAt string
-    const momentDate = moment(donation.createdAt, 'YYYYMMDD HH:mm:ss');
-
-    // Create fromDate as one second before
-    const fromDate = momentDate
-      .clone()
-      .subtract(1, 'seconds')
-      .format('YYYYMMDD HH:mm:ss');
-
-    // Create toDate as one second after
-    const toDate = momentDate
-      .clone()
-      .add(1, 'seconds')
-      .format('YYYYMMDD HH:mm:ss');
-    const donationsResponse = await axios.post(graphqlUrl, {
-      query: fetchAllDonationsQuery,
-      variables: {
-        fromDate,
-        toDate,
-      },
-    });
-    assert.isOk(donationsResponse.data.data.donations);
-    assert.equal(donationsResponse.data.data.donations.length, 1);
-    assert.equal(
-      Number(donationsResponse.data.data.donations[0].recurringDonation.id),
-      recurringDonation.id,
     );
   });
   it('should get result when sending fromDate', async () => {
@@ -3384,75 +3313,6 @@ function donationsByProjectIdTestCases() {
     );
     assert.isOk(
       donations.find(donation => Number(donation.id) === pendingDonation.id),
-    );
-  });
-  it('should return recurringDonationsCount and totalCount correctly', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
-      user.id,
-      project.id,
-    );
-
-    const anchorAddress = generateRandomEtheriumAddress();
-
-    const anchorContractAddress = await addNewAnchorAddress({
-      project,
-      owner: user,
-      creator: user,
-      address: anchorAddress,
-      networkId: NETWORK_IDS.OPTIMISTIC,
-      txHash: generateRandomEvmTxHash(),
-    });
-    const currency = 'USD';
-
-    const recurringDonation = await createNewRecurringDonation({
-      txHash: generateRandomEvmTxHash(),
-      networkId: NETWORK_IDS.OPTIMISTIC,
-      donor: user,
-      anchorContractAddress,
-      flowRate: '100',
-      currency,
-      project,
-      anonymous: false,
-      isBatch: false,
-      totalUsdStreamed: 1,
-    });
-    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
-    await recurringDonation.save();
-
-    const recurringDonation2 = await createNewRecurringDonation({
-      txHash: generateRandomEvmTxHash(),
-      networkId: NETWORK_IDS.OPTIMISTIC,
-      donor: user,
-      anchorContractAddress,
-      flowRate: '100',
-      currency,
-      project,
-      anonymous: false,
-      isBatch: false,
-      totalUsdStreamed: 1,
-    });
-    recurringDonation2.status = RECURRING_DONATION_STATUS.ACTIVE;
-    await recurringDonation2.save();
-
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationsByProjectIdQuery,
-        variables: {
-          projectId: project.id,
-        },
-      },
-      {},
-    );
-
-    assert.equal(result.data.data.donationsByProjectId.totalCount, 1);
-    assert.equal(
-      result.data.data.donationsByProjectId.recurringDonationsCount,
-      2,
     );
   });
 }

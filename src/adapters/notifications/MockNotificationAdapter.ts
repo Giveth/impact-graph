@@ -8,7 +8,6 @@ import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import { logger } from '../../utils/logger';
-import { RecurringDonation } from '../../entities/recurringDonation';
 
 export class MockNotificationAdapter implements NotificationAdapterInterface {
   async subscribeOnboarding(params: { email: string }): Promise<void> {
@@ -40,17 +39,9 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
   }
 
   donationReceived(params: {
-    donation: Donation | RecurringDonation;
+    donation: Donation;
     project: Project;
   }): Promise<void> {
-    if (params.donation instanceof RecurringDonation) {
-      logger.debug('MockNotificationAdapter donationReceived', {
-        projectSlug: params.project.slug,
-        donationTxHash: params.donation.txHash,
-        donationNetworkId: params.donation.networkId,
-      });
-      return Promise.resolve(undefined);
-    }
     logger.debug('MockNotificationAdapter donationReceived', {
       projectSlug: params.project.slug,
       donationTxHash: params.donation.transactionId,

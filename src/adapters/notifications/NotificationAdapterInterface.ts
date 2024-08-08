@@ -1,7 +1,6 @@
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { UserStreamBalanceWarning, User } from '../../entities/user';
-import { RecurringDonation } from '../../entities/recurringDonation';
 
 export interface BroadCastNotificationInputParams {
   broadCastNotificationId: number;
@@ -41,7 +40,7 @@ export interface NotificationAdapterInterface {
   updateOrttoPeople(params: OrttoPerson[]): Promise<void>;
 
   donationReceived(params: {
-    donation: Donation | RecurringDonation;
+    donation: Donation;
     project: Project;
     user: User | null;
   }): Promise<void>;

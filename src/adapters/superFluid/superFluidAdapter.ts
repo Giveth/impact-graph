@@ -96,53 +96,6 @@ const getFlowsQuery = `
   },
 */
 export class SuperFluidAdapter implements SuperFluidAdapterInterface {
-  async streamPeriods(params: {
-    address: string;
-    chain: number;
-    start: number;
-    end: number;
-    priceGranularity: string;
-    virtualization: string;
-    currency: string;
-    recurringDonationTxHash: string;
-  }) {
-    const {
-      address,
-      chain,
-      start,
-      end,
-      priceGranularity,
-      virtualization,
-      currency,
-      recurringDonationTxHash,
-    } = params;
-    try {
-      const response = await axios.get(
-        'https://accounting.superfluid.dev/v1/stream-periods',
-        {
-          params: {
-            addresses: address,
-            chains: chain,
-            start,
-            end,
-            priceGranularity,
-            virtualization,
-            currency,
-          },
-        },
-      );
-      // Fetch the stream table with the recurringDonation TxHash
-      const filteredData = response.data.filter(streamTable =>
-        streamTable.startedAtEvent
-          .toLowerCase()
-          .includes(recurringDonationTxHash.toLowerCase()),
-      );
-      return filteredData[0];
-    } catch (e) {
-      logger.error('superFluidAdaptor.streamPeriods error', e);
-    }
-  }
-
   /* RESPONSE
         {
             "data": {
