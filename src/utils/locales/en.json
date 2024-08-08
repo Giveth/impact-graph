@@ -3,8 +3,6 @@
 	"CHAINVINE_CLICK_EVENT_ERROR": "Unable to register click event or link donor",
 	"CHAINVINE_REGISTRATION_ERROR": "Chainvine ID failed to be generated for the user",
 	"FIAT_DONATION_ALREADY_EXISTS": "Fiat donation already exists",
-	"ONRAMPER_SIGNATURE_INVALID": "Request payload or signature is invalid",
-	"ONRAMPER_SIGNATURE_MISSING": "Request headers does not contain signature",
 	"UPLOAD_FAILED": "Upload file failed",
 	"CHANGE_API_INVALID_TITLE_OR_EIN": "ChangeAPI title or EIN not found or invalid",
 	"INVALID_SOCIAL_NETWORK": "Invalid social network",

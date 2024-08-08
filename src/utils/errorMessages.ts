@@ -19,7 +19,6 @@ export const setI18nLocaleForRequest = async (req, _res, next) => {
 };
 
 export const errorMessages = {
-  FIAT_DONATION_ALREADY_EXISTS: 'Onramper donation already exists',
   CAMPAIGN_NOT_FOUND: 'Campaign not found',
   QF_ROUND_NOT_FOUND: 'qf round not found',
   NONE_OF_WALLET_ADDRESSES_FOUND_IN_DB:
@@ -27,8 +26,6 @@ export const errorMessages = {
   NO_VALID_PROJECTS_FOUND: 'No valid project slug found in the CSV',
   THERE_IS_NOT_ANY_FEATURED_CAMPAIGN: 'There is not any featured campaign',
   CHAINVINE_REFERRER_NOT_FOUND: 'Chainvine referrer not found',
-  ONRAMPER_SIGNATURE_INVALID: 'Onramper signature invalid',
-  ONRAMPER_SIGNATURE_MISSING: 'Onramper signature missing',
   UPLOAD_FAILED: 'Upload file failed',
   CHANGE_API_INVALID_TITLE_OR_EIN:
     'ChangeAPI title or EIN not found or invalid',
@@ -192,8 +189,6 @@ export const translationErrorMessagesKeys = {
   CHAINVINE_CLICK_EVENT_ERROR: 'CHAINVINE_CLICK_EVENT_ERROR',
   CHAINVINE_REGISTRATION_ERROR: 'CHAINVINE_REGISTRATION_ERROR',
   FIAT_DONATION_ALREADY_EXISTS: 'FIAT_DONATION_ALREADY_EXISTS',
-  ONRAMPER_SIGNATURE_INVALID: 'ONRAMPER_SIGNATURE_INVALID',
-  ONRAMPER_SIGNATURE_MISSING: 'ONRAMPER_SIGNATURE_MISSING',
   UPLOAD_FAILED: 'UPLOAD_FAILED',
   CHANGE_API_INVALID_TITLE_OR_EIN: 'CHANGE_API_INVALID_TITLE_OR_EIN',
   INVALID_SOCIAL_NETWORK: 'INVALID_SOCIAL_NETWORK',
