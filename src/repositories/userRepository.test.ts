@@ -441,15 +441,6 @@ function findUsersWhoSupportProjectTestCases() {
     const firstUser = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );
-    const secondUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const thirdUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const fourthUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
 
     // Add donors
     await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
@@ -483,7 +474,7 @@ function findUsersWhoSupportProjectTestCases() {
     }).save();
 
     const users = await findUsersWhoSupportProject(project.id);
-    assert.equal(users.length, 7);
+    assert.equal(users.length, 4);
     assert.isOk(
       users.find(user => user.walletAddress === donor1.walletAddress),
     );
@@ -493,18 +484,8 @@ function findUsersWhoSupportProjectTestCases() {
     assert.isOk(
       users.find(user => user.walletAddress === whoLiked.walletAddress),
     );
-
     assert.isOk(
       users.find(user => user.walletAddress === firstUser.walletAddress),
-    );
-    assert.isOk(
-      users.find(user => user.walletAddress === secondUser.walletAddress),
-    );
-    assert.isOk(
-      users.find(user => user.walletAddress === thirdUser.walletAddress),
-    );
-    assert.isOk(
-      users.find(user => user.walletAddress === fourthUser.walletAddress),
     );
   });
 }

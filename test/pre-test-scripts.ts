@@ -20,10 +20,16 @@ import {
 } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
+import { AppDataSource } from '../src/orm';
+import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
 import { redis } from '../src/redis';
 import { logger } from '../src/utils/logger';
 import { ChainType } from '../src/types/network';
 import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
+import { EnablePgTrgmExtension1713859866338 } from '../migration/1713859866338-enable_pg_trgm_extension';
+import { AddPgTrgmIndexes1715086559930 } from '../migration/1715086559930-add_pg_trgm_indexes';
+import { ProjectEstimatedMatchingViewV21717646357435 } from '../migration/1717646357435-ProjectEstimatedMatchingView_V2';
+import { ProjectActualMatchingViewV161717646612482 } from '../migration/1717646612482-ProjectActualMatchingView_V16';
 
 async function seedDb() {
   await seedUsers();
@@ -505,12 +511,28 @@ async function seedStatusReasons() {
   }
 }
 
+async function runMigrations() {
+  const queryRunner = AppDataSource.getDataSource().createQueryRunner();
+  await queryRunner.connect();
+
+  try {
+    await new createOrganisatioTokenTable1646302349926().up(queryRunner);
+    await new ProjectEstimatedMatchingViewV21717646357435().up(queryRunner);
+    await new ProjectActualMatchingViewV161717646612482().up(queryRunner);
+    await new EnablePgTrgmExtension1713859866338().up(queryRunner);
+    await new AddPgTrgmIndexes1715086559930().up(queryRunner);
+  } finally {
+    await queryRunner.release();
+  }
+}
+
 before(async () => {
   try {
     logger.debug('Clear Redis: ', await redis.flushall());
 
     await bootstrap();
     await seedDb();
+    await runMigrations();
   } catch (e) {
     throw new Error(`Could not setup tests requirements \n${e.message}`);
   }
