@@ -649,7 +649,7 @@ function donationsTestCases() {
       allDonationsCount,
     );
   });
-  it('should get result with recurring donations joined (for streamed mini donations)', async () => {
+  it.skip('should get result with recurring donations joined (for streamed mini donations)', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 

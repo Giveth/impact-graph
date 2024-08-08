@@ -28,8 +28,10 @@ import { ChainType } from '../src/types/network';
 import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
 import { EnablePgTrgmExtension1713859866338 } from '../migration/1713859866338-enable_pg_trgm_extension';
 import { AddPgTrgmIndexes1715086559930 } from '../migration/1715086559930-add_pg_trgm_indexes';
+import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
 import { ProjectEstimatedMatchingViewV21717646357435 } from '../migration/1717646357435-ProjectEstimatedMatchingView_V2';
 import { ProjectActualMatchingViewV161717646612482 } from '../migration/1717646612482-ProjectActualMatchingView_V16';
+import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
 
 async function seedDb() {
   await seedUsers();
@@ -517,6 +519,8 @@ async function runMigrations() {
 
   try {
     await new createOrganisatioTokenTable1646302349926().up(queryRunner);
+    await new addIsStableCoinFieldToTokenTable1696421249293().up(queryRunner);
+    await new createDonationethUser1701756190381().up(queryRunner);
     await new ProjectEstimatedMatchingViewV21717646357435().up(queryRunner);
     await new ProjectActualMatchingViewV161717646612482().up(queryRunner);
     await new EnablePgTrgmExtension1713859866338().up(queryRunner);

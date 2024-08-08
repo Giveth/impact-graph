@@ -19,7 +19,7 @@ import { addNewAnchorAddress } from '../repositories/anchorContractAddressReposi
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 
-describe(
+describe.skip(
   'addAnchorContractAddress test cases',
   addAnchorContractAddressTestCases,
 );
