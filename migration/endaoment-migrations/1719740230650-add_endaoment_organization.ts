@@ -9,6 +9,7 @@ export class AddEndaomentOrganization1719740230650
     await queryRunner.query(`
         INSERT INTO "organization" ("name", "disableNotifications", "disableRecurringDonations", "disableUpdateEnforcement", "label", "website", "supportCustomTokens")
         VALUES ('Endaoment', true, true, true, '${ORGANIZATION_LABELS.ENDAOMENT}', 'https://endaoment.org', false)
+        ON CONFLICT DO NOTHING;
       `);
 
     const endaomentOrganization = (
