@@ -437,7 +437,10 @@ export const totalProjectsPerDate = async (
   }
 
   if (onlyListed) {
-    query.andWhere(`project."reviewStatus" = 'Listed'`);
+    query.andWhere(
+      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+      { reviewStatus: ReviewStatus.Listed },
+    );
   }
 
   if (networkId) {
