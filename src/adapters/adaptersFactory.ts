@@ -8,15 +8,10 @@ import { TwitterAdapter } from './oauth2/twitterAdapter';
 import { NotificationAdapterInterface } from './notifications/NotificationAdapterInterface';
 import { NotificationCenterAdapter } from './notifications/NotificationCenterAdapter';
 import { MockNotificationAdapter } from './notifications/MockNotificationAdapter';
-import { GivPowerSubgraphAdapter } from './givpowerSubgraph/givPowerSubgraphAdapter';
-import { GivPowerSubgraphAdapterMock } from './givpowerSubgraph/givPowerSubgraphAdapterMock';
 import { ChainvineAdapter } from './chainvine/chainvineAdapter';
 import { ChainvineMockAdapter } from './chainvine/chainvineMockAdapter';
-import { IGivPowerSubgraphAdapter } from './givpowerSubgraph/IGivPowerSubgraphAdapter';
 import { GitcoinAdapter } from './gitcoin/gitcoinAdapter';
 import { GitcoinMockAdapter } from './gitcoin/gitcoinMockAdapter';
-import { GivPowerBalanceAggregatorAdapter } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapter';
-import { GivPowerBalanceAggregatorAdapterMock } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapterMock';
 import { DonationSaveBackupAdapter } from './donationSaveBackup/donationSaveBackupAdapter';
 import { DonationSaveBackupMockAdapter } from './donationSaveBackup/DonationSaveBackupMockAdapter';
 import { SuperFluidAdapter } from './superFluid/superFluidAdapter';
@@ -61,22 +56,6 @@ export const getNotificationAdapter = (): NotificationAdapterInterface => {
   }
 };
 
-export const givPowerSubgraphAdapter = new GivPowerSubgraphAdapter();
-export const givPowerSubgraphAdapterMock = new GivPowerSubgraphAdapterMock();
-
-export const getGivPowerSubgraphAdapter = (): IGivPowerSubgraphAdapter => {
-  switch (process.env.GIV_POWER_SUBGRAPH_ADAPTER) {
-    case 'givPower':
-      return givPowerSubgraphAdapter;
-    case 'mock':
-      return givPowerSubgraphAdapterMock;
-    default:
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.SPECIFY_GIV_POWER_ADAPTER),
-      );
-  }
-};
-
 const chainvineAdapter = new ChainvineAdapter();
 const mockChainvineAdapter = new ChainvineMockAdapter();
 
@@ -102,21 +81,6 @@ export const getGitcoinAdapter = () => {
       return mockGitcoinAdapter;
     default:
       return mockGitcoinAdapter;
-  }
-};
-
-export const powerBalanceAggregator = new GivPowerBalanceAggregatorAdapter();
-export const mockPowerBalanceAggregator =
-  new GivPowerBalanceAggregatorAdapterMock();
-
-export const getPowerBalanceAggregatorAdapter = () => {
-  switch (process.env.POWER_BALANCE_AGGREGATOR_ADAPTER) {
-    case 'powerBalanceAggregator':
-      return powerBalanceAggregator;
-    case 'mock':
-      return mockPowerBalanceAggregator;
-    default:
-      return mockPowerBalanceAggregator;
   }
 };
 

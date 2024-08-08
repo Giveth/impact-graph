@@ -108,12 +108,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       { isActive: true },
     )
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-    .leftJoin('project.projectPower', 'projectPower')
-    .addSelect([
-      'projectPower.totalPower',
-      'projectPower.powerRank',
-      'projectPower.round',
-    ])
     .where(
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
@@ -136,14 +130,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `qf_rounds.slug = :qfRoundSlug`,
       { qfRoundSlug },
     );
-  }
-  if (!sortingBy || sortingBy === SortingField.InstantBoosting) {
-    query = query
-      .leftJoin('project.projectInstantPower', 'projectInstantPower')
-      .addSelect([
-        'projectInstantPower.totalPower',
-        'projectInstantPower.powerRank',
-      ]);
   }
 
   // Filters
@@ -176,7 +162,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.MostLiked:
       query.orderBy('project.totalReactions', OrderDirection.DESC);
       break;
-    case SortingField.Newest:
+    case SortingField.Newest: // This is our default sorting
       query.orderBy('project.creationDate', OrderDirection.DESC);
       break;
     case SortingField.RecentlyUpdated:
@@ -187,34 +173,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.QualityScore:
       query.orderBy('project.qualityScore', OrderDirection.DESC);
-      break;
-    case SortingField.GIVPower:
-      query
-        .orderBy(`project.verified`, OrderDirection.DESC)
-        .addOrderBy(
-          'projectPower.totalPower',
-          OrderDirection.DESC,
-          'NULLS LAST',
-        );
-      break;
-    case SortingField.InstantBoosting: // This is our default sorting
-      query
-        .orderBy(`project.verified`, OrderDirection.DESC)
-        .addOrderBy(
-          'projectInstantPower.totalPower',
-          OrderDirection.DESC,
-          'NULLS LAST',
-        );
-      if (isFilterByQF) {
-        query.addOrderBy(
-          'project.sumDonationValueUsdForActiveQfRound',
-          OrderDirection.DESC,
-          'NULLS LAST',
-        );
-      } else {
-        query.addOrderBy('project.totalDonations', OrderDirection.DESC);
-      }
-      query.addOrderBy('project.totalReactions', OrderDirection.DESC);
       break;
     case SortingField.ActiveQfRoundRaisedFunds:
       if (activeQfRoundId) {
@@ -240,9 +198,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       }
       break;
     default:
-      query
-        .orderBy('projectInstantPower.totalPower', OrderDirection.DESC)
-        .addOrderBy(`project.verified`, OrderDirection.DESC);
+      query.orderBy('project.creationDate', OrderDirection.DESC);
       break;
   }
 

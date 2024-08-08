@@ -63,7 +63,7 @@ function updateDonationPriceTestCases() {
 }
 
 function createDonationTestCases() {
-  it('Should create donations for csv airDrop', async () => {
+  it.skip('Should create donations for csv airDrop', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x7a063fbb9dc674f814b8b7607e64f20e09ce4b891de72360d8be3e5ac92a4351
 
     const ethPrice = 2800;

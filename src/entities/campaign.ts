@@ -17,7 +17,6 @@ export enum CampaignSortingField {
   Oldest = 'Oldest',
   RecentlyUpdated = 'RecentlyUpdated',
   QualityScore = 'QualityScore',
-  GIVPower = 'GIVPower',
 }
 
 export enum CampaignFilterField {
@@ -25,7 +24,6 @@ export enum CampaignFilterField {
   givingBlocksId = 'givingBlocksId',
   acceptFundOnGnosis = 'acceptFundOnGnosis',
   fromGivingBlock = 'fromGivingBlock',
-  boostedWithGivPower = 'boostedWithGivPower',
 }
 
 export enum CampaignType {

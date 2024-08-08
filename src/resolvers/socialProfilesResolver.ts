@@ -11,6 +11,7 @@ import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { setOauth2SocialProfileInRedis } from '../services/socialProfileService';
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => SocialProfile)
 export class SocialProfilesResolver {
   @Mutation(_returns => String)

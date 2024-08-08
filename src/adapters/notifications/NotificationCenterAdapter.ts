@@ -345,43 +345,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  async projectBoosted(params: {
-    projectId: number;
-    userId: number;
-  }): Promise<void> {
-    const { projectId, userId } = params;
-    const project = (await findProjectById(projectId)) as Project;
-    sendProjectRelatedNotificationsQueue.add({
-      project: project as Project,
-      eventName:
-        project.adminUser?.id === userId
-          ? // We send different notifications when project owner or someone else boost the project https://github.com/Giveth/notification-center/issues/41
-            NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED_BY_PROJECT_OWNER
-          : NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED,
-
-      // With adding trackId to notification, notification-center would not create new notification
-      // If there is already a notification with this trackId in DB
-      trackId: generateTrackId({
-        userId,
-        projectId: project?.id as number,
-        action: 'boostProject',
-      }),
-    });
-  }
-
-  async projectBoostedBatch(params: {
-    projectIds: number[];
-    userId: number;
-  }): Promise<void> {
-    const { userId, projectIds } = params;
-    for (const projectId of projectIds) {
-      await this.projectBoosted({
-        userId,
-        projectId,
-      });
-    }
-  }
-
   async projectBadgeRevoked(params: { project: Project }): Promise<void> {
     const { project } = params;
     const user = project.adminUser as User;
@@ -1287,12 +1250,4 @@ const authorizationHeader = () => {
     userName: notificationCenterUsername,
     password: notificationCenterPassword,
   });
-};
-
-const generateTrackId = (params: {
-  userId: number;
-  action: 'likeProject' | 'boostProject';
-  projectId: number;
-}): string => {
-  return `${params.action}-${params.projectId}-${params.userId}`;
 };

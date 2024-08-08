@@ -32,8 +32,5 @@ declare namespace NodeJS {
     OUR_SECRET: string;
     XDAI_NODE_HTTP_URL: string;
     TRACE_FILE_UPLOADER_PASSWORD: string;
-    GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT: string;
-    GIVPOWER_BOOSTING_PERCENTAGE_PRECISION: string;
-    GIVPOWER_ROUND_DURATION: string;
   }
 }

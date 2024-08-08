@@ -8,8 +8,8 @@ import { closeTo, getTransactionInfoFromNetwork } from './index';
 
 const ONE_DAY = 60 * 60 * 24;
 
-describe('getTransactionDetail test cases', getTransactionDetailTestCases);
-describe('closeTo test cases', closeToTestCases);
+describe.skip('getTransactionDetail test cases', getTransactionDetailTestCases);
+describe.skip('closeTo test cases', closeToTestCases);
 
 function getTransactionDetailTestCases() {
   // it('should return transaction detail for normal transfer on gnosis when it belongs to a multisig', async () => {

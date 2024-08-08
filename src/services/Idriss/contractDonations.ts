@@ -20,7 +20,6 @@ import {
 } from '../../repositories/userRepository';
 import { logger } from '../../utils/logger';
 import { getGitcoinAdapter } from '../../adapters/adaptersFactory';
-import { calculateGivbackFactor } from '../givbackService';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
@@ -252,13 +251,6 @@ export const createIdrissTwitterDonation = async (
       donation.valueUsd = Number(idrissDonation.amount) * donation.priceUsd;
       donation.valueEth = Number(idrissDonation.amount) * donation.priceEth;
     }
-
-    const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
-      await calculateGivbackFactor(project.id);
-    donation.givbackFactor = givbackFactor;
-    donation.projectRank = projectRank;
-    donation.bottomRankInRound = bottomRankInRound;
-    donation.powerRound = powerRound;
 
     await donation.save();
 

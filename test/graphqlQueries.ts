@@ -829,11 +829,6 @@ export const fetchFeaturedProjects = `
           networkId
           chainType
         }
-        projectPower {
-          totalPower
-          powerRank
-          round
-        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -934,15 +929,6 @@ export const fetchMultiFilterAllProjectsQuery = `
           isRecipient
           networkId
           chainType
-        }
-        projectPower {
-          totalPower
-          powerRank
-          round
-        }
-        projectInstantPower {
-          totalPower
-          powerRank
         }
         qfRounds {
           name
@@ -1070,19 +1056,6 @@ export const fetchProjectBySlugQuery = `
         updatedAt
       }
       givbackFactor
-      projectPower {
-        totalPower
-        powerRank
-        round
-      }
-      projectInstantPower {
-        totalPower
-      }
-      projectFuturePower {
-        totalPower
-        powerRank
-        round
-      }
       categories {
        name
        mainCategory {
@@ -1320,7 +1293,6 @@ export const userByAddress = `
       url
       location
       isSignedIn
-      boostedProjectsCount
       likedProjectsCount
       donationsCount
       totalDonated
@@ -1343,7 +1315,6 @@ export const refreshUserScores = `
       walletAddress
       url
       location
-      boostedProjectsCount
       likedProjectsCount
       donationsCount
       projectsCount
@@ -2097,138 +2068,6 @@ export const getCategoryData = `query {
         }
     }
 }`;
-
-export const setSinglePowerBoostingMutation = `
-        mutation ($projectId: Int!, $percentage: Float!) {
-          setSinglePowerBoosting(projectId: $projectId, percentage: $percentage) {
-            id
-            user {
-              id
-            }
-            project {
-              id
-            }
-            percentage
-          }
-        }
- `;
-
-export const setMultiplePowerBoostingMutation = `
-        mutation ($projectIds: [Int!]!, $percentages: [Float!]!) {
-          setMultiplePowerBoosting(projectIds: $projectIds, percentages: $percentages) {
-            id
-            user {
-              id
-            }
-            project {
-              id
-            }
-            percentage
-          }
-        }
- `;
-
-export const getPowerBoostingsQuery = `
-  query (
-    $take: Int
-    $skip: Int
-    $orderBy: PowerBoostingOrderBy
-    $projectId: Int
-    $userId: Int
-  ) {
-    getPowerBoosting(
-      take: $take
-      skip: $skip
-      orderBy: $orderBy
-      projectId: $projectId
-      userId: $userId
-    ) {
-      powerBoostings {
-            id
-            updatedAt
-            createdAt
-            user {
-              id
-              email
-            }
-            project {
-              id
-            }
-            percentage
-      }
-    }
-  }
-`;
-
-export const getUserProjectPowerQuery = `
-  query (
-    $take: Int
-    $skip: Int
-    $orderBy: UserPowerOrderBy
-    $projectId: Int
-    $userId: Int
-  ) {
-    userProjectPowers (
-      take: $take
-      skip: $skip
-      orderBy: $orderBy
-      projectId: $projectId
-      userId: $userId
-    ) {
-      totalCount
-      userProjectPowers {
-            id
-            userId
-            projectId
-            round
-            boostedPower
-            rank
-            user {
-              id
-              firstName
-              lastName
-              name
-            }
-
-      }
-    }
-  }
-`;
-
-export const getBottomPowerRankQuery = `
-    query {
-        getTopPowerRank
-    }
-`;
-
-export const getPowerAmountRankQuery = `
-    query (
-      $powerAmount: Float!
-      $projectId: Int
-      ) {
-        powerAmountRank(powerAmount: $powerAmount, projectId: $projectId)
-    }
-`;
-
-export const getProjectUserInstantPowerQuery = `
-  query ($projectId: Int!, $take: Int, $skip: Int)
-   {
-    getProjectUserInstantPower (projectId: $projectId, take: $take, skip: $skip) {
-    projectUserInstantPowers {
-      id
-      userId
-      projectId
-      boostedPower
-      user {
-        name
-        walletAddress
-        avatar
-        }
-      }
-      total
-    }
-  }
-  `;
 
 export const doesDonatedToProjectInQfRoundQuery = `
   query (

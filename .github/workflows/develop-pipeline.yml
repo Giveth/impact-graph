@@ -75,7 +75,6 @@ jobs:
           SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
           SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
           MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
-          GIV_POWER_SUBGRAPH_URL: ${{ secrets.GIV_POWER_SUBGRAPH_URL }}
 
   publish:
     needs: test

@@ -98,6 +98,7 @@ export class QfRoundsArgs {
   activeOnly?: boolean;
 }
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => User)
 export class QfRoundResolver {
   @Query(_returns => [QfRound], { nullable: true })

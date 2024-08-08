@@ -21,22 +21,10 @@ import {
 import { createProjectVerificationForm } from './projectVerificationRepository';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { NETWORK_IDS } from '../provider';
-import { setPowerRound } from './powerRoundRepository';
-import { refreshProjectPowerView } from './projectPowerViewRepository';
-import {
-  insertSinglePowerBoosting,
-  takePowerBoostingSnapshot,
-} from './powerBoostingRepository';
 import { Project } from '../entities/project';
-import { User } from '../entities/user';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { AppDataSource } from '../orm';
 import { SUMMARY_LENGTH } from '../constants/summary';
 import { getHtmlTextSummary } from '../utils/utils';
 import { generateRandomString } from '../utils/utils';
-import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from './powerSnapshotRepository';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -51,7 +39,6 @@ describe(
   'updateProjectWithVerificationForm test cases',
   updateProjectWithVerificationFormTestCases,
 );
-describe('order by totalPower', orderByTotalPower);
 describe(
   'update descriptionSummary test cases',
   updateDescriptionSummaryTestCases,
@@ -376,80 +363,6 @@ function verifyMultipleProjectsTestCases() {
     const fetchedProject2 = await findProjectById(project2.id);
     assert.isFalse(fetchedProject?.verified);
     assert.isFalse(fetchedProject2?.verified);
-  });
-}
-
-function orderByTotalPower() {
-  it('order by totalPower DESC', async () => {
-    await AppDataSource.getDataSource().query(
-      'truncate power_snapshot cascade',
-    );
-    await PowerBalanceSnapshot.clear();
-    await PowerBoostingSnapshot.clear();
-
-    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const project1 = await saveProjectDirectlyToDb(createProjectData());
-    const project2 = await saveProjectDirectlyToDb(createProjectData());
-    const project3 = await saveProjectDirectlyToDb(createProjectData());
-
-    await Promise.all(
-      [
-        [user1, project1, 10],
-        [user1, project2, 20],
-        [user1, project3, 30],
-        [user2, project1, 20],
-        [user2, project2, 40],
-        [user2, project3, 60],
-      ].map(item => {
-        const [user, project, percentage] = item as [User, Project, number];
-        return insertSinglePowerBoosting({
-          user,
-          project,
-          percentage,
-        });
-      }),
-    );
-
-    const roundNumber = project3.id * 10;
-
-    await takePowerBoostingSnapshot();
-    const [powerSnapshots] = await findPowerSnapshots();
-    const snapshot = powerSnapshots[0];
-
-    snapshot.blockNumber = 1;
-    snapshot.roundNumber = roundNumber;
-    await snapshot.save();
-
-    await addOrUpdatePowerSnapshotBalances([
-      {
-        userId: user1.id,
-        powerSnapshotId: snapshot.id,
-        balance: 10000,
-      },
-      {
-        userId: user2.id,
-        powerSnapshotId: snapshot.id,
-        balance: 20000,
-      },
-    ]);
-
-    await setPowerRound(roundNumber);
-    await refreshProjectPowerView();
-    const query = Project.createQueryBuilder('project')
-      .leftJoinAndSelect('project.projectPower', 'projectPower')
-      .select('project.id')
-      .addSelect('projectPower.totalPower')
-      .take(project3.id)
-      .orderBy('projectPower.totalPower', 'DESC', 'NULLS LAST')
-      .take(project3.id + 1);
-
-    const [projects] = await query.getManyAndCount();
-    assert.isArray(projects);
-    assert.equal(projects[0]?.id, project3.id);
-    assert.equal(projects[1]?.id, project2.id);
-    assert.equal(projects[2]?.id, project1.id);
   });
 }
 

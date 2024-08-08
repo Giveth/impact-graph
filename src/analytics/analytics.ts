@@ -10,8 +10,6 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_BADGE_REVOKE_WARNING = 'Project badge revoke warning',
   PROJECT_BADGE_REVOKE_LAST_WARNING = 'Project badge revoke last warning',
   PROJECT_BADGE_UP_FOR_REVOKING = 'Project badge up for revoking',
-  PROJECT_BOOSTED = 'Project boosted',
-  PROJECT_BOOSTED_BY_PROJECT_OWNER = 'Project boosted by project owner',
   PROJECT_VERIFIED = 'Project verified',
   PROJECT_VERIFIED_USERS_WHO_SUPPORT = 'Project verified - Users who supported',
 

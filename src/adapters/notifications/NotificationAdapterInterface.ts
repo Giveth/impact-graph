@@ -73,11 +73,6 @@ export interface NotificationAdapterInterface {
   }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;
-  projectBoosted(params: { projectId: number; userId: number }): Promise<void>;
-  projectBoostedBatch(params: {
-    projectIds: number[];
-    userId: number;
-  }): Promise<void>;
   projectBadgeRevoked(params: { project: Project }): Promise<void>;
   projectBadgeRevokeReminder(params: { project: Project }): Promise<void>;
   projectBadgeRevokeWarning(params: { project: Project }): Promise<void>;

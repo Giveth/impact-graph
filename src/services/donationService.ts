@@ -23,7 +23,6 @@ import {
   getChainvineAdapter,
   getNotificationAdapter,
 } from '../adapters/adaptersFactory';
-import { calculateGivbackFactor } from './givbackService';
 import SentryLogger from '../sentryLogger';
 import {
   getUserDonationStats,
@@ -33,7 +32,6 @@ import {
 import { refreshProjectEstimatedMatchingView } from './projectViewsService';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
-import { getPowerRound } from '../repositories/powerRoundRepository';
 import { fetchSafeTransactionHash } from './safeServices';
 import { NETWORKS_IDS_TO_NAME } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
@@ -94,12 +92,6 @@ export const updateDonationPricesAndValues = async (
     token: token?.symbol,
     priceChainId,
   });
-  const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
-    await calculateGivbackFactor(project.id);
-  donation.givbackFactor = givbackFactor;
-  donation.projectRank = projectRank;
-  donation.bottomRankInRound = bottomRankInRound;
-  donation.powerRound = powerRound;
 
   return await donation.save();
 };
@@ -294,7 +286,6 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       totalDonated: donationStats?.totalDonated,
       donationsCount: donationStats?.donationsCount,
       lastDonationDate: donationStats?.lastDonationDate,
-      GIVbacksRound: donation.powerRound + 1, // powerRound is 1 behind givbacks round
       QFDonor: donation.qfRound?.name,
       donationChain: NETWORKS_IDS_TO_NAME[donation.transactionNetworkId],
     });
@@ -404,7 +395,6 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
     const qfRoundHistories =
       await getQfRoundHistoriesThatDontHaveRelatedDonations();
     const donationDotEthAddress = '0x6e8873085530406995170Da467010565968C7C62'; // Address behind donation.eth ENS address;
-    const powerRound = (await getPowerRound())?.round || 1;
     if (qfRoundHistories.length === 0) {
       logger.debug(
         'insertDonationsFromQfRoundHistory There is not any qfRoundHistories in DB that doesnt have related donation',
@@ -459,7 +449,6 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             "amount",
             "valueUsd",
             "priceUsd",
-            "powerRound",
             "projectId",
             "distributedFundQfRoundId",
             "segmentNotified",
@@ -476,7 +465,6 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             q."matchingFundAmount",
             q."matchingFund",
             q."matchingFundPriceUsd",
-            ${powerRound},
             q."projectId",
             q."qfRoundId",
             true,

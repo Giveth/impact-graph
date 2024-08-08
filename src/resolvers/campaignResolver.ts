@@ -23,6 +23,7 @@ registerEnumType(CampaignFilterField, {
   description: 'Same filter fields like projects',
 });
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => Campaign)
 export class CampaignResolver {
   @Query(_returns => [Campaign], { nullable: true })

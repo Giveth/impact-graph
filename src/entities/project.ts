@@ -33,9 +33,6 @@ import { SocialProfile } from './socialProfile';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { ProjectContacts } from './projectVerificationForm';
-import { ProjectPowerView } from '../views/projectPowerView';
-import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
-import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { Category } from './category';
 import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
@@ -72,8 +69,6 @@ export enum SortingField {
   RecentlyUpdated = 'RecentlyUpdated',
   Oldest = 'Oldest',
   QualityScore = 'QualityScore',
-  GIVPower = 'GIVPower',
-  InstantBoosting = 'InstantBoosting',
   ActiveQfRoundRaisedFunds = 'ActiveQfRoundRaisedFunds',
   EstimatedMatching = 'EstimatedMatching',
 }
@@ -92,7 +87,6 @@ export enum FilterField {
   AcceptFundOnOptimism = 'acceptFundOnOptimism',
   AcceptFundOnSolana = 'acceptFundOnSolana',
   Endaoment = 'fromEndaoment',
-  BoostedWithGivPower = 'boostedWithGivPower',
   ActiveQfRound = 'ActiveQfRound',
 }
 
@@ -110,8 +104,6 @@ export enum OrderField {
   Donations = 'totalDonations',
   TraceDonations = 'totalTraceDonations',
   AcceptGiv = 'givingBlocksId',
-  GIVPower = 'givPower',
-  InstantBoosting = 'instantBoosting',
 }
 
 export enum RevokeSteps {
@@ -334,27 +326,6 @@ export class Project extends BaseEntity {
     nullable: true,
   })
   featuredUpdate?: FeaturedUpdate;
-
-  @Field(_type => ProjectPowerView, { nullable: true })
-  @OneToOne(
-    _type => ProjectPowerView,
-    projectPowerView => projectPowerView.project,
-  )
-  projectPower?: ProjectPowerView;
-
-  @Field(_type => ProjectFuturePowerView, { nullable: true })
-  @OneToOne(
-    _type => ProjectFuturePowerView,
-    projectFuturePowerView => projectFuturePowerView.project,
-  )
-  projectFuturePower?: ProjectFuturePowerView;
-
-  @Field(_type => ProjectInstantPowerView, { nullable: true })
-  @OneToOne(
-    _type => ProjectInstantPowerView,
-    projectInstantPowerView => projectInstantPowerView.project,
-  )
-  projectInstantPower?: ProjectInstantPowerView;
 
   @Field(_type => String, { nullable: true })
   verificationFormStatus?: string;

@@ -92,10 +92,6 @@ import {
   resourcePerDateReportValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
-import {
-  refreshProjectFuturePowerView,
-  refreshProjectPowerView,
-} from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
 import { AppDataSource } from '../orm';
@@ -104,7 +100,6 @@ import { findCampaignBySlug } from '../repositories/campaignRepository';
 import { Campaign } from '../entities/campaign';
 import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
-import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
@@ -218,7 +213,7 @@ class GetProjectsArgs {
 
   @Field(_type => OrderBy, {
     defaultValue: {
-      field: OrderField.GIVPower,
+      field: OrderField.CreationAt,
       direction: OrderDirection.DESC,
     },
   })
@@ -281,6 +276,7 @@ class ImageResponse {
   projectImageId: number;
 }
 
+// eslint-disable-next-line unused-imports/no-unused-imports
 @Resolver(_of => Project)
 export class ProjectResolver {
   static addCategoryQuery(
@@ -497,8 +493,6 @@ export class ProjectResolver {
           return query.andWhere('organization.label = :label', {
             label: ORGANIZATION_LABELS.ENDAOMENT,
           });
-        case FilterField.BoostedWithGivPower:
-          return query.andWhere(`projectPower.totalPower > 0`);
         case FilterField.ActiveQfRound:
           return query.andWhere(
             `EXISTS (
@@ -665,7 +659,6 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndSelect('project.projectPower', 'projectPower')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
       .orderBy('featuredUpdate.position', 'ASC', 'NULLS LAST');
@@ -726,8 +719,7 @@ export class ProjectResolver {
 
     if (
       sortingBy === SortingField.ActiveQfRoundRaisedFunds ||
-      sortingBy === SortingField.EstimatedMatching ||
-      sortingBy === SortingField.InstantBoosting
+      sortingBy === SortingField.EstimatedMatching
     ) {
       activeQfRoundId = (await findActiveQfRound())?.id;
     }
@@ -971,23 +963,8 @@ export class ProjectResolver {
         'anchor_contract_address',
       );
     }
-    if (fields.projectPower) {
-      query = query.leftJoinAndSelect('project.projectPower', 'projectPower');
-    }
-    if (fields.projectInstantPower) {
-      query = query.leftJoinAndSelect(
-        'project.projectInstantPower',
-        'projectInstantPower',
-      );
-    }
     if (fields.qfRounds) {
       query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
-    }
-    if (fields.projectFuturePower) {
-      query = query.leftJoinAndSelect(
-        'project.projectFuturePower',
-        'projectFuturePower',
-      );
     }
     if (fields.campaigns) {
       const campaignSlugs = (await getAllProjectsRelatedToActiveCampaigns())[
@@ -1037,10 +1014,6 @@ export class ProjectResolver {
       if (verificationForm) {
         (project as Project).verificationFormStatus = verificationForm?.status;
       }
-    }
-    if (fields.givbackFactor) {
-      const { givbackFactor } = await calculateGivbackFactor(project!.id);
-      return { ...project, givbackFactor };
     }
     // We know that we have the project because if we reach this line means minimalProject is not null
     return project;
@@ -2147,10 +2120,6 @@ export class ProjectResolver {
       await getNotificationAdapter().projectDeactivated({
         project,
       });
-      await Promise.all([
-        refreshProjectPowerView(),
-        refreshProjectFuturePowerView(),
-      ]);
       return true;
     } catch (error) {
       logger.error('projectResolver.deactivateProject() error', error);
@@ -2186,10 +2155,6 @@ export class ProjectResolver {
           project,
         });
       }
-      await Promise.all([
-        refreshProjectPowerView(),
-        refreshProjectFuturePowerView(),
-      ]);
       return true;
     } catch (error) {
       logger.error('projectResolver.activateProject() error', error);
