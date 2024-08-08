@@ -6,7 +6,6 @@ export class AddEndaomentOrganization1719740230650
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
-
     // Ensure the 'id' column is serial if it's not already
     // To prevent duplicated error on running migrations in production ci/cd
     await queryRunner.query(`
