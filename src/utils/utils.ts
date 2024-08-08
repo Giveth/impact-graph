@@ -32,6 +32,9 @@ export const generateProjectFiltersCacheKey = async (args: {
 
 export const titleWithoutSpecialCharacters = (title: string): string => {
   const UNALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
+    // Some Endaoment projects have these characters in their title
+    '’',
+
     '`',
     `'`,
     '<',
