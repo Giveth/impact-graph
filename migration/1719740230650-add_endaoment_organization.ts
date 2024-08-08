@@ -2,7 +2,9 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import { ORGANIZATION_LABELS } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
 
-export class AddEndaomentOrganization1719740230650 implements MigrationInterface {
+export class AddEndaomentOrganization1719740230650
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Ensure the 'id' column is serial if it's not already
     await queryRunner.query(`
@@ -35,7 +37,9 @@ export class AddEndaomentOrganization1719740230650 implements MigrationInterface
     `);
 
     const endaomentOrganization = (
-      await queryRunner.query(`SELECT * FROM "organization" WHERE "label" = '${ORGANIZATION_LABELS.ENDAOMENT}'`)
+      await queryRunner.query(
+        `SELECT * FROM "organization" WHERE "label" = '${ORGANIZATION_LABELS.ENDAOMENT}'`,
+      )
     )[0];
 
     const tokens = await queryRunner.query(`
