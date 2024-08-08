@@ -93,6 +93,7 @@ export const addNewProjectAddress = async (params: {
   isRecipient?: boolean;
   networkId: number;
   chainType?: ChainType;
+  memo?: string;
 }): Promise<ProjectAddress> => {
   const projectAddress = ProjectAddress.create(params as ProjectAddress);
   return projectAddress.save();
