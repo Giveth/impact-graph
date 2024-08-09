@@ -992,6 +992,7 @@ export const qfRoundStatsQuery = `
       slug: $slug
     ) {
       uniqueDonors
+      donationsCount
       allDonationsUsdValue
       matchingPool
       qfRound{
