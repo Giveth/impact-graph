@@ -901,6 +901,81 @@ function donationsTestCases() {
 }
 
 function createDonationTestCases() {
+  it('should not create a donation if user donates to his/her own project', async () => {
+    const firstUser = await User.findOne({
+      where: { id: SEED_DATA.FIRST_USER.id },
+    });
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      firstUser!,
+    );
+    const accessToken = await generateTestAccessToken(firstUser!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomEvmTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      "Donor can't donate to his/her own project.",
+    );
+  });
+
+  it('should create a donation successfully if user creates a donation but is not the project creator', async () => {
+    const firstUser = await User.findOne({
+      where: { id: SEED_DATA.FIRST_USER.id },
+    });
+    const secondUser = await User.findOne({
+      where: { id: SEED_DATA.SECOND_USER.id },
+    });
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      secondUser!,
+    );
+    const accessToken = await generateTestAccessToken(firstUser!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomEvmTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.isNotNull(donation);
+    assert.equal(donation?.projectId, project.id);
+  });
+
   it('do not save referrer wallet if user refers himself', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const referrerId = generateRandomString();

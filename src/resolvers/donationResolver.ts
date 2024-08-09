@@ -781,6 +781,10 @@ export class DonationResolver {
           ),
         );
       }
+      const ownProject = project.adminUserId === donorUser.id;
+      if (ownProject) {
+        throw new Error("Donor can't donate to his/her own project.");
+      }
       const tokenInDb = await Token.findOne({
         where: {
           networkId,
