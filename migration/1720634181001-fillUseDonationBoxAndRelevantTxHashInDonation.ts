@@ -119,15 +119,17 @@ export class FillUseDonationBoxAndRelevantTxHashInDonation1720634181001
       )
       .join(', ');
 
-    await queryRunner.query(
-      `
+    if (updateQuery.length > 0) {
+      await queryRunner.query(
+        `
       UPDATE donation AS d
       SET "useDonationBox" = u."useDonationBox",
           "relevantDonationTxHash" = u."relevantDonationTxHash"
       FROM (VALUES ${updateQuery}) AS u(id, "useDonationBox", "relevantDonationTxHash")
       WHERE d.id = u.id;
       `,
-    );
+      );
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

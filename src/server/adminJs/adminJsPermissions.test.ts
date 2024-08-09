@@ -70,6 +70,7 @@ const actionsPerRole = Object.freeze({
       'cancelProject',
       'addToQfRound',
       'removeFromQfRound',
+      'exportEmails',
     ],
     projectUpdate: ['list', 'show', 'addFeaturedProjectUpdate'],
     thirdPartyProjectImport: [
@@ -212,6 +213,7 @@ const actionsPerRole = Object.freeze({
       'listProject',
       'addToQfRound',
       'removeFromQfRound',
+      'exportEmails',
     ],
     sybil: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
     projectFraud: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],

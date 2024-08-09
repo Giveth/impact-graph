@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import adminJs from 'adminjs';
 import { SelectQueryBuilder } from 'typeorm';
 import {
@@ -371,6 +373,46 @@ export const updateStatusOfProjects = async (
   };
 };
 
+function convertToCSV(data) {
+  const headers = Object.keys(data[0]);
+  const rows = data.map(row =>
+    headers.map(header => JSON.stringify(row[header] || '')).join(','),
+  );
+  return [headers.join(','), ...rows].join('\n');
+}
+
+export const exportEmails = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+) => {
+  const { records, currentAdmin } = context;
+  const projectIds = request?.query?.recordIds
+    ?.split(',')
+    ?.map(strId => Number(strId)) as number[];
+  const projects = await Project.createQueryBuilder('project')
+    .select(['project.title'])
+    .leftJoin('project.adminUser', 'adminUser')
+    .addSelect('adminUser.email')
+    .where('project.id IN (:...ids)', { ids: projectIds })
+    .getMany();
+  const data = projects.map(p => ({
+    title: p.title,
+    email: p.adminUser.email,
+  }));
+  const csv = convertToCSV(data);
+  const filePath = path.join(__dirname, 'exports', 'emails.csv');
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, csv);
+  return {
+    redirectUrl: `/admin/download/${path.basename(filePath)}`,
+    records: records.map(record => record.toJSON(currentAdmin)),
+    notice: {
+      message: 'Refresh the page to download the file!',
+      type: 'success',
+    },
+  };
+};
+
 export const addProjectsToQfRound = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
@@ -663,6 +705,7 @@ export const projectsTab = {
         },
       },
       adminUserId: {
+        type: 'Number',
         isVisible: {
           list: true,
           filter: false,
@@ -1288,6 +1331,19 @@ export const projectsTab = {
           ),
         handler: async (request, response, context) => {
           return addProjectsToQfRound(context, request, false);
+        },
+        component: false,
+      },
+      exportEmails: {
+        actionType: 'bulk',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectAction(
+            { currentAdmin },
+            ResourceActions.EXPORT_EMAILS,
+          ),
+        handler: async (request, _response, context) => {
+          return exportEmails(context, request);
         },
         component: false,
       },

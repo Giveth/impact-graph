@@ -27,6 +27,7 @@ export enum ResourceActions {
   RETURN_ALL_DONATIONS_DATA = 'returnAllDonationData',
   RELATE_DONATIONS_WITH_DISTRIBUTED_FUNDS = 'relateDonationsWithDistributedFunds',
   FILL_PRICES_FOR_DONATIONS_WITHOUT_PRICE = 'fillPricesForDonationsWithoutPrice',
+  EXPORT_EMAILS = 'exportEmails',
 }
 
 // All permissions listed per resource, per role and action
@@ -261,6 +262,7 @@ const projectPermissions = {
     cancelProject: true,
     addToQfRound: true,
     removeFromQfRound: true,
+    exportEmails: true,
   },
   [UserRole.OPERATOR]: {
     list: true,
@@ -298,6 +300,7 @@ const projectPermissions = {
     listProject: true,
     removeFromQfRound: true,
     addToQfRound: true,
+    exportEmails: true,
   },
   // Add more roles here as needed
 };

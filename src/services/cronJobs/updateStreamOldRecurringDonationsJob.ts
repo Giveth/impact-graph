@@ -8,7 +8,7 @@ import {
 
 const cronJobTime =
   (config.get('UPDATE_RECURRING_DONATIONS_STREAM_CRONJOB') as string) ||
-  '0 0 * * *'; // one day at 00:00
+  '0 0 * * *'; // every day at 00:00
 
 export const runUpdateRecurringDonationStream = () => {
   logger.debug(
