@@ -65,6 +65,10 @@ export class Token extends BaseEntity {
   @Column({ nullable: true, default: false })
   isStableCoin: boolean;
 
+  @Field(_type => Boolean)
+  @Column({ default: false })
+  isQR: boolean;
+
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   // If we fill that, we will get price of this token from coingecko

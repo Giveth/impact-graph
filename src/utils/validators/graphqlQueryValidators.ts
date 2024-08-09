@@ -19,6 +19,7 @@ const resourcePerDateRegex = new RegExp(
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const solanaWalletAddressRegex = /^[A-Za-z0-9]{43,44}$/;
+const stellarWalletAddressRegex = /^[A-Za-z0-9]{56}$/;
 const solanaProgramIdRegex =
   /^(11111111111111111111111111111111|[1-9A-HJ-NP-Za-km-z]{43,44})$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
@@ -130,9 +131,20 @@ export const createDraftDonationQueryValidator = Joi.object({
     .required()
     .valid(...Object.values(NETWORK_IDS)),
   tokenAddress: Joi.when('chainType', {
-    is: ChainType.SOLANA,
-    then: Joi.string().pattern(solanaProgramIdRegex),
-    otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
+    switch: [
+      {
+        is: ChainType.SOLANA,
+        then: Joi.string().pattern(solanaProgramIdRegex),
+      },
+      {
+        is: ChainType.STELLAR,
+        then: Joi.string().pattern(stellarWalletAddressRegex),
+      },
+      {
+        is: ChainType.EVM,
+        then: Joi.string().pattern(ethereumWalletAddressRegex),
+      },
+    ],
   }).messages({
     'string.pattern.base': i18n.__(
       translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
@@ -149,6 +161,9 @@ export const createDraftDonationQueryValidator = Joi.object({
   chainType: Joi.string().required(),
   useDonationBox: Joi.boolean(),
   relevantDonationTxHash: Joi.string().allow(null, ''),
+  toWalletMemo: Joi.string().allow(null, ''),
+  qrCodeDataUrl: Joi.string().allow(null, ''),
+  isQRDonation: Joi.boolean(),
 });
 
 export const createDraftRecurringDonationQueryValidator = Joi.object({

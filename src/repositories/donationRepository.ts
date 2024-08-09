@@ -5,6 +5,7 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { logger } from '../utils/logger';
 import { QfRound } from '../entities/qfRound';
+import { ChainType } from '../types/network';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`
@@ -76,6 +77,13 @@ export const createDonation = async (data: {
   donationAnonymous: boolean;
   transakId: string;
   token: string;
+  chainType?: ChainType;
+  valueUsd?: number;
+  priceUsd?: number;
+  status?: string;
+  isQRDonation?: boolean;
+  toWalletMemo?: string;
+  qfRound?: QfRound;
 }): Promise<Donation> => {
   const {
     amount,
@@ -91,7 +99,15 @@ export const createDonation = async (data: {
     fromWalletAddress,
     transakId,
     token,
+    chainType,
+    valueUsd,
+    priceUsd,
+    status,
+    isQRDonation,
+    toWalletMemo,
+    qfRound,
   } = data;
+
   const donation = await Donation.create({
     amount: Number(amount),
     transactionId: transactionId?.toLowerCase() || transakId,
@@ -108,7 +124,15 @@ export const createDonation = async (data: {
     toWalletAddress,
     fromWalletAddress,
     anonymous: donationAnonymous,
+    chainType,
+    valueUsd,
+    priceUsd,
+    status,
+    isQRDonation,
+    toWalletMemo,
+    qfRound,
   }).save();
+
   return donation;
 };
 

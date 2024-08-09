@@ -200,6 +200,7 @@ export const errorMessages = {
   INVALID_PROJECT_OWNER: 'Project owner is invalid',
   PROJECT_DOESNT_ACCEPT_RECURRING_DONATION:
     'Project does not accept recurring donation',
+  DRAFT_DONATION_NOT_FOUND: 'Draft donation not found',
 };
 
 export const translationErrorMessagesKeys = {
@@ -368,4 +369,6 @@ export const translationErrorMessagesKeys = {
   DRAFT_DONATION_DISABLED: 'DRAFT_DONATION_DISABLED',
   DRAFT_RECURRING_DONATION_DISABLED: 'DRAFT_RECURRING_DONATION_DISABLED',
   EVM_SUPPORT_ONLY: 'EVM_SUPPORT_ONLY',
+  EVM_AND_STELLAR_SUPPORT_ONLY: 'EVM_AND_STELLAR_SUPPORT_ONLY',
+  DRAFT_DONATION_NOT_FOUND: 'DRAFT_DONATION_NOT_FOUND',
 };

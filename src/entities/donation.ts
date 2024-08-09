@@ -287,6 +287,14 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true })
   relevantDonationTxHash?: string;
 
+  @Field()
+  @Column({ default: false })
+  isQRDonation: boolean;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  toWalletMemo?: string;
+
   @Field({ nullable: true })
   @Column('decimal', { precision: 5, scale: 2, nullable: true })
   donationPercentage?: number;

@@ -93,6 +93,7 @@ export const addNewProjectAddress = async (params: {
   isRecipient?: boolean;
   networkId: number;
   chainType?: ChainType;
+  memo?: string;
 }): Promise<ProjectAddress> => {
   const projectAddress = ProjectAddress.create(params as ProjectAddress);
   return projectAddress.save();
@@ -107,6 +108,7 @@ export const addBulkNewProjectAddress = async (
     isRecipient?: boolean;
     networkId: number;
     chainType?: ChainType;
+    memo?: string;
   }[],
 ): Promise<void> => {
   const queryBuilder = ProjectAddress.createQueryBuilder()
@@ -122,6 +124,7 @@ export const addBulkNewProjectAddress = async (
       isRecipient: item.isRecipient,
       networkId: item.networkId,
       chainType: item.chainType,
+      memo: item.memo,
     }));
 
     await queryBuilder.values(values).execute();
