@@ -14,6 +14,7 @@ import {
 } from '../../test/testUtils';
 import {
   createRecurringDonationQuery,
+  fetchRecurringDonationsByDateQuery,
   fetchRecurringDonationsByProjectIdQuery,
   fetchRecurringDonationsByUserIdQuery,
   updateRecurringDonationQuery,
@@ -21,16 +22,17 @@ import {
   updateRecurringDonationStatusMutation,
 } from '../../test/graphqlQueries';
 
-describe(
-  'createRecurringDonation test cases',
-  createRecurringDonationTestCases,
-);
 import { errorMessages } from '../utils/errorMessages';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 import { QfRound } from '../entities/qfRound';
 import { generateRandomString } from '../utils/utils';
 import { ORGANIZATION_LABELS } from '../entities/organization';
+
+describe(
+  'createRecurringDonation test cases',
+  createRecurringDonationTestCases,
+);
 
 describe(
   'updateRecurringDonation test cases',
@@ -54,6 +56,11 @@ describe(
 describe(
   'updateRecurringDonationById test cases',
   updateRecurringDonationByIdTestCases,
+);
+
+describe(
+  'recurringDonationsByProjectDate test cases',
+  recurringDonationsByProjectDateTestCases,
 );
 
 function createRecurringDonationTestCases() {
@@ -2935,5 +2942,242 @@ function updateRecurringDonationStatusTestCases() {
       result.data.data.updateRecurringDonationStatus.status,
       RECURRING_DONATION_STATUS.FAILED,
     );
+  });
+}
+
+function recurringDonationsByProjectDateTestCases() {
+  it('should return recurring donations within a specific date range', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    // Create donations with different createdAt dates
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-02-01T00:00:00Z'),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-03-01T00:00:00Z'),
+      },
+    });
+
+    // Define the date range
+    const startDate = '2024-01-01T00:00:00Z';
+    const endDate = '2024-02-15T23:59:59Z';
+
+    // Make the GraphQL query
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByDateQuery,
+        variables: {
+          projectId: project.id,
+          startDate,
+          endDate,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByDate.recurringDonations;
+
+    // Assertions
+    assert.equal(donations.length, 2);
+    assert.isTrue(
+      new Date(donations[0].createdAt) >= new Date(startDate) &&
+        new Date(donations[0].createdAt) <= new Date(endDate),
+      'The donation should be within the specified date range',
+    );
+  });
+
+  it('should return all recurring donations if startDate and endDate are not provided', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    // Create donations with different createdAt dates
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-02-01T00:00:00Z'),
+      },
+    });
+
+    // Make the GraphQL query without startDate and endDate
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByDateQuery,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByDate.recurringDonations;
+
+    // Assertions
+    assert.equal(donations.length, 2, 'All donations should be returned');
+  });
+
+  it('should return recurring donations up to the provided endDate when startDate is not provided', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    // Create donations with different createdAt dates
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-02-01T00:00:00Z'),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-03-01T00:00:00Z'),
+      },
+    });
+
+    // Define the endDate without providing startDate
+    const endDate = '2024-02-15T23:59:59Z';
+
+    // Make the GraphQL query without startDate
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByDateQuery,
+        variables: {
+          projectId: project.id,
+          endDate,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByDate.recurringDonations;
+
+    // Assertions
+    assert.equal(
+      donations.length,
+      2,
+      'Should return donations up to the provided endDate',
+    );
+    assert.isTrue(new Date(donations[0].createdAt) <= new Date(endDate));
+    assert.isTrue(new Date(donations[1].createdAt) <= new Date(endDate));
+  });
+
+  it('should return recurring donations from the provided startDate when endDate is not provided', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    // Create donations with different createdAt dates
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-02-01T00:00:00Z'),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-03-01T00:00:00Z'),
+      },
+    });
+
+    // Define the startDate without providing endDate
+    const startDate = '2024-02-01T00:00:00Z';
+
+    // Make the GraphQL query without endDate
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByDateQuery,
+        variables: {
+          projectId: project.id,
+          startDate,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByDate.recurringDonations;
+
+    // Assertions
+    assert.equal(
+      donations.length,
+      2,
+      'Should return donations from the provided startDate onward',
+    );
+    assert.isTrue(new Date(donations[0].createdAt) >= new Date(startDate));
+    assert.isTrue(new Date(donations[1].createdAt) >= new Date(startDate));
+  });
+
+  it('should return an empty list if no donations are within the date range', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    // Create donations outside the date range
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        createdAt: new Date('2024-02-01T00:00:00Z'),
+      },
+    });
+
+    // Define a date range with no donations
+    const startDate = '2024-03-01T00:00:00Z';
+    const endDate = '2024-03-31T23:59:59Z';
+
+    // Make the GraphQL query
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByDateQuery,
+        variables: {
+          projectId: project.id,
+          startDate,
+          endDate,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByDate.recurringDonations;
+
+    // Assertions
+    assert.equal(donations.length, 0, 'No donations should be returned');
   });
 }

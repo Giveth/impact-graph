@@ -22,19 +22,19 @@ export class CreateEndaomentsCategories1719808494903
     await queryRunner.query(`
             INSERT INTO "category" ("name", "value", "source", "mainCategoryId", "isActive")
             VALUES
-                ('Endaoment', 'endaoment', '', ${ngoMainCategory[0].id}, true),
-                ('Religious', 'religious', '', ${artCultureMainCategory[0].id}, true),
-                ('Disaster Relief', 'disaster-relief', '', ${ngoMainCategory[0].id}, true),
-                ('Recreation', 'recreation', '', ${healthWellnessMainCategory[0].id}, true),
-                ('Financial Services', 'financial-services', '', ${financeMainCategory[0].id}, true),
-                ('International Aid', 'international-aid', '', ${ngoMainCategory[0].id}, true);
+                ('endaoment', 'Endaoment', '', ${ngoMainCategory[0].id}, true),
+                ('religious', 'Religious', '', ${artCultureMainCategory[0].id}, true),
+                ('disaster-relief', 'Disaster Relief', '', ${ngoMainCategory[0].id}, true),
+                ('recreation', 'Recreation', '', ${healthWellnessMainCategory[0].id}, true),
+                ('financial-services', 'Financial Services', '', ${financeMainCategory[0].id}, true),
+                ('international-aid', 'International Aid', '', ${ngoMainCategory[0].id}, true);
         `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Delete Sub-Categories
     await queryRunner.query(
-      `DELETE FROM "category" WHERE "value" IN ('endaoment', 'religious', 'disaster-relief', 'recreation', 'financial-services', 'international-aid')`,
+      `DELETE FROM "category" WHERE "name" IN ('endaoment', 'religious', 'disaster-relief', 'recreation', 'financial-services', 'international-aid')`,
     );
   }
 }
