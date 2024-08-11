@@ -144,6 +144,16 @@ export const NETWORKS_IDS_TO_NAME = {
   63: 'MORDOR_ETC_TESTNET',
   42161: 'ARBITRUM_MAINNET',
   421614: 'ARBITRUM_SEPOLIA',
+
+  8453: 'BASE_MAINNET',
+  84532: 'BASE_SEPOLIA',
+
+  1101: 'ZKEVM_MAINNET',
+  2442: 'ZKEVM_CARDONA',
+
+  101: 'SOLANA_MAINNET',
+  102: 'SOLANA_TESTNET',
+  103: 'SOLANA_DEVNET',
 };
 
 const NETWORK_NAMES = {
@@ -320,7 +330,9 @@ export function getProvider(networkId: number) {
   let options;
   switch (networkId) {
     case NETWORK_IDS.MORDOR_ETC_TESTNET:
-      url = process.env.MORDOR_ETC_TESTNET as string;
+      url =
+        (process.env.MORDOR_ETC_TESTNET as string) ||
+        `https://rpc.mordor.etccooperative.org`;
       break;
     case NETWORK_IDS.ETC:
       url = process.env.ETC_NODE_HTTP_URL as string;

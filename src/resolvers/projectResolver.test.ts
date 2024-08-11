@@ -4148,6 +4148,10 @@ function featureProjectsTestCases() {
 
 function projectUpdatesTestCases() {
   it('should return all project updates limited by take and ordered by craetedAt desc', async () => {
+    const update1Date = moment().add(10, 'days').toDate();
+    const update2Date = moment().add(11, 'days').toDate();
+    const update3Date = new Date();
+    const update4Date = new Date();
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
     });
@@ -4157,19 +4161,16 @@ function projectUpdatesTestCases() {
     const project3 = await saveProjectDirectlyToDb({
       ...createProjectData(),
       statusId: ProjStatus.deactive,
+      latestUpdateCreationDate: update4Date,
     });
-    const user = await User.findOne({
-      where: {
-        id: SEED_DATA.FIRST_USER.id,
-      },
-    });
+    const user = SEED_DATA.FIRST_USER;
 
     const projectUpdate1 = await ProjectUpdate.create({
       userId: user!.id,
       projectId: project.id,
       content: 'TestProjectUpdate1',
       title: 'testEditProjectUpdate1',
-      createdAt: moment().add(10, 'days').toDate(),
+      createdAt: update1Date,
       isMain: false,
     }).save();
     const projectUpdate2 = await ProjectUpdate.create({
@@ -4177,7 +4178,7 @@ function projectUpdatesTestCases() {
       projectId: project2.id,
       content: 'TestProjectUpdate2',
       title: 'testEditProjectUpdate2',
-      createdAt: moment().add(11, 'days').toDate(),
+      createdAt: update2Date,
       isMain: false,
     }).save();
     const projectUpdate3 = await ProjectUpdate.create({
@@ -4185,7 +4186,7 @@ function projectUpdatesTestCases() {
       projectId: project2.id,
       content: 'TestProjectUpdateExcluded',
       title: 'testEditProjectUpdateExcluded',
-      createdAt: new Date(),
+      createdAt: update3Date,
       isMain: false,
     }).save();
     const projectUpdate4 = await ProjectUpdate.create({
@@ -4193,22 +4194,29 @@ function projectUpdatesTestCases() {
       projectId: project3.id,
       content: 'TestProjectUpdateExcluded',
       title: 'testEditProjectUpdateExcluded',
-      createdAt: new Date(),
+      createdAt: update4Date,
       isMain: false,
     }).save();
 
-    const take = 4; // there are other previously created updates
+    await Project.update(project.id, {
+      latestUpdateCreationDate: update1Date,
+    });
+    await Project.update(project2.id, {
+      latestUpdateCreationDate: update2Date,
+    });
+
+    const takeLatestUpdates = 4; // there are other previously created updates
     const result = await axios.post(graphqlUrl, {
       query: fetchLatestProjectUpdates,
       variables: {
-        take,
+        takeLatestUpdates,
       },
     });
 
     assert.isOk(result);
     const data = result.data.data.projectUpdates.projectUpdates;
     // assert only project's most recent updates are returned
-    assert.equal(data.length, 3);
+    assert.equal(data.length, 2);
     for (const pu of data) {
       assert.isTrue(
         pu.id === projectUpdate1.id ||

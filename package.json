@@ -23,7 +23,7 @@
     "axios-retry": "^3.9.1",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.0",
-    "bull": "^4.12.2",
+    "bull": "^4.15.1",
     "bunyan": "^1.8.15",
     "bunyan-rotating-file-stream": "^2.0.0",
     "class-validator": "0.14.0",
@@ -79,7 +79,6 @@
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
-    "@types/bull": "^3.15.5",
     "@types/chai": "^4.2.15",
     "@types/connect-redis": "0.0.23",
     "@types/cors": "^2.8.10",

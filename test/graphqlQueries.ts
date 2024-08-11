@@ -1223,6 +1223,7 @@ export const fetchLikedProjectsQuery = `
       take: $take
       skip: $skip
     ) {
+
       projects {
         id
         title
@@ -1401,36 +1402,21 @@ export const unlikeProjectUpdateQuery = `
 `;
 
 export const fetchLatestProjectUpdates = `
-  query (
-    $take: Int,
-    $skip: Int
+  query FetchProjectUpdates (
+    $takeLatestUpdates: Int,
+    $skipLatestUpdates: Int,
   ) {
-    projectUpdates(
-      take: $take,
-      skip: $skip
-    ) {
+    projectUpdates(take: $takeLatestUpdates, skip: $skipLatestUpdates) {
       projectUpdates {
         id
         title
-        projectId
-        userId
-        content
-        isMain
-        totalReactions
+        contentSummary
         createdAt
-        reaction {
-          id
-          userId
-          reaction
-          projectUpdateId
-        }
         project {
-          id
           slug
-          totalReactions
+          image
         }
       }
-      count
     }
   }
 `;
@@ -2465,6 +2451,39 @@ export const fetchDonationMetricsQuery = `
       totalDonationsToGiveth
       totalUsdValueToGiveth
       averagePercentageToGiveth
+    }
+  }
+`;
+
+export const fetchRecurringDonationsByDateQuery = `
+  query (
+    $projectId: Int!
+    $startDate: String
+    $endDate: String
+  ) {
+    recurringDonationsByDate(
+      projectId: $projectId
+      startDate: $startDate
+      endDate: $endDate
+    ) {
+      recurringDonations {
+        id
+        txHash
+        networkId
+        flowRate
+        currency
+        anonymous
+        isArchived
+        status
+        donor {
+          id
+          walletAddress
+          firstName
+          email
+        }
+        createdAt
+      }
+      totalCount
     }
   }
 `;

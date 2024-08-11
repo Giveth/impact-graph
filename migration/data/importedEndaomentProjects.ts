@@ -1465,7 +1465,7 @@ export const endaomentProjects: EndaomentProject[] = [
       'The mission at Blessings of Hope is to feed the hungry by facilitating partnerships between food suppliers and nonprofits in a way that brings God’s blessings to both. We are committed to empowering churches and ministries to build relationships in their communities through food and acts of love.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2F7d4dabbb-3b99-45c2-9cfb-33bb682368a5.jpeg',
-    nteeCode: '',
+    nteeCode: 'default',
     nteeDescription: '',
     mainnetAddress: '0x8cff3507ff0ef0ba872e24772d16a17f63f80ad8',
     opAddress: '0x8cff3507ff0ef0ba872e24772d16a17f63f80ad8',
@@ -2688,7 +2688,7 @@ export const endaomentProjects: EndaomentProject[] = [
       'Legacy is not only a church—we’re a family, a community of Christian believers who are very passionate about Jesus and His mandate to love God, love people, and change the world by advancing His Kingdom.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/9cd004dc-ebe4-4b20-ace2-df8756f03f66.jpg',
-    nteeCode: '',
+    nteeCode: 'default',
     nteeDescription: '',
     mainnetAddress: '0xb8d467057ba5540c3e5fe32698d14eae30de3147',
     opAddress: '0xb8d467057ba5540c3e5fe32698d14eae30de3147',
@@ -3137,7 +3137,7 @@ export const endaomentProjects: EndaomentProject[] = [
       "The Foundation for Art & Blockchain (FAB) provides funding, promotion, education, and credibility to creators working at the intersection of blockchain and creativity. FAB's purpose is to empower creators to manifest authentic art through decentralized technology, in order to increase the creative capacity of the world.",
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2F0b93cbad-8c6d-4747-ac16-fb80402a6181.jpg',
-    nteeCode: '',
+    nteeCode: 'default',
     nteeDescription: '',
     mainnetAddress: '0x3c7547e707854ed710d704f9d430bf22294f929f',
     opAddress: '0x3c7547e707854ed710d704f9d430bf22294f929f',
@@ -9607,7 +9607,7 @@ export const endaomentProjects: EndaomentProject[] = [
       'LAVA, Inc. is a strong defender of women, children, minorities, seniors, the homeless, and the most vulnerable among us. LAVA, Inc. is committed to providing more opportunities to those in need.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2F9891bd7e-a9c5-4cf8-a2ba-95fafd4ede57.jpg',
-    nteeCode: '',
+    nteeCode: 'default',
     nteeDescription: '',
     mainnetAddress: '0xa525d7723e7aeb904d5408ac733e59f2764f67e9',
     opAddress: '0xa525d7723e7aeb904d5408ac733e59f2764f67e9',
@@ -13148,7 +13148,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x5838d2ff1d0ca706df1470d6c66903c88ff9fce0',
   },
   {
-    name: 'National Network of Abortion Funds',
+    name: 'National Network of Abortion Funds 2',
     description:
       'Texas Equal Access Fund helps low-income people in northern Texas who want an abortion and cannot afford it.',
     logoUrl: '',
@@ -13469,7 +13469,7 @@ export const endaomentProjects: EndaomentProject[] = [
       'To create systemic change that leads to a more equitable society by uplifting the voices of directly impacted Black people that allows us to build politically educated grassroots community political power.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2F0f7e15bc-4405-4d25-9f94-aeefb5cdb2c5.jpeg',
-    nteeCode: '',
+    nteeCode: 'default',
     nteeDescription: '',
     mainnetAddress: '0x4318e75c761282e2e350696035b9a3a1a61df787',
     opAddress: '0x4318e75c761282e2e350696035b9a3a1a61df787',
@@ -18362,7 +18362,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x9089d131eec13cf7d04960931156c7396a4418f9',
   },
   {
-    name: 'The Fred Hollows Foundation',
+    name: 'The Fred Hollows Foundation 2',
     description:
       "The Fred Hollows Foundation is a international development organisation working to restore sight to people who are blind or vision impaired. Globally there are 1.1 billion people who are blind or vision impaired. 90% of these cases are preventable or avoidable. You can help restore sight for as little as $25 and change someone's life forever.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/99197/orglogo.png',
@@ -18939,7 +18939,7 @@ export const endaomentProjects: EndaomentProject[] = [
       'Lunar Startups is on a mission to create more equitable entrepreneurial ecosystems by providing education, support, and connectivity to leaders who identify as Black, Indigenous, People of Color (BIPOC), LGBTQ+, women, and nonbinary.<br><br>The three key ingredients to success for all entrepreneurs are social capital, inspiration capital, and financial capital. Yet in our region and beyond, under-invested founders lack access to all three types of capital. Lunar aspires to be a critical systems change agent that is disrupting the status quo, shifting mindsets, and demystifying pathways to scale for all entrepreneurs.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2Fe3d290cc-f3f4-4d72-9ab4-f9c40e0668b1.jpeg',
-    nteeCode: '',
+    nteeCode: 'default',
     nteeDescription: '',
     mainnetAddress: '0x26964f2b6571def00c0b83ec80fe819de7bba532',
     opAddress: '0x26964f2b6571def00c0b83ec80fe819de7bba532',
@@ -28154,7 +28154,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x958c4a1a7ee17e4a83523538f9d64edc9372d865',
   },
   {
-    name: 'Impact Church',
+    name: 'Impact Church 2',
     description:
       'Impact Church is dedicated to rebuilding the spirit of the community with Jesus Christ as its cornerstone.',
     logoUrl:
@@ -30891,7 +30891,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x9f89cab43ad0a29f4b5c1748c32478f3c85c5217',
   },
   {
-    name: 'Transformation Church Inc',
+    name: 'Transformation Church Inc 2',
     description:
       'We exist to Re-Present God to the lost and found for transformation in Christ. We are a multi-church. Meaning we are a multi-generational, multi-ethnic, multi-plying, and multi-campus.',
     logoUrl:
@@ -36110,7 +36110,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x1645ed004fa10bf611674d8f9354f41aa4ba0e07',
   },
   {
-    name: 'Choose Love',
+    name: 'Choose Love 2',
     description:
       'We are pioneering a new movement in humanitarian aid: fast, flexible, transparent and accountable.<br><br>We are a lean, passionate team driving a fast-paced global movement across 15 countries.<br><br>We have raised millions to support refugees and created a movement of people putting love into action around the world.',
     logoUrl:
@@ -36258,7 +36258,7 @@ export const endaomentProjects: EndaomentProject[] = [
       'The organization educates the public by writing and publishing news articles with a focus on global crises and makes complex issues accessible to the public. Our objectives are to investigate and explain complex crises and, in so doing, to challenge conventional narratives, champion consequential journalism, and promote freedom of the press. We want our platform to become a tool for all journalists investigating catalyzing events in their communities.',
     logoUrl:
       'https://storage.cloud.google.com/endaoment-static/org-assets/CODA.jpg?authuser=0',
-    nteeCode: '',
+    nteeCode: 'default',
     nteeDescription: '',
     mainnetAddress: '0x0d4b94b3ec8778ee05ee30dfc7a1a5713b007bf9',
     opAddress: '0x0d4b94b3ec8778ee05ee30dfc7a1a5713b007bf9',
@@ -36488,7 +36488,7 @@ export const endaomentProjects: EndaomentProject[] = [
       'Bye Bye Plastic is a disruptive non-profit removing single-use plastics from the music & events industry!<br><br>We use the power of music, the strongest social connector, to create impact & change for our planet.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/08c00549-27d9-4d04-8eb9-6c9311ae014b.jpg',
-    nteeCode: '',
+    nteeCode: 'default',
     nteeDescription: '',
     mainnetAddress: '0x9d39f7fcb4e0bae1f38ca2716886947c938d68b0',
     opAddress: '0x9d39f7fcb4e0bae1f38ca2716886947c938d68b0',
@@ -36856,9 +36856,9 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     name: 'Cheerful Inc',
-    description: 'NULL',
-    logoUrl: 'NULL',
-    nteeCode: '',
+    description: 'Cheerful Inc',
+    logoUrl: '',
+    nteeCode: 'default',
     nteeDescription: '',
     mainnetAddress: '0xcd7d55e7a2ed88529f6781f86240bbaf48b41569',
     opAddress: '0xcd7d55e7a2ed88529f6781f86240bbaf48b41569',
@@ -38654,7 +38654,7 @@ export const endaomentProjects: EndaomentProject[] = [
     baseAddress: '0x9f3413edebf38d27182b59b81be67d11c5db55ae',
   },
   {
-    name: "St. Jude Children's Research Hospital",
+    name: "St. Jude Children's Research Hospital 2",
     description:
       'St. Jude Children’s Research Hospital is leading the way the world understands, treats and defeats childhood cancer and other life-threatening diseases. Our purpose is clear: Finding cures. Saving children.®<br><br>We are the only National Cancer Institute-designated Comprehensive Cancer Center devoted solely to children. Treatments invented at St. Jude have helped push the overall childhood cancer survival rate from 20 percent to more than 80 percent since we opened more than 50 years ago. And we won’t stop until no child dies from cancer.<br><br>Families never receive a bill from St. Jude for treatment, travel, housing or food – because all a family should worry about is helping their child live.',
     logoUrl:
