@@ -229,9 +229,11 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
   });
 
   it('should return 0 when no donations', async () => {
-    const { uniqueDonors, totalDonationUsd } = await getQfRoundStats(qfRound);
+    const { uniqueDonors, totalDonationUsd, donationsCount } =
+      await getQfRoundStats(qfRound);
     expect(totalDonationUsd).to.equal(0);
     expect(uniqueDonors).to.equal(0);
+    expect(donationsCount).to.equal(0);
   });
 
   it('should return correct value for single project', async () => {
@@ -266,9 +268,10 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
     );
     await refreshProjectEstimatedMatchingView();
     const sum = await getQfRoundTotalSqrtRootSumSquared(qfRound.id);
-    const { uniqueDonors } = await getQfRoundStats(qfRound);
+    const { uniqueDonors, donationsCount } = await getQfRoundStats(qfRound);
     expect(sum).to.equal(289);
     expect(uniqueDonors).to.equal(3);
+    expect(donationsCount).to.equal(6);
   });
 
   it('should return correct value for multiple projects', async () => {
@@ -311,9 +314,10 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
 
     await refreshProjectEstimatedMatchingView();
     const sum = await getQfRoundTotalSqrtRootSumSquared(qfRound.id);
-    const { uniqueDonors } = await getQfRoundStats(qfRound);
+    const { uniqueDonors, donationsCount } = await getQfRoundStats(qfRound);
     expect(sum).to.equal(289 * 5);
     expect(uniqueDonors).to.equal(3);
+    expect(donationsCount).to.equal(12);
   });
 }
 
