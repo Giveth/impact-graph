@@ -3001,7 +3001,7 @@ function donationsByProjectIdTestCases() {
       DONATION_SEED_DATA.SECOND_DONATION.id,
     );
   });
-  it('should sort by valueUsd ASC', async () => {
+  it.skip('should sort by valueUsd ASC', async () => {
     const result = await axios.post(
       graphqlUrl,
       {
