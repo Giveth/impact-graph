@@ -209,14 +209,6 @@ export class Donation extends BaseEntity {
 
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
-  onramperTransactionStatus?: string;
-
-  @Field(_type => String, { nullable: true })
-  @Column({ nullable: true })
-  onramperId?: string;
-
-  @Field(_type => String, { nullable: true })
-  @Column({ nullable: true })
   referrerWallet?: string;
 
   @Field(_type => Date, { nullable: true })

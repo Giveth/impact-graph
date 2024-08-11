@@ -44,7 +44,6 @@ import {
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
 import { dropDbCronExtension } from '../repositories/dbCronRepository';
-import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 import { AppDataSource, CronDataSource } from '../orm';
 import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
@@ -275,7 +274,6 @@ export async function bootstrap() {
     app.get('/health', (_req, res) => {
       res.send('Hi every thing seems ok');
     });
-    app.post('/fiat_webhook', onramperWebhookHandler);
     app.post('/transak_webhook', webhookHandler);
 
     const httpServer = http.createServer(app);
