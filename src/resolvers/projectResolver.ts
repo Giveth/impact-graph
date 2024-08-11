@@ -856,12 +856,6 @@ export class ProjectResolver {
     if (fields.socialMedia) {
       query = query.leftJoinAndSelect('project.socialMedia', 'socialMedia');
     }
-    if (fields.anchorContracts) {
-      query = query.leftJoinAndSelect(
-        'project.anchorContracts',
-        'anchor_contract_address',
-      );
-    }
     if (fields.adminUser) {
       const adminUserFields = Object.keys(fields.adminUser).map(
         field => `user.${field}`,
@@ -956,12 +950,6 @@ export class ProjectResolver {
     }
     if (fields.socialMedia) {
       query = query.leftJoinAndSelect('project.socialMedia', 'socialMedia');
-    }
-    if (fields.anchorContracts) {
-      query = query.leftJoinAndSelect(
-        'project.anchorContracts',
-        'anchor_contract_address',
-      );
     }
     if (fields.qfRounds) {
       query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
@@ -1781,7 +1769,6 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .innerJoin('project.adminUser', 'user')

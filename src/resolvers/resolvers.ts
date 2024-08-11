@@ -12,7 +12,6 @@ import { CampaignResolver } from './campaignResolver';
 import { ChainvineResolver } from './chainvineResolver';
 import { QfRoundResolver } from './qfRoundResolver';
 import { QfRoundHistoryResolver } from './qfRoundHistoryResolver';
-import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
 import { DraftDonationResolver } from './draftDonationResolver';
 import { OnboardingFormResolver } from './onboardingFormResolver';
 
@@ -37,7 +36,6 @@ export const getResolvers = (): Function[] => {
     QfRoundResolver,
     QfRoundHistoryResolver,
 
-    AnchorContractAddressResolver,
     OnboardingFormResolver,
   ];
 };
