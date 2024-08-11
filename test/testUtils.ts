@@ -1914,7 +1914,7 @@ export const DONATION_SEED_DATA = {
     currency: 'ETH',
     anonymous: false,
     amount: 1,
-    valueUsd: 0,
+    valueUsd: -1,
     userId: SEED_DATA.THIRD_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment().add(2, 'days'),
