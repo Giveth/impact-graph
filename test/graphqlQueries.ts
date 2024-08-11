@@ -1223,6 +1223,7 @@ export const fetchLikedProjectsQuery = `
       take: $take
       skip: $skip
     ) {
+
       projects {
         id
         title
