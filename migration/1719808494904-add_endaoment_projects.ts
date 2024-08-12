@@ -1,11 +1,55 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { endaomentProjectCategoryMapping } from '../data/endaomentProjectCategoryMapping';
-import { endaomentProjects } from '../data/importedEndaomentProjects';
-import { NETWORK_IDS } from '../../src/provider';
-import { ReviewStatus } from '../../src/entities/project';
+import { endaomentProjectCategoryMapping } from './data/endaomentProjectCategoryMapping';
+import { endaomentProjects } from './data/importedEndaomentProjects';
+import { NETWORK_IDS } from '../src/provider';
+import { ReviewStatus } from '../src/entities/project';
+import {
+  creteSlugFromProject,
+  titleWithoutSpecialCharacters,
+} from '../src/utils/utils';
 
 export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const imageCategoryMapping = {
+      'Public Goods': 'community',
+      'Peace & Justice': 'community',
+      'Sustainable Cities & Communities': 'nature',
+      Housing: 'community',
+      'Social Services': 'community',
+      'Family & Children': 'community',
+      'Health Care': 'community',
+      'Registered Non-profits': 'non-profit',
+      Research: 'education',
+      'Mental Health': 'health-wellness',
+      Animals: 'nature',
+      Nutrition: 'health-wellness',
+      Religious: 'community',
+      Art: 'art-culture',
+      Food: 'community',
+      'Disaster Relief': 'non-profit',
+      'Conservation & Biodiversity': 'nature',
+      Education: 'education',
+      'Industry & Innovation': 'economics-infrastructure',
+      'Financial Services': 'finance',
+      Schooling: 'education',
+      Inclusion: 'equality',
+      Climate: 'nature',
+      'Water & Sanitation': 'community',
+      Tech: 'technology',
+      Employment: 'finance',
+      Infrastructure: 'economics-infrastructure',
+      'International Aid': 'non-profit',
+      Other: '1',
+      Recreation: 'community',
+      culture: 'art-culture',
+      Recycling: 'nature',
+      Agriculture: 'nature',
+      Grassroots: 'community',
+      'BIPOC Communities': 'equality',
+      Fundraising: 'non-profit',
+      'Registred Non-profits': 'non-profit',
+      'Gender Equality': 'equality',
+    };
     // Insert the Endaoment organization if it doesn't exist
     await queryRunner.query(`
       INSERT INTO "organization" ("name", "disableNotifications", "disableRecurringDonations", "disableUpdateEnforcement", "label", "website", "supportCustomTokens")
@@ -44,26 +88,43 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
     // Insert projects and their addresses
     for (const project of endaomentProjects) {
       // Prepare slug and quality score
-      const slugBase = project.name.replace(/[*+~.,()'"!:@]/g, '');
-      const slug = slugBase
-        .toLowerCase()
-        .replace(/ /g, '-')
-        .replace('/', '-')
-        .replace('\\', '-');
+      const title = titleWithoutSpecialCharacters(project.name);
+      const slugBase = creteSlugFromProject(title);
+      // const slug = await getAppropriateSlug(slugBase)
+      const slug = slugBase;
+
+      // Insert the project-category relationship in a single query
+      const getCategoryNames = (nteeCode: string): string[] => {
+        const mapping = endaomentProjectCategoryMapping.find(
+          category => category.nteeCode === nteeCode,
+        );
+        return mapping
+          ? [
+              mapping.category1,
+              mapping.category2,
+              mapping.category3 || '',
+              mapping.category4 || '',
+            ].filter(Boolean)
+          : [];
+      };
+      const categoryNames = getCategoryNames(String(project.nteeCode));
+
+      const bannerImage = `/images/defaultProjectImages/${imageCategoryMapping[categoryNames[1]] || '1'}.png`;
 
       // Insert the project
       await queryRunner.query(`
           INSERT INTO "project" (
-            "title", "description", "organizationId", "walletAddress", "creationDate", "slug", "image", "slugHistory", "statusId", "totalDonations", "totalReactions", "totalProjectUpdates", "listed", "reviewStatus", "verified", "giveBacks", "isImported", "adminUserId"
+            "title", "description", "descriptionSummary", "organizationId", "walletAddress", "creationDate", "slug", "image", "slugHistory", "statusId", "totalDonations", "totalReactions", "totalProjectUpdates", "listed", "reviewStatus", "verified", "giveBacks", "isImported", "adminUserId"
           )
           VALUES (
-            '${project.name.replace(/'/g, '')}',
+            '${title}',
+            '${project.description.replace(/'/g, '')}',
             '${project.description.replace(/'/g, '')}',
             ${endaomentOrgId},
             '${project.mainnetAddress || ''}',
             NOW(),
             '${slug}',
-            '/images/defaultProjectImages/1.png', -- Default image
+            '${bannerImage}',
             '{}', -- Empty slug history
             5, -- statusId 5 is 'Active'
             0,
@@ -76,13 +137,13 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
             true,
             ${adminUser?.id}
           )
-          ON CONFLICT ("slug") DO NOTHING; -- Handle conflict on unique constraint
 
         `);
+      //           ON CONFLICT ("slug") DO NOTHING; -- Handle conflict on unique constraint
 
       // Get the inserted project's ID
       const projectIdResult = await queryRunner.query(`
-        SELECT "id" FROM "project" WHERE "title" = '${project.name.replace(/'/g, '')}' AND "organizationId" = ${endaomentOrgId};
+        SELECT "id" FROM "project" WHERE "slug" = '${slug}' AND "organizationId" = ${endaomentOrgId};
       `);
       const projectId = projectIdResult[0]?.id;
       if (!projectId) {
@@ -90,25 +151,9 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
         continue;
       }
 
-      // Insert the project-category relationship in a single query
-      const getCategoryNames = (nteeCode: string): string[] => {
-        const mapping = endaomentProjectCategoryMapping.find(
-          category => category.nteeCode === nteeCode,
-        );
-        return mapping
-          ? [
-              mapping.category1,
-              mapping.category2,
-              mapping.category3,
-              mapping.category4,
-            ].filter(Boolean)
-          : [];
-      };
-      const categoryNames = getCategoryNames(String(project.nteeCode));
-
       for (const categoryName of categoryNames) {
         const categoryIdResult = await queryRunner.query(`
-          SELECT "id" FROM "category" WHERE "name" = '${categoryName.replace(/'/g, "''")}' LIMIT 1;
+          SELECT "id" FROM "category" WHERE "value" = '${categoryName.replace(/'/g, "''")}' LIMIT 1;
         `);
         const categoryId = categoryIdResult[0]?.id;
 
@@ -153,7 +198,7 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
       await queryRunner.query(`
         INSERT INTO "project_update" ("userId", "projectId", "content", "title", "createdAt", "isMain")
         VALUES (
-          (SELECT "id" FROM "user" WHERE "email" = '${adminUser?.email || ''}' LIMIT 1),
+          ${adminUser?.id},
           ${projectId},
           '',
           '',

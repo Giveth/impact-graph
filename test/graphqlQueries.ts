@@ -992,6 +992,7 @@ export const qfRoundStatsQuery = `
       slug: $slug
     ) {
       uniqueDonors
+      donationsCount
       allDonationsUsdValue
       matchingPool
       qfRound{
@@ -1222,6 +1223,7 @@ export const fetchLikedProjectsQuery = `
       take: $take
       skip: $skip
     ) {
+
       projects {
         id
         title
@@ -2452,9 +2454,41 @@ export const fetchDonationMetricsQuery = `
     }
   }
 `;
-
 export const deleteDraftProjectQuery = `
   mutation ($projectId: Float!) {
     deleteDraftProject(projectId: $projectId)
+  }
+`;
+
+export const fetchRecurringDonationsByDateQuery = `
+  query (
+    $projectId: Int!
+    $startDate: String
+    $endDate: String
+  ) {
+    recurringDonationsByDate(
+      projectId: $projectId
+      startDate: $startDate
+      endDate: $endDate
+    ) {
+      recurringDonations {
+        id
+        txHash
+        networkId
+        flowRate
+        currency
+        anonymous
+        isArchived
+        status
+        donor {
+          id
+          walletAddress
+          firstName
+          email
+        }
+        createdAt
+      }
+      totalCount
+    }
   }
 `;
