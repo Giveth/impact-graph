@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import axios from 'axios';
+import { In, Not } from 'typeorm';
 import {
   generateTestAccessToken,
   graphqlUrl,
@@ -2765,6 +2766,11 @@ function donationsFromWalletsTestCases() {
 }
 
 function donationsByProjectIdTestCases() {
+  beforeEach(async () => {
+    await Donation.delete({
+      id: Not(In(Object.values(DONATION_SEED_DATA).map(d => d.id))),
+    });
+  });
   it('should return filtered by qfRound donations when specified', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
@@ -3001,7 +3007,7 @@ function donationsByProjectIdTestCases() {
       DONATION_SEED_DATA.SECOND_DONATION.id,
     );
   });
-  it.skip('should sort by valueUsd ASC', async () => {
+  it('should sort by valueUsd ASC', async () => {
     const result = await axios.post(
       graphqlUrl,
       {
