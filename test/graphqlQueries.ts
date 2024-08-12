@@ -52,6 +52,11 @@ export const createDraftDonationMutation = `
     $anonymous: Boolean
     $referrerId: String
     $safeTransactionId: String
+    $useDonationBox: Boolean
+    $relevantDonationTxHash: String
+    $toWalletMemo: String
+    $qrCodeDataUrl: String
+    $isQRDonation: Boolean
   ) {
     createDraftDonation(
       networkId: $networkId
@@ -63,6 +68,11 @@ export const createDraftDonationMutation = `
       anonymous: $anonymous
       referrerId: $referrerId
       safeTransactionId: $safeTransactionId
+      useDonationBox: $useDonationBox
+      relevantDonationTxHash: $relevantDonationTxHash
+      toWalletMemo: $toWalletMemo
+      qrCodeDataUrl: $qrCodeDataUrl
+      isQRDonation: $isQRDonation
     )
   }
 `;
@@ -118,6 +128,27 @@ export const updateRecurringDonationStatusMutation = `
       id
       status
     }
+  }
+`;
+export const renewDraftDonationExpirationDateMutation = `
+  mutation (
+    $id: Int!
+  ) {
+    renewDraftDonationExpirationDate(
+      id: $id
+    ) {
+      expiresAt
+    }
+  }
+`;
+
+export const markDraftDonationAsFailedDateMutation = `
+  mutation (
+    $id: Int!
+  ) {
+    markDraftDonationAsFailed(
+      id: $id
+    )
   }
 `;
 
@@ -1700,6 +1731,27 @@ export const deleteProjectUpdateQuery = `
                     )
          }`;
 
+export const getTokensDetailsQuery = `
+  query (
+    $address: String!
+    $networkId: Float!
+  ) {
+    getTokensDetails(
+      address: $address
+      networkId: $networkId
+    ) {
+      id
+      address
+      symbol
+      networkId
+      chainType
+      decimals
+      mainnetAddress
+      name
+    }
+  }
+`;
+
 export const editProjectUpdateQuery = `
         mutation editProjectUpdate($updateId: Float! $content: String!
                    $title: String!){
@@ -2457,6 +2509,46 @@ export const fetchDonationMetricsQuery = `
 export const deleteDraftProjectQuery = `
   mutation ($projectId: Float!) {
     deleteDraftProject(projectId: $projectId)
+  }
+`;
+
+export const getDonationByIdQuery = `
+  query (
+    $id: Int!
+  ) {
+    getDonationById(
+      id: $id
+    ) {
+      id
+      transactionId
+      transactionNetworkId
+      toWalletAddress
+      fromWalletAddress
+      currency
+      anonymous
+      valueUsd
+      amount
+      recurringDonation{
+        id
+        txHash
+      }
+      user {
+        id
+        walletAddress
+        email
+        firstName
+      }
+      project {
+        id
+      }
+      qfRound {
+        id
+        name
+        isActive
+      }
+      createdAt
+      status
+    }
   }
 `;
 

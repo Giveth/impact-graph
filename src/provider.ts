@@ -28,6 +28,8 @@ export const NETWORK_IDS = {
   ZKEVM_MAINNET: 1101,
   ZKEVM_CARDONA: 2442,
 
+  STELLAR_MAINNET: 1500,
+
   // https://docs.particle.network/developers/other-services/node-service/solana-api
   SOLANA_MAINNET: 101,
   SOLANA_TESTNET: 102,
@@ -151,6 +153,8 @@ export const NETWORKS_IDS_TO_NAME = {
   1101: 'ZKEVM_MAINNET',
   2442: 'ZKEVM_CARDONA',
 
+  1500: 'STELLAR_MAINNET',
+
   101: 'SOLANA_MAINNET',
   102: 'SOLANA_TESTNET',
   103: 'SOLANA_DEVNET',
@@ -176,6 +180,8 @@ const NETWORK_NAMES = {
 
   ZKEVM_CARDONA: 'ZKEVM Cardona',
   ZKEVM_MAINNET: 'ZKEVM Mainnet',
+
+  STELLAR_MAINNET: 'Stellar Mainnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -197,6 +203,7 @@ const NETWORK_NATIVE_TOKENS = {
   BASE_SEPOLIA: 'ETH',
   ZKEVM_MAINNET: 'ETH',
   ZKEVM_CARDONA: 'ETH',
+  STELLAR_MAINNET: 'XLM',
 };
 
 const networkNativeTokensList = [
@@ -289,6 +296,11 @@ const networkNativeTokensList = [
     networkName: NETWORK_NAMES.ZKEVM_CARDONA,
     networkId: NETWORK_IDS.ZKEVM_CARDONA,
     nativeToken: NETWORK_NATIVE_TOKENS.ZKEVM_CARDONA,
+  },
+  {
+    networkName: NETWORK_NAMES.STELLAR_MAINNET,
+    networkId: NETWORK_IDS.STELLAR_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.STELLAR_MAINNET,
   },
 ];
 
@@ -396,6 +408,10 @@ export function getProvider(networkId: number) {
       url = process.env.ZKEVM_CARDONA_NODE_HTTP_URL as string;
       break;
 
+    case NETWORK_IDS.STELLAR_MAINNET:
+      url = process.env.STELLAR_HORIZON_API_URL as string;
+      break;
+
     default: {
       // Use infura
       const connectionInfo = ethers.providers.InfuraProvider.getUrl(
@@ -491,6 +507,9 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('ZKEVM_CARDONA_SCAN_API_URL');
       apiKey = config.get('ZKEVM_CARDONA_SCAN_API_KEY');
       break;
+    case NETWORK_IDS.STELLAR_MAINNET:
+      // Stellar network doesn't need API key
+      return config.get('STELLAR_SCAN_API_URL') as string;
     default:
       logger.error(
         'getBlockExplorerApiUrl() no url found for networkId',

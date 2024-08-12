@@ -1,4 +1,4 @@
-import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
+import { Arg, Ctx, Mutation, Query, Resolver, Int } from 'type-graphql';
 import { Repository } from 'typeorm';
 import { ApolloContext } from '../types/ApolloContext';
 import { User } from '../entities/user';
@@ -56,6 +56,10 @@ export class DraftDonationResolver {
     useDonationBox?: boolean,
     @Arg('relevantDonationTxHash', { nullable: true })
     relevantDonationTxHash?: string,
+    @Arg('toWalletMemo', { nullable: true }) toWalletMemo?: string,
+    @Arg('qrCodeDataUrl', { nullable: true }) qrCodeDataUrl?: string,
+    @Arg('isQRDonation', { nullable: true, defaultValue: false })
+    isQRDonation?: boolean,
   ): Promise<number> {
     const logData = {
       amount,
@@ -65,6 +69,7 @@ export class DraftDonationResolver {
       token,
       projectId,
       referrerId,
+      toWalletMemo,
       userId: ctx?.req?.user?.userId,
     };
     logger.debug(
@@ -79,10 +84,21 @@ export class DraftDonationResolver {
     try {
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
-      if (!donorUser) {
+
+      if (!donorUser && !isQRDonation) {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
-      const chainType = detectAddressChainType(donorUser.walletAddress!);
+
+      if (!!isQRDonation && !qrCodeDataUrl) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.QR_CODE_DATA_URL_REQUIRED),
+        );
+      }
+
+      const chainType = isQRDonation
+        ? detectAddressChainType(toAddress)
+        : detectAddressChainType(donorUser?.walletAddress ?? '');
+
       const _networkId = getAppropriateNetworkId({
         networkId,
         chainType,
@@ -100,6 +116,9 @@ export class DraftDonationResolver {
         chainType,
         useDonationBox,
         relevantDonationTxHash,
+        toWalletMemo,
+        qrCodeDataUrl,
+        isQRDonation,
       };
       try {
         validateWithJoiSchema(
@@ -114,14 +133,28 @@ export class DraftDonationResolver {
         throw e; // Rethrow the original error
       }
 
-      let fromAddress = donorUser.walletAddress!;
+      let fromAddress = isQRDonation ? '' : donorUser?.walletAddress;
 
-      if (chainType !== ChainType.EVM) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.EVM_SUPPORT_ONLY));
+      if (chainType !== ChainType.EVM && chainType !== ChainType.STELLAR) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.EVM_AND_STELLAR_SUPPORT_ONLY),
+        );
       }
 
-      toAddress = toAddress?.toLowerCase();
-      fromAddress = fromAddress?.toLowerCase();
+      toAddress =
+        chainType === ChainType.STELLAR
+          ? toAddress?.toUpperCase()
+          : toAddress.toLowerCase();
+
+      if (fromAddress)
+        fromAddress =
+          chainType === ChainType.STELLAR
+            ? fromAddress.toUpperCase()
+            : fromAddress.toLowerCase();
+
+      const expiresAt = isQRDonation
+        ? new Date(Date.now() + 30 * 60 * 1000)
+        : undefined;
 
       const draftDonationId = await DraftDonation.createQueryBuilder(
         'draftDonation',
@@ -131,16 +164,21 @@ export class DraftDonationResolver {
           amount: Number(amount),
           networkId: _networkId,
           currency: token,
-          userId: donorUser.id,
+          userId: donorUser?.id,
           tokenAddress,
           projectId,
           toWalletAddress: toAddress,
-          fromWalletAddress: fromAddress,
+          fromWalletAddress: fromAddress ?? '',
           anonymous: Boolean(anonymous),
           chainType: chainType as ChainType,
           referrerId,
           useDonationBox,
           relevantDonationTxHash,
+          toWalletMemo,
+          qrCodeDataUrl,
+          isQRDonation,
+          expiresAt,
+          createdAt: new Date(),
         })
         .orIgnore()
         .returning('id')
@@ -310,6 +348,93 @@ export class DraftDonationResolver {
         inputData: logData,
       });
       throw e;
+    }
+  }
+
+  // get draft donation by id
+  @Query(_returns => DraftDonation, { nullable: true })
+  async getDraftDonationById(
+    @Arg('id', _type => Int) id: number,
+  ): Promise<DraftDonation | null> {
+    const draftDonation = await DraftDonation.createQueryBuilder(
+      'draftDonation',
+    )
+      .where('draftDonation.id = :id', { id })
+      .getOne();
+
+    return draftDonation;
+  }
+
+  @Mutation(_returns => Boolean)
+  async markDraftDonationAsFailed(
+    @Arg('id', _type => Int) id: number,
+  ): Promise<boolean> {
+    try {
+      const draftDonation = await DraftDonation.createQueryBuilder(
+        'draftDonation',
+      )
+        .where('draftDonation.id = :id', { id })
+        .getOne();
+
+      if (!draftDonation) return false;
+
+      if (draftDonation.status === DRAFT_DONATION_STATUS.FAILED) {
+        return true;
+      }
+
+      if (
+        !draftDonation.isQRDonation ||
+        draftDonation.status === DRAFT_DONATION_STATUS.MATCHED
+      )
+        return false;
+
+      await DraftDonation.update(
+        { id },
+        { status: DRAFT_DONATION_STATUS.FAILED },
+      );
+
+      return true;
+    } catch (e) {
+      logger.error(
+        `Error in markDraftDonationAsFailed - id: ${id} - error: ${e.message}`,
+      );
+      return false;
+    }
+  }
+
+  @Mutation(_returns => DraftDonation)
+  async renewDraftDonationExpirationDate(
+    @Arg('id', _type => Int) id: number,
+  ): Promise<DraftDonation | null> {
+    try {
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+      const draftDonation = await DraftDonation.createQueryBuilder(
+        'draftDonation',
+      )
+        .where('draftDonation.id = :id', { id })
+        .andWhere('draftDonation.isQRDonation = :isQRDonation', {
+          isQRDonation: true,
+        })
+        .andWhere('draftDonation.status = :status', {
+          status: DRAFT_DONATION_STATUS.PENDING,
+        })
+        .getOne();
+
+      if (!draftDonation) {
+        throw new Error(translationErrorMessagesKeys.DRAFT_DONATION_NOT_FOUND);
+      }
+
+      await DraftDonation.update({ id }, { expiresAt });
+
+      return {
+        ...draftDonation,
+        expiresAt,
+      } as DraftDonation;
+    } catch (e) {
+      logger.error(
+        `Error in renewDraftDonationExpirationDate - id: ${id} - error: ${e.message}`,
+      );
+      return null;
     }
   }
 }

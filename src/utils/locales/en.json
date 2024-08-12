@@ -74,7 +74,7 @@
 	"INVALID_NETWORK_ID": "Network Id is invalid",
 	"INVALID_TOKEN_SYMBOL": "Token symbol is invalid",
 	"TOKEN_SYMBOL_IS_REQUIRED": "Token symbol is required",
-	"TOKEN_NOT_FOUND": "Token Not found",
+	"TOKEN_NOT_FOUND": "Token not found",
 	"TRANSACTION_NOT_FOUNT_IN_USER_HISTORY": "TRANSACTION_NOT_FOUNT_IN_USER_HISTORY",
 	"TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY": "Transaction with this nonce is not mined already",
 	"TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS": "toAddress of donation should be equal to project wallet address",
@@ -110,10 +110,12 @@
 	"There is not anchor address for this project": "There is not anchor address for this project",
 	"DRAFT_DONATION_DISABLED": "Draft donation is disabled",
 	"EVM_SUPPORT_ONLY": "Only EVM support",
+	"EVM_AND_STELLAR_SUPPORT_ONLY": "Only EVM and Stellar support",
 	"Recurring donation not found": "Recurring donation not found",
 	"Recurring donation not found.": "Recurring donation not found.",
 	"INVALID_PROJECT_ID": "INVALID_PROJECT_ID",
 	"TX_NOT_FOUND": "TX_NOT_FOUND",
 	"PROJECT_DOESNT_ACCEPT_RECURRING_DONATION": "PROJECT_DOESNT_ACCEPT_RECURRING_DONATION",
-	"Project does not accept recurring donation": "Project does not accept recurring donation"
+	"Project does not accept recurring donation": "Project does not accept recurring donation",
+	"QR_CODE_DATA_URL_REQUIRED": "QR_CODE_DATA_URL_REQUIRED"
 }

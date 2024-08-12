@@ -68,3 +68,22 @@ export async function countPendingDraftDonations(): Promise<number> {
   const res = await AppDataSource.getDataSource().query(query, values);
   return parseInt(res[0].count, 10);
 }
+
+export const updateDraftDonationStatus = async (params: {
+  donationId: number;
+  status: string;
+  fromWalletAddress?: string;
+  matchedDonationId?: number;
+}) => {
+  try {
+    const { donationId, status, fromWalletAddress, matchedDonationId } = params;
+    await DraftDonation.update(
+      { id: donationId },
+      { status, fromWalletAddress, matchedDonationId },
+    );
+  } catch (e) {
+    logger.error(
+      `Error in updateDraftDonationStatus - params: ${params} - error: ${e.message}`,
+    );
+  }
+};

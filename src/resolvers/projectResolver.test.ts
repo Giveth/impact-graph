@@ -34,6 +34,7 @@ import {
   fetchSimilarProjectsBySlugQuery,
   getProjectsAcceptTokensQuery,
   getPurpleList,
+  getTokensDetailsQuery,
   projectByIdQuery,
   projectsByUserIdQuery,
   updateProjectQuery,
@@ -107,6 +108,7 @@ import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { cacheProjectCampaigns } from '../services/campaignService';
 import { ChainType } from '../types/network';
 import { QfRound } from '../entities/qfRound';
+import seedTokens from '../../migration/data/seedTokens';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -174,6 +176,10 @@ describe(
 // describe('activateProject test cases --->', activateProjectTestCases);
 
 describe('projectsPerDate() test cases --->', projectsPerDateTestCases);
+describe.only(
+  'getTokensDetailsTestCases() test cases --->',
+  getTokensDetailsTestCases,
+);
 
 describe('deleteDraftProject test cases --->', deleteDraftProjectTestCases);
 
@@ -5669,6 +5675,44 @@ function deleteProjectUpdateTestCases() {
       result.data.errors[0].message,
       errorMessages.AUTHENTICATION_REQUIRED,
     );
+  });
+}
+
+function getTokensDetailsTestCases() {
+  it('should return token details', async () => {
+    const tokenDetails = seedTokens.find(
+      token => token.address === '0x6b175474e89094c44da98b954eedeac495271d0f',
+    );
+
+    const result = await axios.post(graphqlUrl, {
+      query: getTokensDetailsQuery,
+      variables: {
+        address: tokenDetails?.address,
+        networkId: tokenDetails?.networkId,
+      },
+    });
+
+    const token = result.data.data.getTokensDetails;
+
+    assert.equal(token.address, tokenDetails?.address);
+    assert.equal(token.symbol, tokenDetails?.symbol);
+    assert.equal(token.decimals, tokenDetails?.decimals);
+    assert.equal(token.name, tokenDetails?.name);
+    assert.equal(token.networkId, tokenDetails?.networkId);
+    assert.equal(token.chainType, ChainType.EVM);
+  });
+
+  it('should return null if token not found', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: getTokensDetailsQuery,
+      variables: {
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        networkId: NETWORK_IDS.POLYGON,
+      },
+    });
+
+    const error = result.data.errors[0];
+    assert.equal(error.message, 'Token not found');
   });
 }
 
