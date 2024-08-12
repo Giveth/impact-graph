@@ -2224,7 +2224,7 @@ export class ProjectResolver {
     }
   }
 
-@Query(_returns => Token)
+  @Query(_returns => Token)
   async getTokensDetails(
     @Arg('address') address: string,
     @Arg('networkId') networkId: number,
@@ -2241,9 +2241,9 @@ export class ProjectResolver {
       logger.error('getTokensDetails error', e);
       throw e;
     }
-}
+  }
 
-@Mutation(_returns => Boolean)
+  @Mutation(_returns => Boolean)
   async deleteDraftProject(
     @Arg('projectId') projectId: number,
     @Ctx() ctx: ApolloContext,

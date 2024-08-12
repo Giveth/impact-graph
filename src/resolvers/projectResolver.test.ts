@@ -5714,8 +5714,9 @@ function getTokensDetailsTestCases() {
     const error = result.data.errors[0];
     assert.equal(error.message, 'Token not found');
   });
-  
-  function deleteDraftProjectTestCases() {
+}
+
+function deleteDraftProjectTestCases() {
   it('should delete draft project successfully ', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
