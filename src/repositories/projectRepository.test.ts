@@ -8,18 +8,25 @@ import {
   findProjectsByIdArray,
   findProjectsBySlugArray,
   projectsWithoutUpdateAfterTimeFrame,
+  removeProjectAndRelatedEntities,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
 } from './projectRepository';
 import {
+  createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
+  saveAnchorContractDirectlyToDb,
+  saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { createProjectVerificationForm } from './projectVerificationRepository';
-import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
+import {
+  PROJECT_VERIFICATION_STATUSES,
+  ProjectVerificationForm,
+} from '../entities/projectVerificationForm';
 import { NETWORK_IDS } from '../provider';
 import { setPowerRound } from './powerRoundRepository';
 import { refreshProjectPowerView } from './projectPowerViewRepository';
@@ -27,7 +34,7 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
-import { Project } from '../entities/project';
+import { Project, ProjectUpdate } from '../entities/project';
 import { User } from '../entities/user';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
@@ -37,6 +44,15 @@ import { getHtmlTextSummary } from '../utils/utils';
 import { generateRandomString } from '../utils/utils';
 import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from './powerSnapshotRepository';
+import { AnchorContractAddress } from '../entities/anchorContractAddress';
+import { Donation } from '../entities/donation';
+import { FeaturedUpdate } from '../entities/featuredUpdate';
+import { ProjectAddress } from '../entities/projectAddress';
+import { ProjectSocialMedia } from '../entities/projectSocialMedia';
+import { ProjectStatusHistory } from '../entities/projectStatusHistory';
+import { Reaction } from '../entities/reaction';
+import { SocialProfile } from '../entities/socialProfile';
+import { ProjectSocialMediaType } from '../types/projectSocialMediaType';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -69,6 +85,11 @@ describe(
 describe(
   'findProjectsBySlugArray test cases',
   findProjectsBySlugArrayTestCases,
+);
+
+describe(
+  'removeProjectAndRelatedEntities test cases',
+  removeProjectAndRelatedEntitiesTestCase,
 );
 
 function projectsWithoutUpdateAfterTimeFrameTestCases() {
@@ -496,5 +517,90 @@ function updateDescriptionSummaryTestCases() {
       project.descriptionSummary,
       getHtmlTextSummary(longDescription),
     );
+  });
+}
+
+function removeProjectAndRelatedEntitiesTestCase() {
+  it('should remove project and related entities', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const projectData = createProjectData();
+    projectData.adminUserId = user.id;
+    //It creates a project, projectUpdate, and ProjectAddress
+    const project = await saveProjectDirectlyToDb(projectData);
+
+    await Promise.all([
+      saveDonationDirectlyToDb(
+        {
+          ...createDonationData(),
+        },
+        user.id,
+        project.id,
+      ),
+      saveAnchorContractDirectlyToDb({
+        creatorId: user.id,
+        projectId: project.id,
+      }),
+      Reaction.create({
+        projectId: project.id,
+        userId: user.id,
+        reaction: '',
+      }).save(),
+      ProjectSocialMedia.create({
+        projectId: project.id,
+        type: ProjectSocialMediaType.FACEBOOK,
+        link: 'https://facebook.com',
+      }).save(),
+      ProjectStatusHistory.create({
+        projectId: project.id,
+        createdAt: new Date(),
+      }).save(),
+      ProjectVerificationForm.create({ projectId: project.id }).save(),
+      FeaturedUpdate.create({ projectId: project.id }).save(),
+      SocialProfile.create({ projectId: project.id }).save(),
+    ]);
+
+    const relatedEntitiesBefore = await Promise.all([
+      Donation.findOne({ where: { projectId: project.id } }),
+      Reaction.findOne({ where: { projectId: project.id } }),
+      ProjectAddress.findOne({ where: { projectId: project.id } }),
+      ProjectSocialMedia.findOne({ where: { projectId: project.id } }),
+      AnchorContractAddress.findOne({ where: { projectId: project.id } }),
+      ProjectStatusHistory.findOne({ where: { projectId: project.id } }),
+      ProjectVerificationForm.findOne({
+        where: { projectId: project.id },
+      }),
+      FeaturedUpdate.findOne({ where: { projectId: project.id } }),
+      SocialProfile.findOne({ where: { projectId: project.id } }),
+      ProjectUpdate.findOne({ where: { projectId: project.id } }),
+    ]);
+
+    relatedEntitiesBefore.forEach(entity => {
+      assert.isNotNull(entity);
+    });
+
+    await removeProjectAndRelatedEntities(project.id);
+
+    const relatedEntities = await Promise.all([
+      Donation.findOne({ where: { projectId: project.id } }),
+      Reaction.findOne({ where: { projectId: project.id } }),
+      ProjectAddress.findOne({ where: { projectId: project.id } }),
+      ProjectSocialMedia.findOne({ where: { projectId: project.id } }),
+      AnchorContractAddress.findOne({ where: { projectId: project.id } }),
+      ProjectStatusHistory.findOne({ where: { projectId: project.id } }),
+      ProjectVerificationForm.findOne({
+        where: { projectId: project.id },
+      }),
+      FeaturedUpdate.findOne({ where: { projectId: project.id } }),
+      SocialProfile.findOne({ where: { projectId: project.id } }),
+      ProjectUpdate.findOne({ where: { projectId: project.id } }),
+    ]);
+
+    const fetchedProject = await Project.findOne({ where: { id: project.id } });
+
+    assert.isNull(fetchedProject);
+
+    relatedEntities.forEach(entity => {
+      assert.isNull(entity);
+    });
   });
 }

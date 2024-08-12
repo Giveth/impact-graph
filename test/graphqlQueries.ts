@@ -1023,6 +1023,7 @@ export const qfRoundStatsQuery = `
       slug: $slug
     ) {
       uniqueDonors
+      donationsCount
       allDonationsUsdValue
       matchingPool
       qfRound{
@@ -1253,6 +1254,7 @@ export const fetchLikedProjectsQuery = `
       take: $take
       skip: $skip
     ) {
+
       projects {
         id
         title
@@ -2502,6 +2504,11 @@ export const fetchDonationMetricsQuery = `
       totalUsdValueToGiveth
       averagePercentageToGiveth
     }
+  }
+`;
+export const deleteDraftProjectQuery = `
+  mutation ($projectId: Float!) {
+    deleteDraftProject(projectId: $projectId)
   }
 `;
 
