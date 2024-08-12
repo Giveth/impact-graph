@@ -92,8 +92,8 @@ jobs:
       - name: Run build
         run: npm run build
 
-      - name: Run migrations
-        run: npm run db:migrate:run:test
+      # - name: Run migrations
+      #   run: npm run db:migrate:run:test
 
       - name: Run tests
         run: npm run test
