@@ -1867,7 +1867,7 @@ export const DONATION_SEED_DATA = {
     currency: 'ETH',
     anonymous: false,
     amount: 100,
-    valueUsd: 1350000,
+    valueUsd: 135,
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment().subtract(2, 'days'),
