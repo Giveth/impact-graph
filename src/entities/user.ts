@@ -156,6 +156,10 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   segmentIdentified: boolean;
 
+  @Field(_type => Boolean, { nullable: true })
+  @Column('bool', { default: false })
+  isEmailVerified: boolean;
+
   // Admin Reviewing Forms
   @Field(_type => [ProjectVerificationForm], { nullable: true })
   @OneToMany(
