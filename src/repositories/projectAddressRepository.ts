@@ -49,6 +49,11 @@ export const findRelatedAddressByWalletAddress = async (
         walletAddress,
       });
       break;
+    case ChainType.STELLAR:
+      query = query.where(`UPPER(address) = :walletAddress`, {
+        walletAddress: walletAddress.toUpperCase(),
+      });
+      break;
     case ChainType.EVM:
     default:
       query = query.where(`LOWER(address) = :walletAddress`, {

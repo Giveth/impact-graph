@@ -1070,6 +1070,10 @@ export class DonationResolver {
   async getDonationById(
     @Arg('id', _type => Int) id: number,
   ): Promise<Donation | null> {
-    return findDonationById(id);
+    try {
+      return findDonationById(id);
+    } catch (e) {
+      return null;
+    }
   }
 }

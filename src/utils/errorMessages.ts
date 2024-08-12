@@ -201,6 +201,9 @@ export const errorMessages = {
   PROJECT_DOESNT_ACCEPT_RECURRING_DONATION:
     'Project does not accept recurring donation',
   DRAFT_DONATION_NOT_FOUND: 'Draft donation not found',
+  DRAFT_DONATION_CANNOT_BE_MARKED_AS_FAILED:
+    'Draft donation cannot be marked as failed',
+  QR_CODE_DATA_URL_REQUIRED: 'QR code data URL is required',
 };
 
 export const translationErrorMessagesKeys = {
@@ -371,4 +374,7 @@ export const translationErrorMessagesKeys = {
   EVM_SUPPORT_ONLY: 'EVM_SUPPORT_ONLY',
   EVM_AND_STELLAR_SUPPORT_ONLY: 'EVM_AND_STELLAR_SUPPORT_ONLY',
   DRAFT_DONATION_NOT_FOUND: 'DRAFT_DONATION_NOT_FOUND',
+  DRAFT_DONATION_CANNOT_BE_MARKED_AS_FAILED:
+    'DRAFT_DONATION_CANNOT_BE_MARKED_AS_FAILED',
+  QR_CODE_DATA_URL_REQUIRED: 'QR_CODE_DATA_URL_REQUIRED',
 };

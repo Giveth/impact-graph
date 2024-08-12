@@ -29,7 +29,6 @@ export const NETWORK_IDS = {
   ZKEVM_CARDONA: 2442,
 
   STELLAR_MAINNET: 1500,
-  STELLAR_TESTNET: 1501,
 
   // https://docs.particle.network/developers/other-services/node-service/solana-api
   SOLANA_MAINNET: 101,
@@ -154,6 +153,8 @@ export const NETWORKS_IDS_TO_NAME = {
   1101: 'ZKEVM_MAINNET',
   2442: 'ZKEVM_CARDONA',
 
+  1500: 'STELLAR_MAINNET',
+
   101: 'SOLANA_MAINNET',
   102: 'SOLANA_TESTNET',
   103: 'SOLANA_DEVNET',
@@ -181,7 +182,6 @@ const NETWORK_NAMES = {
   ZKEVM_MAINNET: 'ZKEVM Mainnet',
 
   STELLAR_MAINNET: 'Stellar Mainnet',
-  STELLAR_TESTNET: 'Stellar Testnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -204,7 +204,6 @@ const NETWORK_NATIVE_TOKENS = {
   ZKEVM_MAINNET: 'ETH',
   ZKEVM_CARDONA: 'ETH',
   STELLAR_MAINNET: 'XLM',
-  STELLAR_TESTNET: 'XLM',
 };
 
 const networkNativeTokensList = [
@@ -302,11 +301,6 @@ const networkNativeTokensList = [
     networkName: NETWORK_NAMES.STELLAR_MAINNET,
     networkId: NETWORK_IDS.STELLAR_MAINNET,
     nativeToken: NETWORK_NATIVE_TOKENS.STELLAR_MAINNET,
-  },
-  {
-    networkName: NETWORK_NAMES.STELLAR_TESTNET,
-    networkId: NETWORK_IDS.STELLAR_TESTNET,
-    nativeToken: NETWORK_NATIVE_TOKENS.STELLAR_TESTNET,
   },
 ];
 
@@ -415,11 +409,7 @@ export function getProvider(networkId: number) {
       break;
 
     case NETWORK_IDS.STELLAR_MAINNET:
-      url = process.env.STELLAR_MAINNET_NODE_HTTP_URL as string;
-      break;
-
-    case NETWORK_IDS.STELLAR_TESTNET:
-      url = process.env.STELLAR_TESTNET_NODE_HTTP_URL as string;
+      url = process.env.STELLAR_HORIZON_API_URL as string;
       break;
 
     default: {
@@ -518,13 +508,8 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiKey = config.get('ZKEVM_CARDONA_SCAN_API_KEY');
       break;
     case NETWORK_IDS.STELLAR_MAINNET:
-      apiUrl = config.get('STELLAR_MAINNET_SCAN_API_URL');
-      apiKey = config.get('STELLAR_MAINNET_SCAN_API_KEY');
-      break;
-    case NETWORK_IDS.STELLAR_TESTNET:
-      apiUrl = config.get('STELLAR_TESTNET_SCAN_API_URL');
-      apiKey = config.get('STELLAR_TESTNET_SCAN_API_KEY');
-      break;
+      // Stellar network doesn't need API key
+      return config.get('STELLAR_SCAN_API_URL') as string;
     default:
       logger.error(
         'getBlockExplorerApiUrl() no url found for networkId',

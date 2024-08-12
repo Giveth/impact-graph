@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import { Keypair } from '@solana/web3.js';
+import { Keypair as StellarKeypair } from '@stellar/stellar-sdk';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
@@ -2049,8 +2050,16 @@ export function generateRandomSolanaAddress(): string {
   return Keypair.generate().publicKey.toString();
 }
 
+export function generateRandomStellarAddress(): string {
+  return StellarKeypair.random().publicKey();
+}
+
 export function generateRandomEvmTxHash(): string {
   return `0x${generateHexNumber(64)}`;
+}
+
+export function generateRandomStellarTxHash(): string {
+  return generateRandomAlphanumeric(64);
 }
 
 export function generateHexNumber(len): string {

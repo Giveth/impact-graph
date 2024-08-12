@@ -89,6 +89,12 @@ export class DraftDonationResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
 
+      if (!!isQRDonation && !qrCodeDataUrl) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.QR_CODE_DATA_URL_REQUIRED),
+        );
+      }
+
       const chainType = isQRDonation
         ? detectAddressChainType(toAddress)
         : detectAddressChainType(donorUser?.walletAddress ?? '');
@@ -346,19 +352,15 @@ export class DraftDonationResolver {
   }
 
   // get draft donation by id
-  @Query(_return => DraftDonation)
+  @Query(_returns => DraftDonation, { nullable: true })
   async getDraftDonationById(
     @Arg('id', _type => Int) id: number,
-  ): Promise<DraftDonation> {
+  ): Promise<DraftDonation | null> {
     const draftDonation = await DraftDonation.createQueryBuilder(
       'draftDonation',
     )
       .where('draftDonation.id = :id', { id })
       .getOne();
-
-    if (!draftDonation) {
-      throw new Error(translationErrorMessagesKeys.DRAFT_DONATION_NOT_FOUND);
-    }
 
     return draftDonation;
   }
@@ -368,10 +370,29 @@ export class DraftDonationResolver {
     @Arg('id', _type => Int) id: number,
   ): Promise<boolean> {
     try {
+      const draftDonation = await DraftDonation.createQueryBuilder(
+        'draftDonation',
+      )
+        .where('draftDonation.id = :id', { id })
+        .getOne();
+
+      if (!draftDonation) return false;
+
+      if (draftDonation.status === DRAFT_DONATION_STATUS.FAILED) {
+        return true;
+      }
+
+      if (
+        !draftDonation.isQRDonation ||
+        draftDonation.status === DRAFT_DONATION_STATUS.MATCHED
+      )
+        return false;
+
       await DraftDonation.update(
         { id },
         { status: DRAFT_DONATION_STATUS.FAILED },
       );
+
       return true;
     } catch (e) {
       logger.error(
@@ -387,14 +408,28 @@ export class DraftDonationResolver {
   ): Promise<DraftDonation | null> {
     try {
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
-      await DraftDonation.update({ id }, { expiresAt });
       const draftDonation = await DraftDonation.createQueryBuilder(
         'draftDonation',
       )
         .where('draftDonation.id = :id', { id })
+        .andWhere('draftDonation.isQRDonation = :isQRDonation', {
+          isQRDonation: true,
+        })
+        .andWhere('draftDonation.status = :status', {
+          status: DRAFT_DONATION_STATUS.PENDING,
+        })
         .getOne();
 
-      return draftDonation;
+      if (!draftDonation) {
+        throw new Error(translationErrorMessagesKeys.DRAFT_DONATION_NOT_FOUND);
+      }
+
+      await DraftDonation.update({ id }, { expiresAt });
+
+      return {
+        ...draftDonation,
+        expiresAt,
+      } as DraftDonation;
     } catch (e) {
       logger.error(
         `Error in renewDraftDonationExpirationDate - id: ${id} - error: ${e.message}`,

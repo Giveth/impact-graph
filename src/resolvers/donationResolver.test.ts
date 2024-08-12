@@ -36,6 +36,7 @@ import {
   fetchNewDonorsCount,
   fetchNewDonorsDonationTotalUsd,
   fetchDonationMetricsQuery,
+  getDonationByIdQuery,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -99,6 +100,7 @@ describe(
 );
 describe('recentDonations() test cases', recentDonationsTestCases);
 describe('donationMetrics() test cases', donationMetricsTestCases);
+describe('getDonationById() test cases', getDonationByIdTestCases);
 
 // // describe('tokens() test cases', tokensTestCases);
 
@@ -2614,7 +2616,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 11155420, 56, 42220, 44787, 61, 63, 42161, 421614, 8453, 84532, 1101, 2442, 1500, 1501, 101, 102, 103]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 11155420, 56, 42220, 44787, 61, 63, 42161, 421614, 8453, 84532, 1101, 2442, 1500, 101, 102, 103]',
     );
   });
   it('should not throw exception when currency is not valid when currency is USDC.e', async () => {
@@ -4884,5 +4886,47 @@ async function donationMetricsTestCases() {
     await Donation.remove([donation1, donation2, donation3, donation4]);
     await deleteProjectDirectlyFromDb(project2.id);
     await User.remove([user1, user2]);
+  });
+}
+
+async function getDonationByIdTestCases() {
+  it('should return donation by id', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: getDonationByIdQuery,
+        variables: {
+          id: donation.id,
+        },
+      },
+      {},
+    );
+
+    assert.isOk(result);
+    assert.equal(result.data.data.getDonationById.id, donation.id);
+  });
+
+  it('should return null if donation not found', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: getDonationByIdQuery,
+        variables: {
+          id: 99999999,
+        },
+      },
+      {},
+    );
+
+    assert.isOk(result);
+    assert.isNull(result.data.data.getDonationById);
   });
 }

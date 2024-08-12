@@ -7,6 +7,7 @@ import {
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomSolanaAddress,
+  generateRandomStellarAddress,
   graphqlUrl,
   REACTION_SEED_DATA,
   saveDonationDirectlyToDb,
@@ -1610,6 +1611,44 @@ function allProjectsTestCases() {
       ),
     );
   });
+  it('should return projects, filter by accept donation on Stellar', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    await ProjectAddress.delete({ projectId: savedProject.id });
+    const stellarAddress = ProjectAddress.create({
+      project: savedProject,
+      title: 'first address',
+      address: generateRandomStellarAddress(),
+      chainType: ChainType.STELLAR,
+      networkId: 0,
+      isRecipient: true,
+    });
+    await stellarAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnStellar'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.chainType === ChainType.STELLAR,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
   it('should return projects, filter by accept fund on two Ethereum networks', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1690,6 +1729,89 @@ function allProjectsTestCases() {
     const projectIds = projects.map(project => project.id);
     assert.include(projectIds, String(projectWithMainnet.id));
     assert.include(projectIds, String(projectWithSolana.id));
+  });
+  it('should return projects, filter by accept donation on Solana, Stellar, and an expected Ethereum network', async () => {
+    const projectWithMainnet = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const projectWithSolana = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const projectWithStellar = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const mainnetAddress = ProjectAddress.create({
+      project: projectWithMainnet,
+      title: 'first address',
+      address: generateRandomEtheriumAddress(),
+      networkId: 1,
+      isRecipient: true,
+    });
+    await mainnetAddress.save();
+
+    const solanaAddress = ProjectAddress.create({
+      project: projectWithSolana,
+      title: 'secnod address',
+      address: generateRandomSolanaAddress(),
+      chainType: ChainType.SOLANA,
+      networkId: 0,
+      isRecipient: true,
+    });
+    await solanaAddress.save();
+
+    const stellarAddress = ProjectAddress.create({
+      project: projectWithStellar,
+      title: 'third address',
+      address: generateRandomStellarAddress(),
+      chainType: ChainType.STELLAR,
+      networkId: 0,
+      isRecipient: true,
+    });
+    await stellarAddress.save();
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: [
+          'AcceptFundOnMainnet',
+          'AcceptFundOnSolana',
+          'AcceptFundOnStellar',
+        ],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    const { projects } = result.data.data.allProjects;
+    const projectIds = projects.map(project => project.id);
+    assert.include(projectIds, String(projectWithMainnet.id));
+    assert.include(projectIds, String(projectWithSolana.id));
+    assert.include(projectIds, String(projectWithStellar.id));
+  });
+  it('should not return a project when it does not accept donation on Stellar', async () => {
+    // Delete all project addresses
+    await ProjectAddress.delete({ chainType: ChainType.STELLAR });
+
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnStellar'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    const { projects } = result.data.data.allProjects;
+    assert.lengthOf(projects, 0);
   });
   it('should not return a project when it does not accept donation on Solana', async () => {
     // Delete all project addresses
@@ -2009,7 +2131,6 @@ function allProjectsTestCases() {
     qfRound.isActive = false;
     await qfRound.save();
   });
-
   it('should return projects, filter by ActiveQfRound', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),

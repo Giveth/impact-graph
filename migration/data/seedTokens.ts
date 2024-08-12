@@ -2089,18 +2089,6 @@ const seedTokens: ITokenData[] = [
     chainType: ChainType.STELLAR,
     isQR: true,
   },
-
-  // Stellar Testnet
-  {
-    name: 'Stellar Lumens',
-    symbol: 'XLM',
-    decimals: 7,
-    address: 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC',
-    coingeckoId: 'stellar',
-    networkId: NETWORK_IDS.STELLAR_TESTNET,
-    chainType: ChainType.STELLAR,
-    isQR: true,
-  },
 ];
 
 export default seedTokens;

@@ -27,6 +27,8 @@ const solanaTxRegex = /^[A-Za-z0-9]{86,88}$/; // TODO: Is this enough? We are us
 // const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
 // const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/;
 
+const dateURLRegex = /^data:image\/png;base64,/;
+
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
   const validationResult = schema.validate(data);
   throwHttpErrorIfJoiValidatorFails(validationResult);
@@ -162,7 +164,7 @@ export const createDraftDonationQueryValidator = Joi.object({
   useDonationBox: Joi.boolean(),
   relevantDonationTxHash: Joi.string().allow(null, ''),
   toWalletMemo: Joi.string().allow(null, ''),
-  qrCodeDataUrl: Joi.string().allow(null, ''),
+  qrCodeDataUrl: Joi.string().allow(null, '').pattern(dateURLRegex),
   isQRDonation: Joi.boolean(),
 });
 
