@@ -2068,6 +2068,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
       .where(

@@ -37,6 +37,9 @@ export class QfRoundStatsResponse {
   uniqueDonors: number;
 
   @Field()
+  donationsCount: number;
+
+  @Field()
   allDonationsUsdValue: number;
 
   @Field()
@@ -203,9 +206,11 @@ export class QfRoundResolver {
     if (!qfRound) {
       return null;
     }
-    const { uniqueDonors, totalDonationUsd } = await getQfRoundStats(qfRound);
+    const { uniqueDonors, totalDonationUsd, donationsCount } =
+      await getQfRoundStats(qfRound);
     return {
       uniqueDonors,
+      donationsCount,
       allDonationsUsdValue: totalDonationUsd,
       matchingPool: qfRound.allocatedFund,
       qfRound,

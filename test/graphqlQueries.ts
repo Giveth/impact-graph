@@ -992,6 +992,7 @@ export const qfRoundStatsQuery = `
       slug: $slug
     ) {
       uniqueDonors
+      donationsCount
       allDonationsUsdValue
       matchingPool
       qfRound{
@@ -1222,6 +1223,7 @@ export const fetchLikedProjectsQuery = `
       take: $take
       skip: $skip
     ) {
+
       projects {
         id
         title
