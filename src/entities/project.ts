@@ -45,7 +45,6 @@ import {
 import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
-import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -277,16 +276,6 @@ export class Project extends BaseEntity {
     eager: true,
   })
   socialMedia?: ProjectSocialMedia[];
-
-  @Field(_type => [AnchorContractAddress], { nullable: true })
-  @OneToMany(
-    _type => AnchorContractAddress,
-    anchorContractAddress => anchorContractAddress.project,
-    {
-      eager: true,
-    },
-  )
-  anchorContracts?: AnchorContractAddress[];
 
   @Index()
   @Field(_type => ProjectStatus)

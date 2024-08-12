@@ -96,10 +96,6 @@ export const errorMessages = {
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'You dont have access to deactivate this project',
   PROJECT_NOT_FOUND: 'Project not found.',
-  THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
-    'There is already an anchor address for this project',
-  THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
-    'There is not anchor address for this project',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
   PROJECT_IS_NOT_ACTIVE: 'Project is not active.',
@@ -257,10 +253,6 @@ export const translationErrorMessagesKeys = {
   PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
-  THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
-    'There is already an anchor address for this project',
-  THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
-    'There is not anchor address for this project',
   PROJECT_IS_NOT_ACTIVE: 'PROJECT_IS_NOT_ACTIVE',
   INVALID_FUNCTION: 'INVALID_FUNCTION',
   PROJECT_UPDATE_NOT_FOUND: 'PROJECT_UPDATE_NOT_FOUND',

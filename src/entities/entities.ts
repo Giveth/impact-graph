@@ -25,7 +25,6 @@ import { QfRound } from './qfRound';
 import { ReferredEvent } from './referredEvent';
 import { QfRoundHistory } from './qfRoundHistory';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
-import { AnchorContractAddress } from './anchorContractAddress';
 import { Sybil } from './sybil';
 import { DraftDonation } from './draftDonation';
 import { ProjectFraud } from './projectFraud';
@@ -75,7 +74,5 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     Sybil,
     ProjectFraud,
     UserQfRoundModelScore,
-
-    AnchorContractAddress,
   ];
 };

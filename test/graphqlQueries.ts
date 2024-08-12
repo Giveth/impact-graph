@@ -954,12 +954,6 @@ export const fetchProjectBySlugQuery = `
         networkId
         chainType
       }
-      anchorContracts {
-        txHash
-        address
-        networkId
-        isActive
-       } 
       adminUser {
         id
         email
@@ -1459,12 +1453,6 @@ export const projectByIdQuery = `
         networkId
         chainType
       }
-      anchorContracts {
-        txHash
-        address
-        networkId
-        isActive
-       } 
       organization {
         name
         label
@@ -1967,25 +1955,6 @@ export const fetchQFArchivedRounds = `
       endDate
       totalDonations
       uniqueDonors
-    }
-  }
-`;
-
-export const createAnchorContractAddressQuery = `
-  mutation ($projectId: Int!,
-            $networkId: Int!, 
-            $address: String!,
-            $txHash: String!
-            ) {
-    addAnchorContractAddress(
-      projectId: $projectId 
-      networkId: $networkId
-       address:$address
-       txHash:$txHash
-        ) {
-      id
-      address
-      isActive
     }
   }
 `;

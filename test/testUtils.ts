@@ -33,8 +33,6 @@ import { MainCategory } from '../src/entities/mainCategory';
 import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 import { ChainType } from '../src/types/network';
-import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
-import { findProjectById } from '../src/repositories/projectRepository';
 import { ProjectAddress } from '../src/entities/projectAddress';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -163,26 +161,6 @@ export const saveUserDirectlyToDb = async (
     walletAddress,
     firstName: `testUser-${walletAddress}`,
     email: `testEmail-${walletAddress}@giveth.io`,
-  }).save();
-};
-
-export const saveAnchorContractDirectlyToDb = async (params: {
-  projectId: number;
-  creatorId: number;
-  contractAddress?: string;
-  txHash?: string;
-  networkId?: number;
-  chainType?: ChainType;
-}): Promise<AnchorContractAddress> => {
-  const projectOwnerId = (await findProjectById(params.projectId))?.adminUser
-    ?.id;
-  return AnchorContractAddress.create({
-    projectId: params.projectId,
-    creatorId: params.creatorId,
-    address: params.contractAddress || generateRandomEtheriumAddress(),
-    networkId: params.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
-    txHash: params.txHash || generateRandomEtheriumAddress(),
-    ownerId: projectOwnerId,
   }).save();
 };
 
