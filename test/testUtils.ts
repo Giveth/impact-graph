@@ -33,7 +33,6 @@ import { MainCategory } from '../src/entities/mainCategory';
 import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 import { ChainType } from '../src/types/network';
-import { RecurringDonation } from '../src/entities/recurringDonation';
 import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
 import { findProjectById } from '../src/repositories/projectRepository';
 import { ProjectAddress } from '../src/entities/projectAddress';
@@ -577,7 +576,6 @@ export const SEED_DATA = {
       website: 'https://thegivingblock.com',
       disableUpdateEnforcement: true,
       disableNotifications: true,
-      disableRecurringDonations: true,
       supportCustomTokens: false,
     },
     {
@@ -1981,51 +1979,6 @@ export const saveDonationDirectlyToDb = async (
     ...donationData,
     userId,
     projectId,
-  }).save();
-};
-
-export const saveRecurringDonationDirectlyToDb = async (params?: {
-  donationData?: Partial<RecurringDonation>;
-}): Promise<RecurringDonation> => {
-  const projectId =
-    params?.donationData?.projectId ||
-    (await saveProjectDirectlyToDb(createProjectData())).id;
-  const donorId =
-    params?.donationData?.donorId ||
-    (await saveUserDirectlyToDb(generateRandomEtheriumAddress())).id;
-  const anonymous = params?.donationData?.anonymous || false;
-  const anchorContractAddressId =
-    params?.donationData?.anchorContractAddressId ||
-    (
-      await saveAnchorContractDirectlyToDb({
-        creatorId: donorId,
-        projectId,
-      })
-    ).id;
-  return RecurringDonation.create({
-    flowRate: params?.donationData?.flowRate || '10',
-    totalUsdStreamed: params?.donationData?.totalUsdStreamed || 0,
-    status: params?.donationData?.status || 'pending',
-    networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
-    currency: params?.donationData?.currency || 'USDT',
-    finished:
-      params?.donationData?.finished !== undefined
-        ? params?.donationData?.finished
-        : false,
-    isArchived:
-      params?.donationData?.isArchived !== undefined
-        ? params?.donationData?.isArchived
-        : false,
-    isBatch:
-      params?.donationData?.isBatch !== undefined
-        ? params?.donationData?.isBatch
-        : false,
-    txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),
-    anonymous,
-    donorId,
-    projectId,
-    anchorContractAddressId,
-    createdAt: params?.donationData?.createdAt || moment(),
   }).save();
 };
 

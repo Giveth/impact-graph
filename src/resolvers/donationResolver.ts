@@ -70,7 +70,6 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
-import { nonZeroRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
@@ -81,9 +80,6 @@ class PaginateDonations {
 
   @Field(_type => Number, { nullable: true })
   totalCount: number;
-
-  @Field(_type => Number, { nullable: true })
-  recurringDonationsCount: number;
 
   @Field(_type => Number, { nullable: true })
   totalUsdBalance: number;
@@ -268,7 +264,6 @@ export class DonationResolver {
         .leftJoin('donation.user', 'user')
         .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project')
-        .leftJoinAndSelect('donation.recurringDonation', 'recurringDonation')
         .leftJoinAndSelect('project.categories', 'categories');
 
       if (fromDate) {
@@ -563,9 +558,6 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .addSelect(publicSelectionFields)
-      .where(
-        `donation.projectId = ${projectId} AND donation.recurringDonationId IS NULL`,
-      )
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
@@ -611,9 +603,6 @@ export class DonationResolver {
       );
     }
 
-    const recurringDonationsCount =
-      await nonZeroRecurringDonationsByProjectId(projectId);
-
     const [donations, donationsCount] = await query
       .take(take)
       .skip(skip)
@@ -622,7 +611,6 @@ export class DonationResolver {
       donations,
       totalCount: donationsCount,
       totalUsdBalance: project.totalDonations,
-      recurringDonationsCount,
     };
   }
 
@@ -636,7 +624,6 @@ export class DonationResolver {
     return this.donationRepository
       .createQueryBuilder('donation')
       .where({ userId: ctx.req.user.userId })
-      .andWhere(`donation.recurringDonationId IS NULL`)
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
@@ -655,7 +642,6 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .where(`donation.userId = ${userId}`)
-      .andWhere(`donation.recurringDonationId IS NULL`)
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,

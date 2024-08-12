@@ -26,13 +26,11 @@ import { ReferredEvent } from './referredEvent';
 import { QfRoundHistory } from './qfRoundHistory';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
-import { RecurringDonation } from './recurringDonation';
 import { Sybil } from './sybil';
 import { DraftDonation } from './draftDonation';
 import { ProjectFraud } from './projectFraud';
 import { ProjectActualMatchingView } from './ProjectActualMatchingView';
 import { ProjectSocialMedia } from './projectSocialMedia';
-import { DraftRecurringDonation } from './draftRecurringDonation';
 import { UserQfRoundModelScore } from './userQfRoundModelScore';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
@@ -79,7 +77,5 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     UserQfRoundModelScore,
 
     AnchorContractAddress,
-    RecurringDonation,
-    DraftRecurringDonation,
   ];
 };

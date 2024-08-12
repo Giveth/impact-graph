@@ -467,25 +467,6 @@ export const donationTab = {
         },
       },
 
-      onramperTransactionStatus: {
-        isVisible: {
-          list: false,
-          filter: false,
-          show: true,
-          edit: false,
-          new: false,
-        },
-      },
-
-      onramperId: {
-        isVisible: {
-          list: false,
-          filter: false,
-          show: true,
-          edit: false,
-          new: false,
-        },
-      },
       qfRoundUserScore: {
         isVisible: {
           list: false,

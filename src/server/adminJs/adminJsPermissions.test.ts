@@ -99,7 +99,6 @@ const actionsPerRole = Object.freeze({
     broadcastNotification: ['list', 'show', 'new'],
     sybil: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
     projectFraud: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
-    // recurringDonation: ['list', 'show', 'new', 'edit', 'delete', 'bulkDelete'],
   },
   campaignManager: {
     users: ['list', 'show'],
@@ -122,7 +121,6 @@ const actionsPerRole = Object.freeze({
     broadcastNotification: ['list', 'show'],
     sybil: ['list', 'show'],
     projectFraud: ['list', 'show'],
-    // recurringDonation: ['list', 'show'],
   },
   reviewer: {
     users: ['list', 'show'],
@@ -167,7 +165,6 @@ const actionsPerRole = Object.freeze({
     broadcastNotification: ['list', 'show'],
     sybil: ['list', 'show'],
     projectFraud: ['list', 'show'],
-    // recurringDonation: ['list', 'show'],
   },
   operator: {
     users: ['list', 'show'],
@@ -202,7 +199,6 @@ const actionsPerRole = Object.freeze({
     broadcastNotification: ['list', 'show'],
     sybil: ['list', 'show'],
     projectFraud: ['list', 'show'],
-    // recurringDonation: ['list', 'show'],
   },
   qfManager: {
     qfRound: ['list', 'show', 'edit', 'new', 'returnAllDonationData'],

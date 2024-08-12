@@ -68,22 +68,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_S3_REGION }}
-
-      - name: Download latest DB backup from S3
-        run: |
-          FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ | sort | tail -n 1 | awk '{print $4}')
-          aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.zip
-
-      - name: Unzip DB backup
-        run: |
-          unzip /tmp/db_backup.zip -d /tmp
-          mv /tmp/backups/givethio-staging/*.sql /tmp/backups/givethio-staging/db_backup.sql
 
       - name: Wait for PostgreSQL to become ready
         run: |
@@ -93,9 +77,6 @@ jobs:
             echo -n .
             sleep 1
           done
-
-      - name: Restore DB backup
-        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
 
       - name: Use Node.js
         uses: actions/setup-node@v1
@@ -111,8 +92,8 @@ jobs:
       - name: Run build
         run: npm run build
 
-      - name: Run migrations
-        run: npm run db:migrate:run:test
+      # - name: Run migrations
+      #   run: npm run db:migrate:run:test
 
       - name: Run tests
         run: npm run test
@@ -152,7 +133,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
           registry: ghcr.io
-          repository: giveth/impact-graph
+          repository: generalmagicio/qacc-be # todo: check this to be correct, I just set that to be different from giveth/impact-graph
           add_git_labels: true
           # Add branch name to docker image tag @see{@link https://github.com/docker/build-push-action/tree/releases/v1#tag_with_ref}
           tag_with_ref: true

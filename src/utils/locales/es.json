@@ -3,8 +3,6 @@
   "CHAINVINE_CLICK_EVENT_ERROR": "No fue posible registrar el click-event",
   "CHAINVINE_REGISTRATION_ERROR": "Chainvine ID no pudo ser generado para el usuario",
   "FIAT_DONATION_ALREADY_EXISTS": "La donación Fiat ya existe",
-  "ONRAMPER_SIGNATURE_INVALID": "El cuerpo o firma son invalidos",
-  "ONRAMPER_SIGNATURE_MISSING": "El encabezado no continue la firma",
   "UPLOAD_FAILED": "No fue posible subir el archivo",
   "CHANGE_API_INVALID_TITLE_OR_EIN": "ChangeAPI título de API o EIN no encontrado o no válido",
   "INVALID_SOCIAL_NETWORK": "Red social inválida",

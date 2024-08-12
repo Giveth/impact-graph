@@ -17,7 +17,6 @@ import { AccountVerification } from './accountVerification';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { ReferredEvent } from './referredEvent';
-import { RecurringDonation } from './recurringDonation';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 
 export const publicSelectionFields = [
@@ -191,35 +190,16 @@ export class User extends BaseEntity {
 
   @Field(_type => Int, { nullable: true })
   async donationsCount() {
-    // Count for non-recurring donations
-    const nonRecurringDonationsCount = await Donation.createQueryBuilder(
-      'donation',
-    )
+    return await Donation.createQueryBuilder('donation')
       .where(`donation."userId" = :userId`, { userId: this.id })
       .andWhere(`donation.status = :status`, {
         status: DONATION_STATUS.VERIFIED,
       })
-      .andWhere(`donation."recurringDonationId" IS NULL`)
       .cache(
         `user-donationsCount-normal-${this.id}`,
         Number(process.env.USER_STATS_CACHE_TIME || 60000),
       )
       .getCount();
-
-    // Count for recurring donations
-    const recurringDonationsCount = await RecurringDonation.createQueryBuilder(
-      'recurring_donation',
-    )
-      .where(`recurring_donation."donorId" = :donorId`, { donorId: this.id })
-      .andWhere('recurring_donation.totalUsdStreamed > 0')
-      .cache(
-        `user-donationsCount-recurring-${this.id}`,
-        Number(process.env.USER_STATS_CACHE_TIME || 60000),
-      )
-      .getCount();
-
-    // Sum of both counts
-    return nonRecurringDonationsCount + recurringDonationsCount;
   }
 
   @Field(_type => Int, { nullable: true })
@@ -232,7 +212,7 @@ export class User extends BaseEntity {
         { reviewStatus: ReviewStatus.Listed },
       )
       .cache(
-        `user-likedProjectsCount-recurring-${this.id}`,
+        `user-likedProjectsCount-${this.id}`,
         Number(process.env.USER_STATS_CACHE_TIME || 60000),
       )
       .getCount();

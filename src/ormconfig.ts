@@ -30,6 +30,7 @@ const ormConfig: DataSourceOptions = {
   database: process.env.TYPEORM_DATABASE_NAME,
   entities: getEntities(),
   migrations: ['migration/*.ts'],
+  synchronize: process.env.NODE_ENV !== 'production', // Enable sync for test environments
   // cli: {
   //   migrationsDir: 'migration',
   // },
