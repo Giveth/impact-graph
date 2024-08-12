@@ -81,6 +81,7 @@ import {
   filterProjectsQuery,
   findProjectById,
   findProjectIdBySlug,
+  removeProjectAndRelatedEntities,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
 } from '../repositories/projectRepository';
@@ -2197,5 +2198,42 @@ export class ProjectResolver {
       SentryLogger.captureException(error);
       throw error;
     }
+  }
+
+  @Mutation(_returns => Boolean)
+  async deleteDraftProject(
+    @Arg('projectId') projectId: number,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<boolean> {
+    const user = await getLoggedInUser(ctx);
+    const project = await findProjectById(projectId);
+
+    if (!project) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+
+    if (project.adminUserId !== user.id) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
+    }
+
+    if (project.statusId !== ProjStatus.drafted) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.ONLY_DRAFTED_PROJECTS_CAN_BE_DELETED,
+        ),
+      );
+    }
+
+    try {
+      await removeProjectAndRelatedEntities(project.id);
+    } catch (error) {
+      logger.error('projectResolver.deleteDraftProject() error', error);
+      SentryLogger.captureException(error);
+      throw error;
+    }
+
+    return true;
   }
 }

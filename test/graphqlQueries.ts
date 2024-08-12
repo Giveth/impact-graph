@@ -2454,6 +2454,11 @@ export const fetchDonationMetricsQuery = `
     }
   }
 `;
+export const deleteDraftProjectQuery = `
+  mutation ($projectId: Float!) {
+    deleteDraftProject(projectId: $projectId)
+  }
+`;
 
 export const fetchRecurringDonationsByDateQuery = `
   query (
