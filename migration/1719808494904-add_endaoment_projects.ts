@@ -25,7 +25,7 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
       Nutrition: 'health-wellness',
       Religious: 'community',
       Art: 'art-culture',
-      Food: 'health-wellness',
+      Food: 'community',
       'Disaster Relief': 'non-profit',
       'Conservation & Biodiversity': 'nature',
       Education: 'education',
@@ -102,8 +102,8 @@ export class AddEndaomentsProjects1719808494904 implements MigrationInterface {
           ? [
               mapping.category1,
               mapping.category2,
-              mapping.category3,
-              mapping.category4,
+              mapping.category3 || '',
+              mapping.category4 || '',
             ].filter(Boolean)
           : [];
       };

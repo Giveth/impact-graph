@@ -20,6 +20,7 @@ import {
   addRecipientAddressToProjectQuery,
   createProjectQuery,
   deactivateProjectQuery,
+  deleteDraftProjectQuery,
   deleteProjectUpdateQuery,
   editProjectUpdateQuery,
   fetchFeaturedProjects,
@@ -179,6 +180,8 @@ describe.only(
   'getTokensDetailsTestCases() test cases --->',
   getTokensDetailsTestCases,
 );
+
+describe('deleteDraftProject test cases --->', deleteDraftProjectTestCases);
 
 function projectsPerDateTestCases() {
   it('should projects created in a time range', async () => {
@@ -5710,5 +5713,114 @@ function getTokensDetailsTestCases() {
 
     const error = result.data.errors[0];
     assert.equal(error.message, 'Token not found');
+  });
+  
+  function deleteDraftProjectTestCases() {
+  it('should delete draft project successfully ', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      adminUserId: user.id,
+      statusId: ProjStatus.drafted,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: deleteDraftProjectQuery,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(result.data.data.deleteDraftProject, true);
+  });
+  it('should can not delete draft project because of ownerShip ', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      adminUserId: user.id,
+      statusId: ProjStatus.drafted,
+    });
+    const accessTokenUser1 = await generateTestAccessToken(user1.id);
+
+    // Add projectUpdate with accessToken user1
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: deleteDraftProjectQuery,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessTokenUser1}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
+    );
+  });
+  it('should can not delete draft project because of not found project ', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const projectCount = await Project.count();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: deleteDraftProjectQuery,
+        variables: {
+          projectId: Number(projectCount + 10),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.PROJECT_NOT_FOUND,
+    );
+  });
+
+  it('should can not delete draft project because status ', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      adminUserId: user.id,
+      statusId: ProjStatus.active,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: deleteDraftProjectQuery,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.ONLY_DRAFTED_PROJECTS_CAN_BE_DELETED,
+    );
   });
 }
