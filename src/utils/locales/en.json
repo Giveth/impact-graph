@@ -100,5 +100,7 @@
 	"DRAFT_DONATION_DISABLED": "Draft donation is disabled",
 	"EVM_SUPPORT_ONLY": "Only EVM support",
 	"INVALID_PROJECT_ID": "INVALID_PROJECT_ID",
-	"TX_NOT_FOUND": "TX_NOT_FOUND"
+	"TX_NOT_FOUND": "TX_NOT_FOUND",
+
+	"NO_EMAIL_PROVIDED": "No email address provided."
 }
