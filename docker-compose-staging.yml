@@ -42,8 +42,8 @@ services:
     env_file:
       - .caddy.env
     environment:
-      MY_URL=${MY_URL:-}
-      IP_WHITELIST=${IP_WHITELIST:-}
+      - MY_URL=${MY_URL:-}
+      - IP_WHITELIST=${IP_WHITELIST:-}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
