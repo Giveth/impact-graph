@@ -1,10 +1,3 @@
 {$MY_URL} {
-    route {
-        @allowed {
-            path /*
-            remote_ip {$IP_WHITELIST}
-        }
-        reverse_proxy @allowed qacc-be:4000
-        respond 403
-    }
+    reverse_proxy @allowed qacc-be:4000
 }
