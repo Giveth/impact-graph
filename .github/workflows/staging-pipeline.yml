@@ -92,53 +92,37 @@ jobs:
       - name: Run build
         run: npm run build
 
-      # - name: Run migrations
-      #   run: npm run db:migrate:run:test
+      - name: Run migrations
+        run: npm run db:migrate:run:test
 
       - name: Run tests
         run: npm run test
         env:
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
-          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
-          INFURA_ID: ${{ secrets.INFURA_ID }}
-          POLYGON_SCAN_API_KEY: ${{ secrets.POLYGON_SCAN_API_KEY }}
-          OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
-          CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
-          CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
-          ARBITRUM_SCAN_API_KEY: ${{ secrets.ARBITRUM_SCAN_API_KEY }}
-          ARBITRUM_SEPOLIA_SCAN_API_KEY: ${{ secrets.ARBITRUM_SEPOLIA_SCAN_API_KEY }}
-          BASE_SCAN_API_KEY: ${{ secrets.BASE_SCAN_API_KEY }}
-          BASE_SEPOLIA_SCAN_API_KEY: ${{ secrets.BASE_SEPOLIA_SCAN_API_KEY }}
-          ZKEVM_MAINNET_SCAN_API_KEY: ${{ secrets.ZKEVM_MAINNET_SCAN_API_KEY }}
-          ZKEVM_CARDONA_SCAN_API_KEY: ${{ secrets.ZKEVM_CARDONA_SCAN_API_KEY }}
-          MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
-          ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
           DROP_DATABASE: ${{ secrets.DROP_DATABASE_DURING_TEST_STAGING }}
-          SOLANA_TEST_NODE_RPC_URL: ${{ secrets.SOLANA_TEST_NODE_RPC_URL }}
-          SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
-          SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
-          MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
 
   publish:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Build image and push to GitHub Packages
-        uses: docker/build-push-action@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
           registry: ghcr.io
-          repository: generalmagicio/qacc-be # todo: check this to be correct, I just set that to be different from giveth/impact-graph
-          add_git_labels: true
-          # Add branch name to docker image tag @see{@link https://github.com/docker/build-push-action/tree/releases/v1#tag_with_ref}
-          tag_with_ref: true
-          # Add commit hash to docker image tag @see{@link https://github.com/docker/build-push-action/tree/releases/v1#tag_with_sha}
-          tag_with_sha: true
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/generalmagicio/qacc-be:staging
 
   deploy:
     needs: publish
@@ -147,13 +131,15 @@ jobs:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.STAGING_HOST_ALL }}
-          username: ${{ secrets.STAGING_USERNAME_ALL }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd giveth-all
-            docker-compose stop impact-graph
-            docker-compose pull impact-graph
-            docker-compose up -d impact-graph
+            cd QAcc-BE
+            git checkout staging
+            git pull
+            docker compose -f docker-compose-staging.yml stop qacc-be
+            docker-compose -f docker-compose-staging.yml pull qacc-be
+            docker-compose -f docker-compose-staging.yml up -d
             docker image prune -a --force
