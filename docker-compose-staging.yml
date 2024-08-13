@@ -40,7 +40,7 @@ services:
       - 80:80
       - 443:443
     env_file:
-      - .caddy.env
+      - .env
     environment:
       - MY_URL=${MY_URL:-}
       - IP_WHITELIST=${IP_WHITELIST:-}
