@@ -188,6 +188,30 @@ export class User extends BaseEntity {
   @Field(_type => Float, { nullable: true })
   activeQFMBDScore?: number;
 
+  @Field(_type => Boolean, { nullable: false })
+  @Column({ default: false })
+  emailConfirmed: boolean;
+
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  emailConfirmationToken: string | null;
+
+  @Field(_type => Date, { nullable: true })
+  @Column('timestamptz', { nullable: true })
+  emailConfirmationTokenExpiredAt: Date | null;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ default: false })
+  emailConfirmationSent: boolean;
+
+  @Field(_type => Date, { nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
+  emailConfirmationSentAt: Date | null;
+
+  @Field(_type => Date, { nullable: true })
+  @Column({ nullable: true })
+  emailConfirmedAt: Date;
+
   @Field(_type => Int, { nullable: true })
   async donationsCount() {
     return await Donation.createQueryBuilder('donation')

@@ -8,13 +8,17 @@ import {
   Resolver,
 } from 'type-graphql';
 import { Repository } from 'typeorm';
+import * as jwt from 'jsonwebtoken';
 
+import moment from 'moment';
 import { User } from '../entities/user';
+import config from '../config';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { validateEmail } from '../utils/validators/commonValidators';
 import {
+  findUserByEmailConfirmationToken,
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
@@ -230,5 +234,116 @@ export class UserResolver {
     await createNewAccountVerification(associatedVerifications);
 
     return true;
+  }
+
+  @Mutation(_returns => User)
+  async userVerificationSendEmailConfirmation(
+    @Arg('userId') userId: number,
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<User> {
+    try {
+      const currentUserId = user?.userId;
+      if (!currentUserId) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+      }
+
+      const userToVerify = await findUserById(userId);
+
+      if (!userToVerify) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+      }
+      if (userToVerify.id !== currentUserId) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+      }
+
+      const email = userToVerify.email;
+      if (!email) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.NO_EMAIL_PROVIDED),
+        );
+      }
+      if (userToVerify.emailConfirmed) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.YOU_ALREADY_VERIFIED_THIS_EMAIL),
+        );
+      }
+
+      const token = jwt.sign(
+        { userId },
+        config.get('MAILER_JWT_SECRET') as string,
+        { expiresIn: '5m' },
+      );
+
+      userToVerify.emailConfirmationTokenExpiredAt = moment()
+        .add(5, 'minutes')
+        .toDate();
+      userToVerify.emailConfirmationToken = token;
+      userToVerify.emailConfirmationSent = true;
+      userToVerify.emailConfirmed = false;
+      userToVerify.emailConfirmationSentAt = new Date();
+      await userToVerify.save();
+
+      await getNotificationAdapter().sendUserEmailConfirmation({
+        email,
+        user: userToVerify,
+        token,
+      });
+
+      return userToVerify;
+    } catch (e) {
+      logger.error('userVerificationSendEmailConfirmation() error', e);
+      throw e;
+    }
+  }
+
+  @Mutation(_returns => User)
+  async userVerificationConfirmEmail(
+    @Arg('emailConfirmationToken') emailConfirmationToken: string,
+  ): Promise<User> {
+    try {
+      const secret = config.get('MAILER_JWT_SECRET') as string;
+
+      const isValidToken = await findUserByEmailConfirmationToken(
+        emailConfirmationToken,
+      );
+
+      if (!isValidToken) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+      }
+
+      const decodedJwt: any = jwt.verify(emailConfirmationToken, secret);
+      const userId = decodedJwt.userId;
+      const user = await findUserById(userId);
+
+      if (!user) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+      }
+
+      user.emailConfirmationTokenExpiredAt = null;
+      user.emailConfirmationToken = null;
+      user.emailConfirmedAt = new Date();
+      user.emailConfirmed = true;
+      await user.save();
+
+      return user;
+    } catch (e) {
+      const user = await findUserByEmailConfirmationToken(
+        emailConfirmationToken,
+      );
+
+      if (!user) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+      }
+
+      user.emailConfirmed = false;
+      user.emailConfirmationTokenExpiredAt = null;
+      user.emailConfirmationSent = false;
+      user.emailConfirmationSentAt = null;
+      user.emailConfirmationToken = null;
+
+      await user.save();
+      logger.error('userVerificationConfirmEmail() error', e);
+      throw e;
+    }
   }
 }
