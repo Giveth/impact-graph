@@ -24,8 +24,6 @@ import createSchema from './createSchema';
 import SentryLogger from '../sentryLogger';
 
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
-import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
-import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
@@ -321,15 +319,6 @@ export async function bootstrap() {
     logger.debug('initializeCronJobs() has been called', new Date());
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();
-    runCheckPendingProjectListingCronJob();
-    if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
-      runCheckProjectVerificationStatus();
-    }
-
-    // If we need to deactivate the process use the env var NO MORE
-    // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
-    //   runGivingBlocksProjectSynchronization();
-    // }
 
     if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
       runSyncLostDonations();
