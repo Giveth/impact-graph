@@ -34,3 +34,4 @@ src/scripts/*.json
 ./src/server/adminJs/adminjs
 
 .DS_Store
+.caddy.env

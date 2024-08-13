@@ -159,7 +159,6 @@ jobs:
             cd QAcc-BE
             git checkout staging
             git pull
-            docker compose -f docker-compose-staging.yml stop qacc-be
-            docker compose -f docker-compose-staging.yml pull qacc-be
-            docker compose -f docker-compose-staging.yml up -d
+            docker compose -f docker-compose-staging.yml build --no-cache
+            docker compose -f docker-compose-staging.yml up -d --build
             docker image prune -a --force
