@@ -62,6 +62,12 @@ export interface NotificationAdapterInterface {
     token: string;
   }): Promise<void>;
 
+  sendUserEmailConfirmation(params: {
+    email: string;
+    user: User;
+    token: string;
+  }): Promise<void>;
+
   userSuperTokensCritical(params: {
     user: User;
     eventName: UserStreamBalanceWarning;
