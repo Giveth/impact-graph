@@ -2,9 +2,9 @@ services:
   qacc-be:
     container_name: qacc-be
     build: .
-    command: npm run start:docker:server
+    command: npm run start:docker:locally
     environment:
-      - ENVIRONMENT=production
+      - ENVIRONMENT=local
       - LOG_PATH=/usr/src/app/logs/qacc.log
     restart: always
     volumes:
@@ -13,6 +13,20 @@ services:
       - ./logs:/usr/src/app/logs
     ports:
       - "4001:4000"
+
+  qacc-postgres:
+    container_name: qacc-postgres
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_DB=qacc
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   qacc-redis:
     container_name: qacc-redis
