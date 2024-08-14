@@ -104,7 +104,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         segment: {
           payload: {
             email,
-            verificationLink: `${dappUrl}/verification/${user.walletAddress}/${token}`,
+            verificationLink: `${dappUrl}/verification/user/${user.walletAddress}/${token}`,
           },
         },
       });
