@@ -209,7 +209,7 @@ export class User extends BaseEntity {
   emailConfirmationSentAt: Date | null;
 
   @Field(_type => Date, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   emailConfirmedAt: Date | null;
 
   @Field(_type => Int, { nullable: true })
