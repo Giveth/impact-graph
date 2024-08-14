@@ -160,6 +160,9 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   isEmailVerified: boolean;
 
+  @Column({ nullable: true, default: null })
+  verificationCode?: number;
+
   // Admin Reviewing Forms
   @Field(_type => [ProjectVerificationForm], { nullable: true })
   @OneToMany(

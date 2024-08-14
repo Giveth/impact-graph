@@ -33,6 +33,7 @@ import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
 describe('refreshUserScores() test cases', refreshUserScoresTestCases);
+describe('confirmUserEmail() test cases', confirmUserEmailTestCases);
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
 function refreshUserScoresTestCases() {
@@ -923,5 +924,10 @@ function updateUserTestCases() {
     assert.equal(updatedUser?.lastName, updateUserData.lastName);
     assert.equal(updatedUser?.avatar, updateUserData.avatar);
     assert.equal(updatedUser?.url, updateUserData.url);
+  });
+}
+function confirmUserEmailTestCases(): void {
+  it('should confirm user email', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
   });
 }

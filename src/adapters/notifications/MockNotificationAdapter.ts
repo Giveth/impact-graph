@@ -35,6 +35,14 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
+  sendEmailConfirmationCodeFlow(params: { email: string }): Promise<void> {
+    logger.debug(
+      'MockNotificationAdapter sendEmailConfirmationCodeFlow',
+      params,
+    );
+    return Promise.resolve(undefined);
+  }
+
   userSuperTokensCritical(): Promise<void> {
     return Promise.resolve(undefined);
   }

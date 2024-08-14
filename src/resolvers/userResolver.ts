@@ -30,6 +30,8 @@ import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepos
 import { addressHasDonated } from '../repositories/donationRepository';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
+import { generateEmailVerificationCode } from '../utils/utils';
+import { getLoggedInUser } from '../services/authorizationServices';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -227,6 +229,61 @@ export class UserResolver {
 
     // I don't know wether we use this mutation or not, maybe it's useless
     await createNewAccountVerification(associatedVerifications);
+
+    return true;
+  }
+
+  @Mutation(_returns => Boolean)
+  async confirmUserEmail(
+    @Arg('email') email: string,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<boolean> {
+    const user = await getLoggedInUser(ctx);
+
+    if (!user)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+
+    if (user.isEmailVerified)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.EMAIL_ALREADY_VERIFIED),
+      );
+
+    const code = generateEmailVerificationCode();
+
+    user.verificationCode = code;
+
+    await getNotificationAdapter().sendEmailConfirmationCodeFlow({
+      email: email,
+      user: user,
+    });
+
+    await user.save();
+
+    return true;
+  }
+
+  @Mutation(_returns => Boolean)
+  async verifyUserEmail(
+    @Arg('code') code: number,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<boolean> {
+    const user = await getLoggedInUser(ctx);
+
+    if (!user)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+
+    if (user.isEmailVerified)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.EMAIL_ALREADY_VERIFIED),
+      );
+
+    if (user.verificationCode !== code)
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL_CODE));
+
+    user.isEmailVerified = true;
+    user.verificationCode = undefined;
+
+    await user.save();
 
     return true;
   }
