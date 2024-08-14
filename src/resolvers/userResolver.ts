@@ -243,7 +243,7 @@ export class UserResolver {
   ): Promise<User> {
     try {
       const currentUserId = user?.userId;
-      if (!currentUserId) {
+      if (!currentUserId || currentUserId != userId) {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
 
