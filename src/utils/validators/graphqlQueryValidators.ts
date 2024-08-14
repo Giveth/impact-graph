@@ -239,7 +239,9 @@ const managingFundsValidator = Joi.object({
       address: Joi.alternatives().try(
         Joi.string().required().pattern(ethereumWalletAddressRegex),
         Joi.string().required().pattern(solanaWalletAddressRegex),
+        Joi.string().required().pattern(stellarWalletAddressRegex),
       ),
+      memo: Joi.string().allow('', null).max(24),
       networkId: Joi.number()?.valid(
         0, // frontend may send 0 as a network id for solana, so we should allow it
         NETWORK_IDS.SOLANA_MAINNET, // Solana
@@ -262,9 +264,10 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.XDAI,
         NETWORK_IDS.ETC,
         NETWORK_IDS.MORDOR_ETC_TESTNET,
+        NETWORK_IDS.STELLAR_MAINNET,
       ),
       chainType: Joi.string()
-        .valid(ChainType.EVM, ChainType.SOLANA)
+        .valid(ChainType.EVM, ChainType.SOLANA, ChainType.STELLAR)
         .default(ChainType.EVM),
     }),
   ),
