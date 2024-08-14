@@ -252,9 +252,6 @@ export class UserResolver {
       if (!userToVerify) {
         throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
       }
-      if (userToVerify.id !== currentUserId) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
-      }
 
       const email = userToVerify.email;
       if (!email) {
