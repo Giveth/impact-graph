@@ -90,6 +90,29 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
+  // todo: use different eventName specific to Qacc (to show correct icon and description)
+  // todo: add the new eventName to the notification service and add the schema to Ortto
+  async sendUserEmailConfirmation(params: {
+    email: string;
+    user: User;
+    token: string;
+  }): Promise<void> {
+    const { email, user, token } = params;
+    try {
+      await callSendNotification({
+        eventName: NOTIFICATIONS_EVENT_NAMES.SEND_EMAIL_CONFIRMATION,
+        segment: {
+          payload: {
+            email,
+            verificationLink: `${dappUrl}/verification/user/${user.walletAddress}/${token}`,
+          },
+        },
+      });
+    } catch (e) {
+      logger.error('sendUserEmailConfirmation >> error', e);
+    }
+  }
+
   async userSuperTokensCritical(params: {
     user: User;
     eventName: UserStreamBalanceWarning;
