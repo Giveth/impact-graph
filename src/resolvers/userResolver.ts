@@ -278,7 +278,7 @@ export class UserResolver {
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL_CODE));
 
     user.isEmailVerified = true;
-    user.verificationCode = undefined;
+    user.verificationCode = null;
 
     await user.save();
 
