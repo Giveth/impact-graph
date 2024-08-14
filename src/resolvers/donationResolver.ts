@@ -1069,4 +1069,15 @@ export class DonationResolver {
       throw e;
     }
   }
+
+  @Query(_returns => Donation, { nullable: true })
+  async getDonationById(
+    @Arg('id', _type => Int) id: number,
+  ): Promise<Donation | null> {
+    try {
+      return findDonationById(id);
+    } catch (e) {
+      return null;
+    }
+  }
 }

@@ -21,7 +21,7 @@ export const DRAFT_DONATION_STATUS = {
 @Index(
   ['fromWalletAddress', 'toWalletAddress', 'networkId', 'amount', 'currency'],
   {
-    where: `status = '${DRAFT_DONATION_STATUS.PENDING}'`,
+    where: `status = '${DRAFT_DONATION_STATUS.PENDING}' AND "isQRDonation" = false`,
     unique: true,
   },
 )
@@ -84,7 +84,7 @@ export class DraftDonation extends BaseEntity {
   @Column({ nullable: true })
   projectId: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   @Index({ where: `status = '${DRAFT_DONATION_STATUS.PENDING}'` })
   userId: number;
@@ -108,7 +108,7 @@ export class DraftDonation extends BaseEntity {
   @Column({ nullable: true })
   errorMessage?: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   matchedDonationId?: number;
 
@@ -119,4 +119,20 @@ export class DraftDonation extends BaseEntity {
   @Field()
   @Column({ nullable: true })
   relevantDonationTxHash?: string;
+
+  @Field()
+  @Column({ nullable: true })
+  toWalletMemo?: string;
+
+  @Field()
+  @Column({ nullable: true })
+  qrCodeDataUrl?: string;
+
+  @Field()
+  @Column({ nullable: true, default: false })
+  isQRDonation?: boolean;
+
+  @Field(_type => Date)
+  @Column({ nullable: true })
+  expiresAt?: Date;
 }

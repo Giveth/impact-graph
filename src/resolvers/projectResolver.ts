@@ -81,6 +81,7 @@ import {
   filterProjectsQuery,
   findProjectById,
   findProjectIdBySlug,
+  removeProjectAndRelatedEntities,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
 } from '../repositories/projectRepository';
@@ -487,6 +488,7 @@ export class ProjectResolver {
     if (!filtersArray || filtersArray.length === 0) return query;
     const networkIds: number[] = [];
     let acceptFundOnSolanaSeen = false;
+    let acceptFundOnStellarSeen = false;
 
     filtersArray.forEach(filter => {
       switch (filter) {
@@ -554,6 +556,9 @@ export class ProjectResolver {
           // Add this to make sure works on Staging
           networkIds.push(NETWORK_IDS.MORDOR_ETC_TESTNET);
           return;
+        case FilterField.AcceptFundOnStellar:
+          acceptFundOnStellarSeen = true;
+          return;
         case FilterField.AcceptFundOnSolana:
           acceptFundOnSolanaSeen = true;
           return;
@@ -563,7 +568,11 @@ export class ProjectResolver {
       }
     });
 
-    if (networkIds.length > 0 || acceptFundOnSolanaSeen) {
+    if (
+      networkIds.length > 0 ||
+      acceptFundOnSolanaSeen ||
+      acceptFundOnStellarSeen
+    ) {
       // TODO: This logic seems wrong! since only one of the following filters can be true at the same time
       query.andWhere(
         new Brackets(subQuery => {
@@ -586,6 +595,17 @@ export class ProjectResolver {
                         WHERE "isRecipient" = true AND 
                         "projectId" = project.id AND
                         "chainType" = '${ChainType.SOLANA}'
+                      )`,
+            );
+          }
+          if (acceptFundOnStellarSeen) {
+            subQuery.orWhere(
+              `EXISTS (
+                        SELECT *
+                        FROM project_address
+                        WHERE "isRecipient" = true AND 
+                        "projectId" = project.id AND
+                        "chainType" = '${ChainType.STELLAR}'
                       )`,
             );
           }
@@ -1183,6 +1203,7 @@ export class ProjectResolver {
             user: adminUser,
             address: relatedAddress.address,
             chainType: relatedAddress.chainType,
+            memo: relatedAddress.memo,
 
             // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
             networkId: getAppropriateNetworkId({
@@ -1213,6 +1234,8 @@ export class ProjectResolver {
     @Arg('networkId') networkId: number,
     @Arg('address') address: string,
     @Arg('chainType', _type => ChainType, { defaultValue: ChainType.EVM })
+    @Arg('memo', { nullable: true })
+    memo: string,
     chainType: ChainType,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
@@ -1242,6 +1265,7 @@ export class ProjectResolver {
       networkId,
       isRecipient: true,
       chainType,
+      memo: chainType === ChainType.STELLAR ? memo : undefined,
     });
 
     project.adminUser = adminUser;
@@ -1463,7 +1487,7 @@ export class ProjectResolver {
     // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
       projectInput?.addresses.map(relatedAddress => {
-        const { networkId, address, chainType } = relatedAddress;
+        const { networkId, address, chainType, memo } = relatedAddress;
         return {
           project,
           user,
@@ -1475,6 +1499,7 @@ export class ProjectResolver {
             chainType,
           }),
           isRecipient: true,
+          memo,
         };
       }),
     );
@@ -2197,5 +2222,61 @@ export class ProjectResolver {
       SentryLogger.captureException(error);
       throw error;
     }
+  }
+
+  @Query(_returns => Token)
+  async getTokensDetails(
+    @Arg('address') address: string,
+    @Arg('networkId') networkId: number,
+  ): Promise<Token> {
+    try {
+      const token = await Token.findOne({
+        where: { address, networkId },
+      });
+      if (!token) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
+      }
+      return token;
+    } catch (e) {
+      logger.error('getTokensDetails error', e);
+      throw e;
+    }
+  }
+
+  @Mutation(_returns => Boolean)
+  async deleteDraftProject(
+    @Arg('projectId') projectId: number,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<boolean> {
+    const user = await getLoggedInUser(ctx);
+    const project = await findProjectById(projectId);
+
+    if (!project) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+
+    if (project.adminUserId !== user.id) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
+    }
+
+    if (project.statusId !== ProjStatus.drafted) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.ONLY_DRAFTED_PROJECTS_CAN_BE_DELETED,
+        ),
+      );
+    }
+
+    try {
+      await removeProjectAndRelatedEntities(project.id);
+    } catch (error) {
+      logger.error('projectResolver.deleteDraftProject() error', error);
+      SentryLogger.captureException(error);
+      throw error;
+    }
+
+    return true;
   }
 }

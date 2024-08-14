@@ -67,6 +67,10 @@ export class ProjectAddress extends BaseEntity {
   @Column('boolean', { default: false })
   isRecipient: boolean;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  memo: string;
+
   @UpdateDateColumn()
   updatedAt: Date;
 

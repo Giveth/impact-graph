@@ -14,6 +14,7 @@ interface ITokenData {
   chainType?: ChainType;
   coingeckoId?: string;
   isStableCoin?: boolean;
+  isQR?: boolean;
 }
 
 const seedTokens: ITokenData[] = [
@@ -2075,6 +2076,18 @@ const seedTokens: ITokenData[] = [
     coingeckoId: 'frax-ether',
     isGivbackEligible: false,
     networkId: NETWORK_IDS.ZKEVM_MAINNET,
+  },
+
+  // Stellar Mainnet
+  {
+    name: 'Stellar Lumens',
+    symbol: 'XLM',
+    decimals: 7,
+    address: 'CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA',
+    coingeckoId: 'stellar',
+    networkId: NETWORK_IDS.STELLAR_MAINNET,
+    chainType: ChainType.STELLAR,
+    isQR: true,
   },
 ];
 
