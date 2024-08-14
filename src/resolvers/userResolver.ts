@@ -234,14 +234,11 @@ export class UserResolver {
   }
 
   @Mutation(_returns => Boolean)
-  async confirmUserEmail(
+  async sendUserEmailConfirmationCodeFlow(
     @Arg('email') email: string,
     @Ctx() ctx: ApolloContext,
   ): Promise<boolean> {
     const user = await getLoggedInUser(ctx);
-
-    if (!user)
-      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
 
     if (user.isEmailVerified)
       throw new Error(
@@ -250,12 +247,12 @@ export class UserResolver {
 
     const code = generateEmailVerificationCode();
 
-    user.verificationCode = code;
-
     await getNotificationAdapter().sendEmailConfirmationCodeFlow({
       email: email,
       user: user,
     });
+
+    user.verificationCode = code;
 
     await user.save();
 
@@ -263,7 +260,7 @@ export class UserResolver {
   }
 
   @Mutation(_returns => Boolean)
-  async verifyUserEmail(
+  async verifyUserEmailCode(
     @Arg('code') code: number,
     @Ctx() ctx: ApolloContext,
   ): Promise<boolean> {

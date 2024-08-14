@@ -2584,3 +2584,15 @@ export const fetchRecurringDonationsByDateQuery = `
     }
   }
 `;
+
+export const sendCodeToConfirmEmail = `
+  mutation sendCodeToConfirmEmail($email: String!) {
+    sendUserEmailConfirmationCodeFlow(email: $email)
+  }
+`;
+
+export const verifyUserEmailCode = `
+  mutation verifyUserEmailCode($code: Float!) {
+    verifyUserEmailCode(code: $code)
+  }
+`;

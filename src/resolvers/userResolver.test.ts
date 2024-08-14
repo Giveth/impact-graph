@@ -18,10 +18,15 @@ import {
 } from '../../test/testUtils';
 import {
   refreshUserScores,
+  sendCodeToConfirmEmail,
   updateUser,
   userByAddress,
+  verifyUserEmailCode as verifyUserEmailCodeQuery,
 } from '../../test/graphqlQueries';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import { DONATION_STATUS } from '../entities/donation';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
@@ -33,7 +38,12 @@ import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
 describe('refreshUserScores() test cases', refreshUserScoresTestCases);
-describe('confirmUserEmail() test cases', confirmUserEmailTestCases);
+describe(
+  'sendUserEmailConfirmationCodeFlow() test cases',
+  sendUserEmailConfirmationCodeFlow,
+);
+describe('verifyUserEmailCode() test cases', verifyUserEmailCode);
+
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
 function refreshUserScoresTestCases() {
@@ -926,8 +936,215 @@ function updateUserTestCases() {
     assert.equal(updatedUser?.url, updateUserData.url);
   });
 }
-function confirmUserEmailTestCases(): void {
-  it('should confirm user email', async () => {
+function sendUserEmailConfirmationCodeFlow(): void {
+  it('should send the email', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+
+    await axios.post(
+      graphqlUrl,
+      {
+        query: sendCodeToConfirmEmail,
+        variables: {
+          email: user.email,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+    assert.isNotNull(updatedUser?.verificationCode);
+  });
+  it('should fail send the email not logged in', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    try {
+      await axios.post(graphqlUrl, {
+        query: sendCodeToConfirmEmail,
+        variables: {
+          email: user.email,
+        },
+      });
+    } catch (e) {
+      assert.equal(
+        e.response.data.errors[0].message,
+        translationErrorMessagesKeys.AUTHENTICATION_REQUIRED,
+      );
+    }
+  });
+  it('should fail send the email user already has verified email', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.isEmailVerified = true;
+    await user.save();
+    const accessToken = await generateTestAccessToken(user.id);
+
+    try {
+      await axios.post(
+        graphqlUrl,
+        {
+          query: sendCodeToConfirmEmail,
+          variables: {
+            email: user.email,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+    } catch (e) {
+      assert.equal(
+        e.response.data.errors[0].message,
+        translationErrorMessagesKeys.EMAIL_ALREADY_VERIFIED,
+      );
+    }
+  });
+}
+
+function verifyUserEmailCode() {
+  it('should verify the email code', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    await axios.post(
+      graphqlUrl,
+      {
+        query: sendCodeToConfirmEmail,
+        variables: {
+          email: user.email,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+    await axios.post(
+      graphqlUrl,
+      {
+        query: verifyUserEmailCodeQuery,
+        variables: {
+          code: updatedUser?.verificationCode,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const verifiedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+    assert.isTrue(verifiedUser?.isEmailVerified);
+  });
+  it('should fail verify the email code not logged in', async () => {
+    try {
+      await axios.post(graphqlUrl, {
+        query: verifyUserEmailCodeQuery,
+        variables: {
+          code: 1234,
+        },
+      });
+    } catch (e) {
+      assert.equal(
+        e.response.data.errors[0].message,
+        translationErrorMessagesKeys.AUTHENTICATION_REQUIRED,
+      );
+    }
+  });
+  it('should fail verify the email code when code is wrong', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+
+    await axios.post(
+      graphqlUrl,
+      {
+        query: sendCodeToConfirmEmail,
+        variables: {
+          email: user.email,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
+    assert.isNotNull(updatedUser?.verificationCode);
+
+    if (!updatedUser?.verificationCode) return;
+
+    try {
+      await axios.post(
+        graphqlUrl,
+        {
+          query: verifyUserEmailCodeQuery,
+          variables: {
+            code: updatedUser?.verificationCode + 1,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+    } catch (e) {
+      assert.equal(
+        e.response.data.errors[0].message,
+        translationErrorMessagesKeys.INVALID_EMAIL_CODE,
+      );
+    }
+  });
+  it('should fail verify the email user already verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.isEmailVerified = true;
+    await user.save();
+    const accessToken = await generateTestAccessToken(user.id);
+
+    try {
+      await axios.post(
+        graphqlUrl,
+        {
+          query: verifyUserEmailCodeQuery,
+          variables: {
+            code: 1234,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+    } catch (e) {
+      assert.equal(
+        e.response.data.errors[0].message,
+        translationErrorMessagesKeys.EMAIL_ALREADY_VERIFIED,
+      );
+    }
   });
 }
