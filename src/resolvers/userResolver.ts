@@ -180,6 +180,14 @@ export class UserResolver {
       if (!validateEmail(email)) {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
       }
+      if (dbUser.email !== email) {
+        dbUser.emailConfirmed = false;
+        dbUser.emailConfirmationSent = false;
+        dbUser.emailConfirmationToken = null;
+        dbUser.emailConfirmationTokenExpiredAt = null;
+        dbUser.emailConfirmationSentAt = null;
+        dbUser.emailConfirmedAt = null;
+      }
       dbUser.email = email;
     }
     if (url !== undefined) {

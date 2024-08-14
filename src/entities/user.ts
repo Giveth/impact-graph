@@ -210,7 +210,7 @@ export class User extends BaseEntity {
 
   @Field(_type => Date, { nullable: true })
   @Column({ nullable: true })
-  emailConfirmedAt: Date;
+  emailConfirmedAt: Date | null;
 
   @Field(_type => Int, { nullable: true })
   async donationsCount() {
