@@ -52,7 +52,6 @@ import {
 } from '../utils/errorMessages';
 import {
   canUserVisitProject,
-  validateProjectRelatedAddresses,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
@@ -73,9 +72,7 @@ import {
   findProjectRecipientAddressByProjectId,
   getPurpleListAddresses,
   isWalletAddressInPurpleList,
-  removeRecipientAddressOfProject,
 } from '../repositories/projectAddressRepository';
-import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
@@ -85,8 +82,11 @@ import {
   totalProjectsPerDateByMonthAndYear,
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { NETWORK_IDS } from '../provider';
+import {
+  getAbcLauncherAdapter,
+  getNotificationAdapter,
+} from '../adapters/adaptersFactory';
+import { NETWORK_IDS, QACC_NETWORK_ID } from '../provider';
 import { getVerificationFormStatusByProjectId } from '../repositories/projectVerificationRepository';
 import {
   resourcePerDateReportValidator,
@@ -95,7 +95,7 @@ import {
 import { ResourcePerDateRange } from './donationResolver';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
 import { AppDataSource } from '../orm';
-import { creteSlugFromProject, isSocialMediaEqual } from '../utils/utils';
+import { creteSlugFromProject } from '../utils/utils';
 import { findCampaignBySlug } from '../repositories/campaignRepository';
 import { Campaign } from '../entities/campaign';
 import { FeaturedUpdate } from '../entities/featuredUpdate';
@@ -105,10 +105,7 @@ import { ChainType } from '../types/network';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 import { getAppropriateNetworkId } from '../services/chains';
-import {
-  addBulkProjectSocialMedia,
-  removeProjectSocialMedia,
-} from '../repositories/projectSocialMediaRepository';
+import { addBulkProjectSocialMedia } from '../repositories/projectSocialMediaRepository';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -1009,163 +1006,167 @@ export class ProjectResolver {
 
   @Mutation(_returns => Project)
   async updateProject(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Arg('projectId') projectId: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Arg('newProjectData') newProjectData: UpdateProjectInput,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Ctx() { req: { user } }: ApolloContext,
   ) {
-    if (!user)
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
-      );
-    const { image } = newProjectData;
+    throw new Error(i18n.__(translationErrorMessagesKeys.NOT_IMPLEMENTED));
+    // if (!user)
+    //   throw new Error(
+    //     i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+    //   );
+    // const { image } = newProjectData;
 
-    // const project = await Project.findOne({ id: projectId });
-    const project = await findProjectById(projectId);
+    // // const project = await Project.findOne({ id: projectId });
+    // const project = await findProjectById(projectId);
 
-    if (!project)
-      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    // if (!project)
+    //   throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
 
-    logger.debug(`project.adminUserId ---> : ${project.adminUserId}`);
-    logger.debug(`user.userId ---> : ${user.userId}`);
-    logger.debug(`updateProject, inputData :`, newProjectData);
-    if (project.adminUserId !== user.userId)
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
-      );
+    // logger.debug(`project.adminUserId ---> : ${project.adminUserId}`);
+    // logger.debug(`user.userId ---> : ${user.userId}`);
+    // logger.debug(`updateProject, inputData :`, newProjectData);
+    // if (project.adminUserId !== user.userId)
+    //   throw new Error(
+    //     i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+    //   );
 
-    for (const field in newProjectData) {
-      if (field === 'addresses' || field === 'socialMedia') {
-        // We will take care of addresses and relations manually
-        continue;
-      }
-      project[field] = newProjectData[field];
-    }
+    // for (const field in newProjectData) {
+    //   if (field === 'addresses' || field === 'socialMedia') {
+    //     // We will take care of addresses and relations manually
+    //     continue;
+    //   }
+    //   project[field] = newProjectData[field];
+    // }
 
-    if (!newProjectData.categories) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-        ),
-      );
-    }
+    // if (!newProjectData.categories) {
+    //   throw new Error(
+    //     i18n.__(
+    //       translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    //     ),
+    //   );
+    // }
 
-    const categoriesPromise = newProjectData.categories.map(async category => {
-      const [c] = await this.categoryRepository.find({
-        where: {
-          name: category,
-          isActive: true,
-          canUseOnFrontend: true,
-        },
-      });
-      if (!c) {
-        throw new Error(
-          i18n.__(
-            translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-          ),
-        );
-      }
-      return c;
-    });
+    // const categoriesPromise = newProjectData.categories.map(async category => {
+    //   const [c] = await this.categoryRepository.find({
+    //     where: {
+    //       name: category,
+    //       isActive: true,
+    //       canUseOnFrontend: true,
+    //     },
+    //   });
+    //   if (!c) {
+    //     throw new Error(
+    //       i18n.__(
+    //         translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    //       ),
+    //     );
+    //   }
+    //   return c;
+    // });
 
-    const categories = await Promise.all(categoriesPromise);
-    if (categories.length > 5) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
-        ),
-      );
-    }
-    project.categories = categories;
+    // const categories = await Promise.all(categoriesPromise);
+    // if (categories.length > 5) {
+    //   throw new Error(
+    //     i18n.__(
+    //       translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+    //     ),
+    //   );
+    // }
+    // project.categories = categories;
 
-    const heartCount = await Reaction.count({ where: { projectId } });
+    // const heartCount = await Reaction.count({ where: { projectId } });
 
-    const qualityScore = getQualityScore(
-      project.description,
-      Boolean(image),
-      heartCount,
-    );
-    if (newProjectData.title) {
-      await validateProjectTitleForEdit(newProjectData.title, projectId);
-    }
+    // const qualityScore = getQualityScore(
+    //   project.description,
+    //   Boolean(image),
+    //   heartCount,
+    // );
+    // if (newProjectData.title) {
+    //   await validateProjectTitleForEdit(newProjectData.title, projectId);
+    // }
 
-    if (newProjectData.addresses) {
-      await validateProjectRelatedAddresses(
-        newProjectData.addresses,
-        projectId,
-      );
-    }
-    const slugBase = creteSlugFromProject(newProjectData.title);
-    if (!slugBase) {
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
-      );
-    }
-    const newSlug = await getAppropriateSlug(slugBase, projectId);
-    if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
-      // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
-      project.slugHistory?.push(project.slug as string);
-    }
-    if (image !== undefined) {
-      project.image = image;
-    }
-    project.slug = newSlug;
-    project.qualityScore = qualityScore;
-    project.updatedAt = new Date();
-    project.listed = null;
-    project.reviewStatus = ReviewStatus.NotReviewed;
+    // if (newProjectData.addresses) {
+    //   await validateProjectRelatedAddresses(
+    //     newProjectData.addresses,
+    //     projectId,
+    //   );
+    // }
+    // const slugBase = creteSlugFromProject(newProjectData.title);
+    // if (!slugBase) {
+    //   throw new Error(
+    //     i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
+    //   );
+    // }
+    // const newSlug = await getAppropriateSlug(slugBase, projectId);
+    // if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
+    //   // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
+    //   project.slugHistory?.push(project.slug as string);
+    // }
+    // if (image !== undefined) {
+    //   project.image = image;
+    // }
+    // project.slug = newSlug;
+    // project.qualityScore = qualityScore;
+    // project.updatedAt = new Date();
+    // project.listed = null;
+    // project.reviewStatus = ReviewStatus.NotReviewed;
 
-    await project.save();
-    await project.reload();
+    // await project.save();
+    // await project.reload();
 
-    if (!isSocialMediaEqual(project.socialMedia, newProjectData.socialMedia)) {
-      await removeProjectSocialMedia(projectId);
-      if (newProjectData.socialMedia && newProjectData.socialMedia.length > 0) {
-        const socialMediaEntities = newProjectData.socialMedia.map(
-          socialMediaInput => {
-            return {
-              type: socialMediaInput.type,
-              link: socialMediaInput.link,
-              projectId,
-              userId: user.userId,
-            };
-          },
-        );
-        await addBulkProjectSocialMedia(socialMediaEntities);
-      }
-    }
+    // if (!isSocialMediaEqual(project.socialMedia, newProjectData.socialMedia)) {
+    //   await removeProjectSocialMedia(projectId);
+    //   if (newProjectData.socialMedia && newProjectData.socialMedia.length > 0) {
+    //     const socialMediaEntities = newProjectData.socialMedia.map(
+    //       socialMediaInput => {
+    //         return {
+    //           type: socialMediaInput.type,
+    //           link: socialMediaInput.link,
+    //           projectId,
+    //           userId: user.userId,
+    //         };
+    //       },
+    //     );
+    //     await addBulkProjectSocialMedia(socialMediaEntities);
+    //   }
+    // }
 
-    const adminUser = (await findUserById(project.adminUserId)) as User;
-    if (newProjectData.addresses) {
-      await removeRecipientAddressOfProject({ project });
-      await addBulkNewProjectAddress(
-        newProjectData?.addresses.map(relatedAddress => {
-          return {
-            project,
-            user: adminUser,
-            address: relatedAddress.address,
-            chainType: relatedAddress.chainType,
+    // const adminUser = (await findUserById(project.adminUserId)) as User;
+    // if (newProjectData.addresses) {
+    //   await removeRecipientAddressOfProject({ project });
+    //   await addBulkNewProjectAddress(
+    //     newProjectData?.addresses.map(relatedAddress => {
+    //       return {
+    //         project,
+    //         user: adminUser,
+    //         address: relatedAddress.address,
+    //         chainType: relatedAddress.chainType,
 
-            // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
-            networkId: getAppropriateNetworkId({
-              networkId: relatedAddress.networkId,
-              chainType: relatedAddress.chainType,
-            }),
+    //         // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
+    //         networkId: getAppropriateNetworkId({
+    //           networkId: relatedAddress.networkId,
+    //           chainType: relatedAddress.chainType,
+    //         }),
 
-            isRecipient: true,
-          };
-        }),
-      );
-    }
+    //         isRecipient: true,
+    //       };
+    //     }),
+    //   );
+    // }
 
-    project.adminUser = adminUser;
-    project.addresses = await findProjectRecipientAddressByProjectId({
-      projectId,
-    });
+    // project.adminUser = adminUser;
+    // project.addresses = await findProjectRecipientAddressByProjectId({
+    //   projectId,
+    // });
 
-    // Edit emails
-    await getNotificationAdapter().projectEdited({ project });
+    // // Edit emails
+    // await getNotificationAdapter().projectEdited({ project });
 
-    return project;
+    // return project;
   }
 
   @Mutation(_returns => Project)
@@ -1337,9 +1338,13 @@ export class ProjectResolver {
       );
     }
 
-    await validateProjectRelatedAddresses(
-      projectInput.addresses as RelatedAddressInputType[],
+    const abcLauncherAdapter = getAbcLauncherAdapter();
+    const abc = await abcLauncherAdapter.getProjectAbcLaunchData(
+      projectInput.address,
     );
+    if (!abc) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.ABC_NOT_FOUND));
+    }
     await validateProjectTitle(projectInput.title);
     const slugBase = creteSlugFromProject(projectInput.title);
     if (!slugBase) {
@@ -1385,6 +1390,7 @@ export class ProjectResolver {
 
     const project = Project.create({
       ...projectInput,
+      abc,
       categories: categories as Category[],
       organization: organization as Organization,
       image,
@@ -1423,8 +1429,9 @@ export class ProjectResolver {
     // const adminUser = (await findUserById(Number(newProject.admin))) as User;
     // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
-      projectInput?.addresses.map(relatedAddress => {
-        const { networkId, address, chainType } = relatedAddress;
+      [projectInput?.address].map(address => {
+        const networkId = QACC_NETWORK_ID;
+        const chainType = ChainType.EVM;
         return {
           project,
           user,
