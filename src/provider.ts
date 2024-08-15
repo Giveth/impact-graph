@@ -34,6 +34,10 @@ export const NETWORK_IDS = {
   SOLANA_DEVNET: 103,
 };
 
+export const QACC_NETWORK_ID = config.get('QACC_NETWORK_ID')
+  ? +config.get('QACC_NETWORK_ID')
+  : NETWORK_IDS.ZKEVM_CARDONA;
+
 export const superTokensToToken = {
   ETHx: 'ETH',
   USDCx: 'USDC',

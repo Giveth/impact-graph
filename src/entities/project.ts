@@ -117,6 +117,39 @@ export enum ReviewStatus {
   Listed = 'Listed',
   NotListed = 'Not Listed',
 }
+@ObjectType()
+class ProjectTeamMember {
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  image?: string;
+
+  @Field({ nullable: true })
+  twitter?: string;
+
+  @Field({ nullable: true })
+  linkedin?: string;
+
+  @Field({ nullable: true })
+  farcaster?: string;
+}
+
+@ObjectType()
+export class Abc {
+  @Field()
+  tokenName: string;
+  @Field()
+  tokenTicker: string;
+  @Field()
+  issuanceTokenAddress: string;
+  @Field()
+  icon: string;
+  @Field()
+  orchestratorAddress: string;
+  @Field()
+  projectAddress: string;
+}
 
 @Entity()
 @ObjectType()
@@ -197,6 +230,18 @@ export class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   image?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  teaser?: string;
+
+  @Field(_ => [ProjectTeamMember], { nullable: true })
+  @Column('jsonb', { nullable: true })
+  teamMembers: ProjectTeamMember[];
+
+  @Field(_ => Abc, { nullable: true })
+  @Column('jsonb', { nullable: true })
+  abc: Abc;
 
   @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field({ nullable: true })
