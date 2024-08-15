@@ -2,10 +2,7 @@ import { Field, InputType } from 'type-graphql';
 import { FileUpload } from 'graphql-upload/Upload.js';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import { MaxLength } from 'class-validator';
-import {
-  ProjectSocialMediaInput,
-  RelatedAddressInputType,
-} from './ProjectVerificationUpdateInput';
+import { ProjectSocialMediaInput } from './ProjectVerificationUpdateInput';
 
 import {
   IMAGE_LINK_MAX_SIZE,
