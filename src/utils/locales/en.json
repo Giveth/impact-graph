@@ -101,5 +101,6 @@
   "EVM_SUPPORT_ONLY": "Only EVM support",
   "INVALID_PROJECT_ID": "INVALID_PROJECT_ID",
   "TX_NOT_FOUND": "TX_NOT_FOUND",
-  "ABC_NOT_FOUND": "Abc not found"
+  "ABC_NOT_FOUND": "Abc not found",
+  "NO_EMAIL_PROVIDED": "No email address provided."
 }

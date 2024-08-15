@@ -1989,3 +1989,33 @@ export const fetchDonationMetricsQuery = `
     }
   }
 `;
+
+export const userVerificationSendEmailConfirmation = `
+  mutation userVerificationSendEmailConfirmation($userId: Float!){
+    userVerificationSendEmailConfirmation(userId: $userId) {
+      id
+      email
+      emailConfirmed
+      emailConfirmationToken
+      emailConfirmationTokenExpiredAt
+      emailConfirmationSent
+      emailConfirmationSentAt
+      emailConfirmedAt
+    }
+  }
+`;
+
+export const userVerificationConfirmEmail = `
+  mutation userVerificationConfirmEmail($emailConfirmationToken: String!){
+    userVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
+      id
+      email
+      emailConfirmed
+      emailConfirmationToken
+      emailConfirmationTokenExpiredAt
+      emailConfirmationSent
+      emailConfirmationSentAt
+      emailConfirmedAt
+    }
+  }
+`;

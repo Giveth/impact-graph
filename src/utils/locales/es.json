@@ -98,5 +98,6 @@
   "PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED": "El contenido es demasiado largo",
   "DRAFT_DONATION_DISABLED": "El borrador de donación está deshabilitado",
   "EVM_SUPPORT_ONLY": "Solo se admite EVM",
-  "ABC_NOT_FOUND": "ABC no encontrado"
+  "ABC_NOT_FOUND": "ABC no encontrado",
+  "NO_EMAIL_PROVIDED": "No se ha proporcionado una dirección de correo electrónico."
 }
