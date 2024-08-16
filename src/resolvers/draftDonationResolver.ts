@@ -25,6 +25,7 @@ import {
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
 } from '../repositories/recurringDonationRepository';
 import { RecurringDonation } from '../entities/recurringDonation';
+import { findProjectById } from '../repositories/projectRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 const draftRecurringDonationEnabled =
@@ -84,6 +85,7 @@ export class DraftDonationResolver {
     try {
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
+      const project = await findProjectById(projectId);
 
       if (!donorUser && !isQRDonation) {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
@@ -92,6 +94,18 @@ export class DraftDonationResolver {
       if (!!isQRDonation && !qrCodeDataUrl) {
         throw new Error(
           i18n.__(translationErrorMessagesKeys.QR_CODE_DATA_URL_REQUIRED),
+        );
+      }
+
+      if (!project)
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+        );
+
+      const ownProject = project.adminUserId === donorUser?.id;
+      if (ownProject) {
+        throw new Error(
+          "Donor can't create a draft to donate to his/her own project.",
         );
       }
 
