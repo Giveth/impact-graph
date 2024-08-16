@@ -53,7 +53,7 @@ const transactions: Partial<Donation>[] = [
   },
 ];
 
-export class AddGivArbMissingDonations2_1723799657527
+export class AddGivArbMissingDonations2_1723799657528
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -99,13 +99,13 @@ export class AddGivArbMissingDonations2_1723799657527
         await calculateGivbackFactor(tx.projectId as number);
       await queryRunner.query(`
             INSERT INTO donation ("toWalletAddress", "projectId", "fromWalletAddress", "userId", amount, currency, "transactionId", "transactionNetworkId", anonymous, "valueUsd", status,
-             "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt", "givbackFactor", "powerRound", "projectRank", "bottomRankInRound", "qfRoundId", "tokenAddress", "qfRoundId")
+             "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt", "givbackFactor", "powerRound", "projectRank", "bottomRankInRound", "qfRoundId", "tokenAddress")
             VALUES ('${tx.toWalletAddress?.toLowerCase()}', ${tx.projectId}, '${tx.fromWalletAddress?.toLowerCase()}', ${user.id}, ${tx.amount}, '${tx.currency}', '${tx.transactionId?.toLowerCase()}', ${
               tx.transactionNetworkId
             }, false, ${tx.valueUsd}, 'verified',
               true, ${isTokenEligibleForGivback}, ${project.verified}, '${createdAt}', ${givbackFactor}, ${powerRound}, ${projectRank}, ${bottomRankInRound}, ${tx.qfRoundId || null}, '${
                 tx.tokenAddress
-              }', ${tx.qfRoundId || null})
+              }')
             ON CONFLICT DO NOTHING;
         `);
 
