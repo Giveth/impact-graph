@@ -1981,8 +1981,8 @@ export const userVerificationSendEmailConfirmation = `
       id
       email
       emailConfirmed
-      emailConfirmationToken
-      emailConfirmationTokenExpiredAt
+      emailConfirmationCode
+      emailConfirmationCodeExpiredAt
       emailConfirmationSent
       emailConfirmationSentAt
       emailConfirmedAt
@@ -1991,13 +1991,19 @@ export const userVerificationSendEmailConfirmation = `
 `;
 
 export const userVerificationConfirmEmail = `
-  mutation userVerificationConfirmEmail($emailConfirmationToken: String!){
-    userVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
+  mutation userVerificationConfirmEmail(
+    $userId: Float!
+    $emailConfirmationCode: String!
+  ){
+    userVerificationConfirmEmail(
+      userId: $userId
+      emailConfirmationCode: $emailConfirmationCode
+    ) {
       id
       email
       emailConfirmed
-      emailConfirmationToken
-      emailConfirmationTokenExpiredAt
+      emailConfirmationCode
+      emailConfirmationCodeExpiredAt
       emailConfirmationSent
       emailConfirmationSentAt
       emailConfirmedAt

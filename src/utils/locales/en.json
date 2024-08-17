@@ -102,5 +102,6 @@
 	"INVALID_PROJECT_ID": "INVALID_PROJECT_ID",
 	"TX_NOT_FOUND": "TX_NOT_FOUND",
 
-	"NO_EMAIL_PROVIDED": "No email address provided."
+	"NO_EMAIL_PROVIDED": "No email address provided.",
+	"INCORRECT_CODE": "The verification code you entered is incorrect."
 }

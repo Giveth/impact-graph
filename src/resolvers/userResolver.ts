@@ -8,17 +8,14 @@ import {
   Resolver,
 } from 'type-graphql';
 import { Repository } from 'typeorm';
-import * as jwt from 'jsonwebtoken';
 
 import moment from 'moment';
 import { User } from '../entities/user';
-import config from '../config';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { validateEmail } from '../utils/validators/commonValidators';
 import {
-  findUserByEmailConfirmationToken,
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
@@ -183,8 +180,8 @@ export class UserResolver {
       if (dbUser.email !== email) {
         dbUser.emailConfirmed = false;
         dbUser.emailConfirmationSent = false;
-        dbUser.emailConfirmationToken = null;
-        dbUser.emailConfirmationTokenExpiredAt = null;
+        dbUser.emailConfirmationCode = null;
+        dbUser.emailConfirmationCodeExpiredAt = null;
         dbUser.emailConfirmationSentAt = null;
         dbUser.emailConfirmedAt = null;
       }
@@ -273,16 +270,12 @@ export class UserResolver {
         );
       }
 
-      const token = jwt.sign(
-        { userId },
-        config.get('MAILER_JWT_SECRET') as string,
-        { expiresIn: '5m' },
-      );
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-      userToVerify.emailConfirmationTokenExpiredAt = moment()
+      userToVerify.emailConfirmationCodeExpiredAt = moment()
         .add(5, 'minutes')
         .toDate();
-      userToVerify.emailConfirmationToken = token;
+      userToVerify.emailConfirmationCode = code;
       userToVerify.emailConfirmationSent = true;
       userToVerify.emailConfirmed = false;
       userToVerify.emailConfirmationSentAt = new Date();
@@ -291,7 +284,7 @@ export class UserResolver {
       await getNotificationAdapter().sendUserEmailConfirmation({
         email,
         user: userToVerify,
-        token,
+        code,
       });
 
       return userToVerify;
@@ -303,50 +296,34 @@ export class UserResolver {
 
   @Mutation(_returns => User)
   async userVerificationConfirmEmail(
-    @Arg('emailConfirmationToken') emailConfirmationToken: string,
+    @Arg('userId') userId: number,
+    @Arg('emailConfirmationCode') emailConfirmationCode: string,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<User> {
     try {
-      const secret = config.get('MAILER_JWT_SECRET') as string;
+      const currentUserId = user?.userId;
+      if (!currentUserId || currentUserId != userId) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+      }
 
-      const isValidToken = await findUserByEmailConfirmationToken(
-        emailConfirmationToken,
-      );
+      const userFromDB = await findUserById(userId);
 
-      if (!isValidToken) {
+      if (!userFromDB) {
         throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
       }
 
-      const decodedJwt: any = jwt.verify(emailConfirmationToken, secret);
-      const userId = decodedJwt.userId;
-      const user = await findUserById(userId);
-
-      if (!user) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+      if (emailConfirmationCode !== userFromDB.emailConfirmationCode) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.INCORRECT_CODE));
       }
 
-      user.emailConfirmationTokenExpiredAt = null;
-      user.emailConfirmationToken = null;
-      user.emailConfirmedAt = new Date();
-      user.emailConfirmed = true;
-      await user.save();
+      userFromDB.emailConfirmationCodeExpiredAt = null;
+      userFromDB.emailConfirmationCode = null;
+      userFromDB.emailConfirmedAt = new Date();
+      userFromDB.emailConfirmed = true;
+      await userFromDB.save();
 
-      return user;
+      return userFromDB;
     } catch (e) {
-      const user = await findUserByEmailConfirmationToken(
-        emailConfirmationToken,
-      );
-
-      if (!user) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
-      }
-
-      user.emailConfirmed = false;
-      user.emailConfirmationTokenExpiredAt = null;
-      user.emailConfirmationSent = false;
-      user.emailConfirmationSentAt = null;
-      user.emailConfirmationToken = null;
-
-      await user.save();
       logger.error('userVerificationConfirmEmail() error', e);
       throw e;
     }

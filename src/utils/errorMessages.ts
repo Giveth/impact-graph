@@ -175,6 +175,9 @@ export const errorMessages = {
   TX_NOT_FOUND: 'Transaction not found',
   INVALID_PROJECT_ID: 'Invalid project id',
   INVALID_PROJECT_OWNER: 'Project owner is invalid',
+
+  NO_EMAIL_PROVIDED: 'No email address provided.',
+  INCORRECT_CODE: 'The verification code you entered is incorrect.',
 };
 
 export const translationErrorMessagesKeys = {
@@ -320,4 +323,5 @@ export const translationErrorMessagesKeys = {
   EVM_SUPPORT_ONLY: 'EVM_SUPPORT_ONLY',
 
   NO_EMAIL_PROVIDED: 'NO_EMAIL_PROVIDED',
+  INCORRECT_CODE: 'INCORRECT_CODE',
 };

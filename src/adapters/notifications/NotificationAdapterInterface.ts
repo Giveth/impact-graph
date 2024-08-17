@@ -65,7 +65,7 @@ export interface NotificationAdapterInterface {
   sendUserEmailConfirmation(params: {
     email: string;
     user: User;
-    token: string;
+    code: string;
   }): Promise<void>;
 
   userSuperTokensCritical(params: {

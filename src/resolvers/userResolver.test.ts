@@ -6,7 +6,6 @@ import { User } from '../entities/user';
 import {
   createDonationData,
   createProjectData,
-  generateConfirmationEmailToken,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
@@ -26,8 +25,6 @@ import { errorMessages } from '../utils/errorMessages';
 import { DONATION_STATUS } from '../entities/donation';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 import { updateUserTotalDonated } from '../services/userService';
-import { findUserById } from '../repositories/userRepository';
-import { sleep } from '../utils/utils';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -710,7 +707,7 @@ function userVerificationSendEmailConfirmationTestCases() {
     );
     assert.isNotNull(
       result.data.data.userVerificationSendEmailConfirmation
-        .emailConfirmationToken,
+        .emailConfirmationCode,
     );
   });
 
@@ -766,16 +763,17 @@ function userVerificationConfirmEmailTestCases() {
       },
     );
 
-    const token =
+    const code =
       emailConfirmationSentResult.data.data
-        .userVerificationSendEmailConfirmation.emailConfirmationToken;
+        .userVerificationSendEmailConfirmation.emailConfirmationCode;
 
     const result = await axios.post(
       graphqlUrl,
       {
         query: userVerificationConfirmEmail,
         variables: {
-          emailConfirmationToken: token,
+          userId: user.id,
+          emailConfirmationCode: code,
         },
       },
       {
@@ -795,24 +793,19 @@ function userVerificationConfirmEmailTestCases() {
     );
   });
 
-  it('should throw error when confirm email token is invalid or expired for user email verification', async () => {
+  it('should throw error when email confirmation code is incorrect for user email verification', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     user.email = 'test@example.com';
     user.emailConfirmed = false;
     await user.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    const token = await generateConfirmationEmailToken(user.id);
-    user.emailConfirmationToken = token;
-    await user.save();
-    await sleep(500); // Simulating token expiration or invalidity
-
-    const result = await axios.post(
+    await axios.post(
       graphqlUrl,
       {
-        query: userVerificationConfirmEmail,
+        query: userVerificationSendEmailConfirmation,
         variables: {
-          emailConfirmationToken: token,
+          userId: user.id,
         },
       },
       {
@@ -822,12 +815,24 @@ function userVerificationConfirmEmailTestCases() {
       },
     );
 
-    assert.equal(result.data.errors[0].message, 'jwt expired');
-    const userReinitializedEmailParams = await findUserById(user.id);
+    const incorrectCode = '12345'; // This code is incorrect
 
-    assert.isFalse(userReinitializedEmailParams!.emailConfirmed);
-    assert.isFalse(userReinitializedEmailParams!.emailConfirmationSent);
-    assert.isNotOk(userReinitializedEmailParams!.emailConfirmationSentAt);
-    assert.isNull(userReinitializedEmailParams!.emailConfirmationToken);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationConfirmEmail,
+        variables: {
+          userId: user.id,
+          emailConfirmationCode: incorrectCode,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(result.data.errors[0].message, errorMessages.INCORRECT_CODE);
   });
 }

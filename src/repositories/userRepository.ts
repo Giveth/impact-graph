@@ -179,28 +179,18 @@ export const findUsersWhoSupportProject = async (
   return users;
 };
 
-export const findUserByEmailConfirmationToken = async (
-  emailConfirmationToken: string,
-): Promise<User | null> => {
-  return User.createQueryBuilder('user')
-    .where({
-      emailConfirmationToken,
-    })
-    .getOne();
-};
-
 export const updateUserEmailConfirmationStatus = async (params: {
   userId: number;
   emailConfirmed: boolean;
-  emailConfirmationTokenExpiredAt: Date | null;
-  emailConfirmationToken: string | null;
+  emailConfirmationCodeExpiredAt: Date | null;
+  emailConfirmationCode: string | null;
   emailConfirmationSentAt: Date | null;
 }): Promise<UpdateResult> => {
   const {
     userId,
     emailConfirmed,
-    emailConfirmationTokenExpiredAt,
-    emailConfirmationToken,
+    emailConfirmationCodeExpiredAt,
+    emailConfirmationCode,
     emailConfirmationSentAt,
   } = params;
 
@@ -208,24 +198,24 @@ export const updateUserEmailConfirmationStatus = async (params: {
     .update(User)
     .set({
       emailConfirmed,
-      emailConfirmationTokenExpiredAt,
-      emailConfirmationToken,
+      emailConfirmationCodeExpiredAt,
+      emailConfirmationCode,
       emailConfirmationSentAt,
     })
     .where('id = :userId', { userId })
     .execute();
 };
 
-export const updateUserEmailConfirmationToken = async (params: {
+export const updateUserEmailConfirmationCode = async (params: {
   userId: number;
-  emailConfirmationToken: string;
-  emailConfirmationTokenExpiredAt: Date;
+  emailConfirmationCode: string;
+  emailConfirmationCodeExpiredAt: Date;
   emailConfirmationSentAt: Date;
 }): Promise<User> => {
   const {
     userId,
-    emailConfirmationToken,
-    emailConfirmationTokenExpiredAt,
+    emailConfirmationCode,
+    emailConfirmationCodeExpiredAt,
     emailConfirmationSentAt,
   } = params;
 
@@ -234,8 +224,8 @@ export const updateUserEmailConfirmationToken = async (params: {
     throw new Error('User not found');
   }
 
-  user.emailConfirmationToken = emailConfirmationToken;
-  user.emailConfirmationTokenExpiredAt = emailConfirmationTokenExpiredAt;
+  user.emailConfirmationCode = emailConfirmationCode;
+  user.emailConfirmationCodeExpiredAt = emailConfirmationCodeExpiredAt;
   user.emailConfirmationSentAt = emailConfirmationSentAt;
   user.emailConfirmed = false;
 
