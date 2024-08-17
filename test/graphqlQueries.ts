@@ -123,6 +123,21 @@ export const createProjectQuery = `
           email
           walletAddress
         }
+        teamMembers {
+          name
+          image
+          twitter
+          linkedin
+          farcaster
+        }
+        abc {
+          tokenName
+          tokenTicker
+          issuanceTokenAddress
+          icon
+          orchestratorAddress
+          projectAddress
+        }
       }
   }
   `;
