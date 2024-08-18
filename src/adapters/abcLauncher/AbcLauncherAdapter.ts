@@ -15,7 +15,7 @@ const ABC_LAUNCH_COLLECTION = config.get('ABC_LAUNCH_COLLECTION') || 'project';
 const ABC_LAUNCH_DATABASE = config.get('ABC_LAUNCH_DATABASE') || 'abc-launcher';
 
 // add '/' if doesn't exist at the
-const baseUrl = ABC_LAUNCH_API_URL.endsWith('/')
+const baseUrl = (ABC_LAUNCH_API_URL || '').endsWith('/')
   ? ABC_LAUNCH_API_URL
   : `${ABC_LAUNCH_API_URL}/`;
 
