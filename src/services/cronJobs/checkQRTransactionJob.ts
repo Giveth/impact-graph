@@ -20,7 +20,7 @@ const STELLAR_HORIZON_API =
   'https://horizon.stellar.org';
 const cronJobTime =
   (config.get('CHECK_QR_TRANSACTIONS_CRONJOB_EXPRESSION') as string) ||
-  '0 */3 * * * *';
+  '0 */1 * * * *';
 
 async function getPendingDraftDonations() {
   return await DraftDonation.createQueryBuilder('draftDonation')
@@ -41,10 +41,30 @@ const getToken = async (
 };
 
 // Check for transactions
-async function checkTransactions(donation: DraftDonation): Promise<void> {
-  const { toWalletAddress, amount, toWalletMemo } = donation;
+export async function checkTransactions(
+  donation: DraftDonation,
+): Promise<void> {
+  const { toWalletAddress, amount, toWalletMemo, expiresAt, id } = donation;
 
   try {
+    if (!toWalletAddress || !amount) {
+      logger.debug(`Missing required fields for donation ID ${donation.id}`);
+      return;
+    }
+
+    // Check if donation has expired
+    const now = new Date().getTime();
+    const expiresAtDate = new Date(expiresAt!).getTime() + 1 * 60 * 1000;
+
+    if (now > expiresAtDate) {
+      logger.debug(`Donation ID ${id} has expired. Updating status to expired`);
+      await updateDraftDonationStatus({
+        donationId: id,
+        status: 'failed',
+      });
+      return;
+    }
+
     const response = await axios.get(
       `${STELLAR_HORIZON_API}/accounts/${toWalletAddress}/payments?limit=200&order=desc&join=transactions&include_failed=true`,
     );
@@ -56,7 +76,7 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
     for (const transaction of transactions) {
       if (
         transaction.asset_type === 'native' &&
-        transaction.type === 'payment' &&
+        ['payment', 'create_account'].includes(transaction.type) &&
         Number(transaction.amount) === amount &&
         transaction.to === toWalletAddress
       ) {
