@@ -123,6 +123,21 @@ export const createProjectQuery = `
           email
           walletAddress
         }
+        teamMembers {
+          name
+          image
+          twitter
+          linkedin
+          farcaster
+        }
+        abc {
+          tokenName
+          tokenTicker
+          issuanceTokenAddress
+          icon
+          orchestratorAddress
+          projectAddress
+        }
       }
   }
   `;
@@ -1971,6 +1986,36 @@ export const fetchDonationMetricsQuery = `
       totalDonationsToGiveth
       totalUsdValueToGiveth
       averagePercentageToGiveth
+    }
+  }
+`;
+
+export const userVerificationSendEmailConfirmation = `
+  mutation userVerificationSendEmailConfirmation($userId: Float!){
+    userVerificationSendEmailConfirmation(userId: $userId) {
+      id
+      email
+      emailConfirmed
+      emailConfirmationToken
+      emailConfirmationTokenExpiredAt
+      emailConfirmationSent
+      emailConfirmationSentAt
+      emailConfirmedAt
+    }
+  }
+`;
+
+export const userVerificationConfirmEmail = `
+  mutation userVerificationConfirmEmail($emailConfirmationToken: String!){
+    userVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
+      id
+      email
+      emailConfirmed
+      emailConfirmationToken
+      emailConfirmationTokenExpiredAt
+      emailConfirmationSent
+      emailConfirmationSentAt
+      emailConfirmedAt
     }
   }
 `;

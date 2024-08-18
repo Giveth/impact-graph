@@ -6,6 +6,7 @@ import { User } from '../entities/user';
 import {
   createDonationData,
   createProjectData,
+  generateConfirmationEmailToken,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
@@ -18,15 +19,27 @@ import {
   refreshUserScores,
   updateUser,
   userByAddress,
+  userVerificationConfirmEmail,
+  userVerificationSendEmailConfirmation,
 } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { DONATION_STATUS } from '../entities/donation';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 import { updateUserTotalDonated } from '../services/userService';
+import { findUserById } from '../repositories/userRepository';
+import { sleep } from '../utils/utils';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
 describe('refreshUserScores() test cases', refreshUserScoresTestCases);
+describe(
+  'userVerificationSendEmailConfirmation() test cases',
+  userVerificationSendEmailConfirmationTestCases,
+);
+describe(
+  'userVerificationConfirmEmail() test cases',
+  userVerificationConfirmEmailTestCases,
+);
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
 function refreshUserScoresTestCases() {
@@ -656,5 +669,165 @@ function updateUserTestCases() {
     assert.equal(updatedUser?.lastName, updateUserData.lastName);
     assert.equal(updatedUser?.avatar, updateUserData.avatar);
     assert.equal(updatedUser?.url, updateUserData.url);
+  });
+}
+
+function userVerificationSendEmailConfirmationTestCases() {
+  it('should send email confirmation for user email verification', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.email = 'test@example.com';
+    user.emailConfirmed = false;
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationSendEmailConfirmation,
+        variables: {
+          userId: user.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result.data.data.userVerificationSendEmailConfirmation);
+    assert.isFalse(
+      result.data.data.userVerificationSendEmailConfirmation.emailConfirmed,
+    );
+    assert.equal(
+      result.data.data.userVerificationSendEmailConfirmation.email,
+      'test@example.com',
+    );
+    assert.equal(
+      result.data.data.userVerificationSendEmailConfirmation
+        .emailConfirmationSent,
+      true,
+    );
+    assert.isNotNull(
+      result.data.data.userVerificationSendEmailConfirmation
+        .emailConfirmationToken,
+    );
+  });
+
+  it('should throw error when sending email confirmation if email is already confirmed', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.email = 'test@example.com';
+    user.emailConfirmed = true;
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationSendEmailConfirmation,
+        variables: {
+          userId: user.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_ALREADY_VERIFIED_THIS_EMAIL,
+    );
+  });
+}
+
+function userVerificationConfirmEmailTestCases() {
+  it('should confirm user email verification', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.email = 'test@example.com';
+    user.emailConfirmed = false;
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const emailConfirmationSentResult = await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationSendEmailConfirmation,
+        variables: {
+          userId: user.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const token =
+      emailConfirmationSentResult.data.data
+        .userVerificationSendEmailConfirmation.emailConfirmationToken;
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationConfirmEmail,
+        variables: {
+          emailConfirmationToken: token,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result.data.data.userVerificationConfirmEmail);
+    assert.equal(
+      result.data.data.userVerificationConfirmEmail.emailConfirmed,
+      true,
+    );
+    assert.isNotNull(
+      result.data.data.userVerificationConfirmEmail.emailConfirmedAt,
+    );
+  });
+
+  it('should throw error when confirm email token is invalid or expired for user email verification', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.email = 'test@example.com';
+    user.emailConfirmed = false;
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const token = await generateConfirmationEmailToken(user.id);
+    user.emailConfirmationToken = token;
+    await user.save();
+    await sleep(500); // Simulating token expiration or invalidity
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationConfirmEmail,
+        variables: {
+          emailConfirmationToken: token,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(result.data.errors[0].message, 'jwt expired');
+    const userReinitializedEmailParams = await findUserById(user.id);
+
+    assert.isFalse(userReinitializedEmailParams!.emailConfirmed);
+    assert.isFalse(userReinitializedEmailParams!.emailConfirmationSent);
+    assert.isNotOk(userReinitializedEmailParams!.emailConfirmationSentAt);
+    assert.isNull(userReinitializedEmailParams!.emailConfirmationToken);
   });
 }

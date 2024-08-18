@@ -1,3 +1,4 @@
+import { UpdateResult } from 'typeorm';
 import { publicSelectionFields, User, UserRole } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { Reaction } from '../entities/reaction';
@@ -176,4 +177,68 @@ export const findUsersWhoSupportProject = async (
     }
   }
   return users;
+};
+
+export const findUserByEmailConfirmationToken = async (
+  emailConfirmationToken: string,
+): Promise<User | null> => {
+  return User.createQueryBuilder('user')
+    .where({
+      emailConfirmationToken,
+    })
+    .getOne();
+};
+
+export const updateUserEmailConfirmationStatus = async (params: {
+  userId: number;
+  emailConfirmed: boolean;
+  emailConfirmationTokenExpiredAt: Date | null;
+  emailConfirmationToken: string | null;
+  emailConfirmationSentAt: Date | null;
+}): Promise<UpdateResult> => {
+  const {
+    userId,
+    emailConfirmed,
+    emailConfirmationTokenExpiredAt,
+    emailConfirmationToken,
+    emailConfirmationSentAt,
+  } = params;
+
+  return User.createQueryBuilder()
+    .update(User)
+    .set({
+      emailConfirmed,
+      emailConfirmationTokenExpiredAt,
+      emailConfirmationToken,
+      emailConfirmationSentAt,
+    })
+    .where('id = :userId', { userId })
+    .execute();
+};
+
+export const updateUserEmailConfirmationToken = async (params: {
+  userId: number;
+  emailConfirmationToken: string;
+  emailConfirmationTokenExpiredAt: Date;
+  emailConfirmationSentAt: Date;
+}): Promise<User> => {
+  const {
+    userId,
+    emailConfirmationToken,
+    emailConfirmationTokenExpiredAt,
+    emailConfirmationSentAt,
+  } = params;
+
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  user.emailConfirmationToken = emailConfirmationToken;
+  user.emailConfirmationTokenExpiredAt = emailConfirmationTokenExpiredAt;
+  user.emailConfirmationSentAt = emailConfirmationSentAt;
+  user.emailConfirmed = false;
+
+  await user.save();
+  return user;
 };
