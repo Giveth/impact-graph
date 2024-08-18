@@ -28,7 +28,7 @@ const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
 const disableNotificationCenter = process.env.DISABLE_NOTIFICATION_CENTER;
-// const dappUrl = process.env.FRONTEND_URL as string;
+const dappUrl = process.env.FRONTEND_URL as string;
 
 const numberOfSendNotificationsConcurrentJob =
   Number(
@@ -1090,6 +1090,7 @@ export const getOrttoPersonAttributes = (params: {
     'str::last': lastName || '',
     'str::email': email || '',
   };
+  // todo: in Qacc, we should not using userID
   if (isProduction) {
     // On production, we should update Ortto user profile based on user-id to avoid touching real users data
     fields['str:cm:user-id'] = userId;
