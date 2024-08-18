@@ -745,10 +745,10 @@ function userVerificationConfirmEmailTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     user.email = 'test@example.com';
     user.emailConfirmed = false;
-    await user.save();
+    const userID = (await user.save()).id;
 
     const accessToken = await generateTestAccessToken(user.id);
-    const emailConfirmationSentResult = await axios.post(
+    await axios.post(
       graphqlUrl,
       {
         query: userVerificationSendEmailConfirmation,
@@ -763,9 +763,12 @@ function userVerificationConfirmEmailTestCases() {
       },
     );
 
-    const code =
-      emailConfirmationSentResult.data.data
-        .userVerificationSendEmailConfirmation.emailConfirmationCode;
+    const DBUser = await User.findOne({
+      where: {
+        id: userID,
+      },
+    });
+    const code = DBUser?.emailConfirmationCode;
 
     const result = await axios.post(
       graphqlUrl,

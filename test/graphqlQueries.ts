@@ -1996,8 +1996,6 @@ export const userVerificationSendEmailConfirmation = `
       id
       email
       emailConfirmed
-      emailConfirmationCode
-      emailConfirmationCodeExpiredAt
       emailConfirmationSent
       emailConfirmationSentAt
       emailConfirmedAt
@@ -2017,8 +2015,6 @@ export const userVerificationConfirmEmail = `
       id
       email
       emailConfirmed
-      emailConfirmationCode
-      emailConfirmationCodeExpiredAt
       emailConfirmationSent
       emailConfirmationSentAt
       emailConfirmedAt
