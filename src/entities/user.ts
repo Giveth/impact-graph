@@ -18,7 +18,6 @@ import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { ReferredEvent } from './referredEvent';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
-import { UserEmailVerification } from './userEmailVerification';
 
 export const publicSelectionFields = [
   'user.id',
@@ -204,12 +203,6 @@ export class User extends BaseEntity {
   @Field(_type => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true })
   emailConfirmedAt: Date | null;
-
-  @OneToOne(
-    () => UserEmailVerification,
-    emailVerification => emailVerification.user,
-  )
-  emailVerification: UserEmailVerification;
 
   @Field(_type => Int, { nullable: true })
   async donationsCount() {

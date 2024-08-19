@@ -1,19 +1,9 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToOne,
-  BaseEntity,
-} from 'typeorm';
-import { User } from './user';
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
 
 @Entity()
 export class UserEmailVerification extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @OneToOne(() => User, user => user.emailVerification, { onDelete: 'CASCADE' })
-  user: User;
 
   @Column('text', { nullable: true })
   emailVerificationCode: string | null;
