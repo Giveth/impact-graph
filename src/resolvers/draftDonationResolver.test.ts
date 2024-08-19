@@ -31,6 +31,7 @@ import {
   DraftRecurringDonation,
 } from '../entities/draftRecurringDonation';
 import { ProjectAddress } from '../entities/projectAddress';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 describe(
@@ -82,6 +83,46 @@ function createDraftDonationTestCases() {
       safeTransactionId,
       toAddress: project.walletAddress,
     };
+  });
+  it('should throw an error while creating draft donate to an invalid Project ID', async () => {
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: { ...donationData, projectId: 1000000 },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+    );
+  });
+  it('should throw an error while creating draft donating to his/her own project', async () => {
+    const copyProjectSecondUser = await saveProjectDirectlyToDb(
+      createProjectData(),
+      user,
+    );
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: { ...donationData, projectId: copyProjectSecondUser.id },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      "Donor can't create a draft to donate to his/her own project.",
+    );
   });
   it('create simple draft donation', async () => {
     const saveDonationResponse = await axios.post(
