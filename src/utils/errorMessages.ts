@@ -178,6 +178,8 @@ export const errorMessages = {
 
   NO_EMAIL_PROVIDED: 'No email address provided.',
   INCORRECT_CODE: 'The verification code you entered is incorrect.',
+  NO_EMAIL_VERIFICATION_DATA: 'No email verification data found',
+  CODE_EXPIRED: 'The verification code has expired. Please request a new code.',
 };
 
 export const translationErrorMessagesKeys = {
@@ -324,4 +326,6 @@ export const translationErrorMessagesKeys = {
   ABC_NOT_FOUND: 'ABC_NOT_FOUND',
   NO_EMAIL_PROVIDED: 'NO_EMAIL_PROVIDED',
   INCORRECT_CODE: 'INCORRECT_CODE',
+  NO_EMAIL_VERIFICATION_DATA: 'NO_EMAIL_VERIFICATION_DATA',
+  CODE_EXPIRED: 'CODE_EXPIRED',
 };

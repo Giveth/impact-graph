@@ -18,6 +18,8 @@ import { validateEmail } from '../utils/validators/commonValidators';
 import {
   findUserById,
   findUserByWalletAddress,
+  updateUserEmailConfirmationStatus,
+  getUserEmailConfirmationFields,
 } from '../repositories/userRepository';
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 import { UserByAddressResponse } from './types/userResolver';
@@ -178,12 +180,15 @@ export class UserResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
       }
       if (dbUser.email !== email) {
-        dbUser.emailConfirmed = false;
-        dbUser.emailConfirmationSent = false;
-        dbUser.emailConfirmationCode = null;
-        dbUser.emailConfirmationCodeExpiredAt = null;
-        dbUser.emailConfirmationSentAt = null;
-        dbUser.emailConfirmedAt = null;
+        await updateUserEmailConfirmationStatus({
+          userId: dbUser.id,
+          emailConfirmed: false,
+          emailConfirmedAt: null,
+          emailVerificationCodeExpiredAt: null,
+          emailVerificationCode: null,
+          emailConfirmationSent: null,
+          emailConfirmationSentAt: null,
+        });
       }
       dbUser.email = email;
     }
@@ -272,14 +277,19 @@ export class UserResolver {
 
       const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-      userToVerify.emailConfirmationCodeExpiredAt = moment()
+      const emailVerificationCodeExpiredAt = moment()
         .add(5, 'minutes')
         .toDate();
-      userToVerify.emailConfirmationCode = code;
-      userToVerify.emailConfirmationSent = true;
-      userToVerify.emailConfirmed = false;
-      userToVerify.emailConfirmationSentAt = new Date();
-      await userToVerify.save();
+
+      await updateUserEmailConfirmationStatus({
+        userId: userToVerify.id,
+        emailConfirmed: false,
+        emailConfirmedAt: null,
+        emailVerificationCodeExpiredAt,
+        emailVerificationCode: code,
+        emailConfirmationSent: true,
+        emailConfirmationSentAt: new Date(),
+      });
 
       await getNotificationAdapter().sendUserEmailConfirmation({
         email,
@@ -302,7 +312,7 @@ export class UserResolver {
   ): Promise<User> {
     try {
       const currentUserId = user?.userId;
-      if (!currentUserId || currentUserId != userId) {
+      if (!currentUserId || currentUserId !== userId) {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
 
@@ -312,15 +322,39 @@ export class UserResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
       }
 
-      if (emailConfirmationCode !== userFromDB.emailConfirmationCode) {
+      const emailConfirmationFields = await getUserEmailConfirmationFields(
+        userFromDB.id,
+      );
+
+      if (!emailConfirmationFields) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.NO_EMAIL_VERIFICATION_DATA),
+        );
+      }
+
+      if (
+        emailConfirmationCode !== emailConfirmationFields.emailVerificationCode
+      ) {
         throw new Error(i18n.__(translationErrorMessagesKeys.INCORRECT_CODE));
       }
 
-      userFromDB.emailConfirmationCodeExpiredAt = null;
-      userFromDB.emailConfirmationCode = null;
-      userFromDB.emailConfirmedAt = new Date();
-      userFromDB.emailConfirmed = true;
-      await userFromDB.save();
+      const currentTime = new Date();
+      if (
+        emailConfirmationFields.emailVerificationCodeExpiredAt &&
+        emailConfirmationFields.emailVerificationCodeExpiredAt < currentTime
+      ) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.CODE_EXPIRED));
+      }
+
+      await updateUserEmailConfirmationStatus({
+        userId: userFromDB.id,
+        emailConfirmed: true,
+        emailConfirmedAt: new Date(),
+        emailVerificationCodeExpiredAt: null,
+        emailVerificationCode: null,
+        emailConfirmationSent: null,
+        emailConfirmationSentAt: null,
+      });
 
       return userFromDB;
     } catch (e) {

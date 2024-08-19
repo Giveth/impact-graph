@@ -103,5 +103,7 @@
   "TX_NOT_FOUND": "TX_NOT_FOUND",
   "ABC_NOT_FOUND": "Abc not found",
   "NO_EMAIL_PROVIDED": "No email address provided.",
-  "INCORRECT_CODE": "The verification code you entered is incorrect."
+  "INCORRECT_CODE": "The verification code you entered is incorrect.",
+  "NO_EMAIL_VERIFICATION_DATA": "No email verification data found",
+  "CODE_EXPIRED": "The verification code has expired. Please request a new code."
 }

@@ -16,10 +16,11 @@ import {
   findUsersWhoDonatedToProjectExcludeWhoLiked,
   findUsersWhoLikedProjectExcludeProjectOwner,
   findUsersWhoSupportProject,
+  getUserEmailConfirmationFields,
   updateUserEmailConfirmationStatus,
-  updateUserEmailConfirmationCode,
 } from './userRepository';
 import { Reaction } from '../entities/reaction';
+import { UserEmailVerification } from '../entities/userEmailVerification';
 
 describe('sql injection test cases', sqlInjectionTestCases);
 
@@ -47,12 +48,12 @@ describe(
 );
 
 describe(
-  'userRepository.updateUserEmailConfirmationStatus',
+  'updateUserEmailConfirmationStatus() test cases',
   updateUserEmailConfirmationStatusTestCases,
 );
 describe(
-  'userRepository.updateUserEmailConfirmationCode',
-  updateUserEmailConfirmationCodeTestCases,
+  'getUserEmailConfirmationFields() test cases',
+  getUserEmailConfirmationFieldsTestCases,
 );
 
 function findUsersWhoDonatedToProjectTestCases() {
@@ -506,81 +507,197 @@ function updateUserEmailConfirmationStatusTestCases() {
     const user = await User.create({
       email: 'test@example.com',
       emailConfirmed: false,
-      emailConfirmationCode: '234567',
+      loginType: 'wallet',
+    }).save();
+
+    await UserEmailVerification.create({
+      user: user,
+      emailVerificationCode: '234567',
+      emailVerificationCodeExpiredAt: new Date(Date.now() + 3600 * 1000),
+    }).save();
+
+    await updateUserEmailConfirmationStatus({
+      userId: user.id,
+      emailConfirmed: true,
+      emailConfirmedAt: new Date(),
+      emailVerificationCodeExpiredAt: null,
+      emailVerificationCode: null,
+      emailConfirmationSent: false, // Include this property
+      emailConfirmationSentAt: null, // Include this property
+    });
+
+    // Verify changes in UserEmailVerification table
+    const updatedVerification = await UserEmailVerification.findOne({
+      where: { user: { id: user.id } },
+    });
+
+    assert.isNotNull(updatedVerification);
+    assert.isNull(updatedVerification!.emailVerificationCode);
+    assert.isNull(updatedVerification!.emailVerificationCodeExpiredAt);
+
+    // Verify changes in User table
+    const updatedUser = await User.findOne({ where: { id: user.id } });
+    assert.isNotNull(updatedUser);
+    assert.isTrue(updatedUser!.emailConfirmed);
+    assert.isNotNull(updatedUser!.emailConfirmedAt);
+    assert.isFalse(updatedUser!.emailConfirmationSent);
+    assert.isNull(updatedUser!.emailConfirmationSentAt);
+  });
+
+  it('should create a new UserEmailVerification entry if it does not exist and update the email confirmation status', async () => {
+    const user = await User.create({
+      email: 'test2@example.com',
+      emailConfirmed: false,
       loginType: 'wallet',
     }).save();
 
     await updateUserEmailConfirmationStatus({
       userId: user.id,
       emailConfirmed: true,
-      emailConfirmationCodeExpiredAt: null,
-      emailConfirmationCode: null,
-      emailConfirmationSentAt: null,
+      emailConfirmedAt: new Date(),
+      emailVerificationCodeExpiredAt: null,
+      emailVerificationCode: null,
+      emailConfirmationSent: false, // Include this property
+      emailConfirmationSentAt: null, // Include this property
     });
 
-    // Using findOne with options object
+    // Verify new entry in UserEmailVerification table
+    const newVerification = await UserEmailVerification.findOne({
+      where: { user: { id: user.id } },
+    });
+
+    assert.isNotNull(newVerification);
+    assert.isNull(newVerification!.emailVerificationCode);
+    assert.isNull(newVerification!.emailVerificationCodeExpiredAt);
+
+    // Verify changes in User table
     const updatedUser = await User.findOne({ where: { id: user.id } });
     assert.isNotNull(updatedUser);
     assert.isTrue(updatedUser!.emailConfirmed);
-    assert.isNull(updatedUser!.emailConfirmationCode);
+    assert.isNotNull(updatedUser!.emailConfirmedAt);
+    assert.isFalse(updatedUser!.emailConfirmationSent);
+    assert.isNull(updatedUser!.emailConfirmationSentAt);
   });
 
   it('should not update any user if the userId does not exist', async () => {
     const result = await updateUserEmailConfirmationStatus({
       userId: 999, // non-existent userId
       emailConfirmed: true,
-      emailConfirmationCodeExpiredAt: null,
-      emailConfirmationCode: null,
-      emailConfirmationSentAt: null,
+      emailConfirmedAt: new Date(),
+      emailVerificationCodeExpiredAt: null,
+      emailVerificationCode: null,
+      emailConfirmationSent: false, // Include this property
+      emailConfirmationSentAt: null, // Include this property
     });
 
     assert.equal(result.affected, 0); // No rows should be affected
   });
 }
 
-function updateUserEmailConfirmationCodeTestCases() {
-  it('should update the email confirmation code and expiry date for a user', async () => {
+function getUserEmailConfirmationFieldsTestCases() {
+  it('should return the email verification fields for a valid user ID', async () => {
     const user = await User.create({
       email: 'test@example.com',
       loginType: 'wallet',
+      emailConfirmationSent: true,
+      emailConfirmationSentAt: new Date(),
     }).save();
 
-    const newCode = '654321';
-    const newExpiryDate = new Date(Date.now() + 3600 * 1000); // 1 hour from now
-    const sentAtDate = new Date();
+    const emailVerification = await UserEmailVerification.create({
+      user: user,
+      emailVerificationCode: '123456',
+      emailVerificationCodeExpiredAt: new Date(Date.now() + 3600 * 1000), // 1 hour from now
+    }).save();
 
-    await updateUserEmailConfirmationCode({
-      userId: user.id,
-      emailConfirmationCode: newCode,
-      emailConfirmationCodeExpiredAt: newExpiryDate,
-      emailConfirmationSentAt: sentAtDate,
-    });
+    const result = await getUserEmailConfirmationFields(user.id);
 
-    // Using findOne with options object
-    const updatedUser = await User.findOne({ where: { id: user.id } });
-    assert.isNotNull(updatedUser);
-    assert.equal(updatedUser!.emailConfirmationCode, newCode);
+    assert.isNotNull(result);
+    assert.equal(result?.emailVerificationCode, '123456');
     assert.equal(
-      updatedUser!.emailConfirmationCodeExpiredAt!.getTime(),
-      newExpiryDate.getTime(),
+      result?.emailVerificationCodeExpiredAt!.getTime(),
+      emailVerification.emailVerificationCodeExpiredAt!.getTime(),
     );
+    assert.equal(user.emailConfirmationSent, true);
     assert.equal(
-      updatedUser!.emailConfirmationSentAt!.getTime(),
-      sentAtDate.getTime(),
+      user.emailConfirmationSentAt!.getTime(),
+      user.emailConfirmationSentAt!.getTime(),
     );
   });
 
-  it('should throw an error if the userId does not exist', async () => {
-    try {
-      await updateUserEmailConfirmationCode({
-        userId: 999, // non-existent userId
-        emailConfirmationCode: '765432',
-        emailConfirmationCodeExpiredAt: new Date(),
-        emailConfirmationSentAt: new Date(),
-      });
-      assert.fail('Expected an error to be thrown');
-    } catch (error) {
-      assert.equal(error.message, 'User not found');
-    }
+  it('should return null if no email verification entry exists for the user ID', async () => {
+    const user = await User.create({
+      email: 'test2@example.com',
+      loginType: 'wallet',
+      emailConfirmationSent: false,
+      emailConfirmationSentAt: null,
+    }).save();
+
+    const result = await getUserEmailConfirmationFields(user.id);
+
+    assert.isNull(result);
+  });
+
+  it('should return null if the user ID does not exist', async () => {
+    const result = await getUserEmailConfirmationFields(999); // non-existent user ID
+
+    assert.isNull(result);
+  });
+
+  it('should return the correct fields for a user with a different emailVerificationCode', async () => {
+    const user = await User.create({
+      email: 'test3@example.com',
+      loginType: 'wallet',
+      emailConfirmationSent: true,
+      emailConfirmationSentAt: new Date(Date.now() - 3600 * 1000), // 1 hour ago
+    }).save();
+
+    const emailVerification = await UserEmailVerification.create({
+      user: user,
+      emailVerificationCode: '654321',
+      emailVerificationCodeExpiredAt: new Date(Date.now() + 7200 * 1000), // 2 hours from now
+    }).save();
+
+    const result = await getUserEmailConfirmationFields(user.id);
+
+    assert.isNotNull(result);
+    assert.equal(result?.emailVerificationCode, '654321');
+    assert.equal(
+      result?.emailVerificationCodeExpiredAt!.getTime(),
+      emailVerification.emailVerificationCodeExpiredAt!.getTime(),
+    );
+    assert.equal(user.emailConfirmationSent, true);
+    assert.equal(
+      user.emailConfirmationSentAt!.getTime(),
+      user.emailConfirmationSentAt!.getTime(),
+    );
+  });
+
+  it('should return the correct fields when emailConfirmationSent is false', async () => {
+    const user = await User.create({
+      email: 'test4@example.com',
+      loginType: 'wallet',
+      emailConfirmationSent: false,
+      emailConfirmationSentAt: new Date(),
+    }).save();
+
+    const emailVerification = await UserEmailVerification.create({
+      user: user,
+      emailVerificationCode: '111111',
+      emailVerificationCodeExpiredAt: new Date(Date.now() + 3600 * 1000), // 1 hour from now
+    }).save();
+
+    const result = await getUserEmailConfirmationFields(user.id);
+
+    assert.isNotNull(result);
+    assert.equal(result?.emailVerificationCode, '111111');
+    assert.equal(
+      result?.emailVerificationCodeExpiredAt!.getTime(),
+      emailVerification.emailVerificationCodeExpiredAt!.getTime(),
+    );
+    assert.equal(user.emailConfirmationSent, false);
+    assert.equal(
+      user.emailConfirmationSentAt!.getTime(),
+      user.emailConfirmationSentAt!.getTime(),
+    );
   });
 }

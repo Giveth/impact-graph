@@ -25,6 +25,8 @@ import { errorMessages } from '../utils/errorMessages';
 import { DONATION_STATUS } from '../entities/donation';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 import { updateUserTotalDonated } from '../services/userService';
+import { getUserEmailConfirmationFields } from '../repositories/userRepository';
+import { UserEmailVerification } from '../entities/userEmailVerification';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -705,10 +707,13 @@ function userVerificationSendEmailConfirmationTestCases() {
         .emailConfirmationSent,
       true,
     );
-    assert.isNotNull(
-      result.data.data.userVerificationSendEmailConfirmation
-        .emailConfirmationCode,
+
+    const emailConfirmationFields = await getUserEmailConfirmationFields(
+      user.id,
     );
+    assert.isNotNull(emailConfirmationFields);
+    assert.equal(emailConfirmationFields?.emailVerificationCode?.length, 6);
+    assert.isNotNull(emailConfirmationFields?.emailVerificationCodeExpiredAt);
   });
 
   it('should throw error when sending email confirmation if email is already confirmed', async () => {
@@ -763,12 +768,9 @@ function userVerificationConfirmEmailTestCases() {
       },
     );
 
-    const DBUser = await User.findOne({
-      where: {
-        id: userID,
-      },
-    });
-    const code = DBUser?.emailConfirmationCode;
+    const emailVerificationFields =
+      await getUserEmailConfirmationFields(userID);
+    const code = emailVerificationFields?.emailVerificationCode;
 
     const result = await axios.post(
       graphqlUrl,
@@ -794,6 +796,11 @@ function userVerificationConfirmEmailTestCases() {
     assert.isNotNull(
       result.data.data.userVerificationConfirmEmail.emailConfirmedAt,
     );
+
+    const updatedVerificationFields =
+      await getUserEmailConfirmationFields(userID);
+    assert.isNull(updatedVerificationFields?.emailVerificationCode);
+    assert.isNull(updatedVerificationFields?.emailVerificationCodeExpiredAt);
   });
 
   it('should throw error when email confirmation code is incorrect for user email verification', async () => {
@@ -818,7 +825,7 @@ function userVerificationConfirmEmailTestCases() {
       },
     );
 
-    const incorrectCode = '12345'; // This code is incorrect
+    const incorrectCode = '123456'; // This code is incorrect
 
     const result = await axios.post(
       graphqlUrl,
@@ -837,5 +844,56 @@ function userVerificationConfirmEmailTestCases() {
     );
 
     assert.equal(result.data.errors[0].message, errorMessages.INCORRECT_CODE);
+  });
+
+  it('should throw error when email confirmation code is expired for user email verification', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.email = 'test@example.com';
+    user.emailConfirmed = false;
+    const userID = (await user.save()).id;
+
+    const accessToken = await generateTestAccessToken(user.id);
+    await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationSendEmailConfirmation,
+        variables: {
+          userId: user.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    // Simulate expiration
+    await UserEmailVerification.update(
+      { user: { id: userID } },
+      { emailVerificationCodeExpiredAt: new Date(Date.now() - 10000) },
+    );
+
+    const emailVerificationFields =
+      await getUserEmailConfirmationFields(userID);
+    const expiredCode = emailVerificationFields?.emailVerificationCode;
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationConfirmEmail,
+        variables: {
+          userId: user.id,
+          emailConfirmationCode: expiredCode,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(result.data.errors[0].message, errorMessages.CODE_EXPIRED);
   });
 }
