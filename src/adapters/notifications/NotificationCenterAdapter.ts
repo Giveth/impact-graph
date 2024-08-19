@@ -100,16 +100,16 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async sendUserEmailConfirmation(params: {
     email: string;
     user: User;
-    token: string;
+    code: string;
   }): Promise<void> {
-    const { email, user, token } = params;
+    const { email, code } = params;
     try {
       await callSendNotification({
         eventName: NOTIFICATIONS_EVENT_NAMES.SEND_EMAIL_CONFIRMATION,
         segment: {
           payload: {
             email,
-            verificationLink: `${dappUrl}/verification/user/${user.walletAddress}/${token}`,
+            verificationLink: code, // todo: we just set this for test and we should change the schema
           },
         },
       });
