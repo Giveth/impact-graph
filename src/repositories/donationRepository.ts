@@ -69,7 +69,7 @@ export const createDonation = async (data: {
   fromWalletAddress: string;
   transactionId: string;
   tokenAddress: string;
-  isProjectVerified: boolean;
+  isProjectGivbackEligible: boolean;
   donorUser: any;
   isTokenEligibleForGivback: boolean;
   segmentNotified: boolean;
@@ -93,7 +93,7 @@ export const createDonation = async (data: {
     tokenAddress,
     project,
     isTokenEligibleForGivback,
-    isProjectVerified,
+    isProjectGivbackEligible,
     donationAnonymous,
     toWalletAddress,
     fromWalletAddress,
@@ -118,7 +118,7 @@ export const createDonation = async (data: {
     tokenAddress,
     project,
     isTokenEligibleForGivback,
-    isProjectVerified,
+    isProjectGivbackEligible,
     createdAt: new Date(),
     segmentNotified: true,
     toWalletAddress,

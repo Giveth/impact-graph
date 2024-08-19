@@ -108,7 +108,7 @@ export const createFiatDonationFromOnramper = async (
       project,
       isTokenEligibleForGivback,
       isCustomToken,
-      isProjectVerified: project.verified,
+      isProjectGivbackEligible: project.isGivbackEligible,
       createdAt: new Date(fiatTransaction.payload.timestamp),
       segmentNotified: false,
       toWalletAddress: toAddress.toString().toLowerCase(),

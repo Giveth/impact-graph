@@ -2383,7 +2383,7 @@ function createDonationTestCases() {
       errorMessages.PROJECT_NOT_FOUND,
     );
   });
-  it('should isProjectVerified be true after create donation for verified projects', async () => {
+  it('should isProjectGivbackEligible be true after create donation for verified projects', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       verified: true,
@@ -2420,9 +2420,9 @@ function createDonationTestCases() {
       },
     });
     assert.isOk(donation);
-    assert.isTrue(donation?.isProjectVerified);
+    assert.isTrue(donation?.isProjectGivbackEligible);
   });
-  it('should isProjectVerified be true after create donation for unVerified projects', async () => {
+  it('should isProjectGivbackEligible be true after create donation for unVerified projects', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       verified: false,
@@ -2459,7 +2459,7 @@ function createDonationTestCases() {
       },
     });
     assert.isOk(donation);
-    assert.isFalse(donation?.isProjectVerified);
+    assert.isFalse(donation?.isProjectGivbackEligible);
   });
   it('should throw exception when donating to draft projects', async () => {
     const project = await saveProjectDirectlyToDb({
