@@ -511,7 +511,7 @@ function updateUserEmailConfirmationStatusTestCases() {
     }).save();
 
     await UserEmailVerification.create({
-      user: user,
+      userId: user.id,
       emailVerificationCode: '234567',
       emailVerificationCodeExpiredAt: new Date(Date.now() + 3600 * 1000),
     }).save();
@@ -528,7 +528,7 @@ function updateUserEmailConfirmationStatusTestCases() {
 
     // Verify changes in UserEmailVerification table
     const updatedVerification = await UserEmailVerification.findOne({
-      where: { user: { id: user.id } },
+      where: { userId: user.id },
     });
 
     assert.isNotNull(updatedVerification);
@@ -563,7 +563,7 @@ function updateUserEmailConfirmationStatusTestCases() {
 
     // Verify new entry in UserEmailVerification table
     const newVerification = await UserEmailVerification.findOne({
-      where: { user: { id: user.id } },
+      where: { userId: user.id },
     });
 
     assert.isNotNull(newVerification);
@@ -604,7 +604,7 @@ function getUserEmailConfirmationFieldsTestCases() {
     }).save();
 
     const emailVerification = await UserEmailVerification.create({
-      user: user,
+      userId: user.id,
       emailVerificationCode: '123456',
       emailVerificationCodeExpiredAt: new Date(Date.now() + 3600 * 1000), // 1 hour from now
     }).save();
@@ -652,7 +652,7 @@ function getUserEmailConfirmationFieldsTestCases() {
     }).save();
 
     const emailVerification = await UserEmailVerification.create({
-      user: user,
+      userId: user.id,
       emailVerificationCode: '654321',
       emailVerificationCodeExpiredAt: new Date(Date.now() + 7200 * 1000), // 2 hours from now
     }).save();
@@ -681,7 +681,7 @@ function getUserEmailConfirmationFieldsTestCases() {
     }).save();
 
     const emailVerification = await UserEmailVerification.create({
-      user: user,
+      userId: user.id,
       emailVerificationCode: '111111',
       emailVerificationCodeExpiredAt: new Date(Date.now() + 3600 * 1000), // 1 hour from now
     }).save();

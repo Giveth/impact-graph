@@ -200,12 +200,12 @@ export const updateUserEmailConfirmationStatus = async (params: {
   } = params;
 
   let userVerification = await UserEmailVerification.findOne({
-    where: { user: { id: userId } },
+    where: { userId },
   });
 
   if (!userVerification) {
     userVerification = new UserEmailVerification();
-    userVerification.user = { id: userId } as User; // Creating a new association with the user
+    userVerification.userId = userId;
   }
 
   userVerification.emailVerificationCode = emailVerificationCode;
@@ -232,7 +232,7 @@ export const getUserEmailConfirmationFields = async (
 ): Promise<UserEmailVerification | null> => {
   // Find the email verification entry for the given user ID
   const emailVerification = await UserEmailVerification.findOne({
-    where: { user: { id: userId } },
+    where: { userId },
   });
 
   return emailVerification || null;
