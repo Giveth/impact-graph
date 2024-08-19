@@ -186,7 +186,7 @@ export const updateUserEmailConfirmationStatus = async (params: {
   emailConfirmedAt: Date | null;
   emailVerificationCodeExpiredAt: Date | null;
   emailVerificationCode: string | null;
-  emailConfirmationSent: boolean | null;
+  emailConfirmationSent: boolean;
   emailConfirmationSentAt: Date | null;
 }): Promise<UpdateResult> => {
   const {

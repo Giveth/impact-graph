@@ -186,7 +186,7 @@ export class UserResolver {
           emailConfirmedAt: null,
           emailVerificationCodeExpiredAt: null,
           emailVerificationCode: null,
-          emailConfirmationSent: null,
+          emailConfirmationSent: false,
           emailConfirmationSentAt: null,
         });
       }
@@ -352,7 +352,7 @@ export class UserResolver {
         emailConfirmedAt: new Date(),
         emailVerificationCodeExpiredAt: null,
         emailVerificationCode: null,
-        emailConfirmationSent: null,
+        emailConfirmationSent: false,
         emailConfirmationSentAt: null,
       });
 

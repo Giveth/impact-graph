@@ -15,7 +15,7 @@ export class UserEmailVerification extends BaseEntity {
   @OneToOne(() => User, user => user.emailVerification, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column({ nullable: true })
+  @Column('text', { nullable: true })
   emailVerificationCode: string | null;
 
   @Column('timestamptz', { nullable: true })
