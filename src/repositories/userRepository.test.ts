@@ -603,10 +603,12 @@ function getUserEmailConfirmationFieldsTestCases() {
       emailConfirmationSentAt: new Date(),
     }).save();
 
-    const emailVerification = await UserEmailVerification.create({
+    const expirationTime = new Date(Date.now() + 3600 * 1000); // 1 hour from now
+
+    await UserEmailVerification.create({
       userId: user.id,
       emailVerificationCode: '123456',
-      emailVerificationCodeExpiredAt: new Date(Date.now() + 3600 * 1000), // 1 hour from now
+      emailVerificationCodeExpiredAt: expirationTime,
     }).save();
 
     const result = await getUserEmailConfirmationFields(user.id);
@@ -615,7 +617,7 @@ function getUserEmailConfirmationFieldsTestCases() {
     assert.equal(result?.emailVerificationCode, '123456');
     assert.equal(
       result?.emailVerificationCodeExpiredAt!.getTime(),
-      emailVerification.emailVerificationCodeExpiredAt!.getTime(),
+      expirationTime.getTime(),
     );
     assert.equal(user.emailConfirmationSent, true);
     assert.equal(
@@ -638,7 +640,7 @@ function getUserEmailConfirmationFieldsTestCases() {
   });
 
   it('should return null if the user ID does not exist', async () => {
-    const result = await getUserEmailConfirmationFields(999); // non-existent user ID
+    const result = await getUserEmailConfirmationFields(999999); // non-existent user ID
 
     assert.isNull(result);
   });
@@ -651,10 +653,11 @@ function getUserEmailConfirmationFieldsTestCases() {
       emailConfirmationSentAt: new Date(Date.now() - 3600 * 1000), // 1 hour ago
     }).save();
 
-    const emailVerification = await UserEmailVerification.create({
+    const expirationTime = new Date(Date.now() + 7200 * 1000); // 2 hours from now
+    await UserEmailVerification.create({
       userId: user.id,
       emailVerificationCode: '654321',
-      emailVerificationCodeExpiredAt: new Date(Date.now() + 7200 * 1000), // 2 hours from now
+      emailVerificationCodeExpiredAt: expirationTime,
     }).save();
 
     const result = await getUserEmailConfirmationFields(user.id);
@@ -663,7 +666,7 @@ function getUserEmailConfirmationFieldsTestCases() {
     assert.equal(result?.emailVerificationCode, '654321');
     assert.equal(
       result?.emailVerificationCodeExpiredAt!.getTime(),
-      emailVerification.emailVerificationCodeExpiredAt!.getTime(),
+      expirationTime.getTime(),
     );
     assert.equal(user.emailConfirmationSent, true);
     assert.equal(
@@ -680,10 +683,11 @@ function getUserEmailConfirmationFieldsTestCases() {
       emailConfirmationSentAt: new Date(),
     }).save();
 
-    const emailVerification = await UserEmailVerification.create({
+    const expirationTime = new Date(Date.now() + 3600 * 1000); // 1 hour from now
+    await UserEmailVerification.create({
       userId: user.id,
       emailVerificationCode: '111111',
-      emailVerificationCodeExpiredAt: new Date(Date.now() + 3600 * 1000), // 1 hour from now
+      emailVerificationCodeExpiredAt: expirationTime,
     }).save();
 
     const result = await getUserEmailConfirmationFields(user.id);
@@ -692,7 +696,7 @@ function getUserEmailConfirmationFieldsTestCases() {
     assert.equal(result?.emailVerificationCode, '111111');
     assert.equal(
       result?.emailVerificationCodeExpiredAt!.getTime(),
-      emailVerification.emailVerificationCodeExpiredAt!.getTime(),
+      expirationTime.getTime(),
     );
     assert.equal(user.emailConfirmationSent, false);
     assert.equal(
