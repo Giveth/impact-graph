@@ -68,7 +68,7 @@ const transactions: Partial<Donation>[] = [
     transactionId:
       '0x30954cb441cb7b2184e6cd1afc6acbd1318f86a68b669f6bfb2786dd459e2d6c',
     currency: 'ETH',
-    isProjectVerified: true,
+    isProjectGivbackEligible: true,
     isTokenEligibleForGivback: true,
     amount: 5,
     valueUsd: 9_458.4,
