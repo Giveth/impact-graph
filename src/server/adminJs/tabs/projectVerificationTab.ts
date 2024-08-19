@@ -18,6 +18,8 @@ import {
   AdminJsRequestInterface,
 } from '../adminJs-types';
 import {
+  approveMultipleProjects,
+  approveProject,
   findProjectVerificationFormById,
   makeFormDraft,
   verifyForm,
@@ -30,8 +32,6 @@ import {
 import {
   findProjectById,
   updateProjectWithVerificationForm,
-  verifyMultipleProjects,
-  verifyProject,
 } from '../../../repositories/projectRepository';
 import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
 import { logger } from '../../../utils/logger';
@@ -82,12 +82,12 @@ export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
 export const verifySingleVerificationForm = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
-  verified: boolean,
+  approved: boolean,
 ) => {
   const { currentAdmin } = context;
   let responseMessage = '';
   let responseType = 'success';
-  const verificationStatus = verified
+  const verificationStatus = approved
     ? PROJECT_VERIFICATION_STATUSES.VERIFIED
     : PROJECT_VERIFICATION_STATUSES.REJECTED;
   const formId = Number(request?.params?.recordId);
@@ -95,7 +95,7 @@ export const verifySingleVerificationForm = async (
 
   try {
     if (
-      verified &&
+      approved &&
       ![
         PROJECT_VERIFICATION_STATUSES.REJECTED,
         PROJECT_VERIFICATION_STATUSES.SUBMITTED,
@@ -108,7 +108,7 @@ export const verifySingleVerificationForm = async (
       );
     }
     if (
-      !verified &&
+      !approved &&
       PROJECT_VERIFICATION_STATUSES.SUBMITTED !== verificationFormInDb?.status
     ) {
       throw new Error(
@@ -124,9 +124,9 @@ export const verifySingleVerificationForm = async (
       adminId: currentAdmin.id,
     });
     const projectId = verificationForm.projectId;
-    const project = await verifyProject({ verified, projectId });
+    const project = await approveProject({ approved, projectId });
 
-    if (verified) {
+    if (approved) {
       await updateProjectWithVerificationForm(verificationForm, project);
       await getNotificationAdapter().projectVerified({
         project,
@@ -140,7 +140,7 @@ export const verifySingleVerificationForm = async (
     }
 
     responseMessage = `Project(s) successfully ${
-      verified ? 'verified' : 'rejected'
+      approved ? 'approved' : 'rejected'
     }`;
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
@@ -226,16 +226,16 @@ export const makeEditableByUser = async (
   };
 };
 
-export const verifyVerificationForms = async (
+export const approveVerificationForms = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
-  verified: boolean,
+  approved: boolean,
 ) => {
   const { records, currentAdmin } = context;
   let responseMessage = '';
   let responseType = 'success';
   try {
-    const verificationStatus = verified
+    const verificationStatus = approved
       ? PROJECT_VERIFICATION_STATUSES.VERIFIED
       : PROJECT_VERIFICATION_STATUSES.REJECTED;
     const formIds = request?.query?.recordIds?.split(',');
@@ -248,7 +248,7 @@ export const verifyVerificationForms = async (
     const projectsIds = projectsForms.raw.map(projectForm => {
       return projectForm.projectId;
     });
-    const projects = await verifyMultipleProjects({ verified, projectsIds });
+    const projects = await approveMultipleProjects({ approved, projectsIds });
 
     const projectIds = projects.raw.map(project => {
       return project.id;
@@ -270,7 +270,7 @@ export const verifyVerificationForms = async (
         verificationForm.project,
       );
       const { project } = verificationForm;
-      if (verified) {
+      if (approved) {
         await getNotificationAdapter().projectVerified({
           project,
         });
@@ -283,7 +283,7 @@ export const verifyVerificationForms = async (
       }
     }
     responseMessage = `Project(s) successfully ${
-      verified ? 'verified' : 'rejected'
+      approved ? 'approved' : 'rejected'
     }`;
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
@@ -613,13 +613,13 @@ export const projectVerificationTab = {
             ResourceActions.NEW,
           ),
       },
-      verifyProject: {
+      approveProject: {
         actionType: 'record',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectVerificationFormAction(
             { currentAdmin },
-            ResourceActions.VERIFY_PROJECT,
+            ResourceActions.APPROVE_PROJECT,
           ),
         handler: async (request, response, context) => {
           return verifySingleVerificationForm(context, request, true);
@@ -652,16 +652,16 @@ export const projectVerificationTab = {
         },
         component: false,
       },
-      verifyProjects: {
+      approveProjects: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectVerificationFormAction(
             { currentAdmin },
-            ResourceActions.VERIFY_PROJECTS,
+            ResourceActions.APPROVE_PROJECTS,
           ),
         handler: async (request, response, context) => {
-          return verifyVerificationForms(context, request, true);
+          return approveVerificationForms(context, request, true);
         },
         component: false,
       },
@@ -674,7 +674,7 @@ export const projectVerificationTab = {
             ResourceActions.REJECT_PROJECTS,
           ),
         handler: async (request, response, context) => {
-          return verifyVerificationForms(context, request, false);
+          return approveVerificationForms(context, request, false);
         },
         component: false,
       },
