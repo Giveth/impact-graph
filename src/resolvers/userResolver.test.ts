@@ -870,7 +870,7 @@ function userVerificationConfirmEmailTestCases() {
 
     // Simulate expiration
     await UserEmailVerification.update(
-      { user: { id: userID } },
+      { userId: userID },
       { emailVerificationCodeExpiredAt: new Date(Date.now() - 10000) },
     );
 
