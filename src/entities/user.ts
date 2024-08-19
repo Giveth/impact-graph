@@ -193,9 +193,9 @@ export class User extends BaseEntity {
   @Column({ default: false })
   emailConfirmed: boolean;
 
-  @Field(_type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: false })
   @Column({ default: false })
-  emailConfirmationSent: boolean | null;
+  emailConfirmationSent: boolean;
 
   @Field(_type => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true })
