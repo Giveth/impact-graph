@@ -21,5 +21,5 @@ export class UpdateBaseAddressOfEndaomentProjects1724067829181
         `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(_queryRunner: QueryRunner): Promise<void> {}
 }
