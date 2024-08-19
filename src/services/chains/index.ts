@@ -1,6 +1,7 @@
 import { ChainType } from '../../types/network';
 import { getSolanaTransactionInfoFromNetwork } from './solana/transactionService';
 import { getEvmTransactionInfoFromNetwork } from './evm/transactionService';
+import {getStellarTransactionInfoFromNetwork} from './stellar/transactionService';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { NETWORK_IDS } from '../../provider';
@@ -81,6 +82,10 @@ export async function getTransactionInfoFromNetwork(
 ): Promise<NetworkTransactionInfo> {
   if (input.chainType === ChainType.SOLANA) {
     return getSolanaTransactionInfoFromNetwork(input);
+  }
+
+  if (input.chainType === ChainType.STELLAR) {
+    return getStellarTransactionInfoFromNetwork(input);
   }
 
   // If chain is not Solana, it's EVM for sure

@@ -14,6 +14,7 @@ import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapte
 import { findUserById } from '../../repositories/userRepository';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
 import { QfRound } from '../../entities/qfRound';
+import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
 
 const STELLAR_HORIZON_API =
   (config.get('STELLAR_HORIZON_API_URL') as string) ||
@@ -74,13 +75,21 @@ export async function checkTransactions(
     if (transactions.length === 0) return;
 
     for (const transaction of transactions) {
-      if (
-        transaction.asset_type === 'native' &&
-        ['payment', 'create_account'].includes(transaction.type) &&
-        Number(transaction.amount) === amount &&
-        transaction.to === toWalletAddress
-      ) {
-        if (toWalletMemo && transaction.transaction.memo !== toWalletMemo) {
+      const isMatchingTransaction =
+        (transaction.asset_type === 'native' &&
+          transaction.type === 'payment' &&
+          transaction.to === toWalletAddress &&
+          Number(transaction.amount) === amount) ||
+        (transaction.type === 'create_account' &&
+          transaction.account === toWalletAddress &&
+          Number(transaction.starting_balance) === amount);
+
+      if (isMatchingTransaction) {
+        if (
+          toWalletMemo &&
+          transaction.type === 'payment' &&
+          transaction.transaction.memo !== toWalletMemo
+        ) {
           logger.debug(
             `Transaction memo does not match donation memo for donation ID ${donation.id}`,
           );
@@ -141,7 +150,7 @@ export async function checkTransactions(
           isTokenEligibleForGivback: token.isGivbackEligible,
           segmentNotified: false,
           toWalletAddress: donation.toWalletAddress,
-          donationAnonymous: !donation.userId,
+          donationAnonymous: false,
           transakId: '',
           token: donation.currency,
           valueUsd: donation.amount * tokenPrice,
@@ -155,7 +164,7 @@ export async function checkTransactions(
 
         if (!returnedDonation) {
           logger.debug(
-            `Error creating donation for donation ID ${donation.id}`,
+            `Error creating donation for draft donation ID ${donation.id}`,
           );
           return;
         }
@@ -166,6 +175,10 @@ export async function checkTransactions(
           status: transaction.transaction_successful ? 'matched' : 'failed',
           fromWalletAddress: transaction.source_account,
           matchedDonationId: returnedDonation.id,
+        });
+
+        await syncDonationStatusWithBlockchainNetwork({
+          donationId: returnedDonation.id,
         });
 
         return;
