@@ -99,5 +99,8 @@
   "DRAFT_DONATION_DISABLED": "El borrador de donación está deshabilitado",
   "EVM_SUPPORT_ONLY": "Solo se admite EVM",
   "ABC_NOT_FOUND": "ABC no encontrado",
-  "NO_EMAIL_PROVIDED": "No se ha proporcionado una dirección de correo electrónico."
+  "NO_EMAIL_PROVIDED": "No se ha proporcionado una dirección de correo electrónico.",
+  "INCORRECT_CODE": "El código de verificación que ingresaste es incorrecto.",
+  "NO_EMAIL_VERIFICATION_DATA": "No se encontraron datos de verificación de correo electrónico.",
+  "CODE_EXPIRED": "El código de verificación ha expirado. Por favor, solicita un nuevo código."
 }

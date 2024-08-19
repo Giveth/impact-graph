@@ -5,6 +5,7 @@ import { Reaction } from '../entities/reaction';
 import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import { isEvmAddress } from '../utils/networks';
 import { retrieveActiveQfRoundUserMBDScore } from './qfRoundRepository';
+import { UserEmailVerification } from '../entities/userEmailVerification';
 
 export const findAdminUserByEmail = async (
   email: string,
@@ -179,66 +180,60 @@ export const findUsersWhoSupportProject = async (
   return users;
 };
 
-export const findUserByEmailConfirmationToken = async (
-  emailConfirmationToken: string,
-): Promise<User | null> => {
-  return User.createQueryBuilder('user')
-    .where({
-      emailConfirmationToken,
-    })
-    .getOne();
-};
-
 export const updateUserEmailConfirmationStatus = async (params: {
   userId: number;
   emailConfirmed: boolean;
-  emailConfirmationTokenExpiredAt: Date | null;
-  emailConfirmationToken: string | null;
+  emailConfirmedAt: Date | null;
+  emailVerificationCodeExpiredAt: Date | null;
+  emailVerificationCode: string | null;
+  emailConfirmationSent: boolean;
   emailConfirmationSentAt: Date | null;
 }): Promise<UpdateResult> => {
   const {
     userId,
     emailConfirmed,
-    emailConfirmationTokenExpiredAt,
-    emailConfirmationToken,
+    emailConfirmedAt,
+    emailVerificationCodeExpiredAt,
+    emailVerificationCode,
+    emailConfirmationSent,
     emailConfirmationSentAt,
   } = params;
 
+  let userVerification = await UserEmailVerification.findOne({
+    where: { userId },
+  });
+
+  if (!userVerification) {
+    userVerification = new UserEmailVerification();
+    userVerification.userId = userId;
+  }
+
+  userVerification.emailVerificationCode = emailVerificationCode;
+  userVerification.emailVerificationCodeExpiredAt =
+    emailVerificationCodeExpiredAt;
+
+  await UserEmailVerification.save(userVerification);
+
+  // Update the emailConfirmed status in the User table
   return User.createQueryBuilder()
     .update(User)
     .set({
       emailConfirmed,
-      emailConfirmationTokenExpiredAt,
-      emailConfirmationToken,
+      emailConfirmedAt,
+      emailConfirmationSent,
       emailConfirmationSentAt,
     })
     .where('id = :userId', { userId })
     .execute();
 };
 
-export const updateUserEmailConfirmationToken = async (params: {
-  userId: number;
-  emailConfirmationToken: string;
-  emailConfirmationTokenExpiredAt: Date;
-  emailConfirmationSentAt: Date;
-}): Promise<User> => {
-  const {
-    userId,
-    emailConfirmationToken,
-    emailConfirmationTokenExpiredAt,
-    emailConfirmationSentAt,
-  } = params;
+export const getUserEmailConfirmationFields = async (
+  userId: number,
+): Promise<UserEmailVerification | null> => {
+  // Find the email verification entry for the given user ID
+  const emailVerification = await UserEmailVerification.findOne({
+    where: { userId },
+  });
 
-  const user = await findUserById(userId);
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  user.emailConfirmationToken = emailConfirmationToken;
-  user.emailConfirmationTokenExpiredAt = emailConfirmationTokenExpiredAt;
-  user.emailConfirmationSentAt = emailConfirmationSentAt;
-  user.emailConfirmed = false;
-
-  await user.save();
-  return user;
+  return emailVerification || null;
 };
