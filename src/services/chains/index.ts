@@ -1,7 +1,7 @@
 import { ChainType } from '../../types/network';
 import { getSolanaTransactionInfoFromNetwork } from './solana/transactionService';
 import { getEvmTransactionInfoFromNetwork } from './evm/transactionService';
-import {getStellarTransactionInfoFromNetwork} from './stellar/transactionService';
+import { getStellarTransactionInfoFromNetwork } from './stellar/transactionService';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { NETWORK_IDS } from '../../provider';

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
@@ -7,7 +8,6 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
-import axios from 'axios';
 
 const STELLAR_HORIZON_API_URL =
   process.env.STELLAR_HORIZON_API_URL || 'https://horizon.stellar.org';
@@ -52,8 +52,7 @@ const getStellarTransactionInfo = async (
 export async function getStellarTransactionInfoFromNetwork(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo> {
-  let txData;
-  txData = await getStellarTransactionInfo(input.txHash);
+  const txData = await getStellarTransactionInfo(input.txHash);
   if (!txData) {
     throw new Error(
       i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
