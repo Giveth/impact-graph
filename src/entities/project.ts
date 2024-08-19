@@ -408,6 +408,10 @@ export class Project extends BaseEntity {
   // @Column({ type: 'boolean', default: false })
   // tunnableQf?: boolean;
 
+  @Field(_type => Boolean)
+  @Column({ type: 'boolean', default: false })
+  isGivbackEligible: boolean;
+
   @Field(_type => String)
   @Column({
     type: 'enum',
