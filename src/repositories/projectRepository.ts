@@ -198,7 +198,10 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.GIVPower:
       query
-        .orderBy(`project.verified`, OrderDirection.DESC)
+        .orderBy(
+          `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
+          OrderDirection.DESC,
+        )
         .addOrderBy(
           'projectPower.totalPower',
           OrderDirection.DESC,
@@ -207,7 +210,10 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.InstantBoosting: // This is our default sorting
       query
-        .orderBy(`project.verified`, OrderDirection.DESC)
+        .orderBy(
+          `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
+          OrderDirection.DESC,
+        )
         .addOrderBy(
           'projectInstantPower.totalPower',
           OrderDirection.DESC,
@@ -232,7 +238,10 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
             OrderDirection.DESC,
             'NULLS LAST',
           )
-          .addOrderBy(`project.verified`, OrderDirection.DESC);
+          .addOrderBy(
+            `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
+            OrderDirection.DESC,
+          );
       }
       break;
     case SortingField.EstimatedMatching:
@@ -244,13 +253,20 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
             OrderDirection.DESC,
             'NULLS LAST',
           )
-          .addOrderBy(`project.verified`, OrderDirection.DESC);
+          .addOrderBy(
+            `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
+            OrderDirection.DESC,
+          );
       }
       break;
+
     default:
       query
         .orderBy('projectInstantPower.totalPower', OrderDirection.DESC)
-        .addOrderBy(`project.verified`, OrderDirection.DESC);
+        .addOrderBy(
+          `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
+          OrderDirection.DESC,
+        );
       break;
   }
 
