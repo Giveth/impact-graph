@@ -464,7 +464,7 @@ export class DraftDonationResolver {
   }
 
   @Query(_returns => DraftDonation, { nullable: true })
-  async fetchDaftDonationWithUpdatedStatus(
+  async verifyQRDonationTransaction(
     @Arg('id', _type => Int) id: number,
   ): Promise<DraftDonation | null> {
     try {
