@@ -291,13 +291,19 @@ export class UserResolver {
         emailConfirmationSentAt: new Date(),
       });
 
+      const updatedUser = await findUserById(userId);
+
+      if (!updatedUser) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+      }
+
       await getNotificationAdapter().sendUserEmailConfirmation({
         email,
-        user: userToVerify,
+        user: updatedUser,
         code,
       });
 
-      return userToVerify;
+      return updatedUser;
     } catch (e) {
       logger.error('userVerificationSendEmailConfirmation() error', e);
       throw e;
@@ -356,7 +362,13 @@ export class UserResolver {
         emailConfirmationSentAt: null,
       });
 
-      return userFromDB;
+      const updatedUser = await findUserById(userId);
+
+      if (!updatedUser) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+      }
+
+      return updatedUser;
     } catch (e) {
       logger.error('userVerificationConfirmEmail() error', e);
       throw e;
