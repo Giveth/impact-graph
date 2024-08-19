@@ -31,11 +31,13 @@ import { ProjectFraud } from './projectFraud';
 import { ProjectActualMatchingView } from './ProjectActualMatchingView';
 import { ProjectSocialMedia } from './projectSocialMedia';
 import { UserQfRoundModelScore } from './userQfRoundModelScore';
+import { UserEmailVerification } from './userEmailVerification';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
     Organization,
     User,
+    UserEmailVerification,
     ReferredEvent,
     Project,
 
