@@ -14,13 +14,14 @@ import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapte
 import { findUserById } from '../../repositories/userRepository';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
 import { QfRound } from '../../entities/qfRound';
+import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
 
 const STELLAR_HORIZON_API =
   (config.get('STELLAR_HORIZON_API_URL') as string) ||
   'https://horizon.stellar.org';
 const cronJobTime =
   (config.get('CHECK_QR_TRANSACTIONS_CRONJOB_EXPRESSION') as string) ||
-  '0 */3 * * * *';
+  '0 */1 * * * *';
 
 async function getPendingDraftDonations() {
   return await DraftDonation.createQueryBuilder('draftDonation')
@@ -41,10 +42,30 @@ const getToken = async (
 };
 
 // Check for transactions
-async function checkTransactions(donation: DraftDonation): Promise<void> {
-  const { toWalletAddress, amount, toWalletMemo } = donation;
+export async function checkTransactions(
+  donation: DraftDonation,
+): Promise<void> {
+  const { toWalletAddress, amount, toWalletMemo, expiresAt, id } = donation;
 
   try {
+    if (!toWalletAddress || !amount) {
+      logger.debug(`Missing required fields for donation ID ${donation.id}`);
+      return;
+    }
+
+    // Check if donation has expired
+    const now = new Date().getTime();
+    const expiresAtDate = new Date(expiresAt!).getTime() + 1 * 60 * 1000;
+
+    if (now > expiresAtDate) {
+      logger.debug(`Donation ID ${id} has expired. Updating status to expired`);
+      await updateDraftDonationStatus({
+        donationId: id,
+        status: 'failed',
+      });
+      return;
+    }
+
     const response = await axios.get(
       `${STELLAR_HORIZON_API}/accounts/${toWalletAddress}/payments?limit=200&order=desc&join=transactions&include_failed=true`,
     );
@@ -54,13 +75,21 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
     if (transactions.length === 0) return;
 
     for (const transaction of transactions) {
-      if (
-        transaction.asset_type === 'native' &&
-        transaction.type === 'payment' &&
-        Number(transaction.amount) === amount &&
-        transaction.to === toWalletAddress
-      ) {
-        if (toWalletMemo && transaction.transaction.memo !== toWalletMemo) {
+      const isMatchingTransaction =
+        (transaction.asset_type === 'native' &&
+          transaction.type === 'payment' &&
+          transaction.to === toWalletAddress &&
+          Number(transaction.amount) === amount) ||
+        (transaction.type === 'create_account' &&
+          transaction.account === toWalletAddress &&
+          Number(transaction.starting_balance) === amount);
+
+      if (isMatchingTransaction) {
+        if (
+          toWalletMemo &&
+          transaction.type === 'payment' &&
+          transaction.transaction.memo !== toWalletMemo
+        ) {
           logger.debug(
             `Transaction memo does not match donation memo for donation ID ${donation.id}`,
           );
@@ -121,7 +150,7 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
           isTokenEligibleForGivback: token.isGivbackEligible,
           segmentNotified: false,
           toWalletAddress: donation.toWalletAddress,
-          donationAnonymous: !donation.userId,
+          donationAnonymous: false,
           transakId: '',
           token: donation.currency,
           valueUsd: donation.amount * tokenPrice,
@@ -135,7 +164,7 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
 
         if (!returnedDonation) {
           logger.debug(
-            `Error creating donation for donation ID ${donation.id}`,
+            `Error creating donation for draft donation ID ${donation.id}`,
           );
           return;
         }
@@ -146,6 +175,10 @@ async function checkTransactions(donation: DraftDonation): Promise<void> {
           status: transaction.transaction_successful ? 'matched' : 'failed',
           fromWalletAddress: transaction.source_account,
           matchedDonationId: returnedDonation.id,
+        });
+
+        await syncDonationStatusWithBlockchainNetwork({
+          donationId: returnedDonation.id,
         });
 
         return;

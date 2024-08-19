@@ -25,6 +25,7 @@ import {
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
 } from '../repositories/recurringDonationRepository';
 import { RecurringDonation } from '../entities/recurringDonation';
+import { checkTransactions } from '../services/cronJobs/checkQRTransactionJob';
 import { findProjectById } from '../repositories/projectRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
@@ -376,6 +377,16 @@ export class DraftDonationResolver {
       .where('draftDonation.id = :id', { id })
       .getOne();
 
+    if (!draftDonation) return null;
+
+    if (
+      draftDonation.expiresAt &&
+      new Date(draftDonation.expiresAt).getTime < new Date().getTime
+    ) {
+      await DraftDonation.update({ id }, { status: 'failed' });
+      draftDonation.status = 'failed';
+    }
+
     return draftDonation;
   }
 
@@ -438,7 +449,7 @@ export class DraftDonationResolver {
         throw new Error(translationErrorMessagesKeys.DRAFT_DONATION_NOT_FOUND);
       }
 
-      await DraftDonation.update({ id }, { expiresAt });
+      await DraftDonation.update({ id }, { expiresAt, status: 'pending' });
 
       return {
         ...draftDonation,
@@ -447,6 +458,34 @@ export class DraftDonationResolver {
     } catch (e) {
       logger.error(
         `Error in renewDraftDonationExpirationDate - id: ${id} - error: ${e.message}`,
+      );
+      return null;
+    }
+  }
+
+  @Query(_returns => DraftDonation, { nullable: true })
+  async verifyQRDonationTransaction(
+    @Arg('id', _type => Int) id: number,
+  ): Promise<DraftDonation | null> {
+    try {
+      const draftDonation = await DraftDonation.createQueryBuilder(
+        'draftDonation',
+      )
+        .where('draftDonation.id = :id', { id })
+        .getOne();
+
+      if (!draftDonation) return null;
+
+      if (draftDonation.isQRDonation) {
+        await checkTransactions(draftDonation);
+      }
+
+      return await DraftDonation.createQueryBuilder('draftDonation')
+        .where('draftDonation.id = :id', { id })
+        .getOne();
+    } catch (e) {
+      logger.error(
+        `Error in fetchDaftDonationWithUpdatedStatus - id: ${id} - error: ${e.message}`,
       );
       return null;
     }
