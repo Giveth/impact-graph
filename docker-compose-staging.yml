@@ -5,7 +5,7 @@ services:
     image: ghcr.io/generalmagicio/qacc-be:staging
     command: npm run start:docker:server
     environment:
-      - ENVIRONMENT=production
+      - ENVIRONMENT=staging
       - LOG_PATH=/usr/src/app/logs/qacc.log
     restart: always
     volumes:
