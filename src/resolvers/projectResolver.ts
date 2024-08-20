@@ -517,7 +517,7 @@ export class ProjectResolver {
           networkIds.push(NETWORK_IDS.MAIN_NET);
 
           // Add this to make sure works on Staging
-          networkIds.push(NETWORK_IDS.GOERLI);
+          networkIds.push(NETWORK_IDS.SEPOLIA);
           return;
         case FilterField.AcceptFundOnCelo:
           networkIds.push(NETWORK_IDS.CELO);

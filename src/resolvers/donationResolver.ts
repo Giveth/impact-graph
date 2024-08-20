@@ -919,7 +919,7 @@ export class DonationResolver {
         case NETWORK_IDS.ROPSTEN:
           priceChainId = NETWORK_IDS.MAIN_NET;
           break;
-        case NETWORK_IDS.GOERLI:
+        case NETWORK_IDS.SEPOLIA:
           priceChainId = NETWORK_IDS.MAIN_NET;
           break;
         case NETWORK_IDS.OPTIMISM_SEPOLIA:

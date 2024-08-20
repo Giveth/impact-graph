@@ -2,8 +2,8 @@ const networksConfig = {
   '1': {
     blockExplorer: 'https://etherscan.io/',
   },
-  '5': {
-    blockExplorer: 'https://goerli.etherscan.io/',
+  '11155111': {
+    blockExplorer: 'https://sepolia.etherscan.io/',
   },
   '10': {
     blockExplorer: 'https://optimistic.etherscan.io/',

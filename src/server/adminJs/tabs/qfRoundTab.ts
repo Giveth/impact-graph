@@ -202,7 +202,7 @@ async function validateQfRound(payload: {
 const availableNetworkValues = [
   { value: NETWORK_IDS.MAIN_NET, label: 'MAINNET' },
   { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
-  { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
+  { value: NETWORK_IDS.SEPOLIA, label: 'SEPOLIA' },
   { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
   { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
   { value: NETWORK_IDS.ETC, label: 'ETC' },

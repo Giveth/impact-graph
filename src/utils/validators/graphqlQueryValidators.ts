@@ -249,7 +249,7 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.SOLANA_TESTNET, // Solana
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
-        NETWORK_IDS.GOERLI,
+        NETWORK_IDS.SEPOLIA,
         NETWORK_IDS.POLYGON,
         NETWORK_IDS.CELO,
         NETWORK_IDS.CELO_ALFAJORES,

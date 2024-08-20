@@ -1990,7 +1990,7 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
   });
-  it('should create ETH donation for CHANGE project on goerli successfully', async () => {
+  it('should create ETH donation for CHANGE project on sepolia successfully', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
@@ -2003,7 +2003,7 @@ function createDonationTestCases() {
         query: createDonationMutation,
         variables: {
           projectId: project.id,
-          transactionNetworkId: NETWORK_IDS.GOERLI,
+          transactionNetworkId: NETWORK_IDS.SEPOLIA,
           transactionId: generateRandomEvmTxHash(),
           amount: 10,
           nonce: 11,
@@ -4519,8 +4519,8 @@ function donationsToWalletsTestCases() {
 //       errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
 //     );
 //   });
-//   // ROPSTEN CHAIN DECOMMISSIONED use goerli
-//   // TODO: Rewrite this test with goerli.
+//   // ROPSTEN CHAIN DECOMMISSIONED use sepolia
+//   // TODO: Rewrite this test with sepolia.
 //   // it('should update donation status to failed when tx is failed on network ', async () => {
 //   //   // https://ropsten.etherscan.io/tx/0x66a7902f3dad318e8d075454e26ee829e9832db0b20922cfd9d916fb792ff724
 //   //   const transactionInfo = {

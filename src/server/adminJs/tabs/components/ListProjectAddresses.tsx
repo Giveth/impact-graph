@@ -6,7 +6,7 @@ import { Label, Section } from '@adminjs/design-system';
 const NETWORKS_IDS_TO_NAME = {
   1: 'MAIN_NET',
   3: 'ROPSTEN',
-  5: 'GOERLI',
+  11155111: 'SEPOLIA',
   100: 'GNOSIS',
   56: 'BSC',
   137: 'POLYGON',
