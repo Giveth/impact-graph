@@ -28,7 +28,7 @@ const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
 const disableNotificationCenter = process.env.DISABLE_NOTIFICATION_CENTER;
-const dappUrl = process.env.FRONTEND_URL as string;
+// const dappUrl = process.env.FRONTEND_URL as string;
 
 const numberOfSendNotificationsConcurrentJob =
   Number(
