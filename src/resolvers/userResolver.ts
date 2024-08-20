@@ -190,6 +190,10 @@ export class UserResolver {
           emailConfirmationSentAt: null,
         });
       }
+      dbUser.emailConfirmed = false;
+      dbUser.emailConfirmedAt = null;
+      dbUser.emailConfirmationSent = false;
+      dbUser.emailConfirmationSentAt = null;
       dbUser.email = email;
     }
     if (url !== undefined) {
