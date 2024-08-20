@@ -153,6 +153,8 @@ export class Abc {
 
 @Entity()
 @ObjectType()
+@Index('trgm_idx_project_title', { synchronize: false })
+@Index('trgm_idx_project_description', { synchronize: false })
 export class Project extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()

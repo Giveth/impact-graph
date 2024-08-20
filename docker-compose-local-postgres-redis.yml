@@ -1,0 +1,55 @@
+version: '3.3'
+
+services:
+  impact-graph-postgres:
+    # Use this postgres image https://github.com/Giveth/postgres-givethio
+    image: ghcr.io/giveth/postgres-givethio:latest
+    restart: always
+    environment:
+      - POSTGRES_DB=givethio
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "5442:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  impact-graph-postgres-test:
+    # CAUTION: Running tests will delete all records of this db, so just use this container for test
+    # For running application use above container port: 5442
+
+    # Use this postgres image https://github.com/Giveth/postgres-givethio
+    image: ghcr.io/giveth/postgres-givethio:latest
+    restart: always
+    environment:
+      - POSTGRES_DB=givethio
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "5443:5432"
+    volumes:
+      - db-data-test:/var/lib/postgresql/data
+
+  redis-giveth:
+    # it's better to not using the latest tag, maybe latest tag have some breaking changes
+    image: redis:7.2.0-alpine3.18
+    container_name: redis-giveth
+    environment:
+      - REDIS_ALLOW_EMPTY_PASSWORD=yes
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  db-data:
+  db-data-test:
+  redis-data:
+
+networks:
+  giveth:
+    external: true
+
