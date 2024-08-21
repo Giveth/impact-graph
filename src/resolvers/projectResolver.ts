@@ -1412,7 +1412,6 @@ export class ProjectResolver {
       verified: false,
       giveBacks: false,
       adminUser: user,
-      icon: projectInput.icon,
     });
 
     await project.save();
