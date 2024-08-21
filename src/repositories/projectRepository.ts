@@ -23,6 +23,8 @@ import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { Reaction } from '../entities/reaction';
 import { SocialProfile } from '../entities/socialProfile';
 
+const verifiedOrIsGivbackEligibleCondition = `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`;
+
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
 
@@ -198,10 +200,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.GIVPower:
       query
-        .orderBy(
-          `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
-          OrderDirection.DESC,
-        )
+        .orderBy(verifiedOrIsGivbackEligibleCondition, OrderDirection.DESC)
         .addOrderBy(
           'projectPower.totalPower',
           OrderDirection.DESC,
@@ -210,10 +209,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.InstantBoosting: // This is our default sorting
       query
-        .orderBy(
-          `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
-          OrderDirection.DESC,
-        )
+        .orderBy(verifiedOrIsGivbackEligibleCondition, OrderDirection.DESC)
         .addOrderBy(
           'projectInstantPower.totalPower',
           OrderDirection.DESC,
@@ -239,7 +235,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
             'NULLS LAST',
           )
           .addOrderBy(
-            `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
+            verifiedOrIsGivbackEligibleCondition,
             OrderDirection.DESC,
           );
       }
@@ -254,7 +250,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
             'NULLS LAST',
           )
           .addOrderBy(
-            `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
+            verifiedOrIsGivbackEligibleCondition,
             OrderDirection.DESC,
           );
       }
@@ -263,10 +259,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     default:
       query
         .orderBy('projectInstantPower.totalPower', OrderDirection.DESC)
-        .addOrderBy(
-          `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`,
-          OrderDirection.DESC,
-        );
+        .addOrderBy(verifiedOrIsGivbackEligibleCondition, OrderDirection.DESC);
       break;
   }
 
