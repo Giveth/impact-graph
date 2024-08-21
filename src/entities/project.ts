@@ -446,6 +446,10 @@ export class Project extends BaseEntity {
   @Field(_type => [Campaign], { nullable: true })
   campaigns: Campaign[];
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  icon?: string;
+
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
     const maxDaysForListing = moment()
@@ -674,6 +678,10 @@ export class ProjectUpdate extends BaseEntity {
 
   @Column('text', { nullable: true })
   managingFundDescription: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  icon?: string;
 
   @Field(_type => FeaturedUpdate, { nullable: true })
   @OneToOne(
