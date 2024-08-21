@@ -80,6 +80,10 @@ export class ProjectInput {
 
   @Field(() => [ProjectTeamMemberInput], { nullable: true })
   teamMembers?: ProjectTeamMemberInput[];
+
+  @Field({ nullable: true })
+  @MaxLength(IMAGE_LINK_MAX_SIZE)
+  icon?: string;
 }
 
 @InputType()

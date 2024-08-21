@@ -1115,6 +1115,10 @@ export class ProjectResolver {
     // project.listed = null;
     // project.reviewStatus = ReviewStatus.NotReviewed;
 
+    // if (newProjectData.icon !== undefined) {
+    //   project.icon = newProjectData.icon;
+    // }
+
     // await project.save();
     // await project.reload();
 
@@ -1299,44 +1303,44 @@ export class ProjectResolver {
 
     const qualityScore = getQualityScore(description, Boolean(image), 0);
 
-    if (!projectInput.categories) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-        ),
-      );
-    }
+    // if (!projectInput.categories) {
+    //   throw new Error(
+    //     i18n.__(
+    //       translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    //     ),
+    //   );
+    // }
 
     // We do not create categories only use existing ones
-    const categories = await Promise.all(
-      projectInput.categories
-        ? projectInput.categories.map(async category => {
-            const [c] = await this.categoryRepository.find({
-              where: {
-                name: category,
-                isActive: true,
-                canUseOnFrontend: true,
-              },
-            });
-            if (!c) {
-              throw new Error(
-                i18n.__(
-                  translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-                ),
-              );
-            }
-            return c;
-          })
-        : [],
-    );
+    // const categories = await Promise.all(
+    //   projectInput.categories
+    //     ? projectInput.categories.map(async category => {
+    //         const [c] = await this.categoryRepository.find({
+    //           where: {
+    //             name: category,
+    //             isActive: true,
+    //             canUseOnFrontend: true,
+    //           },
+    //         });
+    //         if (!c) {
+    //           throw new Error(
+    //             i18n.__(
+    //               translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    //             ),
+    //           );
+    //         }
+    //         return c;
+    //       })
+    //     : [],
+    // );
 
-    if (categories.length > 5) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
-        ),
-      );
-    }
+    // if (categories.length > 5) {
+    //   throw new Error(
+    //     i18n.__(
+    //       translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+    //     ),
+    //   );
+    // }
 
     const abcLauncherAdapter = getAbcLauncherAdapter();
     const abc = await abcLauncherAdapter.getProjectAbcLaunchData(
@@ -1391,7 +1395,7 @@ export class ProjectResolver {
     const project = Project.create({
       ...projectInput,
       abc,
-      categories: categories as Category[],
+      categories: [],
       organization: organization as Organization,
       image,
       creationDate: now,

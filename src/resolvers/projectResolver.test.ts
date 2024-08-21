@@ -53,7 +53,7 @@ function createProjectTestCases() {
       description: 'Test Project Description',
       categories: [],
       image: 'https://example.com/test-project.jpg',
-      teaser: 'https://example.com/test-project-teaser.jpg',
+      teaser: 'Test Project Text Teaser',
       impactLocation: 'Test Impact Location',
       isDraft: false,
       teamMembers,
@@ -81,5 +81,43 @@ function createProjectTestCases() {
     const expectedAbc =
       await getAbcLauncherAdapter().getProjectAbcLaunchData(projectAddress);
     expect(project.abc).to.deep.equal(expectedAbc);
+  });
+
+  it('should create project with icon successfully', async () => {
+    assert.isOk(user);
+    assert.isOk(accessToken);
+
+    const projectAddress = generateRandomEtheriumAddress();
+    const createProjectInput: CreateProjectInput = {
+      title: 'Test Project with Icon',
+      adminUserId: user.id,
+      description: 'A project to test icon field',
+      categories: [],
+      image: 'https://example.com/test-project.jpg',
+      teaser: 'Test Project Teaser',
+      impactLocation: 'Test Location',
+      isDraft: false,
+      address: projectAddress,
+      icon: 'https://example.com/test-icon.jpg',
+    };
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: createProjectInput,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.createProject;
+    assert.isOk(project);
+    expect(project.icon).to.equal(createProjectInput.icon);
   });
 }
