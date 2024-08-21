@@ -43,7 +43,7 @@ services:
       - .env
     environment:
       - MY_URL=${MY_URL:-}
-      - IP_WHITELIST=${IP_WHITELIST:-}
+      #- IP_WHITELIST=${IP_WHITELIST:-}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
