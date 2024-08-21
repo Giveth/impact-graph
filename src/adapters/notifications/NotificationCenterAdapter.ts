@@ -95,21 +95,19 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     );
   }
 
-  // todo: use different eventName specific to Qacc (to show correct icon and description)
-  // todo: add the new eventName to the notification service and add the schema to Ortto
   async sendUserEmailConfirmation(params: {
     email: string;
-    user: User;
     code: string;
   }): Promise<void> {
     const { email, code } = params;
     try {
       await callSendNotification({
-        eventName: NOTIFICATIONS_EVENT_NAMES.SEND_EMAIL_CONFIRMATION,
+        eventName:
+          NOTIFICATIONS_EVENT_NAMES.SEND_EMAIL_VERIFICATION_CODE_FOR_QACC,
         segment: {
           payload: {
             email,
-            verificationLink: code, // todo: we just set this for test and we should change the schema
+            verificationCode: +code,
           },
         },
       });
