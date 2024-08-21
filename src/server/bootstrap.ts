@@ -13,7 +13,7 @@ import { Resource } from '@adminjs/typeorm';
 import { validate } from 'class-validator';
 import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { DataSource } from 'typeorm';
-// import cors from 'cors';
+import cors from 'cors';
 import bodyParser from 'body-parser';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
@@ -168,6 +168,8 @@ export async function bootstrap() {
     const bodyParserJson = bodyParser.json({
       limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
     });
+
+    app.use(cors());
 
     // To download email addresses of projects in AdminJS projects tab
     app.get('/admin/download/:filename', (req, res) => {
