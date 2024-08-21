@@ -39,7 +39,6 @@ const transactions: (Partial<Donation> & {
       '0xf08ac85b9f8adbdc1ec327ef7f801f9953f5eb4bef9113ceb6665273e5b4c7bf',
     currency: 'USDC',
     tokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-    qfRoundId: 11,
     amount: 1_999,
     valueUsd: 1_999,
     transactionNetworkId: NETWORK_IDS.ARBITRUM_MAINNET,
