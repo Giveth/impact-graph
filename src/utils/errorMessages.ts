@@ -180,6 +180,7 @@ export const errorMessages = {
   INCORRECT_CODE: 'The verification code you entered is incorrect.',
   NO_EMAIL_VERIFICATION_DATA: 'No email verification data found',
   CODE_EXPIRED: 'The verification code has expired. Please request a new code.',
+  FULL_NAME_CAN_NOT_BE_EMPTY: 'fullName cant be empty string',
 };
 
 export const translationErrorMessagesKeys = {
@@ -328,4 +329,5 @@ export const translationErrorMessagesKeys = {
   INCORRECT_CODE: 'INCORRECT_CODE',
   NO_EMAIL_VERIFICATION_DATA: 'NO_EMAIL_VERIFICATION_DATA',
   CODE_EXPIRED: 'CODE_EXPIRED',
+  FULL_NAME_CAN_NOT_BE_EMPTY: 'FULL_NAME_CAN_NOT_BE_EMPTY',
 };

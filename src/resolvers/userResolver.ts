@@ -31,7 +31,7 @@ import {
 import { logger } from '../utils/logger';
 import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
 import { addressHasDonated } from '../repositories/donationRepository';
-import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+// import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
 
 @ObjectType()
@@ -131,13 +131,12 @@ export class UserResolver {
 
   @Mutation(_returns => Boolean)
   async updateUser(
-    @Arg('firstName', { nullable: true }) firstName: string,
-    @Arg('lastName', { nullable: true }) lastName: string,
+    @Arg('fullName', { nullable: true }) fullName: string,
     @Arg('location', { nullable: true }) location: string,
     @Arg('email', { nullable: true }) email: string,
     @Arg('url', { nullable: true }) url: string,
     @Arg('avatar', { nullable: true }) avatar: string,
-    @Arg('newUser', { nullable: true }) newUser: boolean,
+    // @Arg('newUser', { nullable: true }) newUser: boolean,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user)
@@ -148,29 +147,18 @@ export class UserResolver {
     if (!dbUser) {
       return false;
     }
-    if (!dbUser.name && !firstName && !lastName) {
+
+    if (!fullName || fullName === '') {
       throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
-        ),
+        i18n.__(translationErrorMessagesKeys.FULL_NAME_CAN_NOT_BE_EMPTY),
       );
     }
-    if (firstName === '') {
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.FIRSTNAME_CANT_BE_EMPTY_STRING),
-      );
-    }
-    if (lastName === '') {
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.LASTNAME_CANT_BE_EMPTY_STRING),
-      );
-    }
-    if (firstName) {
-      dbUser.firstName = firstName;
-    }
-    if (lastName) {
-      dbUser.lastName = lastName;
-    }
+    dbUser.name = fullName.trim();
+    const [first, ...rest] = fullName.split(' ');
+    dbUser.firstName = first;
+    dbUser.lastName = rest.join(' ') || '';
+
+    // Update other fields
     if (location !== undefined) {
       dbUser.location = location;
     }
@@ -203,19 +191,18 @@ export class UserResolver {
       dbUser.avatar = avatar;
     }
 
-    dbUser.name = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim();
     await dbUser.save();
 
-    const orttoPerson = getOrttoPersonAttributes({
-      firstName: dbUser.firstName,
-      lastName: dbUser.lastName,
-      email: dbUser.email,
-      userId: dbUser.id.toString(),
-    });
-    await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
-    if (newUser) {
-      await getNotificationAdapter().createOrttoProfile(dbUser);
-    }
+    // const orttoPerson = getOrttoPersonAttributes({
+    //   firstName: dbUser.firstName,
+    //   lastName: dbUser.lastName,
+    //   email: dbUser.email,
+    //   userId: dbUser.id.toString(),
+    // });
+    // await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
+    // if (newUser) {
+    //   await getNotificationAdapter().createOrttoProfile(dbUser);
+    // }
 
     return true;
   }

@@ -1133,19 +1133,15 @@ export const updateUser = `
     $url: String
     $location: String
     $email: String
-    $lastName: String
-    $firstName: String
+    $fullName: String
     $avatar: String
-    $newUser: Boolean
   ) {
     updateUser(
       url: $url
       location: $location
       email: $email
-      firstName: $firstName
-      lastName: $lastName
+      fullName: $fullName
       avatar: $avatar
-      newUser: $newUser
     )
   }
 `;
