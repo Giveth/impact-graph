@@ -2,9 +2,14 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import { Token } from '../src/entities/token';
 import { NETWORK_IDS } from '../src/provider';
 import seedTokens from './data/seedTokens';
+import config from '../src/config';
 
 export class AddSepoliaToken1724166731604 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
+    const environment = config.get('ENVIRONMENT') as string;
+    // We don't add sepolia tokens in production ENV
+    if (environment === 'production') return;
+
     await queryRunner.manager.save(
       Token,
       seedTokens
@@ -43,6 +48,9 @@ export class AddSepoliaToken1724166731604 implements MigrationInterface {
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
+    const environment = config.get('ENVIRONMENT') as string;
+    // We don't add sepolia tokens in production ENV
+    if (environment === 'production') return;
     await queryRunner.query(`
       DELETE FROM organization_tokens_token 
       WHERE "tokenId" IN (
