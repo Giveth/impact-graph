@@ -271,7 +271,7 @@ function updateProjectWithVerificationFormTestCases() {
       ...createProjectData(),
       adminUserId: user.id,
       verified: false,
-      networkId: NETWORK_IDS.GOERLI,
+      networkId: NETWORK_IDS.SEPOLIA,
     });
     const fetchedProject = await findProjectById(project.id);
     assert.equal(fetchedProject?.addresses?.length, 1);
