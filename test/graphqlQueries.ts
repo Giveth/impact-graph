@@ -98,6 +98,7 @@ export const createProjectQuery = `
         listed
         reviewStatus
         verified
+        icon
         organization {
           id
           name
