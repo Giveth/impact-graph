@@ -2592,7 +2592,13 @@ export const sendCodeToConfirmEmail = `
 `;
 
 export const verifyUserEmailCode = `
-  mutation verifyUserEmailCode($code: Float!) {
+  mutation verifyUserEmailCode($code: String!) {
     verifyUserEmailCode(code: $code)
+  }
+`;
+
+export const checkEmailAvailability = `
+  mutation checkEmailAvailability($email: String!) {
+    checkEmailAvailability(email: $email)
   }
 `;

@@ -22,6 +22,7 @@ import {
   updateUser,
   userByAddress,
   verifyUserEmailCode as verifyUserEmailCodeQuery,
+  checkEmailAvailability as checkEmailAvailabilityQuery,
 } from '../../test/graphqlQueries';
 import {
   errorMessages,
@@ -43,6 +44,7 @@ describe(
   sendUserEmailConfirmationCodeFlow,
 );
 describe('verifyUserEmailCode() test cases', verifyUserEmailCode);
+describe('checkEmailAvailability()', checkEmailAvailability);
 
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
@@ -979,7 +981,38 @@ function sendUserEmailConfirmationCodeFlow(): void {
       );
     }
   });
-  it('should fail send the email user already has verified email', async () => {
+  it('should set the user verification false, user already has been verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.isEmailVerified = true;
+    await user.save();
+    const accessToken = await generateTestAccessToken(user.id);
+
+    await axios.post(
+      graphqlUrl,
+      {
+        query: sendCodeToConfirmEmail,
+        variables: {
+          email: 'newemail@test.com',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
+    assert.isNotNull(updatedUser?.verificationCode);
+    assert.isFalse(updatedUser?.isEmailVerified);
+    assert.equal(updatedUser?.email, 'newemail@test.com');
+  });
+  it('should fail send the email when email is already verified', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     user.isEmailVerified = true;
     await user.save();
@@ -1003,7 +1036,7 @@ function sendUserEmailConfirmationCodeFlow(): void {
     } catch (e) {
       assert.equal(
         e.response.data.errors[0].message,
-        translationErrorMessagesKeys.EMAIL_ALREADY_VERIFIED,
+        translationErrorMessagesKeys.EMAIL_ALREADY_USED,
       );
     }
   });
@@ -1046,11 +1079,13 @@ function verifyUserEmailCode() {
         },
       },
     );
+
     const verifiedUser = await User.findOne({
       where: {
         id: user.id,
       },
     });
+
     assert.isTrue(verifiedUser?.isEmailVerified);
   });
   it('should fail verify the email code not logged in', async () => {
@@ -1119,19 +1154,44 @@ function verifyUserEmailCode() {
       );
     }
   });
-  it('should fail verify the email user already verified', async () => {
+}
+
+function checkEmailAvailability() {
+  it('should return true when email is available', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    user.isEmailVerified = true;
-    await user.save();
     const accessToken = await generateTestAccessToken(user.id);
+    const email = 'test@gmail.com';
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: checkEmailAvailabilityQuery,
+        variables: {
+          email,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.checkEmailAvailability);
+  });
+
+  it('should return false when email is not available', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const email = user.email;
 
     try {
       await axios.post(
         graphqlUrl,
         {
-          query: verifyUserEmailCodeQuery,
+          query: checkEmailAvailabilityQuery,
           variables: {
-            code: 1234,
+            email,
           },
         },
         {
@@ -1143,7 +1203,7 @@ function verifyUserEmailCode() {
     } catch (e) {
       assert.equal(
         e.response.data.errors[0].message,
-        translationErrorMessagesKeys.EMAIL_ALREADY_VERIFIED,
+        translationErrorMessagesKeys.EMAIL_ALREADY_USED,
       );
     }
   });

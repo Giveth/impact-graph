@@ -107,6 +107,7 @@
   "DRAFT_DONATION_DISABLED": "El borrador de donación está deshabilitado",
   "EVM_SUPPORT_ONLY": "Solo se admite EVM",
   "EVM_AND_STELLAR_SUPPORT_ONLY": "Solo se admite EVM y Stellar",
-  "EMAIL_ALREADY_VERIFIED": "El correo electrónico ya ha sido verificado",
-  "INVALID_EMAIL_CODE": "Código de correo electrónico no válido"
+  "USER_ALREADY_VERIFIED": "El usuario ya está verificado",
+  "INVALID_EMAIL_CODE": "Código de correo electrónico no válido",
+  "EMAIL_ALREADY_USED": "El correo electrónico ya ha sido utilizado"
 }
