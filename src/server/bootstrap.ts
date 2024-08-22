@@ -50,7 +50,7 @@ import { refreshProjectEstimatedMatchingView } from '../services/projectViewsSer
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
-// import { corsOptions } from './cors';
+import { corsOptions, setCorsHeaders } from './cors';
 import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
 import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
@@ -179,9 +179,10 @@ export async function bootstrap() {
     });
 
     app.use(setI18nLocaleForRequest); // accept-language header
-    // if (process.env.DISABLE_SERVER_CORS !== 'true') {
-    //   app.use(cors(corsOptions));
-    // }
+    if (process.env.DISABLE_SERVER_CORS !== 'true') {
+      app.use(cors(corsOptions));
+      app.use(setCorsHeaders);
+    }
     app.use(bodyParserJson);
 
     if (process.env.DISABLE_SERVER_RATE_LIMITER !== 'true') {
