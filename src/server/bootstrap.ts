@@ -68,6 +68,7 @@ import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonati
 import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
 import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
+import { startWebSocketServer } from '../services/ws/webSocketServer';
 
 Resource.validate = validate;
 
@@ -290,6 +291,12 @@ export async function bootstrap() {
     app.post('/transak_webhook', webhookHandler);
 
     const httpServer = http.createServer(app);
+
+    // Start WebSocket server
+    const { notifyDonationAdded, notifyDraftDonationFailed } =
+      startWebSocketServer(httpServer);
+    (global as any).notifyDonationAdded = notifyDonationAdded;
+    (global as any).notifyDraftDonationFailed = notifyDraftDonationFailed;
 
     await new Promise<void>((resolve, reject) => {
       httpServer

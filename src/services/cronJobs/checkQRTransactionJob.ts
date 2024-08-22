@@ -181,6 +181,12 @@ export async function checkTransactions(
           donationId: returnedDonation.id,
         });
 
+        // Notify clients of new donation
+        (global as any).notifyDonationAdded({
+          donationId: returnedDonation.id,
+          draftDonationId: donation.id,
+        });
+
         return;
       }
     }

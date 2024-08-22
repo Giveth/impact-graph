@@ -168,7 +168,7 @@ export class DraftDonationResolver {
             : fromAddress.toLowerCase();
 
       const expiresAt = isQRDonation
-        ? new Date(Date.now() + 30 * 60 * 1000)
+        ? new Date(Date.now() + 15 * 60 * 1000)
         : undefined;
 
       const draftDonationId = await DraftDonation.createQueryBuilder(
@@ -418,6 +418,12 @@ export class DraftDonationResolver {
         { status: DRAFT_DONATION_STATUS.FAILED },
       );
 
+      // Notify clients of new donation
+      (global as any).notifyDraftDonationFailed({
+        draftDonationId: id,
+        expiresAt: draftDonation.expiresAt,
+      });
+
       return true;
     } catch (e) {
       logger.error(
@@ -432,7 +438,7 @@ export class DraftDonationResolver {
     @Arg('id', _type => Int) id: number,
   ): Promise<DraftDonation | null> {
     try {
-      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
       const draftDonation = await DraftDonation.createQueryBuilder(
         'draftDonation',
       )
@@ -440,8 +446,8 @@ export class DraftDonationResolver {
         .andWhere('draftDonation.isQRDonation = :isQRDonation', {
           isQRDonation: true,
         })
-        .andWhere('draftDonation.status = :status', {
-          status: DRAFT_DONATION_STATUS.PENDING,
+        .andWhere('draftDonation.status != :status', {
+          status: DRAFT_DONATION_STATUS.MATCHED,
         })
         .getOne();
 
