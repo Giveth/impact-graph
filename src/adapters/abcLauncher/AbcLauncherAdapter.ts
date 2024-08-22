@@ -58,6 +58,9 @@ export class AbcLauncherAdapter implements IAbcLauncher {
         orchestratorAddress: data.orchestratorAddress,
         issuanceTokenAddress: data.issuanceTokenAddress,
         projectAddress: data.projectAddress,
+        creatorAddress: data.userAddress,
+        nftContractAddress: data.nftContractAddress,
+        chainId: data.chainId,
       };
     } catch (e) {
       logger.error('getNotImportedDonationsFromBackup error', e);

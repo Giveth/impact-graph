@@ -138,6 +138,9 @@ export const createProjectQuery = `
           icon
           orchestratorAddress
           projectAddress
+          creatorAddress
+          nftContractAddress
+          chainId
         }
       }
   }

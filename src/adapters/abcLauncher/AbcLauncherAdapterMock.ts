@@ -12,6 +12,9 @@ export class AbcLauncherAdapterMock implements IAbcLauncher {
       orchestratorAddress: 'mock_address',
       issuanceTokenAddress: 'mock_issue_address',
       projectAddress: 'mock_project_address',
+      creatorAddress: 'mock_creator_address',
+      nftContractAddress: 'mock_nft_contract_adddress',
+      chainId: 1,
     };
   }
 

@@ -149,6 +149,12 @@ export class Abc {
   orchestratorAddress: string;
   @Field()
   projectAddress: string;
+  @Field()
+  creatorAddress: string;
+  @Field()
+  nftContractAddress: string;
+  @Field()
+  chainId: number;
 }
 
 @Entity()
