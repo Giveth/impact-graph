@@ -169,6 +169,8 @@ export async function bootstrap() {
       limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
     });
 
+    app.use(cors());
+
     // To download email addresses of projects in AdminJS projects tab
     app.get('/admin/download/:filename', (req, res) => {
       const filename = req.params.filename;
