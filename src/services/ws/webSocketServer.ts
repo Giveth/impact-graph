@@ -5,14 +5,8 @@ export function startWebSocketServer(server) {
 
   // Handle WebSocket connections
   wss.on('connection', ws => {
-    console.log('New client connected');
-
     ws.on('message', message => {
       console.log('Received:', message);
-    });
-
-    ws.on('close', () => {
-      console.log('Client disconnected');
     });
   });
 
