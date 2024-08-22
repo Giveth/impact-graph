@@ -269,7 +269,7 @@ export class UserResolver {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
 
       const emailVerificationCodeExpiredAt = moment()
-        .add(5, 'minutes')
+        .add(30, 'minutes')
         .toDate();
 
       await updateUserEmailConfirmationStatus({
@@ -290,7 +290,6 @@ export class UserResolver {
 
       await getNotificationAdapter().sendUserEmailConfirmation({
         email,
-        user: updatedUser,
         code,
       });
 

@@ -64,7 +64,6 @@ export interface NotificationAdapterInterface {
 
   sendUserEmailConfirmation(params: {
     email: string;
-    user: User;
     code: string;
   }): Promise<void>;
 

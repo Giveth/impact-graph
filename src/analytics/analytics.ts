@@ -47,4 +47,6 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   SUBSCRIBE_ONBOARDING = 'Subscribe onboarding',
   CREATE_ORTTO_PROFILE = 'Create Ortto profile',
   SEND_EMAIL_CONFIRMATION = 'Send email confirmation',
+
+  SEND_EMAIL_VERIFICATION_CODE_FOR_QACC = 'Send email verification code for Qacc',
 }
