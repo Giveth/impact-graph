@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import { logger } from '../../utils/logger';
 
 export function startWebSocketServer(server) {
   const wss = new WebSocket.Server({ server });
@@ -6,7 +7,7 @@ export function startWebSocketServer(server) {
   // Handle WebSocket connections
   wss.on('connection', ws => {
     ws.on('message', message => {
-      console.log('Received:', message);
+      logger.info(`Received message: ${message}`);
     });
   });
 
