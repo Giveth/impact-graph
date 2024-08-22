@@ -2,7 +2,8 @@ import { Abc } from '../../entities/project';
 import { IAbcLauncher } from './AbcLauncherInterface';
 
 export class AbcLauncherAdapterMock implements IAbcLauncher {
-  private _nextData: Abc;
+  private _nextAbcData: Abc;
+  private _nextOwnTicket: boolean;
 
   getDefaultData(): Abc {
     return {
@@ -18,20 +19,30 @@ export class AbcLauncherAdapterMock implements IAbcLauncher {
     };
   }
 
-  setNextData(data: Abc) {
-    this._nextData = data;
+  setAbcNextData(data: Abc) {
+    this._nextAbcData = data;
   }
 
   constructor() {
-    this._nextData = this.getDefaultData();
+    this._nextAbcData = this.getDefaultData();
+    this._nextOwnTicket = true;
   }
 
   async getProjectAbcLaunchData(projectAddress: string) {
-    const data = this._nextData;
-    this._nextData = this.getDefaultData();
+    const data = this._nextAbcData;
+    this._nextAbcData = this.getDefaultData();
     return {
       ...data,
       projectAddress,
     };
+  }
+
+  async ownsNFT(
+    _nftContractAddress: string,
+    _userAddress: string,
+  ): Promise<boolean> {
+    const result = this._nextOwnTicket;
+    this._nextOwnTicket = true;
+    return result;
   }
 }

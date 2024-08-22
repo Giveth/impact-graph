@@ -3,10 +3,12 @@
 // also must support pagination
 
 import axios from 'axios';
+import { ethers } from 'ethers';
 import { logger } from '../../utils/logger';
 import config from '../../config';
 import { IAbcLauncher } from './AbcLauncherInterface';
 import { Abc } from '../../entities/project';
+import { getProvider, QACC_NETWORK_ID } from '../../provider';
 
 const ABC_LAUNCH_API_URL = config.get('ABC_LAUNCH_API_URL') as string;
 const ABC_LAUNCH_API_SECRET = config.get('ABC_LAUNCH_API_SECRET') as string;
@@ -66,5 +68,26 @@ export class AbcLauncherAdapter implements IAbcLauncher {
       logger.error('getNotImportedDonationsFromBackup error', e);
       throw e;
     }
+  }
+
+  async ownsNFT(
+    nftContractAddress: string,
+    userAddress: string,
+  ): Promise<boolean> {
+    const provider = getProvider(QACC_NETWORK_ID);
+    // Only balanceOf method is enough`
+    const abi = [
+      {
+        inputs: [{ internalType: 'address', name: 'owner', type: 'address' }],
+        name: 'balanceOf',
+        outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+      },
+    ];
+
+    const contract = new ethers.Contract(nftContractAddress, abi, provider);
+    const balance = await contract.balanceOf(userAddress);
+    return balance > 0;
   }
 }
