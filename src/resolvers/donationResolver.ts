@@ -70,9 +70,9 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import qacc from '../utils/qacc';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
-
 @ObjectType()
 class PaginateDonations {
   @Field(_type => [Donation], { nullable: true })
@@ -749,6 +749,12 @@ export class DonationResolver {
         }
       }
 
+      await qacc.validateDonation(
+        projectId,
+        donorUser.walletAddress!,
+        tokenAddress,
+      );
+
       const project = await findProjectById(projectId);
 
       if (!project)
@@ -769,23 +775,23 @@ export class DonationResolver {
         },
       });
       const isCustomToken = !tokenInDb;
-      let isTokenEligibleForGivback = false;
-      if (isCustomToken && !project.organization.supportCustomTokens) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
-      } else if (tokenInDb) {
-        const acceptsToken = await isTokenAcceptableForProject({
-          projectId,
-          tokenId: tokenInDb.id,
-        });
-        if (!acceptsToken && !project.organization.supportCustomTokens) {
-          throw new Error(
-            i18n.__(
-              translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
-            ),
-          );
-        }
-        isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
-      }
+      const isTokenEligibleForGivback = false;
+      // if (isCustomToken && !project.organization.supportCustomTokens) {
+      //   throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
+      // } else if (tokenInDb) {
+      //   const acceptsToken = await isTokenAcceptableForProject({
+      //     projectId,
+      //     tokenId: tokenInDb.id,
+      //   });
+      //   if (!acceptsToken && !project.organization.supportCustomTokens) {
+      //     throw new Error(
+      //       i18n.__(
+      //         translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+      //       ),
+      //     );
+      //   }
+      //   isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
+      // }
       const projectRelatedAddress =
         await findProjectRecipientAddressByNetworkId({
           projectId,
