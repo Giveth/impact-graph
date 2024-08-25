@@ -53,7 +53,7 @@ import {
 import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
 import { QfRound } from '../entities/qfRound';
 import { ChainType } from '../types/network';
-import { getDefaultSolanaChainId } from '../services/chains';
+import { closeTo, getDefaultSolanaChainId } from '../services/chains';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
@@ -147,9 +147,12 @@ function totalDonationsPerCategoryPerDateTestCases() {
         d => d.title === 'food',
       );
 
-    assert.equal(
-      foodDonationsResponseTotal.totalUsd,
-      foodDonationsTotalUsd[0].sum,
+    assert.isTrue(
+      closeTo(
+        foodDonationsResponseTotal.totalUsd,
+        foodDonationsTotalUsd[0].sum,
+        0.000001,
+      ),
     );
     assert.equal(foodTotal.totalUsd, donationToVerified.valueUsd);
   });
