@@ -25,8 +25,14 @@ if (!QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP) {
   logger.error('QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP is not set');
 }
 
-const isEarlyAccessRound = (earlyAccessRoundFinishTime: number): boolean => {
+const _isEarlyAccessRound = (earlyAccessRoundFinishTime: number): boolean => {
   return Date.now() / 1000 < earlyAccessRoundFinishTime;
+};
+
+const isEarlyAccessRound = () => {
+  return _isEarlyAccessRound(
+    QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP || Number.MAX_SAFE_INTEGER,
+  );
 };
 
 const validateDonation = async (params: {
@@ -45,11 +51,7 @@ const validateDonation = async (params: {
       i18n.__(translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS),
     );
   }
-  if (
-    isEarlyAccessRound(
-      QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP || Number.MAX_SAFE_INTEGER,
-    )
-  ) {
+  if (isEarlyAccessRound()) {
     const [project] =
       (await Project.query('select abc from project where id=$1', [
         projectId,

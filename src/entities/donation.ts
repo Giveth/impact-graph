@@ -257,6 +257,10 @@ export class Donation extends BaseEntity {
   @Column('decimal', { precision: 5, scale: 2, nullable: true })
   donationPercentage?: number;
 
+  @Field(_type => Boolean, { nullable: false })
+  @Column({ nullable: true, default: false })
+  earlyAccessRound: boolean;
+
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')
       .where(`donation.currency = 'GIV' AND donation."valueUsd" IS NULL `)

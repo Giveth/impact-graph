@@ -875,30 +875,37 @@ export class DonationResolver {
           logger.error('get chainvine wallet address error', e);
         }
       }
-      const activeQfRoundForProject =
-        await relatedActiveQfRoundForProject(projectId);
-      if (
-        activeQfRoundForProject &&
-        activeQfRoundForProject.isEligibleNetwork(networkId)
-      ) {
-        donation.qfRound = activeQfRoundForProject;
-      }
-      if (draftDonationEnabled && draftDonationId) {
-        const draftDonation = await DraftDonation.findOne({
-          where: { id: draftDonationId, status: DRAFT_DONATION_STATUS.MATCHED },
-          select: ['matchedDonationId'],
-        });
-        if (draftDonation?.createdAt) {
-          // Because if we dont set it donation createdAt might be later than tx.time and that will make a problem on verifying donation
-          // and would fail it
-          donation.createdAt = draftDonation?.createdAt;
+      if (!qacc.isEarlyAccessRound()) {
+        const activeQfRoundForProject =
+          await relatedActiveQfRoundForProject(projectId);
+        if (
+          activeQfRoundForProject &&
+          activeQfRoundForProject.isEligibleNetwork(networkId)
+        ) {
+          donation.qfRound = activeQfRoundForProject;
         }
-        if (draftDonation?.matchedDonationId) {
-          return draftDonation.matchedDonationId;
+        if (draftDonationEnabled && draftDonationId) {
+          const draftDonation = await DraftDonation.findOne({
+            where: {
+              id: draftDonationId,
+              status: DRAFT_DONATION_STATUS.MATCHED,
+            },
+            select: ['matchedDonationId'],
+          });
+          if (draftDonation?.createdAt) {
+            // Because if we dont set it donation createdAt might be later than tx.time and that will make a problem on verifying donation
+            // and would fail it
+            donation.createdAt = draftDonation?.createdAt;
+          }
+          if (draftDonation?.matchedDonationId) {
+            return draftDonation.matchedDonationId;
+          }
         }
+        await donation.save();
+      } else {
+        donation.earlyAccessRound = true;
+        await donation.save();
       }
-      await donation.save();
-
       let priceChainId;
 
       switch (transactionNetworkId) {
