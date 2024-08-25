@@ -26,7 +26,7 @@ import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
   getDonationToGivethWithDonationBoxMetrics,
-  isTokenAcceptableForProject,
+  // isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
 } from '../services/donationService';
@@ -749,12 +749,6 @@ export class DonationResolver {
         }
       }
 
-      await qacc.validateDonation(
-        projectId,
-        donorUser.walletAddress!,
-        tokenAddress,
-      );
-
       const project = await findProjectById(projectId);
 
       if (!project)
@@ -768,6 +762,14 @@ export class DonationResolver {
           ),
         );
       }
+
+      await qacc.validateDonation({
+        projectId,
+        networkId,
+        tokenSymbol: token,
+        userAddress: donorUser.walletAddress!,
+      });
+
       const tokenInDb = await Token.findOne({
         where: {
           networkId,
@@ -792,6 +794,7 @@ export class DonationResolver {
       //   }
       //   isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
       // }
+
       const projectRelatedAddress =
         await findProjectRecipientAddressByNetworkId({
           projectId,

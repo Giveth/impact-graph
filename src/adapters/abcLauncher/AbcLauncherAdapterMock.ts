@@ -3,7 +3,7 @@ import { IAbcLauncher } from './AbcLauncherInterface';
 
 export class AbcLauncherAdapterMock implements IAbcLauncher {
   private _nextAbcData: Abc;
-  private _nextOwnTicket: boolean;
+  private _nextOwnNFT: boolean;
 
   getDefaultData(): Abc {
     return {
@@ -23,9 +23,13 @@ export class AbcLauncherAdapterMock implements IAbcLauncher {
     this._nextAbcData = data;
   }
 
+  setNextOwnNFT(ownsNft: boolean) {
+    this._nextOwnNFT = ownsNft;
+  }
+
   constructor() {
     this._nextAbcData = this.getDefaultData();
-    this._nextOwnTicket = true;
+    this._nextOwnNFT = true;
   }
 
   async getProjectAbcLaunchData(projectAddress: string) {
@@ -41,8 +45,8 @@ export class AbcLauncherAdapterMock implements IAbcLauncher {
     _nftContractAddress: string,
     _userAddress: string,
   ): Promise<boolean> {
-    const result = this._nextOwnTicket;
-    this._nextOwnTicket = true;
+    const result = this._nextOwnNFT;
+    this._nextOwnNFT = true;
     return result;
   }
 }
