@@ -15,6 +15,7 @@ import { findUserById } from '../../repositories/userRepository';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
 import { QfRound } from '../../entities/qfRound';
 import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
+import { notifyClients } from '../sse/sse';
 
 const STELLAR_HORIZON_API =
   (config.get('STELLAR_HORIZON_API_URL') as string) ||
@@ -182,9 +183,12 @@ export async function checkTransactions(
         });
 
         // Notify clients of new donation
-        (global as any).notifyDonationAdded({
-          donationId: returnedDonation.id,
-          draftDonationId: donation.id,
+        notifyClients({
+          type: 'new-donation',
+          data: {
+            donationId: returnedDonation.id,
+            draftDonationId: donation.id,
+          },
         });
 
         return;
