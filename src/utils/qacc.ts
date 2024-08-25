@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import { getAbcLauncherAdapter } from '../adapters/adaptersFactory';
 import config from '../config';
 import { Project } from '../entities/project';
@@ -11,7 +10,7 @@ const QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP = config.get(
 ) as number;
 export const QACC_DONATION_TOKEN_ADDRESS: string =
   (config.get('QACC_DONATION_TOKEN_ADDRESS') as string) ||
-  ethers.constants.AddressZero;
+  '0xa2036f0538221a77A3937F1379699f44945018d0'; //https://zkevm.polygonscan.com/token/0xa2036f0538221a77a3937f1379699f44945018d0#readContract
 export const QACC_DONATION_TOKEN_SYMBOL =
   (config.get('QACC_DONATION_TOKEN_SYMBOL') as string) || 'QAT';
 export const QACC_DONATION_TOKEN_NAME =
