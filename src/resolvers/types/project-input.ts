@@ -41,10 +41,6 @@ export class ProjectTeamMemberInput {
 
 @InputType()
 export class ProjectInput {
-  @Field()
-  @MaxLength(PROJECT_TITLE_MAX_LENGTH)
-  title: string;
-
   @Field({ nullable: true })
   adminUserId?: number;
 
@@ -90,10 +86,18 @@ export class ProjectInput {
 export class CreateProjectInput extends ProjectInput {
   @Field({ nullable: true })
   address: string;
+
+  @Field()
+  @MaxLength(PROJECT_TITLE_MAX_LENGTH)
+  title: string;
 }
 
 @InputType()
 export class UpdateProjectInput extends ProjectInput {
   @Field({ nullable: true })
-  address: string;
+  address?: string;
+
+  @Field({ nullable: true })
+  @MaxLength(PROJECT_TITLE_MAX_LENGTH)
+  title?: string;
 }
