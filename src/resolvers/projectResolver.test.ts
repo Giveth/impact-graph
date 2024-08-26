@@ -17,10 +17,12 @@ import {
   fetchProjectBySlugQuery,
   projectByIdQuery,
   projectsByUserIdQuery,
+  updateProjectQuery,
 } from '../../test/graphqlQueries';
 import {
   CreateProjectInput,
   ProjectTeamMemberInput,
+  UpdateProjectInput,
 } from './types/project-input';
 import { getAbcLauncherAdapter } from '../adapters/adaptersFactory';
 import {
@@ -35,6 +37,8 @@ import {
 } from '../constants/validators';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjStatus, ReviewStatus } from '../entities/project';
+import { ProjectSocialMediaType } from '../types/projectSocialMediaType';
+import { ProjectSocialMedia } from '../entities/projectSocialMedia';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -46,6 +50,9 @@ describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
 describe('projectBySlug test cases --->', projectBySlugTestCases);
 describe('projectById test cases --->', projectByIdTestCases);
 describe('projectSearch test cases --->', projectSearchTestCases);
+
+describe('updateProject test cases --->', updateProjectTestCases);
+
 function createProjectTestCases() {
   let user: User;
   let accessToken: string;
@@ -980,5 +987,264 @@ function projectBySlugTestCases() {
     assert.isNotEmpty(project.addresses);
     assert.equal(project.addresses[0].address, walletAddress);
     assert.equal(project.addresses[0].chainType, ChainType.EVM);
+  });
+}
+function updateProjectTestCases() {
+  let user: User;
+  let accessToken: string;
+  let projectId: number;
+
+  before(async () => {
+    // Create a new user and generate an access token
+    user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    accessToken = await generateTestAccessToken(user.id);
+
+    // Create a new project owned by the user
+    const createProjectInput: CreateProjectInput = {
+      title: 'Initial Project Title',
+      adminUserId: user.id,
+      description: 'Initial project description.',
+      image: 'https://example.com/initial-image.jpg',
+      teaser: 'Initial teaser text',
+      icon: 'https://example.com/initial-icon.jpg',
+      address: generateRandomEtheriumAddress(),
+    };
+
+    const createResult = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: createProjectInput,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = createResult.data.data.createProject;
+    projectId = +project.id;
+    assert.isOk(project);
+    expect(project.title).to.equal(createProjectInput.title);
+  });
+
+  it('should update project title and description successfully', async () => {
+    const updateProjectInput: UpdateProjectInput = {
+      title: 'Updated Project Title',
+      description: 'Updated project description.',
+    };
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId,
+          newProjectData: updateProjectInput,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.updateProject;
+    assert.isOk(project);
+    expect(project.title).to.equal(updateProjectInput.title);
+    expect(project.description).to.equal(updateProjectInput.description);
+  });
+
+  it('should update project icon and teaser successfully', async () => {
+    const updateProjectInput: UpdateProjectInput = {
+      icon: 'https://example.com/new-icon.jpg',
+      teaser: 'New teaser text',
+    };
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId,
+          newProjectData: updateProjectInput,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.updateProject;
+    assert.isOk(project);
+    expect(project.icon).to.equal(updateProjectInput.icon);
+    expect(project.teaser).to.equal(updateProjectInput.teaser);
+  });
+
+  it('should update project team members successfully', async () => {
+    const teamMembers: ProjectTeamMemberInput[] = [
+      {
+        name: 'Alice Johnson',
+        image: 'https://example.com/alice.jpg',
+        twitter: 'https://twitter.com/alicejohnson',
+        linkedin: 'https://linkedin.com/alicejohnson',
+        farcaster: 'https://farcaster.com/alicejohnson',
+      },
+      {
+        name: 'Bob Smith',
+        image: 'https://example.com/bob.jpg',
+        twitter: 'https://twitter.com/bobsmith',
+        linkedin: 'https://linkedin.com/bobsmith',
+        farcaster: 'https://farcaster.com/bobsmith',
+      },
+    ];
+
+    const updateProjectInput: UpdateProjectInput = {
+      teamMembers,
+    };
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId,
+          newProjectData: updateProjectInput,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.updateProject;
+    assert.isOk(project);
+    expect(project.teamMembers).to.deep.equal(teamMembers);
+  });
+
+  it('should update project social media links successfully', async () => {
+    const updateProjectInput: UpdateProjectInput = {
+      socialMedia: [
+        {
+          type: ProjectSocialMediaType.X, // Assuming X refers to Twitter in your type definition
+          link: 'https://twitter.com/newproject',
+        },
+        {
+          type: ProjectSocialMediaType.LINKEDIN,
+          link: 'https://linkedin.com/newproject',
+        },
+      ],
+    };
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId,
+          newProjectData: updateProjectInput,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.updateProject;
+    assert.isOk(project);
+
+    // Check that social media links were updated correctly
+    const updatedSocialMedia = await ProjectSocialMedia.find({
+      where: { projectId: project.id },
+    });
+
+    assert.isOk(updatedSocialMedia);
+    expect(updatedSocialMedia).to.have.length(2);
+
+    const twitterLink = updatedSocialMedia.find(
+      media => media.type === ProjectSocialMediaType.X,
+    );
+    const linkedinLink = updatedSocialMedia.find(
+      media => media.type === ProjectSocialMediaType.LINKEDIN,
+    );
+
+    expect(twitterLink).to.not.be.undefined;
+    expect(twitterLink?.link).to.equal('https://twitter.com/newproject');
+
+    expect(linkedinLink).to.not.be.undefined;
+    expect(linkedinLink?.link).to.equal('https://linkedin.com/newproject');
+  });
+
+  it('should not update project if user is not the owner', async () => {
+    // Simulate a different user who is not the owner of the project
+    const differentUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const differentAccessToken = await generateTestAccessToken(
+      differentUser.id,
+    );
+
+    const updateProjectInput: UpdateProjectInput = {
+      title: 'Malicious Update Title',
+      description: 'Malicious update description.',
+    };
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId,
+          newProjectData: updateProjectInput,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${differentAccessToken}`,
+        },
+      },
+    );
+
+    expect(result.data.errors[0].message).to.equal(
+      i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+    );
+  });
+
+  it('should return an error if trying to update a non-existent project', async () => {
+    const nonExistentProjectId = 9999; // Assume project with ID 9999 does not exist
+
+    const updateProjectInput: UpdateProjectInput = {
+      title: 'Title for non-existent project',
+    };
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: nonExistentProjectId,
+          newProjectData: updateProjectInput,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    expect(result.data.errors[0].message).to.equal(
+      i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+    );
   });
 }
