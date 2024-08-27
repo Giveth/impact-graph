@@ -2,10 +2,11 @@ import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import { Keypair } from '@solana/web3.js';
 import config from '../src/config';
-import { NETWORK_IDS } from '../src/provider';
+import { NETWORK_IDS, QACC_NETWORK_ID } from '../src/provider';
 import { User } from '../src/entities/user';
 import { Donation, DONATION_STATUS } from '../src/entities/donation';
 import {
+  Abc,
   Project,
   ProjectUpdate,
   ProjStatus,
@@ -34,6 +35,12 @@ import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 import { ChainType } from '../src/types/network';
 import { ProjectAddress } from '../src/entities/projectAddress';
+import {
+  QACC_DONATION_TOKEN_ADDRESS,
+  QACC_DONATION_TOKEN_DECIMALS,
+  QACC_DONATION_TOKEN_NAME,
+  QACC_DONATION_TOKEN_SYMBOL,
+} from '../src/utils/qacc';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -147,6 +154,7 @@ export interface CreateProjectData {
   image?: string;
   networkId?: number;
   chainType?: ChainType;
+  abc: Abc;
 }
 
 export const saveUserDirectlyToDb = async (
@@ -278,6 +286,21 @@ export const saveProjectDirectlyToDb = async (
     )`);
   return project;
 };
+
+export const createProjectAbcData = (override: Partial<Abc> = {}): Abc => {
+  return {
+    nftContractAddress: generateRandomEtheriumAddress(),
+    tokenName: 'tkn name',
+    tokenTicker: 'tkn',
+    issuanceTokenAddress: generateRandomEtheriumAddress(),
+    icon: '',
+    orchestratorAddress: generateRandomEtheriumAddress(),
+    projectAddress: generateRandomEtheriumAddress(),
+    creatorAddress: generateRandomEtheriumAddress(),
+    chainId: QACC_NETWORK_ID,
+    ...override,
+  };
+};
 export const createProjectData = (name?: string): CreateProjectData => {
   const title = name ? name : String(new Date().getTime());
   const walletAddress = generateRandomEtheriumAddress();
@@ -286,6 +309,7 @@ export const createProjectData = (name?: string): CreateProjectData => {
     title,
     description: 'test description',
     walletAddress,
+    abc: createProjectAbcData({ projectAddress: walletAddress }),
     categories: ['food1'],
     verified: true,
     listed: true,
@@ -564,6 +588,15 @@ export const SEED_DATA = {
     },
   ],
   TOKENS: {
+    [QACC_NETWORK_ID]: [
+      {
+        name: QACC_DONATION_TOKEN_NAME,
+        symbol: QACC_DONATION_TOKEN_SYMBOL,
+        address: QACC_DONATION_TOKEN_ADDRESS,
+        decimals: QACC_DONATION_TOKEN_DECIMALS,
+        isStableCoin: false,
+      },
+    ],
     mainnet: [
       {
         name: 'Ethereum native token',

@@ -34,7 +34,7 @@ export const NETWORK_IDS = {
   SOLANA_DEVNET: 103,
 };
 
-export const QACC_NETWORK_ID = config.get('QACC_NETWORK_ID')
+export const QACC_NETWORK_ID: number = config.get('QACC_NETWORK_ID')
   ? +config.get('QACC_NETWORK_ID')
   : NETWORK_IDS.ZKEVM_CARDONA;
 

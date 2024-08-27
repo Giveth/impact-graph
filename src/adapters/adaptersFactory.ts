@@ -115,7 +115,7 @@ export const getSuperFluidAdapter = (): SuperFluidAdapterInterface => {
 };
 
 const abcLauncherAdapter = new AbcLauncherAdapter();
-const abcLauncherMockAdapter = new AbcLauncherAdapterMock();
+export const abcLauncherMockAdapter = new AbcLauncherAdapterMock();
 
 export const getAbcLauncherAdapter = () => {
   switch (process.env.ABC_LAUNCHER_ADAPTER) {

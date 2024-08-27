@@ -18,7 +18,7 @@ import {
   Organization,
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
-import { NETWORK_IDS } from '../src/provider';
+import { NETWORK_IDS, QACC_NETWORK_ID } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
 import { AppDataSource } from '../src/orm';
 import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
@@ -48,6 +48,16 @@ async function seedDb() {
 }
 
 async function seedTokens() {
+  for (const token of SEED_DATA.TOKENS[QACC_NETWORK_ID]) {
+    const tokenData: Partial<Token> = {
+      ...token,
+      networkId: QACC_NETWORK_ID,
+      isGivbackEligible: false,
+      coingeckoId: 'matic-network',
+    };
+    await Token.create(tokenData as Token).save();
+  }
+
   for (const token of SEED_DATA.TOKENS.xdai) {
     const tokenData = {
       ...token,
