@@ -17,8 +17,11 @@ import { DonationSaveBackupMockAdapter } from './donationSaveBackup/DonationSave
 import { SuperFluidAdapter } from './superFluid/superFluidAdapter';
 import { SuperFluidMockAdapter } from './superFluid/superFluidMockAdapter';
 import { SuperFluidAdapterInterface } from './superFluid/superFluidAdapterInterface';
-import { AbcLauncherAdapter } from './abcLauncher/AbcLauncherAdapter';
-import { AbcLauncherAdapterMock } from './abcLauncher/AbcLauncherAdapterMock';
+import { AbcLauncherAdapter } from './abcLauncher/abcLauncherAdapter';
+import { AbcLauncherMockAdapter } from './abcLauncher/abcLauncherMockAdapter';
+import { PrivadoAdapter } from './privado/privadoAdapter';
+import { IPrivadoAdapter } from './privado/privadoAdapterInterface';
+import { PrivadoMockAdapter } from './privado/privadoMockAdapter';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -115,15 +118,27 @@ export const getSuperFluidAdapter = (): SuperFluidAdapterInterface => {
 };
 
 const abcLauncherAdapter = new AbcLauncherAdapter();
-export const abcLauncherMockAdapter = new AbcLauncherAdapterMock();
+export const abcLauncherMockAdapter = new AbcLauncherMockAdapter();
 
 export const getAbcLauncherAdapter = () => {
   switch (process.env.ABC_LAUNCHER_ADAPTER) {
     case 'abcLauncher':
       return abcLauncherAdapter;
     case 'mock':
-      return abcLauncherMockAdapter;
     default:
       return abcLauncherMockAdapter;
+  }
+};
+
+const privadoAdapter: IPrivadoAdapter = new PrivadoAdapter();
+const privadoMockAdapter = new PrivadoMockAdapter();
+
+export const getPrivadoAdapter = (): IPrivadoAdapter => {
+  switch (process.env.PRIVADO_VERIFIER_ADAPTER) {
+    case 'privado':
+      return privadoAdapter;
+    case 'mock':
+    default:
+      return privadoMockAdapter;
   }
 };
