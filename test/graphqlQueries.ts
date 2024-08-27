@@ -163,6 +163,8 @@ export const updateProjectQuery = `
       adminUserId
       walletAddress
       impactLocation
+      icon
+      teaser
       categories {
         name
       }
@@ -177,6 +179,21 @@ export const updateProjectQuery = `
         name
         email
         walletAddress
+      }
+      teamMembers {
+        name
+        image
+        twitter
+        linkedin
+        farcaster
+      }
+      abc {
+        tokenName
+        tokenTicker
+        issuanceTokenAddress
+        icon
+        orchestratorAddress
+        projectAddress
       }
     }
   }
