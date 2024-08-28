@@ -66,8 +66,8 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
     const inactiveRoundData = {
       roundNumber: 2,
-      startDate: new Date('2024-09-01'),
-      endDate: new Date('2024-09-05'),
+      startDate: new Date(new Date().getDate() + 1),
+      endDate: new Date(new Date().getDate() + 2),
     };
 
     // Save both active and inactive rounds
