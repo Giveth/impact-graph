@@ -1,6 +1,7 @@
 import { Response } from 'express';
 
 let clients: Response[] = [];
+
 type TNewDonation = {
   type: 'new-donation';
   data: {
@@ -28,12 +29,13 @@ export function addClient(res: Response) {
 
   clients.push(res);
 
-  // send welcome message
-  clients.forEach(client => client.write(`Welcome to the server!`));
+  // Send a welcome message to the newly connected client
+  res.write(`data: Welcome to the server!\n\n`);
 
   // Remove the client on disconnect
   res.on('close', () => {
     clients = clients.filter(client => client !== res);
+    res.end();
   });
 }
 
