@@ -28,6 +28,9 @@ export function addClient(res: Response) {
 
   clients.push(res);
 
+  // send welcome message
+  clients.forEach(client => client.write(`Welcome to the server!`));
+
   // Remove the client on disconnect
   res.on('close', () => {
     clients = clients.filter(client => client !== res);
