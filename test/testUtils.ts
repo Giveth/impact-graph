@@ -41,6 +41,7 @@ import {
   QACC_DONATION_TOKEN_NAME,
   QACC_DONATION_TOKEN_SYMBOL,
 } from '../src/utils/qacc';
+import { EarlyAccessRound } from '../src/entities/earlyAccessRound';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -2046,3 +2047,10 @@ export function generateRandomSolanaTxHash() {
 
 // list of test cases titles that doesn't require DB interaction
 export const dbIndependentTests = ['AdminJsPermissions'];
+
+export const saveRoundDirectlyToDb = async (
+  roundData: Partial<EarlyAccessRound>,
+): Promise<EarlyAccessRound> => {
+  const round = EarlyAccessRound.create(roundData) as EarlyAccessRound;
+  return round.save();
+};
