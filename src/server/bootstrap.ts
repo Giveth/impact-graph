@@ -7,7 +7,7 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
-import express, { json, Request } from 'express';
+import express, { json, Request, Response } from 'express';
 import { Container } from 'typedi';
 import { Resource } from '@adminjs/typeorm';
 import { validate } from 'class-validator';
@@ -67,6 +67,8 @@ import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStr
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
 import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
+import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
+import { addClient } from '../services/sse/sse';
 
 Resource.validate = validate;
 
@@ -288,6 +290,11 @@ export async function bootstrap() {
     app.post('/fiat_webhook', onramperWebhookHandler);
     app.post('/transak_webhook', webhookHandler);
 
+    // Route to handle SSE connections
+    app.get('/events', (_req: Request, res: Response) => {
+      addClient(res);
+    });
+
     const httpServer = http.createServer(app);
 
     await new Promise<void>((resolve, reject) => {
@@ -428,6 +435,8 @@ export async function bootstrap() {
       'initializeCronJobs() after runUpdateProjectCampaignsCacheJob() ',
       new Date(),
     );
+
+    runCheckQRTransactionJob();
   }
 
   async function performPostStartTasks() {

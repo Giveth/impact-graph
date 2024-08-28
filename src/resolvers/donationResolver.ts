@@ -781,6 +781,10 @@ export class DonationResolver {
           ),
         );
       }
+      const ownProject = project.adminUserId === donorUser.id;
+      if (ownProject) {
+        throw new Error("Donor can't donate to his/her own project.");
+      }
       const tokenInDb = await Token.findOne({
         where: {
           networkId,
@@ -915,7 +919,7 @@ export class DonationResolver {
         case NETWORK_IDS.ROPSTEN:
           priceChainId = NETWORK_IDS.MAIN_NET;
           break;
-        case NETWORK_IDS.GOERLI:
+        case NETWORK_IDS.SEPOLIA:
           priceChainId = NETWORK_IDS.MAIN_NET;
           break;
         case NETWORK_IDS.OPTIMISM_SEPOLIA:
@@ -1063,6 +1067,17 @@ export class DonationResolver {
     } catch (e) {
       logger.error('donationMetrics query error', e);
       throw e;
+    }
+  }
+
+  @Query(_returns => Donation, { nullable: true })
+  async getDonationById(
+    @Arg('id', _type => Int) id: number,
+  ): Promise<Donation | null> {
+    try {
+      return findDonationById(id);
+    } catch (e) {
+      return null;
     }
   }
 }

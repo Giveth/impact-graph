@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.24.4",
+  "version": "1.25.0",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -16,6 +16,7 @@
     "@sentry/node": "6.16.1",
     "@sentry/tracing": "^6.2.0",
     "@solana/web3.js": "^1.87.7",
+    "@stellar/stellar-sdk": "^12.2.0",
     "@uniswap/sdk": "^3.0.3",
     "abi-decoder": "^2.4.0",
     "adminjs": "6.8.3",

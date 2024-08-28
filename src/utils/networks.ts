@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { PublicKey } from '@solana/web3.js';
+import { StrKey } from '@stellar/stellar-sdk';
 import { ChainType } from '../types/network';
 import networksConfig from './networksConfig';
 
@@ -18,6 +19,9 @@ export const isEvmAddress = (address: string): boolean => {
   return ethers.utils.isAddress(address);
 };
 
+export const isStellarAddress = (address: string): boolean =>
+  StrKey.isValidEd25519PublicKey(address.trim());
+
 export const detectAddressChainType = (
   address: string,
 ): ChainType | undefined => {
@@ -26,6 +30,8 @@ export const detectAddressChainType = (
       return ChainType.SOLANA;
     case isEvmAddress(address):
       return ChainType.EVM;
+    case isStellarAddress(address):
+      return ChainType.STELLAR;
     default:
       return undefined;
   }

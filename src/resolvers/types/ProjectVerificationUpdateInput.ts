@@ -48,6 +48,8 @@ export class RelatedAddressInputType {
   networkId: number;
   @Field(_type => ChainType, { defaultValue: ChainType.EVM })
   chainType?: ChainType;
+  @Field({ nullable: true })
+  memo?: string;
 }
 
 @InputType()

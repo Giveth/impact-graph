@@ -50,6 +50,7 @@ import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
@@ -91,6 +92,7 @@ export enum FilterField {
   AcceptFundOnZKEVM = 'acceptFundOnZKEVM',
   AcceptFundOnOptimism = 'acceptFundOnOptimism',
   AcceptFundOnSolana = 'acceptFundOnSolana',
+  AcceptFundOnStellar = 'acceptFundOnStellar',
   Endaoment = 'fromEndaoment',
   BoostedWithGivPower = 'boostedWithGivPower',
   ActiveQfRound = 'ActiveQfRound',

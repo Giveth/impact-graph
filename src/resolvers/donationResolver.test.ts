@@ -36,6 +36,7 @@ import {
   fetchNewDonorsCount,
   fetchNewDonorsDonationTotalUsd,
   fetchDonationMetricsQuery,
+  getDonationByIdQuery,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -99,6 +100,7 @@ describe(
 );
 describe('recentDonations() test cases', recentDonationsTestCases);
 describe('donationMetrics() test cases', donationMetricsTestCases);
+describe('getDonationById() test cases', getDonationByIdTestCases);
 
 // // describe('tokens() test cases', tokensTestCases);
 
@@ -901,6 +903,81 @@ function donationsTestCases() {
 }
 
 function createDonationTestCases() {
+  it('should not create a donation if user donates to his/her own project', async () => {
+    const firstUser = await User.findOne({
+      where: { id: SEED_DATA.FIRST_USER.id },
+    });
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      firstUser!,
+    );
+    const accessToken = await generateTestAccessToken(firstUser!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomEvmTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      "Donor can't donate to his/her own project.",
+    );
+  });
+
+  it('should create a donation successfully if user creates a donation but is not the project creator', async () => {
+    const firstUser = await User.findOne({
+      where: { id: SEED_DATA.FIRST_USER.id },
+    });
+    const secondUser = await User.findOne({
+      where: { id: SEED_DATA.SECOND_USER.id },
+    });
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      secondUser!,
+    );
+    const accessToken = await generateTestAccessToken(firstUser!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomEvmTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.isNotNull(donation);
+    assert.equal(donation?.projectId, project.id);
+  });
+
   it('do not save referrer wallet if user refers himself', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const referrerId = generateRandomString();
@@ -1913,7 +1990,7 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
   });
-  it('should create ETH donation for CHANGE project on goerli successfully', async () => {
+  it('should create ETH donation for CHANGE project on sepolia successfully', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
@@ -1926,7 +2003,7 @@ function createDonationTestCases() {
         query: createDonationMutation,
         variables: {
           projectId: project.id,
-          transactionNetworkId: NETWORK_IDS.GOERLI,
+          transactionNetworkId: NETWORK_IDS.SEPOLIA,
           transactionId: generateRandomEvmTxHash(),
           amount: 10,
           nonce: 11,
@@ -2614,7 +2691,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 11155420, 56, 42220, 44787, 61, 63, 42161, 421614, 8453, 84532, 1101, 2442, 101, 102, 103]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 11155420, 56, 42220, 44787, 61, 63, 42161, 421614, 8453, 84532, 1101, 2442, 1500, 101, 102, 103]',
     );
   });
   it('should not throw exception when currency is not valid when currency is USDC.e', async () => {
@@ -4442,8 +4519,8 @@ function donationsToWalletsTestCases() {
 //       errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
 //     );
 //   });
-//   // ROPSTEN CHAIN DECOMMISSIONED use goerli
-//   // TODO: Rewrite this test with goerli.
+//   // ROPSTEN CHAIN DECOMMISSIONED use sepolia
+//   // TODO: Rewrite this test with sepolia.
 //   // it('should update donation status to failed when tx is failed on network ', async () => {
 //   //   // https://ropsten.etherscan.io/tx/0x66a7902f3dad318e8d075454e26ee829e9832db0b20922cfd9d916fb792ff724
 //   //   const transactionInfo = {
@@ -4884,5 +4961,47 @@ async function donationMetricsTestCases() {
     await Donation.remove([donation1, donation2, donation3, donation4]);
     await deleteProjectDirectlyFromDb(project2.id);
     await User.remove([user1, user2]);
+  });
+}
+
+async function getDonationByIdTestCases() {
+  it('should return donation by id', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: getDonationByIdQuery,
+        variables: {
+          id: donation.id,
+        },
+      },
+      {},
+    );
+
+    assert.isOk(result);
+    assert.equal(result.data.data.getDonationById.id, donation.id);
+  });
+
+  it('should return null if donation not found', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: getDonationByIdQuery,
+        variables: {
+          id: 99999999,
+        },
+      },
+      {},
+    );
+
+    assert.isOk(result);
+    assert.isNull(result.data.data.getDonationById);
   });
 }

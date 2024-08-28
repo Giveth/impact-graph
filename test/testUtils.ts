@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import { Keypair } from '@solana/web3.js';
+import { Keypair as StellarKeypair } from '@stellar/stellar-sdk';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
@@ -1525,25 +1526,20 @@ export const SEED_DATA = {
         decimals: 9,
       },
     ],
-    goerli: [
+    sepolia: [
       {
         name: 'Ethereum native token',
         symbol: 'ETH',
         address: '0x0000000000000000000000000000000000000000',
         decimals: 18,
+        networkId: 11155111,
       },
       {
-        address: '0xdc31Ee1784292379Fbb2964b3B9C4124D8F89C60',
-        symbol: 'DAI',
-        name: 'DAI Goerli',
+        address: '0xfff9976782d46cc05630d1f6ebab18b2324d6b14',
+        symbol: 'WETH',
+        name: 'Wrapped Ether',
         decimals: 18,
-        isStableCoin: true,
-      },
-      {
-        address: '0xA2470F25bb8b53Bd3924C7AC0C68d32BF2aBd5be',
-        symbol: 'DRGIV3',
-        name: 'GIV test',
-        decimals: 18,
+        networkId: 11155111,
       },
     ],
     xdai: [
@@ -2049,8 +2045,16 @@ export function generateRandomSolanaAddress(): string {
   return Keypair.generate().publicKey.toString();
 }
 
+export function generateRandomStellarAddress(): string {
+  return StellarKeypair.random().publicKey();
+}
+
 export function generateRandomEvmTxHash(): string {
   return `0x${generateHexNumber(64)}`;
+}
+
+export function generateRandomStellarTxHash(): string {
+  return generateRandomAlphanumeric(64);
 }
 
 export function generateHexNumber(len): string {

@@ -5,6 +5,7 @@ import {
   generateConfirmationEmailToken,
   generateRandomEtheriumAddress,
   generateRandomSolanaAddress,
+  generateRandomStellarAddress,
   generateTestAccessToken,
   graphqlUrl,
   saveProjectDirectlyToDb,
@@ -278,7 +279,7 @@ function updateProjectVerificationFormMutationTestCases() {
       },
       {
         address: generateRandomEtheriumAddress(),
-        networkId: NETWORK_IDS.GOERLI,
+        networkId: NETWORK_IDS.SEPOLIA,
         title: 'test title',
       },
       {
@@ -351,6 +352,13 @@ function updateProjectVerificationFormMutationTestCases() {
         networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
         title: 'test title',
         chainType: ChainType.EVM,
+      },
+      {
+        address: generateRandomStellarAddress(),
+        networkId: NETWORK_IDS.STELLAR_MAINNET,
+        title: 'test title',
+        chainType: ChainType.STELLAR,
+        memo: '123123',
       },
       // {
       //   address: generateRandomSolanaAddress(),
