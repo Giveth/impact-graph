@@ -20,9 +20,9 @@ type TDraftDonationFailed = {
 
 // Add a new client to the SSE stream
 export function addClient(res: Response) {
-  // res.setHeader('Content-Type', 'text/event-stream');
-  // res.setHeader('Cache-Control', 'no-cache');
-  // res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
 
   res.flushHeaders();
@@ -30,7 +30,11 @@ export function addClient(res: Response) {
   clients.push(res);
 
   // Send a welcome message to the newly connected client
-  res.write(`data: Welcome to the server!\n\n`);
+  const data = {
+    type: 'initial',
+    data: 'Welcome to the server',
+  };
+  res.write(`data: ${JSON.stringify(data)}\n\n`);
 
   // Remove the client on disconnect
   res.on('close', () => {
