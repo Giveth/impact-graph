@@ -1,7 +1,7 @@
 services:
   qacc-be:
     container_name: qacc-be
-    image: ghcr.io/generalmagicio/qacc-be:latest
+    image: ghcr.io/generalmagicio/qacc-be:main
     command: npm run start:docker:server
     environment:
       - ENVIRONMENT=production
