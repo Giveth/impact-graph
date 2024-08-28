@@ -30,6 +30,8 @@ import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepos
 import { addressHasDonated } from '../repositories/donationRepository';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
+import { generateEmailVerificationCode } from '../utils/utils';
+import { getLoggedInUser } from '../services/authorizationServices';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -69,11 +71,13 @@ export class UserResolver {
       address,
       includeSensitiveFields,
     );
+
     if (!foundUser) {
       throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
     }
     return {
       isSignedIn: Boolean(user),
+      isEmailSent: !!foundUser.verificationCode && !foundUser.isEmailVerified,
       ...foundUser,
     };
   }
@@ -227,6 +231,79 @@ export class UserResolver {
 
     // I don't know wether we use this mutation or not, maybe it's useless
     await createNewAccountVerification(associatedVerifications);
+
+    return true;
+  }
+
+  @Mutation(_returns => Boolean)
+  async sendUserEmailConfirmationCodeFlow(
+    @Arg('email') email: string,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<boolean> {
+    const user = await getLoggedInUser(ctx);
+    const isEmailAlreadyUsed = await User.findOne({
+      where: { email: email },
+    });
+
+    if (!user)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+
+    if (!!isEmailAlreadyUsed && isEmailAlreadyUsed.isEmailVerified)
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_ALREADY_USED));
+
+    const code = generateEmailVerificationCode().toString();
+
+    user.verificationCode = code;
+
+    await getNotificationAdapter().sendEmailConfirmationCodeFlow({
+      email: email,
+      user: user,
+    });
+
+    user.email = email;
+    user.isEmailVerified = false;
+
+    await user.save();
+
+    return true;
+  }
+
+  @Mutation(_returns => Boolean)
+  async verifyUserEmailCode(
+    @Arg('code') code: string,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<boolean> {
+    const user = await getLoggedInUser(ctx);
+
+    if (!user)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+
+    if (user.verificationCode !== code)
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL_CODE));
+
+    user.isEmailVerified = true;
+    user.verificationCode = null;
+
+    await user.save();
+
+    return true;
+  }
+
+  @Mutation(_returns => Boolean)
+  async checkEmailAvailability(
+    @Arg('email') email: string,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<boolean> {
+    const user = await getLoggedInUser(ctx);
+    const isEmailAlreadyUsed = await User.findOne({
+      where: { email: email },
+    });
+
+    if (!user)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+
+    if (!!isEmailAlreadyUsed && isEmailAlreadyUsed.isEmailVerified)
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_ALREADY_USED));
 
     return true;
   }

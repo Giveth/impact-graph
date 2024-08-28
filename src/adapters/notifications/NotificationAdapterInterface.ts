@@ -63,6 +63,11 @@ export interface NotificationAdapterInterface {
     token: string;
   }): Promise<void>;
 
+  sendEmailConfirmationCodeFlow(params: {
+    email: string;
+    user: User;
+  }): Promise<void>;
+
   userSuperTokensCritical(params: {
     user: User;
     eventName: UserStreamBalanceWarning;

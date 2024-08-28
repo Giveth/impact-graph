@@ -2584,3 +2584,21 @@ export const fetchRecurringDonationsByDateQuery = `
     }
   }
 `;
+
+export const sendCodeToConfirmEmail = `
+  mutation sendCodeToConfirmEmail($email: String!) {
+    sendUserEmailConfirmationCodeFlow(email: $email)
+  }
+`;
+
+export const verifyUserEmailCode = `
+  mutation verifyUserEmailCode($code: String!) {
+    verifyUserEmailCode(code: $code)
+  }
+`;
+
+export const checkEmailAvailability = `
+  mutation checkEmailAvailability($email: String!) {
+    checkEmailAvailability(email: $email)
+  }
+`;

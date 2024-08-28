@@ -34,6 +34,7 @@ export const publicSelectionFields = [
   'user.totalReceived',
   'user.passportScore',
   'user.passportStamps',
+  'user.isEmailVerified',
 ];
 
 export enum UserRole {
@@ -155,6 +156,13 @@ export class User extends BaseEntity {
 
   @Column('bool', { default: false })
   segmentIdentified: boolean;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column('bool', { default: false })
+  isEmailVerified: boolean;
+
+  @Column('varchar', { nullable: true, default: null })
+  verificationCode?: string | null;
 
   // Admin Reviewing Forms
   @Field(_type => [ProjectVerificationForm], { nullable: true })
