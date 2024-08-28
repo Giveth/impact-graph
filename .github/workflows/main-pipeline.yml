@@ -1,0 +1,164 @@
+name: main-pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-linters:
+    name: Run linters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.11.0
+
+      # ESLint and Prettier must be in `package.json`
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          eslint: true
+          #prettier: true
+          continue_on_error: true
+
+  test:
+    runs-on: ubuntu-latest
+    needs: run-linters
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      postgres:
+        # Use this postgres image https://github.com/Giveth/postgres-givethio
+        image: ghcr.io/giveth/postgres-givethio:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: givethio
+          PGDATA: /var/lib/postgresql/data/pgdata
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5443:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Wait for PostgreSQL to become ready
+        run: |
+          for i in {1..10}
+          do
+            pg_isready -h localhost -p 5443 -U postgres && echo Success && break
+            echo -n .
+            sleep 1
+          done
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.11.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run eslint
+        run: npm run eslint
+
+      - name: Run build
+        run: npm run build
+
+      - name: Run migrations
+        run: npm run db:migrate:run:test
+
+      - name: Run tests
+        run: npm run test
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+          INFURA_ID: ${{ secrets.INFURA_ID }}
+          POLYGON_SCAN_API_KEY: ${{ secrets.POLYGON_SCAN_API_KEY }}
+          OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
+          CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
+          CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
+          ARBITRUM_SCAN_API_KEY: ${{ secrets.ARBITRUM_SCAN_API_KEY }}
+          ARBITRUM_SEPOLIA_SCAN_API_KEY: ${{ secrets.ARBITRUM_SEPOLIA_SCAN_API_KEY }}
+          BASE_SCAN_API_KEY: ${{ secrets.BASE_SCAN_API_KEY }}
+          BASE_SEPOLIA_SCAN_API_KEY: ${{ secrets.BASE_SEPOLIA_SCAN_API_KEY }}
+          ZKEVM_MAINNET_SCAN_API_KEY: ${{ secrets.ZKEVM_MAINNET_SCAN_API_KEY }}
+          ZKEVM_CARDONA_SCAN_API_KEY: ${{ secrets.ZKEVM_CARDONA_SCAN_API_KEY }}
+          MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
+          ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
+          DROP_DATABASE: ${{ secrets.DROP_DATABASE_DURING_TEST_STAGING }}
+          SOLANA_TEST_NODE_RPC_URL: ${{ secrets.SOLANA_TEST_NODE_RPC_URL }}
+          SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
+          SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
+          MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/generalmagicio/qacc-be:main
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            git checkout main
+            git pull
+            docker compose -f docker-compose-production.yml pull
+            docker compose -f docker-compose-production.yml up -d
+            docker image prune -a --force
