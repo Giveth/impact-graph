@@ -2,12 +2,9 @@ import { getAbcLauncherAdapter } from '../adapters/adaptersFactory';
 import config from '../config';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from './errorMessages';
-import { logger } from './logger';
 import { QACC_NETWORK_ID } from '../provider';
+import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepository';
 
-const QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP = config.get(
-  'QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP',
-) as number;
 export const QACC_DONATION_TOKEN_ADDRESS: string =
   (config.get('QACC_DONATION_TOKEN_ADDRESS') as string) ||
   '0xa2036f0538221a77A3937F1379699f44945018d0'; //https://zkevm.polygonscan.com/token/0xa2036f0538221a77a3937f1379699f44945018d0#readContract
@@ -20,18 +17,9 @@ export const QACC_DONATION_TOKEN_DECIMALS =
 export const QACC_DONATION_TOKEN_COINGECKO_ID =
   (config.get('QACC_DONATION_TOKEN_COINGECKO_ID') as string) || 'matic-network';
 
-if (!QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP) {
-  logger.error('QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP is not set');
-}
-
-const _isEarlyAccessRound = (earlyAccessRoundFinishTime: number): boolean => {
-  return Date.now() / 1000 < earlyAccessRoundFinishTime;
-};
-
-const isEarlyAccessRound = () => {
-  return _isEarlyAccessRound(
-    QACC_EARLY_ACCESS_ROUND_FINISH_TIMESTAMP || Number.MAX_SAFE_INTEGER,
-  );
+const isEarlyAccessRound = async () => {
+  const earlyAccessRound = await findActiveEarlyAccessRound();
+  return !!earlyAccessRound;
 };
 
 const validateDonation = async (params: {
@@ -50,7 +38,7 @@ const validateDonation = async (params: {
       i18n.__(translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS),
     );
   }
-  if (isEarlyAccessRound()) {
+  if (await isEarlyAccessRound()) {
     const [project] =
       (await Project.query('select abc from project where id=$1', [
         projectId,

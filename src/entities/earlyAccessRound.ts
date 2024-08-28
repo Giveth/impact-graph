@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType, Int } from 'type-graphql';
 
 @Entity()
 @ObjectType()
@@ -15,23 +15,23 @@ export class EarlyAccessRound extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
+  @Field(() => Int)
   @Column({ unique: true })
   roundNumber: number;
 
-  @Field()
+  @Field(() => Date)
   @Column()
   startDate: Date;
 
-  @Field()
+  @Field(() => Date)
   @Column()
   endDate: Date;
 
-  @Field()
+  @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field()
+  @Field(() => Date)
   @UpdateDateColumn()
   updatedAt: Date;
 }
