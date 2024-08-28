@@ -55,8 +55,8 @@ export class AddBannerEndaomentProjects1724368995904
             LEFT JOIN "category" "category" ON "category"."id" = "projectCategory"."categoryId"
             WHERE "project"."organizationId" = ${endaomentOrgId}
             GROUP BY "project"."id";`);
-    for (let project of projects) {
-      for (let category of project.categories) {
+    for (const project of projects) {
+      for (const category of project.categories) {
         if (category !== 'Endaoment') {
           const bannerImage = `/images/defaultProjectImages/${imageCategoryMapping[category] || '1'}.png`;
           await queryRunner.query(
