@@ -2038,3 +2038,27 @@ export const userVerificationConfirmEmail = `
     }
   }
 `;
+
+export const fetchAllEarlyAccessRoundsQuery = `
+  query {
+    allEarlyAccessRounds {
+      roundNumber
+      startDate
+      endDate
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const fetchActiveEarlyAccessRoundQuery = `
+  query {
+    activeEarlyAccessRound {
+      roundNumber
+      startDate
+      endDate
+      createdAt
+      updatedAt
+    }
+  }
+`;

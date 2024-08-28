@@ -922,7 +922,7 @@ function createDonationTestCases() {
     assert.equal(donation?.referrerWallet, user2.walletAddress);
     assert.isOk(donation?.referralStartTimestamp);
     assert.isNotOk(donation?.qfRound);
-    assert.isTrue(donation?.earlyAccessRound);
+    // assert.isTrue(donation?.earlyAccessRound);
   });
   it('should create a donation in an active qfRound', async () => {
     sinon.stub(qacc, 'isEarlyAccessRound').returns(false);

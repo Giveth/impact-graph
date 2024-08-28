@@ -32,6 +32,7 @@ import { ProjectActualMatchingView } from './ProjectActualMatchingView';
 import { ProjectSocialMedia } from './projectSocialMedia';
 import { UserQfRoundModelScore } from './userQfRoundModelScore';
 import { UserEmailVerification } from './userEmailVerification';
+import { EarlyAccessRound } from './earlyAccessRound';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -76,5 +77,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     Sybil,
     ProjectFraud,
     UserQfRoundModelScore,
+    EarlyAccessRound,
   ];
 };
