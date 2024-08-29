@@ -3412,6 +3412,38 @@ function donationsByProjectIdTestCases() {
       assert.equal(item.status, DONATION_STATUS.VERIFIED);
     });
   });
+
+  it('should return donations filtered by projectId', async () => {
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const donationToProject1 = await saveDonationDirectlyToDb(
+      createDonationData(),
+      user.id,
+      project1.id,
+    );
+
+    await saveDonationDirectlyToDb(createDonationData(), user.id, project2.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project1.id,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+
+    // Verify only donations related to project1 are returned
+    assert.isTrue(donations.length === 1);
+    assert.equal(donations[0].id, donationToProject1.id);
+  });
 }
 
 function donationsByUserIdTestCases() {

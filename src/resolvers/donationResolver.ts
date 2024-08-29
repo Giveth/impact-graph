@@ -559,6 +559,7 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .addSelect(publicSelectionFields)
+      .where(`donation.projectId = :projectId`, { projectId })
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
