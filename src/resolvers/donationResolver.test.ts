@@ -3419,7 +3419,11 @@ function donationsByProjectIdTestCases() {
 
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    await saveDonationDirectlyToDb(createDonationData(), user.id, project1.id);
+    const donationToProject1 = await saveDonationDirectlyToDb(
+      createDonationData(),
+      user.id,
+      project1.id,
+    );
 
     await saveDonationDirectlyToDb(createDonationData(), user.id, project2.id);
 
@@ -3438,9 +3442,7 @@ function donationsByProjectIdTestCases() {
 
     // Verify only donations related to project1 are returned
     assert.isTrue(donations.length === 1);
-    donations.forEach(donation => {
-      assert.equal(Number(donation.projectId), project1.id);
-    });
+    assert.equal(donations[0].id, donationToProject1.id);
   });
 }
 
