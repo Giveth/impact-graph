@@ -266,6 +266,14 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true })
   earlyAccessRoundId: number;
 
+  @Field({ nullable: true })
+  @Column({ type: 'float', nullable: true })
+  rewardTokenAmount?: number;
+
+  @Field({ nullable: true })
+  @Column({ type: 'float', nullable: true })
+  lockedRewardTokenAmount?: number;
+
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')
       .where(`donation.currency = 'GIV' AND donation."valueUsd" IS NULL `)
