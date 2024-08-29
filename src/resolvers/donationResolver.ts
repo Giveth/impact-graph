@@ -559,15 +559,12 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .addSelect(publicSelectionFields)
+      .where(`donation.projectId = :projectId`, { projectId })
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
         nullDirection[orderBy.direction as string],
       );
-
-    query.andWhere('donation.projectId = :projectId', {
-      projectId,
-    });
 
     if (status) {
       query.andWhere(`donation.status = :status`, {
