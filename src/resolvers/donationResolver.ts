@@ -565,6 +565,10 @@ export class DonationResolver {
         nullDirection[orderBy.direction as string],
       );
 
+    query.andWhere('donation.projectId = :projectId', {
+      projectId,
+    });
+
     if (status) {
       query.andWhere(`donation.status = :status`, {
         status,
