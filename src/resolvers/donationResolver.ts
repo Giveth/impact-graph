@@ -71,6 +71,7 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 import qacc from '../utils/qacc';
+import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 @ObjectType()
@@ -558,6 +559,7 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .addSelect(publicSelectionFields)
+      .where(`donation.projectId = :projectId`, { projectId })
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
@@ -875,7 +877,7 @@ export class DonationResolver {
           logger.error('get chainvine wallet address error', e);
         }
       }
-      if (!qacc.isEarlyAccessRound()) {
+      if (!(await qacc.isEarlyAccessRound())) {
         const activeQfRoundForProject =
           await relatedActiveQfRoundForProject(projectId);
         if (
@@ -903,7 +905,7 @@ export class DonationResolver {
         }
         await donation.save();
       } else {
-        donation.earlyAccessRound = true;
+        donation.earlyAccessRound = await findActiveEarlyAccessRound();
         await donation.save();
       }
       let priceChainId;

@@ -12,6 +12,7 @@ import { Project } from './project';
 import { User } from './user';
 import { QfRound } from './qfRound';
 import { ChainType } from '../types/network';
+import { EarlyAccessRound } from './earlyAccessRound';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -257,9 +258,13 @@ export class Donation extends BaseEntity {
   @Column('decimal', { precision: 5, scale: 2, nullable: true })
   donationPercentage?: number;
 
-  @Field(_type => Boolean, { nullable: false })
-  @Column({ nullable: true, default: false })
-  earlyAccessRound: boolean;
+  @Field(_type => EarlyAccessRound, { nullable: true })
+  @ManyToOne(_type => EarlyAccessRound, { eager: true, nullable: true })
+  earlyAccessRound: EarlyAccessRound | null;
+
+  @RelationId((donation: Donation) => donation.earlyAccessRound)
+  @Column({ nullable: true })
+  earlyAccessRoundId: number;
 
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')
