@@ -11,6 +11,8 @@ services:
       - ./config:/usr/src/app/config
       - ./config:/usr/src/app/build/config
       - ./logs:/usr/src/app/logs
+    networks:
+      - qacc
     ports:
       - "4001:4000"
 
@@ -22,8 +24,34 @@ services:
     restart: always
     volumes:
       - redis-data:/data
+    networks:
+      - qacc
     ports:
       - "6379:6379"
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    networks:
+      - qacc
+    ports:
+      - 80:80
+      - 443:443
+    env_file:
+      - .env
+    environment:
+      - MY_URL=${MY_URL:-}
+      - IP_WHITELIST=${IP_WHITELIST:-}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile
+
 volumes:
   redis-data:
+  caddy_config:
+  caddy_data:
+
+networks:
+  qacc:
