@@ -23,6 +23,7 @@ export const validateProjectWalletAddress = async (
   walletAddress: string,
   projectId?: number,
   chainType?: ChainType,
+  memo?: string,
 ): Promise<boolean> => {
   if (!isWalletAddressValid(walletAddress, chainType)) {
     throw new Error(
@@ -40,6 +41,7 @@ export const validateProjectWalletAddress = async (
   const relatedAddress = await findRelatedAddressByWalletAddress(
     walletAddress,
     chainType,
+    memo,
   );
   if (relatedAddress && relatedAddress?.project?.id !== projectId) {
     throw new Error(
