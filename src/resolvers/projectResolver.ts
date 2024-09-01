@@ -1255,7 +1255,7 @@ export class ProjectResolver {
       );
     }
 
-    await validateProjectWalletAddress(address, projectId, chainType);
+    await validateProjectWalletAddress(address, projectId, chainType, memo);
 
     const adminUser = (await findUserById(project.adminUserId)) as User;
     await addNewProjectAddress({
