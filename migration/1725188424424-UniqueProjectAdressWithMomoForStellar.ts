@@ -9,7 +9,6 @@ export class UniqueProjectAdressWithMomoForStellar1725188424424
         ON project_address (address, memo)
         WHERE "chainType" = 'STELLAR';
     `);
-
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
