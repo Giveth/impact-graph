@@ -204,6 +204,9 @@ export class User extends BaseEntity {
   @Column({ type: 'timestamptz', nullable: true })
   emailConfirmedAt: Date | null;
 
+  @Column('integer', { array: true, default: [] })
+  privadoVerifiedRequestIds: number[];
+
   @Field(_type => Int, { nullable: true })
   async donationsCount() {
     return await Donation.createQueryBuilder('donation')

@@ -1,3 +1,5 @@
 export interface IPrivadoAdapter {
-  isUserVerified(userAddress: string): Promise<boolean>;
+  isUserVerified(userId: number): Promise<boolean>;
+  checkUserVerified(userId: number): Promise<boolean>;
+  privadoRequestId(): number;
 }
