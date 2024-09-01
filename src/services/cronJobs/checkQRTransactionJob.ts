@@ -64,7 +64,6 @@ export async function checkTransactions(
         donationId: id,
         status: 'failed',
       });
-      console.log("FAILED 🦊🦊🦊🦊", id);
       return;
     }
 
