@@ -46,7 +46,7 @@ export const validateProjectWalletAddress = async (
   if (relatedAddress && relatedAddress?.project?.id !== projectId) {
     if (chainType === ChainType.STELLAR && memo) {
       throw new Error(
-        `Address ${walletAddress} is already being used for a project with the same MEMO. Please enter a different address or a different MEMO`
+        `Address ${walletAddress} is already being used for a project with the same MEMO. Please enter a different address or a different MEMO`,
       );
     } else {
       throw new Error(
