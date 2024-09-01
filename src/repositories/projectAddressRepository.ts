@@ -40,7 +40,7 @@ export const isWalletAddressInPurpleList = async (
 export const findRelatedAddressByWalletAddress = async (
   walletAddress: string,
   chainType?: ChainType,
-) => {
+): Promise<ProjectAddress | null> => {
   let query = ProjectAddress.createQueryBuilder('projectAddress');
 
   switch (chainType) {
