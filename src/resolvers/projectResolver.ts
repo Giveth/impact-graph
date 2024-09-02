@@ -1255,7 +1255,7 @@ export class ProjectResolver {
       );
     }
 
-    await validateProjectWalletAddress(address, projectId, chainType);
+    await validateProjectWalletAddress(address, projectId, chainType, memo);
 
     const adminUser = (await findUserById(project.adminUserId)) as User;
     await addNewProjectAddress({
@@ -1791,8 +1791,12 @@ export class ProjectResolver {
    * @returns
    */
   @Query(_returns => Boolean)
-  async walletAddressIsValid(@Arg('address') address: string) {
-    return validateProjectWalletAddress(address);
+  async walletAddressIsValid(
+    @Arg('address') address: string,
+    @Arg('chainType', { nullable: true }) chainType?: ChainType,
+    @Arg('memo', { nullable: true }) memo?: string,
+  ) {
+    return validateProjectWalletAddress(address, undefined, chainType, memo);
   }
 
   /**

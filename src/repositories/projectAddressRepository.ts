@@ -40,6 +40,7 @@ export const isWalletAddressInPurpleList = async (
 export const findRelatedAddressByWalletAddress = async (
   walletAddress: string,
   chainType?: ChainType,
+  memo?: string,
 ) => {
   let query = ProjectAddress.createQueryBuilder('projectAddress');
 
@@ -50,9 +51,24 @@ export const findRelatedAddressByWalletAddress = async (
       });
       break;
     case ChainType.STELLAR:
-      query = query.where(`UPPER(address) = :walletAddress`, {
-        walletAddress: walletAddress.toUpperCase(),
-      });
+      // If a memo is provided, check for both address and memo
+      if (memo) {
+        query = query.where(
+          'UPPER(address) = :walletAddress AND memo = :memo',
+          {
+            walletAddress: walletAddress.toUpperCase(),
+            memo,
+          },
+        );
+      } else {
+        // If no memo is provided, check only the address
+        query = query.where(
+          'UPPER(address) = :walletAddress AND memo IS NULL',
+          {
+            walletAddress: walletAddress.toUpperCase(),
+          },
+        );
+      }
       break;
     case ChainType.EVM:
     default:

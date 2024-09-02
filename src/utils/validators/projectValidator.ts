@@ -23,6 +23,7 @@ export const validateProjectWalletAddress = async (
   walletAddress: string,
   projectId?: number,
   chainType?: ChainType,
+  memo?: string,
 ): Promise<boolean> => {
   if (!isWalletAddressValid(walletAddress, chainType)) {
     throw new Error(
@@ -40,11 +41,18 @@ export const validateProjectWalletAddress = async (
   const relatedAddress = await findRelatedAddressByWalletAddress(
     walletAddress,
     chainType,
+    memo,
   );
   if (relatedAddress && relatedAddress?.project?.id !== projectId) {
-    throw new Error(
-      `Address ${walletAddress} is already being used for a project`,
-    );
+    if (chainType === ChainType.STELLAR && memo) {
+      throw new Error(
+        `Address ${walletAddress} is already being used for a project with the same MEMO. Please enter a different address or a different MEMO`,
+      );
+    } else {
+      throw new Error(
+        `Address ${walletAddress} is already being used for a project`,
+      );
+    }
   }
   return true;
 };
