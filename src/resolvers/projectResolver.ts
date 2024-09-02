@@ -716,8 +716,6 @@ export class ProjectResolver {
       campaignSlug,
       qfRoundId,
       qfRoundSlug,
-      includeAllProjectStatuses,
-      includeAllReviewStatuses,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
@@ -743,8 +741,6 @@ export class ProjectResolver {
       qfRoundId,
       qfRoundSlug,
       activeQfRoundId,
-      includeAllProjectStatuses,
-      includeAllReviewStatuses,
     };
     let campaign;
     if (campaignSlug) {
