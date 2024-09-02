@@ -262,6 +262,12 @@ class GetProjectsArgs {
 
   @Field(_type => String, { nullable: true })
   qfRoundSlug?: string;
+
+  @Field(_type => Boolean, { nullable: true })
+  includeAllProjectStatuses?: boolean;
+
+  @Field(_type => Boolean, { nullable: true })
+  includeAllReviewStatuses?: boolean;
 }
 
 @ObjectType()
@@ -710,6 +716,8 @@ export class ProjectResolver {
       campaignSlug,
       qfRoundId,
       qfRoundSlug,
+      includeAllProjectStatuses,
+      includeAllReviewStatuses,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
@@ -735,6 +743,8 @@ export class ProjectResolver {
       qfRoundId,
       qfRoundSlug,
       activeQfRoundId,
+      includeAllProjectStatuses,
+      includeAllReviewStatuses,
     };
     let campaign;
     if (campaignSlug) {
