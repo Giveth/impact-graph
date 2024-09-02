@@ -752,6 +752,8 @@ export const fetchMultiFilterAllProjectsQuery = `
     $connectedWalletUserId: Int
     $qfRoundId: Int
     $qfRoundSlug: String
+    $includeAllProjectStatuses: Boolean
+    $includeAllReviewStatuses: Boolean
   ) {
     allProjects(
       limit: $limit
@@ -765,9 +767,10 @@ export const fetchMultiFilterAllProjectsQuery = `
       connectedWalletUserId: $connectedWalletUserId
       qfRoundId: $qfRoundId
       qfRoundSlug: $qfRoundSlug
+      includeAllProjectStatuses: $includeAllProjectStatuses
+      includeAllReviewStatuses: $includeAllReviewStatuses
     ) {
-    
-      campaign{
+      campaign {
         slug
         title
       }
@@ -839,10 +842,10 @@ export const fetchMultiFilterAllProjectsQuery = `
         sumDonationValueUsdForActiveQfRound
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
-        estimatedMatching{
-           projectDonationsSqrtRootSum
-           allProjectsSum
-           matchingPool
+        estimatedMatching {
+          projectDonationsSqrtRootSum
+          allProjectsSum
+          matchingPool
         }
       }
       totalCount
