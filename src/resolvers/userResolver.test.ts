@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import { assert } from 'chai';
+import sinon from 'sinon';
 import { User } from '../entities/user';
 import {
   createDonationData,
@@ -15,6 +16,8 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import {
+  checkUserPrivadoVerifiedState,
+  isUserPrivadoVerified,
   refreshUserScores,
   updateUser,
   userByAddress,
@@ -23,7 +26,7 @@ import {
 } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { DONATION_STATUS } from '../entities/donation';
-import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+import { getGitcoinAdapter, privadoAdapter } from '../adapters/adaptersFactory';
 import { updateUserTotalDonated } from '../services/userService';
 import { getUserEmailConfirmationFields } from '../repositories/userRepository';
 import { UserEmailVerification } from '../entities/userEmailVerification';
@@ -38,6 +41,10 @@ describe(
 describe(
   'userVerificationConfirmEmail() test cases',
   userVerificationConfirmEmailTestCases,
+);
+describe(
+  'checkUserPrivadoVerfiedState() test cases',
+  checkUserPrivadoVerfiedStateTestCases,
 );
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
@@ -885,5 +892,157 @@ function userVerificationConfirmEmailTestCases() {
     );
 
     assert.equal(result.data.errors[0].message, errorMessages.CODE_EXPIRED);
+  });
+}
+
+function checkUserPrivadoVerfiedStateTestCases() {
+  afterEach(() => {
+    sinon.restore();
+  });
+  it('should return true if user has request ID in privadoVerifiedRequestIds', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.privadoVerifiedRequestIds = [1, 2, 3];
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    sinon.stub(privadoAdapter, 'privadoRequestId').returns(2);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: isUserPrivadoVerified,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.isUserPrivadoVerified);
+  });
+
+  it('should return false if the user does not has request privadoVerifiedRequestIds', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.privadoVerifiedRequestIds = [1, 2, 3];
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    sinon.stub(privadoAdapter, 'privadoRequestId').returns(4);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: isUserPrivadoVerified,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isFalse(result.data.data.isUserPrivadoVerified);
+  });
+
+  it('should add request ID to privadoVerifiedRequestIds if user is verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.privadoVerifiedRequestIds = [1, 2, 3];
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(true);
+    sinon.stub(privadoAdapter, 'privadoRequestId').returns(4);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: checkUserPrivadoVerifiedState,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.checkUserPrivadoVerifiedState);
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
+    assert.isTrue(updatedUser?.privadoVerifiedRequestIds.includes(4));
+  });
+
+  it('should not add request ID to privadoVerifiedRequestIds if user is not verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.privadoVerifiedRequestIds = [1, 2, 3];
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(false);
+    sinon.stub(privadoAdapter, 'privadoRequestId').returns(4);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: checkUserPrivadoVerifiedState,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isFalse(result.data.data.checkUserPrivadoVerifiedState);
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
+    assert.isFalse(updatedUser?.privadoVerifiedRequestIds.includes(4));
+  });
+
+  it('should not change privadoVerifiedRequestIds if user is already verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const userVeriviedRequestIds = [1, 2, 3];
+    user.privadoVerifiedRequestIds = userVeriviedRequestIds;
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(true);
+    sinon.stub(privadoAdapter, 'privadoRequestId').returns(2);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: checkUserPrivadoVerifiedState,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.checkUserPrivadoVerifiedState);
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
+    assert.isNotNull(updatedUser);
+    assert.deepEqual(
+      updatedUser?.privadoVerifiedRequestIds,
+      userVeriviedRequestIds,
+    );
   });
 }

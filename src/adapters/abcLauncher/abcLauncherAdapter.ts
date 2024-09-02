@@ -6,7 +6,7 @@ import axios from 'axios';
 import { ethers } from 'ethers';
 import { logger } from '../../utils/logger';
 import config from '../../config';
-import { IAbcLauncher } from './AbcLauncherInterface';
+import { IAbcLauncher } from './abcLauncherInterface';
 import { Abc } from '../../entities/project';
 import { getProvider, QACC_NETWORK_ID } from '../../provider';
 

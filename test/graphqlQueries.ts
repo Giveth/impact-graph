@@ -2065,3 +2065,14 @@ export const fetchActiveEarlyAccessRoundQuery = `
     }
   }
 `;
+
+export const isUserPrivadoVerified = `
+  query {
+    isUserPrivadoVerified
+  }
+`;
+export const checkUserPrivadoVerifiedState = `
+  mutation {
+    checkUserPrivadoVerifiedState
+  }
+`;

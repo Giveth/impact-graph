@@ -27,6 +27,7 @@ import { AppDataSource } from '../orm';
 import {
   getGitcoinAdapter,
   getNotificationAdapter,
+  privadoAdapter,
 } from '../adapters/adaptersFactory';
 import { logger } from '../utils/logger';
 import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
@@ -363,5 +364,26 @@ export class UserResolver {
       logger.error('userVerificationConfirmEmail() error', e);
       throw e;
     }
+  }
+
+  @Query(_return => Boolean)
+  async isUserPrivadoVerified(
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<boolean> {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+    return await privadoAdapter.isUserVerified(user.userId);
+  }
+  @Mutation(_returns => Boolean)
+  async checkUserPrivadoVerifiedState(
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<boolean> {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+    return await privadoAdapter.checkUserVerified(user.userId);
   }
 }

@@ -28,6 +28,9 @@ export const NETWORK_IDS = {
   ZKEVM_MAINNET: 1101,
   ZKEVM_CARDONA: 2442,
 
+  LINEA_MAINNET: 59144,
+  LINEA_SEPOLIA: 59141,
+
   // https://docs.particle.network/developers/other-services/node-service/solana-api
   SOLANA_MAINNET: 101,
   SOLANA_TESTNET: 102,
@@ -389,6 +392,18 @@ export function getProvider(networkId: number) {
       url =
         (process.env.BASE_SEPOLIA_NODE_HTTP_URL as string) ||
         `https://base-sepolia.infura.io/v3/${INFURA_ID}`;
+      break;
+
+    case NETWORK_IDS.LINEA_MAINNET:
+      url =
+        (process.env.LINEA_MAINNET_NODE_HTTP_URL as string) ||
+        `https://linea-mainnet.infura.io/v3/${INFURA_ID}`;
+      break;
+
+    case NETWORK_IDS.LINEA_SEPOLIA:
+      url =
+        (process.env.LINEA_SEPOLIA_NODE_HTTP_URL as string) ||
+        `https://linea-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
     // Infura doesn support Polygon ZKEVM
