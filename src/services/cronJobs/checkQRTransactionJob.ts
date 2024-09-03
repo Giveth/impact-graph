@@ -16,6 +16,7 @@ import { relatedActiveQfRoundForProject } from '../qfRoundService';
 import { QfRound } from '../../entities/qfRound';
 import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
 import { notifyClients } from '../sse/sse';
+import { calculateGivbackFactor } from '../givbackService';
 
 const STELLAR_HORIZON_API =
   (config.get('STELLAR_HORIZON_API_URL') as string) ||
@@ -139,6 +140,9 @@ export async function checkTransactions(
           qfRound = activeQfRoundForProject;
         }
 
+        const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+          await calculateGivbackFactor(project.id);
+
         const returnedDonation = await createDonation({
           amount: donation.amount,
           project: project,
@@ -161,6 +165,10 @@ export async function checkTransactions(
           toWalletMemo,
           qfRound,
           chainType: token.chainType,
+          givbackFactor,
+          projectRank,
+          bottomRankInRound,
+          powerRound,
         });
 
         if (!returnedDonation) {
