@@ -104,7 +104,11 @@ export class DraftDonationResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
 
-      const ownProject = project.adminUserId === donorUser?.id;
+      const ownProject =
+        isQRDonation && anonymous
+          ? false
+          : project.adminUserId === donorUser?.id;
+
       if (ownProject) {
         throw new Error(
           "Donor can't create a draft to donate to his/her own project.",
@@ -180,7 +184,7 @@ export class DraftDonationResolver {
           amount: Number(amount),
           networkId: _networkId,
           currency: token,
-          userId: donorUser?.id,
+          userId: isQRDonation && anonymous ? undefined : donorUser?.id,
           tokenAddress,
           projectId,
           toWalletAddress: toAddress,
