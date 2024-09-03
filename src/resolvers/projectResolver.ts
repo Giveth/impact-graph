@@ -1419,6 +1419,9 @@ export class ProjectResolver {
       verified: false,
       giveBacks: false,
       adminUser: user,
+      // make project listed by default
+      listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
 
     await project.save();
