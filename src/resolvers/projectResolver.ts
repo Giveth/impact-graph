@@ -1118,8 +1118,8 @@ export class ProjectResolver {
     }
     project.qualityScore = qualityScore;
     project.updatedAt = new Date();
-    project.listed = null;
-    project.reviewStatus = ReviewStatus.NotReviewed;
+    project.listed = true;
+    project.reviewStatus = ReviewStatus.Listed;
 
     // if (newProjectData.icon !== undefined) {
     //   project.icon = newProjectData.icon;
@@ -1364,6 +1364,7 @@ export class ProjectResolver {
     }
     const slug = await getAppropriateSlug(slugBase);
 
+    // if we don't get isDraft, we set the status to active
     const status = await this.projectStatusRepository.findOne({
       where: {
         id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
@@ -2145,8 +2146,8 @@ export class ProjectResolver {
         user,
       });
 
-      project.listed = null;
-      project.reviewStatus = ReviewStatus.NotReviewed;
+      project.listed = true;
+      project.reviewStatus = ReviewStatus.Listed;
 
       await project.save();
 
