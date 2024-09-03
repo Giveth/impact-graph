@@ -423,7 +423,7 @@ export class Project extends BaseEntity {
   @Column({
     type: 'enum',
     enum: ReviewStatus,
-    default: ReviewStatus.NotReviewed,
+    default: ReviewStatus.Listed,
   })
   reviewStatus: ReviewStatus;
 

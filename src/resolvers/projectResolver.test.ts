@@ -459,11 +459,10 @@ function createProjectTestCases() {
       ORGANIZATION_LABELS.GIVETH,
     );
 
-    // When creating project, listed is null by default
-    assert.equal(result.data.data.createProject.listed, null);
+    assert.equal(result.data.data.createProject.listed, true);
     assert.equal(
       result.data.data.createProject.reviewStatus,
-      ReviewStatus.NotReviewed,
+      ReviewStatus.Listed,
     );
 
     assert.equal(
@@ -568,11 +567,10 @@ function createProjectTestCases() {
       ORGANIZATION_LABELS.GIVETH,
     );
 
-    // When creating project, listed is null by default
-    assert.equal(result.data.data.createProject.listed, null);
+    assert.equal(result.data.data.createProject.listed, true);
     assert.equal(
       result.data.data.createProject.reviewStatus,
-      ReviewStatus.NotReviewed,
+      ReviewStatus.Listed,
     );
 
     assert.equal(
