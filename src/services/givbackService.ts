@@ -1,8 +1,8 @@
-import {
-  findProjectPowerViewByProjectId,
-  getBottomRank,
-} from '../repositories/projectPowerViewRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
+import {
+  findProjectGivbackRankViewByProjectId,
+  getBottomGivbackRank,
+} from '../repositories/projectGivbackViewRepository';
 
 export const calculateGivbackFactor = async (
   projectId: number,
@@ -14,21 +14,21 @@ export const calculateGivbackFactor = async (
 }> => {
   const minGivFactor = Number(process.env.GIVBACK_MIN_FACTOR);
   const maxGivFactor = Number(process.env.GIVBACK_MAX_FACTOR);
-  const [projectPowerView, bottomRank, powerRound] = await Promise.all([
-    findProjectPowerViewByProjectId(projectId),
-    getBottomRank(),
+  const [projectGivbackRankView, bottomRank, powerRound] = await Promise.all([
+    findProjectGivbackRankViewByProjectId(projectId),
+    getBottomGivbackRank(),
     getPowerRound(),
   ]);
 
   const eachRoundImpact = (maxGivFactor - minGivFactor) / (bottomRank - 1);
-  const givbackFactor = projectPowerView?.powerRank
+  const givbackFactor = projectGivbackRankView?.powerRank
     ? minGivFactor +
-      eachRoundImpact * (bottomRank - projectPowerView?.powerRank)
+      eachRoundImpact * (bottomRank - projectGivbackRankView?.powerRank)
     : minGivFactor;
 
   return {
     givbackFactor: givbackFactor || 0,
-    projectRank: projectPowerView?.powerRank,
+    projectRank: projectGivbackRankView?.powerRank,
     bottomRankInRound: bottomRank,
     powerRound: powerRound?.round as number,
   };

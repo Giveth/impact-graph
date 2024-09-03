@@ -42,6 +42,7 @@ import { ProjectFuturePowerViewV21717643016553 } from '../migration/171764301655
 import { ProjectUserInstantPowerViewV21717644442966 } from '../migration/1717644442966-ProjectUserInstantPowerView_V2';
 import { ProjectInstantPowerViewV21717648653115 } from '../migration/1717648653115-ProjectInstantPowerView_V2';
 import { UserProjectPowerViewV21717645768886 } from '../migration/1717645768886-UserProjectPowerView_V2';
+import { ProjectGivbackRankViewV31725260193333 } from '../migration/1725260193333-projectGivbackRankView';
 
 async function seedDb() {
   await seedUsers();
@@ -551,6 +552,7 @@ async function runMigrations() {
     await new ProjectActualMatchingViewV161717646612482().up(queryRunner);
     await new EnablePgTrgmExtension1713859866338().up(queryRunner);
     await new AddPgTrgmIndexes1715086559930().up(queryRunner);
+    await new ProjectGivbackRankViewV31725260193333().up(queryRunner);
   } finally {
     await queryRunner.release();
   }
