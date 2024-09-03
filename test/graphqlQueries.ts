@@ -1510,7 +1510,7 @@ export const projectByIdQuery = `
 
 export const getProjectsAcceptTokensQuery = `
   query(
-      $projectId: Float!,
+      $projectId: Float,
   ){
     getProjectAcceptTokens(
      projectId:$projectId){
@@ -1519,7 +1519,7 @@ export const getProjectsAcceptTokensQuery = `
       networkId
       chainType
       decimals
-      mainnetAddress
+      address
       name
     }
   }

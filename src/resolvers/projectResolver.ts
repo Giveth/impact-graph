@@ -1690,29 +1690,31 @@ export class ProjectResolver {
 
   @Query(_returns => [Token])
   async getProjectAcceptTokens(
-    @Arg('projectId') projectId: number,
+    @Arg('projectId', { nullable: true }) _projectId: number,
   ): Promise<Token[]> {
     try {
-      const organization = await Organization.createQueryBuilder('organization')
-        .innerJoin(
-          'organization.projects',
-          'project',
-          'project.id = :projectId',
-          { projectId },
-        )
-        .leftJoinAndSelect('organization.tokens', 'tokens')
-        .leftJoin(
-          'project_address',
-          'pa',
-          'pa.projectId = project.id AND pa.isRecipient = true',
-        )
-        .andWhere('pa.networkId = tokens.networkId')
-        .getOne();
-
-      if (!organization) {
-        return [];
-      }
-      return sortTokensByOrderAndAlphabets(organization.tokens);
+      // const organization = await Organization.createQueryBuilder('organization')
+      //   .innerJoin(
+      //     'organization.projects',
+      //     'project',
+      //     'project.id = :projectId',
+      //     { projectId },
+      //   )
+      //   .leftJoinAndSelect('organization.tokens', 'tokens')
+      //   .leftJoin(
+      //     'project_address',
+      //     'pa',
+      //     'pa.projectId = project.id AND pa.isRecipient = true',
+      //   )
+      //   .andWhere('pa.networkId = tokens.networkId')
+      //   .getOne();
+      //
+      // if (!organization) {
+      //   return [];
+      // }
+      // return sortTokensByOrderAndAlphabets(organization.tokens);
+      const allTokens = await Token.find();
+      return sortTokensByOrderAndAlphabets(allTokens);
     } catch (e) {
       logger.error('getProjectAcceptTokens error', e);
       throw e;
