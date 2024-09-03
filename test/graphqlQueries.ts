@@ -752,8 +752,6 @@ export const fetchMultiFilterAllProjectsQuery = `
     $connectedWalletUserId: Int
     $qfRoundId: Int
     $qfRoundSlug: String
-    $includeAllProjectStatuses: Boolean
-    $includeAllReviewStatuses: Boolean
   ) {
     allProjects(
       limit: $limit
@@ -767,8 +765,6 @@ export const fetchMultiFilterAllProjectsQuery = `
       connectedWalletUserId: $connectedWalletUserId
       qfRoundId: $qfRoundId
       qfRoundSlug: $qfRoundSlug
-      includeAllProjectStatuses: $includeAllProjectStatuses
-      includeAllReviewStatuses: $includeAllReviewStatuses
     ) {
       campaign {
         slug
@@ -2063,5 +2059,16 @@ export const fetchActiveEarlyAccessRoundQuery = `
       createdAt
       updatedAt
     }
+  }
+`;
+
+export const isUserPrivadoVerified = `
+  query {
+    isUserPrivadoVerified
+  }
+`;
+export const checkUserPrivadoVerifiedState = `
+  mutation {
+    checkUserPrivadoVerifiedState
   }
 `;

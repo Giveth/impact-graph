@@ -2,7 +2,6 @@ import { UpdateResult } from 'typeorm';
 import {
   FilterField,
   Project,
-  ProjStatus,
   ReviewStatus,
   RevokeSteps,
   SortingField,
@@ -73,8 +72,6 @@ export type FilterProjectQueryInputParams = {
   qfRoundId?: number;
   activeQfRoundId?: number;
   qfRoundSlug?: string;
-  includeAllProjectStatuses?: boolean;
-  includeAllReviewStatuses?: boolean;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -89,8 +86,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     qfRoundId,
     qfRoundSlug,
     activeQfRoundId,
-    includeAllProjectStatuses,
-    includeAllReviewStatuses,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -109,18 +104,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       { isActive: true },
     )
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
-
-  if (!includeAllProjectStatuses) {
-    query.andWhere(`project.statusId = :activeStatusId`, {
-      activeStatusId: ProjStatus.active,
-    });
-  }
-
-  if (!includeAllReviewStatuses) {
-    query.andWhere(`project.reviewStatus = :reviewStatus`, {
-      reviewStatus: ReviewStatus.Listed,
-    });
-  }
 
   const isFilterByQF =
     !!filters?.find(f => f === FilterField.ActiveQfRound) && activeQfRoundId;

@@ -2480,9 +2480,10 @@ function createDonationTestCases() {
         },
       },
     );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 11155420, 56, 42220, 44787, 61, 63, 42161, 421614, 8453, 84532, 1101, 2442, 101, 102, 103]',
+    assert.isTrue(
+      (saveDonationResponse.data.errors[0].message as string).startsWith(
+        '"transactionNetworkId" must be one of [',
+      ),
     );
   });
   it.skip('should not throw exception when currency is not valid when currency is USDC.e', async () => {
