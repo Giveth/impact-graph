@@ -6,6 +6,7 @@ import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { logger } from '../utils/logger';
 import { QfRound } from '../entities/qfRound';
 import { ChainType } from '../types/network';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`
@@ -175,6 +176,7 @@ export const donationsTotalAmountPerDateRange = async (
   toDate?: string,
   networkId?: number,
   onlyVerified?: boolean,
+  onlyEndaoment?: boolean,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
     .select(`COALESCE(SUM(donation."valueUsd"), 0)`, 'sum')
@@ -198,12 +200,23 @@ export const donationsTotalAmountPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
+  if (onlyEndaoment) {
+    if (!onlyVerified) {
+      query.leftJoin('donation.project', 'project');
+    }
+    query
+      .leftJoin('project.organization', 'organization')
+      .andWhere('organization."label" = :label', {
+        label: ORGANIZATION_LABELS.ENDAOMENT,
+      });
+  }
+
   const donationsUsdAmount = await query.getRawOne();
 
   query.cache(
     `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}-${
       networkId || 'all'
-    }-${onlyVerified || 'all'}`,
+    }-${onlyVerified || 'all'}-${onlyEndaoment || 'all'}`,
     300000,
   );
 
@@ -215,6 +228,7 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
   toDate?: string,
   networkId?: number,
   onlyVerified?: boolean,
+  onlyEndaoment?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -241,6 +255,17 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
       .andWhere('project.verified = true');
   }
 
+  if (onlyEndaoment) {
+    if (!onlyVerified) {
+      query.leftJoin('donation.project', 'project');
+    }
+    query
+      .leftJoin('project.organization', 'organization')
+      .andWhere('organization."label" = :label', {
+        label: ORGANIZATION_LABELS.ENDAOMENT,
+      });
+  }
+
   query.groupBy('year, month');
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
@@ -248,7 +273,7 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
   query.cache(
     `donationsTotalAmountPerDateRangeByMonth-${fromDate || ''}-${
       toDate || ''
-    }-${networkId || 'all'}-${onlyVerified || 'all'}`,
+    }-${networkId || 'all'}-${onlyVerified || 'all'}-${onlyEndaoment || 'all'}`,
     300000,
   );
 
@@ -260,6 +285,7 @@ export const donationsNumberPerDateRange = async (
   toDate?: string,
   networkId?: number,
   onlyVerified?: boolean,
+  onlyEndaoment?: boolean,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
     .select(`COALESCE(COUNT(donation.id), 0)`, 'count')
@@ -283,12 +309,23 @@ export const donationsNumberPerDateRange = async (
       .andWhere('project.verified = true');
   }
 
+  if (onlyEndaoment) {
+    if (!onlyVerified) {
+      query.leftJoin('donation.project', 'project');
+    }
+    query
+      .leftJoin('project.organization', 'organization')
+      .andWhere('organization."label" = :label', {
+        label: ORGANIZATION_LABELS.ENDAOMENT,
+      });
+  }
+
   const donationsUsdAmount = await query.getRawOne();
 
   query.cache(
     `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
       networkId || 'all'
-    }-${onlyVerified || 'all'}`,
+    }-${onlyVerified || 'all'}-${onlyEndaoment || 'all'}`,
     300000,
   );
 
@@ -300,6 +337,7 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
   toDate?: string,
   networkId?: number,
   onlyVerified?: boolean,
+  onlyEndaoment?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -325,6 +363,17 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
       .andWhere('project.verified = true');
   }
 
+  if (onlyEndaoment) {
+    if (!onlyVerified) {
+      query.leftJoin('donation.project', 'project');
+    }
+    query
+      .leftJoin('project.organization', 'organization')
+      .andWhere('organization."label" = :label', {
+        label: ORGANIZATION_LABELS.ENDAOMENT,
+      });
+  }
+
   query.groupBy('year, month');
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
@@ -332,7 +381,7 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
   query.cache(
     `donationsTotalNumberPerDateRangeByMonth-${fromDate || ''}-${
       toDate || ''
-    }-${networkId || 'all'}-${onlyVerified || 'all'}`,
+    }-${networkId || 'all'}-${onlyVerified || 'all'}-${onlyEndaoment || 'all'}`,
     300000,
   );
 
@@ -343,6 +392,7 @@ export const donorsCountPerDate = async (
   fromDate?: string,
   toDate?: string,
   networkId?: number,
+  onlyEndaoment?: boolean,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -362,11 +412,18 @@ export const donorsCountPerDate = async (
   if (networkId) {
     query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
   }
+  if (onlyEndaoment) {
+    query.leftJoin('donation.project', 'project');
+    query.leftJoin('project.organization', 'organization');
+    query.andWhere('organization."label" = :label', {
+      label: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+  }
 
   query.cache(
     `donorsCountPerDate-${fromDate || ''}-${toDate || ''}-${
       networkId || 'all'
-    }`,
+    }-${onlyEndaoment || 'all'}`,
     300000,
   );
 
@@ -411,6 +468,7 @@ export const donorsCountPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
   networkId?: number,
+  onlyEndaoment?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -430,6 +488,14 @@ export const donorsCountPerDateByMonthAndYear = async (
     query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
   }
 
+  if (onlyEndaoment) {
+    query.leftJoin('donation.project', 'project');
+    query.leftJoin('project.organization', 'organization');
+    query
+      .andWhere('organization."label" = :label')
+      .setParameter('label', ORGANIZATION_LABELS.ENDAOMENT);
+  }
+
   query.groupBy('year, month');
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
@@ -437,7 +503,7 @@ export const donorsCountPerDateByMonthAndYear = async (
   query.cache(
     `donorsCountPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}-${
       networkId || 'all'
-    }`,
+    } - ${onlyEndaoment || 'all'}`,
     300000,
   );
 
