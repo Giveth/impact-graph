@@ -102,7 +102,7 @@ async function seedTokens() {
   for (const token of SEED_DATA.TOKENS.sepolia) {
     const tokenData = {
       ...token,
-      networkId: 5,
+      networkId: NETWORK_IDS.SEPOLIA,
       isGivbackEligible: true,
     };
     if (token.symbol === 'GIV') {

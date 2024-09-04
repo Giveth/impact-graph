@@ -1541,14 +1541,12 @@ export const SEED_DATA = {
         symbol: 'ETH',
         address: '0x0000000000000000000000000000000000000000',
         decimals: 18,
-        networkId: 11155111,
       },
       {
         address: '0xfff9976782d46cc05630d1f6ebab18b2324d6b14',
         symbol: 'WETH',
         name: 'Wrapped Ether',
         decimals: 18,
-        networkId: 11155111,
       },
     ],
     xdai: [
