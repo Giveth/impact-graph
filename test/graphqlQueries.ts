@@ -1185,6 +1185,7 @@ export const userByAddress = `
       projectsCount
       passportScore
       passportStamps
+      privadoVerified
     }
   }
 `;
@@ -2062,11 +2063,6 @@ export const fetchActiveEarlyAccessRoundQuery = `
   }
 `;
 
-export const isUserPrivadoVerified = `
-  query {
-    isUserPrivadoVerified
-  }
-`;
 export const checkUserPrivadoVerifiedState = `
   mutation {
     checkUserPrivadoVerifiedState

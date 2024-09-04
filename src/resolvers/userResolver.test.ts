@@ -17,7 +17,6 @@ import {
 } from '../../test/testUtils';
 import {
   checkUserPrivadoVerifiedState,
-  isUserPrivadoVerified,
   refreshUserScores,
   updateUser,
   userByAddress,
@@ -30,6 +29,7 @@ import { getGitcoinAdapter, privadoAdapter } from '../adapters/adaptersFactory';
 import { updateUserTotalDonated } from '../services/userService';
 import { getUserEmailConfirmationFields } from '../repositories/userRepository';
 import { UserEmailVerification } from '../entities/userEmailVerification';
+import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -905,12 +905,15 @@ function checkUserPrivadoVerfiedStateTestCases() {
     await user.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    sinon.stub(privadoAdapter, 'privadoRequestId').returns(2);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(2);
 
     const result = await axios.post(
       graphqlUrl,
       {
-        query: isUserPrivadoVerified,
+        query: userByAddress,
+        variables: {
+          address: user.walletAddress,
+        },
       },
       {
         headers: {
@@ -919,7 +922,8 @@ function checkUserPrivadoVerfiedStateTestCases() {
       },
     );
 
-    assert.isTrue(result.data.data.isUserPrivadoVerified);
+    assert.isOk(result.data.data.userByAddress);
+    assert.isTrue(result.data.data.userByAddress.privadoVerified);
   });
 
   it('should return false if the user does not has request privadoVerifiedRequestIds', async () => {
@@ -928,12 +932,15 @@ function checkUserPrivadoVerfiedStateTestCases() {
     await user.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    sinon.stub(privadoAdapter, 'privadoRequestId').returns(4);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(4);
 
     const result = await axios.post(
       graphqlUrl,
       {
-        query: isUserPrivadoVerified,
+        query: userByAddress,
+        variables: {
+          address: user.walletAddress,
+        },
       },
       {
         headers: {
@@ -942,7 +949,8 @@ function checkUserPrivadoVerfiedStateTestCases() {
       },
     );
 
-    assert.isFalse(result.data.data.isUserPrivadoVerified);
+    assert.isOk(result.data.data.userByAddress);
+    assert.isFalse(result.data.data.userByAddress.privadoVerified);
   });
 
   it('should add request ID to privadoVerifiedRequestIds if user is verified', async () => {
@@ -952,7 +960,7 @@ function checkUserPrivadoVerfiedStateTestCases() {
 
     const accessToken = await generateTestAccessToken(user.id);
     sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(true);
-    sinon.stub(privadoAdapter, 'privadoRequestId').returns(4);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(4);
 
     const result = await axios.post(
       graphqlUrl,
@@ -984,7 +992,7 @@ function checkUserPrivadoVerfiedStateTestCases() {
 
     const accessToken = await generateTestAccessToken(user.id);
     sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(false);
-    sinon.stub(privadoAdapter, 'privadoRequestId').returns(4);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(4);
 
     const result = await axios.post(
       graphqlUrl,
@@ -1017,7 +1025,7 @@ function checkUserPrivadoVerfiedStateTestCases() {
 
     const accessToken = await generateTestAccessToken(user.id);
     sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(true);
-    sinon.stub(privadoAdapter, 'privadoRequestId').returns(2);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(2);
 
     const result = await axios.post(
       graphqlUrl,
