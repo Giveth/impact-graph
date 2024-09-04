@@ -71,6 +71,7 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 import { nonZeroRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
@@ -339,7 +340,9 @@ export class DonationResolver {
       if (onlyEndaoment) {
         query
           .leftJoin('projects.organization', 'organization')
-          .andWhere('organization."label" = \'endaoment\'');
+          .andWhere('organization."label" = :label', {
+            label: ORGANIZATION_LABELS.ENDAOMENT,
+          });
       }
       return await query.getRawMany();
     } catch (e) {
