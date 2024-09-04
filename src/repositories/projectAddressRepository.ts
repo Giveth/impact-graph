@@ -41,7 +41,7 @@ export const findRelatedAddressByWalletAddress = async (
   walletAddress: string,
   chainType?: ChainType,
   memo?: string,
-) => {
+): Promise<ProjectAddress | null> => {
   let query = ProjectAddress.createQueryBuilder('projectAddress');
 
   switch (chainType) {

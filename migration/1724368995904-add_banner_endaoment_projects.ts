@@ -1,4 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import { endaomentProjects } from './data/importedEndaomentProjects';
+import { endaomentProjectCategoryMapping } from './data/endaomentProjectCategoryMapping';
+import { NETWORK_IDS } from '../src/provider';
 
 export class AddBannerEndaomentProjects1724368995904
   implements MigrationInterface
@@ -44,31 +47,56 @@ export class AddBannerEndaomentProjects1724368995904
       'Registred Non-profits': 'non-profit',
       'Gender Equality': 'equality',
     };
-    const endaomentOrgIdResult = await queryRunner.query(`
-            SELECT "id" FROM "organization" WHERE "label" = 'endaoment';
-          `);
-    const endaomentOrgId = endaomentOrgIdResult[0].id;
-    const projects =
-      await queryRunner.query(`SELECT "project"."id", array_agg("category"."value") as "categories","project"."image"
-            FROM "project"
-            LEFT JOIN "project_categories_category" "projectCategory" ON "projectCategory"."projectId" = "project"."id"
-            LEFT JOIN "category" "category" ON "category"."id" = "projectCategory"."categoryId"
-            WHERE "project"."organizationId" = ${endaomentOrgId}
-            GROUP BY "project"."id";`);
-    for (const project of projects) {
-      for (const category of project.categories) {
-        if (category !== 'Endaoment') {
-          const bannerImage = `/images/defaultProjectImages/${imageCategoryMapping[category] || '1'}.png`;
-          await queryRunner.query(
-            `UPDATE "project" SET "image" = '${bannerImage}' WHERE "project"."id" = ${project.id};`,
-          );
-          if (imageCategoryMapping[category]) break;
-        }
+    console.log(`Processing ${endaomentProjects.length} projects`);
+
+    for (const project of endaomentProjects) {
+      const mainnetAddress = project.mainnetAddress;
+      const projectAddresses = await queryRunner.query(
+        `SELECT * FROM project_address WHERE LOWER(address) = $1 AND "networkId" = $2 LIMIT 1`,
+        [mainnetAddress!.toLowerCase(), NETWORK_IDS.MAIN_NET],
+      );
+
+      const projectAddress = await projectAddresses?.[0];
+
+      if (!projectAddress) {
+        // eslint-disable-next-line no-console
+        console.log(`Could not find project address for ${mainnetAddress}`);
+        continue;
       }
+
+      // Insert the project-category relationship in a single query
+      const getCategoryNames = (nteeCode: string): string[] => {
+        const mapping = endaomentProjectCategoryMapping.find(
+          category => category.nteeCode === nteeCode,
+        );
+        return mapping
+          ? [
+              mapping.category1,
+              mapping.category2,
+              mapping.category3 || '',
+              mapping.category4 || '',
+            ].filter(Boolean)
+          : [];
+      };
+      if (!project.nteeCode) {
+        // eslint-disable-next-line no-console
+        console.log(`Could not find nteeCode for ${mainnetAddress}`);
+        continue;
+      }
+      const categoryNames = getCategoryNames(String(project.nteeCode));
+      const bannerImage = `/images/defaultProjectImages/${imageCategoryMapping[categoryNames[1]] || '1'}.png`;
+      await queryRunner.query(`UPDATE project SET image = $1 WHERE id = $2`, [
+        bannerImage,
+        projectAddress.projectId,
+      ]);
+      // eslint-disable-next-line no-console
+      console.log(
+        `Updated project ${projectAddress.projectId} with image ${bannerImage}`,
+      );
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('');
+  public async down(_queryRunner: QueryRunner): Promise<void> {
+    // No down migration
   }
 }
