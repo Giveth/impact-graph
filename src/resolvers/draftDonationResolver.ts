@@ -27,6 +27,7 @@ import {
 import { RecurringDonation } from '../entities/recurringDonation';
 import { checkTransactions } from '../services/cronJobs/checkQRTransactionJob';
 import { findProjectById } from '../repositories/projectRepository';
+import { notifyDonationFailed } from '../services/sse/sse';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 const draftRecurringDonationEnabled =
@@ -103,7 +104,11 @@ export class DraftDonationResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
 
-      const ownProject = project.adminUserId === donorUser?.id;
+      const ownProject =
+        isQRDonation && anonymous
+          ? false
+          : project.adminUserId === donorUser?.id;
+
       if (ownProject) {
         throw new Error(
           "Donor can't create a draft to donate to his/her own project.",
@@ -179,7 +184,7 @@ export class DraftDonationResolver {
           amount: Number(amount),
           networkId: _networkId,
           currency: token,
-          userId: donorUser?.id,
+          userId: isQRDonation && anonymous ? undefined : donorUser?.id,
           tokenAddress,
           projectId,
           toWalletAddress: toAddress,
@@ -419,9 +424,12 @@ export class DraftDonationResolver {
       );
 
       // Notify clients of new donation
-      (global as any).notifyDraftDonationFailed({
-        draftDonationId: id,
-        expiresAt: draftDonation.expiresAt,
+      notifyDonationFailed({
+        type: 'draft-donation-failed',
+        data: {
+          draftDonationId: id,
+          expiresAt: draftDonation.expiresAt,
+        },
       });
 
       return true;
