@@ -366,16 +366,6 @@ export class UserResolver {
     }
   }
 
-  @Query(_return => Boolean)
-  async isUserPrivadoVerified(
-    @Ctx() { req: { user } }: ApolloContext,
-  ): Promise<boolean> {
-    if (!user)
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
-      );
-    return await privadoAdapter.isUserVerified(user.userId);
-  }
   @Mutation(_returns => Boolean)
   async checkUserPrivadoVerifiedState(
     @Ctx() { req: { user } }: ApolloContext,

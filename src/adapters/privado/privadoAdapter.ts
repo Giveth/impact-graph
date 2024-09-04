@@ -1,8 +1,9 @@
 import { ethers } from 'ethers';
 import config from '../../config';
 import { getProvider } from '../../provider';
-import { IPrivadoAdapter } from './privadoAdapterInterface';
 import { findUserById } from '../../repositories/userRepository';
+import { User } from '../../entities/user';
+import { logger } from '../../utils/logger';
 const PRIVADO_VERIFIER_NETWORK_ID = +config.get(
   'PRIVADO_VERIFIER_NETWORK_ID',
 ) as number;
@@ -10,9 +11,14 @@ const PRIVADO_VERIFIER_CONTRACT_ADDRESS = config.get(
   'PRIVADO_VERIFIER_CONTRACT_ADDRESS',
 ) as string;
 const PRIVADO_REQUEST_ID = +config.get('PRIVADO_REQUEST_ID') as number;
-export class PrivadoAdapter implements IPrivadoAdapter {
+export class PrivadoAdapter {
+  private provider;
+
+  constructor() {
+    this.provider = getProvider(PRIVADO_VERIFIER_NETWORK_ID);
+  }
+
   private async checkVerificationOnchain(address: string): Promise<boolean> {
-    const provider = getProvider(PRIVADO_VERIFIER_NETWORK_ID);
     const abi = [
       {
         inputs: [
@@ -29,26 +35,27 @@ export class PrivadoAdapter implements IPrivadoAdapter {
     const contract = new ethers.Contract(
       PRIVADO_VERIFIER_CONTRACT_ADDRESS,
       abi,
-      provider,
+      this.provider,
     );
-    return contract.isProofVerified(address, this.privadoRequestId());
+    return contract.isProofVerified(address, PrivadoAdapter.privadoRequestId());
   }
 
   async checkUserVerified(userId: number): Promise<boolean> {
+    logger.debug('Checking Privado verification for user', { userId });
+
     const user = await findUserById(userId);
-    const requestId = this.privadoRequestId();
     if (!user || !user.walletAddress) {
       throw new Error('No user or wallet address');
     }
 
-    if (user.privadoVerifiedRequestIds.includes(requestId)) {
+    if (PrivadoAdapter.isUserVerified(user)) {
       return true;
     }
 
     const response = await this.checkVerificationOnchain(user.walletAddress);
     if (response) {
       user.privadoVerifiedRequestIds = [
-        requestId,
+        PrivadoAdapter.privadoRequestId(),
         ...user.privadoVerifiedRequestIds,
       ];
       await user.save();
@@ -56,13 +63,14 @@ export class PrivadoAdapter implements IPrivadoAdapter {
     return response;
   }
 
-  async isUserVerified(userId: number): Promise<boolean> {
-    const user = await findUserById(userId);
+  static isUserVerified(user: User): boolean {
     return (
-      user?.privadoVerifiedRequestIds.includes(this.privadoRequestId()) || false
+      user?.privadoVerifiedRequestIds.includes(
+        PrivadoAdapter.privadoRequestId(),
+      ) || false
     );
   }
-  privadoRequestId(): number {
+  static privadoRequestId(): number {
     return PRIVADO_REQUEST_ID;
   }
 }

@@ -20,7 +20,6 @@ import { SuperFluidAdapterInterface } from './superFluid/superFluidAdapterInterf
 import { AbcLauncherAdapter } from './abcLauncher/abcLauncherAdapter';
 import { AbcLauncherMockAdapter } from './abcLauncher/abcLauncherMockAdapter';
 import { PrivadoAdapter } from './privado/privadoAdapter';
-import { IPrivadoAdapter } from './privado/privadoAdapterInterface';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -129,4 +128,4 @@ export const getAbcLauncherAdapter = () => {
   }
 };
 
-export const privadoAdapter: IPrivadoAdapter = new PrivadoAdapter();
+export const privadoAdapter = new PrivadoAdapter();
