@@ -109,6 +109,10 @@ import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
 } from '../repositories/projectSocialMediaRepository';
+import {
+  QACC_DONATION_TOKEN_ADDRESS,
+  QACC_DONATION_TOKEN_SYMBOL,
+} from '../utils/qacc';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -1713,8 +1717,14 @@ export class ProjectResolver {
       //   return [];
       // }
       // return sortTokensByOrderAndAlphabets(organization.tokens);
-      const allTokens = await Token.find();
-      return sortTokensByOrderAndAlphabets(allTokens);
+      const filteredTokens = await Token.find({
+        where: {
+          networkId: QACC_NETWORK_ID,
+          address: QACC_DONATION_TOKEN_ADDRESS,
+          symbol: QACC_DONATION_TOKEN_SYMBOL,
+        },
+      });
+      return sortTokensByOrderAndAlphabets(filteredTokens);
     } catch (e) {
       logger.error('getProjectAcceptTokens error', e);
       throw e;
