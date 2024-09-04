@@ -15,6 +15,7 @@ export class PrivadoAdapter {
   private provider;
 
   constructor() {
+    console.log('PRIVADO_VERIFIER_NETWORK_ID', PRIVADO_VERIFIER_NETWORK_ID);
     this.provider = getProvider(PRIVADO_VERIFIER_NETWORK_ID);
   }
 

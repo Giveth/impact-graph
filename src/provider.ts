@@ -429,6 +429,7 @@ export function getProvider(networkId: number) {
     }
   }
 
+  console.log('----------- url: ', url);
   return new ethers.providers.JsonRpcProvider(
     {
       url,
