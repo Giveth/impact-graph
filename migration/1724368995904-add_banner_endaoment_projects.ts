@@ -47,7 +47,6 @@ export class AddBannerEndaomentProjects1724368995904
       'Registred Non-profits': 'non-profit',
       'Gender Equality': 'equality',
     };
-    console.log(`Processing ${endaomentProjects.length} projects`);
 
     for (const project of endaomentProjects) {
       const mainnetAddress = project.mainnetAddress;
