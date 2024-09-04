@@ -147,6 +147,8 @@ export class Abc {
   tokenPrice?: number;
   @Field(_type => Float, { nullable: true })
   totalSupply?: number;
+  @Field(_type => Float, { nullable: true })
+  mintedAmount?: number;
   @Field()
   icon: string;
   @Field()
@@ -459,40 +461,6 @@ export class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   icon?: string;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  rewardStreamStart?: Date;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  rewardStreamEnd?: Date;
-
-  // Virtual field to calculate remaining months and days
-  @Field(_type => String, { nullable: true })
-  get unblockRemainingDays(): string | null {
-    if (!this.rewardStreamEnd) {
-      return null;
-    }
-
-    const today = moment();
-    const end = moment(this.rewardStreamEnd);
-
-    if (end.isBefore(today)) {
-      return '0 days';
-    }
-
-    const months = end.diff(today, 'months');
-    today.add(months, 'months');
-    const days = end.diff(today, 'days');
-
-    // Format the remaining time as "X months, Y days"
-    const monthsText =
-      months > 0 ? `${months} month${months > 1 ? 's' : ''}` : '';
-    const daysText = days > 0 ? `${days} day${days > 1 ? 's' : ''}` : '';
-
-    return `${monthsText}${monthsText && daysText ? ', ' : ''}${daysText}`;
-  }
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {

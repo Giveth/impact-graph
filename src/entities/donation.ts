@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from 'type-graphql';
+import { Field, Float, ID, Int, ObjectType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -8,6 +8,7 @@ import {
   RelationId,
   Index,
 } from 'typeorm';
+import moment from 'moment/moment';
 import { Project } from './project';
 import { User } from './user';
 import { QfRound } from './qfRound';
@@ -269,6 +270,14 @@ export class Donation extends BaseEntity {
   @Field({ nullable: true })
   @Column({ type: 'float', nullable: true })
   rewardTokenAmount?: number;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  rewardStreamStart?: Date;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  rewardStreamEnd?: Date;
 
   @Field({ nullable: true })
   @Column({ type: 'float', nullable: true })
