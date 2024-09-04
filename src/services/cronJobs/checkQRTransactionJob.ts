@@ -108,7 +108,7 @@ const registerSecondaryDonation = async (
           fromWalletAddress: transaction.source_account,
           transactionId: transaction.transaction_hash,
           tokenAddress: donation.tokenAddress,
-          isProjectVerified: project.verified,
+          isProjectGivbackEligible: project.isGivbackEligible,
           donorUser: donor,
           isTokenEligibleForGivback: token.isGivbackEligible,
           segmentNotified: false,
