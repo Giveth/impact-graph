@@ -176,7 +176,7 @@ describe(
 // describe('activateProject test cases --->', activateProjectTestCases);
 
 describe('projectsPerDate() test cases --->', projectsPerDateTestCases);
-describe.only(
+describe(
   'getTokensDetailsTestCases() test cases --->',
   getTokensDetailsTestCases,
 );
