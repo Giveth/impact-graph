@@ -333,7 +333,7 @@ async function seedOrganizations() {
 }
 
 async function relateOrganizationsToTokens() {
-  const tokens = await Token.createQueryBuilder('token').getMany();
+  const allTokens = await Token.createQueryBuilder('token').getMany();
   const giveth = (await Organization.findOne({
     where: {
       label: ORGANIZATION_LABELS.GIVETH,
@@ -354,9 +354,9 @@ async function relateOrganizationsToTokens() {
       label: ORGANIZATION_LABELS.CHANGE,
     },
   })) as Organization;
-  giveth.tokens = tokens;
+  giveth.tokens = allTokens;
   await giveth.save();
-  trace.tokens = tokens;
+  trace.tokens = allTokens;
   await trace.save();
   const etherMainnetToken = (await Token.findOne({
     where: {

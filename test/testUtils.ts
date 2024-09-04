@@ -273,13 +273,22 @@ export const saveProjectDirectlyToDb = async (
     });
   } else {
     for (const networkId of Object.values(NETWORK_IDS)) {
+      const SolanaNetworkIds = [
+        NETWORK_IDS.SOLANA_DEVNET,
+        NETWORK_IDS.SOLANA_MAINNET,
+        NETWORK_IDS.SOLANA_TESTNET,
+      ];
+      const chainType = SolanaNetworkIds.includes(networkId)
+        ? ChainType.SOLANA
+        : ChainType.EVM;
+
       await addNewProjectAddress({
         project,
         user,
         isRecipient: true,
         address: projectData.walletAddress,
         networkId,
-        chainType: ChainType.EVM,
+        chainType,
       });
     }
   }
