@@ -766,8 +766,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       qfRoundId: $qfRoundId
       qfRoundSlug: $qfRoundSlug
     ) {
-    
-      campaign{
+      campaign {
         slug
         title
       }
@@ -839,10 +838,10 @@ export const fetchMultiFilterAllProjectsQuery = `
         sumDonationValueUsdForActiveQfRound
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
-        estimatedMatching{
-           projectDonationsSqrtRootSum
-           allProjectsSum
-           matchingPool
+        estimatedMatching {
+          projectDonationsSqrtRootSum
+          allProjectsSum
+          matchingPool
         }
       }
       totalCount
@@ -2060,5 +2059,16 @@ export const fetchActiveEarlyAccessRoundQuery = `
       createdAt
       updatedAt
     }
+  }
+`;
+
+export const isUserPrivadoVerified = `
+  query {
+    isUserPrivadoVerified
+  }
+`;
+export const checkUserPrivadoVerifiedState = `
+  mutation {
+    checkUserPrivadoVerifiedState
   }
 `;

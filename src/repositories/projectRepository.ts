@@ -2,7 +2,6 @@ import { UpdateResult } from 'typeorm';
 import {
   FilterField,
   Project,
-  ProjStatus,
   ReviewStatus,
   RevokeSteps,
   SortingField,
@@ -104,11 +103,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'categories.isActive = :isActive',
       { isActive: true },
     )
-    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-    .where(
-      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-      { reviewStatus: ReviewStatus.Listed },
-    );
+    .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
 
   const isFilterByQF =
     !!filters?.find(f => f === FilterField.ActiveQfRound) && activeQfRoundId;

@@ -104,7 +104,7 @@
     "lint-staged": "^10.5.4",
     "mocha": "^10.2.0",
     "prettier": "^3.2.5",
-    "sinon": "^13.0.1",
+    "sinon": "^18.0.0",
     "ts-node": "10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.9.4"

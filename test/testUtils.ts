@@ -170,6 +170,7 @@ export const saveUserDirectlyToDb = async (
     walletAddress,
     firstName: `testUser-${walletAddress}`,
     email: `testEmail-${walletAddress}@giveth.io`,
+    privadoVerifiedRequestIds: [],
   }).save();
 };
 
@@ -381,6 +382,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 1,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   SECOND_USER: {
     name: 'secondUser',
@@ -390,6 +392,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 2,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   THIRD_USER: {
     name: 'thirdUser',
@@ -399,6 +402,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 3,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   ADMIN_USER: {
     name: 'adminUser',
@@ -408,6 +412,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 4,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   PROJECT_OWNER_USER: {
     name: 'project owner user',
@@ -416,6 +421,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 5,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   FIRST_PROJECT: {
     ...createProjectData(),

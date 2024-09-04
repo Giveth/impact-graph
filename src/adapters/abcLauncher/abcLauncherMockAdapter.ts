@@ -1,7 +1,7 @@
 import { Abc } from '../../entities/project';
-import { IAbcLauncher } from './AbcLauncherInterface';
+import { IAbcLauncher } from './abcLauncherInterface';
 
-export class AbcLauncherAdapterMock implements IAbcLauncher {
+export class AbcLauncherMockAdapter implements IAbcLauncher {
   private _nextAbcData: Abc;
   private _nextOwnNFT: boolean;
 
