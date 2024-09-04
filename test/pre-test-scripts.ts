@@ -100,7 +100,7 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
-  for (const token of SEED_DATA.TOKENS.goerli) {
+  for (const token of SEED_DATA.TOKENS.sepolia) {
     const tokenData = {
       ...token,
       networkId: 5,
@@ -387,7 +387,7 @@ async function relateOrganizationsToTokens() {
     where: [
       { symbol: 'ETH', networkId: NETWORK_IDS.MAIN_NET },
       { symbol: 'ETH', networkId: NETWORK_IDS.ROPSTEN },
-      { symbol: 'ETH', networkId: NETWORK_IDS.GOERLI },
+      { symbol: 'ETH', networkId: NETWORK_IDS.SEPOLIA },
     ],
   });
   change.tokens = changeTokens;

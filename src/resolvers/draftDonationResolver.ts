@@ -27,6 +27,7 @@ import {
 import { RecurringDonation } from '../entities/recurringDonation';
 import { checkTransactions } from '../services/cronJobs/checkQRTransactionJob';
 import { findProjectById } from '../repositories/projectRepository';
+import { notifyDonationFailed } from '../services/sse/sse';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 const draftRecurringDonationEnabled =
@@ -103,7 +104,11 @@ export class DraftDonationResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
 
-      const ownProject = project.adminUserId === donorUser?.id;
+      const ownProject =
+        isQRDonation && anonymous
+          ? false
+          : project.adminUserId === donorUser?.id;
+
       if (ownProject) {
         throw new Error(
           "Donor can't create a draft to donate to his/her own project.",
@@ -168,7 +173,7 @@ export class DraftDonationResolver {
             : fromAddress.toLowerCase();
 
       const expiresAt = isQRDonation
-        ? new Date(Date.now() + 30 * 60 * 1000)
+        ? new Date(Date.now() + 15 * 60 * 1000)
         : undefined;
 
       const draftDonationId = await DraftDonation.createQueryBuilder(
@@ -179,7 +184,7 @@ export class DraftDonationResolver {
           amount: Number(amount),
           networkId: _networkId,
           currency: token,
-          userId: donorUser?.id,
+          userId: isQRDonation && anonymous ? undefined : donorUser?.id,
           tokenAddress,
           projectId,
           toWalletAddress: toAddress,
@@ -418,6 +423,15 @@ export class DraftDonationResolver {
         { status: DRAFT_DONATION_STATUS.FAILED },
       );
 
+      // Notify clients of new donation
+      notifyDonationFailed({
+        type: 'draft-donation-failed',
+        data: {
+          draftDonationId: id,
+          expiresAt: draftDonation.expiresAt,
+        },
+      });
+
       return true;
     } catch (e) {
       logger.error(
@@ -432,7 +446,7 @@ export class DraftDonationResolver {
     @Arg('id', _type => Int) id: number,
   ): Promise<DraftDonation | null> {
     try {
-      const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
       const draftDonation = await DraftDonation.createQueryBuilder(
         'draftDonation',
       )
@@ -440,8 +454,8 @@ export class DraftDonationResolver {
         .andWhere('draftDonation.isQRDonation = :isQRDonation', {
           isQRDonation: true,
         })
-        .andWhere('draftDonation.status = :status', {
-          status: DRAFT_DONATION_STATUS.PENDING,
+        .andWhere('draftDonation.status != :status', {
+          status: DRAFT_DONATION_STATUS.MATCHED,
         })
         .getOne();
 

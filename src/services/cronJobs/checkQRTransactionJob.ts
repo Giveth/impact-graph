@@ -15,6 +15,8 @@ import { findUserById } from '../../repositories/userRepository';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
 import { QfRound } from '../../entities/qfRound';
 import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
+import { notifyClients } from '../sse/sse';
+import { calculateGivbackFactor } from '../givbackService';
 
 const STELLAR_HORIZON_API =
   (config.get('STELLAR_HORIZON_API_URL') as string) ||
@@ -23,12 +25,12 @@ const cronJobTime =
   (config.get('CHECK_QR_TRANSACTIONS_CRONJOB_EXPRESSION') as string) ||
   '0 */1 * * * *';
 
-async function getPendingDraftDonations() {
+const getPendingDraftDonations = async () => {
   return await DraftDonation.createQueryBuilder('draftDonation')
     .where('draftDonation.status = :status', { status: 'pending' })
     .andWhere('draftDonation.isQRDonation = true')
     .getMany();
-}
+};
 
 const getToken = async (
   chainType: string,
@@ -39,6 +41,112 @@ const getToken = async (
     .andWhere('token.isQR = true')
     .andWhere('token.symbol = :symbol', { symbol })
     .getOne();
+};
+
+const registerSecondaryDonation = async (
+  donation: DraftDonation,
+  fromWalletAddress: string,
+  prevTransactionId: string,
+  prevTransactionCreatedAt: string,
+  project: any,
+  token: any,
+  tokenPrice: any,
+  donor: any,
+  qfRound: any,
+) => {
+  try {
+    // deteect similar transaction on stellar network with time difference of less/more than 1 minute
+    const response = await axios.get(
+      `${STELLAR_HORIZON_API}/accounts/${donation.toWalletAddress}/payments?limit=200&order=desc&join=transactions&include_failed=true`,
+    );
+
+    const transactions = response.data._embedded.records;
+    if (!transactions.length) return;
+
+    for (const transaction of transactions) {
+      const isSecondaryMatchingTransaction =
+        ((transaction.asset_type === 'native' &&
+          transaction.type === 'payment' &&
+          transaction.to === donation.toWalletAddress &&
+          Number(transaction.amount) === donation.amount &&
+          transaction.source_account === fromWalletAddress) ||
+          (transaction.type === 'create_account' &&
+            transaction.account === donation.toWalletAddress &&
+            Number(transaction.starting_balance) === donation.amount &&
+            transaction.source_account === fromWalletAddress)) &&
+        Math.abs(
+          new Date(transaction.created_at).getTime() -
+            new Date(prevTransactionCreatedAt).getTime(),
+        ) <= 60000 &&
+        transaction.transaction_hash !== prevTransactionId;
+
+      if (isSecondaryMatchingTransaction) {
+        if (
+          donation.toWalletMemo &&
+          transaction.type === 'payment' &&
+          transaction.transaction.memo !== donation.toWalletMemo
+        ) {
+          logger.debug(
+            `Transaction memo does not match donation memo for donation ID ${donation.id}`,
+          );
+          return;
+        }
+
+        // Check if donation already exists
+        const existingDonation = await findDonationsByTransactionId(
+          transaction.transaction_hash?.toLowerCase(),
+        );
+        if (existingDonation) return;
+
+        const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+          await calculateGivbackFactor(project.id);
+
+        const returnedDonation = await createDonation({
+          amount: donation.amount,
+          project,
+          transactionNetworkId: donation.networkId,
+          fromWalletAddress: transaction.source_account,
+          transactionId: transaction.transaction_hash,
+          tokenAddress: donation.tokenAddress,
+          isProjectVerified: project.verified,
+          donorUser: donor,
+          isTokenEligibleForGivback: token.isGivbackEligible,
+          segmentNotified: false,
+          toWalletAddress: donation.toWalletAddress,
+          donationAnonymous: false,
+          transakId: '',
+          token: donation.currency,
+          valueUsd: donation.amount * tokenPrice,
+          priceUsd: tokenPrice,
+          status: transaction.transaction_successful ? 'verified' : 'failed',
+          isQRDonation: true,
+          toWalletMemo: donation.toWalletMemo,
+          qfRound,
+          chainType: token.chainType,
+          givbackFactor,
+          projectRank,
+          bottomRankInRound,
+          powerRound,
+        });
+
+        if (!returnedDonation) {
+          logger.debug(
+            `Error creating donation for draft donation ID ${donation.id}`,
+          );
+          return;
+        }
+
+        await syncDonationStatusWithBlockchainNetwork({
+          donationId: returnedDonation.id,
+        });
+      }
+    }
+  } catch (error) {
+    logger.debug(
+      `Error checking secondary transactions for donation ID ${donation.id}:`,
+      error,
+    );
+  }
 };
 
 // Check for transactions
@@ -53,8 +161,7 @@ export async function checkTransactions(
       return;
     }
 
-    // Check if donation has expired
-    const now = new Date().getTime();
+    const now = Date.now();
     const expiresAtDate = new Date(expiresAt!).getTime() + 1 * 60 * 1000;
 
     if (now > expiresAtDate) {
@@ -71,8 +178,7 @@ export async function checkTransactions(
     );
 
     const transactions = response.data._embedded.records;
-
-    if (transactions.length === 0) return;
+    if (!transactions.length) return;
 
     for (const transaction of transactions) {
       const isMatchingTransaction =
@@ -138,9 +244,12 @@ export async function checkTransactions(
           qfRound = activeQfRoundForProject;
         }
 
+        const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+          await calculateGivbackFactor(project.id);
+
         const returnedDonation = await createDonation({
           amount: donation.amount,
-          project: project,
+          project,
           transactionNetworkId: donation.networkId,
           fromWalletAddress: transaction.source_account,
           transactionId: transaction.transaction_hash,
@@ -160,6 +269,10 @@ export async function checkTransactions(
           toWalletMemo,
           qfRound,
           chainType: token.chainType,
+          givbackFactor,
+          projectRank,
+          bottomRankInRound,
+          powerRound,
         });
 
         if (!returnedDonation) {
@@ -180,6 +293,30 @@ export async function checkTransactions(
         await syncDonationStatusWithBlockchainNetwork({
           donationId: returnedDonation.id,
         });
+
+        // Notify clients of new donation
+        notifyClients({
+          type: 'new-donation',
+          data: {
+            donationId: returnedDonation.id,
+            draftDonationId: donation.id,
+          },
+        });
+
+        // Register secondary donation after 10 seconds
+        setTimeout(async () => {
+          await registerSecondaryDonation(
+            donation,
+            transaction.source_account,
+            transaction.transaction_hash,
+            transaction.created_at,
+            project,
+            token,
+            tokenPrice,
+            donor,
+            qfRound,
+          );
+        }, 10000);
 
         return;
       }

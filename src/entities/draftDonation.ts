@@ -120,7 +120,7 @@ export class DraftDonation extends BaseEntity {
   @Column({ nullable: true })
   relevantDonationTxHash?: string;
 
-  @Field()
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   toWalletMemo?: string;
 

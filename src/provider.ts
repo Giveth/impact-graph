@@ -8,7 +8,7 @@ const INFURA_ID = config.get('INFURA_ID');
 export const NETWORK_IDS = {
   MAIN_NET: 1,
   ROPSTEN: 3,
-  GOERLI: 5,
+  SEPOLIA: 11155111,
   XDAI: 100,
   POLYGON: 137,
   OPTIMISTIC: 10,
@@ -134,7 +134,7 @@ export const superTokens = [
 export const NETWORKS_IDS_TO_NAME = {
   1: 'MAIN_NET',
   3: 'ROPSTEN',
-  5: 'GOERLI',
+  11155111: 'SEPOLIA',
   100: 'GNOSIS',
   56: 'BSC',
   137: 'POLYGON',
@@ -165,7 +165,7 @@ const NETWORK_NAMES = {
   XDAI: 'xdaichain',
   MAINNET: 'mainnet',
   ROPSTEN: 'ropsten',
-  GOERLI: 'goerli',
+  SEPOLIA: 'sepolia',
   POLYGON: 'polygon-mainnet',
   OPTIMISTIC: 'optimistic-mainnet',
   OPTIMISM_SEPOLIA: 'optimism-sepolia-testnet',
@@ -189,7 +189,7 @@ const NETWORK_NATIVE_TOKENS = {
   XDAI: 'XDAI',
   MAINNET: 'ETH',
   ROPSTEN: 'ETH',
-  GOERLI: 'ETH',
+  SEPOLIA: 'ETH',
   POLYGON: 'MATIC',
   OPTIMISTIC: 'ETH',
   OPTIMISM_SEPOLIA: 'ETH',
@@ -228,9 +228,9 @@ const networkNativeTokensList = [
     nativeToken: NETWORK_NATIVE_TOKENS.ROPSTEN,
   },
   {
-    networkName: NETWORK_NAMES.GOERLI,
-    networkId: NETWORK_IDS.GOERLI,
-    nativeToken: NETWORK_NATIVE_TOKENS.GOERLI,
+    networkName: NETWORK_NAMES.SEPOLIA,
+    networkId: NETWORK_IDS.SEPOLIA,
+    nativeToken: NETWORK_NATIVE_TOKENS.SEPOLIA,
   },
   {
     networkName: NETWORK_NAMES.POLYGON,
@@ -453,8 +453,8 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('ETHERSCAN_ROPSTEN_API_URL');
       apiKey = config.get('ETHERSCAN_API_KEY');
       break;
-    case NETWORK_IDS.GOERLI:
-      apiUrl = config.get('ETHERSCAN_GOERLI_API_URL');
+    case NETWORK_IDS.SEPOLIA:
+      apiUrl = config.get('ETHERSCAN_SEPOLIA_API_URL');
       apiKey = config.get('ETHERSCAN_API_KEY');
       break;
     case NETWORK_IDS.POLYGON:

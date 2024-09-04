@@ -668,7 +668,7 @@ export const donationTab = {
         availableValues: [
           { value: NETWORK_IDS.MAIN_NET, label: 'Mainnet' },
           { value: NETWORK_IDS.XDAI, label: 'Xdai' },
-          { value: NETWORK_IDS.GOERLI, label: 'Goerli' },
+          { value: NETWORK_IDS.SEPOLIA, label: 'sepolia' },
           { value: NETWORK_IDS.POLYGON, label: 'Polygon' },
           { value: NETWORK_IDS.CELO, label: 'Celo' },
           { value: NETWORK_IDS.CELO_ALFAJORES, label: 'Alfajores' },

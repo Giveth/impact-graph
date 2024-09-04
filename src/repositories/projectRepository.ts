@@ -432,6 +432,8 @@ export const totalProjectsPerDate = async (
 ): Promise<number> => {
   const query = Project.createQueryBuilder('project');
 
+  query.andWhere(`project.statusId = ${ProjStatus.active}`);
+
   if (fromDate) {
     query.andWhere(`project."creationDate" >= '${fromDate}'`);
   }
@@ -445,7 +447,9 @@ export const totalProjectsPerDate = async (
   }
 
   if (onlyListed) {
-    query.andWhere(`project."reviewStatus" = 'Listed'`);
+    query.andWhere(`project.reviewStatus = :reviewStatus`, {
+      reviewStatus: ReviewStatus.Listed,
+    });
   }
 
   if (networkId) {

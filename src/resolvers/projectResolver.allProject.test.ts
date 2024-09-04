@@ -1220,7 +1220,7 @@ function allProjectsTestCases() {
           address =>
             address.isRecipient === true &&
             (address.networkId === NETWORK_IDS.MAIN_NET ||
-              address.networkId === NETWORK_IDS.GOERLI) &&
+              address.networkId === NETWORK_IDS.SEPOLIA) &&
             address.chainType === ChainType.EVM,
         ),
       );
@@ -1331,12 +1331,12 @@ function allProjectsTestCases() {
     );
   });
 
-  it('should return projects, filter by accept donation on GOERLI', async () => {
+  it('should return projects, filter by accept donation on SEPOLIA', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-      networkId: NETWORK_IDS.GOERLI,
+      networkId: NETWORK_IDS.SEPOLIA,
     });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
@@ -1352,7 +1352,7 @@ function allProjectsTestCases() {
           address =>
             (address.isRecipient === true &&
               address.networkId === NETWORK_IDS.MAIN_NET) ||
-            address.networkId === NETWORK_IDS.GOERLI,
+            address.networkId === NETWORK_IDS.SEPOLIA,
         ),
       );
     });
