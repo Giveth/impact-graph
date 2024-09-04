@@ -301,6 +301,10 @@ export class Donation extends BaseEntity {
     today.add(months, 'months');
     const days = end.diff(today, 'days');
 
+    if (months <= 0 && days <= 0) {
+      return '0 days';
+    }
+
     // Format the remaining time as "X months, Y days"
     const monthsText =
       months > 0 ? `${months} month${months > 1 ? 's' : ''}` : '';
