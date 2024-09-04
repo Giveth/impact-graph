@@ -429,8 +429,6 @@ export function getProvider(networkId: number) {
     }
   }
 
-  // eslint-disable-next-line no-console
-  console.log('----------- url: ', url);
   return new ethers.providers.JsonRpcProvider(
     {
       url,
