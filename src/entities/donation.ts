@@ -281,7 +281,80 @@ export class Donation extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ type: 'float', nullable: true })
-  lockedRewardTokenAmount?: number;
+  cliff?: number;
+
+  // Virtual field to calculate remaining months and days
+  @Field(_type => String, { nullable: true })
+  get unblockRemainingDays(): string | null {
+    if (!this.rewardStreamEnd) {
+      return null;
+    }
+
+    const today = moment();
+    const end = moment(this.rewardStreamEnd);
+
+    if (end.isBefore(today)) {
+      return '0 days';
+    }
+
+    const months = end.diff(today, 'months');
+    today.add(months, 'months');
+    const days = end.diff(today, 'days');
+
+    // Format the remaining time as "X months, Y days"
+    const monthsText =
+      months > 0 ? `${months} month${months > 1 ? 's' : ''}` : '';
+    const daysText = days > 0 ? `${days} day${days > 1 ? 's' : ''}` : '';
+
+    return `${monthsText}${monthsText && daysText ? ', ' : ''}${daysText}`;
+  }
+
+  // Virtual field for lockedRewardTokenAmount
+  @Field(_type => Float, { nullable: true })
+  get lockedRewardTokenAmount(): number | null {
+    if (
+      !this.rewardTokenAmount ||
+      !this.rewardStreamStart ||
+      !this.rewardStreamEnd ||
+      !this.cliff
+    ) {
+      return null;
+    }
+
+    const now = new Date();
+    const streamStart = new Date(this.rewardStreamStart);
+    const streamEnd = new Date(this.rewardStreamEnd);
+
+    if (now < streamStart) {
+      // If the current time is before the stream starts, return the total reward amount + cliff
+      return this.rewardTokenAmount + this.cliff;
+    }
+
+    if (now > streamEnd) {
+      // If the current time is after the stream ends, no tokens are locked
+      return 0;
+    }
+
+    const totalStreamTime = streamEnd.getTime() - streamStart.getTime();
+    const elapsedTime = now.getTime() - streamStart.getTime();
+
+    const remainingProportion = 1 - elapsedTime / totalStreamTime;
+
+    return this.rewardTokenAmount * remainingProportion;
+  }
+
+  // Virtual field for claimableRewardTokenAmount
+  @Field(_type => Float, { nullable: true })
+  get claimableRewardTokenAmount(): number | null {
+    if (
+      this.rewardTokenAmount === undefined ||
+      this.lockedRewardTokenAmount === null
+    ) {
+      return null;
+    }
+
+    return this.rewardTokenAmount - this.lockedRewardTokenAmount;
+  }
 
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')

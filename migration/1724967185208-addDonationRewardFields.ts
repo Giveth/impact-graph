@@ -10,9 +10,6 @@ export class AddDonationRewardFields1724967185208
       `ALTER TABLE "donation" ADD "rewardTokenAmount" double precision`,
     );
     await queryRunner.query(
-      `ALTER TABLE "donation" ADD "lockedRewardTokenAmount" double precision`,
-    );
-    await queryRunner.query(
       `ALTER TABLE "donation" ADD "rewardStreamStart" TIMESTAMP`,
     );
     await queryRunner.query(
@@ -26,9 +23,6 @@ export class AddDonationRewardFields1724967185208
     );
     await queryRunner.query(
       `ALTER TABLE "donation" DROP COLUMN "rewardStreamStart"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "donation" DROP COLUMN "lockedRewardTokenAmount"`,
     );
     await queryRunner.query(
       `ALTER TABLE "donation" DROP COLUMN "rewardTokenAmount"`,
