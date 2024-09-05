@@ -49,7 +49,7 @@ export class AddBaseChainTokens1716367359560 implements MigrationInterface {
         ;`);
       }
     } catch (e) {
-      // tslint:disable-next-line: no-console
+      // eslint-disable-next-line no-console
       console.log('Error in migration AddBaseChainTokens1716367359560', e);
     }
   }
