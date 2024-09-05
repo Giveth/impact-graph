@@ -18,6 +18,7 @@ import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { ReferredEvent } from './referredEvent';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
+import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
 
 export const publicSelectionFields = [
   'user.id',
@@ -206,6 +207,13 @@ export class User extends BaseEntity {
 
   @Column('integer', { array: true, default: [] })
   privadoVerifiedRequestIds: number[];
+
+  @Field(_type => Boolean, { nullable: true })
+  privadoVerified(): boolean {
+    return this.privadoVerifiedRequestIds.includes(
+      PrivadoAdapter.privadoRequestId(),
+    );
+  }
 
   @Field(_type => Int, { nullable: true })
   async donationsCount() {

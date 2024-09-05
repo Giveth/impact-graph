@@ -1,12 +1,12 @@
-name: staging-pipeline
+name: main-pipeline
 
 on:
   push:
     branches:
-      - staging
+      - main
   pull_request:
     branches:
-      - staging
+      - main
 
 jobs:
   run-linters:
@@ -143,7 +143,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/generalmagicio/qacc-be:staging
+          tags: ghcr.io/generalmagicio/qacc-be:main
 
   deploy:
     needs: publish
@@ -152,14 +152,14 @@ jobs:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
-            git checkout staging
+            git checkout main
             git pull
-            docker compose -f docker-compose-staging.yml pull
-            docker compose -f docker-compose-staging.yml up -d
+            docker compose -f docker-compose-production.yml pull
+            docker compose -f docker-compose-production.yml up -d
             docker image prune -a --force

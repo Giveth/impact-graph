@@ -378,6 +378,7 @@ async function getTransactionDetailForTokenTransfer(
     }
   }
 
+  // we check the token address here and didn't get it form front-end
   if (transaction && transactionTokenAddress !== token.address.toLowerCase()) {
     throw new Error(
       i18n.__(

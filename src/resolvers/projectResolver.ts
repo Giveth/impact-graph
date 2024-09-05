@@ -109,6 +109,10 @@ import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
 } from '../repositories/projectSocialMediaRepository';
+import {
+  QACC_DONATION_TOKEN_ADDRESS,
+  QACC_DONATION_TOKEN_SYMBOL,
+} from '../utils/qacc';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -1694,29 +1698,37 @@ export class ProjectResolver {
 
   @Query(_returns => [Token])
   async getProjectAcceptTokens(
-    @Arg('projectId') projectId: number,
+    @Arg('projectId', { nullable: true }) _projectId: number,
   ): Promise<Token[]> {
     try {
-      const organization = await Organization.createQueryBuilder('organization')
-        .innerJoin(
-          'organization.projects',
-          'project',
-          'project.id = :projectId',
-          { projectId },
-        )
-        .leftJoinAndSelect('organization.tokens', 'tokens')
-        .leftJoin(
-          'project_address',
-          'pa',
-          'pa.projectId = project.id AND pa.isRecipient = true',
-        )
-        .andWhere('pa.networkId = tokens.networkId')
-        .getOne();
-
-      if (!organization) {
-        return [];
-      }
-      return sortTokensByOrderAndAlphabets(organization.tokens);
+      // const organization = await Organization.createQueryBuilder('organization')
+      //   .innerJoin(
+      //     'organization.projects',
+      //     'project',
+      //     'project.id = :projectId',
+      //     { projectId },
+      //   )
+      //   .leftJoinAndSelect('organization.tokens', 'tokens')
+      //   .leftJoin(
+      //     'project_address',
+      //     'pa',
+      //     'pa.projectId = project.id AND pa.isRecipient = true',
+      //   )
+      //   .andWhere('pa.networkId = tokens.networkId')
+      //   .getOne();
+      //
+      // if (!organization) {
+      //   return [];
+      // }
+      // return sortTokensByOrderAndAlphabets(organization.tokens);
+      const filteredTokens = await Token.find({
+        where: {
+          networkId: QACC_NETWORK_ID,
+          address: QACC_DONATION_TOKEN_ADDRESS,
+          symbol: QACC_DONATION_TOKEN_SYMBOL,
+        },
+      });
+      return sortTokensByOrderAndAlphabets(filteredTokens);
     } catch (e) {
       logger.error('getProjectAcceptTokens error', e);
       throw e;
