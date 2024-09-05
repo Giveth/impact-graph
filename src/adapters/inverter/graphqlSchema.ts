@@ -1,8 +1,7 @@
 // create schemas based on these types: https://github.com/InverterNetwork/indexer/blob/main/schema.graphql
 // playground: https://envio.dev/app/inverternetwork/indexer/1b0fc71/playground
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getBondingCurveByIDQuery = `query GetBondingCurveByID($id: String!) {
+export const getBondingCurveByIDQuery = `query GetBondingCurveByID($id: String!) {
     BondingCurve_by_pk(id: $id) {
         id
         chainId
@@ -47,8 +46,7 @@ const getBondingCurveByIDQuery = `query GetBondingCurveByID($id: String!) {
     }
 }`;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getTokenTotalSupplyByAddress = `
+export const getTokenTotalSupplyByAddress = `
     query GetTokenTotalSupplyByAddress($tokenAddress: String!) {
       BondingCurve(where: {issuanceToken: {_eq: $tokenAddress}}){
         virtualIssuance
@@ -57,8 +55,7 @@ const getTokenTotalSupplyByAddress = `
     }
 `;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getWorkFlowByAddress = `
+export const getWorkFlowByAddress = `
   query GetWorkFlowByID($id: String!) {
     Workflow(where: {id: {_eq: $id}}) {
       chainId
@@ -86,10 +83,9 @@ const getWorkFlowByAddress = `
   }
 `;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getRewardInfoByOrchestratorAddressAndDonerAddress = `
-  query getStreamingPaymentProcessorByAddressAndDonerAddress($id: String!, $donerAddress: String!) {
-    StreamingPaymentProcessor(where: {workflow_id: {_eq: $id}}) {
+export const getRewardInfoByOrchestratorAddressAndDonerAddress = `
+  query getStreamingPaymentProcessorByAddressAndDonerAddress($orchestratorAddress: String!, $donerAddress: String!) {
+    StreamingPaymentProcessor(where: {workflow_id: {_eq: $orchestratorAddress}}) {
       chainId
       id
       vestings(where: {recipient: {_eq: $donerAddress}}) {
@@ -108,10 +104,9 @@ const getRewardInfoByOrchestratorAddressAndDonerAddress = `
   }
 `;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getRewardInfoByOrchestratorAddress = `
-  query getStreamingPaymentProcessorByAdderss($id: String!) {
-    StreamingPaymentProcessor(where: {workflow_id: {_eq: $id}}) {
+export const getRewardInfoByOrchestratorAddress = `
+  query getStreamingPaymentProcessorByAdderss($orchestratorAddress: String!) {
+    StreamingPaymentProcessor(where: {workflow_id: {_eq: $orchestratorAddress}}) {
       chainId
       id
       vestings {
