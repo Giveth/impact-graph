@@ -11,6 +11,8 @@ services:
       - ./config:/usr/src/app/config
       - ./config:/usr/src/app/build/config
       - ./logs:/usr/src/app/logs
+    networks:
+      - qacc
     ports:
       - "4001:4000"
 
@@ -25,6 +27,24 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks:
+      - qacc
+    ports:
+      - "5442:5432"
+
+  qacc-postgres-test:
+    container_name: qacc-postgres-test
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_DB=qacc
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - db-data-test:/var/lib/postgresql/data
+    networks:
+      - qacc
     ports:
       - "5432:5432"
 
@@ -36,9 +56,17 @@ services:
     restart: always
     volumes:
       - redis-data:/data
+    networks:
+      - qacc
     ports:
       - "6379:6379"
 
 volumes:
   db-data:
+  db-data-test:
   redis-data:
+
+networks:
+  qacc:
+    name: qacc-be_qacc
+    external: true
