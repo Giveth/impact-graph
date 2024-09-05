@@ -23,8 +23,6 @@ import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { Reaction } from '../entities/reaction';
 import { SocialProfile } from '../entities/socialProfile';
 
-const verifiedOrIsGivbackEligibleCondition = `CASE WHEN project.verified = true OR project.isGivbackEligible = true THEN 1 ELSE 0 END`;
-
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
 
@@ -200,7 +198,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.GIVPower:
       query
-        .orderBy(verifiedOrIsGivbackEligibleCondition, OrderDirection.DESC)
+        .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
+        .addOrderBy('project.verified', 'DESC') // Secondary sorting condition
         .addOrderBy(
           'projectPower.totalPower',
           OrderDirection.DESC,
@@ -209,7 +208,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.InstantBoosting: // This is our default sorting
       query
-        .orderBy(verifiedOrIsGivbackEligibleCondition, OrderDirection.DESC)
+        .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
+        .addOrderBy('project.verified', 'DESC') // Secondary sorting condition
         .addOrderBy(
           'projectInstantPower.totalPower',
           OrderDirection.DESC,
@@ -234,10 +234,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
             OrderDirection.DESC,
             'NULLS LAST',
           )
-          .addOrderBy(
-            verifiedOrIsGivbackEligibleCondition,
-            OrderDirection.DESC,
-          );
+          .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
+          .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
       }
       break;
     case SortingField.EstimatedMatching:
@@ -249,17 +247,16 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
             OrderDirection.DESC,
             'NULLS LAST',
           )
-          .addOrderBy(
-            verifiedOrIsGivbackEligibleCondition,
-            OrderDirection.DESC,
-          );
+          .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
+          .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
       }
       break;
 
     default:
       query
-        .orderBy('projectInstantPower.totalPower', OrderDirection.DESC)
-        .addOrderBy(verifiedOrIsGivbackEligibleCondition, OrderDirection.DESC);
+        .addOrderBy('projectInstantPower.totalPower', OrderDirection.DESC)
+        .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
+        .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
       break;
   }
 

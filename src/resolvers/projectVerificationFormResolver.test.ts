@@ -75,6 +75,7 @@ function createProjectVerificationFormMutationTestCases() {
       statusId: ProjStatus.deactive,
       adminUserId: user.id,
       verified: false,
+      isGivbackEligible: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
     });
@@ -93,7 +94,6 @@ function createProjectVerificationFormMutationTestCases() {
         },
       },
     );
-
     assert.equal(
       result.data.data.createProjectVerificationForm.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
@@ -210,7 +210,8 @@ function createProjectVerificationFormMutationTestCases() {
       ...createProjectData(),
       statusId: ProjStatus.deactive,
       adminUserId: user.id,
-      verified: false,
+      verified: true,
+      isGivbackEligible: false,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
     });

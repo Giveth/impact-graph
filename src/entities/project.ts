@@ -408,7 +408,7 @@ export class Project extends BaseEntity {
   // @Column({ type: 'boolean', default: false })
   // tunnableQf?: boolean;
 
-  @Field(_type => Boolean)
+  @Field(_type => Boolean, { nullable: true })
   @Column({ type: 'boolean', default: false })
   isGivbackEligible: boolean;
 

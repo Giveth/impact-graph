@@ -927,6 +927,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         impactLocation
         qualityScore
         verified
+        isGivbackEligible
         traceCampaignId
         listed
         reviewStatus
