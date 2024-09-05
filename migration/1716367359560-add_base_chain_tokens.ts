@@ -14,19 +14,27 @@ export class AddBaseChainTokens1716367359560 implements MigrationInterface {
           ? NETWORK_IDS.BASE_MAINNET
           : NETWORK_IDS.BASE_SEPOLIA;
 
-      await queryRunner.manager.save(
-        Token,
-        seedTokens
-          .filter(token => token.networkId === networkId)
-          .map(token => {
-            const t = {
-              ...token,
-            };
-            t.address = t.address?.toLowerCase();
-            delete t.chainType;
-            return t;
-          }),
-      );
+      try {
+        await queryRunner.manager.save(
+          Token,
+          seedTokens
+            .filter(token => token.networkId === networkId)
+            .map(token => {
+              const t = {
+                ...token,
+              };
+              t.address = t.address?.toLowerCase();
+              delete t.chainType;
+              return t;
+            }),
+        );
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log(
+          'Error in migration AddBaseChainTokens1716367359560, saving tokens',
+          e,
+        );
+      }
       const tokens = await queryRunner.query(`
               SELECT * FROM token
               WHERE "networkId" = ${networkId}
