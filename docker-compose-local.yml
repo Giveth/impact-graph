@@ -2,6 +2,8 @@ services:
   qacc-be:
     container_name: qacc-be
     build: .
+    profiles:
+      - server
     command: npm run start:docker:locally
     environment:
       - ENVIRONMENT=local
@@ -14,11 +16,14 @@ services:
     networks:
       - qacc
     ports:
-      - "4001:4000"
+      - '4001:4000'
 
   qacc-postgres:
     container_name: qacc-postgres
     image: postgres:16
+    profiles:
+      - server
+      - database
     restart: always
     environment:
       - POSTGRES_DB=qacc
@@ -30,11 +35,14 @@ services:
     networks:
       - qacc
     ports:
-      - "5442:5432"
+      - '5442:5432'
 
   qacc-postgres-test:
     container_name: qacc-postgres-test
     image: postgres:16
+    profiles:
+      - test
+      - database
     restart: always
     environment:
       - POSTGRES_DB=qacc
@@ -46,7 +54,7 @@ services:
     networks:
       - qacc
     ports:
-      - "5432:5432"
+      - '5443:5432'
 
   qacc-redis:
     container_name: qacc-redis
@@ -59,7 +67,7 @@ services:
     networks:
       - qacc
     ports:
-      - "6379:6379"
+      - '6379:6379'
 
 volumes:
   db-data:
@@ -68,5 +76,5 @@ volumes:
 
 networks:
   qacc:
-    name: qacc-be_qacc
+    name: qacc-be
     external: true
