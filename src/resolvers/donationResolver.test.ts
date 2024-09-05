@@ -48,7 +48,6 @@ import {
   takePowerBoostingSnapshot,
 } from '../repositories/powerBoostingRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
-import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
@@ -67,6 +66,7 @@ import {
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
+import { refreshProjectGivbackRankView } from '../repositories/projectGivbackViewRepository';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -1567,7 +1567,7 @@ function createDonationTestCases() {
     assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.equal(donation?.amount, amount);
   });
-  it('should create GIV donation and fill averageGivbackFactor', async () => {
+  it('  should create GIV donation and fill averageGivbackFactor', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
@@ -1609,7 +1609,7 @@ function createDonationTestCases() {
       balance: 100,
     });
     await setPowerRound(roundNumber);
-    await refreshProjectPowerView();
+    await refreshProjectGivbackRankView();
 
     const accessToken = await generateTestAccessToken(user.id);
     const saveDonationResponse = await axios.post(
@@ -2426,6 +2426,7 @@ function createDonationTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       verified: false,
+      isGivbackEligible: true,
     });
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -2459,7 +2460,7 @@ function createDonationTestCases() {
       },
     });
     assert.isOk(donation);
-    assert.isFalse(donation?.isProjectGivbackEligible);
+    assert.isTrue(donation?.isProjectGivbackEligible);
   });
   it('should throw exception when donating to draft projects', async () => {
     const project = await saveProjectDirectlyToDb({
