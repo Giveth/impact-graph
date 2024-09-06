@@ -1,9 +1,8 @@
+import adminJs from 'adminjs';
 import {
   canAccessQfRoundHistoryAction,
   ResourceActions,
 } from '../adminJsPermissions';
-import adminJs from 'adminjs';
-
 import { QfRoundHistory } from '../../../entities/qfRoundHistory';
 import {
   AdminJsContextInterface,
@@ -63,7 +62,7 @@ export const qfRoundHistoryTab = {
           getValue: record => {
             return record.params.project?.id || record.params.projectId;
           },
-          renderValue: (value, record) => {
+          renderValue: (value, _record) => {
             return value ? `Project ${value}` : 'N/A';
           },
         },
@@ -89,7 +88,7 @@ export const qfRoundHistoryTab = {
           getValue: record => {
             return record.params.qfRound?.id || record.params.qfRoundId;
           },
-          renderValue: (value, record) => {
+          renderValue: (value, _record) => {
             return value ? `QF Round ${value}` : 'N/A';
           },
         },
@@ -176,7 +175,7 @@ export const qfRoundHistoryTab = {
         component: adminJs.bundle(
           './components/CustomQfRoundMultiUpdateComponent',
         ),
-        handler: async (request, response, context) => {
+        handler: async (request, _response, _context) => {
           const { records } = request.payload;
           const results: string[] = [];
 
@@ -192,7 +191,7 @@ export const qfRoundHistoryTab = {
               distributedFundTxDate,
             } = record;
 
-            let existingRecord = await QfRoundHistory.findOne({
+            const existingRecord = await QfRoundHistory.findOne({
               where: { projectId, qfRoundId },
             });
 
