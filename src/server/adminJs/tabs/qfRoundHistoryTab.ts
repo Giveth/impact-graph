@@ -2,6 +2,7 @@ import {
   canAccessQfRoundHistoryAction,
   ResourceActions,
 } from '../adminJsPermissions';
+import adminJs from 'adminjs';
 
 import { QfRoundHistory } from '../../../entities/qfRoundHistory';
 import {
@@ -48,20 +49,56 @@ export const qfRoundHistoryTab = {
   resource: QfRoundHistory,
   options: {
     properties: {
-      project: {
+      projectId: {
         isVisible: {
-          list: false,
+          list: true,
           edit: false,
           filter: true,
           show: true,
         },
+        reference: 'Project',
+        position: 100,
+        type: 'reference',
+        custom: {
+          getValue: record => {
+            return record.params.project?.id || record.params.projectId;
+          },
+          renderValue: (value, record) => {
+            return value ? `Project ${value}` : 'N/A';
+          },
+        },
+        components: {
+          list: adminJs.bundle('./components/CustomProjectReferenceComponent'),
+          show: adminJs.bundle(
+            './components/CustomProjectReferenceShowComponent',
+          ),
+          filter: adminJs.bundle('./components/CustomIdFilterComponent'),
+        },
       },
-      qfRound: {
+      qfRoundId: {
         isVisible: {
-          list: false,
+          list: true,
           edit: false,
           filter: true,
           show: true,
+        },
+        reference: 'QfRound',
+        position: 101,
+        type: 'reference',
+        custom: {
+          getValue: record => {
+            return record.params.qfRound?.id || record.params.qfRoundId;
+          },
+          renderValue: (value, record) => {
+            return value ? `QF Round ${value}` : 'N/A';
+          },
+        },
+        components: {
+          list: adminJs.bundle('./components/CustomQfRoundReferenceComponent'),
+          show: adminJs.bundle(
+            './components/CustomQfRoundReferenceShowComponent',
+          ),
+          filter: adminJs.bundle('./components/CustomIdFilterComponent'),
         },
       },
       uniqueDonors: {
@@ -134,6 +171,64 @@ export const qfRoundHistoryTab = {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundHistoryAction({ currentAdmin }, ResourceActions.SHOW),
+      },
+      bulkUpdateQfRound: {
+        component: adminJs.bundle(
+          './components/CustomQfRoundMultiUpdateComponent',
+        ),
+        handler: async (request, response, context) => {
+          const { records } = request.payload;
+          const results: string[] = [];
+
+          for (const record of records) {
+            const {
+              projectId,
+              qfRoundId,
+              matchingFundAmount,
+              matchingFundPriceUsd,
+              matchingFundCurrency,
+              distributedFundTxHash,
+              distributedFundNetwork,
+              distributedFundTxDate,
+            } = record;
+
+            let existingRecord = await QfRoundHistory.findOne({
+              where: { projectId, qfRoundId },
+            });
+
+            const matchingFund = Number(matchingFundAmount);
+
+            if (existingRecord) {
+              await QfRoundHistory.createQueryBuilder()
+                .update(QfRoundHistory)
+                .set({
+                  matchingFund,
+                  matchingFundAmount,
+                  matchingFundPriceUsd,
+                  matchingFundCurrency,
+                  distributedFundTxHash,
+                  distributedFundNetwork,
+                  distributedFundTxDate: new Date(distributedFundTxDate),
+                })
+                .where('id = :id', { id: existingRecord.id })
+                .execute();
+              results.push(
+                `Updated: Project ${projectId}, Round ${qfRoundId}, Matching Fund: ${matchingFund}`,
+              );
+            } else {
+              results.push(
+                `Project QfRoundHistory Not found for Project ${projectId}, Round ${qfRoundId}.`,
+              );
+            }
+          }
+
+          return {
+            notice: {
+              message: `Operations completed:\n${results.join('\n')}`,
+              type: 'success',
+            },
+          };
+        },
       },
       updateQfRoundHistories: {
         actionType: 'resource',
