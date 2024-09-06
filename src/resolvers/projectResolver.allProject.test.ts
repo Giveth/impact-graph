@@ -1821,6 +1821,7 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.MAIN_NET,
     });
 
     const result = await axios.post(graphqlUrl, {
