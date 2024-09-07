@@ -50,7 +50,7 @@ export class InverterAdapter {
   }
 
   // Method to get reward info by orchestrator address
-  public async getRewardInfoByOrchestratorAddress(
+  public async getProjectRewardInfo(
     orchestratorAddress: string,
   ): Promise<any> {
     try {
