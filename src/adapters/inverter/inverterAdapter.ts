@@ -27,7 +27,7 @@ export class InverterAdapter {
     }
   }
 
-  public async getRewardInfoByOrchestratorAddressAndDonerAddress(
+  public async getProjectRewardOfDonor(
     orchestratorAddress: string,
     donerAddress: string,
   ): Promise<any> {
