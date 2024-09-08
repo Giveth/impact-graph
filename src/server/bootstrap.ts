@@ -276,6 +276,9 @@ export async function bootstrap() {
         },
       }),
     );
+    // AdminJs!
+    app.use(adminJsRootPath, await getAdminJsRouter());
+    app.use(bodyParserJson);
     app.use('/apigive', apiGivRouter);
     app.use(SOCIAL_PROFILES_PREFIX, oauth2CallbacksRouter);
     app.post(
@@ -310,10 +313,6 @@ export async function bootstrap() {
           reject(err); // Reject the Promise if there's an error starting the server
         });
     });
-
-    // AdminJs!
-    app.use(adminJsRootPath, await getAdminJsRouter());
-    app.use(bodyParserJson);
   } catch (err) {
     logger.fatal('bootstrap() error', err);
   }
