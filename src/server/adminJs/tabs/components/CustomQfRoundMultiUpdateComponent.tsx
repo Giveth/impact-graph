@@ -17,8 +17,18 @@ const RecordInput = ({ index, record, updateRecord, removeRecord }) => (
     <FormGroup>
       <Label>QF Round ID</Label>
       <Input
-        value={record.qfroundId}
-        onChange={e => updateRecord(index, 'qfroundId', e.target.value)}
+        value={record.qfRoundId}
+        onChange={e => updateRecord(index, 'qfRoundId', e.target.value)}
+        required
+      />
+    </FormGroup>
+    <FormGroup>
+      <Label>Matching Fund Display Value</Label>
+      <Input
+        value={record.matchingFund}
+        onChange={e =>
+          updateRecord(index, 'matchingFund', e.target.value)
+        }
         required
       />
     </FormGroup>
@@ -44,17 +54,11 @@ const RecordInput = ({ index, record, updateRecord, removeRecord }) => (
     </FormGroup>
     <FormGroup>
       <Label>Matching Fund Currency</Label>
-      <Select
-        options={[
-          { value: 'ETH', label: 'ETH' },
-          { value: 'DAI', label: 'DAI' },
-          { value: 'USDC', label: 'USDC' },
-        ]}
+      <Input
         value={record.matchingFundCurrency}
         onChange={selected =>
           updateRecord(index, 'matchingFundCurrency', selected.value)
         }
-        required
       />
     </FormGroup>
     <FormGroup>
@@ -92,7 +96,8 @@ const CustomQfRoundMultiUpdateComponent = props => {
   const [records, setRecords] = useState([
     {
       projectId: '',
-      qfroundId: '',
+      qfRoundId: '',
+      matchingFund: '',
       matchingFundAmount: '',
       matchingFundPriceUsd: '',
       matchingFundCurrency: '',
@@ -110,7 +115,8 @@ const CustomQfRoundMultiUpdateComponent = props => {
       ...records,
       {
         projectId: '',
-        qfroundId: '',
+        qfRoundId: '',
+        matchingFund: '',
         matchingFundAmount: '',
         matchingFundPriceUsd: '',
         matchingFundCurrency: '',
@@ -139,7 +145,7 @@ const CustomQfRoundMultiUpdateComponent = props => {
     try {
       const response = await api.resourceAction({
         resourceId: 'QfRoundHistory',
-        actionName: 'bulkUpdate',
+        actionName: 'bulkUpdateQfRound',
         data: { records },
       });
 

@@ -195,7 +195,6 @@ export async function bootstrap() {
     if (process.env.DISABLE_SERVER_CORS !== 'true') {
       app.use(cors(corsOptions));
     }
-    app.use(bodyParserJson);
 
     if (process.env.DISABLE_SERVER_RATE_LIMITER !== 'true') {
       const limiter = rateLimit({
@@ -314,6 +313,7 @@ export async function bootstrap() {
 
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
+    app.use(bodyParserJson);
   } catch (err) {
     logger.fatal('bootstrap() error', err);
   }

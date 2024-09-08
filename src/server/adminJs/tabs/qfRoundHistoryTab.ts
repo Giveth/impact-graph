@@ -183,6 +183,7 @@ export const qfRoundHistoryTab = {
             const {
               projectId,
               qfRoundId,
+              matchingFund,
               matchingFundAmount,
               matchingFundPriceUsd,
               matchingFundCurrency,
@@ -194,8 +195,6 @@ export const qfRoundHistoryTab = {
             const existingRecord = await QfRoundHistory.findOne({
               where: { projectId, qfRoundId },
             });
-
-            const matchingFund = Number(matchingFundAmount);
 
             if (existingRecord) {
               await QfRoundHistory.createQueryBuilder()
