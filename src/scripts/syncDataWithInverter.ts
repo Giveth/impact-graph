@@ -206,7 +206,9 @@ async function syncDonationsWithBlockchainData() {
 syncDonationsWithBlockchainData()
   .then(() => {
     logger.info('Data synced successfully.');
+    process.exit();
   })
   .catch(error => {
     logger.error('Error syncing data:', error);
+    process.abort();
   });
