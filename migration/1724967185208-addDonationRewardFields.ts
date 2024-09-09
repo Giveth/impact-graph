@@ -15,6 +15,9 @@ export class AddDonationRewardFields1724967185208
     await queryRunner.query(
       `ALTER TABLE "donation" ADD "rewardStreamEnd" TIMESTAMP`,
     );
+    await queryRunner.query(
+      `ALTER TABLE "donation" ADD "cliff" double precision`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -27,5 +30,6 @@ export class AddDonationRewardFields1724967185208
     await queryRunner.query(
       `ALTER TABLE "donation" DROP COLUMN "rewardTokenAmount"`,
     );
+    await queryRunner.query(`ALTER TABLE "donation" DROP COLUMN "cliff"`);
   }
 }
