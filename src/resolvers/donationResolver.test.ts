@@ -162,6 +162,112 @@ function totalDonationsPerCategoryPerDateTestCases() {
     );
     assert.equal(foodTotal.totalUsd, donationToVerified.valueUsd);
   });
+
+  it('should return donation count as per category per time range for endaoment projects', async () => {
+    const allDonationResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsPerCategoryPerDate,
+    });
+    const allEndaomentDonationResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsPerCategoryPerDate,
+      variables: {
+        onlyEndaoment: true,
+      },
+    });
+    assert.isOk(allEndaomentDonationResponse);
+    assert.isOk(allDonationResponse);
+    const allEndaomentFoodDonations =
+      allEndaomentDonationResponse.data.data.totalDonationsPerCategory.find(
+        donation => donation.title === 'food',
+      );
+    const allFoodDonations =
+      allDonationResponse.data.data.totalDonationsPerCategory.find(
+        donation => donation.title === 'food',
+      );
+    const amountFoodDonation = allFoodDonations.totalUsd;
+    const amountEndaomentFoodDonation = allEndaomentFoodDonations.totalUsd;
+
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+    const donationValueToEndaomentinUSD = 20;
+    const donationValueToNonEndaomentinUSD = 30;
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(45, 'days').toDate(),
+        valueUsd: donationValueToEndaomentinUSD,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(45, 'days').toDate(),
+        valueUsd: donationValueToNonEndaomentinUSD,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const afterUpdateAllDonationResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsPerCategoryPerDate,
+    });
+    const afterUpdateAllEndaomentDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchTotalDonationsPerCategoryPerDate,
+        variables: {
+          onlyEndaoment: true,
+        },
+      },
+    );
+    assert.isOk(afterUpdateAllDonationResponse);
+    assert.isOk(afterUpdateAllEndaomentDonationResponse);
+    const allEndaomentFoodDonationsAfterUpdate =
+      afterUpdateAllEndaomentDonationResponse.data.data.totalDonationsPerCategory.find(
+        donation => donation.title === 'food',
+      );
+    const allFoodDonationsAfterUpdate =
+      afterUpdateAllDonationResponse.data.data.totalDonationsPerCategory.find(
+        donation => donation.title === 'food',
+      );
+    const amountFoodDonationAfterUpdate = allFoodDonationsAfterUpdate.totalUsd;
+    const amountEndaomentFoodDonationAfterUpdate =
+      allEndaomentFoodDonationsAfterUpdate.totalUsd;
+
+    assert.equal(
+      amountFoodDonation +
+        donationValueToNonEndaomentinUSD +
+        donationValueToEndaomentinUSD,
+      amountFoodDonationAfterUpdate,
+    );
+    assert.equal(
+      amountEndaomentFoodDonation + donationValueToEndaomentinUSD,
+      amountEndaomentFoodDonationAfterUpdate,
+    );
+
+    const totalDonationsToEndaomentInTimeFrame = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsPerCategoryPerDate,
+      variables: {
+        fromDate: moment().add(44, 'days').toDate(),
+        toDate: moment().add(46, 'days').toDate(),
+        onlyEndaoment: true,
+      },
+    });
+
+    const foodTotal =
+      totalDonationsToEndaomentInTimeFrame.data.data.totalDonationsPerCategory.find(
+        d => d.title === 'food',
+      );
+
+    assert.equal(foodTotal.totalUsd, donationValueToEndaomentinUSD);
+  });
 }
 
 function totalDonationsNumberPerDateTestCases() {
@@ -212,6 +318,106 @@ function totalDonationsNumberPerDateTestCases() {
     );
     assert.equal(
       donationsResponseToVerified.data.data.totalDonationsNumberPerDate.total,
+      1,
+    );
+  });
+  it('should return donations count for endaoment projects per time range', async () => {
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(202, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(202, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(202, 'days').toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.THIRD_USER.id,
+      SEED_DATA.NON_VERIFIED_PROJECT.id,
+    );
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsNumberPerDateRange,
+      variables: {
+        fromDate: moment()
+          .add(201, 'days')
+          .toDate()
+          .toISOString()
+          .split('T')[0],
+        toDate: moment().add(203, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+    const donationsResponseToVerifiedandEndaoment = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchTotalDonationsNumberPerDateRange,
+        variables: {
+          fromDate: moment()
+            .add(201, 'days')
+            .toDate()
+            .toISOString()
+            .split('T')[0],
+          toDate: moment()
+            .add(203, 'days')
+            .toDate()
+            .toISOString()
+            .split('T')[0],
+          onlyVerified: true,
+          onlyEndaoment: true,
+        },
+      },
+    );
+
+    const donationsResponseToVerified = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsNumberPerDateRange,
+      variables: {
+        fromDate: moment()
+          .add(201, 'days')
+          .toDate()
+          .toISOString()
+          .split('T')[0],
+        toDate: moment().add(203, 'days').toDate().toISOString().split('T')[0],
+        onlyVerified: true,
+      },
+    });
+
+    assert.isNumber(
+      donationsResponse.data.data.totalDonationsNumberPerDate.total,
+    );
+    assert.isTrue(
+      donationsResponse.data.data.totalDonationsNumberPerDate
+        .totalPerMonthAndYear.length > 0,
+    );
+    assert.equal(
+      donationsResponse.data.data.totalDonationsNumberPerDate.total,
+      3,
+    );
+    assert.equal(
+      donationsResponseToVerified.data.data.totalDonationsNumberPerDate.total,
+      2,
+    );
+    assert.equal(
+      donationsResponseToVerifiedandEndaoment.data.data
+        .totalDonationsNumberPerDate.total,
       1,
     );
   });
@@ -300,6 +506,127 @@ function donorsCountPerDateTestCases() {
     assert.equal(
       donationsResponse.data.data.totalDonorsCountPerDate.total,
       total,
+    );
+  });
+  it('should return donors unique total count for endaoment projects in a time range', async () => {
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await saveUserDirectlyToDb(walletAddress);
+    // should count as 1 as it's the same user
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(510, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.FIRST_USER.id,
+      endaomentProject.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(510, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      user.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(510, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      user.id,
+      endaomentProject.id,
+    );
+    // anonymous donations count as separate
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(510, 'days').toDate(),
+        valueUsd: 20,
+        anonymous: true,
+      }),
+      undefined,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(510, 'days').toDate(),
+        valueUsd: 20,
+        anonymous: true,
+      }),
+      user.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(510, 'days').toDate(),
+        valueUsd: 20,
+        anonymous: true,
+      }),
+      undefined,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonors,
+      variables: {
+        fromDate: moment()
+          .add(509, 'days')
+          .toDate()
+          .toISOString()
+          .split('T')[0],
+        toDate: moment().add(511, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+    const donationsResponseForEndaoment = await axios.post(graphqlUrl, {
+      query: fetchTotalDonors,
+      variables: {
+        fromDate: moment()
+          .add(509, 'days')
+          .toDate()
+          .toISOString()
+          .split('T')[0],
+        toDate: moment().add(511, 'days').toDate().toISOString().split('T')[0],
+        onlyEndaoment: true,
+      },
+    });
+    assert.isOk(donationsResponse);
+    assert.isOk(donationsResponseForEndaoment);
+    // 2 unique donor and 2 anonymous
+    assert.equal(donationsResponse.data.data.totalDonorsCountPerDate.total, 4);
+    const total =
+      donationsResponse.data.data.totalDonorsCountPerDate.totalPerMonthAndYear.reduce(
+        (sum, value) => sum + value.total,
+        0,
+      );
+    const totalForEndaoment =
+      donationsResponseForEndaoment.data.data.totalDonorsCountPerDate.totalPerMonthAndYear.reduce(
+        (sum, value) => sum + value.total,
+        0,
+      );
+    assert.equal(
+      donationsResponse.data.data.totalDonorsCountPerDate.total,
+      total,
+    );
+    // 2 donors : User Created and First User
+    assert.equal(
+      donationsResponseForEndaoment.data.data.totalDonorsCountPerDate.total,
+      2,
+    );
+    assert.equal(
+      donationsResponseForEndaoment.data.data.totalDonorsCountPerDate.total,
+      totalForEndaoment,
     );
   });
 }
@@ -619,6 +946,78 @@ function donationsUsdAmountTestCases() {
     assert.equal(
       donationsResponseToVerified.data.data.donationsTotalUsdPerDate.total,
       donationToVerified.valueUsd,
+    );
+  });
+
+  it('should return total usd amount for donations to endaoment project made in a time range', async () => {
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+    const donationToNonEndaoment = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(250, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    const donationToEndaoment = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(250, 'days').toDate(),
+        valueUsd: 10,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsUsdAmount,
+      variables: {
+        fromDate: moment()
+          .add(249, 'days')
+          .toDate()
+          .toISOString()
+          .split('T')[0],
+        toDate: moment().add(251, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+
+    const donationsResponseToEndaoment = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsUsdAmount,
+      variables: {
+        fromDate: moment()
+          .add(249, 'days')
+          .toDate()
+          .toISOString()
+          .split('T')[0],
+        toDate: moment().add(251, 'days').toDate().toISOString().split('T')[0],
+        onlyEndaoment: true,
+      },
+    });
+
+    assert.isOk(donationsResponse.data.data);
+    assert.isOk(donationsResponseToEndaoment.data.data);
+    assert.equal(
+      donationsResponse.data.data.donationsTotalUsdPerDate.total,
+      donationToNonEndaoment.valueUsd + donationToEndaoment.valueUsd,
+    );
+    const total =
+      donationsResponse.data.data.donationsTotalUsdPerDate.totalPerMonthAndYear.reduce(
+        (sum, value) => sum + value.total,
+        0,
+      );
+    assert.equal(
+      donationsResponse.data.data.donationsTotalUsdPerDate.total,
+      total,
+    );
+    assert.equal(
+      donationsResponseToEndaoment.data.data.donationsTotalUsdPerDate.total,
+      donationToEndaoment.valueUsd,
     );
   });
 }

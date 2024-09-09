@@ -15,6 +15,11 @@ import { User, UserRole } from '../entities/user';
 import {
   countUniqueDonorsAndSumDonationValueUsd,
   createDonation,
+  donationsNumberPerDateRange,
+  donationsTotalAmountPerDateRange,
+  donationsTotalAmountPerDateRangeByMonth,
+  donationsTotalNumberPerDateRangeByMonth,
+  donorsCountPerDateByMonthAndYear,
   fillQfRoundDonationsUserScores,
   findDonationById,
   findDonationsByProjectIdWhichUseDonationBox,
@@ -28,6 +33,7 @@ import { QfRound } from '../entities/qfRound';
 import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 
 describe('createDonation test cases', createDonationTestCases);
 
@@ -60,7 +66,469 @@ describe(
   'isVerifiedDonationExistsInQfRound() test cases',
   isVerifiedDonationExistsInQfRoundTestCases,
 );
+describe(
+  'donationsTotalAmountPerDateRange() test cases',
+  donationsTotalAmountPerDateRangeTestCases,
+);
 describe('findDonationsToGiveth() test cases', findDonationsToGivethTestCases);
+describe(
+  'donationsTotalAmountPerDateRangeByMonth() test cases',
+  donationsTotalAmountPerDateRangeByMonthTestCases,
+);
+describe(
+  'donationsTotalNumberPerDateRangeByMonth() test cases',
+  donationsTotalNumberPerDateRangeByMonthTestCase,
+);
+describe(
+  'donationsNumberPerDateRange() test cases',
+  donationsNumberPerDateRangeTestCases,
+);
+describe(
+  'donorsCountPerDateByMonthAndYear() test cases',
+  donorsCountPerDateByMonthAndYearTestCase,
+);
+describe('donorsCountPerDate() test cases', donorsCountPerDateTestCases);
+
+function donorsCountPerDateByMonthAndYearTestCase() {
+  it('should return per month number of donations for endaoment projects', async () => {
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+    const donationStart = moment().add(30, 'months');
+    const donationStart1month = moment().add(31, 'month');
+    const donationStart2month = moment().add(32, 'month');
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart.toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart1month.toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart2month.toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.THIRD_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart.toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.THIRD_USER.id,
+      endaomentProject.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart1month.toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.FIRST_USER.id,
+      endaomentProject.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart2month.toDate(),
+        valueUsd: 40,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+    const expectedReturnForAllProjects: number[] = [2, 2, 2];
+    const expectedReturnEndaomentProjects: number[] = [1, 1, 1];
+
+    const fromDate = donationStart.toISOString(true);
+    const toDate = donationStart2month.toISOString(true);
+    const actualReturnEndaomentProjects =
+      await donorsCountPerDateByMonthAndYear(fromDate, toDate, undefined, true);
+    const actualReturnAllProjects = await donorsCountPerDateByMonthAndYear(
+      fromDate,
+      toDate,
+    );
+    const endaomentProjectsReturns: number[] = actualReturnEndaomentProjects
+      .filter(donationPerDate => donationPerDate.total !== undefined)
+      .map(donationPerDate => Number(donationPerDate.total!));
+    const allProjectsReturns: number[] = actualReturnAllProjects
+      .filter(donationPerDate => donationPerDate.total !== undefined)
+      .map(donationPerDate => Number(donationPerDate.total!));
+
+    assert.deepEqual(expectedReturnForAllProjects, allProjectsReturns);
+    assert.deepEqual(expectedReturnEndaomentProjects, endaomentProjectsReturns);
+  });
+}
+
+function donorsCountPerDateTestCases() {
+  it('should return total donations amount for endaoment projects', async () => {
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(221, 'days').toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(221, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+    const fromDate = moment().add(220, 'days').format('YYYY/MM/DD');
+    const toDate = moment().add(222, 'days').toDate().toDateString();
+    const totalDonationInTimeFrame = await donationsNumberPerDateRange(
+      fromDate,
+      toDate,
+    );
+    const endaomentDonationInTimeFrame = await donationsNumberPerDateRange(
+      fromDate,
+      toDate,
+      undefined,
+      undefined,
+      true,
+    );
+    assert.equal(totalDonationInTimeFrame, 2);
+    assert.equal(endaomentDonationInTimeFrame, 1);
+  });
+}
+
+function donationsTotalNumberPerDateRangeByMonthTestCase() {
+  it('should return per month number of donations for endaoment projects', async () => {
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+    const donationStart = moment().add(20, 'months');
+    const donationStart1month = moment().add(21, 'month');
+    const donationStart2month = moment().add(22, 'month');
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart.toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart1month.toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart2month.toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart.toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart1month.toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart2month.toDate(),
+        valueUsd: 40,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+    const expectedReturnForAllProjects: number[] = [2, 2, 2];
+    const expectedReturnEndaomentProjects: number[] = [1, 1, 1];
+
+    const fromDate = donationStart.toISOString(true);
+    const toDate = donationStart2month.toISOString(true);
+    const actualReturnEndaomentProjects =
+      await donationsTotalNumberPerDateRangeByMonth(
+        fromDate,
+        toDate,
+        undefined,
+        undefined,
+        true,
+      );
+    const actualReturnAllProjects =
+      await donationsTotalNumberPerDateRangeByMonth(fromDate, toDate);
+    const endaomentProjectsReturns: number[] = actualReturnEndaomentProjects
+      .filter(donationPerDate => donationPerDate.total !== undefined)
+      .map(donationPerDate => Number(donationPerDate.total!));
+    const allProjectsReturns: number[] = actualReturnAllProjects
+      .filter(donationPerDate => donationPerDate.total !== undefined)
+      .map(donationPerDate => Number(donationPerDate.total!));
+
+    assert.deepEqual(expectedReturnForAllProjects, allProjectsReturns);
+    assert.deepEqual(expectedReturnEndaomentProjects, endaomentProjectsReturns);
+  });
+}
+
+function donationsNumberPerDateRangeTestCases() {
+  it('should return total donations amount for endaoment projects', async () => {
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(445, 'days').toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(445, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+    const fromDate = moment().add(444, 'days').format('YYYY/MM/DD');
+    const toDate = moment().add(446, 'days').toDate().toDateString();
+    const totalDonationInTimeFrame = await donationsNumberPerDateRange(
+      fromDate,
+      toDate,
+    );
+    const endaomentDonationInTimeFrame = await donationsNumberPerDateRange(
+      fromDate,
+      toDate,
+      undefined,
+      undefined,
+      true,
+    );
+    assert.equal(totalDonationInTimeFrame, 2);
+    assert.equal(endaomentDonationInTimeFrame, 1);
+  });
+}
+
+function donationsTotalAmountPerDateRangeByMonthTestCases() {
+  it('should return per month donations amount for endaoment projects', async () => {
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+    const donationStart = moment().add(10, 'months');
+    const donationStart1month = moment().add(11, 'month');
+    const donationStart2month = moment().add(12, 'month');
+
+    const donationValueToNonEndaomentinUSD1 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart.toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    const donationValueToNonEndaomentinUSD2 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart1month.toDate(),
+        valueUsd: 40,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const donationValueToNonEndaomentinUSD3 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart2month.toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    const donationValueToEndaomentinUSD1 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart.toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+    const donationValueToEndaomentinUSD2 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart1month.toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+
+    const donationValueToEndaomentinUSD3 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: donationStart2month.toDate(),
+        valueUsd: 40,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+    const expectedReturnForAllProjects = [
+      donationValueToNonEndaomentinUSD1.valueUsd +
+        donationValueToEndaomentinUSD1.valueUsd,
+      donationValueToEndaomentinUSD2.valueUsd +
+        donationValueToNonEndaomentinUSD2.valueUsd,
+      donationValueToEndaomentinUSD3.valueUsd +
+        donationValueToNonEndaomentinUSD3.valueUsd,
+    ];
+
+    const expectedReturnEndaomentProjects = [
+      donationValueToEndaomentinUSD1.valueUsd,
+      donationValueToEndaomentinUSD2.valueUsd,
+      donationValueToEndaomentinUSD3.valueUsd,
+    ];
+    const fromDate = donationStart.toISOString(true);
+    const toDate = donationStart2month.toISOString(true);
+    const actualReturnEndaomentProjects =
+      await donationsTotalAmountPerDateRangeByMonth(
+        fromDate,
+        toDate,
+        undefined,
+        undefined,
+        true,
+      );
+    const actualReturnAllProjects =
+      await donationsTotalAmountPerDateRangeByMonth(fromDate, toDate);
+
+    assert.deepEqual(
+      expectedReturnEndaomentProjects,
+      actualReturnEndaomentProjects.map(
+        donationPerDate => donationPerDate.total,
+      ),
+    );
+    assert.deepEqual(
+      expectedReturnForAllProjects,
+      actualReturnAllProjects.map(donationPerDate => donationPerDate.total),
+    );
+  });
+}
+
+function donationsTotalAmountPerDateRangeTestCases() {
+  it('should return total donations amount for endaoment projects', async () => {
+    const endaomentProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
+    });
+
+    const donationValueToNonEndaomentinUSD = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(66, 'days').toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const donationValueToEndaomentinUSD = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(66, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      endaomentProject.id,
+    );
+    const fromDate = moment().add(65, 'days').format('YYYY/MM/DD');
+    const toDate = moment().add(67, 'days').toDate().toDateString();
+    const totalDonationInTimeFrame = await donationsTotalAmountPerDateRange(
+      fromDate,
+      toDate,
+    );
+    const endaomentDonationInTimeFrame = await donationsTotalAmountPerDateRange(
+      fromDate,
+      toDate,
+      undefined,
+      undefined,
+      true,
+    );
+    assert.equal(
+      totalDonationInTimeFrame,
+      donationValueToEndaomentinUSD.valueUsd +
+        donationValueToNonEndaomentinUSD.valueUsd,
+    );
+    assert.equal(
+      endaomentDonationInTimeFrame,
+      donationValueToEndaomentinUSD.valueUsd,
+    );
+  });
+}
 
 function fillQfRoundDonationsUserScoresTestCases() {
   let qfRound: QfRound;
