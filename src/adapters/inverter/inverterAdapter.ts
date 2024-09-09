@@ -25,7 +25,7 @@ const abi = [
 
 export class InverterAdapter {
   private graphqlUrl: string =
-    'https://indexer.bigdevenergy.link/7612f58/v1/graphql';
+    'https://indexer.bigdevenergy.link/a414bf3/v1/graphql';
 
   public async getTokenTotalSupplyByAddress(
     tokenAddress: string,
