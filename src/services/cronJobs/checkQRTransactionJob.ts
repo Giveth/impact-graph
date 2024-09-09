@@ -16,6 +16,7 @@ import { relatedActiveQfRoundForProject } from '../qfRoundService';
 import { QfRound } from '../../entities/qfRound';
 import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
 import { notifyClients } from '../sse/sse';
+import { calculateGivbackFactor } from '../givbackService';
 
 const STELLAR_HORIZON_API =
   (config.get('STELLAR_HORIZON_API_URL') as string) ||
@@ -24,12 +25,12 @@ const cronJobTime =
   (config.get('CHECK_QR_TRANSACTIONS_CRONJOB_EXPRESSION') as string) ||
   '0 */1 * * * *';
 
-async function getPendingDraftDonations() {
+const getPendingDraftDonations = async () => {
   return await DraftDonation.createQueryBuilder('draftDonation')
     .where('draftDonation.status = :status', { status: 'pending' })
     .andWhere('draftDonation.isQRDonation = true')
     .getMany();
-}
+};
 
 const getToken = async (
   chainType: string,
@@ -54,8 +55,7 @@ export async function checkTransactions(
       return;
     }
 
-    // Check if donation has expired
-    const now = new Date().getTime();
+    const now = Date.now();
     const expiresAtDate = new Date(expiresAt!).getTime() + 1 * 60 * 1000;
 
     if (now > expiresAtDate) {
@@ -72,8 +72,7 @@ export async function checkTransactions(
     );
 
     const transactions = response.data._embedded.records;
-
-    if (transactions.length === 0) return;
+    if (!transactions.length) return;
 
     for (const transaction of transactions) {
       const isMatchingTransaction =
@@ -139,9 +138,12 @@ export async function checkTransactions(
           qfRound = activeQfRoundForProject;
         }
 
+        const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+          await calculateGivbackFactor(project.id);
+
         const returnedDonation = await createDonation({
           amount: donation.amount,
-          project: project,
+          project,
           transactionNetworkId: donation.networkId,
           fromWalletAddress: transaction.source_account,
           transactionId: transaction.transaction_hash,
@@ -161,6 +163,10 @@ export async function checkTransactions(
           toWalletMemo,
           qfRound,
           chainType: token.chainType,
+          givbackFactor,
+          projectRank,
+          bottomRankInRound,
+          powerRound,
         });
 
         if (!returnedDonation) {
