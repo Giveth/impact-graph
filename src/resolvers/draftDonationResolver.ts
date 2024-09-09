@@ -104,10 +104,9 @@ export class DraftDonationResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
         );
 
-      const ownProject =
-        isQRDonation && anonymous
-          ? false
-          : project.adminUserId === donorUser?.id;
+      const ownProject = isQRDonation
+        ? false
+        : project.adminUserId === donorUser?.id;
 
       if (ownProject) {
         throw new Error(
