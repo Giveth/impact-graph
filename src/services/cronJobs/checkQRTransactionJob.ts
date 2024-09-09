@@ -75,14 +75,24 @@ export async function checkTransactions(
     if (!transactions.length) return;
 
     for (const transaction of transactions) {
+      const transactionCreatedAt = new Date(transaction.created_at).getTime();
+      const transactionAge = Date.now() - transactionCreatedAt;
+
+      const TWO_MINUTES = 2 * 60 * 1000;
+
+      const isNativePayment =
+        transaction.asset_type === 'native' &&
+        transaction.type === 'payment' &&
+        transaction.to === toWalletAddress &&
+        Number(transaction.amount) === amount;
+
+      const isCreateAccount =
+        transaction.type === 'create_account' &&
+        transaction.account === toWalletAddress &&
+        Number(transaction.starting_balance) === amount;
+
       const isMatchingTransaction =
-        (transaction.asset_type === 'native' &&
-          transaction.type === 'payment' &&
-          transaction.to === toWalletAddress &&
-          Number(transaction.amount) === amount) ||
-        (transaction.type === 'create_account' &&
-          transaction.account === toWalletAddress &&
-          Number(transaction.starting_balance) === amount);
+        (isNativePayment || isCreateAccount) && transactionAge < TWO_MINUTES;
 
       if (isMatchingTransaction) {
         if (
