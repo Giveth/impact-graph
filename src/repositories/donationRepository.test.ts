@@ -108,7 +108,7 @@ function donorsCountPerDateByMonthAndYearTestCase() {
         valueUsd: 30,
       }),
       SEED_DATA.FIRST_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     await saveDonationDirectlyToDb(
@@ -118,7 +118,7 @@ function donorsCountPerDateByMonthAndYearTestCase() {
         valueUsd: 20,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     await saveDonationDirectlyToDb(
@@ -128,7 +128,7 @@ function donorsCountPerDateByMonthAndYearTestCase() {
         valueUsd: 30,
       }),
       SEED_DATA.THIRD_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -197,7 +197,7 @@ function donorsCountPerDateTestCases() {
         valueUsd: 30,
       }),
       SEED_DATA.FIRST_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     await saveDonationDirectlyToDb(
@@ -246,7 +246,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
         valueUsd: 30,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     await saveDonationDirectlyToDb(
@@ -256,7 +256,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
         valueUsd: 20,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     await saveDonationDirectlyToDb(
@@ -266,7 +266,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
         valueUsd: 30,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -339,7 +339,7 @@ function donationsNumberPerDateRangeTestCases() {
         valueUsd: 30,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     await saveDonationDirectlyToDb(
@@ -388,7 +388,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
         valueUsd: 30,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
     const donationValueToNonEndaomentinUSD2 = await saveDonationDirectlyToDb(
       createDonationData({
@@ -397,7 +397,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
         valueUsd: 40,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     const donationValueToNonEndaomentinUSD3 = await saveDonationDirectlyToDb(
@@ -407,7 +407,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
         valueUsd: 30,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
     const donationValueToEndaomentinUSD1 = await saveDonationDirectlyToDb(
       createDonationData({
@@ -493,7 +493,7 @@ function donationsTotalAmountPerDateRangeTestCases() {
         valueUsd: 30,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     const donationValueToEndaomentinUSD = await saveDonationDirectlyToDb(
