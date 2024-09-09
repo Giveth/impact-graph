@@ -37,7 +37,7 @@ export class InverterAdapter {
           tokenAddress,
         },
       });
-      return result.data.data.BondingCurve;
+      return result.data.data.BondingCurve?.virtualIssuance;
     } catch (error) {
       logger.error('Error fetching token total supply:', error);
       throw error;
@@ -98,4 +98,36 @@ export class InverterAdapter {
       throw error;
     }
   }
+
+  public async getBlockTimestamp(
+    provider: providers.Provider,
+    blockNumber: number,
+  ): Promise<number> {
+    const block = await provider.getBlock(blockNumber);
+    return block.timestamp;
+  }
+}
+
+export interface StreamingPaymentProcessorResponse {
+  StreamingPaymentProcessor: {
+    chainId: number;
+    id: string;
+    workflow_id: string;
+    vestings: Vesting[];
+  }[];
+}
+
+export interface Vesting {
+  amountRaw: string;
+  blockTimestamp: number;
+  chainId: number;
+  cliff: string;
+  db_write_timestamp: number;
+  end: string;
+  id: string;
+  recipient: string;
+  start: string;
+  status: string;
+  streamingPaymentProcessor_id: string;
+  token: string;
 }
