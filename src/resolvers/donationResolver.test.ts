@@ -963,7 +963,7 @@ function donationsUsdAmountTestCases() {
         valueUsd: 20,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
     const donationToEndaoment = await saveDonationDirectlyToDb(
       createDonationData({
