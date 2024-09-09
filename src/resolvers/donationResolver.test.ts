@@ -212,7 +212,7 @@ function totalDonationsPerCategoryPerDateTestCases() {
         valueUsd: donationValueToNonEndaomentinUSD,
       }),
       SEED_DATA.SECOND_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     const afterUpdateAllDonationResponse = await axios.post(graphqlUrl, {
@@ -344,7 +344,7 @@ function totalDonationsNumberPerDateTestCases() {
         valueUsd: 20,
       }),
       SEED_DATA.FIRST_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -534,7 +534,7 @@ function donorsCountPerDateTestCases() {
         valueUsd: 20,
       }),
       user.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     await saveDonationDirectlyToDb(
@@ -555,7 +555,7 @@ function donorsCountPerDateTestCases() {
         anonymous: true,
       }),
       undefined,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -565,7 +565,7 @@ function donorsCountPerDateTestCases() {
         anonymous: true,
       }),
       user.id,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -575,7 +575,7 @@ function donorsCountPerDateTestCases() {
         anonymous: true,
       }),
       undefined,
-      SEED_DATA.FIRST_PROJECT.id,
+      SEED_DATA.SECOND_PROJECT.id,
     );
 
     const donationsResponse = await axios.post(graphqlUrl, {
