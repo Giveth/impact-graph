@@ -1788,6 +1788,8 @@ export class ProjectResolver {
   /**
    * Can a project use this wallet?
    * @param address wallet address
+   * @param chainType chain ChainType
+   * @param memo wallet address
    * @returns
    */
   @Query(_returns => Boolean)
