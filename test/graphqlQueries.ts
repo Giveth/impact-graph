@@ -2249,6 +2249,11 @@ export const getUserProjectPowerQuery = `
   }
 `;
 
+export const allocatedGivbacksQuery = `
+    query {
+        allocatedGivbacks
+`;
+
 export const getBottomPowerRankQuery = `
     query {
         getTopPowerRank
