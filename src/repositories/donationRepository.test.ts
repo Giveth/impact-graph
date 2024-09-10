@@ -100,6 +100,7 @@ function donorsCountPerDateByMonthAndYearTestCase() {
     const donationStart = moment().add(30, 'months');
     const donationStart1month = moment().add(31, 'month');
     const donationStart2month = moment().add(32, 'month');
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -117,7 +118,7 @@ function donorsCountPerDateByMonthAndYearTestCase() {
         createdAt: donationStart1month.toDate(),
         valueUsd: 20,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
 
@@ -155,7 +156,7 @@ function donorsCountPerDateByMonthAndYearTestCase() {
         createdAt: donationStart2month.toDate(),
         valueUsd: 40,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
     const expectedReturnForAllProjects: number[] = [2, 2, 2];
@@ -189,6 +190,7 @@ function donorsCountPerDateTestCases() {
       slug: String(new Date().getTime()),
       organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -206,7 +208,7 @@ function donorsCountPerDateTestCases() {
         createdAt: moment().add(221, 'days').toDate(),
         valueUsd: 20,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
     const fromDate = moment().add(220, 'days').format('YYYY/MM/DD');
@@ -238,6 +240,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
     const donationStart = moment().add(20, 'months');
     const donationStart1month = moment().add(21, 'month');
     const donationStart2month = moment().add(22, 'month');
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -245,7 +248,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
         createdAt: donationStart.toDate(),
         valueUsd: 30,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
 
@@ -255,7 +258,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
         createdAt: donationStart1month.toDate(),
         valueUsd: 20,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
 
@@ -265,7 +268,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
         createdAt: donationStart2month.toDate(),
         valueUsd: 30,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
     await saveDonationDirectlyToDb(
@@ -274,7 +277,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
         createdAt: donationStart.toDate(),
         valueUsd: 20,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
     await saveDonationDirectlyToDb(
@@ -283,7 +286,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
         createdAt: donationStart1month.toDate(),
         valueUsd: 30,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
 
@@ -293,7 +296,7 @@ function donationsTotalNumberPerDateRangeByMonthTestCase() {
         createdAt: donationStart2month.toDate(),
         valueUsd: 40,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
     const expectedReturnForAllProjects: number[] = [2, 2, 2];
@@ -331,6 +334,7 @@ function donationsNumberPerDateRangeTestCases() {
       slug: String(new Date().getTime()),
       organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -338,7 +342,7 @@ function donationsNumberPerDateRangeTestCases() {
         createdAt: moment().add(445, 'days').toDate(),
         valueUsd: 30,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
 
@@ -348,7 +352,7 @@ function donationsNumberPerDateRangeTestCases() {
         createdAt: moment().add(445, 'days').toDate(),
         valueUsd: 20,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
     const fromDate = moment().add(444, 'days').format('YYYY/MM/DD');
@@ -380,6 +384,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
     const donationStart = moment().add(10, 'months');
     const donationStart1month = moment().add(11, 'month');
     const donationStart2month = moment().add(12, 'month');
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const donationValueToNonEndaomentinUSD1 = await saveDonationDirectlyToDb(
       createDonationData({
@@ -387,7 +392,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
         createdAt: donationStart.toDate(),
         valueUsd: 30,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
     const donationValueToNonEndaomentinUSD2 = await saveDonationDirectlyToDb(
@@ -396,7 +401,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
         createdAt: donationStart1month.toDate(),
         valueUsd: 40,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
 
@@ -406,7 +411,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
         createdAt: donationStart2month.toDate(),
         valueUsd: 30,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
     const donationValueToEndaomentinUSD1 = await saveDonationDirectlyToDb(
@@ -415,7 +420,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
         createdAt: donationStart.toDate(),
         valueUsd: 20,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
     const donationValueToEndaomentinUSD2 = await saveDonationDirectlyToDb(
@@ -424,7 +429,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
         createdAt: donationStart1month.toDate(),
         valueUsd: 30,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
 
@@ -434,7 +439,7 @@ function donationsTotalAmountPerDateRangeByMonthTestCases() {
         createdAt: donationStart2month.toDate(),
         valueUsd: 40,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
     const expectedReturnForAllProjects = [
@@ -485,6 +490,7 @@ function donationsTotalAmountPerDateRangeTestCases() {
       slug: String(new Date().getTime()),
       organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const donationValueToNonEndaomentinUSD = await saveDonationDirectlyToDb(
       createDonationData({
@@ -492,7 +498,7 @@ function donationsTotalAmountPerDateRangeTestCases() {
         createdAt: moment().add(66, 'days').toDate(),
         valueUsd: 30,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
 
@@ -502,7 +508,7 @@ function donationsTotalAmountPerDateRangeTestCases() {
         createdAt: moment().add(66, 'days').toDate(),
         valueUsd: 20,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
     const fromDate = moment().add(65, 'days').format('YYYY/MM/DD');

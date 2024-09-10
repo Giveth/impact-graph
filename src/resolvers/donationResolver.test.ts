@@ -194,6 +194,7 @@ function totalDonationsPerCategoryPerDateTestCases() {
     });
     const donationValueToEndaomentinUSD = 20;
     const donationValueToNonEndaomentinUSD = 30;
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -201,7 +202,7 @@ function totalDonationsPerCategoryPerDateTestCases() {
         createdAt: moment().add(45, 'days').toDate(),
         valueUsd: donationValueToEndaomentinUSD,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
 
@@ -211,7 +212,7 @@ function totalDonationsPerCategoryPerDateTestCases() {
         createdAt: moment().add(45, 'days').toDate(),
         valueUsd: donationValueToNonEndaomentinUSD,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
 
@@ -328,13 +329,15 @@ function totalDonationsNumberPerDateTestCases() {
       slug: String(new Date().getTime()),
       organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
     await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         createdAt: moment().add(202, 'days').toDate(),
         valueUsd: 20,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
     await saveDonationDirectlyToDb(
@@ -956,13 +959,14 @@ function donationsUsdAmountTestCases() {
       slug: String(new Date().getTime()),
       organizationLabel: ORGANIZATION_LABELS.ENDAOMENT,
     });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const donationToNonEndaoment = await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         createdAt: moment().add(250, 'days').toDate(),
         valueUsd: 20,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       SEED_DATA.SECOND_PROJECT.id,
     );
     const donationToEndaoment = await saveDonationDirectlyToDb(
@@ -971,7 +975,7 @@ function donationsUsdAmountTestCases() {
         createdAt: moment().add(250, 'days').toDate(),
         valueUsd: 10,
       }),
-      SEED_DATA.SECOND_USER.id,
+      user.id,
       endaomentProject.id,
     );
 
