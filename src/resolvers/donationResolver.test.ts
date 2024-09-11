@@ -5057,7 +5057,7 @@ async function allocatedGivbacksQueryTestCases() {
     const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const valueUsd1 = 100;
-    const givbackFactor1 = 0.5;
+    const givbackFactor1 = 0.55;
 
     const valueUsd2 = 200;
     const givbackFactor2 = 0.65;
@@ -5065,7 +5065,7 @@ async function allocatedGivbacksQueryTestCases() {
     const valueUsd3 = 300;
     const givbackFactor3 = 0.7;
 
-    const powerRound = 321425;
+    const powerRound = 438127;
     await setPowerRound(powerRound);
 
     await saveDonationDirectlyToDb(
@@ -5098,6 +5098,9 @@ async function allocatedGivbacksQueryTestCases() {
       graphqlUrl,
       {
         query: allocatedGivbacksQuery,
+        variables: {
+          refreshCache: true,
+        },
       },
       {},
     );
