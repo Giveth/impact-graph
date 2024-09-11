@@ -175,6 +175,8 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
       'totalValuesOfUserDonationsAfterAnalysis',
       'uniqueUserIdsAfterAnalysis',
       'projectOwnerEmail',
+      'projectId',
+      'qfRoundId',
     ];
 
     const { rows, qfRoundId } = params;
