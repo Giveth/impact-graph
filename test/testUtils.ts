@@ -295,6 +295,7 @@ export const createProjectAbcData = (override: Partial<Abc> = {}): Abc => {
     tokenName: 'tkn name',
     tokenTicker: 'tkn',
     issuanceTokenAddress: generateRandomEtheriumAddress(),
+    fundingManagerAddress: generateRandomEtheriumAddress(),
     icon: '',
     orchestratorAddress: generateRandomEtheriumAddress(),
     projectAddress: generateRandomEtheriumAddress(),

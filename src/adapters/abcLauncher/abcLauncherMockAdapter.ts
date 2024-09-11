@@ -12,6 +12,7 @@ export class AbcLauncherMockAdapter implements IAbcLauncher {
       icon: 'moch_icon_hash',
       orchestratorAddress: 'mock_address',
       issuanceTokenAddress: 'mock_issue_address',
+      fundingManagerAddress: 'mock_funding_manager_address',
       projectAddress: 'mock_project_address',
       creatorAddress: 'mock_creator_address',
       nftContractAddress: 'mock_nft_contract_adddress',
