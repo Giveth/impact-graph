@@ -1785,15 +1785,11 @@ export class ProjectResolver {
   //   return isWalletAddressSmartContract(address);
   // }
 
-  /**
-   * Can a project use this wallet?
-   * @param address wallet address
-   * @returns
-   */
   @Query(_returns => Boolean)
   async walletAddressIsValid(
     @Arg('address') address: string,
-    @Arg('chainType', { nullable: true }) chainType?: ChainType,
+    @Arg('chainType', () => ChainType, { nullable: true })
+    chainType?: ChainType, // Explicitly set the type of chainType
     @Arg('memo', { nullable: true }) memo?: string,
   ) {
     return validateProjectWalletAddress(address, undefined, chainType, memo);

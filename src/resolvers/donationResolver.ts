@@ -76,6 +76,7 @@ import { getTokenPrice } from '../services/priceService';
 import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
+
 @ObjectType()
 export class AllocatedGivbacks {
   @Field()
@@ -86,7 +87,11 @@ export class AllocatedGivbacks {
 
   @Field()
   givPrice: number;
+
+  @Field()
+  date: Date;
 }
+
 let allocatedGivbacksCache: AllocatedGivbacks | null;
 
 @ObjectType()
@@ -444,8 +449,10 @@ export class DonationResolver {
   }
 
   @Query(_returns => AllocatedGivbacks, { nullable: true })
-  async allocatedGivbacks(): Promise<AllocatedGivbacks> {
-    if (allocatedGivbacksCache) {
+  async allocatedGivbacks(
+    @Arg('refreshCache', { nullable: true }) refreshCache?: boolean,
+  ): Promise<AllocatedGivbacks> {
+    if (allocatedGivbacksCache && !refreshCache) {
       return allocatedGivbacksCache;
     }
     const usdValueSentAmountInPowerRound =
@@ -457,27 +464,31 @@ export class DonationResolver {
     const givPrice = await getTokenPrice(NETWORK_IDS.MAIN_NET, givToken);
 
     const maxSentGivInRound = 1_000_000;
-    const allocatedGivTokens = Math.min(
-      maxSentGivInRound,
-      usdValueSentAmountInPowerRound / givPrice,
+    const allocatedGivTokens = Math.ceil(
+      Math.min(maxSentGivInRound, usdValueSentAmountInPowerRound / givPrice),
     );
-    allocatedGivbacksCache = {
-      allocatedGivTokens,
-      givPrice,
-      usdValueSentAmountInPowerRound,
-    };
+    const date = new Date();
+    if (givPrice) {
+      allocatedGivbacksCache = {
+        allocatedGivTokens,
+        givPrice,
+        usdValueSentAmountInPowerRound,
+        date,
+      };
 
-    // 10 minute cache
-    const sentGivbackCacheTimeout = 1000 * 60 * 10;
+      // 60 minute cache
+      const sentGivbackCacheTimeout = 1000 * 60 * 60;
 
-    setTimeout(() => {
-      allocatedGivbacksCache = null;
-    }, sentGivbackCacheTimeout);
+      setTimeout(() => {
+        allocatedGivbacksCache = null;
+      }, sentGivbackCacheTimeout);
+    }
 
     return {
       usdValueSentAmountInPowerRound,
       allocatedGivTokens,
       givPrice,
+      date,
     };
   }
 
