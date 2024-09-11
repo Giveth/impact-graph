@@ -80,7 +80,7 @@ export class AddEndaomentProjectBanners1726069430594
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(_queryRunner: QueryRunner): Promise<void> {
     // No down migration
   }
 }
