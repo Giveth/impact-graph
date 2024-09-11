@@ -135,6 +135,7 @@ export const createProjectQuery = `
           tokenName
           tokenTicker
           issuanceTokenAddress
+          fundingManagerAddress
           icon
           orchestratorAddress
           projectAddress
@@ -191,6 +192,7 @@ export const updateProjectQuery = `
         tokenName
         tokenTicker
         issuanceTokenAddress
+        fundingManagerAddress
         icon
         orchestratorAddress
         projectAddress

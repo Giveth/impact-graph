@@ -143,6 +143,8 @@ export class Abc {
   tokenTicker: string;
   @Field()
   issuanceTokenAddress: string;
+  @Field()
+  fundingManagerAddress: string;
   @Field(_type => Float, { nullable: true })
   tokenPrice?: number;
   @Field(_type => Float, { nullable: true })

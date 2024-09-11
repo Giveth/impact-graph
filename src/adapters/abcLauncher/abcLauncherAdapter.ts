@@ -59,6 +59,7 @@ export class AbcLauncherAdapter implements IAbcLauncher {
         icon: data.iconHash,
         orchestratorAddress: data.orchestratorAddress,
         issuanceTokenAddress: data.issuanceTokenAddress,
+        fundingManagerAddress: data.fundingManagerAddress,
         projectAddress: data.projectAddress,
         creatorAddress: data.userAddress,
         nftContractAddress: data.nftContractAddress,
