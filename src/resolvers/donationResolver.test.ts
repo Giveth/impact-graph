@@ -37,6 +37,7 @@ import {
   fetchNewDonorsDonationTotalUsd,
   fetchDonationMetricsQuery,
   getDonationByIdQuery,
+  allocatedGivbacksQuery,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -100,6 +101,10 @@ describe(
 );
 describe('recentDonations() test cases', recentDonationsTestCases);
 describe('donationMetrics() test cases', donationMetricsTestCases);
+describe(
+  'allocatedGivbacksQuery() test cases',
+  allocatedGivbacksQueryTestCases,
+);
 describe('getDonationById() test cases', getDonationByIdTestCases);
 
 // // describe('tokens() test cases', tokensTestCases);
@@ -4961,6 +4966,201 @@ async function donationMetricsTestCases() {
     await Donation.remove([donation1, donation2, donation3, donation4]);
     await deleteProjectDirectlyFromDb(project2.id);
     await User.remove([user1, user2]);
+  });
+}
+
+async function allocatedGivbacksQueryTestCases() {
+  it('should return allocated givbacks correctly', async () => {
+    // 3 donations with 2 different donor
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const valueUsd1 = 100;
+    const givbackFactor1 = 0.5;
+
+    const valueUsd2 = 200;
+    const givbackFactor2 = 0.65;
+
+    const valueUsd3 = 300;
+    const givbackFactor3 = 0.7;
+
+    const powerRound = 321425;
+    await setPowerRound(powerRound);
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd1,
+        powerRound,
+        givbackFactor: givbackFactor1,
+        isProjectVerified: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd2,
+        powerRound,
+        givbackFactor: givbackFactor2,
+        isProjectVerified: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd3,
+        powerRound: 1231,
+        givbackFactor: givbackFactor3,
+        isProjectVerified: true,
+      },
+      donor2.id,
+      project.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: allocatedGivbacksQuery,
+      },
+      {},
+    );
+
+    const allocatedGivbacks = result.data.data?.allocatedGivbacks;
+    assert.isNotNull(allocatedGivbacks);
+    assert.equal(
+      allocatedGivbacks.usdValueSentAmountInPowerRound,
+      valueUsd1 * givbackFactor1 + valueUsd2 * givbackFactor2,
+    );
+  });
+  it('should return allocated givbacks correctly when pass refreshCache variable', async () => {
+    // 3 donations with 2 different donor
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const valueUsd1 = 100;
+    const givbackFactor1 = 0.55;
+
+    const valueUsd2 = 200;
+    const givbackFactor2 = 0.65;
+
+    const valueUsd3 = 300;
+    const givbackFactor3 = 0.7;
+
+    const powerRound = 438127;
+    await setPowerRound(powerRound);
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd1,
+        powerRound,
+        givbackFactor: givbackFactor1,
+        isProjectVerified: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd2,
+        powerRound,
+        givbackFactor: givbackFactor2,
+        isProjectVerified: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    const result1 = await axios.post(
+      graphqlUrl,
+      {
+        query: allocatedGivbacksQuery,
+        variables: {
+          refreshCache: true,
+        },
+      },
+      {},
+    );
+
+    const allocatedGivbacks1 = result1.data.data?.allocatedGivbacks;
+    assert.isNotNull(allocatedGivbacks1);
+    assert.equal(
+      allocatedGivbacks1.usdValueSentAmountInPowerRound,
+      valueUsd1 * givbackFactor1 + valueUsd2 * givbackFactor2,
+    );
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd3,
+        powerRound,
+        givbackFactor: givbackFactor3,
+        isProjectVerified: true,
+      },
+      donor2.id,
+      project.id,
+    );
+
+    const result2 = await axios.post(
+      graphqlUrl,
+      {
+        query: allocatedGivbacksQuery,
+      },
+      {},
+    );
+
+    const allocatedGivbacks2 = result2.data.data?.allocatedGivbacks;
+    // should use the previous result because of cache
+    assert.equal(
+      allocatedGivbacks2.usdValueSentAmountInPowerRound,
+      allocatedGivbacks1.usdValueSentAmountInPowerRound,
+    );
+    assert.equal(allocatedGivbacks2.date, allocatedGivbacks1.date);
+
+    const result3 = await axios.post(
+      graphqlUrl,
+      {
+        query: allocatedGivbacksQuery,
+        variables: {
+          refreshCache: true,
+        },
+      },
+      {},
+    );
+
+    const allocatedGivbacks3 = result3.data.data?.allocatedGivbacks;
+
+    // should refresh the cache when pass refreshCache variable
+    assert.equal(
+      allocatedGivbacks3.usdValueSentAmountInPowerRound,
+      allocatedGivbacks1.usdValueSentAmountInPowerRound +
+        valueUsd3 * givbackFactor3,
+    );
+    assert.notEqual(allocatedGivbacks3.date, allocatedGivbacks1.date);
   });
 }
 

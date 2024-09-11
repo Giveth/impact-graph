@@ -2249,6 +2249,21 @@ export const getUserProjectPowerQuery = `
   }
 `;
 
+export const allocatedGivbacksQuery = `
+  query (
+    $refreshCache: Boolean
+  ) {
+    allocatedGivbacks(
+      refreshCache: $refreshCache
+    ) {
+      usdValueSentAmountInPowerRound
+      allocatedGivTokens
+      givPrice
+      date
+    }
+  }
+`;
+
 export const getBottomPowerRankQuery = `
     query {
         getTopPowerRank
