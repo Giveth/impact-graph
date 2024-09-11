@@ -22,6 +22,7 @@ import { ProjectSocialMedia } from '../entities/projectSocialMedia';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { Reaction } from '../entities/reaction';
 import { SocialProfile } from '../entities/socialProfile';
+import { PreviousRoundRank } from '../entities/previousRoundRank';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -596,6 +597,11 @@ export const removeProjectAndRelatedEntities = async (
     .execute();
 
   await ProjectUpdate.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await PreviousRoundRank.createQueryBuilder()
     .delete()
     .where('projectId = :projectId', { projectId })
     .execute();
