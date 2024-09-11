@@ -6,6 +6,7 @@ import {
   getRewardInfoByOrchestratorAddress,
 } from './graphqlSchema';
 import { logger } from '../../utils/logger';
+import config from '../../config';
 
 const abi = [
   {
@@ -25,6 +26,7 @@ const abi = [
 
 export class InverterAdapter {
   private graphqlUrl: string =
+    (config.get('INVERTER_GRAPHQL_ENDPOINT') as string) ||
     'https://indexer.bigdevenergy.link/a414bf3/v1/graphql';
 
   public async getTokenTotalSupplyByAddress(
