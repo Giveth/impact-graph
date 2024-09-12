@@ -14,6 +14,9 @@ import { syncDonationsWithBlockchainData } from './syncDataWithInverter';
 import { InverterAdapter } from '../adapters/inverter/inverterAdapter';
 
 describe('Sync Donations Script Test Cases', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
   it('should update token price and total supply for projects', async () => {
     const projectData = createProjectData();
     const project = await saveProjectDirectlyToDb({
@@ -42,7 +45,7 @@ describe('Sync Donations Script Test Cases', () => {
       project.id,
     );
 
-    const getBlockTimestampStub = sinon
+    sinon
       .stub(InverterAdapter.prototype, 'getBlockTimestamp')
       .returns(Promise.resolve(1725987104));
 
@@ -72,6 +75,5 @@ describe('Sync Donations Script Test Cases', () => {
 
     await Donation.remove(donation);
     await deleteProjectDirectlyFromDb(project.id);
-    getBlockTimestampStub.restore();
   });
 });
