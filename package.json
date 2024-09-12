@@ -177,6 +177,7 @@
     "test:poignArt": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/poignArt/api.test.ts",
     "test:bootstrap": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/server/bootstrap.test.ts",
     "test:utils": "NODE_ENV=test mocha ./src/utils/utils.test.ts",
+    "test:inverterScript": "set NODE_ENV=test&& mocha ./test/pre-test-scripts.ts ./src/scripts/syncDataWithInverter.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
     "start:test": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./test.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
@@ -193,8 +194,8 @@
     "start:docker:server": "npm run db:migrate:run:production && npm run production",
     "start:docker:locally": "npm run db:migrate:run:local && npm run dev",
     "postinstall": "patch-package",
-    "sync:inverter:test": "NODE_ENV=test node ./build/src/scripts/syncDataWithInverter.js",
-    "sync:inverter:production": "NODE_ENV=production node ./build/src/scripts/syncDataWithInverter.js"
+    "sync:inverter:test": "NODE_ENV=test node ./build/src/scripts/runScript.js",
+    "sync:inverter:production": "NODE_ENV=production node ./build/src/scripts/runScript.js"
   },
   "husky": {
     "hooks": {

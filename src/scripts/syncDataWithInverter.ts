@@ -1,5 +1,6 @@
 import { Repository } from 'typeorm';
 import _ from 'lodash';
+import { ethers } from 'ethers';
 import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import {
@@ -31,11 +32,20 @@ async function updateTokenPriceAndTotalSupplyForProjects(
       continue;
     }
     try {
-      project.abc.tokenPrice = await fetchTokenPrice(project);
-      project.abc.totalSupply = await fetchTokenTotalSupply(project);
+      logger.debug(
+        `start fetching token price and total supply of project ${project.id}`,
+      );
+      const price = await fetchTokenPrice(project);
+      if (price) {
+        project.abc.tokenPrice = price;
+      }
+      const totalSupply = await fetchTokenTotalSupply(project);
+      if (totalSupply) {
+        project.abc.totalSupply = totalSupply;
+      }
       await project.save();
       logger.debug(
-        `token price and total supply of project ${project.id} updated successfully`,
+        `token price and total supply of project ${project.id} saved successfully`,
       );
     } catch (error) {
       logger.error(
@@ -48,6 +58,7 @@ async function updateTokenPriceAndTotalSupplyForProjects(
 
 async function fetchTokenPrice(project: Project) {
   try {
+    logger.debug(`start fetching token price for project ${project.id}:`);
     const tokenPrice = await adapter.getTokenPrice(
       project.abc.fundingManagerAddress,
     );
@@ -65,7 +76,7 @@ async function fetchTokenTotalSupply(project: Project) {
       project.abc.orchestratorAddress,
     );
     logger.debug(
-      `Fetched total supply for project ${project.title}:`,
+      `Fetched total supply for project ${project.id}:`,
       tokenTotalSupply,
     );
     return parseFloat(tokenTotalSupply);
@@ -192,7 +203,9 @@ async function fillRewardDataOfProjectDonations(donations: Donation[]) {
 
       donation.rewardStreamStart = new Date(parseInt(reward.start));
       donation.rewardStreamEnd = new Date(parseInt(reward.end));
-      donation.rewardTokenAmount = parseFloat(reward.amountRaw);
+      donation.rewardTokenAmount = parseFloat(
+        ethers.utils.formatUnits(reward.amountRaw, 18),
+      ); // Assuming the reward amount is returned in 18 decimals
       donation.cliff = parseFloat(reward.cliff);
 
       await donation.save();
@@ -206,9 +219,9 @@ async function fillRewardDataOfProjectDonations(donations: Donation[]) {
   }
 }
 
-async function syncDonationsWithBlockchainData() {
+export async function syncDonationsWithBlockchainData() {
   logger.debug('bootstrap() before AppDataSource.initialize()', new Date());
-  await AppDataSource.initialize();
+  await AppDataSource.initialize(false);
   logger.debug('bootstrap() after AppDataSource.initialize()', new Date());
 
   const datasource = AppDataSource.getDataSource();
@@ -219,13 +232,3 @@ async function syncDonationsWithBlockchainData() {
 
   await updateRewardsForDonations(donationRepository);
 }
-
-syncDonationsWithBlockchainData()
-  .then(() => {
-    logger.info('Data synced successfully.');
-    process.exit();
-  })
-  .catch(error => {
-    logger.error('Error syncing data:', error);
-    process.abort();
-  });
