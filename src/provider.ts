@@ -367,7 +367,9 @@ export function getProvider(networkId: number) {
       break;
 
     case NETWORK_IDS.OPTIMISM_SEPOLIA:
-      url = `https://optimism-sepolia.infura.io/v3/${INFURA_ID}`;
+      url =
+        (process.env.OPTIMISTIC_SEPOLIA_SCAN_API_URL as string) ||
+        `https://optimism-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
     case NETWORK_IDS.ARBITRUM_MAINNET:
