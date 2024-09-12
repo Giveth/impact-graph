@@ -501,7 +501,7 @@ export const getSumOfGivbackEligibleDonationsForSpecificRound = async (params: {
             SUM("donation"."valueUsd" * "donation"."givbackFactor") AS "totalUsdWithGivbackFactor"
           FROM "donation"
           WHERE "donation"."status" = 'verified'
-            AND "donation"."isProjectVerified" = true
+            AND "donation"."isProjectGivbackEligible" = true
             AND "donation"."powerRound" = $1
             AND NOT EXISTS (
                       SELECT 1

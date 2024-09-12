@@ -1956,7 +1956,7 @@ export interface CreateDonationData {
   donationPercentage?: number;
   powerRound?: number;
   givbackFactor?: number;
-  isProjectVerified?: boolean;
+  isProjectGivbackEligible?: boolean;
 }
 
 export interface CategoryData {
