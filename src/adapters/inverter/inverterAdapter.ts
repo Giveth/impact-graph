@@ -36,16 +36,16 @@ export class InverterAdapter {
   }
 
   public async getTokenTotalSupplyByAddress(
-    tokenAddress: string,
+    orchestratorAddress: string,
   ): Promise<any> {
     try {
       const result = await axios.post(this.graphqlUrl, {
         query: getTokenTotalSupplyByAddress,
         variables: {
-          tokenAddress,
+          orchestratorAddress,
         },
       });
-      return result.data.data.BondingCurve?.virtualIssuance;
+      return result.data.data.BondingCurve[0]?.virtualIssuance;
     } catch (error) {
       logger.error('Error fetching token total supply:', error);
       throw error;
