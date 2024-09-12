@@ -47,8 +47,8 @@ export const getBondingCurveByIDQuery = `query GetBondingCurveByID($id: String!)
 }`;
 
 export const getTokenTotalSupplyByAddress = `
-    query GetTokenTotalSupplyByAddress($tokenAddress: String!) {
-      BondingCurve(where: {issuanceToken: {_eq: $tokenAddress}}){
+    query GetTokenTotalSupplyByAddress($orchestratorAddress: String!) {
+      BondingCurve(where: {workflow_id: {_eq: $orchestratorAddress}}){
         virtualIssuance
         id
       }

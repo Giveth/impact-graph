@@ -1966,6 +1966,7 @@ export interface CreateDonationData {
   useDonationBox?: boolean;
   relevantDonationTxHash?: string;
   donationPercentage?: number;
+  blockNumber?: number;
 }
 
 export interface CategoryData {

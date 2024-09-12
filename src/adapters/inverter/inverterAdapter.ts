@@ -6,6 +6,7 @@ import {
   getRewardInfoByOrchestratorAddress,
 } from './graphqlSchema';
 import { logger } from '../../utils/logger';
+import config from '../../config';
 
 const abi = [
   {
@@ -25,19 +26,26 @@ const abi = [
 
 export class InverterAdapter {
   private graphqlUrl: string =
-    'https://indexer.bigdevenergy.link/7612f58/v1/graphql';
+    (config.get('INVERTER_GRAPHQL_ENDPOINT') as string) ||
+    'https://indexer.bigdevenergy.link/a414bf3/v1/graphql';
+
+  private provider: providers.Provider;
+
+  constructor(provider: providers.Provider) {
+    this.provider = provider;
+  }
 
   public async getTokenTotalSupplyByAddress(
-    tokenAddress: string,
+    orchestratorAddress: string,
   ): Promise<any> {
     try {
       const result = await axios.post(this.graphqlUrl, {
         query: getTokenTotalSupplyByAddress,
         variables: {
-          tokenAddress,
+          orchestratorAddress,
         },
       });
-      return result.data.data.BondingCurve;
+      return result.data.data.BondingCurve[0]?.virtualIssuance;
     } catch (error) {
       logger.error('Error fetching token total supply:', error);
       throw error;
@@ -85,12 +93,9 @@ export class InverterAdapter {
     }
   }
 
-  public async getTokenPrice(
-    provider: providers.Provider,
-    contractAddress: string,
-  ): Promise<string> {
+  public async getTokenPrice(contractAddress: string): Promise<string> {
     try {
-      const contract = new ethers.Contract(contractAddress, abi, provider);
+      const contract = new ethers.Contract(contractAddress, abi, this.provider);
       const price: ethers.BigNumber = await contract.getStaticPriceForBuying();
       return ethers.utils.formatUnits(price, 18); // Assuming the price is returned in 18 decimals
     } catch (error) {
@@ -98,4 +103,33 @@ export class InverterAdapter {
       throw error;
     }
   }
+
+  public async getBlockTimestamp(blockNumber: number): Promise<number> {
+    const block = await this.provider.getBlock(blockNumber);
+    return block.timestamp;
+  }
+}
+
+export interface StreamingPaymentProcessorResponse {
+  StreamingPaymentProcessor: {
+    chainId: number;
+    id: string;
+    workflow_id: string;
+    vestings: Vesting[];
+  }[];
+}
+
+export interface Vesting {
+  amountRaw: string;
+  blockTimestamp: number;
+  chainId: number;
+  cliff: string;
+  db_write_timestamp: number;
+  end: string;
+  id: string;
+  recipient: string;
+  start: string;
+  status: string;
+  streamingPaymentProcessor_id: string;
+  token: string;
 }
