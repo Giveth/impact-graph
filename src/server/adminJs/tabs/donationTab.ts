@@ -66,7 +66,7 @@ export const createDonation = async (
       currency,
       priceUsd,
       txType,
-      isProjectVerified,
+      isProjectGivbackEligible,
       segmentNotified,
     } = request.payload;
     if (!priceUsd) {
@@ -144,7 +144,7 @@ export const createDonation = async (
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
-        isProjectVerified,
+        isProjectGivbackEligible,
         donationType,
         createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
@@ -251,10 +251,14 @@ export const buildDonationsQuery = (
       referrerWallet: `%${queryStrings.referrerWallet}%`,
     });
 
-  if (queryStrings.isProjectVerified)
-    query.andWhere('donation.isProjectVerified = :isProjectVerified', {
-      isProjectVerified: queryStrings.isProjectVerified === 'true',
-    });
+  if (queryStrings.isProjectGivbackEligible)
+    query.andWhere(
+      'donation.isProjectGivbackEligible = :isProjectGivbackEligible',
+      {
+        isProjectGivbackEligible:
+          queryStrings.isProjectGivbackEligible === 'true',
+      },
+    );
 
   if (queryStrings['createdAt~~from'])
     query.andWhere('donation."createdAt" >= :createdFrom', {
@@ -402,7 +406,7 @@ const sendDonationsToGoogleSheet = async (
       id: donation.id,
       transactionId: donation.transactionId,
       transactionNetworkId: donation.transactionNetworkId,
-      isProjectVerified: Boolean(donation.isProjectVerified),
+      isProjectGivbackEligible: Boolean(donation.isProjectGivbackEligible),
       status: donation.status,
       toWalletAddress: donation.toWalletAddress,
       fromWalletAddress: donation.fromWalletAddress,
@@ -619,7 +623,7 @@ export const donationTab = {
           new: false,
         },
       },
-      isProjectVerified: {
+      isProjectGivbackEligible: {
         isVisible: {
           list: false,
           filter: false,
@@ -765,7 +769,7 @@ export const donationTab = {
         isVisible: true,
         before: async (request: AdminJsRequestInterface) => {
           const availableFieldsForEdit = [
-            'isProjectVerified',
+            'isProjectGivbackEligible',
             'status',
             'valueUsd',
             'priceUsd',

@@ -196,7 +196,7 @@ export const createRelatedDonationsToStream = async (
         status: DONATION_STATUS.VERIFIED,
         isTokenEligibleForGivback,
         isCustomToken,
-        isProjectVerified: project.verified,
+        isProjectGivbackEligible: project.isGivbackEligible,
         createdAt: new Date(),
         segmentNotified: false,
         toWalletAddress: toAddress,

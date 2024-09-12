@@ -916,7 +916,7 @@ export class DonationResolver {
         project,
         isTokenEligibleForGivback,
         isCustomToken,
-        isProjectVerified: project.verified,
+        isProjectGivbackEligible: project.isGivbackEligible,
         createdAt: new Date(),
         segmentNotified: false,
         toWalletAddress: toAddress,

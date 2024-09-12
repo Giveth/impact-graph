@@ -388,7 +388,7 @@ function createDonationTestCases() {
     const newDonation = await createDonation({
       donationAnonymous: false,
       donorUser: user,
-      isProjectVerified: false,
+      isProjectGivbackEligible: false,
       isTokenEligibleForGivback: false,
       project,
       segmentNotified: false,

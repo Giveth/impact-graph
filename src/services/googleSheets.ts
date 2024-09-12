@@ -55,7 +55,7 @@ interface DonationExport {
   id: number;
   transactionId: string;
   transactionNetworkId: number;
-  isProjectVerified: boolean;
+  isProjectGivbackEligible: boolean;
   status: string;
   toWalletAddress: string;
   fromWalletAddress: string;
