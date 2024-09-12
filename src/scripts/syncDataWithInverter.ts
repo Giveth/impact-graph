@@ -1,6 +1,6 @@
-import { Repository } from 'typeorm';
 import _ from 'lodash';
 import { ethers } from 'ethers';
+import { FindOptionsWhere } from 'typeorm';
 import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import {
@@ -16,9 +16,11 @@ import { getProvider, QACC_NETWORK_ID } from '../provider';
 const adapter = new InverterAdapter(getProvider(QACC_NETWORK_ID));
 
 async function updateTokenPriceAndTotalSupplyForProjects(
-  projectRepository: Repository<Project>,
+  projectFilter: FindOptionsWhere<Project>,
 ) {
-  const allProjects = await projectRepository.find();
+  const datasource = AppDataSource.getDataSource();
+  const projectRepository = datasource.getRepository(Project);
+  const allProjects = await projectRepository.find({ where: projectFilter });
   for (const project of allProjects) {
     if (!project.abc) {
       logger.error(
@@ -91,14 +93,17 @@ async function fetchTokenTotalSupply(project: Project) {
 }
 
 async function updateRewardsForDonations(
-  donationRepository: Repository<Donation>,
+  donationFilter: FindOptionsWhere<Donation>,
 ) {
   try {
+    const datasource = AppDataSource.getDataSource();
+    const donationRepository = datasource.getRepository(Donation);
     const donations = await donationRepository.find({
       where: [
         { rewardStreamEnd: undefined },
         { rewardStreamStart: undefined },
         { rewardTokenAmount: undefined },
+        donationFilter,
       ],
     });
 
@@ -220,16 +225,23 @@ async function fillRewardDataOfProjectDonations(donations: Donation[]) {
   }
 }
 
-export async function syncDonationsWithBlockchainData() {
+export async function syncDonationsWithBlockchainData(
+  {
+    projectFilter,
+    donationFilter,
+  }: {
+    projectFilter: FindOptionsWhere<Project>;
+    donationFilter: FindOptionsWhere<Donation>;
+  } = {
+    projectFilter: {},
+    donationFilter: {},
+  },
+) {
   logger.debug('bootstrap() before AppDataSource.initialize()', new Date());
   await AppDataSource.initialize(false);
   logger.debug('bootstrap() after AppDataSource.initialize()', new Date());
 
-  const datasource = AppDataSource.getDataSource();
-  const donationRepository = datasource.getRepository(Donation);
-  const projectRepository = datasource.getRepository(Project);
+  await updateTokenPriceAndTotalSupplyForProjects(projectFilter);
 
-  await updateTokenPriceAndTotalSupplyForProjects(projectRepository);
-
-  await updateRewardsForDonations(donationRepository);
+  await updateRewardsForDonations(donationFilter);
 }

@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import sinon from 'sinon';
+import { Not, In } from 'typeorm';
 import { Project } from '../entities/project';
 import {
   saveProjectDirectlyToDb,
@@ -14,7 +15,17 @@ import { syncDonationsWithBlockchainData } from './syncDataWithInverter';
 import { InverterAdapter } from '../adapters/inverter/inverterAdapter';
 
 describe('Sync Donations Script Test Cases', () => {
-  afterEach(() => {
+  let existingProjectIds: number[] = [];
+  let existingDonationIds: number[] = [];
+  beforeEach(async () => {
+    existingProjectIds =
+      (await Project.find({ select: ['id'] }))?.map(project => project.id) ||
+      [];
+    existingDonationIds =
+      (await Donation.find({ select: ['id'] }))?.map(donation => donation.id) ||
+      [];
+  });
+  afterEach(async () => {
     sinon.restore();
   });
   it('should update token price and total supply for projects', async () => {
@@ -49,7 +60,14 @@ describe('Sync Donations Script Test Cases', () => {
       .stub(InverterAdapter.prototype, 'getBlockTimestamp')
       .resolves(1725987104);
 
-    await syncDonationsWithBlockchainData();
+    await syncDonationsWithBlockchainData({
+      projectFilter: {
+        id: Not(In(existingProjectIds)),
+      },
+      donationFilter: {
+        id: Not(In(existingDonationIds)),
+      },
+    });
 
     const updatedProject = await Project.findOneBy({
       id: project.id,
