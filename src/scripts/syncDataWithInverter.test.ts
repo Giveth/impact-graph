@@ -42,7 +42,7 @@ describe('Sync Donations Script Test Cases', () => {
       project.id,
     );
 
-    sinon
+    const getBlockTimestampStub = sinon
       .stub(InverterAdapter.prototype, 'getBlockTimestamp')
       .returns(Promise.resolve(1725987104));
 
@@ -72,5 +72,6 @@ describe('Sync Donations Script Test Cases', () => {
 
     await Donation.remove(donation);
     await deleteProjectDirectlyFromDb(project.id);
+    getBlockTimestampStub.restore();
   });
 });
