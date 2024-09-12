@@ -1,4 +1,5 @@
 import { Repository } from 'typeorm';
+import _ from 'lodash';
 import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import {
@@ -10,7 +11,7 @@ import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
 import { getProvider, QACC_NETWORK_ID } from '../provider';
 
-const adapter = new InverterAdapter();
+const adapter = new InverterAdapter(getProvider(QACC_NETWORK_ID));
 
 async function updateTokenPriceAndTotalSupplyForProjects(
   projectRepository: Repository<Project>,
@@ -48,14 +49,13 @@ async function updateTokenPriceAndTotalSupplyForProjects(
 async function fetchTokenPrice(project: Project) {
   try {
     const tokenPrice = await adapter.getTokenPrice(
-      getProvider(QACC_NETWORK_ID),
-      project.abc.orchestratorAddress, // todo: check the contract address to be orchestrator address or not
+      project.abc.fundingManagerAddress,
     );
     logger.debug(`Fetched token price for project ${project.id}:`, tokenPrice);
     return parseFloat(tokenPrice);
   } catch (error) {
     logger.error(`Error in fetch token price of project ${project.id}`, error);
-    return null;
+    return;
   }
 }
 
@@ -74,7 +74,7 @@ async function fetchTokenTotalSupply(project: Project) {
       `Error fetching total supply for project ${project.id}:`,
       error,
     );
-    return null;
+    return;
   }
 }
 
@@ -90,17 +90,7 @@ async function updateRewardsForDonations(
       ],
     });
 
-    const donationsByProjectId = donations.reduce(
-      (acc, donation) => {
-        const projectId = donation.projectId;
-        if (!acc[projectId]) {
-          acc[projectId] = [];
-        }
-        acc[projectId].push(donation);
-        return acc;
-      },
-      {} as Record<number, Donation[]>,
-    );
+    const donationsByProjectId = _.groupBy(donations, 'projectId');
 
     for (const projectId of Object.keys(donationsByProjectId)) {
       logger.debug(
@@ -154,29 +144,56 @@ async function fillRewardDataOfProjectDonations(donations: Donation[]) {
         `start getting block timestamp for block number: ${donation.blockNumber}, from network with Id: ${QACC_NETWORK_ID}`,
       );
       const donationBlockTimestamp = await adapter.getBlockTimestamp(
-        getProvider(QACC_NETWORK_ID),
         donation.blockNumber,
       );
       logger.debug(
         `the block timestamp for block number: ${donation.blockNumber} is: ${donationBlockTimestamp}`,
       );
-      const donationRewardInfo = filteredRewards.find(
+      const donationRewardInfo = filteredRewards.filter(
         reward => reward.blockTimestamp === donationBlockTimestamp,
       );
-      if (!donationRewardInfo) {
+      if (donationRewardInfo.length === 0) {
         logger.error(
           `donation blockTimestamp for donation ${donation.id} did not match any reward data blockTimes!
           donationBlockTimestamp = ${donationBlockTimestamp}`,
         );
         continue;
       }
+      let reward = donationRewardInfo[0];
+      if (donationRewardInfo.length > 1) {
+        logger.debug(
+          `find more that one reward info for user ${donation.userId} in one block!`,
+        );
+        const userDonationsInThisBlock = donations.filter(
+          d =>
+            d.fromWalletAddress === donation.fromWalletAddress &&
+            d.blockNumber === donation.blockNumber,
+        );
+        if (userDonationsInThisBlock.length !== donationRewardInfo.length) {
+          logger.error(
+            `the number of user donations in the ${donation.blockNumber} block is ${userDonationsInThisBlock.length}
+             but we have ${donationRewardInfo.length} reward info for it!`,
+          );
+          continue;
+        }
+        const sortedDonations = userDonationsInThisBlock.sort(
+          (a, b) => a.amount - b.amount,
+        );
+        const sortedRewardInfo = donationRewardInfo.sort(
+          (a, b) => parseFloat(a.amountRaw) - parseFloat(b.amountRaw),
+        );
+        const currentDonationIndex = sortedDonations.findIndex(
+          d => d.id === donation.id,
+        );
+        reward = sortedRewardInfo[currentDonationIndex];
+      }
       logger.debug(`donation reward data for donation: ${donation.id}, is: 
-      ${donationRewardInfo.start}, ${donationRewardInfo.end}, ${donationRewardInfo.cliff}, ${donationRewardInfo.amountRaw}`);
+      ${reward.start}, ${reward.end}, ${reward.cliff}, ${reward.amountRaw}`);
 
-      donation.rewardStreamStart = new Date(parseInt(donationRewardInfo.start));
-      donation.rewardStreamEnd = new Date(parseInt(donationRewardInfo.end));
-      donation.rewardTokenAmount = parseFloat(donationRewardInfo.amountRaw);
-      donation.cliff = parseFloat(donationRewardInfo.cliff);
+      donation.rewardStreamStart = new Date(parseInt(reward.start));
+      donation.rewardStreamEnd = new Date(parseInt(reward.end));
+      donation.rewardTokenAmount = parseFloat(reward.amountRaw);
+      donation.cliff = parseFloat(reward.cliff);
 
       await donation.save();
       logger.debug(

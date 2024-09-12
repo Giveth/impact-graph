@@ -146,9 +146,9 @@ export class Abc {
   @Field()
   fundingManagerAddress: string;
   @Field(_type => Float, { nullable: true })
-  tokenPrice?: number | null;
+  tokenPrice?: number;
   @Field(_type => Float, { nullable: true })
-  totalSupply?: number | null;
+  totalSupply?: number;
   @Field(_type => Float, { nullable: true })
   mintedAmount?: number;
   @Field()

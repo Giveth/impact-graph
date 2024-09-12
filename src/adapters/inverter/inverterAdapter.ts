@@ -29,6 +29,12 @@ export class InverterAdapter {
     (config.get('INVERTER_GRAPHQL_ENDPOINT') as string) ||
     'https://indexer.bigdevenergy.link/a414bf3/v1/graphql';
 
+  private provider: providers.Provider;
+
+  constructor(provider: providers.Provider) {
+    this.provider = provider;
+  }
+
   public async getTokenTotalSupplyByAddress(
     tokenAddress: string,
   ): Promise<any> {
@@ -87,12 +93,9 @@ export class InverterAdapter {
     }
   }
 
-  public async getTokenPrice(
-    provider: providers.Provider,
-    contractAddress: string,
-  ): Promise<string> {
+  public async getTokenPrice(contractAddress: string): Promise<string> {
     try {
-      const contract = new ethers.Contract(contractAddress, abi, provider);
+      const contract = new ethers.Contract(contractAddress, abi, this.provider);
       const price: ethers.BigNumber = await contract.getStaticPriceForBuying();
       return ethers.utils.formatUnits(price, 18); // Assuming the price is returned in 18 decimals
     } catch (error) {
@@ -101,11 +104,8 @@ export class InverterAdapter {
     }
   }
 
-  public async getBlockTimestamp(
-    provider: providers.Provider,
-    blockNumber: number,
-  ): Promise<number> {
-    const block = await provider.getBlock(blockNumber);
+  public async getBlockTimestamp(blockNumber: number): Promise<number> {
+    const block = await this.provider.getBlock(blockNumber);
     return block.timestamp;
   }
 }
