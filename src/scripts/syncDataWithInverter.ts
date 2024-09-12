@@ -12,6 +12,7 @@ import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
 import { getProvider, QACC_NETWORK_ID } from '../provider';
 
+// todo: check if we should use same network for inverter or not
 const adapter = new InverterAdapter(getProvider(QACC_NETWORK_ID));
 
 async function updateTokenPriceAndTotalSupplyForProjects(
