@@ -1022,13 +1022,16 @@ function getTransactionDetailTestCases() {
 }
 
 function closeToTestCases() {
-  it('should 0.0008436 and 0.0008658 consider as closed amount', function () {
-    assert.isTrue(closeTo(0.0008436, 0.0008658));
+  it('should not consider 0.0008436 and 0.0008658 as closed amount', function () {
+    assert.isFalse(closeTo(0.0008436, 0.0008658));
   });
-  it('should 0.0001 and 0.00011 consider as closed amount', function () {
-    assert.isTrue(closeTo(0.0001, 0.00011));
+  it('should not consider 0.0001 and 0.00011 as closed amount', function () {
+    assert.isFalse(closeTo(0.0001, 0.00011));
   });
   it('should not consider 0.001 and 0.003 consider as closed amount', function () {
     assert.isFalse(closeTo(0.001, 0.003));
+  });
+  it('should  consider 1000.1 and 1000 consider as closed amount', function () {
+    assert.isTrue(closeTo(1000.1, 1000));
   });
 }
