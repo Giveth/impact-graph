@@ -5,7 +5,7 @@
 
 ### Build status
 
-- Develop - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/develop-pipeline.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/develop-pipeline.yml)
+- Develop - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/develop-pipeline.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/develop-pipeline.yml) (deprecated)
 - Staging - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/staging-pipeline.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/staging-pipeline.yml)
 - Production - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/master-pipeline.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/master-pipeline.yml)
 
