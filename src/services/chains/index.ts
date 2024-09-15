@@ -27,6 +27,7 @@ export interface TransactionDetailInput {
   safeTxHash?: string;
   nonce?: number;
   chainType?: ChainType;
+  importedFromDraftOrBackupService?: boolean;
 }
 
 export const ONE_HOUR = 60 * 60;
@@ -59,7 +60,11 @@ export function validateTransactionWithInputData(
     );
   }
 
-  if (input.timestamp - transaction.timestamp > ONE_HOUR) {
+  if (
+    // We bypass checking tx and donation time for imported donations from backup service or draft donation
+    !input.importedFromDraftOrBackupService &&
+    input.timestamp - transaction.timestamp > ONE_HOUR
+  ) {
     // because we first create donation, then transaction will be mined, the transaction always should be greater than
     // donation created time, but we set one hour because maybe our server time is different with blockchain time server
     logger.debug(

@@ -657,6 +657,51 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
   });
+  it(
+    'should change status to verified when donation is very newer than transaction' +
+      ' but tx is imported or relevant to draft donation',
+    async () => {
+      // https://blockscout.com/xdai/mainnet/tx/0x00aef89fc40cea0cc0cb7ae5ac18c0e586dccb200b230a9caabca0e08ff7a36b
+      const transactionInfo = {
+        txHash:
+          '0x00aef89fc40cea0cc0cb7ae5ac18c0e586dccb200b230a9caabca0e08ff7a36b',
+        currency: 'USDC',
+        networkId: NETWORK_IDS.XDAI,
+        fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
+        toAddress: '0x87f1c862c166b0ceb79da7ad8d0864d53468d076',
+        amount: 1,
+      };
+      const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+      const project = await saveProjectDirectlyToDb({
+        ...createProjectData(),
+        walletAddress: transactionInfo.toAddress,
+      });
+      const donation = await saveDonationDirectlyToDb(
+        {
+          amount: transactionInfo.amount,
+          transactionNetworkId: transactionInfo.networkId,
+          transactionId: transactionInfo.txHash,
+          currency: transactionInfo.currency,
+          fromWalletAddress: transactionInfo.fromAddress,
+          toWalletAddress: transactionInfo.toAddress,
+          valueUsd: 100,
+          anonymous: false,
+          createdAt: new Date(),
+          status: DONATION_STATUS.PENDING,
+        },
+        user.id,
+        project.id,
+      );
+      donation.importDate = new Date();
+      await donation.save();
+      const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+        donationId: donation.id,
+      });
+      assert.isOk(updateDonation);
+      assert.equal(updateDonation.id, donation.id);
+      assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+    },
+  );
 }
 
 function isProjectAcceptTokenTestCases() {
