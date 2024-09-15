@@ -41,6 +41,7 @@ import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { CustomToken, getTokenPrice } from './priceService';
 import { updateProjectStatistics } from './projectService';
+import { findDraftDonationByMatchedDonationId } from '../repositories/draftDonationRepository';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -228,6 +229,8 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
   if (!donation) {
     throw new Error(i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND));
   }
+  const relevantDraftDonation =
+    await findDraftDonationByMatchedDonationId(donationId);
 
   // fetch the transactionId from the safeTransaction Approval
   if (!donation.transactionId && donation.safeTransactionId) {
@@ -261,6 +264,9 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       chainType: donation.chainType,
       safeTxHash: donation.safeTransactionId,
       timestamp: donation.createdAt.getTime() / 1000,
+      importedFromDraftOrBackupService: Boolean(
+        donation.importDate || relevantDraftDonation,
+      ),
     });
     donation.status = DONATION_STATUS.VERIFIED;
     if (transaction.hash !== donation.transactionId) {

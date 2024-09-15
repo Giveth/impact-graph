@@ -800,6 +800,26 @@ function getTransactionDetailTestCases() {
       errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
   });
+  it(
+    'should not return error when transaction time is newer than sent timestamp for HNY token transfer on XDAI,' +
+      'And donation is imported or relevant to draft donation',
+    async () => {
+      // https://blockscout.com/xdai/mainnet/tx/0x99e70642fe1aa03cb2db35c3e3909466e66b233840b7b1e0dd47296c878c16b4
+      const amount = 0.001;
+      const txInfo = await getTransactionInfoFromNetwork({
+        txHash:
+          '0x99e70642fe1aa03cb2db35c3e3909466e66b233840b7b1e0dd47296c878c16b4',
+        symbol: 'HNY',
+        networkId: NETWORK_IDS.XDAI,
+        fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
+        toAddress: '0x5A5a0732c1231D99DB8FFcA38DbEf1c8316fD3E1',
+        amount,
+        timestamp: 1617903450 + ONE_DAY,
+        importedFromDraftOrBackupService: true,
+      });
+      assert.isNotNull(txInfo);
+    },
+  );
   it('should return transaction_not_found when it has not being mined before an hour', async () => {
     const amount = 0.001;
     const badFunc = async () => {
@@ -1019,6 +1039,29 @@ function getTransactionDetailTestCases() {
       errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
   });
+  it(
+    'should not return error when transaction time is newer than sent timestamp for spl-token transfer on Solana,' +
+      'but donation is imported or relevant to draft',
+    async () => {
+      // https://explorer.solana.com/tx/2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16?cluster=devnet
+
+      const amount = 7;
+      const transactionInfo = await getTransactionInfoFromNetwork({
+        txHash:
+          '2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16',
+        symbol: 'TEST-SPL-TOKEN',
+        chainType: ChainType.SOLANA,
+        networkId: NETWORK_IDS.SOLANA_DEVNET,
+        fromAddress: 'BxUK9tDLeMT7AkTR2jBTQQYUxGGw6nuWbQqGtiHHfftn',
+        toAddress: 'FAMREy7d73N5jPdoKowQ4QFm6DKPWuYxZh6cwjNAbpkY',
+        timestamp: 1704357745 + ONE_DAY,
+        amount,
+        importedFromDraftOrBackupService: true,
+      });
+
+      assert.isOk(transactionInfo);
+    },
+  );
 }
 
 function closeToTestCases() {
