@@ -3160,6 +3160,29 @@ function donationsByProjectIdTestCases() {
 
     assert.isTrue(donations.length > 0);
   });
+  it('should search by donation fromWalletAddress', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          searchTerm: DONATION_SEED_DATA.FIRST_DONATION.fromWalletAddress,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    donations.forEach(d =>
+      assert.equal(
+        d.fromWalletAddress,
+        DONATION_SEED_DATA.FIRST_DONATION.fromWalletAddress,
+      ),
+    );
+
+    assert.isTrue(donations.length > 0);
+  });
   it('should filter donations by failed status', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
