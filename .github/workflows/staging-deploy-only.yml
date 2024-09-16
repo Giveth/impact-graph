@@ -1,4 +1,4 @@
-name: staging-pipeline
+name: staging-deploy-only
 
 on:
   workflow_dispatch:
