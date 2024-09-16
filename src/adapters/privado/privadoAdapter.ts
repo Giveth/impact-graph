@@ -12,11 +12,11 @@ const PRIVADO_VERIFIER_CONTRACT_ADDRESS = config.get(
 ) as string;
 const PRIVADO_REQUEST_ID = +config.get('PRIVADO_REQUEST_ID') as number;
 
-logger.debug('Privado Request ID', { PRIVADO_REQUEST_ID });
 export class PrivadoAdapter {
   private provider;
 
   constructor() {
+    logger.debug('Privado Request ID', { PRIVADO_REQUEST_ID });
     this.provider = getProvider(PRIVADO_VERIFIER_NETWORK_ID);
   }
 
