@@ -1,0 +1,23 @@
+name: staging-pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            git checkout staging
+            git pull
+            docker compose -f docker-compose-staging.yml pull
+            docker compose -f docker-compose-staging.yml up -d
+            docker image prune -a --force
