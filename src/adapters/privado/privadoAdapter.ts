@@ -16,7 +16,7 @@ export class PrivadoAdapter {
   private provider;
 
   constructor() {
-    logger.debug('Privado Request ID', { PRIVADO_REQUEST_ID });
+    logger.error('Privado Request ID', { PRIVADO_REQUEST_ID });
     this.provider = getProvider(PRIVADO_VERIFIER_NETWORK_ID);
   }
 
