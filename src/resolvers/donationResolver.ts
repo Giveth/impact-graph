@@ -590,6 +590,9 @@ export class DonationResolver {
             .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
               searchTerm: `%${searchTerm}%`,
             })
+            .orWhere('donation.fromWalletAddress ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            })
             .orWhere('donation.currency ILIKE :searchTerm', {
               searchTerm: `%${searchTerm}%`,
             });
