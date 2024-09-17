@@ -151,6 +151,7 @@ export interface CreateProjectData {
   image?: string;
   networkId?: number;
   chainType?: ChainType;
+  isGivbackEligible: boolean;
 }
 
 export const saveUserDirectlyToDb = async (
@@ -321,6 +322,7 @@ export const createProjectData = (name?: string): CreateProjectData => {
     walletAddress,
     categories: ['food1'],
     verified: true,
+    isGivbackEligible: true,
     listed: true,
     reviewStatus: ReviewStatus.Listed,
     giveBacks: false,
@@ -1952,6 +1954,9 @@ export interface CreateDonationData {
   useDonationBox?: boolean;
   relevantDonationTxHash?: string;
   donationPercentage?: number;
+  powerRound?: number;
+  givbackFactor?: number;
+  isProjectGivbackEligible?: boolean;
 }
 
 export interface CategoryData {

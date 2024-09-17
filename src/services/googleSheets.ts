@@ -55,7 +55,7 @@ interface DonationExport {
   id: number;
   transactionId: string;
   transactionNetworkId: number;
-  isProjectVerified: boolean;
+  isProjectGivbackEligible: boolean;
   status: string;
   toWalletAddress: string;
   fromWalletAddress: string;
@@ -175,6 +175,8 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
       'totalValuesOfUserDonationsAfterAnalysis',
       'uniqueUserIdsAfterAnalysis',
       'projectOwnerEmail',
+      'projectId',
+      'qfRoundId',
     ];
 
     const { rows, qfRoundId } = params;

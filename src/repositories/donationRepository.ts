@@ -7,6 +7,8 @@ import { logger } from '../utils/logger';
 import { QfRound } from '../entities/qfRound';
 import { ChainType } from '../types/network';
 import { ORGANIZATION_LABELS } from '../entities/organization';
+import { AppDataSource } from '../orm';
+import { getPowerRound } from './powerRoundRepository';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`
@@ -70,7 +72,7 @@ export const createDonation = async (data: {
   fromWalletAddress: string;
   transactionId: string;
   tokenAddress: string;
-  isProjectVerified: boolean;
+  isProjectGivbackEligible: boolean;
   donorUser: any;
   isTokenEligibleForGivback: boolean;
   segmentNotified: boolean;
@@ -98,7 +100,7 @@ export const createDonation = async (data: {
     tokenAddress,
     project,
     isTokenEligibleForGivback,
-    isProjectVerified,
+    isProjectGivbackEligible,
     donationAnonymous,
     toWalletAddress,
     fromWalletAddress,
@@ -127,7 +129,7 @@ export const createDonation = async (data: {
     tokenAddress,
     project,
     isTokenEligibleForGivback,
-    isProjectVerified,
+    isProjectGivbackEligible,
     createdAt: new Date(),
     segmentNotified: true,
     toWalletAddress,
@@ -544,6 +546,46 @@ export const getRecentDonations = async (take: number): Promise<Donation[]> => {
     .take(take)
     .cache(`recent-${take}-donations`, 60000)
     .getMany();
+};
+
+export const getSumOfGivbackEligibleDonationsForSpecificRound = async (params: {
+  powerRound?: number;
+}): Promise<number> => {
+  // This function calculates the total USD value of all donations that are eligible for Givback in a specific PowerRound
+
+  try {
+    // If no powerRound is passed, get the latest one from the PowerRound table
+    const powerRound = params.powerRound || (await getPowerRound())?.round;
+    if (!powerRound) {
+      throw new Error('No powerRound found in the database.');
+    }
+
+    // Execute the main raw SQL query with the powerRound
+    const result = await AppDataSource.getDataSource().query(
+      `
+          SELECT 
+            SUM("donation"."valueUsd" * "donation"."givbackFactor") AS "totalUsdWithGivbackFactor"
+          FROM "donation"
+          WHERE "donation"."status" = 'verified'
+            AND "donation"."isProjectGivbackEligible" = true
+            AND "donation"."powerRound" = $1
+            AND NOT EXISTS (
+                      SELECT 1
+                      FROM "project_address" "pa"
+                      INNER JOIN "project" "p" ON "p"."id" = "pa"."projectId"
+                      WHERE "pa"."address" = "donation"."fromWalletAddress"
+                        AND "pa"."isRecipient" = true
+                        AND "p"."verified" = true
+                  );
+                `,
+      [powerRound],
+    );
+
+    return result?.[0]?.totalUsdWithGivbackFactor ?? 0;
+  } catch (e) {
+    logger.error('getSumOfGivbackEligibleDonationsForSpecificRound() error', e);
+    return 0;
+  }
 };
 
 export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {

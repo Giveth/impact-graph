@@ -19,6 +19,7 @@ import {
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { sleep } from '../../utils/utils';
 import { fillIncompletePowerSnapshots } from '../powerSnapshotServices';
+import { refreshProjectGivbackRankView } from '../../repositories/projectGivbackViewRepository';
 
 const cronJobTime =
   (config.get('UPDATE_POWER_ROUND_CRONJOB_EXPRESSION') as string) ||
@@ -55,6 +56,7 @@ export const runUpdatePowerRoundCronJob = () => {
       refreshProjectPowerView(),
       refreshProjectFuturePowerView(),
       refreshUserProjectPowerView(),
+      refreshProjectGivbackRankView(),
     ]);
     if (powerRound !== currentRound?.round) {
       // Refreshing views need time to refresh tables, so I wait for 1 minute and after that check project rank changes

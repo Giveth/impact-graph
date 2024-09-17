@@ -558,7 +558,6 @@ function removeProjectAndRelatedEntitiesTestCase() {
       FeaturedUpdate.create({ projectId: project.id }).save(),
       SocialProfile.create({ projectId: project.id }).save(),
     ]);
-
     const relatedEntitiesBefore = await Promise.all([
       Donation.findOne({ where: { projectId: project.id } }),
       Reaction.findOne({ where: { projectId: project.id } }),

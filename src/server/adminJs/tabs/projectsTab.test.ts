@@ -921,13 +921,13 @@ function verifyMultipleProjectsTestCases() {
       where: { id: project2.id },
     });
 
-    assert.notEqual(project1Updated?.verificationStatus, 'revoked');
-    assert.equal(project1Updated?.verificationStatus, null);
+    assert.equal(project1Updated?.verificationStatus, 'revoked');
+
     assert.notEqual(project1Updated?.verified, false);
     assert.equal(project1Updated?.verified, true);
 
-    assert.notEqual(project2Updated?.verificationStatus, 'reminder');
-    assert.equal(project2Updated?.verificationStatus, null);
+    assert.equal(project2Updated?.verificationStatus, 'reminder');
+
     assert.notEqual(project2Updated?.verified, false);
     assert.equal(project2Updated?.verified, true);
   });

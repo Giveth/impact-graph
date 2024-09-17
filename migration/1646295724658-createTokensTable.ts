@@ -10,6 +10,7 @@ export class createTokensTable1646295724658 implements MigrationInterface {
           name text COLLATE pg_catalog."default" NOT NULL,
           symbol text COLLATE pg_catalog."default" NOT NULL,
           address text COLLATE pg_catalog."default" NOT NULL,
+          "isQR" BOOLEAN DEFAULT FALSE NOT NUL,
           "networkId" integer NOT NULL,
           decimals integer NOT NULL,
           "order" integer,
