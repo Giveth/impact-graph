@@ -7,7 +7,7 @@ export class AddEndaomentProjectBanners1726069430594
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const mainCategorySlugToBannerMapping = {
-      'environment-and-energy': 'nature',
+      'environment-and-energy': 'environment-energy',
       'health-and-wellness': 'health-wellness',
       'art-and-culture': 'art-culture',
       nature: 'nature',
