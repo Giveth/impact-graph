@@ -457,11 +457,8 @@ export class DonationResolver {
     }
     const usdValueSentAmountInPowerRound =
       await getSumOfGivbackEligibleDonationsForSpecificRound({});
-    const givToken = await findTokenByNetworkAndSymbol(
-      NETWORK_IDS.MAIN_NET,
-      'GIV',
-    );
-    const givPrice = await getTokenPrice(NETWORK_IDS.MAIN_NET, givToken);
+    const givToken = await findTokenByNetworkAndSymbol(NETWORK_IDS.XDAI, 'GIV');
+    const givPrice = await getTokenPrice(NETWORK_IDS.XDAI, givToken);
 
     const maxSentGivInRound = 1_000_000;
     const allocatedGivTokens = Math.ceil(
@@ -919,7 +916,7 @@ export class DonationResolver {
         project,
         isTokenEligibleForGivback,
         isCustomToken,
-        isProjectVerified: project.verified,
+        isProjectGivbackEligible: project.isGivbackEligible,
         createdAt: new Date(),
         segmentNotified: false,
         toWalletAddress: toAddress,

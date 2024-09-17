@@ -6,6 +6,10 @@ import { NETWORK_IDS } from '../src/provider';
 
 export class AddBaseChainTokens1716367359560 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE token ADD COLUMN IF NOT EXISTS "isQR" BOOLEAN DEFAULT FALSE NOT NULL`,
+    );
+
     const environment = config.get('ENVIRONMENT') as string;
 
     const networkId =

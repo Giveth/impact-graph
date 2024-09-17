@@ -195,7 +195,6 @@ export async function bootstrap() {
     if (process.env.DISABLE_SERVER_CORS !== 'true') {
       app.use(cors(corsOptions));
     }
-    app.use(bodyParserJson);
 
     if (process.env.DISABLE_SERVER_RATE_LIMITER !== 'true') {
       const limiter = rateLimit({
@@ -277,6 +276,9 @@ export async function bootstrap() {
         },
       }),
     );
+    // AdminJs!
+    app.use(adminJsRootPath, await getAdminJsRouter());
+    app.use(bodyParserJson);
     app.use('/apigive', apiGivRouter);
     app.use(SOCIAL_PROFILES_PREFIX, oauth2CallbacksRouter);
     app.post(
@@ -311,9 +313,6 @@ export async function bootstrap() {
           reject(err); // Reject the Promise if there's an error starting the server
         });
     });
-
-    // AdminJs!
-    app.use(adminJsRootPath, await getAdminJsRouter());
   } catch (err) {
     logger.fatal('bootstrap() error', err);
   }

@@ -218,7 +218,7 @@ function createDonationTestCases() {
           priceUsd: tokenPrice,
           txType: 'gnosisSafe',
           segmentNotified: true,
-          isProjectVerified: true,
+          isProjectGivbackEligible: true,
         },
       },
       {
@@ -248,7 +248,7 @@ function createDonationTestCases() {
       assert.equal(donation.status, DONATION_STATUS.VERIFIED);
       assert.equal(donation.priceUsd, tokenPrice);
       assert.equal(donation.segmentNotified, true);
-      assert.equal(donation.isProjectVerified, true);
+      assert.equal(donation.isProjectGivbackEligible, true);
       assert.equal(donation.amount, 5);
       assert.equal(
         donation.fromWalletAddress.toLowerCase(),

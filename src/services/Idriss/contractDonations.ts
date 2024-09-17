@@ -215,7 +215,7 @@ export const createIdrissTwitterDonation = async (
       origin: DONATION_ORIGINS.IDRISS_TWITTER,
       isTokenEligibleForGivback,
       isCustomToken: false,
-      isProjectVerified: project.verified,
+      isProjectGivbackEligible: project.isGivbackEligible,
       createdAt: moment(idrissDonation.blockTimestamp).toDate(),
       segmentNotified: false,
       isExternal: true,

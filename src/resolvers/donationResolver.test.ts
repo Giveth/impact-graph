@@ -49,7 +49,6 @@ import {
   takePowerBoostingSnapshot,
 } from '../repositories/powerBoostingRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
-import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
@@ -68,6 +67,7 @@ import {
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
+import { refreshProjectGivbackRankView } from '../repositories/projectGivbackViewRepository';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -1572,7 +1572,7 @@ function createDonationTestCases() {
     assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.equal(donation?.amount, amount);
   });
-  it('should create GIV donation and fill averageGivbackFactor', async () => {
+  it('  should create GIV donation and fill averageGivbackFactor', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
@@ -1614,7 +1614,7 @@ function createDonationTestCases() {
       balance: 100,
     });
     await setPowerRound(roundNumber);
-    await refreshProjectPowerView();
+    await refreshProjectGivbackRankView();
 
     const accessToken = await generateTestAccessToken(user.id);
     const saveDonationResponse = await axios.post(
@@ -2388,7 +2388,7 @@ function createDonationTestCases() {
       errorMessages.PROJECT_NOT_FOUND,
     );
   });
-  it('should isProjectVerified be true after create donation for verified projects', async () => {
+  it('should isProjectGivbackEligible be true after create donation for verified projects', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       verified: true,
@@ -2425,12 +2425,13 @@ function createDonationTestCases() {
       },
     });
     assert.isOk(donation);
-    assert.isTrue(donation?.isProjectVerified);
+    assert.isTrue(donation?.isProjectGivbackEligible);
   });
-  it('should isProjectVerified be true after create donation for unVerified projects', async () => {
+  it('should isProjectGivbackEligible be true after create donation for unVerified projects', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       verified: false,
+      isGivbackEligible: true,
     });
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -2464,7 +2465,7 @@ function createDonationTestCases() {
       },
     });
     assert.isOk(donation);
-    assert.isFalse(donation?.isProjectVerified);
+    assert.isTrue(donation?.isProjectGivbackEligible);
   });
   it('should throw exception when donating to draft projects', async () => {
     const project = await saveProjectDirectlyToDb({
@@ -3799,6 +3800,7 @@ function donationsByUserIdTestCases() {
       walletAddress: generateRandomEtheriumAddress(),
       categories: ['food1'],
       verified: true,
+      isGivbackEligible: true,
       listed: true,
       reviewStatus: ReviewStatus.Listed,
       giveBacks: false,
@@ -3883,6 +3885,7 @@ function donationsByUserIdTestCases() {
       listed: true,
       reviewStatus: ReviewStatus.Listed,
       giveBacks: false,
+      isGivbackEligible: false,
       creationDate: new Date(),
       updatedAt: new Date(),
       latestUpdateCreationDate: new Date(),
@@ -4999,7 +5002,7 @@ async function allocatedGivbacksQueryTestCases() {
         valueUsd: valueUsd1,
         powerRound,
         givbackFactor: givbackFactor1,
-        isProjectVerified: true,
+        isProjectGivbackEligible: true,
       },
       donor1.id,
       project.id,
@@ -5012,7 +5015,7 @@ async function allocatedGivbacksQueryTestCases() {
         valueUsd: valueUsd2,
         powerRound,
         givbackFactor: givbackFactor2,
-        isProjectVerified: true,
+        isProjectGivbackEligible: true,
       },
       donor1.id,
       project.id,
@@ -5025,7 +5028,7 @@ async function allocatedGivbacksQueryTestCases() {
         valueUsd: valueUsd3,
         powerRound: 1231,
         givbackFactor: givbackFactor3,
-        isProjectVerified: true,
+        isProjectGivbackEligible: true,
       },
       donor2.id,
       project.id,
@@ -5075,7 +5078,7 @@ async function allocatedGivbacksQueryTestCases() {
         valueUsd: valueUsd1,
         powerRound,
         givbackFactor: givbackFactor1,
-        isProjectVerified: true,
+        isProjectGivbackEligible: true,
       },
       donor1.id,
       project.id,
@@ -5088,7 +5091,7 @@ async function allocatedGivbacksQueryTestCases() {
         valueUsd: valueUsd2,
         powerRound,
         givbackFactor: givbackFactor2,
-        isProjectVerified: true,
+        isProjectGivbackEligible: true,
       },
       donor1.id,
       project.id,
@@ -5119,7 +5122,7 @@ async function allocatedGivbacksQueryTestCases() {
         valueUsd: valueUsd3,
         powerRound,
         givbackFactor: givbackFactor3,
-        isProjectVerified: true,
+        isProjectGivbackEligible: true,
       },
       donor2.id,
       project.id,

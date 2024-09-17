@@ -77,7 +77,7 @@ export class Donation extends BaseEntity {
   @Field()
   @Column('boolean', { default: false })
   // https://github.com/Giveth/impact-graph/issues/407#issuecomment-1066892258
-  isProjectVerified: boolean;
+  isProjectGivbackEligible: boolean;
 
   @Field()
   @Column('text', { default: DONATION_STATUS.PENDING })

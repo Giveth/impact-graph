@@ -224,7 +224,7 @@ export class ProjectVerificationFormResolver {
           ),
         );
       }
-      if (project.verified) {
+      if (project.isGivbackEligible) {
         throw new Error(
           i18n.__(translationErrorMessagesKeys.PROJECT_IS_ALREADY_VERIFIED),
         );
