@@ -3,6 +3,7 @@ name: Run Inverter Sync Script
 on:
   schedule:
     - cron: '0 0 * * 1,6' # Runs at midnight every Monday and Saturday
+  workflow_dispatch: # This allows manual triggering
 
 jobs:
   run-script:
