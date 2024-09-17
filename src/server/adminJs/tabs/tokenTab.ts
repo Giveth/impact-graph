@@ -7,6 +7,7 @@ import { AdminJsRequestInterface } from '../adminJs-types';
 import { Organization } from '../../../entities/organization';
 import { logger } from '../../../utils/logger';
 import { findTokenByTokenId } from '../../../repositories/tokenRepository';
+import { ChainType } from '../../../types/network';
 
 // generates orderly permutations and maps then into an array which is later flatten into 1 dimension
 // Current length is the length of selected items from the total items
@@ -210,6 +211,18 @@ export const generateTokenTab = async () => {
               value: NETWORK_IDS.MORDOR_ETC_TESTNET,
               label: 'Ethereum Classic Testnet',
             },
+            {
+              value: NETWORK_IDS.SOLANA_MAINNET,
+              label: 'SOLANA MAINNET',
+            },
+            {
+              value: NETWORK_IDS.SOLANA_TESTNET,
+              label: 'SOLANA TESTNET',
+            },
+            {
+              value: NETWORK_IDS.SOLANA_DEVNET,
+              label: 'SOLANA DEVNET',
+            },
           ],
         },
         symbol: { isVisible: true },
@@ -224,6 +237,14 @@ export const generateTokenTab = async () => {
             list: false,
             filter: true,
           },
+        },
+        chainType: {
+          isVisible: true,
+          availableValues: [
+            { value: ChainType.EVM, label: 'EVM' },
+            { value: ChainType.SOLANA, label: 'SOLANA' },
+            { value: ChainType.STELLAR, label: 'STELLAR' },
+          ],
         },
         coingeckoId: {
           isVisible: {
