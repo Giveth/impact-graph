@@ -91,7 +91,8 @@ describe(
 );
 describe('donorsCountPerDate() test cases', donorsCountPerDateTestCases);
 
-describe('getSumOfGivbackEligibleDonationsForSpecificRound() test cases',
+describe(
+  'getSumOfGivbackEligibleDonationsForSpecificRound() test cases',
   getSumOfGivbackEligibleDonationsForSpecificRoundTestCases,
 );
 
