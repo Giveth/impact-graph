@@ -1952,6 +1952,9 @@ export interface CreateDonationData {
   useDonationBox?: boolean;
   relevantDonationTxHash?: string;
   donationPercentage?: number;
+  powerRound?: number;
+  givbackFactor?: number;
+  isProjectVerified?: boolean;
 }
 
 export interface CategoryData {

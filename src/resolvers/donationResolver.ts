@@ -51,6 +51,7 @@ import {
   donorsCountPerDateByMonthAndYear,
   findDonationById,
   getRecentDonations,
+  getSumOfGivbackEligibleDonationsForSpecificRound,
   isVerifiedDonationExistsInQfRound,
   newDonorsCount,
   newDonorsDonationTotalUsd,
@@ -71,8 +72,27 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 import { nonZeroRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
+import { getTokenPrice } from '../services/priceService';
+import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
+
+@ObjectType()
+export class AllocatedGivbacks {
+  @Field()
+  usdValueSentAmountInPowerRound: number;
+
+  @Field()
+  allocatedGivTokens: number;
+
+  @Field()
+  givPrice: number;
+
+  @Field()
+  date: Date;
+}
+
+let allocatedGivbacksCache: AllocatedGivbacks | null;
 
 @ObjectType()
 class PaginateDonations {
@@ -426,6 +446,50 @@ export class DonationResolver {
     @Arg('take', _type => Int, { nullable: true }) take: number = 30,
   ): Promise<Donation[]> {
     return getRecentDonations(take);
+  }
+
+  @Query(_returns => AllocatedGivbacks, { nullable: true })
+  async allocatedGivbacks(
+    @Arg('refreshCache', { nullable: true }) refreshCache?: boolean,
+  ): Promise<AllocatedGivbacks> {
+    if (allocatedGivbacksCache && !refreshCache) {
+      return allocatedGivbacksCache;
+    }
+    const usdValueSentAmountInPowerRound =
+      await getSumOfGivbackEligibleDonationsForSpecificRound({});
+    const givToken = await findTokenByNetworkAndSymbol(
+      NETWORK_IDS.MAIN_NET,
+      'GIV',
+    );
+    const givPrice = await getTokenPrice(NETWORK_IDS.MAIN_NET, givToken);
+
+    const maxSentGivInRound = 1_000_000;
+    const allocatedGivTokens = Math.ceil(
+      Math.min(maxSentGivInRound, usdValueSentAmountInPowerRound / givPrice),
+    );
+    const date = new Date();
+    if (givPrice) {
+      allocatedGivbacksCache = {
+        allocatedGivTokens,
+        givPrice,
+        usdValueSentAmountInPowerRound,
+        date,
+      };
+
+      // 60 minute cache
+      const sentGivbackCacheTimeout = 1000 * 60 * 60;
+
+      setTimeout(() => {
+        allocatedGivbacksCache = null;
+      }, sentGivbackCacheTimeout);
+    }
+
+    return {
+      usdValueSentAmountInPowerRound,
+      allocatedGivTokens,
+      givPrice,
+      date,
+    };
   }
 
   @Query(_returns => ResourcePerDateRange, { nullable: true })
