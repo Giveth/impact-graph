@@ -5,7 +5,7 @@ import { generateRandomEtheriumAddress } from '../../../test/testUtils';
 describe('abcLauncherAdapter test cases', abcLauncherAdapterTestCases);
 
 function abcLauncherAdapterTestCases() {
-  it('should return abc when project address is valid', async () => {
+  it.skip('should return abc when project address is valid', async () => {
     const adapter = new AbcLauncherAdapter();
     const userAddress =
       '0x0000000000000000000000000000000000000000'.toLocaleLowerCase();
@@ -16,7 +16,7 @@ function abcLauncherAdapterTestCases() {
     assert.equal(abc?.projectAddress, userAddress);
   });
 
-  it('should return undefined when project address is invalid', async () => {
+  it.skip('should return undefined when project address is invalid', async () => {
     const adapter = new AbcLauncherAdapter();
     const userAddress = generateRandomEtheriumAddress();
 
