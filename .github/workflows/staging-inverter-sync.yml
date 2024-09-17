@@ -18,6 +18,8 @@ jobs:
           key: ${{ secrets.STAGING_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+            sudo apt-get install -y nodejs
             cd QAcc-BE
             git pull
             npm install
