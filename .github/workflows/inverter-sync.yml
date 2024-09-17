@@ -21,5 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Build the code
+        run: npm run build
+
       - name: Run Inverter sync script
         run: npm run sync:inverter:production
