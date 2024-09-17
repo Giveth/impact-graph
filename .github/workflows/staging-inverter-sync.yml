@@ -1,0 +1,28 @@
+name: Run Inverter Sync Script
+
+on:
+  schedule:
+    - cron: '0 0 * * 1,6' # Runs at midnight every Monday and Saturday
+  workflow_dispatch: # This allows manual triggering
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.11.0
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the code
+        run: npm run build
+
+      - name: Run Inverter sync script
+        run: npm run sync:inverter:production

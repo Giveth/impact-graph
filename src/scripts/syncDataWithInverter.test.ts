@@ -58,7 +58,7 @@ describe('Sync Donations Script Test Cases', () => {
 
     sinon
       .stub(InverterAdapter.prototype, 'getBlockTimestamp')
-      .resolves(1725987104);
+      .resolves(1725987224);
 
     await syncDonationsWithBlockchainData({
       projectFilter: {
