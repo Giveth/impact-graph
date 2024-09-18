@@ -306,6 +306,7 @@ export const approveVerificationForms = async (
 export const projectVerificationTab = {
   resource: ProjectVerificationForm,
   options: {
+    id: 'GivbacksEligibleForm',
     sort: {
       direction: 'desc',
       sortBy: 'updatedAt',
