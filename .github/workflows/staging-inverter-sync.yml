@@ -10,19 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v1
+      - name: SSH into Server and Run Inverter Sync Script
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          node-version: 20.11.0
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build the code
-        run: npm run build
-
-      - name: Run Inverter sync script
-        run: npm run sync:inverter:production
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            docker compose -f docker-compose-staging.yml exec qacc-be npm run sync:inverter:production
