@@ -52,7 +52,7 @@ import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActive
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { corsOptions, setCorsHeaders } from './cors';
 import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
-import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
+// import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
 
 Resource.validate = validate;
@@ -327,9 +327,9 @@ export async function bootstrap() {
       runSyncLostDonations();
     }
 
-    if (process.env.ENABLE_IMPORT_DONATION_BACKUP === 'true') {
-      runSyncBackupServiceDonations();
-    }
+    // if (process.env.ENABLE_IMPORT_DONATION_BACKUP === 'true') {
+    //   runSyncBackupServiceDonations();
+    // }
 
     if (process.env.ENABLE_DRAFT_DONATION === 'true') {
       runDraftDonationMatchWorkerJob();
