@@ -48,7 +48,7 @@ export const getBondingCurveByIDQuery = `query GetBondingCurveByID($id: String!)
 
 export const getTokenTotalSupplyByAddress = `
     query GetTokenTotalSupplyByAddress($orchestratorAddress: String!) {
-      BondingCurve(where: {workflow_id: {_eq: $orchestratorAddress}}){
+      BondingCurve(where: {workflow_id: {_ilike: $orchestratorAddress}}){
         virtualIssuance
         id
       }
@@ -57,7 +57,7 @@ export const getTokenTotalSupplyByAddress = `
 
 export const getWorkFlowByAddress = `
   query GetWorkFlowByID($id: String!) {
-    Workflow(where: {id: {_eq: $id}}) {
+    Workflow(where: {id: {_ilike: $id}}) {
       chainId
       orchestratorId
       optionalModules
@@ -85,10 +85,10 @@ export const getWorkFlowByAddress = `
 
 export const getRewardInfoByOrchestratorAddressAndDonerAddress = `
   query getStreamingPaymentProcessorByAddressAndDonerAddress($orchestratorAddress: String!, $donerAddress: String!) {
-    StreamingPaymentProcessor(where: {workflow_id: {_eq: $orchestratorAddress}}) {
+    StreamingPaymentProcessor(where: {workflow_id: {_ilike: $orchestratorAddress}}) {
       chainId
       id
-      vestings(where: {recipient: {_eq: $donerAddress}}) {
+      vestings(where: {recipient: {_ilike: $donerAddress}}) {
         amountRaw
         blockTimestamp
         chainId
@@ -106,7 +106,7 @@ export const getRewardInfoByOrchestratorAddressAndDonerAddress = `
 
 export const getRewardInfoByOrchestratorAddress = `
   query getStreamingPaymentProcessorByAdderss($orchestratorAddress: String!) {
-    StreamingPaymentProcessor(where: {workflow_id: {_eq: $orchestratorAddress}}) {
+    StreamingPaymentProcessor(where: {workflow_id: {_ilike: $orchestratorAddress}}) {
       chainId
       id
       vestings {
