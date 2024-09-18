@@ -1,7 +1,7 @@
+import moment from 'moment';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import config from '../src/config';
 import { AppDataSource } from '../src/orm';
-import moment from 'moment';
 import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
 import { calculateGivbackFactor } from '../src/services/givbackService';
@@ -105,5 +105,5 @@ export class AddSponserDonationsToGivbackRound701726377580626
     await refreshProjectActualMatchingView();
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(_queryRunner: QueryRunner): Promise<void> {}
 }
