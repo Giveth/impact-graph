@@ -19,4 +19,4 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
-            docker compose -f docker-compose-staging.yml exec qacc-be npm run sync:inverter:production
+            docker compose -f docker-compose-staging.yml run --rm qacc-be npm run sync:inverter:production
