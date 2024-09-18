@@ -10,57 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: SSH into Server and Install Node.js
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-            sudo apt-get install -y nodejs
+      - name: Check out Git repository
+        uses: actions/checkout@v3
 
-      - name: Pull Latest Code
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd QAcc-BE
-            git pull
+          node-version: 20.11.0
 
-      - name: Install Dependencies
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd QAcc-BE
-            npm install
+      - name: Install dependencies
+        run: npm install
 
-      - name: Build the Project
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd QAcc-BE
-            npm run build
+      - name: Build the code
+        run: npm run build
 
-      - name: Run Inverter Sync Script
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd QAcc-BE
-            npm run sync:inverter:production
+      - name: Run Inverter sync script
+        run: npm run sync:inverter:production
