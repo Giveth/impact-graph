@@ -447,6 +447,13 @@ export const addProjectsToQfRound = async (
   };
 };
 
+ export const extractCategoryIds = (payload: any) => {
+    if (!payload) return;
+    return Object.keys(payload)
+      .filter(key => key.startsWith('categoryIds.'))
+      .map(key => payload[key]);
+}
+
 export const addSingleProjectToQfRound = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
@@ -489,10 +496,10 @@ export const fillSocialProfileAndQfRounds: After<
   const adminJsBaseUrl = process.env.SERVER_URL;
   let categories;
   if (project) {
-    const categoryIds = project!.categories.map(cat => cat.id);
     categories = await Category
             .createQueryBuilder('category')
-            .where('category.id IN (:...ids)', { ids: categoryIds })
+            .innerJoin('category.projects', 'projects')
+            .where('projects.id = :id', { id: project.id })
             .orderBy('category.name', 'ASC')
             .getMany();
   }
@@ -511,7 +518,8 @@ export const fillSocialProfileAndQfRounds: After<
   };
 
   if (categories) {
-    response.record.params.categories = categories.map(cat => `${cat.id} - ${cat.name}`);
+    response.record.params.categoryIds = categories;
+    response.record.params.categories = categories;
   }
   return response;
 };
@@ -855,6 +863,9 @@ export const projectsTab = {
           show: true,
           edit: true,
         },
+        components: {
+          show: adminJs.bundle('./components/ProjectCategories'),
+        },
         availableValues: async (_record) => {
           const categories = await Category
             .createQueryBuilder('category')
@@ -968,9 +979,12 @@ export const projectsTab = {
         },
         after: async (response) => {
           const { record, request } = response;
-          if (request.payload.categoryIds) {
-            await saveCategories(record.params.id, request.payload.categoryIds);
-          }
+          const project = await Project.findOne({
+            where: { id: request?.record?.id },
+          });
+          const categoryIds = extractCategoryIds(request.record.params); 
+          await saveCategories(project!, categoryIds || []);
+
           return response;
         },
       },
@@ -1001,6 +1015,13 @@ export const projectsTab = {
             }
 
             const project = await findProjectById(Number(request.payload.id));
+            if (project) {
+              await Category.query(`
+                DELETE FROM project_categories_category
+                WHERE "projectId" = $1
+              `, [project.id]);
+            }
+
             if (
               project &&
               Number(request?.payload?.statusId) !== project?.status?.id
@@ -1063,9 +1084,7 @@ export const projectsTab = {
             // We put these status changes in payload, so in after hook we would know to send notification for users
             request.payload.statusChanges = statusChanges.join(',');
           }
-          if (request.payload.categories) {
-            request.payload.categories = (request.payload.categories as string[]).map(id => ({ id: parseInt(id, 10) }));
-          }
+          
           return request;
         },
         after: async (
@@ -1203,11 +1222,13 @@ export const projectsTab = {
               });
             }
           }
+          const categoryIds = extractCategoryIds(request.record.params); 
+
           await Promise.all([
             refreshUserProjectPowerView(),
             refreshProjectFuturePowerView(),
             refreshProjectPowerView(),
-            saveCategories(project!.id, request?.payload?.categoryIds || [])
+            saveCategories(project!, categoryIds || []),
           ]);
           return request;
         },
@@ -1404,18 +1425,14 @@ export const projectsTab = {
   },
 };
 
-async function saveCategories(projectId: number, categoryIds: string[]) {
-  if (categoryIds?.length === 0) return;
-  
-  const project = await Project
-    .createQueryBuilder('project')
-    .leftJoinAndSelect('project.categories', 'category')
-    .where('project.id = :id', { id: projectId })
-    .getOne();
+async function saveCategories(project: Project, categoryIds?: string[]) {
+  if (!project) return;
+  if (!categoryIds || categoryIds?.length === 0) return;
 
-  if (!project) {
-    throw new Error('Project not found');
-  }
+  await Category.query(`
+    DELETE FROM project_categories_category
+    WHERE "projectId" = $1
+  `, [project.id]);
 
   const categories = await Category
     .createQueryBuilder('category')

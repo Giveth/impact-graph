@@ -217,6 +217,7 @@ export class Project extends BaseEntity {
   @Field(_type => [Category], { nullable: true })
   @ManyToMany(_type => Category, category => category.projects, {
     nullable: true,
+    eager: true,
   })
   @JoinTable()
   categories: Category[];
