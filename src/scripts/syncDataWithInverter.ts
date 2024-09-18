@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import { ethers } from 'ethers';
-import { FindOptionsWhere } from 'typeorm';
+import { FindOptionsWhere, DataSource } from 'typeorm';
+import config from '../config';
+import { getEntities } from '../entities/entities';
 import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import {
@@ -9,17 +11,47 @@ import {
   Vesting,
 } from '../adapters/inverter/inverterAdapter';
 import { logger } from '../utils/logger';
-import { AppDataSource } from '../orm';
 import { getProvider, QACC_NETWORK_ID } from '../provider';
 
-// todo: check if we should use same network for inverter or not
+export class StandaloneDataSource {
+  private static datasource: DataSource;
+
+  static async initialize() {
+    if (!StandaloneDataSource.datasource) {
+      StandaloneDataSource.datasource = new DataSource({
+        type: 'postgres',
+        database: config.get('TYPEORM_DATABASE_NAME') as string,
+        username: config.get('TYPEORM_DATABASE_USER') as string,
+        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+        port: config.get('TYPEORM_DATABASE_PORT') as number,
+        host: config.get('TYPEORM_DATABASE_HOST') as string,
+        entities: getEntities(),
+        synchronize: false,
+        dropSchema: false,
+        logging: ['error'],
+        extra: {
+          maxWaitingClients: 10,
+          evictionRunIntervalMillis: 500,
+          idleTimeoutMillis: 500,
+        },
+      });
+
+      await StandaloneDataSource.datasource.initialize();
+    }
+  }
+
+  static getDataSource() {
+    return StandaloneDataSource.datasource;
+  }
+}
+
 const adapter = new InverterAdapter(getProvider(QACC_NETWORK_ID));
 
 async function updateTokenPriceAndTotalSupplyForProjects(
   projectFilter: FindOptionsWhere<Project>,
 ) {
-  const datasource = AppDataSource.getDataSource();
-  const projectRepository = datasource.getRepository(Project);
+  const dataSource = StandaloneDataSource.getDataSource();
+  const projectRepository = dataSource.getRepository(Project);
   const allProjects = await projectRepository.find({ where: projectFilter });
   for (const project of allProjects) {
     if (!project.abc) {
@@ -96,8 +128,8 @@ async function updateRewardsForDonations(
   donationFilter: FindOptionsWhere<Donation>,
 ) {
   try {
-    const datasource = AppDataSource.getDataSource();
-    const donationRepository = datasource.getRepository(Donation);
+    const dataSource = StandaloneDataSource.getDataSource();
+    const donationRepository = dataSource.getRepository(Donation);
     const donations = await donationRepository.find({
       where: [
         { rewardStreamEnd: undefined },
@@ -237,9 +269,9 @@ export async function syncDonationsWithBlockchainData(
     donationFilter: {},
   },
 ) {
-  logger.debug('bootstrap() before AppDataSource.initialize()', new Date());
-  await AppDataSource.initialize(false);
-  logger.debug('bootstrap() after AppDataSource.initialize()', new Date());
+  logger.debug('before StandaloneDataSource.initialize()', new Date());
+  await StandaloneDataSource.initialize();
+  logger.debug('after StandaloneDataSource.initialize(', new Date());
 
   await updateTokenPriceAndTotalSupplyForProjects(projectFilter);
 
