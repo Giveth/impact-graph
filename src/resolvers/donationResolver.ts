@@ -265,7 +265,8 @@ export class DonationResolver {
         .leftJoin('donation.user', 'user')
         .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project')
-        .leftJoinAndSelect('project.categories', 'categories');
+        .leftJoinAndSelect('project.categories', 'categories')
+        .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound');
 
       if (fromDate) {
         query.andWhere(`donation."createdAt" >= '${fromDate}'`);
@@ -503,6 +504,7 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .getMany();
   }
 
@@ -522,6 +524,7 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .getMany();
   }
 
@@ -558,6 +561,7 @@ export class DonationResolver {
       .createQueryBuilder('donation')
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .addSelect(publicSelectionFields)
       .where(`donation.projectId = :projectId`, { projectId })
       .orderBy(
@@ -632,6 +636,7 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .getMany();
   }
 
