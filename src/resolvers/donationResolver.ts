@@ -646,6 +646,7 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .where(`donation.userId = ${userId}`)
       .orderBy(
         `donation.${orderBy.field}`,
@@ -908,9 +909,7 @@ export class DonationResolver {
         }
         await donation.save();
       } else {
-        const activeRound = await findActiveEarlyAccessRound();
-        donation.earlyAccessRound = activeRound;
-        donation.earlyAccessRoundId = activeRound?.id as number;
+        donation.earlyAccessRound = await findActiveEarlyAccessRound();
         await donation.save();
       }
       let priceChainId;
