@@ -260,8 +260,9 @@ export class Donation extends BaseEntity {
 
   @Field(_type => EarlyAccessRound, { nullable: true })
   @ManyToOne(_type => EarlyAccessRound, { eager: true, nullable: true })
-  earlyAccessRound: EarlyAccessRound | null;
+  earlyAccessRound?: EarlyAccessRound;
 
+  @Field({ nullable: true })
   @RelationId((donation: Donation) => donation.earlyAccessRound)
   @Column({ nullable: true })
   earlyAccessRoundId: number;
