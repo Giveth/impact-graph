@@ -9,6 +9,7 @@ import {
   ProjectRegistry,
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
+import { Project } from '../entities/project';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -375,4 +376,42 @@ export const getVerificationFormByProjectId = async (
     )
     .leftJoinAndSelect('project_verification_form.user', 'user')
     .getOne();
+};
+
+export const approveProject = async (params: {
+  approved: boolean;
+  projectId: number;
+}): Promise<Project> => {
+  const project = await Project.findOne({ where: { id: params.projectId } });
+
+  if (!project)
+    throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+
+  project.isGivbackEligible = params.approved;
+  if (params.approved) project.verificationStatus = null; // reset this field
+
+  return project.save();
+};
+
+export const approveMultipleProjects = async (params: {
+  approved: boolean;
+  projectsIds: string[] | number[];
+}): Promise<UpdateResult> => {
+  if (params.approved) {
+    await Project.query(`
+      UPDATE project
+      SET "verificationStatus" = NULL
+      WHERE id IN (${params.projectsIds?.join(',')})
+    `);
+  }
+
+  return Project.createQueryBuilder('project')
+    .update<Project>(Project, {
+      isGivbackEligible: params.approved,
+    })
+    .where('project.id IN (:...ids)')
+    .setParameter('ids', params.projectsIds)
+    .returning('*')
+    .updateEntity(true)
+    .execute();
 };

@@ -570,12 +570,14 @@ export const fetchTotalDonationsPerCategoryPerDate = `
     $toDate: String
     $networkId: Float
     $onlyVerified: Boolean
+    $onlyEndaoment: Boolean
   ) {
     totalDonationsPerCategory(
       fromDate: $fromDate
       toDate: $toDate
       networkId: $networkId
       onlyVerified: $onlyVerified
+      onlyEndaoment: $onlyEndaoment
     ) {
       id
       title
@@ -611,11 +613,13 @@ export const fetchTotalDonors = `
     $fromDate: String
     $toDate: String
     $networkId: Float
+    $onlyEndaoment: Boolean
   ) {
     totalDonorsCountPerDate(
       fromDate: $fromDate
       toDate: $toDate
       networkId: $networkId
+      onlyEndaoment: $onlyEndaoment
     ) {
       total
       totalPerMonthAndYear {
@@ -632,12 +636,14 @@ export const fetchTotalDonationsUsdAmount = `
     $toDate: String
     $networkId: Float
     $onlyVerified: Boolean
+    $onlyEndaoment: Boolean
   ) {
     donationsTotalUsdPerDate (
       fromDate: $fromDate
       toDate: $toDate
       networkId: $networkId
       onlyVerified: $onlyVerified
+      onlyEndaoment: $onlyEndaoment
     ) {
       total
       totalPerMonthAndYear {
@@ -650,24 +656,26 @@ export const fetchTotalDonationsUsdAmount = `
 
 export const fetchTotalDonationsNumberPerDateRange = `
   query (
-    $fromDate: String
-    $toDate: String
-    $networkId: Float
-    $onlyVerified: Boolean
+  $fromDate: String
+  $toDate: String
+  $networkId: Float
+  $onlyVerified: Boolean
+  $onlyEndaoment: Boolean
+) {
+  totalDonationsNumberPerDate (
+    fromDate: $fromDate
+    toDate: $toDate
+    networkId: $networkId
+    onlyVerified: $onlyVerified
+    onlyEndaoment: $onlyEndaoment
   ) {
-    totalDonationsNumberPerDate (
-      fromDate: $fromDate
-      toDate: $toDate
-      networkId: $networkId
-      onlyVerified: $onlyVerified
-    ) {
+    total
+    totalPerMonthAndYear {
       total
-      totalPerMonthAndYear {
-        total
-        date
-      }
+      date
     }
   }
+}
 `;
 
 export const fetchNewDonorsCount = `
@@ -927,6 +935,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         impactLocation
         qualityScore
         verified
+        isGivbackEligible
         traceCampaignId
         listed
         reviewStatus
@@ -2245,6 +2254,21 @@ export const getUserProjectPowerQuery = `
             }
 
       }
+    }
+  }
+`;
+
+export const allocatedGivbacksQuery = `
+  query (
+    $refreshCache: Boolean
+  ) {
+    allocatedGivbacks(
+      refreshCache: $refreshCache
+    ) {
+      usdValueSentAmountInPowerRound
+      allocatedGivTokens
+      givPrice
+      date
     }
   }
 `;

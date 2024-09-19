@@ -86,7 +86,7 @@ apiGivRouter.post(
         toWalletAddress,
         user: donor,
         anonymous,
-        isProjectVerified: project.verified,
+        isProjectGivbackEligible: project.isGivbackEligible,
         project,
         amount,
         valueUsd,

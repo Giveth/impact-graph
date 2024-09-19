@@ -55,32 +55,37 @@ export const getAllProjectsRelatedToActiveCampaigns = async (): Promise<{
 };
 
 export const cacheProjectCampaigns = async (): Promise<void> => {
-  logger.debug('cacheProjectCampaigns() has been called');
-  const newProjectCampaignCache = {};
-  const activeCampaigns = await findAllActiveCampaigns();
-  for (const campaign of activeCampaigns) {
-    const projectsQueryParams = createFetchCampaignProjectsQuery(campaign);
-    if (!projectsQueryParams) {
-      continue;
+  try {
+    logger.debug('cacheProjectCampaigns() has been called');
+    const newProjectCampaignCache = {};
+    const activeCampaigns = await findAllActiveCampaigns();
+    for (const campaign of activeCampaigns) {
+      const projectsQueryParams = createFetchCampaignProjectsQuery(campaign);
+      if (!projectsQueryParams) {
+        continue;
+      }
+      const projectsQuery = filterProjectsQuery(projectsQueryParams);
+      const projects = await projectsQuery.getMany();
+      for (const project of projects) {
+        newProjectCampaignCache[project.id]
+          ? newProjectCampaignCache[project.id].push(campaign.slug)
+          : (newProjectCampaignCache[project.id] = [campaign.slug]);
+      }
     }
-    const projectsQuery = filterProjectsQuery(projectsQueryParams);
-    const projects = await projectsQuery.getMany();
-    for (const project of projects) {
-      newProjectCampaignCache[project.id]
-        ? newProjectCampaignCache[project.id].push(campaign.slug)
-        : (newProjectCampaignCache[project.id] = [campaign.slug]);
-    }
+    await setObjectInRedis({
+      key: PROJECT_CAMPAIGN_CACHE_REDIS_KEY,
+      value: newProjectCampaignCache,
+      // cronjob would fill it every 10 minutes so the expiration doesnt matter
+      expirationInSeconds: 60 * 60 * 24 * 1, // 1 day
+    });
+    logger.debug(
+      'cacheProjectCampaigns() ended successfully, projectCampaignCache size ',
+      Object.keys(newProjectCampaignCache).length,
+    );
+  } catch (e) {
+    logger.error('cacheProjectCampaigns() failed with error: ', e);
+    throw e;
   }
-  await setObjectInRedis({
-    key: PROJECT_CAMPAIGN_CACHE_REDIS_KEY,
-    value: newProjectCampaignCache,
-    // cronjob would fill it every 10 minutes so the expiration doesnt matter
-    expirationInSeconds: 60 * 60 * 24 * 1, // 1 day
-  });
-  logger.debug(
-    'cacheProjectCampaigns() ended successfully, projectCampaignCache size ',
-    Object.keys(newProjectCampaignCache).length,
-  );
 };
 
 export const fillCampaignProjects = async (params: {

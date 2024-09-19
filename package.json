@@ -166,6 +166,7 @@
     "test:anchorContractAddressRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/anchorContractAddressRepository.test.ts",
     "test:recurringDonationRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/recurringDonationRepository.test.ts",
     "test:userPassportScoreRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/userPassportScoreRepository.test.ts",
+    "test:projectGivbackRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/projectGivbackViewRepository.test.ts",
     "test:recurringDonationService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/recurringDonationService.test.ts",
     "test:dbCronRepository": "NODE_ENV=test mocha -t 90000 ./test/pre-test-scripts.ts  ./src/repositories/dbCronRepository.test.ts",
     "test:powerBoostingResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/powerBoostingResolver.test.ts",

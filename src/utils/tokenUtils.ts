@@ -8,6 +8,7 @@ export const findTokenByNetworkAndSymbol = async (
   address: string;
   symbol: string;
   name: string;
+  coingeckoId?: string;
   decimals: number;
   chainId: number;
   isGivbackEligible: boolean;
@@ -27,6 +28,7 @@ export const findTokenByNetworkAndSymbol = async (
     address: token.address,
     name: token.name,
     decimals: token.decimals,
+    coingeckoId: token.coingeckoId,
     isGivbackEligible: token.isGivbackEligible,
     symbol,
   };

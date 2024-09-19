@@ -217,6 +217,7 @@ export class Project extends BaseEntity {
   @Field(_type => [Category], { nullable: true })
   @ManyToMany(_type => Category, category => category.projects, {
     nullable: true,
+    eager: true,
   })
   @JoinTable()
   categories: Category[];
@@ -407,6 +408,10 @@ export class Project extends BaseEntity {
   // @Field(_type => Boolean, { nullable: true })
   // @Column({ type: 'boolean', default: false })
   // tunnableQf?: boolean;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ type: 'boolean', default: false })
+  isGivbackEligible: boolean;
 
   @Field(_type => String)
   @Column({

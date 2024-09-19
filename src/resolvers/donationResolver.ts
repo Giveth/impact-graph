@@ -51,6 +51,7 @@ import {
   donorsCountPerDateByMonthAndYear,
   findDonationById,
   getRecentDonations,
+  getSumOfGivbackEligibleDonationsForSpecificRound,
   isVerifiedDonationExistsInQfRound,
   newDonorsCount,
   newDonorsDonationTotalUsd,
@@ -71,8 +72,28 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 import { nonZeroRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
+import { ORGANIZATION_LABELS } from '../entities/organization';
+import { getTokenPrice } from '../services/priceService';
+import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
+
+@ObjectType()
+export class AllocatedGivbacks {
+  @Field()
+  usdValueSentAmountInPowerRound: number;
+
+  @Field()
+  allocatedGivTokens: number;
+
+  @Field()
+  givPrice: number;
+
+  @Field()
+  date: Date;
+}
+
+let allocatedGivbacksCache: AllocatedGivbacks | null;
 
 @ObjectType()
 class PaginateDonations {
@@ -295,6 +316,7 @@ export class DonationResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
+    @Arg('onlyEndaoment', { nullable: true }) onlyEndaoment?: boolean,
   ): Promise<MainCategoryDonations[] | []> {
     try {
       validateWithJoiSchema(
@@ -335,6 +357,13 @@ export class DonationResolver {
         query.andWhere('projects.verified = true');
       }
 
+      if (onlyEndaoment) {
+        query
+          .leftJoin('projects.organization', 'organization')
+          .andWhere('organization."label" = :label', {
+            label: ORGANIZATION_LABELS.ENDAOMENT,
+          });
+      }
       return await query.getRawMany();
     } catch (e) {
       logger.error('totalDonationsPerCategory query error', e);
@@ -349,6 +378,7 @@ export class DonationResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
+    @Arg('onlyEndaoment', { nullable: true }) onlyEndaoment?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -360,6 +390,7 @@ export class DonationResolver {
         toDate,
         networkId,
         onlyVerified,
+        onlyEndaoment,
       );
       const totalPerMonthAndYear =
         await donationsTotalAmountPerDateRangeByMonth(
@@ -367,6 +398,7 @@ export class DonationResolver {
           toDate,
           networkId,
           onlyVerified,
+          onlyEndaoment,
         );
 
       return {
@@ -386,6 +418,7 @@ export class DonationResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
+    @Arg('onlyEndaoment', { nullable: true }) onlyEndaoment?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -397,6 +430,7 @@ export class DonationResolver {
         toDate,
         networkId,
         onlyVerified,
+        onlyEndaoment,
       );
       const totalPerMonthAndYear =
         await donationsTotalNumberPerDateRangeByMonth(
@@ -404,6 +438,7 @@ export class DonationResolver {
           toDate,
           networkId,
           onlyVerified,
+          onlyEndaoment,
         );
 
       return {
@@ -428,23 +463,71 @@ export class DonationResolver {
     return getRecentDonations(take);
   }
 
+  @Query(_returns => AllocatedGivbacks, { nullable: true })
+  async allocatedGivbacks(
+    @Arg('refreshCache', { nullable: true }) refreshCache?: boolean,
+  ): Promise<AllocatedGivbacks> {
+    if (allocatedGivbacksCache && !refreshCache) {
+      return allocatedGivbacksCache;
+    }
+    const usdValueSentAmountInPowerRound =
+      await getSumOfGivbackEligibleDonationsForSpecificRound({});
+    const givToken = await findTokenByNetworkAndSymbol(NETWORK_IDS.XDAI, 'GIV');
+    const givPrice = await getTokenPrice(NETWORK_IDS.XDAI, givToken);
+
+    const maxSentGivInRound = 1_000_000;
+    const allocatedGivTokens = Math.ceil(
+      Math.min(maxSentGivInRound, usdValueSentAmountInPowerRound / givPrice),
+    );
+    const date = new Date();
+    if (givPrice) {
+      allocatedGivbacksCache = {
+        allocatedGivTokens,
+        givPrice,
+        usdValueSentAmountInPowerRound,
+        date,
+      };
+
+      // 60 minute cache
+      const sentGivbackCacheTimeout = 1000 * 60 * 60;
+
+      setTimeout(() => {
+        allocatedGivbacksCache = null;
+      }, sentGivbackCacheTimeout);
+    }
+
+    return {
+      usdValueSentAmountInPowerRound,
+      allocatedGivTokens,
+      givPrice,
+      date,
+    };
+  }
+
   @Query(_returns => ResourcePerDateRange, { nullable: true })
   async totalDonorsCountPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
+    @Arg('onlyEndaoment', { nullable: true }) onlyEndaoment?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const total = await donorsCountPerDate(fromDate, toDate, networkId);
+      const total = await donorsCountPerDate(
+        fromDate,
+        toDate,
+        networkId,
+        onlyEndaoment,
+      );
       const totalPerMonthAndYear = await donorsCountPerDateByMonthAndYear(
         fromDate,
         toDate,
         networkId,
+        onlyEndaoment,
       );
       return {
         total,
@@ -855,7 +938,7 @@ export class DonationResolver {
         project,
         isTokenEligibleForGivback,
         isCustomToken,
-        isProjectVerified: project.verified,
+        isProjectGivbackEligible: project.isGivbackEligible,
         createdAt: new Date(),
         segmentNotified: false,
         toWalletAddress: toAddress,

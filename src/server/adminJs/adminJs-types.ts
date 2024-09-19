@@ -43,7 +43,7 @@ export interface AdminJsDonationsQuery {
   createdAt?: string;
   currency?: string;
   transactionNetworkId?: string;
-  isProjectVerified?: string;
+  isProjectGivbackEligible?: string;
   qfRoundId?: string;
 }
 
@@ -76,7 +76,7 @@ export const donationHeaders = [
   'id',
   'transactionId',
   'transactionNetworkId',
-  'isProjectVerified',
+  'isProjectGivbackEligible',
   'status',
   'toWalletAddress',
   'fromWalletAddress',
