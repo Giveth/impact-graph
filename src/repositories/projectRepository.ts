@@ -252,6 +252,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
       }
       break;
+    case SortingField.BestMatch:
+      break;
 
     default:
       query
