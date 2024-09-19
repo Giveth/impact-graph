@@ -14,7 +14,9 @@ const ProjectUpdates = props => {
               <br />
               <Section>
                 <Label>Name</Label>
-                <h1>{category.name || ''} - Id: {category.id}</h1>
+                <h1>
+                  {category.name || ''} - Id: {category.id}
+                </h1>
               </Section>
             </div>
           );

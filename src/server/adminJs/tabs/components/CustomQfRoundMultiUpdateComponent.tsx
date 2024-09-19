@@ -26,9 +26,7 @@ const RecordInput = ({ index, record, updateRecord, removeRecord }) => (
       <Label>Matching Fund Display Value</Label>
       <Input
         value={record.matchingFund}
-        onChange={e =>
-          updateRecord(index, 'matchingFund', e.target.value)
-        }
+        onChange={e => updateRecord(index, 'matchingFund', e.target.value)}
         required
       />
     </FormGroup>
