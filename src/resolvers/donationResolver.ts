@@ -909,9 +909,7 @@ export class DonationResolver {
         }
         await donation.save();
       } else {
-        const activeRound = await findActiveEarlyAccessRound();
-        donation.earlyAccessRound = activeRound;
-        donation.earlyAccessRoundId = activeRound?.id as number;
+        donation.earlyAccessRound = await findActiveEarlyAccessRound();
         await donation.save();
       }
       let priceChainId;
