@@ -2070,3 +2070,23 @@ export const checkUserPrivadoVerifiedState = `
     checkUserPrivadoVerifiedState
   }
 `;
+
+export const getProjectDonationSummariesQuery = `
+  query GetProjectDonationSummaries($projectId: Int!, $qfRoundId: Int, $earlyAccessRoundId: Int) {
+    getProjectDonationSummaries(projectId: $projectId, qfRoundId: $qfRoundId, earlyAccessRoundId: $earlyAccessRoundId) {
+      project {
+        id
+        slug
+      }
+      totalDonationAmount
+      totalDonationUsdAmount
+      qfRound {
+        id
+      }
+      earlyAccessRound {
+        id
+        roundNumber
+      }
+    }
+  }
+`;

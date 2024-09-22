@@ -15,6 +15,7 @@ import {
   createProjectQuery,
   fetchMultiFilterAllProjectsQuery,
   fetchProjectBySlugQuery,
+  getProjectDonationSummariesQuery,
   projectByIdQuery,
   projectsByUserIdQuery,
   updateProjectQuery,
@@ -36,9 +37,12 @@ import {
   PROJECT_TITLE_MAX_LENGTH,
 } from '../constants/validators';
 import { ORGANIZATION_LABELS } from '../entities/organization';
-import { ProjStatus, ReviewStatus } from '../entities/project';
+import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import { ProjectSocialMediaType } from '../types/projectSocialMediaType';
 import { ProjectSocialMedia } from '../entities/projectSocialMedia';
+import { ProjectDonationSummary } from '../entities/projectDonationSummary';
+import { QfRound } from '../entities/qfRound';
+import { EarlyAccessRound } from '../entities/earlyAccessRound';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -52,6 +56,11 @@ describe('projectById test cases --->', projectByIdTestCases);
 describe('projectSearch test cases --->', projectSearchTestCases);
 
 describe('updateProject test cases --->', updateProjectTestCases);
+
+describe(
+  'getProjectDonationSummaries test cases --->',
+  getProjectDonationSummariesTestCases,
+);
 
 function createProjectTestCases() {
   let user: User;
@@ -1244,5 +1253,162 @@ function updateProjectTestCases() {
     expect(result.data.errors[0].message).to.equal(
       i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
     );
+  });
+}
+
+function getProjectDonationSummariesTestCases() {
+  let project: Project;
+  let accessToken: string;
+  let qfRound: QfRound;
+  let earlyAccessRoundId: number;
+
+  before(async () => {
+    // Set up test data: user, project, QfRound, EarlyAccessRound, etc.
+    const user = await saveUserDirectlyToDb('random-address');
+    accessToken = await generateTestAccessToken(user.id);
+
+    // Create project
+    project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    // Create QfRound
+    qfRound = QfRound.create({
+      name: 'Test QfRound',
+      allocatedFund: 100,
+      minimumPassportScore: 5,
+      slug: `qf-round-${new Date().getTime()}`,
+      beginDate: new Date(),
+      endDate: new Date(),
+    });
+    await qfRound.save();
+
+    // Create Early Access Round (Assuming you have such an entity)
+    earlyAccessRoundId = (
+      await EarlyAccessRound.create({
+        roundNumber: 1,
+        startDate: new Date('2024-09-01'),
+        endDate: new Date('2024-09-05'),
+      }).save()
+    ).id;
+  });
+
+  it('should return donation summaries for a valid project and QfRound', async () => {
+    // Simulate donation summary creation
+    const summary = ProjectDonationSummary.create({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+      totalDonationAmount: 500,
+      totalDonationUsdAmount: 550,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    await summary.save();
+
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: getProjectDonationSummariesQuery,
+        variables: {
+          projectId: project.id,
+          qfRoundId: qfRound.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const summaries = response.data.data.getProjectDonationSummaries;
+    expect(summaries).to.have.length(1);
+    expect(summaries[0].totalDonationAmount).to.equal(500);
+    expect(summaries[0].totalDonationUsdAmount).to.equal(550);
+    expect(+summaries[0].qfRound.id).to.equal(qfRound.id);
+  });
+
+  it('should return donation summaries for a valid project and Early Access Round', async () => {
+    // Simulate donation summary creation for Early Access Round
+    const summary = ProjectDonationSummary.create({
+      projectId: project.id,
+      earlyAccessRoundId: earlyAccessRoundId,
+      totalDonationAmount: 300,
+      totalDonationUsdAmount: 320,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    await summary.save();
+
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: getProjectDonationSummariesQuery,
+        variables: {
+          projectId: project.id,
+          earlyAccessRoundId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const summaries = response.data.data.getProjectDonationSummaries;
+    expect(summaries).to.have.length(1);
+    expect(summaries[0].totalDonationAmount).to.equal(300);
+    expect(summaries[0].totalDonationUsdAmount).to.equal(320);
+    expect(+summaries[0].earlyAccessRound.id).to.equal(earlyAccessRoundId);
+  });
+
+  it('should return an error for a non-existent project', async () => {
+    try {
+      await axios.post(
+        graphqlUrl,
+        {
+          query: getProjectDonationSummariesQuery,
+          variables: {
+            projectId: 999999,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+    } catch (error: any) {
+      expect(error.response.data.errors[0].message).to.equal(
+        'No donation summaries found for project 999999',
+      );
+    }
+  });
+
+  it('should return an error when no donation summaries are found', async () => {
+    try {
+      await axios.post(
+        graphqlUrl,
+        {
+          query: getProjectDonationSummariesQuery,
+          variables: {
+            projectId: project.id,
+            qfRoundId: 999999, // Non-existent QfRound
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+    } catch (error: any) {
+      expect(error.response.data.errors[0].message).to.equal(
+        `No donation summaries found for project ${project.id}`,
+      );
+    }
   });
 }
