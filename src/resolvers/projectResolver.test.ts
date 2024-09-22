@@ -1396,7 +1396,7 @@ function getProjectDonationSummariesTestCases() {
           query: getProjectDonationSummariesQuery,
           variables: {
             projectId: project.id,
-            qfRoundId: 999999, // Non-existent QfRound
+            qfRoundId: 999999, // Non-existent QfRound id
           },
         },
         {
