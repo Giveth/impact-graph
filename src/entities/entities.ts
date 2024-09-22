@@ -33,6 +33,7 @@ import { ProjectSocialMedia } from './projectSocialMedia';
 import { UserQfRoundModelScore } from './userQfRoundModelScore';
 import { UserEmailVerification } from './userEmailVerification';
 import { EarlyAccessRound } from './earlyAccessRound';
+import { ProjectDonationSummary } from './projectDonationSummary';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -78,5 +79,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectFraud,
     UserQfRoundModelScore,
     EarlyAccessRound,
+    ProjectDonationSummary,
   ];
 };
