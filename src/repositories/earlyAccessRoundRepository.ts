@@ -1,5 +1,7 @@
+import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { logger } from '../utils/logger';
+import { AppDataSource } from '../orm';
 
 export const findAllEarlyAccessRounds = async (): Promise<
   EarlyAccessRound[]
@@ -30,3 +32,39 @@ export const findActiveEarlyAccessRound =
       throw new Error('Error fetching active Early Access round');
     }
   };
+
+export const fillMissingTokenPriceInQfRounds = async (): Promise<
+  void | number
+> => {
+  const priceAdapter = new CoingeckoPriceAdapter();
+
+  // Find all EarlyAccessRound where token_price is NULL
+  const roundsToUpdate = await AppDataSource.getDataSource()
+    .getRepository(EarlyAccessRound)
+    .createQueryBuilder('earlyAccessRound')
+    .where('earlyAccessRound.token_price IS NULL')
+    .getMany();
+
+  if (roundsToUpdate.length === 0) {
+    return;
+  }
+
+  // Set the token price for all found rounds and save them
+  for (const round of roundsToUpdate) {
+    if (round.tokenPrice === null) {
+      const tokenPrice = await priceAdapter.getTokenPriceAtDate({
+        symbol: 'POL',
+        date: round.startDate.toISOString().split('T')[0], // Format date as 'YYYY-MM-DD'
+      });
+
+      if (tokenPrice) {
+        round.tokenPrice = tokenPrice;
+        await AppDataSource.getDataSource()
+          .getRepository(EarlyAccessRound)
+          .save(round);
+      }
+    }
+  }
+
+  return roundsToUpdate.length;
+};
