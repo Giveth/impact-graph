@@ -325,7 +325,7 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
 > => {
   const priceAdapter = new CoingeckoPriceAdapter();
 
-  // Find all QfRounds where token_price is NULL and the round has already started
+  // Find all QfRounds where token_price is NULL
   const roundsToUpdate = await AppDataSource.getDataSource()
     .getRepository(QfRound)
     .createQueryBuilder('qfRound')
