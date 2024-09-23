@@ -34,4 +34,8 @@ export class EarlyAccessRound extends BaseEntity {
   @Field(() => Date)
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Field({ nullable: true })
+  @Column({ type: 'float', nullable: true })
+  tokenPrice?: number;
 }
