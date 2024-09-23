@@ -20,7 +20,7 @@ function fetchAllRoundsTestCases() {
     await EarlyAccessRound.delete({});
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     // Clean up data after each test case
     await QfRound.delete({});
     await EarlyAccessRound.delete({});
