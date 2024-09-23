@@ -16,6 +16,7 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import {
+  acceptedTermsOfService,
   checkUserPrivadoVerifiedState,
   refreshUserScores,
   updateUser,
@@ -46,6 +47,12 @@ describe(
   'checkUserPrivadoVerfiedState() test cases',
   checkUserPrivadoVerfiedStateTestCases,
 );
+
+describe(
+  'acceptedTermsOfService() test cases',
+  acceptedTermsOfServicesTestCases,
+);
+
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
 function refreshUserScoresTestCases() {
@@ -1052,5 +1059,103 @@ function checkUserPrivadoVerfiedStateTestCases() {
       updatedUser?.privadoVerifiedRequestIds,
       userVeriviedRequestIds,
     );
+  });
+}
+
+function acceptedTermsOfServicesTestCases() {
+  it("should return true and set user's accepted terms of service with privado approved", async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+    });
+
+    const accessToken = await generateTestAccessToken(user.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: acceptedTermsOfService,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result.data.data.acceptedTermsOfService);
+    assert.isTrue(result.data.data.acceptedTermsOfService);
+
+    const updatedUser = await User.findOne({
+      where: { walletAddress: user.walletAddress },
+    });
+    assert.isTrue(updatedUser?.acceptedToS);
+  });
+
+  it('should return false without privado approval', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: acceptedTermsOfService,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result.data.data);
+    assert.isFalse(result.data.data.acceptedTermsOfService);
+
+    const updatedUser = await User.findOne({
+      where: { walletAddress: user.walletAddress },
+    });
+    assert.isNotTrue(updatedUser?.acceptedToS);
+  });
+
+  it('should not return true `acceptedToS` for users have not accepted terms of service on userByAddress query', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const fetchUserResponse = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: user.walletAddress,
+      },
+    });
+
+    assert.isOk(fetchUserResponse.data.data.userByAddress);
+    assert.isNotTrue(fetchUserResponse.data.data.userByAddress.acceptedToS);
+  });
+
+  it('should return true for users have accepted terms of service', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+    });
+    const accessToken = await generateTestAccessToken(user.id);
+
+    await axios.post(
+      graphqlUrl,
+      {
+        query: acceptedTermsOfService,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const fetchUserResponse = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: user.walletAddress,
+      },
+    });
+
+    assert.isOk(fetchUserResponse.data.data.userByAddress);
+    assert.isTrue(fetchUserResponse.data.data.userByAddress.acceptedToS);
   });
 }

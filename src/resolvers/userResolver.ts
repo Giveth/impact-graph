@@ -376,4 +376,24 @@ export class UserResolver {
       );
     return await privadoAdapter.checkUserVerified(user.userId);
   }
+
+  @Mutation(_returns => Boolean)
+  async acceptedTermsOfService(
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<boolean> {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+
+    const userFromDB = await findUserById(user.userId);
+
+    if (userFromDB?.privadoVerified && !userFromDB.acceptedToS) {
+      userFromDB.acceptedToS = true;
+      userFromDB.acceptedToSDate = new Date();
+      await userFromDB.save();
+      return true;
+    }
+    return false;
+  }
 }

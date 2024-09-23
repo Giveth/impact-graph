@@ -1188,6 +1188,7 @@ export const userByAddress = `
       passportScore
       passportStamps
       privadoVerified
+      acceptedToS
     }
   }
 `;
@@ -2068,5 +2069,11 @@ export const fetchActiveEarlyAccessRoundQuery = `
 export const checkUserPrivadoVerifiedState = `
   mutation {
     checkUserPrivadoVerifiedState
+  }
+`;
+
+export const acceptedTermsOfService = `
+  mutation {
+    acceptedTermsOfService
   }
 `;
