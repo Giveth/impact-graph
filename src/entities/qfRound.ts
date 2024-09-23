@@ -101,6 +101,10 @@ export class QfRound extends BaseEntity {
   @Column({ default: false })
   isDataAnalysisDone: boolean;
 
+  @Field({ nullable: true })
+  @Column({ type: 'float', nullable: true })
+  tokenPrice?: number;
+
   @UpdateDateColumn()
   updatedAt: Date;
 
