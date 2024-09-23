@@ -328,19 +328,22 @@ export class ProjectResolver {
         // .addSelect('similarity(project.description, :searchTerm)', 'desc_slm')
         // .addSelect('similarity(project.impactLocation, :searchTerm)', 'loc_slm')
         // .setParameter('searchTerm', searchTerm)
+        .addSelect(
+          `(CASE 
+            WHEN project.title %> :searchTerm THEN 1
+            ELSE 2
+          END)`,
+          'title_priority',
+        )
         .andWhere(
           new Brackets(qb => {
-            qb.where('project.title %> :searchTerm ', {
-              searchTerm,
-            })
-              .orWhere('project.description %> :searchTerm ', {
-                searchTerm,
-              })
-              .orWhere('project.impactLocation %> :searchTerm', {
-                searchTerm,
-              });
+            qb.where('project.title %> :searchTerm', { searchTerm })
+              .orWhere('project.description %> :searchTerm', { searchTerm })
+              .orWhere('project.impactLocation %> :searchTerm', { searchTerm });
           }),
         )
+        .orderBy('title_priority', 'ASC')
+        .setParameter('searchTerm', searchTerm)
     );
   }
 
