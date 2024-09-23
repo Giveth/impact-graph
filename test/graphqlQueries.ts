@@ -2041,26 +2041,44 @@ export const userVerificationConfirmEmail = `
   }
 `;
 
-export const fetchAllEarlyAccessRoundsQuery = `
+export const fetchAllRoundsQuery = `
   query {
-    allEarlyAccessRounds {
-      roundNumber
-      startDate
-      endDate
-      createdAt
-      updatedAt
+    allRounds {
+      earlyAccessRounds {
+        roundNumber
+        startDate
+        endDate
+        createdAt
+        updatedAt
+      }
+      qfRounds {
+        name
+        slug
+        allocatedFund
+        beginDate
+        endDate
+      }
     }
   }
 `;
 
-export const fetchActiveEarlyAccessRoundQuery = `
+export const fetchActiveRoundsQuery = `
   query {
-    activeEarlyAccessRound {
-      roundNumber
-      startDate
-      endDate
-      createdAt
-      updatedAt
+    activeRounds {
+      activeEarlyAccessRound {
+        roundNumber
+        startDate
+        endDate
+        createdAt
+        updatedAt
+      }
+      activeQfRound {
+        name
+        slug
+        allocatedFund
+        beginDate
+        endDate
+      }
     }
   }
 `;
