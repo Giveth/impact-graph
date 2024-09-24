@@ -1,4 +1,10 @@
-import { Query, Resolver, ObjectType, Field } from 'type-graphql';
+import {
+  Query,
+  Resolver,
+  ObjectType,
+  Field,
+  createUnionType,
+} from 'type-graphql';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { QfRound } from '../entities/qfRound';
 import {
@@ -11,53 +17,54 @@ import {
 } from '../repositories/qfRoundRepository';
 import { logger } from '../utils/logger';
 
+const RoundUnion = createUnionType({
+  name: 'RoundUnion',
+  types: () => [EarlyAccessRound, QfRound] as const,
+  resolveType: value => {
+    if ('roundNumber' in value) {
+      return EarlyAccessRound;
+    }
+    if ('slug' in value) {
+      return QfRound;
+    }
+    return null;
+  },
+});
+
 @ObjectType()
 class ActiveRoundsResponse {
-  @Field(_type => EarlyAccessRound, { nullable: true })
-  activeEarlyAccessRound?: EarlyAccessRound | null;
-
-  @Field(_type => QfRound, { nullable: true })
-  activeQfRound?: QfRound | null;
-}
-
-@ObjectType()
-class RoundsResponse {
-  @Field(_type => [EarlyAccessRound])
-  earlyAccessRounds: EarlyAccessRound[];
-
-  @Field(_type => [QfRound])
-  qfRounds: QfRound[];
+  @Field(_type => RoundUnion, { nullable: true })
+  activeRound?: typeof RoundUnion | null;
 }
 
 @Resolver()
 export class RoundsResolver {
-  // Fetches all Early Access Rounds and QF Rounds
-  @Query(_returns => RoundsResponse, { nullable: true })
-  async allRounds(): Promise<RoundsResponse> {
+  @Query(_returns => [RoundUnion], { nullable: true })
+  async allRounds(): Promise<Array<typeof RoundUnion>> {
     try {
       const earlyAccessRounds = await findAllEarlyAccessRounds();
       const qfRounds = await findQfRounds({});
-      return { earlyAccessRounds, qfRounds };
+
+      // Combine both arrays into a single array
+      return [...earlyAccessRounds, ...qfRounds];
     } catch (error) {
       logger.error('Error fetching all rounds:', error);
       throw new Error('Could not fetch all rounds.');
     }
   }
 
-  // Fetches the currently active Early Access Round and active QF Rounds
   @Query(_returns => ActiveRoundsResponse, { nullable: true })
-  async activeRounds(): Promise<ActiveRoundsResponse> {
+  async activeRound(): Promise<ActiveRoundsResponse> {
     try {
       const activeEarlyAccessRound = await findActiveEarlyAccessRound();
       const activeQfRound = await findActiveQfRound();
 
-      return {
-        activeEarlyAccessRound: activeEarlyAccessRound || null,
-        activeQfRound: activeQfRound || null,
-      };
+      const activeRound = activeEarlyAccessRound || activeQfRound || null;
+
+      return { activeRound };
     } catch (error) {
-      logger.error('Error fetching active rounds:', error);
-      throw new Error('Could not fetch active rounds.');
+      logger.error('Error fetching active round:', error);
+      throw new Error('Could not fetch active round.');
     }
   }
 }
