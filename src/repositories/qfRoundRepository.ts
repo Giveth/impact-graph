@@ -11,6 +11,7 @@ import { ProjectFraud } from '../entities/projectFraud';
 import config from '../config';
 import { logger } from '../utils/logger';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+import { QACC_DONATION_TOKEN_SYMBOL } from '../utils/qacc';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -330,6 +331,7 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
     .getRepository(QfRound)
     .createQueryBuilder('qfRound')
     .where('qfRound.token_price IS NULL')
+    .andWhere('qfRound.beginDate > :now', { now: new Date() })
     .getMany();
 
   if (roundsToUpdate.length === 0) {
@@ -338,16 +340,14 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
 
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
-    if (round.tokenPrice === null) {
-      const tokenPrice = await priceAdapter.getTokenPriceAtDate({
-        symbol: 'POL',
-        date: round.beginDate.toISOString().split('T')[0], // Format date as 'YYYY-MM-DD'
-      });
+    const tokenPrice = await priceAdapter.getTokenPriceAtDate({
+      symbol: QACC_DONATION_TOKEN_SYMBOL,
+      date: round.beginDate.toISOString().split('T')[0], // Format date as 'YYYY-MM-DD'
+    });
 
-      if (tokenPrice) {
-        round.tokenPrice = tokenPrice;
-        await AppDataSource.getDataSource().getRepository(QfRound).save(round);
-      }
+    if (tokenPrice) {
+      round.tokenPrice = tokenPrice;
+      await AppDataSource.getDataSource().getRepository(QfRound).save(round);
     }
   }
 
