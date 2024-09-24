@@ -2,7 +2,7 @@ import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
-import { QACC_DONATION_TOKEN_SYMBOL } from '../utils/qacc';
+import { QACC_DONATION_TOKEN_COINGECKO_TOKEN_SLUG } from '../utils/qacc';
 
 export const findAllEarlyAccessRounds = async (): Promise<
   EarlyAccessRound[]
@@ -53,9 +53,12 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
 
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
+    const beginDate = round.startDate.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+    const formattedDate = beginDate.split('-').reverse().join('-'); // Converts to 'DD-MM-YYYY'
+
     const tokenPrice = await priceAdapter.getTokenPriceAtDate({
-      symbol: QACC_DONATION_TOKEN_SYMBOL,
-      date: round.startDate.toISOString().split('T')[0], // Format date as 'YYYY-MM-DD'
+      symbol: QACC_DONATION_TOKEN_COINGECKO_TOKEN_SLUG,
+      date: formattedDate,
     });
 
     if (tokenPrice) {
