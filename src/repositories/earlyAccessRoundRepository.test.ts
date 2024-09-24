@@ -1,20 +1,47 @@
 import { expect } from 'chai';
+import moment from 'moment';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import {
   findAllEarlyAccessRounds,
   findActiveEarlyAccessRound,
+  fillMissingTokenPriceInQfRounds,
 } from './earlyAccessRoundRepository';
 import { saveRoundDirectlyToDb } from '../../test/testUtils';
+import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+
+class MockedCoingeckoPriceAdapter extends CoingeckoPriceAdapter {
+  async getTokenPriceAtDate({
+    symbol: _symbol,
+    date: _date,
+  }: {
+    symbol: string;
+    date: string;
+  }): Promise<number> {
+    return 100;
+  }
+}
 
 describe('EarlyAccessRound Repository Test Cases', () => {
+  let originalPriceAdapter: any;
+
   beforeEach(async () => {
     // Clean up data before each test case
     await EarlyAccessRound.delete({});
+
+    // Mock the CoingeckoPriceAdapter to return a fixed value
+    originalPriceAdapter = CoingeckoPriceAdapter;
+
+    (global as any).CoingeckoPriceAdapter = MockedCoingeckoPriceAdapter;
+
+    await EarlyAccessRound.update({}, { tokenPrice: undefined });
   });
 
   afterEach(async () => {
     // Clean up data after each test case
     await EarlyAccessRound.delete({});
+
+    // Restore the original CoingeckoPriceAdapter
+    (global as any).CoingeckoPriceAdapter = originalPriceAdapter;
   });
 
   it('should save a new Early Access Round directly to the database', async () => {
@@ -89,5 +116,52 @@ describe('EarlyAccessRound Repository Test Cases', () => {
   it('should return null when no active Early Access Round is found', async () => {
     const activeRound = await findActiveEarlyAccessRound();
     expect(activeRound).to.be.null;
+  });
+
+  it('should update token price for rounds with null token_price', async () => {
+    // Create a EarlyAccessRound with null token price
+    const earlyAccessRound = EarlyAccessRound.create({
+      roundNumber: Math.floor(Math.random() * 10000),
+      startDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+      tokenPrice: undefined,
+    });
+    await EarlyAccessRound.save(earlyAccessRound);
+
+    const updatedCount = await fillMissingTokenPriceInQfRounds();
+
+    const updatedEarlyAcccessRound = await EarlyAccessRound.findOne({
+      where: { id: earlyAccessRound.id },
+    });
+    expect(updatedEarlyAcccessRound?.tokenPrice).to.equal(100);
+    expect(updatedCount).to.equal(1);
+  });
+
+  it('should not update token price for rounds with existing token_price', async () => {
+    // Create a EarlyAccessRound with an existing token price
+    const earlyAccessRound = EarlyAccessRound.create({
+      roundNumber: Math.floor(Math.random() * 10000),
+      startDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+      tokenPrice: 50,
+    });
+    await EarlyAccessRound.save(earlyAccessRound);
+
+    const updatedCount = await fillMissingTokenPriceInQfRounds();
+
+    const updatedEarlyAcccessRound = await EarlyAccessRound.findOne({
+      where: { id: earlyAccessRound.id },
+    });
+    expect(updatedEarlyAcccessRound?.tokenPrice).to.equal(50);
+    expect(updatedCount).to.equal(undefined);
+  });
+
+  it('should return zero if there are no rounds to update', async () => {
+    // Ensure no rounds with null token_price
+    await EarlyAccessRound.update({}, { tokenPrice: 100 });
+
+    const updatedCount = await fillMissingTokenPriceInQfRounds();
+
+    expect(updatedCount).to.equal(undefined);
   });
 });
