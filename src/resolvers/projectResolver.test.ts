@@ -1261,10 +1261,11 @@ function getProjectDonationSummariesTestCases() {
   let accessToken: string;
   let qfRound: QfRound;
   let earlyAccessRoundId: number;
+  let user: User;
 
   before(async () => {
     // Set up test data: user, project, QfRound, EarlyAccessRound, etc.
-    const user = await saveUserDirectlyToDb('random-address');
+    user = await saveUserDirectlyToDb('random-address');
     accessToken = await generateTestAccessToken(user.id);
 
     // Create project
@@ -1293,6 +1294,15 @@ function getProjectDonationSummariesTestCases() {
         endDate: new Date('2024-09-05'),
       }).save()
     ).id;
+  });
+
+  after(async () => {
+    // Clean up test data
+    await ProjectDonationSummary.delete({});
+    await QfRound.delete({ id: qfRound.id });
+    await Project.delete({ id: project.id });
+    await EarlyAccessRound.delete({});
+    await User.delete({ id: user.id });
   });
 
   it('should return donation summaries for a valid project and QfRound', async () => {
