@@ -11,6 +11,7 @@ import {
   fetchActiveRoundQuery,
 } from '../../test/graphqlQueries';
 import { Donation } from '../entities/donation';
+import { QfRoundHistory } from '../entities/qfRoundHistory';
 
 describe('Fetch all Rounds test cases', fetchAllRoundsTestCases);
 describe('Fetch active Round test cases', fetchActiveRoundTestCases);
@@ -27,6 +28,7 @@ function fetchAllRoundsTestCases() {
       .delete()
       .from('project_qf_rounds_qf_round')
       .execute();
+    await QfRoundHistory.delete({});
     await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
@@ -42,6 +44,7 @@ function fetchAllRoundsTestCases() {
       .delete()
       .from('project_qf_rounds_qf_round')
       .execute();
+    await QfRoundHistory.delete({});
     await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
@@ -118,6 +121,7 @@ function fetchActiveRoundTestCases() {
       .delete()
       .from('project_qf_rounds_qf_round')
       .execute();
+    await QfRoundHistory.delete({});
     await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
@@ -133,6 +137,7 @@ function fetchActiveRoundTestCases() {
       .delete()
       .from('project_qf_rounds_qf_round')
       .execute();
+    await QfRoundHistory.delete({});
     await await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
