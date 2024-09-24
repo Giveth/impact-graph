@@ -1188,6 +1188,7 @@ export const userByAddress = `
       passportScore
       passportStamps
       privadoVerified
+      acceptedToS
     }
   }
 `;
@@ -2088,5 +2089,21 @@ export const fetchActiveRoundQuery = `
 export const checkUserPrivadoVerifiedState = `
   mutation {
     checkUserPrivadoVerifiedState
+  }
+`;
+
+export const acceptedTermsOfService = `
+  mutation {
+    acceptedTermsOfService
+  }
+`;
+
+export const batchMintingEligibleUsers = `
+  query ( $limit: Int, $skip: Int, $filterAddress: String) {
+    batchMintingEligibleUsers(limit: $limit, skip: $skip, filterAddress: $filterAddress) {
+      users
+      total
+      skip
+    }
   }
 `;

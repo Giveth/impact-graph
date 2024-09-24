@@ -39,7 +39,7 @@ export class PrivadoAdapter {
       abi,
       this.provider,
     );
-    return contract.isProofVerified(address, PrivadoAdapter.privadoRequestId());
+    return contract.isProofVerified(address, PrivadoAdapter.privadoRequestId);
   }
 
   async checkUserVerified(userId: number): Promise<boolean> {
@@ -57,7 +57,7 @@ export class PrivadoAdapter {
     const response = await this.checkVerificationOnchain(user.walletAddress);
     if (response) {
       user.privadoVerifiedRequestIds = [
-        PrivadoAdapter.privadoRequestId(),
+        PrivadoAdapter.privadoRequestId,
         ...user.privadoVerifiedRequestIds,
       ];
       await user.save();
@@ -68,11 +68,11 @@ export class PrivadoAdapter {
   static isUserVerified(user: User): boolean {
     return (
       user?.privadoVerifiedRequestIds.includes(
-        PrivadoAdapter.privadoRequestId(),
+        PrivadoAdapter.privadoRequestId,
       ) || false
     );
   }
-  static privadoRequestId(): number {
+  static get privadoRequestId(): number {
     return PRIVADO_REQUEST_ID;
   }
 }
