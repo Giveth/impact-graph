@@ -1188,6 +1188,7 @@ export const userByAddress = `
       passportScore
       passportStamps
       privadoVerified
+      acceptedToS
     }
   }
 `;
@@ -2041,26 +2042,46 @@ export const userVerificationConfirmEmail = `
   }
 `;
 
-export const fetchAllEarlyAccessRoundsQuery = `
+export const fetchAllRoundsQuery = `
   query {
-    allEarlyAccessRounds {
-      roundNumber
-      startDate
-      endDate
-      createdAt
-      updatedAt
+    allRounds {
+      ... on EarlyAccessRound {
+        roundNumber
+        startDate
+        endDate
+        createdAt
+        updatedAt
+      }
+      ... on QfRound {
+        name
+        slug
+        allocatedFund
+        beginDate
+        endDate
+      }
     }
   }
 `;
 
-export const fetchActiveEarlyAccessRoundQuery = `
+export const fetchActiveRoundQuery = `
   query {
-    activeEarlyAccessRound {
-      roundNumber
-      startDate
-      endDate
-      createdAt
-      updatedAt
+    activeRound {
+      activeRound {
+        ... on EarlyAccessRound {
+          roundNumber
+          startDate
+          endDate
+          createdAt
+          updatedAt
+        }
+        ... on QfRound {
+          name
+          slug
+          allocatedFund
+          beginDate
+          endDate
+        }
+      }
     }
   }
 `;
@@ -2068,6 +2089,22 @@ export const fetchActiveEarlyAccessRoundQuery = `
 export const checkUserPrivadoVerifiedState = `
   mutation {
     checkUserPrivadoVerifiedState
+  }
+`;
+
+export const acceptedTermsOfService = `
+  mutation {
+    acceptedTermsOfService
+  }
+`;
+
+export const batchMintingEligibleUsers = `
+  query ( $limit: Int, $skip: Int, $filterAddress: String) {
+    batchMintingEligibleUsers(limit: $limit, skip: $skip, filterAddress: $filterAddress) {
+      users
+      total
+      skip
+    }
   }
 `;
 

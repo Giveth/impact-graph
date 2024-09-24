@@ -47,7 +47,7 @@ export class CoingeckoPriceAdapter implements PriceAdapterInterface {
   ): Promise<number> {
     try {
       const result = await axios.get(
-        // symbol in here means coingecko id for instance for ETC token the coingecko id is ethereum-classic
+        // symbol in here means coingecko id for instance
         `https://api.coingecko.com/api/v3/coins/${params.symbol}/history?date=${params.date}`,
       );
 
