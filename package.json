@@ -147,7 +147,7 @@
     "test:chainvineResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/chainvineResolver.test.ts",
     "test:qfRoundResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/qfRoundResolver.test.ts",
     "test:earlyAccessRoundRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/earlyAccessRoundRepository.test.ts",
-    "test:earlyAccessRoundResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/earlyAccessRoundResolver.test.ts",
+    "test:roundsResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/roundsResolver.test.ts",
     "test:qfRoundHistoryResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/qfRoundHistoryResolver.test.ts",
     "test:projectVerificationResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/projectVerificationFormResolver.test.ts",
     "test:projectRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/projectRepository.test.ts",
