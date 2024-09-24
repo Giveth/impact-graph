@@ -16,13 +16,11 @@ describe('Fetch active Round test cases', fetchActiveRoundTestCases);
 function fetchAllRoundsTestCases() {
   beforeEach(async () => {
     // Clean up data before each test case
-    await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
 
   after(async () => {
     // Clean up data after all test cases
-    await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
 
@@ -83,19 +81,21 @@ function fetchAllRoundsTestCases() {
     const qfRounds = rounds.filter(round => 'name' in round);
     assert.equal(qfRounds[1].name, qfRound1.name);
     assert.equal(qfRounds[0].name, qfRound2.name);
+
+    // delete only created qf rounds
+    await QfRound.delete({ id: qfRound1.id });
+    await QfRound.delete({ id: qfRound2.id });
   });
 }
 
 function fetchActiveRoundTestCases() {
   beforeEach(async () => {
     // Clean up data before each test case
-    await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
 
   afterEach(async () => {
     // Clean up data after each test case
-    await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
 
@@ -108,7 +108,7 @@ function fetchActiveRoundTestCases() {
     }).save();
 
     // Create a non-active QF round
-    await QfRound.create({
+    const qfRound = await QfRound.create({
       name: 'Inactive QF Round',
       slug: generateRandomString(10),
       allocatedFund: 50000,
@@ -131,6 +131,9 @@ function fetchActiveRoundTestCases() {
       response.activeRound.roundNumber,
       activeEarlyAccessRound.roundNumber,
     );
+
+    // delete only created qf rounds
+    await QfRound.delete({ id: qfRound.id });
   });
 
   it('should return the currently active QF round and no active Early Access round', async () => {
@@ -162,6 +165,9 @@ function fetchActiveRoundTestCases() {
     // Assert the active QF round is returned
     assert.isOk(response.activeRound);
     assert.equal(response.activeRound.name, activeQfRound.name);
+
+    // delete only created qf rounds
+    await QfRound.delete({ id: activeQfRound.id });
   });
 
   it('should return null when there are no active rounds', async () => {
@@ -173,7 +179,7 @@ function fetchActiveRoundTestCases() {
     }).save();
 
     // Create a non-active QF round
-    await QfRound.create({
+    const qfRound = await QfRound.create({
       name: 'Inactive QF Round',
       slug: generateRandomString(10),
       allocatedFund: 50000,
@@ -192,5 +198,8 @@ function fetchActiveRoundTestCases() {
 
     // Assert that no active round is returned
     assert.isNull(response.activeRound);
+
+    // delete only created qf rounds
+    await QfRound.delete({ id: qfRound.id });
   });
 }
