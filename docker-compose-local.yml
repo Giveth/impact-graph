@@ -24,6 +24,7 @@ services:
     profiles:
       - server
       - database
+      - local
     restart: always
     environment:
       - POSTGRES_DB=qacc
@@ -59,6 +60,9 @@ services:
   qacc-redis:
     container_name: qacc-redis
     image: redis:7-alpine
+    profiles:
+      - server
+      - local
     environment:
       - REDIS_ALLOW_EMPTY_PASSWORD=yes
     restart: always

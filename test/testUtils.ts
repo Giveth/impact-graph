@@ -160,6 +160,7 @@ export interface CreateProjectData {
 
 export const saveUserDirectlyToDb = async (
   walletAddress: string,
+  override: Partial<User> = {},
 ): Promise<User> => {
   const user = await findUserByWalletAddress(walletAddress);
   if (user) {
@@ -171,6 +172,7 @@ export const saveUserDirectlyToDb = async (
     firstName: `testUser-${walletAddress}`,
     email: `testEmail-${walletAddress}@giveth.io`,
     privadoVerifiedRequestIds: [],
+    ...override,
   }).save();
 };
 

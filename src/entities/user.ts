@@ -32,6 +32,7 @@ export const publicSelectionFields = [
   'user.totalReceived',
   'user.passportScore',
   'user.passportStamps',
+  'user.acceptedToS',
 ];
 
 export enum UserRole {
@@ -205,13 +206,23 @@ export class User extends BaseEntity {
   @Column({ type: 'timestamptz', nullable: true })
   emailConfirmedAt: Date | null;
 
+  // accepted Terms of Service
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ default: false })
+  acceptedToS: boolean;
+
+  // accepted Terms of Service
+  @Field(_type => Date, { nullable: true })
+  @Column({ default: null, nullable: true })
+  acceptedToSDate: Date;
+
   @Column('integer', { array: true, default: [] })
   privadoVerifiedRequestIds: number[];
 
   @Field(_type => Boolean, { nullable: true })
-  privadoVerified(): boolean {
+  get privadoVerified(): boolean {
     return this.privadoVerifiedRequestIds.includes(
-      PrivadoAdapter.privadoRequestId(),
+      PrivadoAdapter.privadoRequestId,
     );
   }
 
