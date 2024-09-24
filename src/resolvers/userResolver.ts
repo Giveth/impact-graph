@@ -2,6 +2,7 @@ import {
   Arg,
   Ctx,
   Field,
+  Int,
   Mutation,
   ObjectType,
   Query,
@@ -34,6 +35,7 @@ import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepos
 import { addressHasDonated } from '../repositories/donationRepository';
 // import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
+import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -42,6 +44,18 @@ class UserRelatedAddressResponse {
 
   @Field(_type => Boolean, { nullable: false })
   hasDonated: boolean;
+}
+
+@ObjectType()
+class BatchMintingEligibleUserResponse {
+  @Field(_addresses => [String], { nullable: false })
+  users: string[];
+
+  @Field(_total => Number, { nullable: false })
+  total: number;
+
+  @Field(_offset => Number, { nullable: false })
+  skip: number;
 }
 
 // eslint-disable-next-line unused-imports/no-unused-imports
@@ -128,6 +142,47 @@ export class UserResolver {
     }
 
     return foundUser;
+  }
+
+  @Query(_returns => BatchMintingEligibleUserResponse)
+  async batchMintingEligibleUsers(
+    @Arg('limit', _type => Int, { nullable: true }) limit: number = 1000,
+    @Arg('skip', _type => Int, { nullable: true }) skip: number = 0,
+    @Arg('filterAddress', { nullable: true }) filterAddress: string,
+  ) {
+    if (filterAddress) {
+      const query = User.createQueryBuilder('user').where(
+        `LOWER("walletAddress") = :walletAddress`,
+        {
+          walletAddress: filterAddress.toLowerCase(),
+        },
+      );
+
+      const userExists = await query.getExists();
+
+      return {
+        users: userExists ? [filterAddress] : [],
+        total: userExists ? 1 : 0,
+        skip: 0,
+      };
+    }
+
+    const response = await User.createQueryBuilder('user')
+      .select('user.walletAddress')
+      .where('user.acceptedToS = true')
+      .andWhere(':privadoRequestId = ANY (user.privadoVerifiedRequestIds)', {
+        privadoRequestId: PrivadoAdapter.privadoRequestId,
+      })
+      .orderBy('user.acceptedToSDate', 'ASC')
+      .take(limit)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      users: response[0].map((user: User) => user.walletAddress),
+      total: response[1],
+      skip,
+    };
   }
 
   @Mutation(_returns => Boolean)

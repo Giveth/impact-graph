@@ -2077,3 +2077,13 @@ export const acceptedTermsOfService = `
     acceptedTermsOfService
   }
 `;
+
+export const batchMintingEligibleUsers = `
+  query ( $limit: Int, $skip: Int, $filterAddress: String) {
+    batchMintingEligibleUsers(limit: $limit, skip: $skip, filterAddress: $filterAddress) {
+      users
+      total
+      skip
+    }
+  }
+`;

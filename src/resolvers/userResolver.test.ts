@@ -17,6 +17,7 @@ import {
 } from '../../test/testUtils';
 import {
   acceptedTermsOfService,
+  batchMintingEligibleUsers,
   checkUserPrivadoVerifiedState,
   refreshUserScores,
   updateUser,
@@ -51,6 +52,11 @@ describe(
 describe(
   'acceptedTermsOfService() test cases',
   acceptedTermsOfServicesTestCases,
+);
+
+describe(
+  'batchMintingEligibleUsers() test cases',
+  batchMintingEligibleUsersTestCases,
 );
 
 // TODO I think we can delete  addUserVerification query
@@ -912,7 +918,7 @@ function checkUserPrivadoVerfiedStateTestCases() {
     await user.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(2);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 2);
 
     const result = await axios.post(
       graphqlUrl,
@@ -939,7 +945,7 @@ function checkUserPrivadoVerfiedStateTestCases() {
     await user.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(4);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 4);
 
     const result = await axios.post(
       graphqlUrl,
@@ -967,7 +973,7 @@ function checkUserPrivadoVerfiedStateTestCases() {
 
     const accessToken = await generateTestAccessToken(user.id);
     sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(true);
-    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(4);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 4);
 
     const result = await axios.post(
       graphqlUrl,
@@ -999,7 +1005,7 @@ function checkUserPrivadoVerfiedStateTestCases() {
 
     const accessToken = await generateTestAccessToken(user.id);
     sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(false);
-    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(4);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 4);
 
     const result = await axios.post(
       graphqlUrl,
@@ -1032,7 +1038,7 @@ function checkUserPrivadoVerfiedStateTestCases() {
 
     const accessToken = await generateTestAccessToken(user.id);
     sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(true);
-    sinon.stub(PrivadoAdapter, 'privadoRequestId').returns(2);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 2);
 
     const result = await axios.post(
       graphqlUrl,
@@ -1157,5 +1163,132 @@ function acceptedTermsOfServicesTestCases() {
 
     assert.isOk(fetchUserResponse.data.data.userByAddress);
     assert.isTrue(fetchUserResponse.data.data.userByAddress.acceptedToS);
+  });
+}
+
+function batchMintingEligibleUsersTestCases() {
+  const DAY = 86400000;
+  beforeEach(async () => {
+    // clear all users not empty accepted terms of service
+    await User.delete({ acceptedToS: true });
+  });
+
+  it('should return empty array if there is no user to mint', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, []);
+  });
+
+  it('should return users who have accepted terms of service and privado verified', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      // 2 days ago
+      acceptedToSDate: new Date(Date.now() - DAY * 2),
+    });
+
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      // yesterday
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user1.walletAddress,
+      user2.walletAddress,
+    ]);
+  });
+
+  it('should not return users who have not accepted terms of service but have privado verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user.walletAddress,
+    ]);
+  });
+
+  it('should not return users who have accepted terms of service but have not privado verified', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user1.walletAddress,
+    ]);
+  });
+
+  it('should implement pagination', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY * 3),
+    });
+
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY * 2),
+    });
+
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    let result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+      variables: {
+        limit: 2,
+        skip: 0,
+      },
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user1.walletAddress,
+      user2.walletAddress,
+    ]);
+
+    result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+      variables: {
+        limit: 2,
+        skip: 2,
+      },
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user3.walletAddress,
+    ]);
   });
 }
