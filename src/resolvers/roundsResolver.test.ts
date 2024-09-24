@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import moment from 'moment';
 import axios from 'axios';
+import { AppDataSource } from '../orm';
 import { graphqlUrl } from '../../test/testUtils';
 import { QfRound } from '../entities/qfRound';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
@@ -21,6 +22,11 @@ function fetchAllRoundsTestCases() {
       .delete()
       .where('qfRoundId IS NOT NULL')
       .execute();
+    await AppDataSource.getDataSource()
+      .createQueryBuilder()
+      .delete()
+      .from('project_qf_rounds_qf_round')
+      .execute();
     await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
@@ -30,6 +36,11 @@ function fetchAllRoundsTestCases() {
     await Donation.createQueryBuilder()
       .delete()
       .where('qfRoundId IS NOT NULL')
+      .execute();
+    await AppDataSource.getDataSource()
+      .createQueryBuilder()
+      .delete()
+      .from('project_qf_rounds_qf_round')
       .execute();
     await QfRound.delete({});
     await EarlyAccessRound.delete({});
@@ -102,6 +113,11 @@ function fetchActiveRoundTestCases() {
       .delete()
       .where('qfRoundId IS NOT NULL')
       .execute();
+    await AppDataSource.getDataSource()
+      .createQueryBuilder()
+      .delete()
+      .from('project_qf_rounds_qf_round')
+      .execute();
     await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
@@ -112,7 +128,12 @@ function fetchActiveRoundTestCases() {
       .delete()
       .where('qfRoundId IS NOT NULL')
       .execute();
-    await QfRound.delete({});
+    await AppDataSource.getDataSource()
+      .createQueryBuilder()
+      .delete()
+      .from('project_qf_rounds_qf_round')
+      .execute();
+    await await QfRound.delete({});
     await EarlyAccessRound.delete({});
   });
 
