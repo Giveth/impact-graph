@@ -51,18 +51,16 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
 
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
-    if (round.tokenPrice === null) {
-      const tokenPrice = await priceAdapter.getTokenPriceAtDate({
-        symbol: 'POL',
-        date: round.startDate.toISOString().split('T')[0], // Format date as 'YYYY-MM-DD'
-      });
+    const tokenPrice = await priceAdapter.getTokenPriceAtDate({
+      symbol: 'POL',
+      date: round.startDate.toISOString().split('T')[0], // Format date as 'YYYY-MM-DD'
+    });
 
-      if (tokenPrice) {
-        round.tokenPrice = tokenPrice;
-        await AppDataSource.getDataSource()
-          .getRepository(EarlyAccessRound)
-          .save(round);
-      }
+    if (tokenPrice) {
+      round.tokenPrice = tokenPrice;
+      await AppDataSource.getDataSource()
+        .getRepository(EarlyAccessRound)
+        .save(round);
     }
   }
 
