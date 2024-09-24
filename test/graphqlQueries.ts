@@ -2044,14 +2044,14 @@ export const userVerificationConfirmEmail = `
 export const fetchAllRoundsQuery = `
   query {
     allRounds {
-      earlyAccessRounds {
+      ... on EarlyAccessRound {
         roundNumber
         startDate
         endDate
         createdAt
         updatedAt
       }
-      qfRounds {
+      ... on QfRound {
         name
         slug
         allocatedFund
@@ -2062,22 +2062,24 @@ export const fetchAllRoundsQuery = `
   }
 `;
 
-export const fetchActiveRoundsQuery = `
+export const fetchActiveRoundQuery = `
   query {
-    activeRounds {
-      activeEarlyAccessRound {
-        roundNumber
-        startDate
-        endDate
-        createdAt
-        updatedAt
-      }
-      activeQfRound {
-        name
-        slug
-        allocatedFund
-        beginDate
-        endDate
+    activeRound {
+      activeRound {
+        ... on EarlyAccessRound {
+          roundNumber
+          startDate
+          endDate
+          createdAt
+          updatedAt
+        }
+        ... on QfRound {
+          name
+          slug
+          allocatedFund
+          beginDate
+          endDate
+        }
       }
     }
   }
