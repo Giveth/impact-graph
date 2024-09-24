@@ -82,6 +82,7 @@ export enum SortingField {
 
 export enum FilterField {
   Verified = 'verified',
+  IsGivbackEligible = 'isGivbackEligible',
   AcceptGiv = 'givingBlocksId',
   AcceptFundOnGnosis = 'acceptFundOnGnosis',
   AcceptFundOnMainnet = 'acceptFundOnMainnet',
