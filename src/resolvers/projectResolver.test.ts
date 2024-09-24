@@ -3,6 +3,7 @@ import { assert, expect } from 'chai';
 import { ArgumentValidationError } from 'type-graphql';
 import {
   createProjectData,
+  deleteProjectDirectlyFromDb,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
@@ -1300,6 +1301,7 @@ function getProjectDonationSummariesTestCases() {
     // Clean up test data
     await ProjectDonationSummary.delete({});
     await QfRound.delete({ id: qfRound.id });
+    await deleteProjectDirectlyFromDb(project.id);
     await Project.delete({ id: project.id });
     await EarlyAccessRound.delete({});
     await User.delete({ id: user.id });
