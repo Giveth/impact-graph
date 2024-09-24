@@ -43,6 +43,7 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
     .getRepository(EarlyAccessRound)
     .createQueryBuilder('earlyAccessRound')
     .where('earlyAccessRound.token_price IS NULL')
+    .andWhere('earlyAccessRound.startDate > :now', { now: new Date() })
     .getMany();
 
   if (roundsToUpdate.length === 0) {
