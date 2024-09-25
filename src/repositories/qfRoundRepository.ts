@@ -334,17 +334,9 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
 
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
-    const formattedDate = round.beginDate
-      .toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
-      .replace(/\//g, '-');
-
     const tokenPrice = await priceAdapter.getTokenPriceAtDate({
       symbol: 'polygon-ecosystem-token',
-      date: formattedDate,
+      date: round.beginDate,
     });
 
     if (tokenPrice) {
