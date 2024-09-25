@@ -5,8 +5,8 @@ import {
 } from './projectDonationSummaryRepository';
 import { ProjectDonationSummary } from '../entities/projectDonationSummary';
 import {
+  createDonationData,
   createProjectData,
-  DONATION_SEED_DATA,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   SEED_DATA,
@@ -30,7 +30,7 @@ describe('DonationSummary test cases', () => {
   }) {
     return saveDonationDirectlyToDb(
       {
-        ...DONATION_SEED_DATA.FIRST_DONATION,
+        ...createDonationData(),
         amount,
         valueUsd,
         earlyAccessRoundId,
