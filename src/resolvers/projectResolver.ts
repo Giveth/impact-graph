@@ -113,8 +113,8 @@ import {
   QACC_DONATION_TOKEN_ADDRESS,
   QACC_DONATION_TOKEN_SYMBOL,
 } from '../utils/qacc';
-import { ProjectDonationSummary } from '../entities/projectDonationSummary';
-import { getDonationSummary } from '../repositories/projectDonationSummaryRepository';
+import { ProjectRoundRecord } from '../entities/projectRoundRecord';
+import { getProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -2185,14 +2185,14 @@ export class ProjectResolver {
     }
   }
 
-  @Query(_returns => [ProjectDonationSummary])
-  async getProjectDonationSummaries(
+  @Query(_returns => [ProjectRoundRecord])
+  async getProjectRoundRecords(
     @Arg('projectId', _type => Int) projectId: number,
     @Arg('qfRoundId', _type => Int, { nullable: true }) qfRoundId?: number,
     @Arg('earlyAccessRoundId', _type => Int, { nullable: true })
     earlyAccessRoundId?: number,
-  ): Promise<ProjectDonationSummary[]> {
-    const summaries = await getDonationSummary(
+  ): Promise<ProjectRoundRecord[]> {
+    const summaries = await getProjectRoundRecord(
       projectId,
       qfRoundId,
       earlyAccessRoundId,

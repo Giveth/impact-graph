@@ -14,7 +14,7 @@ import { EarlyAccessRound } from './earlyAccessRound';
 
 @Entity()
 @ObjectType()
-export class ProjectDonationSummary extends BaseEntity {
+export class ProjectRoundRecord extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
@@ -27,13 +27,17 @@ export class ProjectDonationSummary extends BaseEntity {
   @Column({ type: 'real', default: 0 })
   totalDonationUsdAmount: number;
 
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true })
+  cumulativePastRoundsDonations?: number | null;
+
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
   project: Project;
 
   @Index()
   @Column({ nullable: false })
-  @RelationId((ps: ProjectDonationSummary) => ps.project)
+  @RelationId((ps: ProjectRoundRecord) => ps.project)
   projectId: number;
 
   @Field(_type => QfRound, { nullable: true })
@@ -42,7 +46,7 @@ export class ProjectDonationSummary extends BaseEntity {
 
   @Index()
   @Column({ nullable: true })
-  @RelationId((ps: ProjectDonationSummary) => ps.qfRound)
+  @RelationId((ps: ProjectRoundRecord) => ps.qfRound)
   qfRoundId?: number | null;
 
   @Field(_type => EarlyAccessRound, { nullable: true })
@@ -51,7 +55,7 @@ export class ProjectDonationSummary extends BaseEntity {
 
   @Index()
   @Column({ nullable: true })
-  @RelationId((ps: ProjectDonationSummary) => ps.earlyAccessRound)
+  @RelationId((ps: ProjectRoundRecord) => ps.earlyAccessRound)
   earlyAccessRoundId?: number | null;
 
   @Field(_type => Date)

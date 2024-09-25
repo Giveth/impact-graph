@@ -17,7 +17,7 @@ import {
   createProjectQuery,
   fetchMultiFilterAllProjectsQuery,
   fetchProjectBySlugQuery,
-  getProjectDonationSummariesQuery,
+  getProjectRoundRecordsQuery,
   projectByIdQuery,
   projectsByUserIdQuery,
   updateProjectQuery,
@@ -42,7 +42,7 @@ import { ORGANIZATION_LABELS } from '../entities/organization';
 import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import { ProjectSocialMediaType } from '../types/projectSocialMediaType';
 import { ProjectSocialMedia } from '../entities/projectSocialMedia';
-import { ProjectDonationSummary } from '../entities/projectDonationSummary';
+import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { QfRound } from '../entities/qfRound';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 
@@ -60,8 +60,8 @@ describe('projectSearch test cases --->', projectSearchTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
 
 describe(
-  'getProjectDonationSummaries test cases --->',
-  getProjectDonationSummariesTestCases,
+  'getProjectRoundRecords test cases --->',
+  getProjectRoundRecordsTestCases,
 );
 
 function createProjectTestCases() {
@@ -1258,7 +1258,7 @@ function updateProjectTestCases() {
   });
 }
 
-function getProjectDonationSummariesTestCases() {
+function getProjectRoundRecordsTestCases() {
   let project: Project;
   let accessToken: string;
   let qfRound: QfRound;
@@ -1301,7 +1301,7 @@ function getProjectDonationSummariesTestCases() {
 
   after(async () => {
     // Clean up test data
-    await ProjectDonationSummary.delete({});
+    await ProjectRoundRecord.delete({});
     await QfRound.delete({ id: qfRound.id });
     await deleteProjectDirectlyFromDb(project.id);
     await Project.delete({ id: project.id });
@@ -1311,7 +1311,7 @@ function getProjectDonationSummariesTestCases() {
 
   it('should return donation summaries for a valid project and QfRound', async () => {
     // Simulate donation summary creation
-    const summary = ProjectDonationSummary.create({
+    const summary = ProjectRoundRecord.create({
       projectId: project.id,
       qfRoundId: qfRound.id,
       totalDonationAmount: 500,
@@ -1324,7 +1324,7 @@ function getProjectDonationSummariesTestCases() {
     const response = await axios.post(
       graphqlUrl,
       {
-        query: getProjectDonationSummariesQuery,
+        query: getProjectRoundRecordsQuery,
         variables: {
           projectId: project.id,
           qfRoundId: qfRound.id,
@@ -1337,7 +1337,7 @@ function getProjectDonationSummariesTestCases() {
       },
     );
 
-    const summaries = response.data.data.getProjectDonationSummaries;
+    const summaries = response.data.data.getProjectRoundRecords;
     expect(summaries).to.have.length(1);
     expect(summaries[0].totalDonationAmount).to.equal(500);
     expect(summaries[0].totalDonationUsdAmount).to.equal(550);
@@ -1346,7 +1346,7 @@ function getProjectDonationSummariesTestCases() {
 
   it('should return donation summaries for a valid project and Early Access Round', async () => {
     // Simulate donation summary creation for Early Access Round
-    const summary = ProjectDonationSummary.create({
+    const summary = ProjectRoundRecord.create({
       projectId: project.id,
       earlyAccessRoundId: earlyAccessRoundId,
       totalDonationAmount: 300,
@@ -1359,7 +1359,7 @@ function getProjectDonationSummariesTestCases() {
     const response = await axios.post(
       graphqlUrl,
       {
-        query: getProjectDonationSummariesQuery,
+        query: getProjectRoundRecordsQuery,
         variables: {
           projectId: project.id,
           earlyAccessRoundId,
@@ -1372,7 +1372,7 @@ function getProjectDonationSummariesTestCases() {
       },
     );
 
-    const summaries = response.data.data.getProjectDonationSummaries;
+    const summaries = response.data.data.getProjectRoundRecords;
     expect(summaries).to.have.length(1);
     expect(summaries[0].totalDonationAmount).to.equal(300);
     expect(summaries[0].totalDonationUsdAmount).to.equal(320);
@@ -1384,7 +1384,7 @@ function getProjectDonationSummariesTestCases() {
       await axios.post(
         graphqlUrl,
         {
-          query: getProjectDonationSummariesQuery,
+          query: getProjectRoundRecordsQuery,
           variables: {
             projectId: 999999,
           },
@@ -1407,7 +1407,7 @@ function getProjectDonationSummariesTestCases() {
       await axios.post(
         graphqlUrl,
         {
-          query: getProjectDonationSummariesQuery,
+          query: getProjectRoundRecordsQuery,
           variables: {
             projectId: project.id,
             qfRoundId: 999999, // Non-existent QfRound id

@@ -2108,9 +2108,9 @@ export const batchMintingEligibleUsers = `
   }
 `;
 
-export const getProjectDonationSummariesQuery = `
-  query GetProjectDonationSummaries($projectId: Int!, $qfRoundId: Int, $earlyAccessRoundId: Int) {
-    getProjectDonationSummaries(projectId: $projectId, qfRoundId: $qfRoundId, earlyAccessRoundId: $earlyAccessRoundId) {
+export const getProjectRoundRecordsQuery = `
+  query GetProjectRoundRecords($projectId: Int!, $qfRoundId: Int, $earlyAccessRoundId: Int) {
+    getProjectRoundRecords(projectId: $projectId, qfRoundId: $qfRoundId, earlyAccessRoundId: $earlyAccessRoundId) {
       project {
         id
         slug

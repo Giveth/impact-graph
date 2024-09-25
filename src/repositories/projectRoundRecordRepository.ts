@@ -1,5 +1,5 @@
 import { Donation, DONATION_STATUS } from '../entities/donation';
-import { ProjectDonationSummary } from '../entities/projectDonationSummary';
+import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { logger } from '../utils/logger';
 
 /**
@@ -11,11 +11,11 @@ import { logger } from '../utils/logger';
  * @param donationAmount - Amount of the current donation
  * @param donationUsdAmount - USD amount of the current donation
  */
-export async function updateOrCreateDonationSummary(
+export async function updateOrCreateProjectRoundRecord(
   projectId: number,
   qfRoundId?: number | null,
   earlyAccessRoundId?: number | null,
-): Promise<void> {
+): Promise<ProjectRoundRecord> {
   try {
     let query = Donation.createQueryBuilder('donation')
       .select('SUM(donation.amount)', 'totalDonationAmount')
@@ -40,14 +40,14 @@ export async function updateOrCreateDonationSummary(
     const { totalDonationAmount, totalDonationUsdAmount } =
       await query.getRawOne();
 
-    let summary = await ProjectDonationSummary.findOneBy({
+    let summary = await ProjectRoundRecord.findOneBy({
       projectId,
       qfRoundId: qfRoundId ?? undefined,
       earlyAccessRoundId: earlyAccessRoundId ?? undefined,
     });
 
     if (!summary) {
-      summary = ProjectDonationSummary.create({
+      summary = ProjectRoundRecord.create({
         projectId,
         qfRoundId,
         earlyAccessRoundId,
@@ -60,12 +60,14 @@ export async function updateOrCreateDonationSummary(
     summary.totalDonationUsdAmount = totalDonationUsdAmount;
     summary.updatedAt = new Date();
 
-    await ProjectDonationSummary.save(summary);
+    const pds = await ProjectRoundRecord.save(summary);
 
-    logger.info(`ProjectDonationSummary updated for project ${projectId}`);
+    logger.info(`ProjectRoundRecord updated for project ${projectId}`);
+
+    return pds;
   } catch (error) {
-    logger.error('Error updating or creating ProjectDonationSummary:', error);
-    throw new Error('Failed to update or create ProjectDonationSummary');
+    logger.error('Error updating or creating ProjectRoundRecord:', error);
+    throw new Error('Failed to update or create ProjectRoundRecord');
   }
 }
 
@@ -75,14 +77,16 @@ export async function updateOrCreateDonationSummary(
  * @param projectId - ID of the project
  * @param qfRoundId - ID of the QF round (optional)
  * @param earlyAccessRoundId - ID of the Early Access round (optional)
- * @returns ProjectDonationSummary object
+ * @returns ProjectRoundRecord object
  */
-export async function getDonationSummary(
+export async function getProjectRoundRecord(
   projectId: number,
   qfRoundId?: number,
   earlyAccessRoundId?: number,
-): Promise<ProjectDonationSummary[]> {
-  return ProjectDonationSummary.find({
+): Promise<ProjectRoundRecord[]> {
+  return ProjectRoundRecord.find({
     where: { projectId, qfRoundId, earlyAccessRoundId },
   });
 }
+
+export async function updateCumulativePastDonations() {}
