@@ -69,6 +69,7 @@ import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUse
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
 import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
 import { addClient } from '../services/sse/sse';
+import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncUsersModelScore';
 
 Resource.validate = validate;
 
@@ -361,6 +362,7 @@ export async function bootstrap() {
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
+    runCheckPendingUserModelScoreCronjob();
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();

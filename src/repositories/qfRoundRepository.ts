@@ -15,6 +15,10 @@ const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
 );
 
+const qfRoundUsersMissedMBDScore = Number(
+  process.env.QF_ROUND_USERS_MISSED_SCORE || 0,
+);
+
 const qfRoundsCacheDuration =
   (config.get('QF_ROUND_AND_MAIN_CATEGORIES_CACHE_DURATION') as number) ||
   1000 * 60 * 2;
@@ -170,6 +174,31 @@ export const findActiveQfRound = async (
     return query.getOne();
   }
   return query.cache('findActiveQfRound', qfRoundsCacheDuration).getOne();
+};
+
+export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
+  number[]
+> => {
+  const activeQfRoundId =
+    (await findActiveQfRound())?.id || qfRoundUsersMissedMBDScore;
+
+  if (!activeQfRoundId || activeQfRoundId === 0) return [];
+
+  const usersMissingMDBScore = await QfRound.query(
+    `
+      SELECT DISTINCT d."userId"
+      FROM public.donation d
+      LEFT JOIN user_qf_round_model_score uqrms ON d."userId" = uqrms."userId" AND uqrms."qfRoundId" = $1
+      WHERE d."qfRoundId" = $1
+        AND d.status = 'verified'
+        AND uqrms.id IS NULL
+        AND d."userId" IS NOT NULL
+      ORDER BY d."userId";
+    `,
+    [activeQfRoundId],
+  );
+
+  return usersMissingMDBScore;
 };
 
 export const findQfRoundById = async (id: number): Promise<QfRound | null> => {
