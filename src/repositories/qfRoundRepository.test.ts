@@ -529,7 +529,7 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
 
     const updatedQfRound = await QfRound.findOne({ where: { id: qfRound.id } });
     expect(updatedQfRound?.tokenPrice).to.equal(50);
-    expect(updatedCount).to.equal(undefined);
+    expect(updatedCount).to.equal(0);
   });
 
   it('should return zero if there are no rounds to update', async () => {
@@ -538,6 +538,6 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
 
     const updatedCount = await fillMissingTokenPriceInQfRounds();
 
-    expect(updatedCount).to.equal(undefined);
+    expect(updatedCount).to.equal(0);
   });
 }

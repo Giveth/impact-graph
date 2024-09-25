@@ -127,7 +127,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     expect(updatedCount).to.equal(1);
   });
 
-  it('should not update token price for rounds with existing token_price', async () => {
+  it('should not update token price for rounds with existing tokenPrice', async () => {
     // Create a EarlyAccessRound with an existing token price
     const earlyAccessRound = EarlyAccessRound.create({
       roundNumber: Math.floor(Math.random() * 10000),
@@ -142,8 +142,9 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     const updatedEarlyAcccessRound = await EarlyAccessRound.findOne({
       where: { id: earlyAccessRound.id },
     });
+
     expect(updatedEarlyAcccessRound?.tokenPrice).to.equal(50);
-    expect(updatedCount).to.equal(undefined);
+    expect(updatedCount).to.equal(0);
   });
 
   it('should return zero if there are no rounds to update', async () => {
@@ -152,6 +153,6 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
     const updatedCount = await fillMissingTokenPriceInQfRounds();
 
-    expect(updatedCount).to.equal(undefined);
+    expect(updatedCount).to.equal(0);
   });
 });
