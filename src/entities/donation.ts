@@ -132,23 +132,23 @@ export class Donation extends BaseEntity {
   anonymous: boolean;
 
   @Field()
-  @Column({ type: 'real' })
+  @Column({ type: 'float' })
   amount: number;
 
   @Field({ nullable: true })
-  @Column({ type: 'real', nullable: true })
+  @Column({ type: 'float', nullable: true })
   valueEth: number;
 
   @Field({ nullable: true })
-  @Column({ type: 'real', nullable: true })
+  @Column({ type: 'float', nullable: true })
   valueUsd: number;
 
   @Field({ nullable: true })
-  @Column({ type: 'real', nullable: true })
+  @Column({ type: 'float', nullable: true })
   priceEth: number;
 
   @Field({ nullable: true })
-  @Column({ type: 'real', nullable: true })
+  @Column({ type: 'float', nullable: true })
   priceUsd: number;
 
   @Index()

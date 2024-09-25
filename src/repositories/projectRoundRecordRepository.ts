@@ -1,5 +1,8 @@
+import { Brackets } from 'typeorm';
 import { Donation, DONATION_STATUS } from '../entities/donation';
+import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
+import { QfRound } from '../entities/qfRound';
 import { logger } from '../utils/logger';
 
 /**
@@ -56,8 +59,8 @@ export async function updateOrCreateProjectRoundRecord(
       });
     }
 
-    summary.totalDonationAmount = totalDonationAmount;
-    summary.totalDonationUsdAmount = totalDonationUsdAmount;
+    summary.totalDonationAmount = totalDonationAmount || 0;
+    summary.totalDonationUsdAmount = totalDonationUsdAmount || 0;
     summary.updatedAt = new Date();
 
     const pds = await ProjectRoundRecord.save(summary);
@@ -89,4 +92,64 @@ export async function getProjectRoundRecord(
   });
 }
 
-export async function updateCumulativePastDonations() {}
+export async function getCumulativePastRoundsDonationAmounts({
+  projectId,
+  earlyAccessRoundId,
+  qfRoundId,
+}: {
+  projectId: number;
+  earlyAccessRoundId?: number;
+  qfRoundId?: number;
+}): Promise<number | null> {
+  let round: EarlyAccessRound | QfRound | null;
+  if (earlyAccessRoundId) {
+    round = await EarlyAccessRound.findOneBy({ id: earlyAccessRoundId });
+    if (!round?.startDate || round.startDate > new Date()) {
+      return null;
+    }
+  } else if (qfRoundId) {
+    round = await QfRound.findOneBy({ id: qfRoundId });
+    if (!round?.beginDate || round.beginDate > new Date()) {
+      return null;
+    }
+  } else {
+    // No round specified
+    return null;
+  }
+
+  try {
+    let query = ProjectRoundRecord.createQueryBuilder('projectRoundRecord')
+      .select(
+        'ROUND(CAST(SUM(projectRoundRecord.totalDonationAmount) as NUMERIC), 2)',
+        'cumulativePastRoundsDonationAmounts',
+      )
+      .where('projectRoundRecord.projectId = :projectId', { projectId });
+
+    if (earlyAccessRoundId) {
+      query = query
+        .leftJoin('projectRoundRecord.earlyAccessRound', 'earlyAccessRound')
+        .andWhere('earlyAccessRound.roundNumber < :roundNumber', {
+          roundNumber: round!.roundNumber,
+        });
+    } else {
+      // all early access rounds and all
+
+      query = query.leftJoin('projectRoundRecord.qfRound', 'qfRound').andWhere(
+        new Brackets(qb => {
+          qb.orWhere(
+            'projectRoundRecord.earlyAccessRoundId IS NOT NULL',
+          ).orWhere('qfRound.roundNumber < :roundNumber', {
+            roundNumber: round!.roundNumber,
+          });
+        }),
+      );
+    }
+
+    const { cumulativePastRoundsDonationAmounts } = await query.getRawOne();
+
+    return parseFloat(cumulativePastRoundsDonationAmounts) || 0;
+  } catch (error) {
+    logger.error('Error getting cumulativePastRoundsDonationAmounts:', error);
+    throw new Error('Failed to get cumulativePastRoundsDonationAmounts');
+  }
+}

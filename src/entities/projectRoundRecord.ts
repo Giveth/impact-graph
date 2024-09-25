@@ -20,16 +20,16 @@ export class ProjectRoundRecord extends BaseEntity {
   id: number;
 
   @Field(_type => Float)
-  @Column({ type: 'real', default: 0 })
+  @Column({ type: 'float', default: 0 })
   totalDonationAmount: number;
 
   @Field(_type => Float)
-  @Column({ type: 'real', default: 0 })
+  @Column({ type: 'float', default: 0 })
   totalDonationUsdAmount: number;
 
   @Field(_type => Float, { nullable: true })
-  @Column({ type: 'real', nullable: true })
-  cumulativePastRoundsDonations?: number | null;
+  @Column({ type: 'float', nullable: true })
+  cumulativePastRoundsDonationAmounts?: number | null;
 
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
