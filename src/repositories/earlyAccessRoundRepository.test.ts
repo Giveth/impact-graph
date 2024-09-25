@@ -123,6 +123,13 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     const updatedEarlyAcccessRound = await EarlyAccessRound.findOne({
       where: { id: earlyAccessRound.id },
     });
+
+    // Assert that the token price fetching method was called with the correct date
+    sinon.assert.calledWith(priceAdapterStub, {
+      symbol: 'polygon-ecosystem-token',
+      date: earlyAccessRound.startDate,
+    });
+
     expect(updatedEarlyAcccessRound?.tokenPrice).to.equal(100);
     expect(updatedCount).to.equal(1);
   });
