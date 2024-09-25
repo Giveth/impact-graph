@@ -72,6 +72,7 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 import { nonZeroRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 import { getTokenPrice } from '../services/priceService';
 import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 
@@ -315,6 +316,7 @@ export class DonationResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
+    @Arg('onlyEndaoment', { nullable: true }) onlyEndaoment?: boolean,
   ): Promise<MainCategoryDonations[] | []> {
     try {
       validateWithJoiSchema(
@@ -355,6 +357,13 @@ export class DonationResolver {
         query.andWhere('projects.verified = true');
       }
 
+      if (onlyEndaoment) {
+        query
+          .leftJoin('projects.organization', 'organization')
+          .andWhere('organization."label" = :label', {
+            label: ORGANIZATION_LABELS.ENDAOMENT,
+          });
+      }
       return await query.getRawMany();
     } catch (e) {
       logger.error('totalDonationsPerCategory query error', e);
@@ -369,6 +378,7 @@ export class DonationResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
+    @Arg('onlyEndaoment', { nullable: true }) onlyEndaoment?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -380,6 +390,7 @@ export class DonationResolver {
         toDate,
         networkId,
         onlyVerified,
+        onlyEndaoment,
       );
       const totalPerMonthAndYear =
         await donationsTotalAmountPerDateRangeByMonth(
@@ -387,6 +398,7 @@ export class DonationResolver {
           toDate,
           networkId,
           onlyVerified,
+          onlyEndaoment,
         );
 
       return {
@@ -406,6 +418,7 @@ export class DonationResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
+    @Arg('onlyEndaoment', { nullable: true }) onlyEndaoment?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -417,6 +430,7 @@ export class DonationResolver {
         toDate,
         networkId,
         onlyVerified,
+        onlyEndaoment,
       );
       const totalPerMonthAndYear =
         await donationsTotalNumberPerDateRangeByMonth(
@@ -424,6 +438,7 @@ export class DonationResolver {
           toDate,
           networkId,
           onlyVerified,
+          onlyEndaoment,
         );
 
       return {
@@ -495,17 +510,24 @@ export class DonationResolver {
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
+    @Arg('onlyEndaoment', { nullable: true }) onlyEndaoment?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const total = await donorsCountPerDate(fromDate, toDate, networkId);
+      const total = await donorsCountPerDate(
+        fromDate,
+        toDate,
+        networkId,
+        onlyEndaoment,
+      );
       const totalPerMonthAndYear = await donorsCountPerDateByMonthAndYear(
         fromDate,
         toDate,
         networkId,
+        onlyEndaoment,
       );
       return {
         total,

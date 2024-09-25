@@ -220,9 +220,10 @@ function allProjectsTestCases() {
       );
     assert.isTrue(firstProjectIsOlder);
   });
-  it('should return projects, filter by verified, true', async () => {
+
+  it('should return projects, filter by verified, true #1', async () => {
     // There is two verified projects so I just need to create a project with verified: false and listed:true
-    await saveProjectDirectlyToDb({
+    const unverifiedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
@@ -239,7 +240,97 @@ function allProjectsTestCases() {
     result.data.data.allProjects.projects.forEach(project =>
       assert.isTrue(project.verified),
     );
+
+    // should not include unverified project in the response
+    assert.notExists(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === unverifiedProject.id,
+      ),
+    );
   });
+  it('should return projects, filter by verified, true #2', async () => {
+    const verified = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['Verified'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.isTrue(project.verified),
+    );
+
+    // should not include unverified project in the response
+    assert.exists(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === verified.id,
+      ),
+    );
+  });
+
+  it('should return projects, filter by isGivbackEligible, true #1', async () => {
+    // There is two isGivbackEligible projects so I just need to create a project with isGivbackEligible: false and listed:true
+    const notGivbackEligibleProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      isGivbackEligible: false,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['IsGivbackEligible'],
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.isTrue(project.isGivbackEligible),
+    );
+
+    // should not include unisGivbackEligible project in the response
+    assert.notExists(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === notGivbackEligibleProject.id,
+      ),
+    );
+  });
+  it('should return projects, filter by isGivbackEligible, true #2', async () => {
+    const givbackEligibleProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      isGivbackEligible: true,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['IsGivbackEligible'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.isTrue(project.isGivbackEligible),
+    );
+
+    // should not include unisGivbackEligible project in the response
+    assert.exists(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === givbackEligibleProject.id,
+      ),
+    );
+  });
+
   it('should return projects, filter by acceptGiv, true', async () => {
     await saveProjectDirectlyToDb({
       ...createProjectData(),

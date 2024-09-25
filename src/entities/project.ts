@@ -77,10 +77,12 @@ export enum SortingField {
   InstantBoosting = 'InstantBoosting',
   ActiveQfRoundRaisedFunds = 'ActiveQfRoundRaisedFunds',
   EstimatedMatching = 'EstimatedMatching',
+  BestMatch = 'BestMatch',
 }
 
 export enum FilterField {
   Verified = 'verified',
+  IsGivbackEligible = 'isGivbackEligible',
   AcceptGiv = 'givingBlocksId',
   AcceptFundOnGnosis = 'acceptFundOnGnosis',
   AcceptFundOnMainnet = 'acceptFundOnMainnet',
