@@ -33,7 +33,7 @@ export const findActiveEarlyAccessRound =
     }
   };
 
-export const fillMissingTokenPriceInQfRounds = async (): Promise<
+export const fillMissingTokenPriceInEarlyAccessRounds = async (): Promise<
   void | number
 > => {
   const priceAdapter = new CoingeckoPriceAdapter();

@@ -5,7 +5,7 @@ import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import {
   findAllEarlyAccessRounds,
   findActiveEarlyAccessRound,
-  fillMissingTokenPriceInQfRounds,
+  fillMissingTokenPriceInEarlyAccessRounds,
 } from './earlyAccessRoundRepository';
 import { saveRoundDirectlyToDb } from '../../test/testUtils';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
@@ -118,7 +118,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     });
     await EarlyAccessRound.save(earlyAccessRound);
 
-    const updatedCount = await fillMissingTokenPriceInQfRounds();
+    const updatedCount = await fillMissingTokenPriceInEarlyAccessRounds();
 
     const updatedEarlyAcccessRound = await EarlyAccessRound.findOne({
       where: { id: earlyAccessRound.id },
@@ -144,7 +144,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     });
     await EarlyAccessRound.save(earlyAccessRound);
 
-    const updatedCount = await fillMissingTokenPriceInQfRounds();
+    const updatedCount = await fillMissingTokenPriceInEarlyAccessRounds();
 
     const updatedEarlyAcccessRound = await EarlyAccessRound.findOne({
       where: { id: earlyAccessRound.id },
@@ -158,7 +158,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     // Ensure no rounds with null token_price
     await EarlyAccessRound.update({}, { tokenPrice: 100 });
 
-    const updatedCount = await fillMissingTokenPriceInQfRounds();
+    const updatedCount = await fillMissingTokenPriceInEarlyAccessRounds();
 
     expect(updatedCount).to.equal(0);
   });
