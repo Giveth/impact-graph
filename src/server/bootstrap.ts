@@ -368,6 +368,8 @@ export async function bootstrap() {
 
   async function addQAccToken() {
     if (
+      // not test env
+      (config.get('ENVIRONMENT') as string) !== 'test' &&
       QACC_DONATION_TOKEN_NAME &&
       QACC_DONATION_TOKEN_ADDRESS &&
       QACC_DONATION_TOKEN_SYMBOL &&
