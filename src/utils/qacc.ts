@@ -16,9 +16,6 @@ export const QACC_DONATION_TOKEN_DECIMALS =
   (+config.get('QACC_DONATION_TOKEN_DECIMALS') as number) || 18;
 export const QACC_DONATION_TOKEN_COINGECKO_ID =
   (config.get('QACC_DONATION_TOKEN_COINGECKO_ID') as string) || 'matic-network';
-export const QACC_DONATION_TOKEN_COINGECKO_TOKEN_SLUG =
-  (config.get('QACC_DONATION_TOKEN_COINGECKO_TOKEN_SLUG') as string) ||
-  'polygon-ecosystem-token';
 
 const isEarlyAccessRound = async () => {
   const earlyAccessRound = await findActiveEarlyAccessRound();

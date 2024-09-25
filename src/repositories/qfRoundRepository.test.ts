@@ -17,6 +17,7 @@ import {
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalSqrtRootSumSquared,
   getQfRoundStats,
+  fillMissingTokenPriceInQfRounds,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
@@ -55,7 +56,7 @@ describe('findQfRoundById test cases', findQfRoundByIdTestCases);
 describe('findQfRoundBySlug test cases', findQfRoundBySlugTestCases);
 describe(
   'fillMissingTokenPriceInQfRounds test cases',
-  fillMissingTokenPriceInQfRounds,
+  fillMissingTokenPriceInQfRoundsTestCase,
 );
 
 function getProjectDonationsSqrRootSumTests() {
@@ -482,7 +483,7 @@ function findQfRoundBySlugTestCases() {
   });
 }
 
-function fillMissingTokenPriceInQfRounds() {
+function fillMissingTokenPriceInQfRoundsTestCase() {
   let originalPriceAdapter: any;
 
   beforeEach(async () => {
@@ -505,7 +506,7 @@ function fillMissingTokenPriceInQfRounds() {
       allocatedFund: 100,
       minimumPassportScore: 8,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(10, 'days').toDate(),
       tokenPrice: undefined,
     });

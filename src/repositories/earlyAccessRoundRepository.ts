@@ -2,7 +2,6 @@ import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
-import { QACC_DONATION_TOKEN_COINGECKO_TOKEN_SLUG } from '../utils/qacc';
 
 export const findAllEarlyAccessRounds = async (): Promise<
   EarlyAccessRound[]
@@ -42,9 +41,9 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
   // Find all EarlyAccessRound where token_price is NULL
   const roundsToUpdate = await AppDataSource.getDataSource()
     .getRepository(EarlyAccessRound)
-    .createQueryBuilder('earlyAccessRound')
-    .where('earlyAccessRound.token_price IS NULL')
-    .andWhere('earlyAccessRound.startDate > :now', { now: new Date() })
+    .createQueryBuilder('early_AccessRound')
+    .where('early_AccessRound.token_price IS NULL')
+    .andWhere('early_AccessRound.startDate > :now', { now: new Date() })
     .getMany();
 
   if (roundsToUpdate.length === 0) {
@@ -53,11 +52,16 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
 
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
-    const beginDate = round.startDate.toISOString().split('T')[0]; // 'YYYY-MM-DD'
-    const formattedDate = beginDate.split('-').reverse().join('-'); // Converts to 'DD-MM-YYYY'
+    const formattedDate = round.startDate
+      .toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+      .replace(/\//g, '-');
 
     const tokenPrice = await priceAdapter.getTokenPriceAtDate({
-      symbol: QACC_DONATION_TOKEN_COINGECKO_TOKEN_SLUG,
+      symbol: 'polygon-ecosystem-token',
       date: formattedDate,
     });
 

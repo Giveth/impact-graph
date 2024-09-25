@@ -15,9 +15,9 @@ export class AddTokenPriceToRounds1727098387189 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Remove `token_price` column from both tables if needed
-    await queryRunner.query(`ALTER TABLE "qf_round" DROP COLUMN "price"`);
+    await queryRunner.query(`ALTER TABLE "qf_round" DROP COLUMN "token_price"`);
     await queryRunner.query(
-      `ALTER TABLE "early_access_round" DROP COLUMN "price"`,
+      `ALTER TABLE "early_access_round" DROP COLUMN "token_price"`,
     );
   }
 }
