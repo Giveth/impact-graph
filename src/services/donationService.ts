@@ -39,6 +39,7 @@ import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { CustomToken, getTokenPrice } from './priceService';
 import { updateProjectStatistics } from './projectService';
+import { updateOrCreateDonationSummary } from '../repositories/projectDonationSummaryRepository';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -266,6 +267,11 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await updateProjectStatistics(donation.projectId);
     await updateUserTotalDonated(donation.userId);
     await updateUserTotalReceived(donation.project.adminUserId);
+    await updateOrCreateDonationSummary(
+      donation.projectId,
+      donation.qfRoundId,
+      donation.earlyAccessRoundId,
+    );
 
     await sendNotificationForDonation({
       donation,

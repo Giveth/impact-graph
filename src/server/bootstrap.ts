@@ -54,6 +54,16 @@ import { corsOptions, setCorsHeaders } from './cors';
 import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
 // import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
+import {
+  QACC_DONATION_TOKEN_ADDRESS,
+  QACC_DONATION_TOKEN_COINGECKO_ID,
+  QACC_DONATION_TOKEN_DECIMALS,
+  QACC_DONATION_TOKEN_NAME,
+  QACC_DONATION_TOKEN_SYMBOL,
+} from '../utils/qacc';
+import { QACC_NETWORK_ID } from '../provider';
+import { Token } from '../entities/token';
+import { ChainType } from '../types/network';
 
 Resource.validate = validate;
 
@@ -356,6 +366,34 @@ export async function bootstrap() {
     );
   }
 
+  async function addQAccToken() {
+    if (
+      // not test env
+      (config.get('ENVIRONMENT') as string) !== 'test' &&
+      QACC_DONATION_TOKEN_NAME &&
+      QACC_DONATION_TOKEN_ADDRESS &&
+      QACC_DONATION_TOKEN_SYMBOL &&
+      QACC_DONATION_TOKEN_DECIMALS &&
+      QACC_DONATION_TOKEN_COINGECKO_ID &&
+      QACC_NETWORK_ID
+    ) {
+      // instert into token
+      Token.createQueryBuilder()
+        .insert()
+        .values({
+          name: QACC_DONATION_TOKEN_NAME,
+          address: QACC_DONATION_TOKEN_ADDRESS.toLocaleLowerCase(),
+          symbol: QACC_DONATION_TOKEN_SYMBOL,
+          decimals: QACC_DONATION_TOKEN_DECIMALS,
+          networkId: QACC_NETWORK_ID,
+          chainType: ChainType.EVM,
+          coingeckoId: QACC_DONATION_TOKEN_COINGECKO_ID,
+        })
+        .orIgnore()
+        .execute();
+    }
+  }
+
   async function performPostStartTasks() {
     // All heavy and non-critical initializations here
     try {
@@ -364,6 +402,7 @@ export async function bootstrap() {
       logger.fatal('continueDbSetup() error', e);
     }
     await initializeCronJobs();
+    await addQAccToken();
   }
 }
 

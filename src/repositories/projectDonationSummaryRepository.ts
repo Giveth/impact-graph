@@ -1,3 +1,4 @@
+import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ProjectDonationSummary } from '../entities/projectDonationSummary';
 import { logger } from '../utils/logger';
 
@@ -12,47 +13,55 @@ import { logger } from '../utils/logger';
  */
 export async function updateOrCreateDonationSummary(
   projectId: number,
-  donationAmount: number,
-  donationUsdAmount: number,
   qfRoundId?: number | null,
   earlyAccessRoundId?: number | null,
 ): Promise<void> {
   try {
-    const query = ProjectDonationSummary.createQueryBuilder(
-      'projectDonationSummary',
-    ).where(`projectDonationSummary.projectId = :projectId`, {
-      projectId,
-    });
-    if (qfRoundId) {
-      query.andWhere(`projectDonationSummary.qfRoundId = :qfRoundId`, {
-        qfRoundId,
+    let query = Donation.createQueryBuilder('donation')
+      .select('SUM(donation.amount)', 'totalDonationAmount')
+      .addSelect('SUM(donation.valueUsd)', 'totalDonationUsdAmount')
+      .where('donation.projectId = :projectId', { projectId })
+      .andWhere('donation.status = :status', {
+        status: DONATION_STATUS.VERIFIED,
       });
+
+    if (qfRoundId) {
+      query = query.andWhere('donation.qfRoundId = :qfRoundId', { qfRoundId });
     }
     if (earlyAccessRoundId) {
-      query.andWhere(
-        `projectDonationSummary.earlyAccessRoundId = :earlyAccessRoundId`,
+      query = query.andWhere(
+        'donation.earlyAccessRoundId = :earlyAccessRoundId',
         {
           earlyAccessRoundId,
         },
       );
     }
-    let summary = await query.getOne();
+
+    const { totalDonationAmount, totalDonationUsdAmount } =
+      await query.getRawOne();
+
+    let summary = await ProjectDonationSummary.findOneBy({
+      projectId,
+      qfRoundId: qfRoundId ?? undefined,
+      earlyAccessRoundId: earlyAccessRoundId ?? undefined,
+    });
+
     if (!summary) {
       summary = ProjectDonationSummary.create({
         projectId,
         qfRoundId,
         earlyAccessRoundId,
-        totalDonationAmount: donationAmount,
-        totalDonationUsdAmount: donationUsdAmount,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-    } else {
-      summary.totalDonationAmount += donationAmount;
-      summary.totalDonationUsdAmount += donationUsdAmount;
-      summary.updatedAt = new Date();
     }
+
+    summary.totalDonationAmount = totalDonationAmount;
+    summary.totalDonationUsdAmount = totalDonationUsdAmount;
+    summary.updatedAt = new Date();
+
     await ProjectDonationSummary.save(summary);
+
     logger.info(`ProjectDonationSummary updated for project ${projectId}`);
   } catch (error) {
     logger.error('Error updating or creating ProjectDonationSummary:', error);
