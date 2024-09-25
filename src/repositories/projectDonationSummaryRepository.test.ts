@@ -6,13 +6,41 @@ import {
 import { ProjectDonationSummary } from '../entities/projectDonationSummary';
 import {
   createProjectData,
+  DONATION_SEED_DATA,
+  saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
+  SEED_DATA,
 } from '../../test/testUtils';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 
 describe('DonationSummary test cases', () => {
   let projectId: number;
 
+  async function insertDonation({
+    amount,
+    valueUsd,
+    earlyAccessRoundId,
+    qfRoundId,
+  }: {
+    amount: number;
+    valueUsd: number;
+    earlyAccessRoundId?: number;
+    qfRoundId?: number;
+  }) {
+    return saveDonationDirectlyToDb(
+      {
+        ...DONATION_SEED_DATA.FIRST_DONATION,
+        amount,
+        valueUsd,
+        earlyAccessRoundId,
+        qfRoundId,
+        status: DONATION_STATUS.VERIFIED,
+      },
+      SEED_DATA.FIRST_USER.id,
+      projectId,
+    );
+  }
   beforeEach(async () => {
     // Create a project for testing
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -22,48 +50,44 @@ describe('DonationSummary test cases', () => {
   afterEach(async () => {
     // Clean up the database after each test
     await ProjectDonationSummary.delete({});
+    await Donation.delete({ projectId });
     await EarlyAccessRound.delete({});
   });
 
   describe('updateOrCreateDonationSummary test cases', () => {
     it('should create a new donation summary if none exists', async () => {
-      const donationAmount = 100;
-      const donationUsdAmount = 150;
+      const amount = 100;
+      const valueUsd = 150;
 
-      await updateOrCreateDonationSummary(
-        projectId,
-        donationAmount,
-        donationUsdAmount,
-      );
+      await insertDonation({ amount, valueUsd });
+
+      await updateOrCreateDonationSummary(projectId);
 
       const summary = await ProjectDonationSummary.findOne({
         where: { projectId },
       });
 
       expect(summary).to.exist;
-      expect(summary?.totalDonationAmount).to.equal(donationAmount);
-      expect(summary?.totalDonationUsdAmount).to.equal(donationUsdAmount);
+      expect(summary?.totalDonationAmount).to.equal(amount);
+      expect(summary?.totalDonationUsdAmount).to.equal(valueUsd);
     });
 
-    it('should update an existing donation summary with new amounts', async () => {
+    it('should update an existing donation summary with two amounts', async () => {
       const donationAmount = 100;
       const donationUsdAmount = 150;
-      const updatedDonationAmount = 50;
-      const updatedDonationUsdAmount = 75;
+      const secondDonationAmount = 50;
+      const secondDonatinUsdAmount = 75;
 
-      // Create the initial summary
-      await updateOrCreateDonationSummary(
-        projectId,
-        donationAmount,
-        donationUsdAmount,
-      );
-
+      await insertDonation({
+        amount: donationAmount,
+        valueUsd: donationUsdAmount,
+      });
+      await insertDonation({
+        amount: secondDonationAmount,
+        valueUsd: secondDonatinUsdAmount,
+      });
       // Update the existing summary
-      await updateOrCreateDonationSummary(
-        projectId,
-        updatedDonationAmount,
-        updatedDonationUsdAmount,
-      );
+      await updateOrCreateDonationSummary(projectId);
 
       const summary = await ProjectDonationSummary.findOne({
         where: { projectId },
@@ -71,10 +95,10 @@ describe('DonationSummary test cases', () => {
 
       expect(summary).to.exist;
       expect(summary?.totalDonationAmount).to.equal(
-        donationAmount + updatedDonationAmount,
+        donationAmount + secondDonationAmount,
       );
       expect(summary?.totalDonationUsdAmount).to.equal(
-        donationUsdAmount + updatedDonationUsdAmount,
+        donationUsdAmount + secondDonatinUsdAmount,
       );
     });
 
@@ -95,19 +119,27 @@ describe('DonationSummary test cases', () => {
         endDate: new Date('2024-09-05'),
       }).save();
 
+      insertDonation({
+        amount: donationAmount1,
+        valueUsd: donationUsdAmount1,
+        earlyAccessRoundId: earlyAccessRound1.id,
+      });
+      insertDonation({
+        amount: donationAmount2,
+        valueUsd: donationUsdAmount2,
+        earlyAccessRoundId: earlyAccessRound2.id,
+      });
+
       // First round
       await updateOrCreateDonationSummary(
         projectId,
-        donationAmount1,
-        donationUsdAmount1,
         undefined,
         earlyAccessRound1.id,
       );
+
       // Second round
       await updateOrCreateDonationSummary(
         projectId,
-        donationAmount2,
-        donationUsdAmount2,
         undefined,
         earlyAccessRound2.id,
       );
@@ -145,12 +177,12 @@ describe('DonationSummary test cases', () => {
       const donationAmount = 100;
       const donationUsdAmount = 150;
 
+      await insertDonation({
+        amount: donationAmount,
+        valueUsd: donationUsdAmount,
+      });
       // Create a donation summary
-      await updateOrCreateDonationSummary(
-        projectId,
-        donationAmount,
-        donationUsdAmount,
-      );
+      await updateOrCreateDonationSummary(projectId);
 
       const summaries = await getDonationSummary(projectId);
 
@@ -168,11 +200,15 @@ describe('DonationSummary test cases', () => {
         endDate: new Date('2024-09-05'),
       }).save();
 
+      await insertDonation({
+        amount: donationAmount,
+        valueUsd: donationUsdAmount,
+        earlyAccessRoundId: earlyAccessRound1.id,
+      });
+
       // Create a donation summary
       await updateOrCreateDonationSummary(
         projectId,
-        donationAmount,
-        donationUsdAmount,
         null,
         earlyAccessRound1.id,
       );
