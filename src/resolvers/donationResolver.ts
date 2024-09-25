@@ -72,7 +72,6 @@ import {
 } from '../entities/draftDonation';
 import qacc from '../utils/qacc';
 import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepository';
-import { updateOrCreateDonationSummary } from '../repositories/projectDonationSummaryRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 @ObjectType()
@@ -938,19 +937,11 @@ export class DonationResolver {
           break;
       }
 
-      const updatedDonation = await updateDonationPricesAndValues(
+      await updateDonationPricesAndValues(
         donation,
         project,
         tokenInDb!,
         priceChainId,
-      );
-
-      await updateOrCreateDonationSummary(
-        projectId,
-        updatedDonation.amount,
-        updatedDonation.valueUsd,
-        updatedDonation.qfRoundId,
-        updatedDonation.earlyAccessRoundId,
       );
 
       if (chainType === ChainType.EVM) {

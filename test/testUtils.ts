@@ -1963,6 +1963,7 @@ export interface CreateDonationData {
   status?: string;
   verified?: string;
   qfRoundId?: number;
+  earlyAccessRoundId?: number;
   tokenAddress?: string;
   qfRoundUserScore?: number;
   useDonationBox?: boolean;
