@@ -329,8 +329,7 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
   const roundsToUpdate = await AppDataSource.getDataSource()
     .getRepository(QfRound)
     .createQueryBuilder('qf_round')
-    .where('qf_round.token_price IS NULL')
-    .andWhere('qf_round.beginDate > :now', { now: new Date() })
+    .where('qf_round.tokenPrice IS NULL')
     .getMany();
 
   if (roundsToUpdate.length === 0) {

@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import moment from 'moment';
+import sinon from 'sinon';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import {
   findAllEarlyAccessRounds,
@@ -9,30 +10,19 @@ import {
 import { saveRoundDirectlyToDb } from '../../test/testUtils';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 
-class MockedCoingeckoPriceAdapter extends CoingeckoPriceAdapter {
-  async getTokenPriceAtDate({
-    symbol: _symbol,
-    date: _date,
-  }: {
-    symbol: string;
-    date: string;
-  }): Promise<number> {
-    return 100;
-  }
-}
-
 describe('EarlyAccessRound Repository Test Cases', () => {
-  let originalPriceAdapter: any;
+  let priceAdapterStub: sinon.SinonStub;
 
   beforeEach(async () => {
     // Clean up data before each test case
     await EarlyAccessRound.delete({});
 
-    // Mock the CoingeckoPriceAdapter to return a fixed value
-    originalPriceAdapter = CoingeckoPriceAdapter;
+    // Stub CoingeckoPriceAdapter to mock getTokenPriceAtDate
+    priceAdapterStub = sinon
+      .stub(CoingeckoPriceAdapter.prototype, 'getTokenPriceAtDate')
+      .resolves(100);
 
-    (global as any).CoingeckoPriceAdapter = MockedCoingeckoPriceAdapter;
-
+    // Reset tokenPrice to undefined for test consistency
     await EarlyAccessRound.update({}, { tokenPrice: undefined });
   });
 
@@ -40,8 +30,8 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     // Clean up data after each test case
     await EarlyAccessRound.delete({});
 
-    // Restore the original CoingeckoPriceAdapter
-    (global as any).CoingeckoPriceAdapter = originalPriceAdapter;
+    // Restore the stubbed method after each test
+    priceAdapterStub.restore();
   });
 
   it('should save a new Early Access Round directly to the database', async () => {
@@ -118,11 +108,11 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     expect(activeRound).to.be.null;
   });
 
-  it('should update token price for rounds with null token_price', async () => {
+  it('should update token price for rounds with null tokenPrice', async () => {
     // Create a EarlyAccessRound with null token price
     const earlyAccessRound = EarlyAccessRound.create({
       roundNumber: Math.floor(Math.random() * 10000),
-      startDate: new Date(),
+      startDate: moment().subtract(3, 'days').toDate(),
       endDate: moment().add(10, 'days').toDate(),
       tokenPrice: undefined,
     });
@@ -141,7 +131,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     // Create a EarlyAccessRound with an existing token price
     const earlyAccessRound = EarlyAccessRound.create({
       roundNumber: Math.floor(Math.random() * 10000),
-      startDate: new Date(),
+      startDate: moment().subtract(3, 'days').toDate(),
       endDate: moment().add(10, 'days').toDate(),
       tokenPrice: 50,
     });

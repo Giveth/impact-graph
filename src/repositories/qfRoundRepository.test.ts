@@ -1,5 +1,6 @@
 import { assert, expect } from 'chai';
 import moment from 'moment';
+import sinon from 'sinon';
 import {
   createDonationData,
   createProjectData,
@@ -23,18 +24,6 @@ import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { getProjectQfRoundStats } from './donationRepository';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
-
-class MockedCoingeckoPriceAdapter extends CoingeckoPriceAdapter {
-  async getTokenPriceAtDate({
-    symbol: _symbol,
-    date: _date,
-  }: {
-    symbol: string;
-    date: string;
-  }): Promise<number> {
-    return 100;
-  }
-}
 
 describe(
   'getProjectDonationsSqrtRootSum test cases',
@@ -484,21 +473,24 @@ function findQfRoundBySlugTestCases() {
 }
 
 function fillMissingTokenPriceInQfRoundsTestCase() {
-  let originalPriceAdapter: any;
+  let priceAdapterStub: sinon.SinonStub;
 
   beforeEach(async () => {
-    originalPriceAdapter = CoingeckoPriceAdapter;
+    // Stub CoingeckoPriceAdapter to mock getTokenPriceAtDate
+    priceAdapterStub = sinon
+      .stub(CoingeckoPriceAdapter.prototype, 'getTokenPriceAtDate')
+      .resolves(100);
 
-    (global as any).CoingeckoPriceAdapter = MockedCoingeckoPriceAdapter;
-
+    // Reset tokenPrice to undefined for test consistency
     await QfRound.update({}, { tokenPrice: undefined });
   });
 
   afterEach(() => {
-    (global as any).CoingeckoPriceAdapter = originalPriceAdapter;
+    // Restore the stubbed method after each test
+    priceAdapterStub.restore();
   });
 
-  it('should update token price for rounds with null token_price', async () => {
+  it('should update token price for rounds with null tokenPrice', async () => {
     // Create a QfRound with null token price
     const qfRound = QfRound.create({
       isActive: true,
@@ -506,7 +498,7 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
       allocatedFund: 100,
       minimumPassportScore: 8,
       slug: new Date().getTime().toString(),
-      beginDate: moment().subtract(1, 'days').toDate(),
+      beginDate: moment().subtract(3, 'days').toDate(),
       endDate: moment().add(10, 'days').toDate(),
       tokenPrice: undefined,
     });
@@ -519,7 +511,7 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
     expect(updatedCount).to.equal(1);
   });
 
-  it('should not update token price for rounds with existing token_price', async () => {
+  it('should not update token price for rounds with existing tokenPrice', async () => {
     // Create a QfRound with an existing token price
     const qfRound = QfRound.create({
       isActive: true,
@@ -527,7 +519,7 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
       allocatedFund: 100,
       minimumPassportScore: 8,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment().subtract(3, 'days').toDate(),
       endDate: moment().add(10, 'days').toDate(),
       tokenPrice: 50,
     });
@@ -541,7 +533,7 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
   });
 
   it('should return zero if there are no rounds to update', async () => {
-    // Ensure no rounds with null token_price
+    // Ensure no rounds with null tokenPrice
     await QfRound.update({}, { tokenPrice: 100 });
 
     const updatedCount = await fillMissingTokenPriceInQfRounds();
