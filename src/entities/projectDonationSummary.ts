@@ -6,6 +6,7 @@ import {
   ManyToOne,
   BaseEntity,
   Index,
+  RelationId,
 } from 'typeorm';
 import { Project } from './project';
 import { QfRound } from './qfRound';
@@ -32,6 +33,7 @@ export class ProjectDonationSummary extends BaseEntity {
 
   @Index()
   @Column({ nullable: false })
+  @RelationId((ps: ProjectDonationSummary) => ps.project)
   projectId: number;
 
   @Field(_type => QfRound, { nullable: true })
@@ -40,6 +42,7 @@ export class ProjectDonationSummary extends BaseEntity {
 
   @Index()
   @Column({ nullable: true })
+  @RelationId((ps: ProjectDonationSummary) => ps.qfRound)
   qfRoundId?: number | null;
 
   @Field(_type => EarlyAccessRound, { nullable: true })
@@ -48,6 +51,7 @@ export class ProjectDonationSummary extends BaseEntity {
 
   @Index()
   @Column({ nullable: true })
+  @RelationId((ps: ProjectDonationSummary) => ps.earlyAccessRound)
   earlyAccessRoundId?: number | null;
 
   @Field(_type => Date)
