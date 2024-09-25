@@ -10,6 +10,7 @@ import { NETWORK_IDS } from '../provider';
 import {
   createDonationData,
   createProjectData,
+  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -28,6 +29,7 @@ function getQfRoundActualDonationDetailsTestCases() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -81,6 +83,7 @@ function getQfRoundActualDonationDetailsTestCases() {
   });
   it('5 projects with same donations should get same weight and real matching fund ', async () => {
     const qfr = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -135,6 +138,7 @@ function getQfRoundActualDonationDetailsTestCases() {
 
   it('Weight should be calculated correct when project have different donations', async () => {
     const qfr = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -210,6 +214,7 @@ function getQfRoundActualDonationDetailsTestCases() {
   });
   it('Weight should be calculated correct when project have different donations', async () => {
     const qfr = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,

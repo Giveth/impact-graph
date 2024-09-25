@@ -20,6 +20,11 @@ export class QfRound extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Field({ nullable: false })
+  @Column('integer', { nullable: false })
+  @Index({ unique: true })
+  roundNumber: number;
+
   @Field({ nullable: true })
   @Column('text', { nullable: true })
   name: string;

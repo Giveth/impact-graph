@@ -13,6 +13,7 @@ import {
   createDonationData,
   createProjectData,
   DONATION_SEED_DATA,
+  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -1028,6 +1029,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       slug: new Date().getTime().toString(),

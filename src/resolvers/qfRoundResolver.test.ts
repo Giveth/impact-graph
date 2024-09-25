@@ -4,6 +4,7 @@ import axios from 'axios';
 import {
   createDonationData,
   createProjectData,
+  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   graphqlUrl,
   saveDonationDirectlyToDb,
@@ -33,6 +34,7 @@ function scoreUserAddressTestCases() {
     await QfRound.update({}, { isActive: false });
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const qfRound = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test1',
       slug: generateRandomString(10),
@@ -59,6 +61,7 @@ function fetchArchivedQFRoundsTestCases() {
   it('should return correct data when fetching archived QF rounds', async () => {
     await QfRound.update({}, { isActive: true });
     const qfRound1 = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test1',
       slug: generateRandomString(10),
@@ -91,6 +94,7 @@ function fetchArchivedQFRoundsTestCases() {
     );
 
     const qfRound2 = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test2',
       slug: generateRandomString(10),
@@ -101,6 +105,7 @@ function fetchArchivedQFRoundsTestCases() {
     });
     await qfRound2.save();
     const qfRound3 = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test3',
       slug: generateRandomString(10),
@@ -132,6 +137,7 @@ function fetchQfRoundStatesTestCases() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       slug: generateRandomString(10),
@@ -204,6 +210,7 @@ function fetchEstimatedMatchingTestCases() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       slug: new Date().toString(),

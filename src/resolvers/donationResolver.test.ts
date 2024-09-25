@@ -19,6 +19,7 @@ import {
   generateRandomSolanaTxHash,
   deleteProjectDirectlyFromDb,
   createProjectAbcData,
+  generateQfRoundNumber,
 } from '../../test/testUtils';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
@@ -358,6 +359,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
   it('should return true when there is verified donation', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -398,6 +400,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
   it('should return false when donation is non-verified', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -438,6 +441,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
   it('should return false when donation projectId is invalid', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -478,6 +482,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
   it('should return false when donation qfRoundId is invalid', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -518,6 +523,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
   it('should return false when donation userId is invalid', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -929,6 +935,7 @@ function createDonationTestCases() {
     try {
       const project = await saveProjectDirectlyToDb(createProjectData());
       const qfRound = await QfRound.create({
+        roundNumber: generateQfRoundNumber(),
         isActive: true,
         name: new Date().toString(),
         minimumPassportScore: 8,
@@ -1089,6 +1096,7 @@ function createDonationTestCases() {
   it.skip('should create a donation in an active qfRound when qfround has network eligiblity on QAcc network', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
@@ -1187,6 +1195,7 @@ function createDonationTestCases() {
     try {
       const project = await saveProjectDirectlyToDb(createProjectData());
       const qfRound = await QfRound.create({
+        roundNumber: generateQfRoundNumber(),
         isActive: true,
         name: new Date().toString(),
         minimumPassportScore: 8,
@@ -1259,6 +1268,7 @@ function createDonationTestCases() {
     try {
       const project = await saveProjectDirectlyToDb(createProjectData());
       const qfRound = await QfRound.create({
+        roundNumber: generateQfRoundNumber(),
         isActive: true,
         name: new Date().toString(),
         minimumPassportScore: 8,
@@ -2801,6 +2811,7 @@ function donationsByProjectIdTestCases() {
   it('should return filtered by qfRound donations when specified', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
@@ -2849,6 +2860,7 @@ function donationsByProjectIdTestCases() {
 
     // second QF round
     const qfRound2 = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
@@ -4030,6 +4042,7 @@ function donationsByUserIdTestCases() {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,

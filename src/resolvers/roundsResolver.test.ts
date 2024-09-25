@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import moment from 'moment';
 import axios from 'axios';
 import { AppDataSource } from '../orm';
-import { graphqlUrl } from '../../test/testUtils';
+import { generateQfRoundNumber, graphqlUrl } from '../../test/testUtils';
 import { QfRound } from '../entities/qfRound';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { generateRandomString } from '../utils/utils';
@@ -65,6 +65,7 @@ function fetchAllRoundsTestCases() {
 
     // Create QF Rounds
     const qfRound1 = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       name: 'QF Round 1',
       slug: generateRandomString(10),
       allocatedFund: 100000,
@@ -74,6 +75,7 @@ function fetchAllRoundsTestCases() {
     }).save();
 
     const qfRound2 = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       name: 'QF Round 2',
       slug: generateRandomString(10),
       allocatedFund: 200000,
@@ -152,6 +154,7 @@ function fetchActiveRoundTestCases() {
 
     // Create a non-active QF round
     await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       name: 'Inactive QF Round',
       slug: generateRandomString(10),
       allocatedFund: 50000,
@@ -186,6 +189,7 @@ function fetchActiveRoundTestCases() {
 
     // Create an active QF round
     const activeQfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       name: 'Active QF Round',
       slug: generateRandomString(10),
       allocatedFund: 100000,
@@ -217,6 +221,7 @@ function fetchActiveRoundTestCases() {
 
     // Create a non-active QF round
     await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       name: 'Inactive QF Round',
       slug: generateRandomString(10),
       allocatedFund: 50000,

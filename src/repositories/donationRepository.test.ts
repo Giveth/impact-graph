@@ -4,6 +4,7 @@ import {
   createDonationData,
   createProjectData,
   deleteProjectDirectlyFromDb,
+  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
   saveDonationDirectlyToDb,
@@ -68,6 +69,7 @@ function fillQfRoundDonationsUserScoresTestCases() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -130,6 +132,7 @@ function estimatedMatchingTestCases() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -334,6 +337,7 @@ function findDonationByIdTestCases() {
   });
   it('should return donation with id, join with qfRound ', async () => {
     const qfRound = QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: new Date().getTime().toString(),
       allocatedFund: 100,
@@ -465,6 +469,7 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
     });
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -495,6 +500,7 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -548,6 +554,7 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
     await donor.save();
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -590,6 +597,7 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
     await donor.save();
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -638,6 +646,7 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
     await donor2.save();
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -812,6 +821,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     });
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -844,6 +854,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     await donor.save();
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -899,6 +910,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     donor.passportScore = 8;
     await donor.save();
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -945,6 +957,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     donor.passportScore = 7;
     await donor.save();
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -995,6 +1008,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     await donor.save();
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -1043,6 +1057,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
     await donor2.save();
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -1225,6 +1240,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       slug: String(new Date().getTime()),
     });
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -1263,6 +1279,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       slug: String(new Date().getTime()),
     });
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -1301,6 +1318,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       slug: String(new Date().getTime()),
     });
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -1339,6 +1357,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       slug: String(new Date().getTime()),
     });
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -1377,6 +1396,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       slug: String(new Date().getTime()),
     });
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,

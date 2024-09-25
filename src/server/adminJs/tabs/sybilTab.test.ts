@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { assert } from 'chai';
 import {
+  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   saveUserDirectlyToDb,
 } from '../../../../test/testUtils';
@@ -15,6 +16,7 @@ function createSybilTestCases() {
   it('Should create a new sybil with single user data', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,
@@ -42,6 +44,7 @@ function createSybilTestCases() {
   it('Should not create a new sybil with single user data when there is in the DB already', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,
@@ -75,6 +78,7 @@ function createSybilTestCases() {
   });
   it('Should not create a new sybil with wrong wallet address', async () => {
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,
@@ -103,6 +107,7 @@ function createSybilTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,
@@ -129,6 +134,7 @@ function createSybilTestCases() {
   });
   it('Should not create sybils with csv for non-exising users', async () => {
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,
@@ -164,6 +170,7 @@ function createSybilTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,

@@ -2,6 +2,7 @@ import { assert } from 'chai';
 import moment from 'moment';
 import {
   createProjectData,
+  generateQfRoundNumber,
   saveProjectDirectlyToDb,
 } from '../../test/testUtils';
 import { QfRound } from '../entities/qfRound';
@@ -21,6 +22,7 @@ function relatedActiveQfRoundForProjectTestCases() {
     });
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
@@ -45,6 +47,7 @@ function relatedActiveQfRoundForProjectTestCases() {
     });
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
@@ -69,6 +72,7 @@ function relatedActiveQfRoundForProjectTestCases() {
     });
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
@@ -93,6 +97,7 @@ function relatedActiveQfRoundForProjectTestCases() {
     });
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
@@ -117,6 +122,7 @@ function relatedActiveQfRoundForProjectTestCases() {
     });
 
     const qfRound = await QfRound.create({
+      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
