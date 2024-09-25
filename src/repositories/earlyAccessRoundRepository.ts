@@ -45,10 +45,6 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
     .where('early_AccessRound.tokenPrice IS NULL')
     .getMany();
 
-  if (roundsToUpdate.length === 0) {
-    return;
-  }
-
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
     const formattedDate = round.startDate
