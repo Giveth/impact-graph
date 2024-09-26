@@ -113,8 +113,8 @@ import {
   QACC_DONATION_TOKEN_ADDRESS,
   QACC_DONATION_TOKEN_SYMBOL,
 } from '../constants/qacc';
-import { ProjectDonationSummary } from '../entities/projectDonationSummary';
-import { getDonationSummary } from '../repositories/projectDonationSummaryRepository';
+import { ProjectRoundRecord } from '../entities/projectRoundRecord';
+import { getProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
