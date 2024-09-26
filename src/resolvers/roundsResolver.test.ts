@@ -92,7 +92,7 @@ function fetchAllRoundsTestCases() {
     assert.lengthOf(rounds, 4); // 2 Early Access Rounds + 2 QF Rounds
 
     // Verify Early Access Rounds
-    const earlyAccessRounds = rounds.filter(round => 'roundNumber' in round);
+    const earlyAccessRounds = rounds.filter(round => 'startDate' in round);
     assert.equal(
       earlyAccessRounds[0].roundNumber,
       earlyAccessRound1.roundNumber,
