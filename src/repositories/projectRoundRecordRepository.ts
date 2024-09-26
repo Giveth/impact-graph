@@ -118,29 +118,33 @@ export async function getCumulativePastRoundsDonationAmounts({
   }
 
   try {
-    let query = ProjectRoundRecord.createQueryBuilder('projectRoundRecord')
+    let query = Donation.createQueryBuilder('donation')
       .select(
-        'ROUND(CAST(SUM(projectRoundRecord.totalDonationAmount) as NUMERIC), 2)',
+        'ROUND(CAST(SUM(donation.amount) as NUMERIC), 2)',
         'cumulativePastRoundsDonationAmounts',
       )
-      .where('projectRoundRecord.projectId = :projectId', { projectId });
+      .where('donation.projectId = :projectId', { projectId })
+      .andWhere('donation.status = :status', {
+        status: DONATION_STATUS.VERIFIED,
+      });
 
     if (earlyAccessRoundId) {
       query = query
-        .leftJoin('projectRoundRecord.earlyAccessRound', 'earlyAccessRound')
+        .leftJoin('donation.earlyAccessRound', 'earlyAccessRound')
         .andWhere('earlyAccessRound.roundNumber < :roundNumber', {
           roundNumber: round!.roundNumber,
         });
     } else {
       // all early access rounds and all
 
-      query = query.leftJoin('projectRoundRecord.qfRound', 'qfRound').andWhere(
+      query = query.leftJoin('donation.qfRound', 'qfRound').andWhere(
         new Brackets(qb => {
-          qb.orWhere(
-            'projectRoundRecord.earlyAccessRoundId IS NOT NULL',
-          ).orWhere('qfRound.roundNumber < :roundNumber', {
-            roundNumber: round!.roundNumber,
-          });
+          qb.orWhere('donation.earlyAccessRoundId IS NOT NULL').orWhere(
+            'qfRound.roundNumber < :roundNumber',
+            {
+              roundNumber: round!.roundNumber,
+            },
+          );
         }),
       );
     }

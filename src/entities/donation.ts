@@ -158,6 +158,9 @@ export class Donation extends BaseEntity {
 
   @RelationId((donation: Donation) => donation.project)
   @Column({ nullable: true })
+  @Index('verified_project_id', {
+    where: `status = '${DONATION_STATUS.VERIFIED}'`,
+  })
   projectId: number;
 
   @Index()
