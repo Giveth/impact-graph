@@ -25,9 +25,8 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
 
       const result = await collection
         .find({
-          // imported: { $exists: false },
-          // importError: { $exists: false },
-          projectId: 223479,
+          imported: { $exists: false },
+          importError: { $exists: false },
         })
         .sort({ _id: 1 })
         .limit(params.limit)
