@@ -2185,14 +2185,14 @@ export class ProjectResolver {
     }
   }
 
-  @Query(_returns => [ProjectDonationSummary])
-  async getProjectDonationSummaries(
+  @Query(_returns => [ProjectRoundRecord])
+  async getProjectRoundRecords(
     @Arg('projectId', _type => Int) projectId: number,
     @Arg('qfRoundId', _type => Int, { nullable: true }) qfRoundId?: number,
     @Arg('earlyAccessRoundId', _type => Int, { nullable: true })
     earlyAccessRoundId?: number,
-  ): Promise<ProjectDonationSummary[]> {
-    const summaries = await getDonationSummary(
+  ): Promise<ProjectRoundRecord[]> {
+    const summaries = await getProjectRoundRecord(
       projectId,
       qfRoundId,
       earlyAccessRoundId,

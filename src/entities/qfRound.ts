@@ -21,6 +21,11 @@ export class QfRound extends BaseEntity {
   id: number;
 
   @Field({ nullable: true })
+  @Column('integer', { nullable: true })
+  @Index({ unique: true })
+  roundNumber?: number;
+
+  @Field({ nullable: true })
   @Column('text', { nullable: true })
   name: string;
 
