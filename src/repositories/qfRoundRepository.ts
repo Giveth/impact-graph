@@ -330,6 +330,7 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
     .getRepository(QfRound)
     .createQueryBuilder('qf_round')
     .where('qf_round.tokenPrice IS NULL')
+    .andWhere('qf_round.beginDate < :now', { now: new Date() })
     .getMany();
 
   // Set the token price for all found rounds and save them

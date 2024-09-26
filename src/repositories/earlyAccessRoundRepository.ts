@@ -43,6 +43,7 @@ export const fillMissingTokenPriceInEarlyAccessRounds = async (): Promise<
     .getRepository(EarlyAccessRound)
     .createQueryBuilder('early_AccessRound')
     .where('early_AccessRound.tokenPrice IS NULL')
+    .andWhere('early_AccessRound.startDate < :now', { now: new Date() })
     .getMany();
 
   // Set the token price for all found rounds and save them
