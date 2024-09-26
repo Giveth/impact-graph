@@ -5,7 +5,6 @@ import { Project } from '../entities/project';
 import {
   createDonationData,
   createProjectData,
-  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -30,7 +29,6 @@ function getActualMatchingFundTests() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,

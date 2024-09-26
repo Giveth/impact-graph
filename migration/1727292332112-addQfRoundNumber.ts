@@ -4,9 +4,7 @@ export class AddQfRoundNumber1727292332112 implements MigrationInterface {
   name = 'AddQfRoundNumber1727292332112';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "qf_round" ADD "roundNumber" integer NOT NULL`,
-    );
+    await queryRunner.query(`ALTER TABLE "qf_round" ADD "roundNumber" integer`);
     await queryRunner.query(
       `CREATE UNIQUE INDEX "IDX_dcf0b97d90c86ba737f6362542" ON "qf_round" ("roundNumber") `,
     );

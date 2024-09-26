@@ -4,7 +4,6 @@ import axios from 'axios';
 import {
   createDonationData,
   createProjectData,
-  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   graphqlUrl,
   saveDonationDirectlyToDb,
@@ -24,7 +23,6 @@ function getQfRoundHistoryTestCases() {
   let secondProject: Project;
   beforeEach(async () => {
     qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,

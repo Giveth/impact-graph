@@ -4,7 +4,6 @@ import { ArgumentValidationError } from 'type-graphql';
 import {
   createProjectData,
   deleteProjectDirectlyFromDb,
-  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
@@ -1279,7 +1278,6 @@ function getProjectRoundRecordsTestCases() {
 
     // Create QfRound
     qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       name: 'Test QfRound',
       allocatedFund: 100,
       minimumPassportScore: 5,

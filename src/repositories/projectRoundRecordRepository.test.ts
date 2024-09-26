@@ -2,7 +2,6 @@ import { expect } from 'chai';
 import {
   createDonationData,
   createProjectData,
-  generateQfRoundNumber,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   SEED_DATA,
@@ -46,8 +45,14 @@ describe('ProjectRoundRecord test cases', () => {
       projectId,
     );
   }
+  before(async () => {
+    await ProjectRoundRecord.delete({});
+    await EarlyAccessRound.delete({});
+  });
+
   beforeEach(async () => {
     // Create a project for testing
+
     const project = await saveProjectDirectlyToDb(createProjectData());
     projectId = project.id;
 
@@ -73,7 +78,7 @@ describe('ProjectRoundRecord test cases', () => {
       earlyAccessRounds;
 
     qfRound1 = await QfRound.create({
-      roundNumber: generateQfRoundNumber(),
+      roundNumber: 1,
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -83,7 +88,7 @@ describe('ProjectRoundRecord test cases', () => {
       endDate: new Date('2001-01-03'),
     }).save();
     qfRound2 = await QfRound.create({
-      roundNumber: generateQfRoundNumber(),
+      roundNumber: 2,
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -99,6 +104,7 @@ describe('ProjectRoundRecord test cases', () => {
     await ProjectRoundRecord.delete({});
     await Donation.delete({ projectId });
     await EarlyAccessRound.delete({});
+    await QfRound.delete([qfRound1.id, qfRound2.id]);
   });
 
   describe('updateOrCreateProjectRoundRecord test cases', () => {

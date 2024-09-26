@@ -20,10 +20,10 @@ export class QfRound extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field({ nullable: false })
-  @Column('integer', { nullable: false })
+  @Field({ nullable: true })
+  @Column('integer', { nullable: true })
   @Index({ unique: true })
-  roundNumber: number;
+  roundNumber?: number;
 
   @Field({ nullable: true })
   @Column('text', { nullable: true })

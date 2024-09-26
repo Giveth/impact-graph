@@ -3,7 +3,6 @@ import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
-  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
   saveDonationDirectlyToDb,
@@ -36,7 +35,6 @@ function fillQfRoundHistoryTestCases() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -336,7 +334,6 @@ function getQfRoundHistoriesThatDontHaveRelatedDonationsTestCases() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,

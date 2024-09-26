@@ -3,7 +3,6 @@ import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
-  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -49,7 +48,6 @@ function getProjectDonationsSqrRootSumTests() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -206,7 +204,6 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -327,7 +324,6 @@ function getExpiredActiveQfRoundsTestCases() {
   });
   it('should return zero when there is active qfRound but endDate havent passed', async () => {
     const qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -342,7 +338,6 @@ function getExpiredActiveQfRoundsTestCases() {
   });
   it('should return expired active qfRound when there is some', async () => {
     const qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -360,7 +355,6 @@ function getExpiredActiveQfRoundsTestCases() {
 function deactivateExpiredQfRoundsTestCases() {
   it('should not deactive qfRounds when endDate havent passed', async () => {
     const qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -378,7 +372,6 @@ function deactivateExpiredQfRoundsTestCases() {
   });
   it('should deactive qfRounds when endDate  passed', async () => {
     const qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: 'test',
       allocatedFund: 100,
@@ -401,7 +394,6 @@ function deactivateExpiredQfRoundsTestCases() {
 function findQfRoundByIdTestCases() {
   it('should return qfRound with id', async () => {
     const qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -418,7 +410,6 @@ function findQfRoundByIdTestCases() {
   });
   it('should return inactive qfRound with id', async () => {
     const qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -440,7 +431,6 @@ function findQfRoundByIdTestCases() {
 function findQfRoundBySlugTestCases() {
   it('should return qfRound with slug', async () => {
     const qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString(),
       allocatedFund: 100,
@@ -457,7 +447,6 @@ function findQfRoundBySlugTestCases() {
   });
   it('should return inactive qfRound with slug', async () => {
     const qfRound = QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: new Date().toString(),
       allocatedFund: 100,

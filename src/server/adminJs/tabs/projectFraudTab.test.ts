@@ -2,7 +2,6 @@ import moment from 'moment';
 import { assert } from 'chai';
 import {
   createProjectData,
-  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -18,7 +17,6 @@ function createSybilTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb(createProjectData(), user1);
     const qfRound = await QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,
@@ -52,7 +50,6 @@ function createSybilTestCases() {
     const project2 = await saveProjectDirectlyToDb(createProjectData(), user1);
 
     const qfRound = await QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,
@@ -82,7 +79,6 @@ function createSybilTestCases() {
   });
   it('Should not create project_fraud with csv for non-exising users', async () => {
     const qfRound = await QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,
@@ -119,7 +115,6 @@ function createSybilTestCases() {
     const project2 = await saveProjectDirectlyToDb(createProjectData(), user2);
 
     const qfRound = await QfRound.create({
-      roundNumber: generateQfRoundNumber(),
       isActive: false,
       name: 'test',
       allocatedFund: 100,
