@@ -257,7 +257,7 @@ describe('ProjectRoundRecord test cases', () => {
     });
   });
 
-  describe('getProjectRoundRecord test cases', () => {
+  describe('getCumulativePastRoundsDonationAmounts test cases', () => {
     it('should return null when no round is specified', async () => {
       const result = await getCumulativePastRoundsDonationAmounts({
         projectId,
