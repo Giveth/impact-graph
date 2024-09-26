@@ -80,20 +80,20 @@ describe('ProjectRoundRecord test cases', () => {
     qfRound1 = await QfRound.create({
       roundNumber: 1,
       isActive: true,
-      name: new Date().toString(),
+      name: new Date().toString() + ' - 1',
       allocatedFund: 100,
       minimumPassportScore: 12,
-      slug: new Date().getTime().toString(),
+      slug: new Date().getTime().toString() + ' - 1',
       beginDate: new Date('2001-01-01'),
       endDate: new Date('2001-01-03'),
     }).save();
     qfRound2 = await QfRound.create({
       roundNumber: 2,
       isActive: true,
-      name: new Date().toString(),
+      name: new Date().toString() + ' - 2',
       allocatedFund: 100,
       minimumPassportScore: 12,
-      slug: new Date().getTime().toString(),
+      slug: new Date().getTime().toString() + ' - 2',
       beginDate: new Date('2001-02-01'),
       endDate: new Date('2001-03-03'),
     }).save();
@@ -161,12 +161,12 @@ describe('ProjectRoundRecord test cases', () => {
       const donationAmount2 = 200;
       const donationUsdAmount2 = 250;
 
-      insertDonation({
+      await insertDonation({
         amount: donationAmount1,
         valueUsd: donationUsdAmount1,
         earlyAccessRoundId: earlyAccessRound1.id,
       });
-      insertDonation({
+      await insertDonation({
         amount: donationAmount2,
         valueUsd: donationUsdAmount2,
         earlyAccessRoundId: earlyAccessRound2.id,
