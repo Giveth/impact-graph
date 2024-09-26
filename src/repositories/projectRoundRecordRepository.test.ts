@@ -21,25 +21,19 @@ describe('ProjectRoundRecord test cases', () => {
   let earlyAccessRound1, earlyAccessRound2, earlyAccessRound3;
   let qfRound1, qfRound2;
 
-  async function insertDonation({
-    amount,
-    valueUsd,
-    earlyAccessRoundId,
-    qfRoundId,
-  }: {
-    amount: number;
-    valueUsd: number;
-    earlyAccessRoundId?: number;
-    qfRoundId?: number;
-  }) {
+  async function insertDonation(
+    overrides: Partial<
+      Pick<
+        Donation,
+        'amount' | 'valueUsd' | 'earlyAccessRoundId' | 'qfRoundId' | 'status'
+      >
+    >,
+  ) {
     return saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount,
-        valueUsd,
-        earlyAccessRoundId,
-        qfRoundId,
         status: DONATION_STATUS.VERIFIED,
+        ...overrides,
       },
       SEED_DATA.FIRST_USER.id,
       projectId,
@@ -112,7 +106,15 @@ describe('ProjectRoundRecord test cases', () => {
       const amount = 100;
       const valueUsd = 150;
 
+      const unverifiedAmount = 200;
+      const unverifiedValueUsd = 300;
+
       await insertDonation({ amount, valueUsd });
+      await insertDonation({
+        amount: unverifiedAmount,
+        valueUsd: unverifiedValueUsd,
+        status: DONATION_STATUS.PENDING,
+      });
 
       await updateOrCreateProjectRoundRecord(projectId);
 
