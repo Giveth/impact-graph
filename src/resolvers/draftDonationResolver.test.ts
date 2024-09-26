@@ -9,7 +9,7 @@ import {
   generateRandomEtheriumAddress,
 } from '../../test/testUtils';
 import { createDraftDonationMutation } from '../../test/graphqlQueries';
-import { NETWORK_IDS } from '../provider';
+import { QACC_NETWORK_ID } from '../provider';
 import { User } from '../entities/user';
 import { generateRandomString } from '../utils/utils';
 import { ChainType } from '../types/network';
@@ -17,6 +17,7 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import { QACC_DONATION_TOKEN_SYMBOL } from '../utils/qacc';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 
@@ -44,9 +45,9 @@ function createDraftDonationTestCases() {
     safeTransactionId = generateRandomEvmTxHash();
     donationData = {
       projectId: project.id,
-      networkId: NETWORK_IDS.XDAI,
+      networkId: QACC_NETWORK_ID,
       amount: 10,
-      token: 'GIV',
+      token: QACC_DONATION_TOKEN_SYMBOL,
       referrerId,
       tokenAddress,
       safeTransactionId,
@@ -74,13 +75,13 @@ function createDraftDonationTestCases() {
     });
 
     expect(draftDonation).deep.contain({
-      networkId: NETWORK_IDS.XDAI,
+      networkId: QACC_NETWORK_ID,
       chainType: ChainType.EVM,
       status: DRAFT_DONATION_STATUS.PENDING,
       toWalletAddress: project.walletAddress!,
       fromWalletAddress: user.walletAddress!,
       tokenAddress,
-      currency: 'GIV',
+      currency: QACC_DONATION_TOKEN_SYMBOL,
       anonymous: false,
       amount: 10,
       referrerId,
