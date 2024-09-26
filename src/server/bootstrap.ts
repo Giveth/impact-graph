@@ -60,7 +60,7 @@ import {
   QACC_DONATION_TOKEN_DECIMALS,
   QACC_DONATION_TOKEN_NAME,
   QACC_DONATION_TOKEN_SYMBOL,
-} from '../utils/qacc';
+} from '../constants/qacc';
 import { QACC_NETWORK_ID } from '../provider';
 import { Token } from '../entities/token';
 import { ChainType } from '../types/network';

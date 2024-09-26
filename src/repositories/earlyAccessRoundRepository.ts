@@ -2,7 +2,7 @@ import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
-import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../utils/qacc';
+import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../constants/qacc';
 
 export const findAllEarlyAccessRounds = async (): Promise<
   EarlyAccessRound[]

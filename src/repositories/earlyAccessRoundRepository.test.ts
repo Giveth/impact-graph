@@ -9,7 +9,7 @@ import {
 } from './earlyAccessRoundRepository';
 import { saveRoundDirectlyToDb } from '../../test/testUtils';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
-import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../utils/qacc';
+import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../constants/qacc';
 
 describe('EarlyAccessRound Repository Test Cases', () => {
   let priceAdapterStub: sinon.SinonStub;

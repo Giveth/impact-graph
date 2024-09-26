@@ -58,7 +58,8 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
-import qacc, { QACC_DONATION_TOKEN_SYMBOL } from '../utils/qacc';
+import qacc from '../utils/qacc';
+import { QACC_DONATION_TOKEN_SYMBOL } from '../constants/qacc';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');

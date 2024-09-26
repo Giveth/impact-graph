@@ -11,7 +11,7 @@ import { ProjectFraud } from '../entities/projectFraud';
 import config from '../config';
 import { logger } from '../utils/logger';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
-import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../utils/qacc';
+import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../constants/qacc';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
