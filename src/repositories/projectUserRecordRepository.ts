@@ -33,3 +33,14 @@ export async function updateOrCreateProjectUserRecord({
 
   return projectUserRecord.save();
 }
+
+export async function getProjectUserRecordAmount({
+  projectId,
+  userId,
+}: {
+  projectId: number;
+  userId: number;
+}): Promise<number> {
+  const record = await ProjectUserRecord.findOneBy({ projectId, userId });
+  return record?.totalDonationAmount || 0;
+}

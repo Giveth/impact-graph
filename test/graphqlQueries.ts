@@ -2127,3 +2127,9 @@ export const getProjectRoundRecordsQuery = `
     }
   }
 `;
+
+export const projectUserTotalDonationAmount = `
+  query ProjectUserTotalDonationAmount($projectId: Int!, $userId: Int!) {
+    projectUserTotalDonationAmount(projectId: $projectId, userId: $userId)
+  }
+`;

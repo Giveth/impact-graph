@@ -36,6 +36,7 @@ import { addressHasDonated } from '../repositories/donationRepository';
 // import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
+import { getProjectUserRecordAmount } from '../repositories/projectUserRecordRepository';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -450,5 +451,13 @@ export class UserResolver {
       return true;
     }
     return false;
+  }
+
+  @Query(_returns => Number)
+  async projectUserTotalDonationAmount(
+    @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
+    @Arg('userId', _type => Int, { nullable: false }) userId: number,
+  ) {
+    return getProjectUserRecordAmount({ projectId, userId });
   }
 }

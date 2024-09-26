@@ -19,6 +19,7 @@ import {
   acceptedTermsOfService,
   batchMintingEligibleUsers,
   checkUserPrivadoVerifiedState,
+  projectUserTotalDonationAmount,
   refreshUserScores,
   updateUser,
   userByAddress,
@@ -32,6 +33,7 @@ import { updateUserTotalDonated } from '../services/userService';
 import { getUserEmailConfirmationFields } from '../repositories/userRepository';
 import { UserEmailVerification } from '../entities/userEmailVerification';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
+import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -57,6 +59,11 @@ describe(
 describe(
   'batchMintingEligibleUsers() test cases',
   batchMintingEligibleUsersTestCases,
+);
+
+describe(
+  'projectUserTotalDonationAmount() test cases',
+  projectUserTotalDonationAmountTestCases,
 );
 
 // TODO I think we can delete  addUserVerification query
@@ -1290,5 +1297,62 @@ function batchMintingEligibleUsersTestCases() {
     assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
       user3.walletAddress,
     ]);
+  });
+}
+
+function projectUserTotalDonationAmountTestCases() {
+  it('should return total donation amount of a user for a project', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const verifiedDonationAmount1 = 100;
+    const verifiedDonationAmount2 = 200;
+    const unverifiedDonationAmount = 300;
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: verifiedDonationAmount1,
+        status: DONATION_STATUS.VERIFIED,
+      },
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: verifiedDonationAmount2,
+        status: DONATION_STATUS.VERIFIED,
+      },
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: unverifiedDonationAmount,
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+
+    await updateOrCreateProjectUserRecord({
+      projectId: project.id,
+      userId: user.id,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: projectUserTotalDonationAmount,
+      variables: {
+        projectId: project.id,
+        userId: user.id,
+      },
+    });
+
+    assert.isOk(result.data);
+    assert.equal(
+      result.data.data.projectUserTotalDonationAmount,
+      verifiedDonationAmount1 + verifiedDonationAmount2,
+    );
   });
 }
