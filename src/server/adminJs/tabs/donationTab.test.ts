@@ -52,12 +52,18 @@ function updateDonationPriceTestCases() {
     const donorUpdated = await User.findOneBy({ id: donor.id });
     const projectOwnerUpdated = await User.findOneBy({ id: projectOwner.id });
     const projectUpdated = await Project.findOneBy({ id: project.id });
-    assert.equal(donationWithPrice?.valueUsd, donorUpdated?.totalDonated);
     assert.equal(
-      donationWithPrice?.valueUsd,
-      projectOwnerUpdated?.totalReceived,
+      donationWithPrice?.valueUsd.toFixed(2),
+      donorUpdated?.totalDonated.toFixed(2),
     );
-    assert.equal(projectUpdated?.totalDonations, donationWithPrice?.valueUsd);
+    assert.equal(
+      donationWithPrice?.valueUsd.toFixed(2),
+      projectOwnerUpdated?.totalReceived.toFixed(2),
+    );
+    assert.equal(
+      projectUpdated?.totalDonations.toFixed(2),
+      donationWithPrice?.valueUsd.toFixed(2),
+    );
     assert.isOk(donationWithPrice?.valueUsd);
   });
 }

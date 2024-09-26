@@ -21,7 +21,7 @@ const RoundUnion = createUnionType({
   name: 'RoundUnion',
   types: () => [EarlyAccessRound, QfRound] as const,
   resolveType: value => {
-    if ('roundNumber' in value) {
+    if ('startDate' in value) {
       return EarlyAccessRound;
     }
     if ('slug' in value) {

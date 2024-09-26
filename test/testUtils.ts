@@ -2065,3 +2065,8 @@ export const saveRoundDirectlyToDb = async (
   const round = EarlyAccessRound.create(roundData) as EarlyAccessRound;
   return round.save();
 };
+
+let nextQfRoundNumber = 1000;
+export function generateQfRoundNumber(): number {
+  return nextQfRoundNumber++;
+}
