@@ -11,6 +11,7 @@ import { ProjectFraud } from '../entities/projectFraud';
 import config from '../config';
 import { logger } from '../utils/logger';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../utils/qacc';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -336,7 +337,7 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
     const tokenPrice = await priceAdapter.getTokenPriceAtDate({
-      symbol: 'polygon-ecosystem-token',
+      symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
       date: round.beginDate,
     });
 

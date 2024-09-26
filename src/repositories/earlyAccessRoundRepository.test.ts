@@ -9,6 +9,7 @@ import {
 } from './earlyAccessRoundRepository';
 import { saveRoundDirectlyToDb } from '../../test/testUtils';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../utils/qacc';
 
 describe('EarlyAccessRound Repository Test Cases', () => {
   let priceAdapterStub: sinon.SinonStub;
@@ -126,7 +127,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
     // Assert that the token price fetching method was called with the correct date
     sinon.assert.calledWith(priceAdapterStub, {
-      symbol: 'polygon-ecosystem-token',
+      symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
       date: earlyAccessRound.startDate,
     });
 

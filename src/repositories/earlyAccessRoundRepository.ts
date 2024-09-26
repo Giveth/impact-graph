@@ -2,6 +2,7 @@ import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
+import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../utils/qacc';
 
 export const findAllEarlyAccessRounds = async (): Promise<
   EarlyAccessRound[]
@@ -49,7 +50,7 @@ export const fillMissingTokenPriceInEarlyAccessRounds = async (): Promise<
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
     const tokenPrice = await priceAdapter.getTokenPriceAtDate({
-      symbol: 'polygon-ecosystem-token',
+      symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
       date: round.startDate,
     });
 
