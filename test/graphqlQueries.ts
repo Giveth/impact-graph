@@ -2051,6 +2051,9 @@ export const fetchAllRoundsQuery = `
         endDate
         createdAt
         updatedAt
+        roundUSDCapPerProject
+        roundUSDCapPerUserPerProject
+        POLPriceAtRoundStart
       }
       ... on QfRound {
         name
@@ -2058,6 +2061,9 @@ export const fetchAllRoundsQuery = `
         allocatedFund
         beginDate
         endDate
+        roundUSDCapPerProject
+        roundUSDCapPerUserPerProject
+        POLPriceAtRoundStart
       }
     }
   }
@@ -2073,6 +2079,9 @@ export const fetchActiveRoundQuery = `
           endDate
           createdAt
           updatedAt
+          roundUSDCapPerProject
+          roundUSDCapPerUserPerProject
+          POLPriceAtRoundStart
         }
         ... on QfRound {
           name
@@ -2080,6 +2089,9 @@ export const fetchActiveRoundQuery = `
           allocatedFund
           beginDate
           endDate
+          roundUSDCapPerProject
+          roundUSDCapPerUserPerProject
+          POLPriceAtRoundStart
         }
       }
     }
