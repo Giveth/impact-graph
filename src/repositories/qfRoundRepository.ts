@@ -10,6 +10,8 @@ import { Sybil } from '../entities/sybil';
 import { ProjectFraud } from '../entities/projectFraud';
 import config from '../config';
 import { logger } from '../utils/logger';
+import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../constants/qacc';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -317,4 +319,33 @@ export const retrieveActiveQfRoundUserMBDScore = async (
     });
     return null;
   }
+};
+
+export const fillMissingTokenPriceInQfRounds = async (): Promise<
+  void | number
+> => {
+  const priceAdapter = new CoingeckoPriceAdapter();
+
+  // Find all QfRounds where token_price is NULL
+  const roundsToUpdate = await AppDataSource.getDataSource()
+    .getRepository(QfRound)
+    .createQueryBuilder('qf_round')
+    .where('qf_round.tokenPrice IS NULL')
+    .andWhere('qf_round.beginDate < :now', { now: new Date() })
+    .getMany();
+
+  // Set the token price for all found rounds and save them
+  for (const round of roundsToUpdate) {
+    const tokenPrice = await priceAdapter.getTokenPriceAtDate({
+      symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
+      date: round.beginDate,
+    });
+
+    if (tokenPrice) {
+      round.tokenPrice = tokenPrice;
+      await AppDataSource.getDataSource().getRepository(QfRound).save(round);
+    }
+  }
+
+  return roundsToUpdate.length;
 };
