@@ -118,6 +118,18 @@ export class QfRound extends BaseEntity {
   @OneToMany(_type => Donation, donation => donation.qfRound)
   donations: Donation[];
 
+  @Field(() => Int)
+  @Column()
+  roundUSDCapPerProject: number;
+
+  @Field(() => Int)
+  @Column()
+  roundUSDCapPerUserPerProject: number;
+
+  @Field(() => Float)
+  @Column({ type: 'decimal', precision: 18, scale: 8 })
+  POLPriceAtRoundStart: number;
+
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {
     // when not specified, all are valid
