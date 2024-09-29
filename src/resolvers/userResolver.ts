@@ -2,6 +2,7 @@ import {
   Arg,
   Ctx,
   Field,
+  Float,
   Int,
   Mutation,
   ObjectType,
@@ -57,6 +58,18 @@ class BatchMintingEligibleUserResponse {
 
   @Field(_offset => Number, { nullable: false })
   skip: number;
+}
+
+@ObjectType()
+class ProjectUserRecordAmounts {
+  @Field(_type => Float)
+  totalDonationAmount: number;
+
+  @Field(_type => Float)
+  eaTotalDonationAmount: number;
+
+  @Field(_type => Float)
+  qfTotalDonationAmount: number;
 }
 
 // eslint-disable-next-line unused-imports/no-unused-imports
@@ -453,11 +466,16 @@ export class UserResolver {
     return false;
   }
 
-  @Query(_returns => Number)
-  async projectUserTotalDonationAmount(
+  @Query(_returns => ProjectUserRecordAmounts)
+  async projectUserTotalDonationAmounts(
     @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
     @Arg('userId', _type => Int, { nullable: false }) userId: number,
   ) {
-    return getProjectUserRecordAmount({ projectId, userId });
+    const record = await getProjectUserRecordAmount({ projectId, userId });
+    return {
+      totalDonationAmount: record.totalDonationAmount,
+      eaTotalDonationAmount: record.eaTotalDonationAmount,
+      qfTotalDonationAmount: record.qfTotalDonationAmount,
+    };
   }
 }

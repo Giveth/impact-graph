@@ -26,6 +26,16 @@ export class ProjectUserRecord extends BaseEntity {
   @Column({ type: 'float', default: 0 })
   totalDonationAmount: number;
 
+  // Early access total donation amount
+  @Field(_type => Float)
+  @Column({ type: 'float', default: 0 })
+  eaTotalDonationAmount: number;
+
+  // QF rounds total donation amount
+  @Field(_type => Float)
+  @Column({ type: 'float', default: 0 })
+  qfTotalDonationAmount: number;
+
   @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: true })
   project: Project;

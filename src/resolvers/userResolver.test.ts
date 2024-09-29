@@ -1,8 +1,10 @@
 // TODO Write test cases
 
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { assert } from 'chai';
 import sinon from 'sinon';
+import { ExecutionResult } from 'graphql';
+import moment from 'moment';
 import { User } from '../entities/user';
 import {
   createDonationData,
@@ -11,6 +13,7 @@ import {
   generateTestAccessToken,
   graphqlUrl,
   saveDonationDirectlyToDb,
+  saveEARoundDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
@@ -19,7 +22,7 @@ import {
   acceptedTermsOfService,
   batchMintingEligibleUsers,
   checkUserPrivadoVerifiedState,
-  projectUserTotalDonationAmount,
+  projectUserTotalDonationAmounts,
   refreshUserScores,
   updateUser,
   userByAddress,
@@ -33,7 +36,11 @@ import { updateUserTotalDonated } from '../services/userService';
 import { getUserEmailConfirmationFields } from '../repositories/userRepository';
 import { UserEmailVerification } from '../entities/userEmailVerification';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
-import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
+import {
+  ProjectUserRecordAmounts,
+  updateOrCreateProjectUserRecord,
+} from '../repositories/projectUserRecordRepository';
+import { QfRound } from '../entities/qfRound';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -1302,57 +1309,89 @@ function batchMintingEligibleUsersTestCases() {
 
 function projectUserTotalDonationAmountTestCases() {
   it('should return total donation amount of a user for a project', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const verifiedDonationAmount1 = 100;
-    const verifiedDonationAmount2 = 200;
-    const unverifiedDonationAmount = 300;
+    it('should return total donation amount of a user for a project', async () => {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      const project = await saveProjectDirectlyToDb(createProjectData());
 
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        amount: verifiedDonationAmount1,
-        status: DONATION_STATUS.VERIFIED,
-      },
-      user.id,
-      project.id,
-    );
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        amount: verifiedDonationAmount2,
-        status: DONATION_STATUS.VERIFIED,
-      },
-      user.id,
-      project.id,
-    );
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        amount: unverifiedDonationAmount,
-        status: DONATION_STATUS.PENDING,
-      },
-      user.id,
-      project.id,
-    );
+      const ea1 = await saveEARoundDirectlyToDb({
+        roundNumber: 1,
+        startDate: new Date('2024-09-01'),
+        endDate: new Date('2024-09-05'),
+      });
+      const ea2 = await saveEARoundDirectlyToDb({
+        roundNumber: 2,
+        startDate: new Date('2024-09-06'),
+        endDate: new Date('2024-09-10'),
+      });
 
-    await updateOrCreateProjectUserRecord({
-      projectId: project.id,
-      userId: user.id,
-    });
+      const qfRound = await QfRound.create({
+        isActive: true,
+        name: 'test qf ',
+        allocatedFund: 100,
+        minimumPassportScore: 8,
+        slug: 'QF - 2024-09-10',
+        beginDate: moment('2024-09-10').add(1, 'days').toDate(),
+        endDate: moment('2024-09-10').add(10, 'days').toDate(),
+      }).save();
 
-    const result = await axios.post(graphqlUrl, {
-      query: projectUserTotalDonationAmount,
-      variables: {
+      const ea1DonationAmount = 100;
+      const ea2DonationAmount = 200;
+      const qfDonationAmount = 400;
+
+      await saveDonationDirectlyToDb(
+        {
+          ...createDonationData(),
+          amount: ea1DonationAmount,
+          status: DONATION_STATUS.VERIFIED,
+          earlyAccessRoundId: ea1.id,
+        },
+        user.id,
+        project.id,
+      );
+      await saveDonationDirectlyToDb(
+        {
+          ...createDonationData(),
+          amount: ea2DonationAmount,
+          status: DONATION_STATUS.VERIFIED,
+          earlyAccessRoundId: ea2.id,
+        },
+        user.id,
+        project.id,
+      );
+      await saveDonationDirectlyToDb(
+        {
+          ...createDonationData(),
+          amount: qfDonationAmount,
+          status: DONATION_STATUS.VERIFIED,
+          qfRoundId: qfRound.id,
+        },
+        user.id,
+        project.id,
+      );
+      await updateOrCreateProjectUserRecord({
         projectId: project.id,
         userId: user.id,
-      },
-    });
+      });
 
-    assert.isOk(result.data);
-    assert.equal(
-      result.data.data.projectUserTotalDonationAmount,
-      verifiedDonationAmount1 + verifiedDonationAmount2,
-    );
+      const result: AxiosResponse<
+        ExecutionResult<{
+          projectUserTotalDonationAmounts: ProjectUserRecordAmounts;
+        }>
+      > = await axios.post(graphqlUrl, {
+        query: projectUserTotalDonationAmounts,
+        variables: {
+          projectId: project.id,
+          userId: user.id,
+        },
+      });
+
+      assert.isOk(result.data);
+      assert.deepEqual(result.data.data?.projectUserTotalDonationAmounts, {
+        eaTotalDonationAmount: ea1DonationAmount + ea2DonationAmount,
+        qfTotalDonationAmount: qfDonationAmount,
+        totalDonationAmount:
+          ea1DonationAmount + ea2DonationAmount + qfDonationAmount,
+      });
+    });
   });
 }

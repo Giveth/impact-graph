@@ -2059,7 +2059,7 @@ export function generateRandomSolanaTxHash() {
 // list of test cases titles that doesn't require DB interaction
 export const dbIndependentTests = ['AdminJsPermissions'];
 
-export const saveRoundDirectlyToDb = async (
+export const saveEARoundDirectlyToDb = async (
   roundData: Partial<EarlyAccessRound>,
 ): Promise<EarlyAccessRound> => {
   const round = EarlyAccessRound.create(roundData) as EarlyAccessRound;

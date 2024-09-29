@@ -4,7 +4,7 @@ import {
   findAllEarlyAccessRounds,
   findActiveEarlyAccessRound,
 } from './earlyAccessRoundRepository';
-import { saveRoundDirectlyToDb } from '../../test/testUtils';
+import { saveEARoundDirectlyToDb } from '../../test/testUtils';
 
 describe('EarlyAccessRound Repository Test Cases', () => {
   beforeEach(async () => {
@@ -24,7 +24,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
       endDate: new Date('2024-09-05'),
     };
 
-    const savedRound = await saveRoundDirectlyToDb(roundData);
+    const savedRound = await saveEARoundDirectlyToDb(roundData);
 
     expect(savedRound).to.be.an.instanceof(EarlyAccessRound);
     expect(savedRound.roundNumber).to.equal(roundData.roundNumber);
@@ -38,12 +38,12 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
   it('should find all Early Access Rounds', async () => {
     // Save a couple of rounds first
-    await saveRoundDirectlyToDb({
+    await saveEARoundDirectlyToDb({
       roundNumber: 1,
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
     });
-    await saveRoundDirectlyToDb({
+    await saveEARoundDirectlyToDb({
       roundNumber: 2,
       startDate: new Date('2024-09-06'),
       endDate: new Date('2024-09-10'),
@@ -71,8 +71,8 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     };
 
     // Save both active and inactive rounds
-    await saveRoundDirectlyToDb(activeRoundData);
-    await saveRoundDirectlyToDb(inactiveRoundData);
+    await saveEARoundDirectlyToDb(activeRoundData);
+    await saveEARoundDirectlyToDb(inactiveRoundData);
 
     const activeRound = await findActiveEarlyAccessRound();
 

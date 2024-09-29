@@ -8,14 +8,24 @@ export async function updateOrCreateProjectUserRecord({
   projectId: number;
   userId: number;
 }): Promise<ProjectUserRecord> {
-  const { totalDonationAmount } = await Donation.createQueryBuilder('donation')
-    .select('SUM(donation.amount)', 'totalDonationAmount')
-    .where('donation.projectId = :projectId', { projectId })
-    .andWhere('donation.status = :status', {
-      status: DONATION_STATUS.VERIFIED,
-    })
-    .andWhere('donation.userId = :userId', { userId })
-    .getRawOne();
+  const { eaTotalDonationAmount, qfTotalDonationAmount, totalDonationAmount } =
+    await Donation.createQueryBuilder('donation')
+      .select('SUM(donation.amount)', 'totalDonationAmount')
+      // sum eaTotalDonationAmount if earlyAccessRoundId is not null
+      .addSelect(
+        'SUM(CASE WHEN donation.earlyAccessRoundId IS NOT NULL THEN donation.amount ELSE 0 END)',
+        'eaTotalDonationAmount',
+      )
+      .addSelect(
+        'SUM(CASE WHEN donation.qfRoundId IS NOT NULL THEN donation.amount ELSE 0 END)',
+        'qfTotalDonationAmount',
+      )
+      .where('donation.projectId = :projectId', { projectId })
+      .andWhere('donation.status = :status', {
+        status: DONATION_STATUS.VERIFIED,
+      })
+      .andWhere('donation.userId = :userId', { userId })
+      .getRawOne();
 
   let projectUserRecord = await ProjectUserRecord.findOneBy({
     projectId,
@@ -29,18 +39,28 @@ export async function updateOrCreateProjectUserRecord({
     });
   }
 
+  projectUserRecord.eaTotalDonationAmount = eaTotalDonationAmount || 0;
+  projectUserRecord.qfTotalDonationAmount = qfTotalDonationAmount || 0;
   projectUserRecord.totalDonationAmount = totalDonationAmount || 0;
 
   return projectUserRecord.save();
 }
 
+export type ProjectUserRecordAmounts = Pick<
+  ProjectUserRecord,
+  'totalDonationAmount' | 'eaTotalDonationAmount' | 'qfTotalDonationAmount'
+>;
 export async function getProjectUserRecordAmount({
   projectId,
   userId,
 }: {
   projectId: number;
   userId: number;
-}): Promise<number> {
+}): Promise<ProjectUserRecordAmounts> {
   const record = await ProjectUserRecord.findOneBy({ projectId, userId });
-  return record?.totalDonationAmount || 0;
+  return {
+    totalDonationAmount: record?.totalDonationAmount || 0,
+    eaTotalDonationAmount: record?.eaTotalDonationAmount || 0,
+    qfTotalDonationAmount: record?.qfTotalDonationAmount || 0,
+  };
 }
