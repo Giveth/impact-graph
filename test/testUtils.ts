@@ -2059,7 +2059,7 @@ export function generateRandomSolanaTxHash() {
 // list of test cases titles that doesn't require DB interaction
 export const dbIndependentTests = ['AdminJsPermissions'];
 
-export const saveRoundDirectlyToDb = async (
+export const saveEARoundDirectlyToDb = async (
   roundData: Partial<EarlyAccessRound>,
 ): Promise<EarlyAccessRound> => {
   const round = EarlyAccessRound.create(roundData) as EarlyAccessRound;
@@ -2069,4 +2069,8 @@ export const saveRoundDirectlyToDb = async (
 let nextQfRoundNumber = 1000;
 export function generateQfRoundNumber(): number {
   return nextQfRoundNumber++;
+}
+let nextEARoundNumber = 1000;
+export function generateEARoundNumber(): number {
+  return nextEARoundNumber++;
 }
