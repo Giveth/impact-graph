@@ -24,6 +24,9 @@ import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { getProjectQfRoundStats } from './donationRepository';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+import { Donation } from '../entities/donation';
+import { AppDataSource } from '../orm';
+import { QfRoundHistory } from '../entities/qfRoundHistory';
 
 describe(
   'getProjectDonationsSqrtRootSum test cases',
@@ -46,6 +49,10 @@ describe('findQfRoundBySlug test cases', findQfRoundBySlugTestCases);
 describe(
   'fillMissingTokenPriceInQfRounds test cases',
   fillMissingTokenPriceInQfRoundsTestCase,
+);
+describe(
+  'findQfRoundCumulativeCaps test cases',
+  findQfRoundCumulativeCapsTestCases,
 );
 
 function getProjectDonationsSqrRootSumTests() {
@@ -574,5 +581,148 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
     const updatedCount = await fillMissingTokenPriceInQfRounds();
 
     expect(updatedCount).to.equal(0);
+  });
+}
+
+function findQfRoundCumulativeCapsTestCases() {
+  beforeEach(async () => {
+    // Clean up data before each test case
+    await Donation.createQueryBuilder()
+      .delete()
+      .where('qfRoundId IS NOT NULL')
+      .execute();
+    await AppDataSource.getDataSource()
+      .createQueryBuilder()
+      .delete()
+      .from('project_qf_rounds_qf_round')
+      .execute();
+    await QfRoundHistory.delete({});
+    await QfRound.delete({});
+  });
+
+  after(async () => {
+    // Clean up data after each test case
+    await Donation.createQueryBuilder()
+      .delete()
+      .where('qfRoundId IS NOT NULL')
+      .execute();
+    await AppDataSource.getDataSource()
+      .createQueryBuilder()
+      .delete()
+      .from('project_qf_rounds_qf_round')
+      .execute();
+    await QfRoundHistory.delete({});
+    await QfRound.delete({});
+  });
+
+  it('should return the cap itself as the cumulative cap for the first round', async () => {
+    const roundData = {
+      roundNumber: 1,
+      name: 'Test Round 1',
+      allocatedFund: 1000000,
+      minimumPassportScore: 8,
+      slug: 'round-1',
+      beginDate: new Date('2024-09-01'),
+      endDate: new Date('2024-09-05'),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+      tokenPrice: 0.12345678,
+    };
+
+    const savedRound = await QfRound.create(roundData).save();
+
+    const roundFromDB = await findQfRoundById(savedRound.id);
+
+    expect(roundFromDB?.cumulativeCapPerProject).to.equal(1000000);
+    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(50000);
+  });
+
+  it('should calculate cumulative cap across multiple rounds', async () => {
+    // Save multiple rounds
+    await QfRound.create({
+      roundNumber: 1,
+      name: 'Test Round 1',
+      allocatedFund: 1000000,
+      minimumPassportScore: 8,
+      slug: 'round-1',
+      beginDate: new Date('2024-09-01'),
+      endDate: new Date('2024-09-05'),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+    }).save();
+
+    await QfRound.create({
+      roundNumber: 2,
+      name: 'Test Round 2',
+      allocatedFund: 2000000,
+      minimumPassportScore: 8,
+      slug: 'round-2',
+      beginDate: new Date('2024-09-06'),
+      endDate: new Date('2024-09-10'),
+      roundUSDCapPerProject: 2000000,
+      roundUSDCapPerUserPerProject: 100000,
+    }).save();
+
+    const latestRound = await QfRound.create({
+      roundNumber: 3,
+      name: 'Test Round 3',
+      allocatedFund: 1500000,
+      minimumPassportScore: 8,
+      slug: 'round-3',
+      beginDate: new Date('2024-09-11'),
+      endDate: new Date('2024-09-15'),
+      roundUSDCapPerProject: 1500000,
+      roundUSDCapPerUserPerProject: 75000,
+    }).save();
+
+    const roundFromDB = await findQfRoundById(latestRound.id);
+
+    // The cumulative cap should be the sum of caps from all previous rounds
+    expect(roundFromDB?.cumulativeCapPerProject).to.equal(4500000); // 1000000 + 2000000 + 1500000
+    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(225000); // 50000 + 100000 + 75000
+  });
+
+  it('should handle rounds with missing caps by skipping them in the cumulative sum', async () => {
+    // Save multiple rounds where one round is missing caps
+    await QfRound.create({
+      roundNumber: 1,
+      name: 'Test Round 1',
+      allocatedFund: 1000000,
+      minimumPassportScore: 8,
+      slug: 'round-1',
+      beginDate: new Date('2024-09-01'),
+      endDate: new Date('2024-09-05'),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+    }).save();
+
+    await QfRound.create({
+      roundNumber: 2,
+      name: 'Test Round 2',
+      allocatedFund: 2000000,
+      minimumPassportScore: 8,
+      slug: 'round-2',
+      beginDate: new Date('2024-09-06'),
+      endDate: new Date('2024-09-10'),
+      // missing caps
+    }).save();
+
+    const latestRound = await QfRound.create({
+      roundNumber: 3,
+      name: 'Test Round 3',
+      allocatedFund: 1500000,
+      minimumPassportScore: 8,
+      slug: 'round-3',
+      beginDate: new Date('2024-09-11'),
+      endDate: new Date('2024-09-15'),
+      roundUSDCapPerProject: 1500000,
+      roundUSDCapPerUserPerProject: 75000,
+    }).save();
+
+    const roundFromDB = await findQfRoundById(latestRound.id);
+
+    // The cumulative cap should skip round 2 and only sum rounds 1 and 3
+    expect(roundFromDB?.cumulativeCapPerProject).to.equal(2500000); // 1000000 + 1500000
+    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(125000); // 50000 + 75000
   });
 }
