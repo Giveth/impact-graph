@@ -72,7 +72,6 @@ async function processReportForDonations(
         participantData.issuanceAllocation,
       );
 
-      // Find the corresponding transaction for this donation
       const donationTransaction = participantData.transactions.find(
         (tx: any) =>
           tx.txHash.toLowerCase() === donation.transactionId.toLowerCase(),
@@ -129,7 +128,6 @@ async function processReportForDonations(
   }
 }
 
-// Main function to update rewards for donations using report files
 export async function updateRewardsForDonations(
   donationFilter: FindOptionsWhere<Donation>,
 ) {
@@ -187,7 +185,6 @@ export async function updateRewardsForDonations(
         continue;
       }
 
-      // Process the participants' rewards from the matched report
       await processReportForDonations(
         project.abc.orchestratorAddress,
         donationsByProjectId[projectId],
