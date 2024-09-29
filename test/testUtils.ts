@@ -40,7 +40,7 @@ import {
   QACC_DONATION_TOKEN_DECIMALS,
   QACC_DONATION_TOKEN_NAME,
   QACC_DONATION_TOKEN_SYMBOL,
-} from '../src/utils/qacc';
+} from '../src/constants/qacc';
 import { EarlyAccessRound } from '../src/entities/earlyAccessRound';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

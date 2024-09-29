@@ -112,7 +112,7 @@ import {
 import {
   QACC_DONATION_TOKEN_ADDRESS,
   QACC_DONATION_TOKEN_SYMBOL,
-} from '../utils/qacc';
+} from '../constants/qacc';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { getProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 

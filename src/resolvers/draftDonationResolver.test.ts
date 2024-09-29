@@ -17,7 +17,7 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
-import { QACC_DONATION_TOKEN_SYMBOL } from '../utils/qacc';
+import { QACC_DONATION_TOKEN_SYMBOL } from '../constants/qacc';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 

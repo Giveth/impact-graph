@@ -1,5 +1,6 @@
 import { assert, expect } from 'chai';
 import moment from 'moment';
+import sinon from 'sinon';
 import {
   createDonationData,
   createProjectData,
@@ -17,10 +18,12 @@ import {
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalSqrtRootSumSquared,
   getQfRoundStats,
+  fillMissingTokenPriceInQfRounds,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { getProjectQfRoundStats } from './donationRepository';
+import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 
 describe(
   'getProjectDonationsSqrtRootSum test cases',
@@ -40,6 +43,10 @@ describe(
 );
 describe('findQfRoundById test cases', findQfRoundByIdTestCases);
 describe('findQfRoundBySlug test cases', findQfRoundBySlugTestCases);
+describe(
+  'fillMissingTokenPriceInQfRounds test cases',
+  fillMissingTokenPriceInQfRoundsTestCase,
+);
 
 function getProjectDonationsSqrRootSumTests() {
   let qfRound: QfRound;
@@ -504,5 +511,75 @@ function findQfRoundBySlugTestCases() {
   it('should return null if slug is invalid', async () => {
     const result = await findQfRoundBySlug('invalid-slug');
     assert.isNull(result);
+  });
+}
+
+function fillMissingTokenPriceInQfRoundsTestCase() {
+  let priceAdapterStub: sinon.SinonStub;
+
+  beforeEach(async () => {
+    // Stub CoingeckoPriceAdapter to mock getTokenPriceAtDate
+    priceAdapterStub = sinon
+      .stub(CoingeckoPriceAdapter.prototype, 'getTokenPriceAtDate')
+      .resolves(100);
+
+    // Reset tokenPrice to undefined for test consistency
+    await QfRound.update({}, { tokenPrice: undefined });
+  });
+
+  afterEach(() => {
+    // Restore the stubbed method after each test
+    priceAdapterStub.restore();
+  });
+
+  it('should update token price for rounds with null tokenPrice', async () => {
+    // Create a QfRound with null token price
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      beginDate: moment().subtract(3, 'days').toDate(),
+      endDate: moment().add(10, 'days').toDate(),
+      tokenPrice: undefined,
+    });
+    await qfRound.save();
+
+    const updatedCount = await fillMissingTokenPriceInQfRounds();
+
+    const updatedQfRound = await QfRound.findOne({ where: { id: qfRound.id } });
+    expect(updatedQfRound?.tokenPrice).to.equal(100);
+    expect(updatedCount).to.equal(1);
+  });
+
+  it('should not update token price for rounds with existing tokenPrice', async () => {
+    // Create a QfRound with an existing token price
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      beginDate: moment().subtract(3, 'days').toDate(),
+      endDate: moment().add(10, 'days').toDate(),
+      tokenPrice: 50,
+    });
+    await qfRound.save();
+
+    const updatedCount = await fillMissingTokenPriceInQfRounds();
+
+    const updatedQfRound = await QfRound.findOne({ where: { id: qfRound.id } });
+    expect(updatedQfRound?.tokenPrice).to.equal(50);
+    expect(updatedCount).to.equal(0);
+  });
+
+  it('should return zero if there are no rounds to update', async () => {
+    // Ensure no rounds with null tokenPrice
+    await QfRound.update({}, { tokenPrice: 100 });
+
+    const updatedCount = await fillMissingTokenPriceInQfRounds();
+
+    expect(updatedCount).to.equal(0);
   });
 }
