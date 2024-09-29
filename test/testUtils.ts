@@ -359,9 +359,10 @@ export const createDonationData = (params?: {
   valueUsd?: number;
   anonymous?: boolean;
   qfRoundId?: number;
+  transactionId?: string;
 }): CreateDonationData => {
   return {
-    transactionId: generateRandomEvmTxHash(),
+    transactionId: params?.transactionId || generateRandomEvmTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,

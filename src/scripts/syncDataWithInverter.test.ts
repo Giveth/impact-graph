@@ -48,7 +48,7 @@ describe('Sync Donations Script Test Cases', () => {
 
     const donation = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ transactionId: '0x123' }),
         fromWalletAddress: '0xce989336BdED425897Ac63d1359628E26E24f794', // got from inverter
         blockNumber: 1234,
       },
