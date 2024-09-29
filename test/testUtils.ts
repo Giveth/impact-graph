@@ -360,6 +360,7 @@ export const createDonationData = (params?: {
   anonymous?: boolean;
   qfRoundId?: number;
   transactionId?: string;
+  earlyAccessRoundId?: number;
 }): CreateDonationData => {
   return {
     transactionId: params?.transactionId || generateRandomEvmTxHash(),
@@ -374,6 +375,7 @@ export const createDonationData = (params?: {
     createdAt: params?.createdAt || moment().toDate(),
     segmentNotified: true,
     qfRoundId: params?.qfRoundId || undefined,
+    earlyAccessRoundId: params?.earlyAccessRoundId || undefined,
   };
 };
 

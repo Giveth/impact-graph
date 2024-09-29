@@ -128,6 +128,26 @@ async function processReportForDonations(
   }
 }
 
+function getRoundNumberByDonations(donations: Donation[]): number {
+  if (!donations.length) {
+    return 0; // Return 0 if there are no donations
+  }
+
+  const firstDonation = donations[0]; // Assuming all donations belong to the same round
+
+  // Check if the project is in an Early Access Round or QF Round
+  if (firstDonation.earlyAccessRound) {
+    return firstDonation.earlyAccessRound.roundNumber; // Return the round number directly for Early Access
+  } else if (firstDonation.qfRound.roundNumber) {
+    return firstDonation.qfRound.roundNumber + 4; // Add 4 to the round number for QF Rounds
+  } else {
+    console.error(
+      `No round information found for donation ${firstDonation.id}`,
+    );
+    return 0; // Return 0 if no round information is found
+  }
+}
+
 export async function updateRewardsForDonations(
   donationFilter: FindOptionsWhere<Donation>,
 ) {
@@ -161,26 +181,33 @@ export async function updateRewardsForDonations(
         continue;
       }
 
+      const roundNumber = getRoundNumberByDonations(
+        donationsByProjectId[projectId],
+      );
       // Look for matching report files based on orchestrator address
       let matchedReportFile = null;
       for (const reportFilePath of allReportFiles) {
-        const reportData = await loadReportFile(reportFilePath);
-        if (!reportData) continue;
+        const fileName = path.basename(reportFilePath);
 
-        const reportOrchestratorAddress =
-          reportData.queries?.addresses?.orchestrator?.toLowerCase();
-        if (
-          reportOrchestratorAddress ===
-          project.abc.orchestratorAddress.toLowerCase()
-        ) {
-          matchedReportFile = reportData;
-          break;
+        if (fileName.endsWith(`${roundNumber}.json`)) {
+          const reportData = await loadReportFile(reportFilePath);
+          if (!reportData) continue;
+
+          const reportOrchestratorAddress =
+            reportData.queries?.addresses?.orchestrator?.toLowerCase();
+          if (
+            reportOrchestratorAddress ===
+            project.abc.orchestratorAddress.toLowerCase()
+          ) {
+            matchedReportFile = reportData;
+            break;
+          }
         }
       }
 
       if (!matchedReportFile) {
         console.error(
-          `No matching report found for project with orchestrator address ${project.abc.orchestratorAddress}`,
+          `No matching report found for project with orchestrator address ${project.abc.orchestratorAddress}, for round number ${roundNumber}`,
         );
         continue;
       }

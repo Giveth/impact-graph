@@ -9,10 +9,12 @@ import {
   createDonationData,
   saveDonationDirectlyToDb,
   deleteProjectDirectlyFromDb,
+  saveEARoundDirectlyToDb,
 } from '../../test/testUtils';
 import { Donation } from '../entities/donation';
 import { syncDonationsWithBlockchainData } from './syncDataWithInverter';
 import { InverterAdapter } from '../adapters/inverter/inverterAdapter';
+import { EarlyAccessRound } from '../entities/earlyAccessRound';
 
 describe('Sync Donations Script Test Cases', () => {
   let existingProjectIds: number[] = [];
@@ -46,11 +48,21 @@ describe('Sync Donations Script Test Cases', () => {
       },
     });
 
+    const earlyAccessRound = await saveEARoundDirectlyToDb({
+      roundNumber: 1,
+      startDate: new Date('2024-09-01'),
+      endDate: new Date('2024-09-05'),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+      tokenPrice: 0.12345678,
+    });
+
     const donation = await saveDonationDirectlyToDb(
       {
         ...createDonationData({ transactionId: '0x123' }),
         fromWalletAddress: '0xce989336BdED425897Ac63d1359628E26E24f794', // got from inverter
         blockNumber: 1234,
+        earlyAccessRoundId: earlyAccessRound.id,
       },
       undefined,
       project.id,
@@ -92,6 +104,7 @@ describe('Sync Donations Script Test Cases', () => {
     assert.equal(updatedDonation?.rewardTokenAmount, 0.004);
 
     await Donation.remove(donation);
+    await EarlyAccessRound.remove(earlyAccessRound);
     await deleteProjectDirectlyFromDb(project.id);
   });
 });
