@@ -524,7 +524,7 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
       .resolves(100);
 
     // Reset tokenPrice to undefined for test consistency
-    await QfRound.update({}, { tokenPrice: undefined });
+    await QfRound.update({}, { tokenPrice: 1 });
   });
 
   afterEach(() => {
@@ -678,13 +678,14 @@ function findQfRoundCumulativeCapsTestCases() {
     const roundFromDB = await findQfRoundById(latestRound.id);
 
     // The cumulative cap should be the sum of caps from all previous rounds
-    expect(roundFromDB?.cumulativeCapPerProject).to.equal(4500000); // 1000000 + 2000000 + 1500000
-    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(225000); // 50000 + 100000 + 75000
+    // Only first round matters
+    expect(roundFromDB?.cumulativeCapPerProject).to.equal(0);
+    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(0);
   });
 
-  it('should handle rounds with missing caps by skipping them in the cumulative sum', async () => {
+  it('should only return cumulutive capsfor the first round', async () => {
     // Save multiple rounds where one round is missing caps
-    await QfRound.create({
+    const firstRound = await QfRound.create({
       roundNumber: 1,
       name: 'Test Round 1',
       allocatedFund: 1000000,
@@ -707,7 +708,7 @@ function findQfRoundCumulativeCapsTestCases() {
       // missing caps
     }).save();
 
-    const latestRound = await QfRound.create({
+    await QfRound.create({
       roundNumber: 3,
       name: 'Test Round 3',
       allocatedFund: 1500000,
@@ -719,10 +720,10 @@ function findQfRoundCumulativeCapsTestCases() {
       roundUSDCapPerUserPerProject: 75000,
     }).save();
 
-    const roundFromDB = await findQfRoundById(latestRound.id);
+    const roundFromDB = await findQfRoundById(firstRound.id);
 
     // The cumulative cap should skip round 2 and only sum rounds 1 and 3
-    expect(roundFromDB?.cumulativeCapPerProject).to.equal(2500000); // 1000000 + 1500000
-    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(125000); // 50000 + 75000
+    expect(roundFromDB?.cumulativeCapPerProject).to.equal(1000000); // 1000000 + 1500000
+    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(50000); // 50000 + 75000
   });
 }

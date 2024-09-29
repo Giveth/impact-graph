@@ -7,7 +7,6 @@ import {
   UpdateDateColumn,
   Index,
   AfterLoad,
-  LessThanOrEqual,
 } from 'typeorm';
 import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
 
@@ -61,20 +60,21 @@ export class EarlyAccessRound extends BaseEntity {
 
   @AfterLoad()
   async calculateCumulativeCaps(): Promise<void> {
-    const previousRounds = await EarlyAccessRound.find({
-      where: { roundNumber: LessThanOrEqual(this.roundNumber) },
-      order: { roundNumber: 'ASC' },
-    });
+    const { cumulativeCapPerProject, cumulativeCapPerUserPerProject } =
+      await EarlyAccessRound.createQueryBuilder('eaRound')
+        .select('sum(eaRound.roundUSDCapPerProject)', 'cumulativeCapPerProject')
+        .addSelect(
+          'sum(eaRound.roundUSDCapPerUserPerProject)',
+          'cumulativeCapPerUserPerProject',
+        )
+        .where('eaRound.roundNumber <= :roundNumber', {
+          roundNumber: this.roundNumber,
+        })
+        .getRawOne();
 
-    this.cumulativeCapPerProject = previousRounds.reduce((total, round) => {
-      return total + (round.roundUSDCapPerProject || 0);
-    }, 0);
-
-    this.cumulativeCapPerUserPerProject = previousRounds.reduce(
-      (total, round) => {
-        return total + (round.roundUSDCapPerUserPerProject || 0);
-      },
-      0,
+    this.cumulativeCapPerProject = parseFloat(cumulativeCapPerProject || 0);
+    this.cumulativeCapPerUserPerProject = parseFloat(
+      cumulativeCapPerUserPerProject || 0,
     );
   }
 }

@@ -10,11 +10,10 @@ import {
   Index,
   OneToMany,
   AfterLoad,
-  LessThanOrEqual,
-  FindOperator,
 } from 'typeorm';
 import { Project } from './project';
 import { Donation } from './donation';
+import { EarlyAccessRound } from './earlyAccessRound';
 
 @Entity()
 @ObjectType()
@@ -150,24 +149,28 @@ export class QfRound extends BaseEntity {
 
   @AfterLoad()
   async calculateCumulativeCaps(): Promise<void> {
-    const previousRounds = await QfRound.find({
-      where: {
-        roundNumber: LessThanOrEqual(
-          this.roundNumber as number,
-        ) as FindOperator<number>,
-      },
-      order: { roundNumber: 'ASC' },
-    });
+    if (this.roundNumber === 1) {
+      const { cumulativeCapPerProject, cumulativeCapPerUserPerProject } =
+        await EarlyAccessRound.createQueryBuilder('eaRound')
+          .select(
+            'sum(eaRound.roundUSDCapPerProject)',
+            'cumulativeCapPerProject',
+          )
+          .addSelect(
+            'sum(eaRound.roundUSDCapPerUserPerProject)',
+            'cumulativeCapPerUserPerProject',
+          )
+          .getRawOne();
 
-    this.cumulativeCapPerProject = previousRounds.reduce((total, round) => {
-      return total + (round.roundUSDCapPerProject || 0);
-    }, 0);
-
-    this.cumulativeCapPerUserPerProject = previousRounds.reduce(
-      (total, round) => {
-        return total + (round.roundUSDCapPerUserPerProject || 0);
-      },
-      0,
-    );
+      this.cumulativeCapPerProject =
+        parseFloat(cumulativeCapPerProject || 0) +
+        (this.roundUSDCapPerProject || 0);
+      this.cumulativeCapPerUserPerProject =
+        (parseFloat(cumulativeCapPerUserPerProject) || 0) +
+        (this.roundUSDCapPerUserPerProject || 0);
+    } else {
+      this.cumulativeCapPerProject = 0;
+      this.cumulativeCapPerUserPerProject = 0;
+    }
   }
 }
