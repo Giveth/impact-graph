@@ -7,7 +7,10 @@ import {
   findActiveEarlyAccessRound,
   fillMissingTokenPriceInEarlyAccessRounds,
 } from './earlyAccessRoundRepository';
-import { saveRoundDirectlyToDb } from '../../test/testUtils';
+import {
+  generateEARoundNumber,
+  saveEARoundDirectlyToDb,
+} from '../../test/testUtils';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../constants/qacc';
 
@@ -37,7 +40,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
   it('should save a new Early Access Round directly to the database', async () => {
     const roundData = {
-      roundNumber: 1,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
       roundUSDCapPerProject: 1000000,
@@ -45,7 +48,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
       tokenPrice: 0.12345678,
     };
 
-    const savedRound = await saveRoundDirectlyToDb(roundData);
+    const savedRound = await saveEARoundDirectlyToDb(roundData);
 
     expect(savedRound).to.be.an.instanceof(EarlyAccessRound);
     expect(savedRound.roundNumber).to.equal(roundData.roundNumber);
@@ -66,16 +69,16 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
   it('should find all Early Access Rounds', async () => {
     // Save a couple of rounds first
-    await saveRoundDirectlyToDb({
-      roundNumber: 1,
+    await saveEARoundDirectlyToDb({
+      roundNumber: generateEARoundNumber(),
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
       roundUSDCapPerProject: 1000000,
       roundUSDCapPerUserPerProject: 50000,
       tokenPrice: 0.12345678,
     });
-    await saveRoundDirectlyToDb({
-      roundNumber: 2,
+    await saveEARoundDirectlyToDb({
+      roundNumber: generateEARoundNumber(),
       startDate: new Date('2024-09-06'),
       endDate: new Date('2024-09-10'),
       roundUSDCapPerProject: 2000000,
@@ -95,7 +98,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
   it('should find the active Early Access Round', async () => {
     const activeRoundData = {
-      roundNumber: 1,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date(new Date().setDate(new Date().getDate() - 1)), // yesterday
       endDate: new Date(new Date().setDate(new Date().getDate() + 1)), // tomorrow
       roundUSDCapPerProject: 500000,
@@ -104,7 +107,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     };
 
     const inactiveRoundData = {
-      roundNumber: 2,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date(new Date().getDate() + 1),
       endDate: new Date(new Date().getDate() + 2),
       roundUSDCapPerProject: 1000000,
@@ -113,8 +116,8 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     };
 
     // Save both active and inactive rounds
-    await saveRoundDirectlyToDb(activeRoundData);
-    await saveRoundDirectlyToDb(inactiveRoundData);
+    await saveEARoundDirectlyToDb(activeRoundData);
+    await saveEARoundDirectlyToDb(inactiveRoundData);
 
     const activeRound = await findActiveEarlyAccessRound();
 

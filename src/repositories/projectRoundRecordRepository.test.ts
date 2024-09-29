@@ -2,6 +2,8 @@ import { expect } from 'chai';
 import {
   createDonationData,
   createProjectData,
+  generateEARoundNumber,
+  generateQfRoundNumber,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   SEED_DATA,
@@ -21,25 +23,19 @@ describe('ProjectRoundRecord test cases', () => {
   let earlyAccessRound1, earlyAccessRound2, earlyAccessRound3;
   let qfRound1, qfRound2;
 
-  async function insertDonation({
-    amount,
-    valueUsd,
-    earlyAccessRoundId,
-    qfRoundId,
-  }: {
-    amount: number;
-    valueUsd: number;
-    earlyAccessRoundId?: number;
-    qfRoundId?: number;
-  }) {
+  async function insertDonation(
+    overrides: Partial<
+      Pick<
+        Donation,
+        'amount' | 'valueUsd' | 'earlyAccessRoundId' | 'qfRoundId' | 'status'
+      >
+    >,
+  ) {
     return saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount,
-        valueUsd,
-        earlyAccessRoundId,
-        qfRoundId,
         status: DONATION_STATUS.VERIFIED,
+        ...overrides,
       },
       SEED_DATA.FIRST_USER.id,
       projectId,
@@ -58,17 +54,17 @@ describe('ProjectRoundRecord test cases', () => {
 
     const earlyAccessRounds = await EarlyAccessRound.create([
       {
-        roundNumber: 1,
+        roundNumber: generateEARoundNumber(),
         startDate: new Date('2000-01-01'),
         endDate: new Date('2000-01-02'),
       },
       {
-        roundNumber: 2,
+        roundNumber: generateEARoundNumber(),
         startDate: new Date('2000-01-02'),
         endDate: new Date('2000-01-03'),
       },
       {
-        roundNumber: 3,
+        roundNumber: generateEARoundNumber(),
         startDate: new Date('2000-01-03'),
         endDate: new Date('2000-01-04'),
       },
@@ -78,7 +74,7 @@ describe('ProjectRoundRecord test cases', () => {
       earlyAccessRounds;
 
     qfRound1 = await QfRound.create({
-      roundNumber: 1,
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString() + ' - 1',
       allocatedFund: 100,
@@ -88,7 +84,7 @@ describe('ProjectRoundRecord test cases', () => {
       endDate: new Date('2001-01-03'),
     }).save();
     qfRound2 = await QfRound.create({
-      roundNumber: 2,
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString() + ' - 2',
       allocatedFund: 100,
@@ -112,7 +108,15 @@ describe('ProjectRoundRecord test cases', () => {
       const amount = 100;
       const valueUsd = 150;
 
+      const unverifiedAmount = 200;
+      const unverifiedValueUsd = 300;
+
       await insertDonation({ amount, valueUsd });
+      await insertDonation({
+        amount: unverifiedAmount,
+        valueUsd: unverifiedValueUsd,
+        status: DONATION_STATUS.PENDING,
+      });
 
       await updateOrCreateProjectRoundRecord(projectId);
 

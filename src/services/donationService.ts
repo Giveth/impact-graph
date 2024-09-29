@@ -40,6 +40,7 @@ import { getOrttoPersonAttributes } from '../adapters/notifications/Notification
 import { CustomToken, getTokenPrice } from './priceService';
 import { updateProjectStatistics } from './projectService';
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
+import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -272,6 +273,10 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donation.qfRoundId,
       donation.earlyAccessRoundId,
     );
+    await updateOrCreateProjectUserRecord({
+      projectId: donation.projectId,
+      userId: donation.userId,
+    });
 
     await sendNotificationForDonation({
       donation,

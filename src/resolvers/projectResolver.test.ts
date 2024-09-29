@@ -4,6 +4,7 @@ import { ArgumentValidationError } from 'type-graphql';
 import {
   createProjectData,
   deleteProjectDirectlyFromDb,
+  generateEARoundNumber,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
@@ -1290,7 +1291,7 @@ function getProjectRoundRecordsTestCases() {
     // Create Early Access Round (Assuming you have such an entity)
     earlyAccessRoundId = (
       await EarlyAccessRound.create({
-        roundNumber: 1,
+        roundNumber: generateEARoundNumber(),
         startDate: new Date('2024-09-01'),
         endDate: new Date('2024-09-05'),
       }).save()
