@@ -183,15 +183,13 @@ export const importLostDonations = async () => {
         const donationDateDbFormat = moment(donationDate).format(
           'YYYY-MM-DD HH:mm:ss',
         );
-        const donationDateCoingeckoFormat =
-          moment(donationDate).format('DD-MM-YYYY');
 
         const coingeckoAdapter = new CoingeckoPriceAdapter();
         let ethereumPriceAtDate;
         try {
           ethereumPriceAtDate = await coingeckoAdapter.getTokenPriceAtDate({
             symbol: tokenInDB!.coingeckoId,
-            date: donationDateCoingeckoFormat,
+            date: donationDate,
           });
         } catch (e) {
           logger.debug('CoingeckoPrice not found for tx: ', tx);
