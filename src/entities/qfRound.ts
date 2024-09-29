@@ -9,9 +9,11 @@ import {
   CreateDateColumn,
   Index,
   OneToMany,
+  AfterLoad,
 } from 'typeorm';
 import { Project } from './project';
 import { Donation } from './donation';
+import { EarlyAccessRound } from './earlyAccessRound';
 
 @Entity()
 @ObjectType()
@@ -122,11 +124,53 @@ export class QfRound extends BaseEntity {
   @OneToMany(_type => Donation, donation => donation.qfRound)
   donations: Donation[];
 
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundUSDCapPerProject?: number;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundUSDCapPerUserPerProject?: number;
+
+  // Virtual fields for cumulative caps
+  @Field(() => Float, { nullable: true })
+  cumulativeCapPerProject?: number;
+
+  @Field(() => Float, { nullable: true })
+  cumulativeCapPerUserPerProject?: number;
+
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {
     // when not specified, all are valid
     if (this.eligibleNetworks.length === 0) return true;
 
     return this.eligibleNetworks.includes(donationNetworkId);
+  }
+
+  @AfterLoad()
+  async calculateCumulativeCaps(): Promise<void> {
+    if (this.roundNumber === 1) {
+      const { cumulativeCapPerProject, cumulativeCapPerUserPerProject } =
+        await EarlyAccessRound.createQueryBuilder('eaRound')
+          .select(
+            'sum(eaRound.roundUSDCapPerProject)',
+            'cumulativeCapPerProject',
+          )
+          .addSelect(
+            'sum(eaRound.roundUSDCapPerUserPerProject)',
+            'cumulativeCapPerUserPerProject',
+          )
+          .getRawOne();
+
+      this.cumulativeCapPerProject =
+        parseFloat(cumulativeCapPerProject || 0) +
+        (this.roundUSDCapPerProject || 0);
+      this.cumulativeCapPerUserPerProject =
+        (parseFloat(cumulativeCapPerUserPerProject) || 0) +
+        (this.roundUSDCapPerUserPerProject || 0);
+    } else {
+      this.cumulativeCapPerProject = 0;
+      this.cumulativeCapPerUserPerProject = 0;
+    }
   }
 }

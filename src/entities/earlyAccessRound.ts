@@ -6,8 +6,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  AfterLoad,
 } from 'typeorm';
-import { Field, ID, ObjectType, Int } from 'type-graphql';
+import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
 
 @Entity()
 @ObjectType()
@@ -29,6 +30,14 @@ export class EarlyAccessRound extends BaseEntity {
   @Column()
   endDate: Date;
 
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundUSDCapPerProject?: number;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundUSDCapPerUserPerProject?: number;
+
   @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
@@ -37,7 +46,35 @@ export class EarlyAccessRound extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field({ nullable: true })
+  @Field(() => Float, { nullable: true })
   @Column({ type: 'float', nullable: true })
   tokenPrice?: number;
+
+  // Virtual Field to calculate cumulative cap per project
+  @Field(() => Float, { nullable: true })
+  cumulativeCapPerProject?: number;
+
+  // Virtual Field to calculate cumulative cap per user per project
+  @Field(() => Float, { nullable: true })
+  cumulativeCapPerUserPerProject?: number;
+
+  @AfterLoad()
+  async calculateCumulativeCaps(): Promise<void> {
+    const { cumulativeCapPerProject, cumulativeCapPerUserPerProject } =
+      await EarlyAccessRound.createQueryBuilder('eaRound')
+        .select('sum(eaRound.roundUSDCapPerProject)', 'cumulativeCapPerProject')
+        .addSelect(
+          'sum(eaRound.roundUSDCapPerUserPerProject)',
+          'cumulativeCapPerUserPerProject',
+        )
+        .where('eaRound.roundNumber <= :roundNumber', {
+          roundNumber: this.roundNumber,
+        })
+        .getRawOne();
+
+    this.cumulativeCapPerProject = parseFloat(cumulativeCapPerProject || 0);
+    this.cumulativeCapPerUserPerProject = parseFloat(
+      cumulativeCapPerUserPerProject || 0,
+    );
+  }
 }
