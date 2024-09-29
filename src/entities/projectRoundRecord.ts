@@ -14,6 +14,12 @@ import { EarlyAccessRound } from './earlyAccessRound';
 
 @Entity()
 @ObjectType()
+@Index(['projectId', 'qfRoundId'], {
+  unique: true,
+})
+@Index(['projectId', 'earlyAccessRoundId'], {
+  unique: true,
+})
 export class ProjectRoundRecord extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()

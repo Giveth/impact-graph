@@ -18,21 +18,20 @@ export const findAllEarlyAccessRounds = async (): Promise<
 };
 
 // Find the currently active Early Access Round
-export const findActiveEarlyAccessRound =
-  async (): Promise<EarlyAccessRound | null> => {
-    const currentDate = new Date();
+export const findActiveEarlyAccessRound = async (
+  currentDate = new Date(),
+): Promise<EarlyAccessRound | null> => {
+  try {
+    const query = EarlyAccessRound.createQueryBuilder('earlyAccessRound')
+      .where('earlyAccessRound.startDate <= :currentDate', { currentDate })
+      .andWhere('earlyAccessRound.endDate >= :currentDate', { currentDate });
 
-    try {
-      const query = EarlyAccessRound.createQueryBuilder('earlyAccessRound')
-        .where('earlyAccessRound.startDate <= :currentDate', { currentDate })
-        .andWhere('earlyAccessRound.endDate >= :currentDate', { currentDate });
-
-      return query.getOne();
-    } catch (error) {
-      logger.error('Error fetching active Early Access round', { error });
-      throw new Error('Error fetching active Early Access round');
-    }
-  };
+    return query.getOne();
+  } catch (error) {
+    logger.error('Error fetching active Early Access round', { error });
+    throw new Error('Error fetching active Early Access round');
+  }
+};
 
 export const fillMissingTokenPriceInEarlyAccessRounds = async (): Promise<
   void | number

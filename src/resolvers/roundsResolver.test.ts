@@ -151,8 +151,8 @@ function fetchAllRoundsTestCases() {
     assert.equal(earlyAccessRounds[1].cumulativeCapPerUserPerProject, 150000); // 50000 + 100000
 
     // For QfRound1
-    assert.equal(_qf1.cumulativeCapPerProject, 3500000); // 1000000 + 2000000 + 500000
-    assert.equal(_qf1.cumulativeCapPerUserPerProject, 175000); // 50000 + 100000 + 25000
+    assert.equal(_qf1.cumulativeCapPerProject, 500000); // 1000000 + 2000000 + 500000
+    assert.equal(_qf1.cumulativeCapPerUserPerProject, 25000); // 50000 + 100000 + 25000
 
     // For QfRound2
     assert.equal(_qf2.cumulativeCapPerProject, 0); // No additional cap
