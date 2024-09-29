@@ -2,6 +2,8 @@ import { expect } from 'chai';
 import {
   createDonationData,
   createProjectData,
+  generateEARoundNumber,
+  generateQfRoundNumber,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   SEED_DATA,
@@ -52,17 +54,17 @@ describe('ProjectRoundRecord test cases', () => {
 
     const earlyAccessRounds = await EarlyAccessRound.create([
       {
-        roundNumber: 1,
+        roundNumber: generateEARoundNumber(),
         startDate: new Date('2000-01-01'),
         endDate: new Date('2000-01-02'),
       },
       {
-        roundNumber: 2,
+        roundNumber: generateEARoundNumber(),
         startDate: new Date('2000-01-02'),
         endDate: new Date('2000-01-03'),
       },
       {
-        roundNumber: 3,
+        roundNumber: generateEARoundNumber(),
         startDate: new Date('2000-01-03'),
         endDate: new Date('2000-01-04'),
       },
@@ -72,7 +74,7 @@ describe('ProjectRoundRecord test cases', () => {
       earlyAccessRounds;
 
     qfRound1 = await QfRound.create({
-      roundNumber: 1,
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString() + ' - 1',
       allocatedFund: 100,
@@ -82,7 +84,7 @@ describe('ProjectRoundRecord test cases', () => {
       endDate: new Date('2001-01-03'),
     }).save();
     qfRound2 = await QfRound.create({
-      roundNumber: 2,
+      roundNumber: generateQfRoundNumber(),
       isActive: true,
       name: new Date().toString() + ' - 2',
       allocatedFund: 100,

@@ -3,6 +3,7 @@ import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
+  generateEARoundNumber,
   generateQfRoundNumber,
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
@@ -132,12 +133,12 @@ describe('projectUserRecordRepository', () => {
 
   it('should return correct ea and qf donation amounts', async () => {
     const ea1 = await saveEARoundDirectlyToDb({
-      roundNumber: 1,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
     });
     const ea2 = await saveEARoundDirectlyToDb({
-      roundNumber: 2,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date('2024-09-06'),
       endDate: new Date('2024-09-10'),
     });

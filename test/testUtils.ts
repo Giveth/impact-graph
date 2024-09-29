@@ -2070,3 +2070,7 @@ let nextQfRoundNumber = 1000;
 export function generateQfRoundNumber(): number {
   return nextQfRoundNumber++;
 }
+let nextEARoundNumber = 1000;
+export function generateEARoundNumber(): number {
+  return nextEARoundNumber++;
+}

@@ -9,7 +9,7 @@ import { User } from '../entities/user';
 import {
   createDonationData,
   createProjectData,
-  generateQfRoundNumber,
+  generateEARoundNumber,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
@@ -1315,22 +1315,24 @@ function projectUserTotalDonationAmountTestCases() {
       const project = await saveProjectDirectlyToDb(createProjectData());
 
       const ea1 = await saveEARoundDirectlyToDb({
-        roundNumber: 1,
+        roundNumber: generateEARoundNumber(),
         startDate: new Date('2024-09-01'),
         endDate: new Date('2024-09-05'),
       });
       const ea2 = await saveEARoundDirectlyToDb({
-        roundNumber: 2,
+        roundNumber: generateEARoundNumber(),
         startDate: new Date('2024-09-06'),
         endDate: new Date('2024-09-10'),
       });
 
+      const qfRoundNumber = generateEARoundNumber();
       const qfRound = await QfRound.create({
         isActive: true,
         name: 'test qf ',
         allocatedFund: 100,
         minimumPassportScore: 8,
-        slug: 'QF - 2024-09-10 - ' + generateQfRoundNumber(),
+        slug: 'QF - 2024-09-10 - ' + qfRoundNumber,
+        roundNumber: qfRoundNumber,
         beginDate: moment('2024-09-10').add(1, 'days').toDate(),
         endDate: moment('2024-09-10').add(10, 'days').toDate(),
       }).save();

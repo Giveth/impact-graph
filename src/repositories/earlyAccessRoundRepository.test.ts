@@ -7,7 +7,10 @@ import {
   findActiveEarlyAccessRound,
   fillMissingTokenPriceInEarlyAccessRounds,
 } from './earlyAccessRoundRepository';
-import { saveEARoundDirectlyToDb } from '../../test/testUtils';
+import {
+  generateEARoundNumber,
+  saveEARoundDirectlyToDb,
+} from '../../test/testUtils';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../constants/qacc';
 
@@ -37,7 +40,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
   it('should save a new Early Access Round directly to the database', async () => {
     const roundData = {
-      roundNumber: 1,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
     };
@@ -57,12 +60,12 @@ describe('EarlyAccessRound Repository Test Cases', () => {
   it('should find all Early Access Rounds', async () => {
     // Save a couple of rounds first
     await saveEARoundDirectlyToDb({
-      roundNumber: 1,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
     });
     await saveEARoundDirectlyToDb({
-      roundNumber: 2,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date('2024-09-06'),
       endDate: new Date('2024-09-10'),
     });
@@ -77,13 +80,13 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
   it('should find the active Early Access Round', async () => {
     const activeRoundData = {
-      roundNumber: 1,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date(new Date().setDate(new Date().getDate() - 1)), // yesterday
       endDate: new Date(new Date().setDate(new Date().getDate() + 1)), // tomorrow
     };
 
     const inactiveRoundData = {
-      roundNumber: 2,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date(new Date().getDate() + 1),
       endDate: new Date(new Date().getDate() + 2),
     };

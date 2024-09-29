@@ -2,7 +2,11 @@ import { assert } from 'chai';
 import moment from 'moment';
 import axios from 'axios';
 import { AppDataSource } from '../orm';
-import { graphqlUrl } from '../../test/testUtils';
+import {
+  generateEARoundNumber,
+  generateQfRoundNumber,
+  graphqlUrl,
+} from '../../test/testUtils';
 import { QfRound } from '../entities/qfRound';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { generateRandomString } from '../utils/utils';
@@ -52,13 +56,13 @@ function fetchAllRoundsTestCases() {
   it('should return all rounds (QF Rounds and Early Access Rounds)', async () => {
     // Create Early Access Rounds
     const earlyAccessRound1 = await EarlyAccessRound.create({
-      roundNumber: 1,
+      roundNumber: generateEARoundNumber(),
       startDate: new Date(),
       endDate: moment().add(3, 'days').toDate(),
     }).save();
 
     const earlyAccessRound2 = await EarlyAccessRound.create({
-      roundNumber: 2,
+      roundNumber: generateEARoundNumber(),
       startDate: moment().add(4, 'days').toDate(),
       endDate: moment().add(7, 'days').toDate(),
     }).save();
@@ -67,6 +71,7 @@ function fetchAllRoundsTestCases() {
     const qfRound1 = await QfRound.create({
       name: 'QF Round 1',
       slug: generateRandomString(10),
+      roundNumber: generateQfRoundNumber(),
       allocatedFund: 100000,
       minimumPassportScore: 8,
       beginDate: new Date(),
@@ -145,7 +150,7 @@ function fetchActiveRoundTestCases() {
   it('should return the currently active Early Access round and no active QF round', async () => {
     // Create an active Early Access Round
     const activeEarlyAccessRound = await EarlyAccessRound.create({
-      roundNumber: 1,
+      roundNumber: generateEARoundNumber(),
       startDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(2, 'days').toDate(),
     }).save();
@@ -179,7 +184,7 @@ function fetchActiveRoundTestCases() {
   it('should return the currently active QF round and no active Early Access round', async () => {
     // Create a non-active Early Access Round
     await EarlyAccessRound.create({
-      roundNumber: 2,
+      roundNumber: generateEARoundNumber(),
       startDate: moment().add(10, 'days').toDate(),
       endDate: moment().add(20, 'days').toDate(),
     }).save();
@@ -210,7 +215,7 @@ function fetchActiveRoundTestCases() {
   it('should return null when there are no active rounds', async () => {
     // Create a non-active Early Access Round
     await EarlyAccessRound.create({
-      roundNumber: 2,
+      roundNumber: generateEARoundNumber(),
       startDate: moment().add(10, 'days').toDate(),
       endDate: moment().add(20, 'days').toDate(),
     }).save();
