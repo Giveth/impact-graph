@@ -9,6 +9,7 @@ import { User } from '../entities/user';
 import {
   createDonationData,
   createProjectData,
+  generateQfRoundNumber,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
@@ -1329,7 +1330,7 @@ function projectUserTotalDonationAmountTestCases() {
         name: 'test qf ',
         allocatedFund: 100,
         minimumPassportScore: 8,
-        slug: 'QF - 2024-09-10',
+        slug: 'QF - 2024-09-10 - ' + generateQfRoundNumber(),
         beginDate: moment('2024-09-10').add(1, 'days').toDate(),
         endDate: moment('2024-09-10').add(10, 'days').toDate(),
       }).save();
