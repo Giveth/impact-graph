@@ -9,6 +9,9 @@ import {
   CreateDateColumn,
   Index,
   OneToMany,
+  AfterLoad,
+  LessThanOrEqual,
+  FindOperator,
 } from 'typeorm';
 import { Project } from './project';
 import { Donation } from './donation';
@@ -130,11 +133,41 @@ export class QfRound extends BaseEntity {
   @Column({ nullable: true })
   roundUSDCapPerUserPerProject?: number;
 
+  // Virtual fields for cumulative caps
+  @Field(() => Float, { nullable: true })
+  cumulativeCapPerProject?: number;
+
+  @Field(() => Float, { nullable: true })
+  cumulativeCapPerUserPerProject?: number;
+
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {
     // when not specified, all are valid
     if (this.eligibleNetworks.length === 0) return true;
 
     return this.eligibleNetworks.includes(donationNetworkId);
+  }
+
+  @AfterLoad()
+  async calculateCumulativeCaps(): Promise<void> {
+    const previousRounds = await QfRound.find({
+      where: {
+        roundNumber: LessThanOrEqual(
+          this.roundNumber as number,
+        ) as FindOperator<number>,
+      },
+      order: { roundNumber: 'ASC' },
+    });
+
+    this.cumulativeCapPerProject = previousRounds.reduce((total, round) => {
+      return total + (round.roundUSDCapPerProject || 0);
+    }, 0);
+
+    this.cumulativeCapPerUserPerProject = previousRounds.reduce(
+      (total, round) => {
+        return total + (round.roundUSDCapPerUserPerProject || 0);
+      },
+      0,
+    );
   }
 }

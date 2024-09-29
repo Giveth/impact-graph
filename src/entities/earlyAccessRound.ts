@@ -6,8 +6,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  AfterLoad,
+  LessThanOrEqual,
 } from 'typeorm';
-import { Field, ID, ObjectType, Int } from 'type-graphql';
+import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
 
 @Entity()
 @ObjectType()
@@ -45,7 +47,34 @@ export class EarlyAccessRound extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field({ nullable: true })
+  @Field(() => Float, { nullable: true })
   @Column({ type: 'float', nullable: true })
   tokenPrice?: number;
+
+  // Virtual Field to calculate cumulative cap per project
+  @Field(() => Float, { nullable: true })
+  cumulativeCapPerProject?: number;
+
+  // Virtual Field to calculate cumulative cap per user per project
+  @Field(() => Float, { nullable: true })
+  cumulativeCapPerUserPerProject?: number;
+
+  @AfterLoad()
+  async calculateCumulativeCaps(): Promise<void> {
+    const previousRounds = await EarlyAccessRound.find({
+      where: { roundNumber: LessThanOrEqual(this.roundNumber) },
+      order: { roundNumber: 'ASC' },
+    });
+
+    this.cumulativeCapPerProject = previousRounds.reduce((total, round) => {
+      return total + (round.roundUSDCapPerProject || 0);
+    }, 0);
+
+    this.cumulativeCapPerUserPerProject = previousRounds.reduce(
+      (total, round) => {
+        return total + (round.roundUSDCapPerUserPerProject || 0);
+      },
+      0,
+    );
+  }
 }
