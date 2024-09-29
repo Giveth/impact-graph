@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
   Index,
 } from 'typeorm';
-import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
+import { Field, ID, ObjectType, Int } from 'type-graphql';
 
 @Entity()
 @ObjectType()
@@ -36,10 +36,6 @@ export class EarlyAccessRound extends BaseEntity {
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
   roundUSDCapPerUserPerProject?: number;
-
-  @Field(() => Float, { nullable: true })
-  @Column({ type: 'decimal', precision: 18, scale: 8, nullable: true })
-  POLPriceAtRoundStart?: number;
 
   @Field(() => Date)
   @CreateDateColumn()

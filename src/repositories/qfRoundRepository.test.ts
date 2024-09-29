@@ -408,19 +408,18 @@ function findQfRoundByIdTestCases() {
       slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(1, 'days').toDate(),
-      roundUSDCapPerProject: 500000, // New field
-      roundUSDCapPerUserPerProject: 25000, // New field
-      POLPriceAtRoundStart: 0.12345678, // New field
+      roundUSDCapPerProject: 500000,
+      roundUSDCapPerUserPerProject: 25000,
+      tokenPrice: 0.12345678,
     });
     await qfRound.save();
 
     const result = await findQfRoundById(qfRound.id);
     assert.equal(result?.id, qfRound.id);
 
-    // Additional assertions for the new fields
     assert.equal(result?.roundUSDCapPerProject, 500000);
     assert.equal(result?.roundUSDCapPerUserPerProject, 25000);
-    assert.equal(Number(result?.POLPriceAtRoundStart), 0.12345678);
+    assert.equal(result?.tokenPrice, 0.12345678);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -435,19 +434,17 @@ function findQfRoundByIdTestCases() {
       slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().subtract(1, 'days').toDate(),
-      roundUSDCapPerProject: 500000, // New field
-      roundUSDCapPerUserPerProject: 25000, // New field
-      POLPriceAtRoundStart: 0.12345678, // New field
+      roundUSDCapPerProject: 500000,
+      roundUSDCapPerUserPerProject: 25000,
+      tokenPrice: 0.12345678,
     });
     await qfRound.save();
 
     const result = await findQfRoundById(qfRound.id);
     assert.equal(result?.id, qfRound.id);
-
-    // Additional assertions for the new fields
     assert.equal(result?.roundUSDCapPerProject, 500000);
     assert.equal(result?.roundUSDCapPerUserPerProject, 25000);
-    assert.equal(Number(result?.POLPriceAtRoundStart), 0.12345678);
+    assert.equal(result?.tokenPrice, 0.12345678);
   });
 
   it('should return null if id is invalid', async () => {
@@ -466,19 +463,17 @@ function findQfRoundBySlugTestCases() {
       slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(1, 'days').toDate(),
-      roundUSDCapPerProject: 500000, // New field
-      roundUSDCapPerUserPerProject: 25000, // New field
-      POLPriceAtRoundStart: 0.12345678, // New field
+      roundUSDCapPerProject: 500000,
+      roundUSDCapPerUserPerProject: 25000,
+      tokenPrice: 0.12345678,
     });
     await qfRound.save();
 
     const result = await findQfRoundBySlug(qfRound.slug);
     assert.equal(result?.slug, qfRound.slug);
-
-    // Additional assertions for the new fields
     assert.equal(result?.roundUSDCapPerProject, 500000);
     assert.equal(result?.roundUSDCapPerUserPerProject, 25000);
-    assert.equal(Number(result?.POLPriceAtRoundStart), 0.12345678);
+    assert.equal(result?.tokenPrice, 0.12345678);
 
     qfRound.isActive = false;
     await qfRound.save();
@@ -493,19 +488,17 @@ function findQfRoundBySlugTestCases() {
       slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().subtract(1, 'days').toDate(),
-      roundUSDCapPerProject: 500000, // New field
-      roundUSDCapPerUserPerProject: 25000, // New field
-      POLPriceAtRoundStart: 0.12345678, // New field
+      roundUSDCapPerProject: 500000,
+      roundUSDCapPerUserPerProject: 25000,
+      tokenPrice: 0.12345678,
     });
     await qfRound.save();
 
     const result = await findQfRoundById(qfRound.id);
     assert.equal(result?.id, qfRound.id);
-
-    // Additional assertions for the new fields
     assert.equal(result?.roundUSDCapPerProject, 500000);
     assert.equal(result?.roundUSDCapPerUserPerProject, 25000);
-    assert.equal(Number(result?.POLPriceAtRoundStart), 0.12345678);
+    assert.equal(result?.tokenPrice, 0.12345678);
   });
 
   it('should return null if slug is invalid', async () => {

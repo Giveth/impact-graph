@@ -42,7 +42,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
       endDate: new Date('2024-09-05'),
       roundUSDCapPerProject: 1000000,
       roundUSDCapPerUserPerProject: 50000,
-      POLPriceAtRoundStart: 0.12345678,
+      tokenPrice: 0.12345678,
     };
 
     const savedRound = await saveRoundDirectlyToDb(roundData);
@@ -61,9 +61,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     expect(savedRound.roundUSDCapPerUserPerProject).to.equal(
       roundData.roundUSDCapPerUserPerProject,
     );
-    expect(savedRound.POLPriceAtRoundStart).to.equal(
-      roundData.POLPriceAtRoundStart,
-    );
+    expect(savedRound.tokenPrice).to.equal(roundData.tokenPrice);
   });
 
   it('should find all Early Access Rounds', async () => {
@@ -74,7 +72,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
       endDate: new Date('2024-09-05'),
       roundUSDCapPerProject: 1000000,
       roundUSDCapPerUserPerProject: 50000,
-      POLPriceAtRoundStart: 0.12345678,
+      tokenPrice: 0.12345678,
     });
     await saveRoundDirectlyToDb({
       roundNumber: 2,
@@ -82,7 +80,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
       endDate: new Date('2024-09-10'),
       roundUSDCapPerProject: 2000000,
       roundUSDCapPerUserPerProject: 100000,
-      POLPriceAtRoundStart: 0.23456789,
+      tokenPrice: 0.23456789,
     });
 
     const rounds = await findAllEarlyAccessRounds();
@@ -92,7 +90,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     expect(rounds[0]).to.be.an.instanceof(EarlyAccessRound);
     expect(rounds[0].roundUSDCapPerProject).to.equal(1000000);
     expect(rounds[1].roundUSDCapPerUserPerProject).to.equal(100000);
-    expect(Number(rounds[0].POLPriceAtRoundStart)).to.equal(0.12345678);
+    expect(rounds[0].tokenPrice).to.equal(0.12345678);
   });
 
   it('should find the active Early Access Round', async () => {
@@ -102,7 +100,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
       endDate: new Date(new Date().setDate(new Date().getDate() + 1)), // tomorrow
       roundUSDCapPerProject: 500000,
       roundUSDCapPerUserPerProject: 25000,
-      POLPriceAtRoundStart: 0.11111111,
+      tokenPrice: 0.11111111,
     };
 
     const inactiveRoundData = {
@@ -111,7 +109,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
       endDate: new Date(new Date().getDate() + 2),
       roundUSDCapPerProject: 1000000,
       roundUSDCapPerUserPerProject: 50000,
-      POLPriceAtRoundStart: 0.22222222,
+      tokenPrice: 0.22222222,
     };
 
     // Save both active and inactive rounds
@@ -134,9 +132,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     expect(activeRound?.roundUSDCapPerUserPerProject).to.equal(
       activeRoundData.roundUSDCapPerUserPerProject,
     );
-    expect(Number(activeRound?.POLPriceAtRoundStart)).to.equal(
-      activeRoundData.POLPriceAtRoundStart,
-    );
+    expect(activeRound?.tokenPrice).to.equal(activeRoundData.tokenPrice);
   });
 
   it('should return null when no active Early Access Round is found', async () => {

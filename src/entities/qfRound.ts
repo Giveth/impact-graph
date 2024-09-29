@@ -130,10 +130,6 @@ export class QfRound extends BaseEntity {
   @Column({ nullable: true })
   roundUSDCapPerUserPerProject?: number;
 
-  @Field(() => Float, { nullable: true })
-  @Column({ type: 'decimal', precision: 18, scale: 8, nullable: true })
-  POLPriceAtRoundStart?: number;
-
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {
     // when not specified, all are valid

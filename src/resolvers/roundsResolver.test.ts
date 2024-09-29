@@ -73,7 +73,7 @@ function fetchAllRoundsTestCases() {
       endDate: moment().add(10, 'days').toDate(),
       roundUSDCapPerProject: 500000, // Nullable field
       roundUSDCapPerUserPerProject: 25000, // Nullable field
-      POLPriceAtRoundStart: 0.12345678, // Nullable field
+      tokenPrice: 0.12345678, // Nullable field
     }).save();
 
     const qfRound2 = await QfRound.create({
@@ -114,10 +114,10 @@ function fetchAllRoundsTestCases() {
     // Verify nullable fields
     assert.equal(qfRounds[1].roundUSDCapPerProject, 500000);
     assert.equal(qfRounds[1].roundUSDCapPerUserPerProject, 25000);
-    assert.equal(Number(qfRounds[1].POLPriceAtRoundStart), 0.12345678);
+    assert.equal(qfRounds[1].tokenPrice, 0.12345678);
     assert.isNull(qfRounds[0].roundUSDCapPerProject);
     assert.isNull(qfRounds[0].roundUSDCapPerUserPerProject);
-    assert.isNull(qfRounds[0].POLPriceAtRoundStart);
+    assert.isNull(qfRounds[0].tokenPrice);
   });
 }
 
@@ -162,7 +162,7 @@ function fetchActiveRoundTestCases() {
       endDate: moment().add(2, 'days').toDate(),
       roundUSDCapPerProject: 500000,
       roundUSDCapPerUserPerProject: 25000,
-      POLPriceAtRoundStart: 0.12345678,
+      tokenPrice: 0.12345678,
     }).save();
 
     // Create a non-active QF round
@@ -176,7 +176,7 @@ function fetchActiveRoundTestCases() {
       isActive: false,
       roundUSDCapPerProject: 100000,
       roundUSDCapPerUserPerProject: 5000,
-      POLPriceAtRoundStart: 0.54321,
+      tokenPrice: 0.54321,
     }).save();
 
     // Query for the active round
@@ -194,7 +194,7 @@ function fetchActiveRoundTestCases() {
     );
     assert.equal(response.activeRound.roundUSDCapPerProject, 500000);
     assert.equal(response.activeRound.roundUSDCapPerUserPerProject, 25000);
-    assert.equal(Number(response.activeRound.POLPriceAtRoundStart), 0.12345678);
+    assert.equal(response.activeRound.tokenPrice, 0.12345678);
   });
 
   it('should return the currently active QF round and no active Early Access round', async () => {
@@ -216,7 +216,7 @@ function fetchActiveRoundTestCases() {
       isActive: true,
       roundUSDCapPerProject: 500000,
       roundUSDCapPerUserPerProject: 25000,
-      POLPriceAtRoundStart: 0.12345678,
+      tokenPrice: 0.12345678,
     }).save();
 
     // Query for the active round
@@ -231,7 +231,7 @@ function fetchActiveRoundTestCases() {
     assert.equal(response.activeRound.name, activeQfRound.name);
     assert.equal(response.activeRound.roundUSDCapPerProject, 500000);
     assert.equal(response.activeRound.roundUSDCapPerUserPerProject, 25000);
-    assert.equal(Number(response.activeRound.POLPriceAtRoundStart), 0.12345678);
+    assert.equal(response.activeRound.tokenPrice, 0.12345678);
   });
 
   it('should return null when there are no active rounds', async () => {
