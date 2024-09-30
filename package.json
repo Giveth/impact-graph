@@ -62,6 +62,7 @@
     "patch-package": "^6.5.1",
     "rate-limit-redis": "^4.2.0",
     "reflect-metadata": "^0.1.13",
+    "simple-git": "^3.27.0",
     "siwe": "^1.1.6",
     "slugify": "^1.4.7",
     "stripe": "^8.137.0",
