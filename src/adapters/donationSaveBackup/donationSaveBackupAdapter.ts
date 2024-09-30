@@ -1,8 +1,7 @@
 // a method the get objects from mongodb api read from config DONATION_SAVE_BACKUP_API_URL with sercret read from DONATION_SAVE_BACKUP_API_SECRET,
 // it must filter objects by those doesn't have `imported` field with true value
 // also must support pagination
-
-import axios from 'axios';
+import * as mongoDB from 'mongodb';
 import { logger } from '../../utils/logger';
 import config from '../../config';
 import {
@@ -10,59 +9,37 @@ import {
   FetchedSavedFailDonationInterface,
 } from './DonationSaveBackupInterface';
 
-const DONATION_SAVE_BACKUP_API_URL = config.get(
-  'DONATION_SAVE_BACKUP_API_URL',
-) as string;
-const DONATION_SAVE_BACKUP_API_SECRET = config.get(
-  'DONATION_SAVE_BACKUP_API_SECRET',
-) as string;
-const DONATION_SAVE_BACKUP_DATA_SOURCE = config.get(
-  'DONATION_SAVE_BACKUP_DATA_SOURCE',
-) as string;
-const DONATION_SAVE_BACKUP_COLLECTION =
-  config.get('DONATION_SAVE_BACKUP_COLLECTION') || 'failed_donation';
-const DONATION_SAVE_BACKUP_DATABASE =
-  config.get('DONATION_SAVE_BACKUP_DATABASE') || 'failed_donation';
+import { getMongoDB } from '../../utils/db';
 
-// add '/' if doesn't exist at the
-const baseUrl = DONATION_SAVE_BACKUP_API_URL.endsWith('/')
-  ? DONATION_SAVE_BACKUP_API_URL
-  : `${DONATION_SAVE_BACKUP_API_URL}/`;
+const DONATION_SAVE_BACKUP_COLLECTION = String(
+  config.get('DONATION_SAVE_BACKUP_COLLECTION') || 'failed_donation',
+);
 
 export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
   async getNotImportedDonationsFromBackup(params: {
     limit: number;
   }): Promise<FetchedSavedFailDonationInterface[]> {
     try {
-      const result = await axios.post(
-        `${baseUrl}find`,
-        {
-          collection: DONATION_SAVE_BACKUP_COLLECTION,
-          database: DONATION_SAVE_BACKUP_DATABASE,
-          dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
-          limit: params.limit,
-          filter: {
-            imported: { $exists: false },
-            importError: { $exists: false },
-          },
-          sort: { _id: 1 },
-        },
-        {
-          headers: {
-            'api-key': DONATION_SAVE_BACKUP_API_SECRET,
-            'Content-Type': 'application/json',
-            'Access-Control-Request-Headers': '*',
-          },
-        },
-      );
+      const db = await getMongoDB();
+      const collection = db.collection(DONATION_SAVE_BACKUP_COLLECTION);
 
-      if (result.status !== 200) {
-        logger.error('getNotImportedDonationsFromBackup error', result.data);
-        throw new Error(
-          'getNotImportedDonationsFromBackup error, status: ' + result.status,
-        );
-      }
-      return result.data.documents;
+      const result = await collection
+        .find({
+          imported: { $exists: false },
+          importError: { $exists: false },
+        })
+        .sort({ _id: 1 })
+        .limit(params.limit)
+        .toArray();
+
+      // Ensure _id is converted to string
+      const donations = result.map(doc => ({
+        ...doc,
+        _id: (doc._id as mongoDB.ObjectId).toString(), // Ensure _id is converted to string
+      }));
+
+      //  match the return type
+      return donations as unknown as FetchedSavedFailDonationInterface[];
     } catch (e) {
       logger.error('getNotImportedDonationsFromBackup error', e);
       throw e;
@@ -72,60 +49,43 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
   async getSingleDonationFromBackupByTxHash(
     txHash: string,
   ): Promise<FetchedSavedFailDonationInterface | null> {
-    const result = await axios.post(
-      `${baseUrl}findOne`,
-      {
-        collection: DONATION_SAVE_BACKUP_COLLECTION,
-        database: DONATION_SAVE_BACKUP_DATABASE,
-        dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
-        filter: {
-          txHash,
-        },
-      },
-      {
-        headers: {
-          'api-key': DONATION_SAVE_BACKUP_API_SECRET,
-          'Content-Type': 'application/json',
-          'Access-Control-Request-Headers': '*',
-        },
-      },
-    );
+    try {
+      const db = await getMongoDB();
+      const collection = db.collection(DONATION_SAVE_BACKUP_COLLECTION);
+      const donation = await collection.findOne({ txHash });
 
-    if (result.status !== 200) {
-      logger.error('getSingleDonationFromBackupByTxHash error', result.data);
-      throw new Error('getSingleDonationFromBackupByTxHash error');
+      // Ensure _id is converted to string  to match the return type
+      return {
+        ...donation,
+        _id: (donation?._id as mongoDB.ObjectId).toString(),
+      } as FetchedSavedFailDonationInterface;
+    } catch (error) {
+      logger.error('getSingleDonationFromBackupByTxHash error', error);
+      throw new Error(`No donation found with the given txHash: ${txHash}`);
     }
-    return result.data.document;
   }
 
   async markDonationAsImported(donationMongoId: string): Promise<void> {
-    const result = await axios.post(
-      `${baseUrl}updateOne`,
-      {
-        collection: DONATION_SAVE_BACKUP_COLLECTION,
-        database: DONATION_SAVE_BACKUP_DATABASE,
-        dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
-        filter: {
-          _id: { $oid: donationMongoId },
-        },
-        update: {
-          $set: {
-            imported: true,
-          },
-        },
-      },
-      {
-        headers: {
-          'api-key': DONATION_SAVE_BACKUP_API_SECRET,
-          'Content-Type': 'application/json',
-          'Access-Control-Request-Headers': '*',
-        },
-      },
+    const db = await getMongoDB();
+    const collection = db.collection(DONATION_SAVE_BACKUP_COLLECTION);
+    const result = await collection.updateOne(
+      { _id: new mongoDB.ObjectId(donationMongoId) },
+      { $set: { imported: true } },
     );
 
-    if (result.status !== 200) {
-      logger.error('markDonationAsImported error', result.data);
-      throw new Error('markDonationAsImported error');
+    if (result.matchedCount === 0) {
+      logger.error(
+        'markDonationAsImported error , matchedCound :',
+        result.matchedCount,
+      );
+      throw new Error('No document found with the given ID');
+    }
+    if (result.modifiedCount === 0) {
+      logger.error(
+        'markDonationAsImported error, modifiedCount : ',
+        result.modifiedCount,
+      );
+      throw new Error('Failed to mark the donation as imported');
     }
   }
 
@@ -133,93 +93,73 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
     donationMongoId: string,
     errorMessage,
   ): Promise<void> {
-    const result = await axios.post(
-      `${baseUrl}updateOne`,
-      {
-        collection: DONATION_SAVE_BACKUP_COLLECTION,
-        database: DONATION_SAVE_BACKUP_DATABASE,
-        dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
-        filter: {
-          _id: { $oid: donationMongoId },
-        },
-        update: {
-          $set: {
-            importError: errorMessage,
-          },
-        },
-      },
-      {
-        headers: {
-          'api-key': DONATION_SAVE_BACKUP_API_SECRET,
-          'Content-Type': 'application/json',
-          'Access-Control-Request-Headers': '*',
-        },
-      },
+    const db = await getMongoDB();
+    const collection = db.collection(DONATION_SAVE_BACKUP_COLLECTION);
+    const result = await collection.updateOne(
+      { _id: new mongoDB.ObjectId(donationMongoId) },
+      { $set: { importError: errorMessage } },
     );
 
-    if (result.status !== 200) {
-      logger.error('markDonationAsImportError error', result.data);
-      throw new Error('markDonationAsImportError error');
+    if (result.matchedCount === 0) {
+      logger.error(
+        'markDonationAsImportError error , matchedCount :',
+        result.matchedCount,
+      );
+      throw new Error('No document found with the given ID');
+    }
+
+    if (result.modifiedCount === 0) {
+      logger.error(
+        'markDonationAsImportError error , modifiedCount :',
+        result.modifiedCount,
+      );
+      throw new Error('Failed to mark the donation with the import error');
     }
   }
 
   async getSingleDonationFromBackupById(
     donationMongoId: string,
   ): Promise<FetchedSavedFailDonationInterface | null> {
-    const result = await axios.post(
-      `${baseUrl}findOne`,
-      {
-        collection: DONATION_SAVE_BACKUP_COLLECTION,
-        database: DONATION_SAVE_BACKUP_DATABASE,
-        dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
-        filter: {
-          _id: { $oid: donationMongoId },
-        },
-      },
-      {
-        headers: {
-          'api-key': DONATION_SAVE_BACKUP_API_SECRET,
-          'Content-Type': 'application/json',
-          'Access-Control-Request-Headers': '*',
-        },
-      },
-    );
+    try {
+      const db = await getMongoDB();
+      const collection = db.collection(DONATION_SAVE_BACKUP_COLLECTION);
+      const donation = await collection.findOne({
+        _id: new mongoDB.ObjectId(donationMongoId),
+      });
 
-    if (result.status !== 200) {
-      logger.error('getSingleDonationFromBackupById error', result.data);
-      throw new Error('getSingleDonationFromBackupById error');
+      // Ensure _id is converted to string  to match the return type
+      return {
+        ...donation,
+        _id: (donation?._id as mongoDB.ObjectId).toString(),
+      } as FetchedSavedFailDonationInterface;
+    } catch (error) {
+      logger.error('getSingleDonationFromBackupById error', error);
+      throw new Error(
+        `No donation found with the given Id: ${donationMongoId}`,
+      );
     }
-    return result.data.document;
   }
 
   async unmarkDonationAsImported(donationMongoId: string): Promise<void> {
-    const result = await axios.post(
-      `${baseUrl}updateOne`,
-      {
-        collection: DONATION_SAVE_BACKUP_COLLECTION,
-        database: DONATION_SAVE_BACKUP_DATABASE,
-        dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
-        filter: {
-          _id: { $oid: donationMongoId },
-        },
-        update: {
-          $unset: {
-            imported: '',
-          },
-        },
-      },
-      {
-        headers: {
-          'api-key': DONATION_SAVE_BACKUP_API_SECRET,
-          'Content-Type': 'application/json',
-          'Access-Control-Request-Headers': '*',
-        },
-      },
+    const db = await getMongoDB();
+    const collection = db.collection(DONATION_SAVE_BACKUP_COLLECTION);
+    const result = await collection.updateOne(
+      { _id: new mongoDB.ObjectId(donationMongoId) },
+      { $unset: { imported: '' } },
     );
-
-    if (result.status !== 200) {
-      logger.error('unmarkDonationAsImported error', result.data);
-      throw new Error('unmarkDonationAsImported error');
+    if (result.matchedCount === 0) {
+      logger.error(
+        'unmarkDonationAsImported error ,matchedCount :',
+        result.matchedCount,
+      );
+      throw new Error('No document found with the given ID');
+    }
+    if (result.modifiedCount === 0) {
+      logger.error(
+        'unmarkDonationAsImported error ,modifiedCount :',
+        result.modifiedCount,
+      );
+      throw new Error('Failed to unmark the donation as imported');
     }
   }
 }
