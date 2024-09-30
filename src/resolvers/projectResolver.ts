@@ -2198,9 +2198,9 @@ export class ProjectResolver {
       earlyAccessRoundId,
     );
 
-    if (!summaries || summaries.length === 0) {
-      throw new Error(`No donation summaries found for project ${projectId}`);
-    }
+    // if (!summaries || summaries.length === 0) {
+    //   throw new Error(`No donation summaries found for project ${projectId}`);
+    // }
 
     return summaries;
   }
