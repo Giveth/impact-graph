@@ -1,5 +1,6 @@
 import { assert, expect } from 'chai';
 import axios from 'axios';
+import sinon from 'sinon';
 import {
   generateTestAccessToken,
   graphqlUrl,
@@ -18,6 +19,7 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 import { QACC_DONATION_TOKEN_SYMBOL } from '../constants/qacc';
+import qAccService from '../services/qAccService';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 
@@ -29,6 +31,16 @@ function createDraftDonationTestCases() {
   let accessToken;
   let safeTransactionId;
   let donationData;
+
+  beforeEach(async () => {
+    sinon
+      .stub(qAccService, 'getQAccDonationCap')
+      .resolves(Number.MAX_SAFE_INTEGER);
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
 
   beforeEach(async () => {
     project = await saveProjectDirectlyToDb(createProjectData());
