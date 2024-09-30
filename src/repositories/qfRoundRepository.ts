@@ -198,7 +198,7 @@ export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
     [activeQfRoundId],
   );
 
-  return usersMissingMDBScore;
+  return usersMissingMDBScore.map(user => user.userId);
 };
 
 export const findQfRoundById = async (id: number): Promise<QfRound | null> => {

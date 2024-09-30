@@ -5,10 +5,10 @@ import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 
 type UsersMBDScoreSyncWorkerFunctions = 'syncUserScore';
 
-export type UserMDBScoreSyncWorker =
+export type UserMBDScoreSyncWorker =
   WorkerModule<UsersMBDScoreSyncWorkerFunctions>;
 
-const worker: UserMDBScoreSyncWorker = {
+const worker: UserMBDScoreSyncWorker = {
   async syncUserScore(args: { userWallet: string }) {
     return await getGitcoinAdapter().getUserAnalysisScore(args.userWallet);
   },

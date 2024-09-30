@@ -17,6 +17,7 @@ import {
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalSqrtRootSumSquared,
   getQfRoundStats,
+  findUsersWithoutMBDScoreInActiveAround,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
@@ -25,6 +26,11 @@ import { getProjectQfRoundStats } from './donationRepository';
 describe(
   'getProjectDonationsSqrtRootSum test cases',
   getProjectDonationsSqrRootSumTests,
+);
+
+describe(
+  'findUsersWithoutMBDScoreInActiveAround test cases',
+  findUsersWithoutMBDScoreInActiveAroundTestCases,
 );
 describe(
   'getQfRoundTotalProjectsDonationsSum test cases',
@@ -40,6 +46,56 @@ describe(
 );
 describe('findQfRoundById test cases', findQfRoundByIdTestCases);
 describe('findQfRoundBySlug test cases', findQfRoundBySlugTestCases);
+
+function findUsersWithoutMBDScoreInActiveAroundTestCases() {
+  it('should find users without score that donated in the round', async () => {
+    await QfRound.update({}, { isActive: false });
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        segmentNotified: false,
+        qfRoundId: qfRound.id,
+        status: 'verified',
+      },
+      user.id,
+      project.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        segmentNotified: false,
+        qfRoundId: qfRound.id,
+        status: 'verified',
+      },
+      user2.id,
+      project.id,
+    );
+
+    const userIds = await findUsersWithoutMBDScoreInActiveAround();
+    assert.equal(userIds.length, 2);
+    assert.isTrue(userIds.includes(user.id) && userIds.includes(user2.id));
+
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+}
 
 function getProjectDonationsSqrRootSumTests() {
   let qfRound: QfRound;
