@@ -1,5 +1,6 @@
 import {
   Arg,
+  Ctx,
   Field,
   Float,
   Int,
@@ -8,6 +9,9 @@ import {
   Resolver,
 } from 'type-graphql';
 import { getProjectUserRecordAmount } from '../repositories/projectUserRecordRepository';
+import { getQAccDonationCap } from '../services/qAccService';
+import { ApolloContext } from '../types/ApolloContext';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 
 @ObjectType()
 class ProjectUserRecordAmounts {
@@ -33,5 +37,18 @@ export class QAccResolver {
       eaTotalDonationAmount: record.eaTotalDonationAmount,
       qfTotalDonationAmount: record.qfTotalDonationAmount,
     };
+  }
+
+  @Query(_returns => Float)
+  async projectUserDonationCap(
+    @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
+    @Ctx() { req: { user } }: ApolloContext,
+  ) {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+
+    return await getQAccDonationCap({ projectId, userId: user.userId });
   }
 }

@@ -1,10 +1,8 @@
 import { FindOneOptions } from 'typeorm';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
-import { Project } from '../entities/project';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { ProjectUserRecord } from '../entities/projectUserRecord';
 import { QfRound } from '../entities/qfRound';
-import { User } from '../entities/user';
 import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepository';
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
@@ -89,12 +87,12 @@ const getUserProjectRecord = async ({
 };
 
 export const getQAccDonationCap = async ({
-  project,
-  user,
+  projectId,
+  userId,
   donateTime,
 }: {
-  project: Project;
-  user: User;
+  projectId: number;
+  userId: number;
   donateTime?: Date;
 }): Promise<number> => {
   donateTime = donateTime || new Date();
@@ -134,7 +132,7 @@ export const getQAccDonationCap = async ({
 
   if (isEarlyAccess) {
     const projectRecord = await getEaProjectRoundRecord({
-      projectId: project.id,
+      projectId,
       eaRoundId: activeRound.id,
     });
 
@@ -144,8 +142,8 @@ export const getQAccDonationCap = async ({
     }
 
     const userRecord = await getUserProjectRecord({
-      projectId: project.id,
-      userId: user.id,
+      projectId,
+      userId,
     });
 
     return Math.min(
@@ -155,13 +153,13 @@ export const getQAccDonationCap = async ({
   } else {
     // QF Round
     const projectRecord = await getQfProjectRoundRecord({
-      projectId: project.id,
+      projectId,
       qfRoundId: activeRound.id,
     });
 
     const userRecord = await getUserProjectRecord({
-      projectId: project.id,
-      userId: user.id,
+      projectId,
+      userId,
     });
 
     // 250 USD is the minimum donation amount

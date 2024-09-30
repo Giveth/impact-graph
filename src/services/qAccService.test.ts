@@ -107,8 +107,8 @@ describe('qAccService', () => {
 
   it('should return correct value for single early access round', async () => {
     const result = await getQAccDonationCap({
-      project,
-      user,
+      projectId: project.id,
+      userId: user.id,
       donateTime: earlyAccessRounds[0].startDate,
     });
 
@@ -126,8 +126,8 @@ describe('qAccService', () => {
       amount: 5,
     });
     const result = await getQAccDonationCap({
-      project,
-      user,
+      projectId: project.id,
+      userId: user.id,
       donateTime: earlyAccessRounds[0].startDate,
     });
 
@@ -151,8 +151,8 @@ describe('qAccService', () => {
     );
     let lastRound = earlyAccessRounds[3] as EarlyAccessRound;
     const result = await getQAccDonationCap({
-      project,
-      user,
+      projectId: project.id,
+      userId: user.id,
       donateTime: lastRound.startDate,
     });
 
@@ -183,8 +183,8 @@ describe('qAccService', () => {
     });
 
     const result = await getQAccDonationCap({
-      project,
-      user,
+      projectId: project.id,
+      userId: user.id,
       donateTime: lastRound.startDate,
     });
 
@@ -193,8 +193,8 @@ describe('qAccService', () => {
 
   it('should return correct value for single qf round', async () => {
     const result = await getQAccDonationCap({
-      project,
-      user,
+      projectId: project.id,
+      userId: user.id,
       donateTime: qfRound1.beginDate,
     });
 
@@ -211,8 +211,8 @@ describe('qAccService', () => {
     });
 
     const result = await getQAccDonationCap({
-      project,
-      user,
+      projectId: project.id,
+      userId: user.id,
       donateTime: qfRound1.beginDate,
     });
 
@@ -231,8 +231,8 @@ describe('qAccService', () => {
     const newUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const result = await getQAccDonationCap({
-      project,
-      user: newUser,
+      projectId: project.id,
+      userId: newUser.id,
       donateTime: qfRound1.beginDate,
     });
 
@@ -259,8 +259,8 @@ describe('qAccService', () => {
     );
 
     const result = await getQAccDonationCap({
-      project,
-      user: newUser,
+      projectId: project.id,
+      userId: newUser.id,
       donateTime: qfRound1.beginDate,
     });
 
