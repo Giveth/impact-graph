@@ -239,7 +239,7 @@ describe('qAccService', () => {
     assert.equal(250 / qfRound1.tokenPrice!, result);
   });
 
-  it.only('should return correct value for users has donated close to cap if qf round', async () => {
+  it('should return correct value for users has donated close to cap if qf round', async () => {
     await insertDonation({
       qfRoundId: qfRound1.id,
       amount: (qfRound1.roundUSDCapPerProject! - 150) / qfRound1.tokenPrice!,

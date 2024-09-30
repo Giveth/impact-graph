@@ -37,12 +37,13 @@ export class ProjectRoundRecord extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   cumulativePastRoundsDonationAmounts?: number | null;
 
-  @Field(_type => Project)
+  // @Field(_type => Project, { nullable: true })
   @ManyToOne(_type => Project, { eager: false })
   project: Project;
 
   @Index()
   @Column({ nullable: false })
+  @Field(_type => ID)
   @RelationId((ps: ProjectRoundRecord) => ps.project)
   projectId: number;
 
