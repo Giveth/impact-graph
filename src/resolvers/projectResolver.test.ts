@@ -896,7 +896,7 @@ function projectSearchTestCases() {
     assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
   });
 
-  it.only('should return projects with the project title inverted in the searchTerm', async () => {
+  it('should return projects with the project title inverted in the searchTerm', async () => {
     const limit = 1;
     const USER_DATA = SEED_DATA.FIRST_USER;
     const result = await axios.post(graphqlUrl, {
