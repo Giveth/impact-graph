@@ -28,6 +28,8 @@ function uploadTestCases() {
   before(() => {
     sinon.stub(pinataUtils, 'pinFile').resolves({
       IpfsHash,
+      PinSize: 123,
+      Timestamp: '2021-08-12T10:12:00.000Z',
     });
   });
 
@@ -107,6 +109,8 @@ function traceImageUpload() {
     sinon.stub(pinataUtils, 'pinFileDataBase64').returns(
       Promise.resolve({
         IpfsHash,
+        PinSize: 123,
+        Timestamp: '2021-08-12T10:12:00.000Z',
       }),
     );
   });

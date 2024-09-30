@@ -86,7 +86,7 @@ const getUserProjectRecord = async ({
   return projectUserRecord!;
 };
 
-export const getQAccDonationCap = async ({
+const getQAccDonationCap = async ({
   projectId,
   userId,
   donateTime,
@@ -172,4 +172,8 @@ export const getQAccDonationCap = async ({
 
     return Math.max(0, anyUserCall - userRecord.qfTotalDonationAmount);
   }
+};
+
+export default {
+  getQAccDonationCap,
 };

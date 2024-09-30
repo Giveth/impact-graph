@@ -9,7 +9,7 @@ import {
   Resolver,
 } from 'type-graphql';
 import { getProjectUserRecordAmount } from '../repositories/projectUserRecordRepository';
-import { getQAccDonationCap } from '../services/qAccService';
+import qAccService from '../services/qAccService';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 
@@ -49,6 +49,9 @@ export class QAccResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    return await getQAccDonationCap({ projectId, userId: user.userId });
+    return await qAccService.getQAccDonationCap({
+      projectId,
+      userId: user.userId,
+    });
   }
 }

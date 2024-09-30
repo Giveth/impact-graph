@@ -181,6 +181,7 @@ export const errorMessages = {
   NO_EMAIL_VERIFICATION_DATA: 'No email verification data found',
   CODE_EXPIRED: 'The verification code has expired. Please request a new code.',
   FULL_NAME_CAN_NOT_BE_EMPTY: 'fullName cant be empty string',
+  EXCEED_QACC_CAP: 'Exceed QACC cap',
 };
 
 export const translationErrorMessagesKeys = {
@@ -331,4 +332,5 @@ export const translationErrorMessagesKeys = {
   NO_EMAIL_VERIFICATION_DATA: 'NO_EMAIL_VERIFICATION_DATA',
   CODE_EXPIRED: 'CODE_EXPIRED',
   FULL_NAME_CAN_NOT_BE_EMPTY: 'FULL_NAME_CAN_NOT_BE_EMPTY',
+  EXCEED_QACC_CAP: 'EXCEED_QACC_CAP',
 };

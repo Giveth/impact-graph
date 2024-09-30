@@ -779,6 +779,7 @@ export class DonationResolver {
         networkId,
         tokenSymbol: token,
         userAddress: donorUser.walletAddress!,
+        amount,
       });
 
       const tokenInDb = await Token.findOne({

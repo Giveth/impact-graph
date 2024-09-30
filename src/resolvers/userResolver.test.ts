@@ -972,7 +972,9 @@ function checkUserPrivadoVerfiedStateTestCases() {
     await user.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(true);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    sinon.stub(privadoAdapter, 'checkVerificationOnchain').resolves(true);
     sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 4);
 
     const result = await axios.post(
@@ -1004,7 +1006,9 @@ function checkUserPrivadoVerfiedStateTestCases() {
     await user.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(false);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    sinon.stub(privadoAdapter, 'checkVerificationOnchain').resolves(false);
     sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 4);
 
     const result = await axios.post(
@@ -1037,7 +1041,10 @@ function checkUserPrivadoVerfiedStateTestCases() {
     await user.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    sinon.stub(privadoAdapter, 'checkVerificationOnchain').returns(true);
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    sinon.stub(privadoAdapter, 'checkVerificationOnchain').resolves(true);
     sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 2);
 
     const result = await axios.post(
