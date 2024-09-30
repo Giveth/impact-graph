@@ -149,8 +149,8 @@ export const getQAccDonationCap = async ({
     });
 
     return Math.min(
-      projectPolRoundCap - projectRecord.totalDonationAmount,
-      userPolRoundCap - userRecord.totalDonationAmount,
+      projectPolRoundCap - projectRecord.totalDonationAmount, // project unused cap
+      userPolRoundCap - userRecord.totalDonationAmount, // user unused cap
     );
   } else {
     // QF Round
@@ -167,11 +167,11 @@ export const getQAccDonationCap = async ({
     // 250 USD is the minimum donation amount
     const projectCap = Math.max(
       projectPolRoundCap - (projectRecord?.totalDonationAmount || 0),
-      250 / tokenPrice,
+      250 / tokenPrice, // at least 250 for any distinct user
     );
 
-    const userCap = Math.min(projectCap, userPolRoundCap);
+    const anyUserCall = Math.min(projectCap, userPolRoundCap);
 
-    return Math.max(0, userCap - userRecord.qfTotalDonationAmount);
+    return Math.max(0, anyUserCall - userRecord.qfTotalDonationAmount);
   }
 };
