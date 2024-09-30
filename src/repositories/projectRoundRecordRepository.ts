@@ -29,10 +29,7 @@ export async function updateOrCreateProjectRoundRecord(
       });
 
     if (qfRoundId) {
-      query = query.andWhere(
-        'donation.qfRoundId = :qfRoundId OR donation.earlyAccessRoundId IS NOT NULL',
-        { qfRoundId },
-      );
+      query = query.andWhere('donation.qfRoundId = :qfRoundId', { qfRoundId });
     }
     if (earlyAccessRoundId) {
       query = query.andWhere(
