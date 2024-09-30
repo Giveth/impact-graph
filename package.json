@@ -63,7 +63,6 @@
     "patch-package": "^6.5.1",
     "pg": "^8.13.0",
     "rate-limit-redis": "^4.2.0",
-    "redis": "^4.7.0",
     "reflect-metadata": "^0.1.13",
     "siwe": "^1.1.6",
     "slugify": "^1.4.7",
