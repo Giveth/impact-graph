@@ -38,7 +38,7 @@ export class ProjectRoundRecord extends BaseEntity {
   cumulativePastRoundsDonationAmounts?: number | null;
 
   @Field(_type => Project)
-  @ManyToOne(_type => Project, { eager: true })
+  @ManyToOne(_type => Project, { eager: false })
   project: Project;
 
   @Index()
