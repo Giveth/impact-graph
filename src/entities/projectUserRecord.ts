@@ -9,7 +9,6 @@ import {
   RelationId,
 } from 'typeorm';
 import { Project } from './project';
-import { ProjectRoundRecord } from './projectRoundRecord';
 import { User } from './user';
 
 @Entity()
@@ -36,12 +35,13 @@ export class ProjectUserRecord extends BaseEntity {
   @Column({ type: 'float', default: 0 })
   qfTotalDonationAmount: number;
 
-  @Field(_type => Project)
-  @ManyToOne(_type => Project, { eager: true })
+  // @Field(_type => Project)
+  @ManyToOne(_type => Project, { eager: false })
   project: Project;
 
   @Column({ nullable: false })
-  @RelationId((ps: ProjectRoundRecord) => ps.project)
+  @RelationId((ps: ProjectUserRecord) => ps.project)
+  @Field(_type => ID)
   projectId: number;
 
   @Field(_type => User)

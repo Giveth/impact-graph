@@ -14,6 +14,12 @@ import { EarlyAccessRound } from './earlyAccessRound';
 
 @Entity()
 @ObjectType()
+@Index(['projectId', 'qfRoundId'], {
+  unique: true,
+})
+@Index(['projectId', 'earlyAccessRoundId'], {
+  unique: true,
+})
 export class ProjectRoundRecord extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()
@@ -31,12 +37,13 @@ export class ProjectRoundRecord extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   cumulativePastRoundsDonationAmounts?: number | null;
 
-  @Field(_type => Project)
-  @ManyToOne(_type => Project, { eager: true })
+  // @Field(_type => Project, { nullable: true })
+  @ManyToOne(_type => Project, { eager: false })
   project: Project;
 
   @Index()
   @Column({ nullable: false })
+  @Field(_type => ID)
   @RelationId((ps: ProjectRoundRecord) => ps.project)
   projectId: number;
 

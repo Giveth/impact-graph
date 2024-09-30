@@ -2,7 +2,6 @@ import {
   Arg,
   Ctx,
   Field,
-  Float,
   Int,
   Mutation,
   ObjectType,
@@ -37,7 +36,6 @@ import { addressHasDonated } from '../repositories/donationRepository';
 // import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
-import { getProjectUserRecordAmount } from '../repositories/projectUserRecordRepository';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -58,18 +56,6 @@ class BatchMintingEligibleUserResponse {
 
   @Field(_offset => Number, { nullable: false })
   skip: number;
-}
-
-@ObjectType()
-class ProjectUserRecordAmounts {
-  @Field(_type => Float)
-  totalDonationAmount: number;
-
-  @Field(_type => Float)
-  eaTotalDonationAmount: number;
-
-  @Field(_type => Float)
-  qfTotalDonationAmount: number;
 }
 
 // eslint-disable-next-line unused-imports/no-unused-imports
@@ -464,18 +450,5 @@ export class UserResolver {
       return true;
     }
     return false;
-  }
-
-  @Query(_returns => ProjectUserRecordAmounts)
-  async projectUserTotalDonationAmounts(
-    @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
-    @Arg('userId', _type => Int, { nullable: false }) userId: number,
-  ) {
-    const record = await getProjectUserRecordAmount({ projectId, userId });
-    return {
-      totalDonationAmount: record.totalDonationAmount,
-      eaTotalDonationAmount: record.eaTotalDonationAmount,
-      qfTotalDonationAmount: record.qfTotalDonationAmount,
-    };
   }
 }
