@@ -2153,3 +2153,9 @@ export const projectUserTotalDonationAmounts = `
     }
   }
 `;
+
+export const projectUserDonationCap = `
+  query ProjectUserDonationCap($projectId: Int!) {
+    projectUserDonationCap(projectId: $projectId)   
+  }
+`;

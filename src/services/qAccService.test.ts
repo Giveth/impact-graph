@@ -12,7 +12,7 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { QfRound } from '../entities/qfRound';
-import { getQAccDonationCap } from './qAccService';
+import qAccService from './qAccService';
 
 describe('qAccService', () => {
   before(async () => {
@@ -106,9 +106,9 @@ describe('qAccService', () => {
   });
 
   it('should return correct value for single early access round', async () => {
-    const result = await getQAccDonationCap({
-      project,
-      user,
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
       donateTime: earlyAccessRounds[0].startDate,
     });
 
@@ -125,9 +125,9 @@ describe('qAccService', () => {
       earlyAccessRoundId: earlyAccessRounds[0].id,
       amount: 5,
     });
-    const result = await getQAccDonationCap({
-      project,
-      user,
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
       donateTime: earlyAccessRounds[0].startDate,
     });
 
@@ -150,9 +150,9 @@ describe('qAccService', () => {
       ),
     );
     let lastRound = earlyAccessRounds[3] as EarlyAccessRound;
-    const result = await getQAccDonationCap({
-      project,
-      user,
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
       donateTime: lastRound.startDate,
     });
 
@@ -182,9 +182,9 @@ describe('qAccService', () => {
         lastRound.cumulativeCapPerUserPerProject! / lastRound.tokenPrice! - 100,
     });
 
-    const result = await getQAccDonationCap({
-      project,
-      user,
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
       donateTime: lastRound.startDate,
     });
 
@@ -192,9 +192,9 @@ describe('qAccService', () => {
   });
 
   it('should return correct value for single qf round', async () => {
-    const result = await getQAccDonationCap({
-      project,
-      user,
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
       donateTime: qfRound1.beginDate,
     });
 
@@ -210,9 +210,9 @@ describe('qAccService', () => {
       amount: 5,
     });
 
-    const result = await getQAccDonationCap({
-      project,
-      user,
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
       donateTime: qfRound1.beginDate,
     });
 
@@ -230,9 +230,9 @@ describe('qAccService', () => {
 
     const newUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const result = await getQAccDonationCap({
-      project,
-      user: newUser,
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: newUser.id,
       donateTime: qfRound1.beginDate,
     });
 
@@ -258,9 +258,9 @@ describe('qAccService', () => {
       project.id,
     );
 
-    const result = await getQAccDonationCap({
-      project,
-      user: newUser,
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: newUser.id,
       donateTime: qfRound1.beginDate,
     });
 
