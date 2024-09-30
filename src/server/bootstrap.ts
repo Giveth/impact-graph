@@ -362,10 +362,14 @@ export async function bootstrap() {
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-    runCheckPendingUserModelScoreCronjob();
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
+    }
+
+    // If we need to deactivate the process use the env var NO MORE
+    if (process.env.SYNC_USERS_MBD_SCORE_ACTIVE === 'true') {
+      runCheckPendingUserModelScoreCronjob();
     }
 
     // If we need to deactivate the process use the env var NO MORE
