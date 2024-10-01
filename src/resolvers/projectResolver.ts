@@ -114,10 +114,7 @@ import {
   QACC_DONATION_TOKEN_SYMBOL,
 } from '../constants/qacc';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
-import {
-  getCumulativePastRoundsDonationAmounts,
-  getProjectRoundRecord,
-} from '../repositories/projectRoundRecordRepository';
+import { getProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -2194,10 +2191,6 @@ export class ProjectResolver {
     @Arg('qfRoundId', _type => Int, { nullable: true }) qfRoundId?: number,
     @Arg('earlyAccessRoundId', _type => Int, { nullable: true })
     earlyAccessRoundId?: number,
-    @Arg('getCumulativeDonationAmounts', _type => Boolean, {
-      nullable: true,
-    })
-    getCumulativeDonationAmounts?: boolean,
   ): Promise<ProjectRoundRecord[]> {
     const summaries = await getProjectRoundRecord(
       projectId,
@@ -2208,16 +2201,6 @@ export class ProjectResolver {
     // if (!summaries || summaries.length === 0) {
     //   throw new Error(`No donation summaries found for project ${projectId}`);
     // }
-    if (getCumulativeDonationAmounts) {
-      for (const item of summaries) {
-        item.cumulativePastRoundsDonationAmounts =
-          await getCumulativePastRoundsDonationAmounts({
-            projectId: item.projectId,
-            qfRoundId: item.qfRoundId || undefined,
-            earlyAccessRoundId: item.earlyAccessRoundId || undefined,
-          });
-      }
-    }
 
     return summaries;
   }
