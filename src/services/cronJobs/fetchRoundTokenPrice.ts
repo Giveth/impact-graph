@@ -8,7 +8,7 @@ import { fillMissingTokenPriceInQfRounds } from '../../repositories/qfRoundRepos
 // more than 5 with free plan https://etherscan.io/apis
 const cronJobTime =
   (config.get('QACC_FETCH_ROUND_TOKEN_PRICE_CRONJOB_EXPRESSION') as string) ||
-  '0 */5 * * * *';
+  '0 4/5 * * * *'; // every 5 minutes starting from 4th minute
 
 export const runFetchRoundTokenPrice = async () => {
   logger.debug(

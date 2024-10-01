@@ -1,5 +1,6 @@
 import { Field, Float, Int, ObjectType, registerEnumType } from 'type-graphql';
 import { IsNull, LessThanOrEqual } from 'typeorm';
+import moment from 'moment';
 import { QfRound } from '../entities/qfRound';
 import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore';
 import { Donation } from '../entities/donation';
@@ -12,7 +13,10 @@ import { ProjectFraud } from '../entities/projectFraud';
 import config from '../config';
 import { logger } from '../utils/logger';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
-import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../constants/qacc';
+import {
+  QACC_DONATION_TOKEN_COINGECKO_ID,
+  QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS,
+} from '../constants/qacc';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -326,11 +330,14 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
   void | number
 > => {
   const priceAdapter = new CoingeckoPriceAdapter();
+  const leadTime = QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS;
 
   const roundsToUpdate = await QfRound.find({
     where: {
       tokenPrice: IsNull(),
-      beginDate: LessThanOrEqual(new Date()),
+      beginDate: LessThanOrEqual(
+        moment().subtract(leadTime, 'seconds').toDate(),
+      ),
     },
     select: ['id', 'beginDate', 'roundNumber'],
     loadEagerRelations: false,
@@ -343,7 +350,7 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
     );
     const tokenPrice = await priceAdapter.getTokenPriceAtDate({
       symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
-      date: round.beginDate,
+      date: moment(round.beginDate).subtract(leadTime, 'seconds').toDate(),
     });
 
     if (tokenPrice) {
