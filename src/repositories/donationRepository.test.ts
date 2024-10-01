@@ -34,7 +34,6 @@ import { QfRound } from '../entities/qfRound';
 import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils';
-import { setPowerRound } from './powerRoundRepository';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { setPowerRound } from './powerRoundRepository';
 
