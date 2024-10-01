@@ -70,6 +70,7 @@ export class EarlyAccessRound extends BaseEntity {
         .where('eaRound.roundNumber <= :roundNumber', {
           roundNumber: this.roundNumber,
         })
+        .cache('cumulativeCapEarlyAccessRound-' + this.roundNumber, 300000)
         .getRawOne();
 
     this.cumulativeCapPerProject = parseFloat(cumulativeCapPerProject || 0);
