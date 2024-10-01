@@ -11,8 +11,6 @@ import { logger } from '../utils/logger';
  * @param projectId - ID of the project
  * @param qfRoundId - ID of the QF round (optional)
  * @param earlyAccessRoundId - ID of the Early Access round (optional)
- * @param donationAmount - Amount of the current donation
- * @param donationUsdAmount - USD amount of the current donation
  */
 export async function updateOrCreateProjectRoundRecord(
   projectId: number,
@@ -62,6 +60,12 @@ export async function updateOrCreateProjectRoundRecord(
     summary.totalDonationAmount = totalDonationAmount || 0;
     summary.totalDonationUsdAmount = totalDonationUsdAmount || 0;
     summary.updatedAt = new Date();
+    summary.cumulativePastRoundsDonationAmounts =
+      await getCumulativePastRoundsDonationAmounts({
+        projectId,
+        qfRoundId: qfRoundId || undefined,
+        earlyAccessRoundId: earlyAccessRoundId || undefined,
+      });
 
     const pds = await ProjectRoundRecord.save(summary);
 
