@@ -62,6 +62,7 @@
     "mongodb": "^5.8.0",
     "node-cron": "^3.0.2",
     "patch-package": "^6.5.1",
+    "pg": "^8.13.0",
     "rate-limit-redis": "^4.2.0",
     "reflect-metadata": "^0.1.13",
     "siwe": "^1.1.6",
