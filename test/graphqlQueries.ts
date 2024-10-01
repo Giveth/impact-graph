@@ -2129,8 +2129,8 @@ export const batchMintingEligibleUsers = `
 `;
 
 export const getProjectRoundRecordsQuery = `
-  query GetProjectRoundRecords($projectId: Int!, $qfRoundId: Int, $earlyAccessRoundId: Int) {
-    getProjectRoundRecords(projectId: $projectId, qfRoundId: $qfRoundId, earlyAccessRoundId: $earlyAccessRoundId) {
+  query GetProjectRoundRecords($projectId: Int!, $qfRoundNumber: Int, $earlyAccessRoundNumber: Int) {
+    getProjectRoundRecords(projectId: $projectId, qfRoundNumber: $qfRoundNumber, earlyAccessRoundNumber: $earlyAccessRoundNumber) {
       totalDonationAmount
       totalDonationUsdAmount
       qfRound {

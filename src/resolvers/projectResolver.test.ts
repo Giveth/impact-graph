@@ -1262,7 +1262,7 @@ function getProjectRoundRecordsTestCases() {
   let project: Project;
   let accessToken: string;
   let qfRound: QfRound;
-  let earlyAccessRoundId: number;
+  let earlyAccessRound: EarlyAccessRound;
   let user: User;
 
   before(async () => {
@@ -1289,13 +1289,11 @@ function getProjectRoundRecordsTestCases() {
     await qfRound.save();
 
     // Create Early Access Round (Assuming you have such an entity)
-    earlyAccessRoundId = (
-      await EarlyAccessRound.create({
-        roundNumber: generateEARoundNumber(),
-        startDate: new Date('2024-09-01'),
-        endDate: new Date('2024-09-05'),
-      }).save()
-    ).id;
+    earlyAccessRound = await EarlyAccessRound.create({
+      roundNumber: generateEARoundNumber(),
+      startDate: new Date('2024-09-01'),
+      endDate: new Date('2024-09-05'),
+    }).save();
   });
 
   after(async () => {
@@ -1326,7 +1324,7 @@ function getProjectRoundRecordsTestCases() {
         query: getProjectRoundRecordsQuery,
         variables: {
           projectId: project.id,
-          qfRoundId: qfRound.id,
+          qfRoundNumber: qfRound.roundNumber,
         },
       },
       {
@@ -1347,7 +1345,7 @@ function getProjectRoundRecordsTestCases() {
     // Simulate donation summary creation for Early Access Round
     const summary = ProjectRoundRecord.create({
       projectId: project.id,
-      earlyAccessRoundId: earlyAccessRoundId,
+      earlyAccessRoundId: earlyAccessRound.id,
       totalDonationAmount: 300,
       totalDonationUsdAmount: 320,
       createdAt: new Date(),
@@ -1361,7 +1359,7 @@ function getProjectRoundRecordsTestCases() {
         query: getProjectRoundRecordsQuery,
         variables: {
           projectId: project.id,
-          earlyAccessRoundId,
+          earlyAccessRoundNumber: earlyAccessRound.roundNumber,
         },
       },
       {
@@ -1375,7 +1373,7 @@ function getProjectRoundRecordsTestCases() {
     expect(summaries).to.have.length(1);
     expect(summaries[0].totalDonationAmount).to.equal(300);
     expect(summaries[0].totalDonationUsdAmount).to.equal(320);
-    expect(+summaries[0].earlyAccessRound.id).to.equal(earlyAccessRoundId);
+    expect(+summaries[0].earlyAccessRound.id).to.equal(earlyAccessRound.id);
   });
 
   it('should return an error for a non-existent project', async () => {
