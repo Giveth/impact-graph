@@ -59,16 +59,23 @@ export const fillMissingTokenPriceInEarlyAccessRounds = async (): Promise<
     logger.debug(
       `Fetching token price for early round ${round.roundNumber} at date ${round.startDate}`,
     );
-    const tokenPrice = await priceAdapter.getTokenPriceAtDate({
-      symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
-      date: moment(round.startDate).subtract(leadTime, 'seconds').toDate(),
-    });
+    try {
+      const tokenPrice = await priceAdapter.getTokenPriceAtDate({
+        symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
+        date: moment(round.startDate).subtract(leadTime, 'seconds').toDate(),
+      });
 
-    if (tokenPrice) {
-      logger.debug(
-        `Setting token price for early round ${round.roundNumber} to ${tokenPrice}`,
+      if (tokenPrice) {
+        logger.debug(
+          `Setting token price for early round ${round.roundNumber} to ${tokenPrice}`,
+        );
+        await EarlyAccessRound.update(round.id, { tokenPrice });
+      }
+    } catch (error) {
+      logger.error(
+        `Error fetching token price for early round ${round.roundNumber}`,
+        { error },
       );
-      await EarlyAccessRound.update(round.id, { tokenPrice });
     }
   }
 

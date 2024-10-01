@@ -345,16 +345,23 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
 
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
-    logger.debug(
-      `Fetching token price for QF round ${round.roundNumber} at date ${round.beginDate}`,
-    );
-    const tokenPrice = await priceAdapter.getTokenPriceAtDate({
-      symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
-      date: moment(round.beginDate).subtract(leadTime, 'seconds').toDate(),
-    });
+    try {
+      logger.debug(
+        `Fetching token price for QF round ${round.roundNumber} at date ${round.beginDate}`,
+      );
+      const tokenPrice = await priceAdapter.getTokenPriceAtDate({
+        symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
+        date: moment(round.beginDate).subtract(leadTime, 'seconds').toDate(),
+      });
 
-    if (tokenPrice) {
-      await QfRound.update(round.id, { tokenPrice });
+      if (tokenPrice) {
+        await QfRound.update(round.id, { tokenPrice });
+      }
+    } catch (error) {
+      logger.error(
+        `Error fetching token price for QF round ${round.roundNumber}`,
+        { error },
+      );
     }
   }
 
