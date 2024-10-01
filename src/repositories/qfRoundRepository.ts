@@ -1,4 +1,5 @@
 import { Field, Float, Int, ObjectType, registerEnumType } from 'type-graphql';
+import { IsNull, LessThanOrEqual } from 'typeorm';
 import { QfRound } from '../entities/qfRound';
 import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore';
 import { Donation } from '../entities/donation';
@@ -326,24 +327,27 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
 > => {
   const priceAdapter = new CoingeckoPriceAdapter();
 
-  // Find all QfRounds where token_price is NULL
-  const roundsToUpdate = await AppDataSource.getDataSource()
-    .getRepository(QfRound)
-    .createQueryBuilder('qf_round')
-    .where('qf_round.tokenPrice IS NULL')
-    .andWhere('qf_round.beginDate < :now', { now: new Date() })
-    .getMany();
+  const roundsToUpdate = await QfRound.find({
+    where: {
+      tokenPrice: IsNull(),
+      beginDate: LessThanOrEqual(new Date()),
+    },
+    select: ['id', 'beginDate', 'roundNumber'],
+    loadEagerRelations: false,
+  });
 
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
+    logger.debug(
+      `Fetching token price for QF round ${round.roundNumber} at date ${round.beginDate}`,
+    );
     const tokenPrice = await priceAdapter.getTokenPriceAtDate({
       symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
       date: round.beginDate,
     });
 
     if (tokenPrice) {
-      round.tokenPrice = tokenPrice;
-      await AppDataSource.getDataSource().getRepository(QfRound).save(round);
+      await QfRound.update(round.id, { tokenPrice });
     }
   }
 
