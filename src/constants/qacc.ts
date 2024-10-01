@@ -11,3 +11,5 @@ export const QACC_DONATION_TOKEN_DECIMALS =
   (+config.get('QACC_DONATION_TOKEN_DECIMALS') as number) || 18;
 export const QACC_DONATION_TOKEN_COINGECKO_ID =
   (config.get('QACC_DONATION_TOKEN_COINGECKO_ID') as string) || 'matic-network';
+export const QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS =
+  (+config.get('QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS') as number) || 60;

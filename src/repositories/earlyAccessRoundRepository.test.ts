@@ -12,7 +12,10 @@ import {
   saveEARoundDirectlyToDb,
 } from '../../test/testUtils';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
-import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../constants/qacc';
+import {
+  QACC_DONATION_TOKEN_COINGECKO_ID,
+  QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS,
+} from '../constants/qacc';
 
 describe('EarlyAccessRound Repository Test Cases', () => {
   let priceAdapterStub: sinon.SinonStub;
@@ -162,7 +165,9 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     // Assert that the token price fetching method was called with the correct date
     sinon.assert.calledWith(priceAdapterStub, {
       symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
-      date: earlyAccessRound.startDate,
+      date: moment(earlyAccessRound.startDate)
+        .subtract(QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS, 'second')
+        .toDate(),
     });
 
     expect(updatedEarlyAcccessRound?.tokenPrice).to.equal(100);
@@ -180,6 +185,8 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     await EarlyAccessRound.save(earlyAccessRound);
 
     const updatedCount = await fillMissingTokenPriceInEarlyAccessRounds();
+
+    sinon.assert.notCalled(priceAdapterStub);
 
     const updatedEarlyAcccessRound = await EarlyAccessRound.findOne({
       where: { id: earlyAccessRound.id },

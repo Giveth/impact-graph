@@ -27,6 +27,10 @@ import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { Donation } from '../entities/donation';
 import { AppDataSource } from '../orm';
 import { QfRoundHistory } from '../entities/qfRoundHistory';
+import {
+  QACC_DONATION_TOKEN_COINGECKO_ID,
+  QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS,
+} from '../constants/qacc';
 
 describe(
   'getProjectDonationsSqrtRootSum test cases',
@@ -549,6 +553,15 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
     const updatedCount = await fillMissingTokenPriceInQfRounds();
 
     const updatedQfRound = await QfRound.findOne({ where: { id: qfRound.id } });
+
+    // Assert that the token price fetching method was called with the correct date
+    sinon.assert.calledWith(priceAdapterStub, {
+      symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
+      date: moment(qfRound.beginDate)
+        .subtract(QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS, 'second')
+        .toDate(),
+    });
+
     expect(updatedQfRound?.tokenPrice).to.equal(100);
     expect(updatedCount).to.equal(1);
   });
@@ -568,6 +581,8 @@ function fillMissingTokenPriceInQfRoundsTestCase() {
     await qfRound.save();
 
     const updatedCount = await fillMissingTokenPriceInQfRounds();
+
+    sinon.assert.notCalled(priceAdapterStub);
 
     const updatedQfRound = await QfRound.findOne({ where: { id: qfRound.id } });
     expect(updatedQfRound?.tokenPrice).to.equal(50);

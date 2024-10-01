@@ -1,8 +1,12 @@
+import { IsNull, LessThanOrEqual } from 'typeorm';
+import moment from 'moment';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { logger } from '../utils/logger';
-import { AppDataSource } from '../orm';
-import { QACC_DONATION_TOKEN_COINGECKO_ID } from '../constants/qacc';
+import {
+  QACC_DONATION_TOKEN_COINGECKO_ID,
+  QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS,
+} from '../constants/qacc';
 
 export const findAllEarlyAccessRounds = async (): Promise<
   EarlyAccessRound[]
@@ -37,27 +41,34 @@ export const fillMissingTokenPriceInEarlyAccessRounds = async (): Promise<
   void | number
 > => {
   const priceAdapter = new CoingeckoPriceAdapter();
+  const leadTime = QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS;
 
-  // Find all EarlyAccessRound where token_price is NULL
-  const roundsToUpdate = await AppDataSource.getDataSource()
-    .getRepository(EarlyAccessRound)
-    .createQueryBuilder('early_AccessRound')
-    .where('early_AccessRound.tokenPrice IS NULL')
-    .andWhere('early_AccessRound.startDate < :now', { now: new Date() })
-    .getMany();
+  const roundsToUpdate = await EarlyAccessRound.find({
+    where: {
+      tokenPrice: IsNull(),
+      startDate: LessThanOrEqual(
+        moment().subtract(leadTime, 'seconds').toDate(),
+      ),
+    },
+    select: ['id', 'startDate', 'roundNumber'],
+    loadEagerRelations: false,
+  });
 
   // Set the token price for all found rounds and save them
   for (const round of roundsToUpdate) {
+    logger.debug(
+      `Fetching token price for early round ${round.roundNumber} at date ${round.startDate}`,
+    );
     const tokenPrice = await priceAdapter.getTokenPriceAtDate({
       symbol: QACC_DONATION_TOKEN_COINGECKO_ID,
-      date: round.startDate,
+      date: moment(round.startDate).subtract(leadTime, 'seconds').toDate(),
     });
 
     if (tokenPrice) {
-      round.tokenPrice = tokenPrice;
-      await AppDataSource.getDataSource()
-        .getRepository(EarlyAccessRound)
-        .save(round);
+      logger.debug(
+        `Setting token price for early round ${round.roundNumber} to ${tokenPrice}`,
+      );
+      await EarlyAccessRound.update(round.id, { tokenPrice });
     }
   }
 
