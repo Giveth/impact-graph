@@ -69,6 +69,16 @@ export async function countPendingDraftDonations(): Promise<number> {
   return parseInt(res[0].count, 10);
 }
 
+export async function findDraftDonationByMatchedDonationId(
+  matchedDonationId: number,
+): Promise<DraftDonation | null> {
+  return DraftDonation.findOne({
+    where: {
+      matchedDonationId,
+    },
+  });
+}
+
 export const updateDraftDonationStatus = async (params: {
   donationId: number;
   status: string;
