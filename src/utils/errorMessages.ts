@@ -182,6 +182,7 @@ export const errorMessages = {
   CODE_EXPIRED: 'The verification code has expired. Please request a new code.',
   FULL_NAME_CAN_NOT_BE_EMPTY: 'fullName cant be empty string',
   EXCEED_QACC_CAP: 'Exceed QACC cap',
+  ROUND_NOT_FOUND: 'Round not found',
 };
 
 export const translationErrorMessagesKeys = {
@@ -333,4 +334,5 @@ export const translationErrorMessagesKeys = {
   CODE_EXPIRED: 'CODE_EXPIRED',
   FULL_NAME_CAN_NOT_BE_EMPTY: 'FULL_NAME_CAN_NOT_BE_EMPTY',
   EXCEED_QACC_CAP: 'EXCEED_QACC_CAP',
+  ROUND_NOT_FOUND: 'ROUND_NOT_FOUND',
 };

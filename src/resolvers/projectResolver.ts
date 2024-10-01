@@ -114,7 +114,12 @@ import {
   QACC_DONATION_TOKEN_SYMBOL,
 } from '../constants/qacc';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
-import { getProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
+import {
+  getProjectRoundRecord,
+  updateOrCreateProjectRoundRecord,
+} from '../repositories/projectRoundRecordRepository';
+import { QfRound } from '../entities/qfRound';
+import { EarlyAccessRound } from '../entities/earlyAccessRound';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -2188,20 +2193,63 @@ export class ProjectResolver {
   @Query(_returns => [ProjectRoundRecord])
   async getProjectRoundRecords(
     @Arg('projectId', _type => Int) projectId: number,
-    @Arg('qfRoundId', _type => Int, { nullable: true }) qfRoundId?: number,
-    @Arg('earlyAccessRoundId', _type => Int, { nullable: true })
-    earlyAccessRoundId?: number,
+    @Arg('qfRoundNumber', _type => Int, { nullable: true })
+    qfRoundNumber?: number,
+    @Arg('earlyAccessRoundNumber', _type => Int, { nullable: true })
+    earlyAccessRoundNumber?: number,
   ): Promise<ProjectRoundRecord[]> {
-    const summaries = await getProjectRoundRecord(
+    let qfRoundId;
+    let earlyAccessRoundId;
+
+    let roundStartDate;
+    let roundEndDate;
+
+    if (qfRoundNumber) {
+      const qfRound = await QfRound.findOne({
+        where: { roundNumber: qfRoundNumber },
+        select: ['id', 'beginDate', 'endDate'],
+        loadEagerRelations: false,
+      });
+      if (!qfRound) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.ROUND_NOT_FOUND));
+      }
+      qfRoundId = qfRound.id;
+      roundStartDate = qfRound.beginDate;
+      roundEndDate = qfRound.endDate;
+    }
+
+    if (earlyAccessRoundNumber) {
+      const earlyAccessRound = await EarlyAccessRound.findOne({
+        where: { roundNumber: earlyAccessRoundNumber },
+        select: ['id', 'startDate', 'endDate'],
+        loadEagerRelations: false,
+      });
+      if (!earlyAccessRound) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.ROUND_NOT_FOUND));
+      }
+      earlyAccessRoundId = earlyAccessRound.id;
+      roundStartDate = earlyAccessRound.startDate;
+      roundEndDate = earlyAccessRound.endDate;
+    }
+
+    const records = await getProjectRoundRecord(
       projectId,
       qfRoundId,
       earlyAccessRoundId,
     );
 
-    // if (!summaries || summaries.length === 0) {
-    //   throw new Error(`No donation summaries found for project ${projectId}`);
-    // }
+    if (records.length === 0 && (qfRoundNumber || earlyAccessRoundNumber)) {
+      const now = new Date();
+      if (roundEndDate <= now || roundStartDate >= now) {
+        const record = await updateOrCreateProjectRoundRecord(
+          projectId,
+          qfRoundId,
+          earlyAccessRoundId,
+        );
+        return [record];
+      }
+    }
 
-    return summaries;
+    return records;
   }
 }

@@ -41,14 +41,14 @@ export async function updateOrCreateProjectRoundRecord(
     const { totalDonationAmount, totalDonationUsdAmount } =
       await query.getRawOne();
 
-    let summary = await ProjectRoundRecord.findOneBy({
+    let record = await ProjectRoundRecord.findOneBy({
       projectId,
       qfRoundId: qfRoundId ?? undefined,
       earlyAccessRoundId: earlyAccessRoundId ?? undefined,
     });
 
-    if (!summary) {
-      summary = ProjectRoundRecord.create({
+    if (!record) {
+      record = ProjectRoundRecord.create({
         projectId,
         qfRoundId,
         earlyAccessRoundId,
@@ -57,21 +57,21 @@ export async function updateOrCreateProjectRoundRecord(
       });
     }
 
-    summary.totalDonationAmount = totalDonationAmount || 0;
-    summary.totalDonationUsdAmount = totalDonationUsdAmount || 0;
-    summary.updatedAt = new Date();
-    summary.cumulativePastRoundsDonationAmounts =
+    record.totalDonationAmount = totalDonationAmount || 0;
+    record.totalDonationUsdAmount = totalDonationUsdAmount || 0;
+    record.updatedAt = new Date();
+    record.cumulativePastRoundsDonationAmounts =
       await getCumulativePastRoundsDonationAmounts({
         projectId,
         qfRoundId: qfRoundId || undefined,
         earlyAccessRoundId: earlyAccessRoundId || undefined,
       });
 
-    const pds = await ProjectRoundRecord.save(summary);
+    const prr = await ProjectRoundRecord.save(record);
 
     logger.info(`ProjectRoundRecord updated for project ${projectId}`);
 
-    return pds;
+    return prr;
   } catch (error) {
     logger.error('Error updating or creating ProjectRoundRecord:', error);
     throw new Error('Failed to update or create ProjectRoundRecord');
