@@ -168,7 +168,11 @@ const getQAccDonationCap = async ({
       250 / tokenPrice, // at least 250 for any distinct user
     );
 
-    const anyUserCall = Math.min(projectCap, userPolRoundCap);
+    const effectiveCap =
+      userRecord.eaTotalDonationAmount > 0
+        ? 2 * userPolRoundCap
+        : userPolRoundCap;
+    const anyUserCall = Math.min(projectCap, effectiveCap);
 
     return Math.max(0, anyUserCall - userRecord.qfTotalDonationAmount);
   }

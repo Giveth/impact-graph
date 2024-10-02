@@ -204,6 +204,22 @@ describe('qAccService', () => {
       qfRound1.roundUSDCapPerUserPerProject! / qfRound1.tokenPrice!,
     );
   });
+  it('should return correct value for qf round, when user has donated in ea', async () => {
+    await insertDonation({
+      earlyAccessRoundId: earlyAccessRounds[0].id,
+      amount: 5,
+    });
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    assert.equal(
+      result,
+      (qfRound1.roundUSDCapPerUserPerProject! / qfRound1.tokenPrice!) * 2,
+    );
+  });
 
   it('should return correct value for single donation in qf round', async () => {
     await insertDonation({
