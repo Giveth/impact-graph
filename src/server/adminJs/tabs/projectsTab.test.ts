@@ -453,7 +453,6 @@ function verifyProjectsTestCases() {
         },
       },
       true, // give priority to revoke badge
-      true, // revoke badge
     );
 
     const updatedProject = await findProjectById(project.id);
