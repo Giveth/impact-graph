@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import moment from 'moment';
+import { IsNull, Not } from 'typeorm';
 import {
   createDonationData,
   createProjectData,
@@ -18,6 +19,7 @@ import qAccService from './qAccService';
 describe('qAccService', () => {
   before(async () => {
     await ProjectRoundRecord.delete({});
+    await Donation.delete({ earlyAccessRoundId: Not(IsNull()) });
     await EarlyAccessRound.delete({});
   });
 
