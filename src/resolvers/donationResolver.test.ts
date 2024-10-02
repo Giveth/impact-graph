@@ -371,11 +371,11 @@ function doesDonatedToProjectInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -411,11 +411,11 @@ function doesDonatedToProjectInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -451,11 +451,11 @@ function doesDonatedToProjectInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -491,11 +491,11 @@ function doesDonatedToProjectInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -531,11 +531,11 @@ function doesDonatedToProjectInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -952,11 +952,11 @@ function createDonationTestCases() {
         minimumPassportScore: 8,
         slug: new Date().getTime().toString(),
         allocatedFund: 100,
-        beginDate: new Date(),
+        beginDate: moment().subtract(1, 'second'),
         endDate: moment().add(2, 'day'),
       }).save();
-      project.qfRounds = [qfRound];
-      await project.save();
+      // project.qfRounds = [qfRound];
+      // await project.save();
       const referrerId = generateRandomString();
       const referrerWalletAddress =
         await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
@@ -1113,11 +1113,11 @@ function createDonationTestCases() {
       slug: new Date().getTime().toString(),
       allocatedFund: 100,
       eligibleNetworks: [QACC_NETWORK_ID], // accepts ONLY xdai to mark as part of QFround
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(2, 'day'),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const referrerId = generateRandomString();
     const referrerWalletAddress =
       await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
@@ -1210,10 +1210,10 @@ function createDonationTestCases() {
         minimumPassportScore: 8,
         slug: new Date().getTime().toString(),
         allocatedFund: 100,
-        beginDate: new Date(),
+        beginDate: moment(),
         endDate: moment().add(2, 'day'),
       }).save();
-      project.qfRounds = [qfRound];
+      // project.qfRounds = [qfRound];
       project.listed = false;
       project.reviewStatus = ReviewStatus.NotListed;
       await project.save();
@@ -1282,10 +1282,10 @@ function createDonationTestCases() {
         minimumPassportScore: 8,
         slug: new Date().getTime().toString(),
         allocatedFund: 100,
-        beginDate: new Date(),
+        beginDate: moment(),
         endDate: moment().add(2, 'day'),
       }).save();
-      project.qfRounds = [qfRound];
+      // project.qfRounds = [qfRound];
       project.listed = false;
       project.reviewStatus = ReviewStatus.NotListed;
       await project.save();
@@ -2833,11 +2833,11 @@ function donationsByProjectIdTestCases() {
       minimumPassportScore: 8,
       slug: new Date().getTime().toString(),
       allocatedFund: 100,
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(2, 'day'),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const referrerId = generateRandomString();
     const referrerWalletAddress =
       await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
@@ -2881,11 +2881,11 @@ function donationsByProjectIdTestCases() {
       minimumPassportScore: 8,
       slug: new Date().getTime().toString(),
       allocatedFund: 100,
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(2, 'day'),
     }).save();
-    project.qfRounds = [qfRound2];
-    await project.save();
+    // project.qfRounds = [qfRound2];
+    // await project.save();
 
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -4062,11 +4062,11 @@ function donationsByUserIdTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(1, 'day').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
 
     const donation = await saveDonationDirectlyToDb(
       {

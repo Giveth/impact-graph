@@ -38,7 +38,7 @@ function scoreUserAddressTestCases() {
       slug: generateRandomString(10),
       allocatedFund: 100000,
       minimumPassportScore: 8,
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound.save();
@@ -142,8 +142,8 @@ function fetchQfRoundStatesTestCases() {
     });
     await qfRound.save();
     project = await saveProjectDirectlyToDb(createProjectData());
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
   });
 
   afterEach(async () => {
@@ -199,8 +199,8 @@ function fetchQfRoundStatesTestCases() {
 
 function fetchEstimatedMatchingTestCases() {
   let qfRound: QfRound;
-  let firstProject: Project;
-  let secondProject: Project;
+  // let firstProject: Project;
+  // let secondProject: Project;
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
@@ -216,11 +216,11 @@ function fetchEstimatedMatchingTestCases() {
     firstProject = await saveProjectDirectlyToDb(createProjectData());
     secondProject = await saveProjectDirectlyToDb(createProjectData());
 
-    firstProject.qfRounds = [qfRound];
-    secondProject.qfRounds = [qfRound];
+    // firstProject.qfRounds = [qfRound];
+    // secondProject.qfRounds = [qfRound];
 
-    await firstProject.save();
-    await secondProject.save();
+    // await firstProject.save();
+    // await secondProject.save();
   });
 
   afterEach(async () => {

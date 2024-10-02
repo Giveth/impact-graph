@@ -35,8 +35,8 @@ function getQfRoundHistoryTestCases() {
     firstProject = await saveProjectDirectlyToDb(createProjectData());
     secondProject = await saveProjectDirectlyToDb(createProjectData());
 
-    firstProject.qfRounds = [qfRound];
-    secondProject.qfRounds = [qfRound];
+    // firstProject.qfRounds = [qfRound];
+    // secondProject.qfRounds = [qfRound];
 
     await firstProject.save();
     await secondProject.save();
