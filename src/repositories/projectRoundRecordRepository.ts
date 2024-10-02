@@ -4,6 +4,7 @@ import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { QfRound } from '../entities/qfRound';
 import { logger } from '../utils/logger';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 
 /**
  * Create or update the donation summary for the specified project, QfRound, and EarlyAccessRound.
@@ -74,7 +75,9 @@ export async function updateOrCreateProjectRoundRecord(
     return prr;
   } catch (error) {
     logger.error('Error updating or creating ProjectRoundRecord:', error);
-    throw new Error('Failed to update or create ProjectRoundRecord');
+    throw new Error(
+      `Failed to update or create ProjectRoundRecord, ${error.message}`,
+    );
   }
 }
 
@@ -109,16 +112,20 @@ export async function getCumulativePastRoundsDonationAmounts({
   if (earlyAccessRoundId) {
     round = await EarlyAccessRound.findOneBy({ id: earlyAccessRoundId });
     if (!round?.startDate || round.startDate > new Date()) {
-      return null;
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.ROUND_DOES_NOT_STARTED),
+      );
     }
   } else if (qfRoundId) {
     round = await QfRound.findOneBy({ id: qfRoundId });
     if (!round?.beginDate || round.beginDate > new Date()) {
-      return null;
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.ROUND_DOES_NOT_STARTED),
+      );
     }
   } else {
     // No round specified
-    return null;
+    throw new Error(i18n.__(translationErrorMessagesKeys.NO_ROUND_SPECIFIED));
   }
 
   try {
