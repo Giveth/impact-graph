@@ -1044,9 +1044,9 @@ function insertDonationsFromQfRoundHistoryTestCases() {
       projectOwner,
     );
 
-    firstProject.qfRounds = [qfRound];
+    // firstProject.qfRounds = [qfRound];
 
-    await firstProject.save();
+    // await firstProject.save();
   });
 
   afterEach(async () => {

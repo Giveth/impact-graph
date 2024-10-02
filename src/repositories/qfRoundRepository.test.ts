@@ -76,8 +76,8 @@ function getProjectDonationsSqrRootSumTests() {
     });
     await qfRound.save();
     project = await saveProjectDirectlyToDb(createProjectData());
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
   });
 
   afterEach(async () => {
@@ -234,11 +234,11 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
     firstProject = await saveProjectDirectlyToDb(createProjectData());
     secondProject = await saveProjectDirectlyToDb(createProjectData());
 
-    firstProject.qfRounds = [qfRound];
-    secondProject.qfRounds = [qfRound];
+    // firstProject.qfRounds = [qfRound];
+    // secondProject.qfRounds = [qfRound];
 
-    await firstProject.save();
-    await secondProject.save();
+    // await firstProject.save();
+    // await secondProject.save();
   });
 
   afterEach(async () => {

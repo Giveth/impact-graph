@@ -374,8 +374,8 @@ function doesDonatedToProjectInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -414,8 +414,8 @@ function doesDonatedToProjectInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -454,8 +454,8 @@ function doesDonatedToProjectInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -494,8 +494,8 @@ function doesDonatedToProjectInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -534,8 +534,8 @@ function doesDonatedToProjectInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
     // should count as 1 as its the same user
@@ -955,8 +955,8 @@ function createDonationTestCases() {
         beginDate: moment().subtract(1, 'second'),
         endDate: moment().add(2, 'day'),
       }).save();
-      project.qfRounds = [qfRound];
-      await project.save();
+      // project.qfRounds = [qfRound];
+      // await project.save();
       const referrerId = generateRandomString();
       const referrerWalletAddress =
         await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
@@ -1116,8 +1116,8 @@ function createDonationTestCases() {
       beginDate: moment(),
       endDate: moment().add(2, 'day'),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const referrerId = generateRandomString();
     const referrerWalletAddress =
       await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
@@ -1213,7 +1213,7 @@ function createDonationTestCases() {
         beginDate: moment(),
         endDate: moment().add(2, 'day'),
       }).save();
-      project.qfRounds = [qfRound];
+      // project.qfRounds = [qfRound];
       project.listed = false;
       project.reviewStatus = ReviewStatus.NotListed;
       await project.save();
@@ -1285,7 +1285,7 @@ function createDonationTestCases() {
         beginDate: moment(),
         endDate: moment().add(2, 'day'),
       }).save();
-      project.qfRounds = [qfRound];
+      // project.qfRounds = [qfRound];
       project.listed = false;
       project.reviewStatus = ReviewStatus.NotListed;
       await project.save();
@@ -2836,8 +2836,8 @@ function donationsByProjectIdTestCases() {
       beginDate: moment(),
       endDate: moment().add(2, 'day'),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const referrerId = generateRandomString();
     const referrerWalletAddress =
       await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
@@ -2884,8 +2884,8 @@ function donationsByProjectIdTestCases() {
       beginDate: moment(),
       endDate: moment().add(2, 'day'),
     }).save();
-    project.qfRounds = [qfRound2];
-    await project.save();
+    // project.qfRounds = [qfRound2];
+    // await project.save();
 
     await saveDonationDirectlyToDb(
       createDonationData({
@@ -4065,8 +4065,8 @@ function donationsByUserIdTestCases() {
       beginDate: moment(),
       endDate: moment().add(1, 'day').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
 
     const donation = await saveDonationDirectlyToDb(
       {

@@ -78,7 +78,7 @@ function fillQfRoundDonationsUserScoresTestCases() {
     });
     await qfRound.save();
     qfRoundProject = await saveProjectDirectlyToDb(createProjectData());
-    qfRoundProject.qfRounds = [qfRound];
+    // qfRoundProject.qfRounds = [qfRound];
     await qfRoundProject.save();
   });
 
@@ -142,11 +142,11 @@ function estimatedMatchingTestCases() {
     firstProject = await saveProjectDirectlyToDb(createProjectData());
     secondProject = await saveProjectDirectlyToDb(createProjectData());
 
-    firstProject.qfRounds = [qfRound];
-    secondProject.qfRounds = [qfRound];
+    // firstProject.qfRounds = [qfRound];
+    // secondProject.qfRounds = [qfRound];
 
-    await firstProject.save();
-    await secondProject.save();
+    // await firstProject.save();
+    // await secondProject.save();
   });
 
   afterEach(async () => {
@@ -473,8 +473,8 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: new Date(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const donorCount = await getProjectQfRoundStats({
       projectId: project.id,
       qfRound,
@@ -503,8 +503,8 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: new Date(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
 
     // not verified
     await saveDonationDirectlyToDb(
@@ -556,8 +556,8 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       beginDate: moment().subtract(3, 'days').toDate(),
       endDate: moment().subtract(1, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
 
     await saveDonationDirectlyToDb(
       {
@@ -598,8 +598,8 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
 
     await saveDonationDirectlyToDb(
       {
@@ -646,8 +646,8 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
 
     await saveDonationDirectlyToDb(
       {
@@ -820,8 +820,8 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: new Date(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const { sumValueUsd } = await getProjectQfRoundStats({
       projectId: project.id,
       qfRound,
@@ -852,8 +852,8 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: new Date(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
 
     const valueUsd = 100;
     // not verified
@@ -907,8 +907,8 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: new Date(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
 
     const valueUsd = 100;
     // not verified
@@ -953,8 +953,8 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: new Date(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
 
     const valueUsd = 100;
     await saveDonationDirectlyToDb(
@@ -1003,8 +1003,8 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const valueUsd = 100;
     await saveDonationDirectlyToDb(
       {
@@ -1051,8 +1051,8 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const valueUsd1 = 100;
     const valueUsd2 = 200;
     const valueUsd3 = 300;
@@ -1233,8 +1233,8 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
@@ -1271,8 +1271,8 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
@@ -1309,8 +1309,8 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
@@ -1347,8 +1347,8 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
@@ -1385,8 +1385,8 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
-    project.qfRounds = [qfRound];
-    await project.save();
+    // project.qfRounds = [qfRound];
+    // await project.save();
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveDonationDirectlyToDb(
