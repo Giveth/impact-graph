@@ -12,7 +12,7 @@ const cronJobTime =
 
 export const runFetchRoundTokenPrice = async () => {
   logger.debug(
-    'runCheckPendingDonationsCronJob() has been called, cronJobTime',
+    'runFetchRoundTokenPrice() has been called, cronJobTime',
     cronJobTime,
   );
   await fillMissingTokenPriceInEarlyAccessRounds();
