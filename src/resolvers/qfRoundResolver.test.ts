@@ -213,8 +213,10 @@ function fetchEstimatedMatchingTestCases() {
       endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound.save();
-    firstProject = await saveProjectDirectlyToDb(createProjectData());
-    secondProject = await saveProjectDirectlyToDb(createProjectData());
+    // firstProject = await saveProjectDirectlyToDb(createProjectData());
+    // secondProject = await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
 
     // firstProject.qfRounds = [qfRound];
     // secondProject.qfRounds = [qfRound];
