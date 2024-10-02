@@ -335,9 +335,7 @@ export const fillMissingTokenPriceInQfRounds = async (): Promise<
   const roundsToUpdate = await QfRound.find({
     where: {
       tokenPrice: IsNull(),
-      beginDate: LessThanOrEqual(
-        moment().subtract(leadTime, 'seconds').toDate(),
-      ),
+      beginDate: LessThanOrEqual(moment().add(leadTime, 'seconds').toDate()),
     },
     select: ['id', 'beginDate', 'roundNumber'],
     loadEagerRelations: false,

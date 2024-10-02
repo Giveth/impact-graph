@@ -46,9 +46,7 @@ export const fillMissingTokenPriceInEarlyAccessRounds = async (): Promise<
   const roundsToUpdate = await EarlyAccessRound.find({
     where: {
       tokenPrice: IsNull(),
-      startDate: LessThanOrEqual(
-        moment().subtract(leadTime, 'seconds').toDate(),
-      ),
+      startDate: LessThanOrEqual(moment().add(leadTime, 'seconds').toDate()),
     },
     select: ['id', 'startDate', 'roundNumber'],
     loadEagerRelations: false,
