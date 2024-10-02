@@ -171,8 +171,9 @@ export const findArchivedQfRounds = async (
 export const findActiveQfRound = async (
   noCache?: boolean,
 ): Promise<QfRound | null> => {
-  const query =
-    QfRound.createQueryBuilder('qfRound').where('"isActive" = true');
+  const query = QfRound.createQueryBuilder('qfRound')
+    .where('"isActive" = true')
+    .andWhere('NOW() BETWEEN "qfRound"."beginDate" AND "qfRound"."endDate"');
   if (noCache) {
     return query.getOne();
   }

@@ -279,6 +279,60 @@ function fetchActiveRoundTestCases() {
     assert.equal(response.activeRound.cumulativeCapPerUserPerProject, 25000);
   });
 
+  it('should not return any round when qf round isActive is true but beginDate is in the future', async () => {
+    // Create an active QF round
+    await QfRound.create({
+      name: 'Active QF Round',
+      slug: generateRandomString(10),
+      roundNumber: 1,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: moment().add(1, 'days').toDate(),
+      endDate: moment().add(5, 'days').toDate(),
+      isActive: true,
+      roundUSDCapPerProject: 500000,
+      roundUSDCapPerUserPerProject: 25000,
+      tokenPrice: 0.12345678,
+    }).save();
+
+    // Query for the active round
+    const result = await axios.post(graphqlUrl, {
+      query: fetchActiveRoundQuery,
+    });
+
+    const response = result.data.data.activeRound;
+
+    // Assert no active QF round is returned
+    assert.isNotOk(response.activeRound);
+  });
+
+  it('should not return any round when qf round isActive is true but endDate is in the past', async () => {
+    // Create an active QF round
+    await QfRound.create({
+      name: 'Active QF Round',
+      slug: generateRandomString(10),
+      roundNumber: 1,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: moment().subtract(5, 'days').toDate(),
+      endDate: moment().subtract(1, 'days').toDate(),
+      isActive: true,
+      roundUSDCapPerProject: 500000,
+      roundUSDCapPerUserPerProject: 25000,
+      tokenPrice: 0.12345678,
+    }).save();
+
+    // Query for the active round
+    const result = await axios.post(graphqlUrl, {
+      query: fetchActiveRoundQuery,
+    });
+
+    const response = result.data.data.activeRound;
+
+    // Assert no active QF round is returned
+    assert.isNotOk(response.activeRound);
+  });
+
   it('should return null when there are no active rounds', async () => {
     // Create a non-active Early Access Round
     await EarlyAccessRound.create({
