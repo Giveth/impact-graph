@@ -106,5 +106,7 @@
   "CODE_EXPIRED": "El código de verificación ha expirado. Por favor, solicita un nuevo código.",
   "FULL_NAME_CAN_NOT_BE_EMPTY": "El nombre completo no puede estar vacío.",
   "EXCEED_QACC_CAP": "Excede el límite de QACC",
-  "ROUND_NOT_FOUND": "Ronda no encontrada"
+  "ROUND_NOT_FOUND": "Ronda no encontrada",
+  "ROUND_DOES_NOT_STARTED": "La ronda no ha comenzado",
+  "NO_ROUND_SPECIFIED" : "No se ha especificado ninguna ronda"
 }

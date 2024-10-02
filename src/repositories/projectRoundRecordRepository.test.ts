@@ -111,14 +111,15 @@ describe('ProjectRoundRecord test cases', () => {
       const unverifiedAmount = 200;
       const unverifiedValueUsd = 300;
 
-      await insertDonation({ amount, valueUsd });
+      await insertDonation({ amount, valueUsd, qfRoundId: qfRound1.id });
       await insertDonation({
         amount: unverifiedAmount,
         valueUsd: unverifiedValueUsd,
         status: DONATION_STATUS.PENDING,
+        qfRoundId: qfRound1.id,
       });
 
-      await updateOrCreateProjectRoundRecord(projectId);
+      await updateOrCreateProjectRoundRecord(projectId, qfRound1.id);
 
       const record = await ProjectRoundRecord.findOne({
         where: { projectId },
@@ -138,13 +139,15 @@ describe('ProjectRoundRecord test cases', () => {
       await insertDonation({
         amount: donationAmount,
         valueUsd: donationUsdAmount,
+        qfRoundId: qfRound1.id,
       });
       await insertDonation({
         amount: secondDonationAmount,
         valueUsd: secondDonatinUsdAmount,
+        qfRoundId: qfRound1.id,
       });
       // Update the existing record
-      await updateOrCreateProjectRoundRecord(projectId);
+      await updateOrCreateProjectRoundRecord(projectId, qfRound1.id);
 
       const record = await ProjectRoundRecord.findOne({
         where: { projectId },
@@ -222,9 +225,10 @@ describe('ProjectRoundRecord test cases', () => {
       await insertDonation({
         amount: donationAmount,
         valueUsd: donationUsdAmount,
+        qfRoundId: qfRound1.id,
       });
       // Create a round record
-      await updateOrCreateProjectRoundRecord(projectId);
+      await updateOrCreateProjectRoundRecord(projectId, qfRound1.id);
 
       const records = await getProjectRoundRecord(projectId);
 
@@ -262,12 +266,14 @@ describe('ProjectRoundRecord test cases', () => {
   });
 
   describe('getCumulativePastRoundsDonationAmounts test cases', () => {
-    it('should return null when no round is specified', async () => {
-      const result = await getCumulativePastRoundsDonationAmounts({
-        projectId,
-      });
-
-      expect(result).to.be.null;
+    it('should throw error when no round is specified', async () => {
+      try {
+        await getCumulativePastRoundsDonationAmounts({ projectId });
+        // If no error is thrown, the test should fail
+        throw new Error('Expected method to throw an error.');
+      } catch (error) {
+        expect(error.message).to.equal('No round specified');
+      }
     });
 
     it('should return the cumulative donation amount for a project', async () => {
