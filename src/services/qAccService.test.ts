@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
@@ -90,8 +91,8 @@ describe('qAccService', () => {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString() + ' - 1',
-      beginDate: new Date('2001-01-14'),
-      endDate: new Date('2001-01-16'),
+      beginDate: moment().subtract(1, 'days').toDate(),
+      endDate: moment().add(1, 'days').toDate(),
       roundUSDCapPerProject: 10000,
       roundUSDCapPerUserPerProject: 2500,
       tokenPrice: 0.5,
