@@ -4063,7 +4063,7 @@ function donationsByUserIdTestCases() {
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
       beginDate: new Date(),
-      endDate: new Date(),
+      endDate: moment().add(1, 'day').toDate(),
     }).save();
     project.qfRounds = [qfRound];
     await project.save();
