@@ -73,7 +73,7 @@ function fillQfRoundDonationsUserScoresTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 8,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().subtract(10, 'days').toDate(),
     });
     await qfRound.save();
@@ -135,7 +135,7 @@ function estimatedMatchingTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 8,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound.save();
@@ -339,7 +339,7 @@ function findDonationByIdTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 8,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound.save();
@@ -470,7 +470,7 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: new Date(),
     }).save();
     project.qfRounds = [qfRound];
@@ -500,7 +500,7 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: new Date(),
     }).save();
     project.qfRounds = [qfRound];
@@ -595,7 +595,7 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     project.qfRounds = [qfRound];
@@ -643,7 +643,7 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     project.qfRounds = [qfRound];
@@ -817,7 +817,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: new Date(),
     }).save();
     project.qfRounds = [qfRound];
@@ -849,7 +849,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: new Date(),
     }).save();
     project.qfRounds = [qfRound];
@@ -904,7 +904,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: new Date(),
     }).save();
     project.qfRounds = [qfRound];
@@ -950,7 +950,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: new Date(),
     }).save();
     project.qfRounds = [qfRound];
@@ -1000,7 +1000,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     project.qfRounds = [qfRound];
@@ -1048,7 +1048,7 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     project.qfRounds = [qfRound];
@@ -1230,7 +1230,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     project.qfRounds = [qfRound];
@@ -1268,7 +1268,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     project.qfRounds = [qfRound];
@@ -1306,7 +1306,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     project.qfRounds = [qfRound];
@@ -1344,7 +1344,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     project.qfRounds = [qfRound];
@@ -1382,7 +1382,7 @@ function isVerifiedDonationExistsInQfRoundTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString(),
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     project.qfRounds = [qfRound];

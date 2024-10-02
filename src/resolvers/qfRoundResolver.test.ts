@@ -38,7 +38,7 @@ function scoreUserAddressTestCases() {
       slug: generateRandomString(10),
       allocatedFund: 100000,
       minimumPassportScore: 8,
-      beginDate: new Date(),
+      beginDate: moment(),
       endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound.save();
