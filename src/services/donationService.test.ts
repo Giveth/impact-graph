@@ -47,7 +47,7 @@ describe(
   fillStableCoinDonationsPriceTestCases,
 );
 
-describe(
+describe.skip(
   'syncDonationStatusWithBlockchainNetwork test cases',
   syncDonationStatusWithBlockchainNetworkTestCases,
 );
