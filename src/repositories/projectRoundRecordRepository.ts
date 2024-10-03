@@ -113,14 +113,14 @@ export async function getCumulativePastRoundsDonationAmounts({
     round = await EarlyAccessRound.findOneBy({ id: earlyAccessRoundId });
     if (!round?.startDate || round.startDate > new Date()) {
       throw new Error(
-        i18n.__(translationErrorMessagesKeys.ROUND_DOES_NOT_STARTED),
+        i18n.__(translationErrorMessagesKeys.ROUND_HAS_NOT_STARTED),
       );
     }
   } else if (qfRoundId) {
     round = await QfRound.findOneBy({ id: qfRoundId });
     if (!round?.beginDate || round.beginDate > new Date()) {
       throw new Error(
-        i18n.__(translationErrorMessagesKeys.ROUND_DOES_NOT_STARTED),
+        i18n.__(translationErrorMessagesKeys.ROUND_HAS_NOT_STARTED),
       );
     }
   } else {

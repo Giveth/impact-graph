@@ -110,6 +110,6 @@
   "FULL_NAME_CAN_NOT_BE_EMPTY": "fullName cant be empty string",
   "EXCEED_QACC_CAP": "Exceed QACC cap",
   "ROUND_NOT_FOUND": "Round not found",
-  "ROUND_DOES_NOT_STARTED": "Round does not started",
+  "ROUND_HAS_NOT_STARTED": "Round has not started",
   "NO_ROUND_SPECIFIED": "No round specified"
 }
