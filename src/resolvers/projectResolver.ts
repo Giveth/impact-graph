@@ -2201,9 +2201,6 @@ export class ProjectResolver {
     let qfRoundId;
     let earlyAccessRoundId;
 
-    let roundStartDate;
-    let roundEndDate;
-
     if (qfRoundNumber) {
       const qfRound = await QfRound.findOne({
         where: { roundNumber: qfRoundNumber },
@@ -2214,8 +2211,6 @@ export class ProjectResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.ROUND_NOT_FOUND));
       }
       qfRoundId = qfRound.id;
-      roundStartDate = qfRound.beginDate;
-      roundEndDate = qfRound.endDate;
     }
 
     if (earlyAccessRoundNumber) {
@@ -2228,8 +2223,6 @@ export class ProjectResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.ROUND_NOT_FOUND));
       }
       earlyAccessRoundId = earlyAccessRound.id;
-      roundStartDate = earlyAccessRound.startDate;
-      roundEndDate = earlyAccessRound.endDate;
     }
 
     const records = await getProjectRoundRecord(
@@ -2239,15 +2232,12 @@ export class ProjectResolver {
     );
 
     if (records.length === 0 && (qfRoundNumber || earlyAccessRoundNumber)) {
-      const now = new Date();
-      if (roundEndDate <= now || roundStartDate >= now) {
-        const record = await updateOrCreateProjectRoundRecord(
-          projectId,
-          qfRoundId,
-          earlyAccessRoundId,
-        );
-        return [record];
-      }
+      const record = await updateOrCreateProjectRoundRecord(
+        projectId,
+        qfRoundId,
+        earlyAccessRoundId,
+      );
+      return [record];
     }
 
     return records;
