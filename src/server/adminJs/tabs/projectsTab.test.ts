@@ -35,6 +35,7 @@ import {
   addFeaturedProjectUpdate,
   exportProjectsWithFiltersToCsv,
   listDelist,
+  revokeGivbacksEligibility,
   updateStatusOfProjects,
   verifyProjects,
 } from './projectsTab';
@@ -452,8 +453,20 @@ function verifyProjectsTestCases() {
           recordIds: String(project.id),
         },
       },
-      true, // give priority to revoke badge
-      true, // revoke badge
+      false,
+    );
+    await revokeGivbacksEligibility(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
     );
 
     const updatedProject = await findProjectById(project.id);
@@ -527,15 +540,20 @@ function verifyProjectsTestCases() {
     assert.isTrue(updatedProject?.listed);
     assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
     assert.isTrue(project!.verificationStatus === RevokeSteps.Revoked);
-    assert.isTrue(updatedProject!.verificationStatus === null);
+    assert.isTrue(
+      updatedProject!.verificationStatus === project.verificationStatus,
+    );
     assert.equal(
       updatedVerificationForm!.status,
-      PROJECT_VERIFICATION_STATUSES.VERIFIED,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
-    assert.equal(updatedVerificationForm!.isTermAndConditionsAccepted, true);
+    assert.equal(
+      updatedVerificationForm!.isTermAndConditionsAccepted,
+      projectVerificationForm.isTermAndConditionsAccepted,
+    );
     assert.equal(
       updatedVerificationForm!.lastStep,
-      PROJECT_VERIFICATION_STEPS.SUBMIT,
+      projectVerificationForm.lastStep,
     );
   });
 
@@ -616,12 +634,15 @@ function verifyProjectsTestCases() {
     assert.isTrue(updatedProject!.verificationStatus === RevokeSteps.Revoked);
     assert.equal(
       updatedVerificationForm!.status,
-      PROJECT_VERIFICATION_STATUSES.DRAFT,
+      PROJECT_VERIFICATION_STATUSES.VERIFIED,
     );
-    assert.equal(updatedVerificationForm!.isTermAndConditionsAccepted, false);
+    assert.equal(
+      updatedVerificationForm!.isTermAndConditionsAccepted,
+      projectVerificationForm.isTermAndConditionsAccepted,
+    );
     assert.equal(
       updatedVerificationForm!.lastStep,
-      PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
+      projectVerificationForm.lastStep,
     );
   });
 

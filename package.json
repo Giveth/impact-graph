@@ -135,6 +135,7 @@
     "test:qfRoundHistoryRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/qfRoundHistoryRepository.test.ts",
     "test:qfRoundService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/qfRoundService.test.ts",
     "test:project": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/entities/project.test.ts",
+    "test:projectsTab": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/server/adminJs/tabs/projectsTab.test.ts",
     "test:syncUsersModelScore": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/syncUsersModelScore.test.ts",
     "test:notifyDonationsWithSegment": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/notifyDonationsWithSegment.test.ts",
     "test:checkProjectVerificationStatus": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/checkProjectVerificationStatus.test.ts",
