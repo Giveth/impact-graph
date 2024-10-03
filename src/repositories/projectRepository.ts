@@ -279,7 +279,7 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
       'project.title',
     ])
     .where('project.isImported = false')
-    .andWhere('project.verified = true')
+    .andWhere('project.isGivbackEligible = true')
     .andWhere(
       '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
       {
