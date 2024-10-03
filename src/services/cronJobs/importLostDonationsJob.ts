@@ -233,7 +233,7 @@ export const importLostDonations = async () => {
             anonymous: false,
             segmentNotified: true,
             isTokenEligibleForGivback: tokenInDB?.isGivbackEligible,
-            isProjectVerified: project?.verified,
+            isProjectGivbackEligible: project?.isGivbackEligible,
             qfRoundId: qfRound?.id,
           });
 

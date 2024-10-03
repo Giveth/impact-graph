@@ -24,7 +24,7 @@ function checkProjectVerificationStatusTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-      verified: true,
+      isGivbackEligible: true,
       latestUpdateCreationDate: moment()
         .subtract(46, 'days')
         .endOf('day')
@@ -36,7 +36,7 @@ function checkProjectVerificationStatusTestCases() {
 
     const warnableProjectUpdate = await findProjectById(warnableProject.id);
 
-    assert.isTrue(warnableProjectUpdate!.verified);
+    assert.isTrue(warnableProjectUpdate!.isGivbackEligible);
     assert.equal(
       warnableProjectUpdate!.verificationStatus,
       RevokeSteps.Warning,
@@ -47,7 +47,7 @@ function checkProjectVerificationStatusTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-      verified: true,
+      isGivbackEligible: true,
       latestUpdateCreationDate: moment().subtract(91, 'days').endOf('day'),
       verificationStatus: RevokeSteps.Warning,
     });
@@ -56,7 +56,7 @@ function checkProjectVerificationStatusTestCases() {
 
     const warnableProjectUpdate = await findProjectById(warnableProject.id);
 
-    assert.isTrue(warnableProjectUpdate!.verified);
+    assert.isTrue(warnableProjectUpdate!.isGivbackEligible);
     assert.equal(
       warnableProjectUpdate!.verificationStatus,
       RevokeSteps.LastChance,
@@ -67,7 +67,7 @@ function checkProjectVerificationStatusTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-      verified: true,
+      isGivbackEligible: true,
       latestUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
       verificationStatus: RevokeSteps.LastChance,
     });
@@ -78,7 +78,7 @@ function checkProjectVerificationStatusTestCases() {
       lastWarningProject.id,
     );
 
-    assert.isTrue(lastWarningProjectUpdated!.verified);
+    assert.isTrue(lastWarningProjectUpdated!.isGivbackEligible);
     assert.equal(
       lastWarningProjectUpdated!.verificationStatus,
       RevokeSteps.UpForRevoking,
@@ -89,7 +89,7 @@ function checkProjectVerificationStatusTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-      verified: true,
+      isGivbackEligible: true,
       latestUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
       isImported: true,
     });
@@ -98,7 +98,7 @@ function checkProjectVerificationStatusTestCases() {
 
     const importedProjectUpdated = await findProjectById(importedProject.id);
 
-    assert.isTrue(importedProjectUpdated!.verified);
+    assert.isTrue(importedProjectUpdated!.isGivbackEligible);
     assert.equal(importedProjectUpdated!.verificationStatus, null);
   });
   // it('should revoke project verification after last chance time frame expired', async () => {

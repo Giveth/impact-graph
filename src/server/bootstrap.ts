@@ -69,6 +69,7 @@ import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUse
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
 import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
 import { addClient } from '../services/sse/sse';
+import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncUsersModelScore';
 
 Resource.validate = validate;
 
@@ -195,7 +196,6 @@ export async function bootstrap() {
     if (process.env.DISABLE_SERVER_CORS !== 'true') {
       app.use(cors(corsOptions));
     }
-    app.use(bodyParserJson);
 
     if (process.env.DISABLE_SERVER_RATE_LIMITER !== 'true') {
       const limiter = rateLimit({
@@ -277,6 +277,9 @@ export async function bootstrap() {
         },
       }),
     );
+    // AdminJs!
+    app.use(adminJsRootPath, await getAdminJsRouter());
+    app.use(bodyParserJson);
     app.use('/apigive', apiGivRouter);
     app.use(SOCIAL_PROFILES_PREFIX, oauth2CallbacksRouter);
     app.post(
@@ -311,9 +314,6 @@ export async function bootstrap() {
           reject(err); // Reject the Promise if there's an error starting the server
         });
     });
-
-    // AdminJs!
-    app.use(adminJsRootPath, await getAdminJsRouter());
   } catch (err) {
     logger.fatal('bootstrap() error', err);
   }
@@ -365,6 +365,11 @@ export async function bootstrap() {
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
+    }
+
+    // If we need to deactivate the process use the env var NO MORE
+    if (process.env.SYNC_USERS_MBD_SCORE_ACTIVE === 'true') {
+      runCheckPendingUserModelScoreCronjob();
     }
 
     // If we need to deactivate the process use the env var NO MORE

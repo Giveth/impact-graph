@@ -55,6 +55,7 @@ import { User } from '../../../entities/user';
 import { refreshProjectEstimatedMatchingView } from '../../../services/projectViewsService';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
+import { Category } from '../../../entities/category';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -183,29 +184,72 @@ export const addFeaturedProjectUpdate = async (
   };
 };
 
+export const revokeGivbacksEligibility = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+) => {
+  const { records, currentAdmin } = context;
+  try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const updateParams = { isGivbackEligible: false };
+    const projects = await Project.createQueryBuilder('project')
+      .update<Project>(Project, updateParams)
+      .where('project.id IN (:...ids)')
+      .setParameter('ids', projectIds)
+      .returning('*')
+      .updateEntity(true)
+      .execute();
+
+    for (const project of projects.raw) {
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+      projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
+      await projectWithAdmin.save();
+      await getNotificationAdapter().projectBadgeRevoked({
+        project: projectWithAdmin,
+      });
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (verificationForm) {
+        await makeFormDraft({
+          formId: verificationForm.id,
+          adminId: currentAdmin.id,
+        });
+      }
+    }
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
+  } catch (error) {
+    logger.error('revokeGivbacksEligibility() error', error);
+    throw error;
+  }
+  return {
+    redirectUrl: '/admin/resources/Project',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message: 'Project(s) successfully revoked from Givbacks eligibility',
+      type: 'success',
+    },
+  };
+};
+
 export const verifyProjects = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
-  verified: boolean = true,
-  revokeBadge: boolean = false,
+  vouchedStatus: boolean = true,
 ) => {
   const { records, currentAdmin } = context;
-  // prioritize revokeBadge
-  const verificationStatus = revokeBadge ? false : verified;
   try {
     const projectIds = request?.query?.recordIds
       ?.split(',')
       ?.map(strId => Number(strId)) as number[];
     const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
-    const updateParams = { verified: verificationStatus };
-
-    if (verificationStatus) {
-      await Project.query(`
-        UPDATE project
-        SET "verificationStatus" = NULL
-        WHERE id IN (${request?.query?.recordIds})
-      `);
-    }
+    const updateParams = { verified: vouchedStatus };
 
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, updateParams)
@@ -218,11 +262,11 @@ export const verifyProjects = async (
     for (const project of projects.raw) {
       if (
         projectsBeforeUpdating.find(p => p.id === project.id)?.verified ===
-        verificationStatus
+        vouchedStatus
       ) {
         logger.debug('verifying/unVerifying project but no changes happened', {
           projectId: project.id,
-          verificationStatus,
+          verificationStatus: vouchedStatus,
         });
         // if project.verified have not changed, so we should not execute rest of the codes
         continue;
@@ -231,42 +275,10 @@ export const verifyProjects = async (
         project,
         status: project.status,
         userId: currentAdmin.id,
-        description: verified
+        description: vouchedStatus
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
-      const projectWithAdmin = (await findProjectById(project.id)) as Project;
-
-      if (revokeBadge) {
-        projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
-        await projectWithAdmin.save();
-        await getNotificationAdapter().projectBadgeRevoked({
-          project: projectWithAdmin,
-        });
-      } else if (verificationStatus) {
-        await getNotificationAdapter().projectVerified({
-          project: projectWithAdmin,
-        });
-      } else {
-        await getNotificationAdapter().projectUnVerified({
-          project: projectWithAdmin,
-        });
-      }
-
-      const verificationForm = await getVerificationFormByProjectId(project.id);
-      if (verificationForm) {
-        if (verificationStatus) {
-          await makeFormVerified({
-            formId: verificationForm.id,
-            adminId: currentAdmin.id,
-          });
-        } else {
-          await makeFormDraft({
-            formId: verificationForm.id,
-            adminId: currentAdmin.id,
-          });
-        }
-      }
     }
 
     await Promise.all([
@@ -285,7 +297,7 @@ export const verifyProjects = async (
     }),
     notice: {
       message: `Project(s) successfully ${
-        verificationStatus ? 'verified' : 'unverified'
+        vouchedStatus ? 'vouched' : 'unvouched'
       }`,
       type: 'success',
     },
@@ -446,6 +458,13 @@ export const addProjectsToQfRound = async (
   };
 };
 
+export const extractCategoryIds = (payload: any) => {
+  if (!payload) return;
+  return Object.keys(payload)
+    .filter(key => key.startsWith('categoryIds.'))
+    .map(key => payload[key]);
+};
+
 export const addSingleProjectToQfRound = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
@@ -486,6 +505,14 @@ export const fillSocialProfileAndQfRounds: After<
   const projectUpdates = await findProjectUpdatesByProjectId(projectId);
   const project = await findProjectById(projectId);
   const adminJsBaseUrl = process.env.SERVER_URL;
+  let categories;
+  if (project) {
+    categories = await Category.createQueryBuilder('category')
+      .innerJoin('category.projects', 'projects')
+      .where('projects.id = :id', { id: project.id })
+      .orderBy('category.name', 'ASC')
+      .getMany();
+  }
   response.record = {
     ...record,
     params: {
@@ -499,6 +526,11 @@ export const fillSocialProfileAndQfRounds: After<
       adminJsBaseUrl,
     },
   };
+
+  if (categories) {
+    response.record.params.categoryIds = categories;
+    response.record.params.categories = categories;
+  }
   return response;
 };
 
@@ -660,7 +692,7 @@ export const projectsTab = {
       id: {
         isVisible: {
           list: false,
-          filter: false,
+          filter: true,
           show: true,
           edit: false,
         },
@@ -831,12 +863,36 @@ export const projectsTab = {
           edit: false,
         },
       },
+      categoryIds: {
+        type: 'reference',
+        isArray: true,
+        reference: 'Category',
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: true,
+        },
+        components: {
+          show: adminJs.bundle('./components/ProjectCategories'),
+        },
+        availableValues: async _record => {
+          const categories = await Category.createQueryBuilder('category')
+            .where('category.isActive = :isActive', { isActive: true })
+            .orderBy('category.name', 'ASC')
+            .getMany();
+          return categories.map(category => ({
+            value: category.id,
+            label: `${category.id} - ${category.name}`,
+          }));
+        },
+      },
       isImported: {
         isVisible: {
           list: false,
           filter: true,
           show: true,
-          edit: false,
+          edit: true,
         },
       },
       totalReactions: {
@@ -924,6 +980,24 @@ export const projectsTab = {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectAction({ currentAdmin }, ResourceActions.NEW),
+        before: async request => {
+          if (request.payload.categories) {
+            request.payload.categories = (
+              request.payload.categories as string[]
+            ).map(id => ({ id: parseInt(id, 10) }));
+          }
+          return request;
+        },
+        after: async response => {
+          const { request } = response;
+          const project = await Project.findOne({
+            where: { id: request?.record?.id },
+          });
+          const categoryIds = extractCategoryIds(request.record.params);
+          await saveCategories(project!, categoryIds || []);
+
+          return response;
+        },
       },
       bulkDelete: {
         isVisible: false,
@@ -952,6 +1026,16 @@ export const projectsTab = {
             }
 
             const project = await findProjectById(Number(request.payload.id));
+            if (project) {
+              await Category.query(
+                `
+                DELETE FROM project_categories_category
+                WHERE "projectId" = $1
+              `,
+                [project.id],
+              );
+            }
+
             if (
               project &&
               Number(request?.payload?.statusId) !== project?.status?.id
@@ -1014,6 +1098,7 @@ export const projectsTab = {
             // We put these status changes in payload, so in after hook we would know to send notification for users
             request.payload.statusChanges = statusChanges.join(',');
           }
+
           return request;
         },
         after: async (
@@ -1151,10 +1236,13 @@ export const projectsTab = {
               });
             }
           }
+          const categoryIds = extractCategoryIds(request.record.params);
+
           await Promise.all([
             refreshUserProjectPowerView(),
             refreshProjectFuturePowerView(),
             refreshProjectPowerView(),
+            saveCategories(project!, categoryIds || []),
           ]);
           return request;
         },
@@ -1196,7 +1284,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      verify: {
+      approveVouched: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1209,7 +1297,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      reject: {
+      removeVouched: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1222,8 +1310,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      // the difference is that it sends another segment event
-      revokeBadge: {
+      revokeGivbacksEligible: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1231,8 +1318,8 @@ export const projectsTab = {
             { currentAdmin },
             ResourceActions.REVOKE_BADGE,
           ),
-        handler: async (request, response, context) => {
-          return verifyProjects(context, request, false, true);
+        handler: async (request, _response, context) => {
+          return revokeGivbacksEligibility(context, request);
         },
         component: false,
       },
@@ -1350,3 +1437,23 @@ export const projectsTab = {
     },
   },
 };
+
+async function saveCategories(project: Project, categoryIds?: string[]) {
+  if (!project) return;
+  if (!categoryIds || categoryIds?.length === 0) return;
+
+  await Category.query(
+    `
+    DELETE FROM project_categories_category
+    WHERE "projectId" = $1
+  `,
+    [project.id],
+  );
+
+  const categories = await Category.createQueryBuilder('category')
+    .where('category.id IN (:...ids)', { ids: categoryIds })
+    .getMany();
+
+  project.categories = categories;
+  await project.save();
+}

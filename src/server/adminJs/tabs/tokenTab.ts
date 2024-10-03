@@ -129,6 +129,43 @@ export const createToken = async (
     organizations,
   } = request.payload;
   try {
+    if (!address || !decimals || !name || !networkId || !symbol) {
+      message = 'Please fill all required fields';
+      type = 'danger';
+      return {
+        notice: {
+          message,
+          type,
+        },
+      };
+    }
+    const duplicateAddress = await Token.createQueryBuilder('token')
+      .where('LOWER(token.address) = LOWER(:address)', { address })
+      .andWhere('token.networkId = :networkId', {
+        networkId: Number(networkId),
+      })
+      .getOne();
+
+    const duplicateSymbol = await Token.createQueryBuilder('token')
+      .where('LOWER(token.symbol) = LOWER(:symbol)', { symbol })
+      .andWhere('token.networkId = :networkId', {
+        networkId: Number(networkId),
+      })
+      .getOne();
+
+    if (duplicateSymbol || duplicateAddress) {
+      message = `Token ${
+        duplicateAddress ? 'address' : 'symbol'
+      } already exists!`;
+      type = 'danger';
+      return {
+        record: {},
+        notice: {
+          message,
+          type,
+        },
+      };
+    }
     newToken = Token.create({
       name,
       symbol,

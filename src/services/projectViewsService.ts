@@ -119,6 +119,8 @@ export const getQfRoundActualDonationDetails = async (
           row?.totalValuesOfUserDonationsAfterAnalysis?.join('-'),
         uniqueUserIdsAfterAnalysis: row?.uniqueUserIdsAfterAnalysis?.join('-'),
         projectOwnerEmail: row?.email, // can be empty for new users
+        projectId: row?.projectId,
+        qfRoundId: row?.qfRoundId,
       };
     });
     logger.debug(

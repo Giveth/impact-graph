@@ -77,10 +77,12 @@ export enum SortingField {
   InstantBoosting = 'InstantBoosting',
   ActiveQfRoundRaisedFunds = 'ActiveQfRoundRaisedFunds',
   EstimatedMatching = 'EstimatedMatching',
+  BestMatch = 'BestMatch',
 }
 
 export enum FilterField {
   Verified = 'verified',
+  IsGivbackEligible = 'isGivbackEligible',
   AcceptGiv = 'givingBlocksId',
   AcceptFundOnGnosis = 'acceptFundOnGnosis',
   AcceptFundOnMainnet = 'acceptFundOnMainnet',
@@ -407,6 +409,10 @@ export class Project extends BaseEntity {
   // @Field(_type => Boolean, { nullable: true })
   // @Column({ type: 'boolean', default: false })
   // tunnableQf?: boolean;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ type: 'boolean', default: false })
+  isGivbackEligible: boolean;
 
   @Field(_type => String)
   @Column({
