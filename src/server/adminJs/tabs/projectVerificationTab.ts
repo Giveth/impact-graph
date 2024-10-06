@@ -316,9 +316,16 @@ export const revokeGivbacksEligibility = async (
 ) => {
   const { records, currentAdmin } = context;
   try {
-    const projectIds = request?.query?.recordIds
+    const projectFormIds = request?.query?.recordIds
       ?.split(',')
       ?.map(strId => Number(strId)) as number[];
+    const projectIds: number[] = [];
+    for (const formId of projectFormIds) {
+      const verificationForm = await findProjectVerificationFormById(formId);
+      if (verificationForm) {
+        projectIds.push(verificationForm.projectId);
+      }
+    }
     const updateParams = { isGivbackEligible: false };
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, updateParams)
@@ -353,7 +360,7 @@ export const revokeGivbacksEligibility = async (
     throw error;
   }
   return {
-    redirectUrl: '/admin/resources/Project',
+    redirectUrl: '/admin/resources/ProjectVerificationForm',
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),

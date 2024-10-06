@@ -464,7 +464,7 @@ function verifyProjectsTestCases() {
       },
       {
         query: {
-          recordIds: String(project.id),
+          recordIds: String(projectVerificationForm.projectId),
         },
       },
     );
