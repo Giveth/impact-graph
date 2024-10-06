@@ -122,13 +122,10 @@ const getQAccDonationCap = async ({
   const cumulativeUSDCapPerProject = activeRound.cumulativeCapPerProject || 0;
   const cumulativeUSDCapPerUserPerProject =
     activeRound.cumulativeCapPerUserPerProject || 0;
-  const tokenPrice = activeRound.tokenPrice || 0;
+  const tokenPrice = activeRound.tokenPrice || Number.MAX_SAFE_INTEGER;
 
   const projectPolRoundCap = cumulativeUSDCapPerProject / tokenPrice;
-  const userPolRoundCap =
-    (isEarlyAccess
-      ? cumulativeUSDCapPerUserPerProject
-      : activeRound.roundUSDCapPerUserPerProject!) / tokenPrice; // 2500$ in the qfRound
+  const userPolRoundCap = cumulativeUSDCapPerUserPerProject / tokenPrice;
 
   if (isEarlyAccess) {
     const projectRecord = await getEaProjectRoundRecord({
@@ -170,7 +167,7 @@ const getQAccDonationCap = async ({
 
     const effectiveCap =
       userRecord.eaTotalDonationAmount > 0
-        ? 2 * userPolRoundCap
+        ? 2 * userPolRoundCap // Early access contributors have double the cap in qf round
         : userPolRoundCap;
     const anyUserCall = Math.min(projectCap, effectiveCap);
 

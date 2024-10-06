@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { Project } from './project';
 import { Donation } from './donation';
+import { EarlyAccessRound } from './earlyAccessRound';
 
 @Entity()
 @ObjectType()
@@ -149,7 +150,18 @@ export class QfRound extends BaseEntity {
   @AfterLoad()
   async calculateCumulativeCaps(): Promise<void> {
     if (this.roundNumber === 1) {
-      this.cumulativeCapPerProject = this.roundUSDCapPerProject || 0;
+      const { cumulativeCapPerProject } =
+        await EarlyAccessRound.createQueryBuilder('eaRound')
+          .select(
+            'sum(eaRound.roundUSDCapPerProject)',
+            'cumulativeCapPerProject',
+          )
+          .cache('cumulativeCapQfRound1', 300000)
+          .getRawOne();
+      this.cumulativeCapPerProject =
+        parseFloat(cumulativeCapPerProject || 0) +
+        (this.roundUSDCapPerProject || 0);
+
       this.cumulativeCapPerUserPerProject =
         this.roundUSDCapPerUserPerProject || 0;
     } else {
