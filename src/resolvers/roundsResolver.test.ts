@@ -59,8 +59,8 @@ function fetchAllRoundsTestCases() {
       roundNumber: generateEARoundNumber(),
       startDate: new Date(),
       endDate: moment().add(3, 'days').toDate(),
-      roundUSDCapPerProject: 1000000,
-      roundUSDCapPerUserPerProject: 50000,
+      roundUSDCapPerProject: 1_000_000,
+      roundUSDCapPerUserPerProject: 50_000,
       tokenPrice: 0.12345678,
     }).save();
 
@@ -68,8 +68,8 @@ function fetchAllRoundsTestCases() {
       roundNumber: generateEARoundNumber(),
       startDate: moment().add(4, 'days').toDate(),
       endDate: moment().add(7, 'days').toDate(),
-      roundUSDCapPerProject: 2000000,
-      roundUSDCapPerUserPerProject: 100000,
+      roundUSDCapPerProject: 2_000_000,
+      roundUSDCapPerUserPerProject: 100_000,
       tokenPrice: 0.23456789,
     }).save();
 
@@ -82,8 +82,8 @@ function fetchAllRoundsTestCases() {
       minimumPassportScore: 8,
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
-      roundUSDCapPerProject: 500000, // Nullable field
-      roundUSDCapPerUserPerProject: 25000, // Nullable field
+      roundUSDCapPerProject: 500_000, // Nullable field
+      roundUSDCapPerUserPerProject: 25_000, // Nullable field
       tokenPrice: 0.12345678, // Nullable field
     }).save();
 
@@ -91,7 +91,7 @@ function fetchAllRoundsTestCases() {
       name: 'QF Round 2',
       slug: generateRandomString(10),
       roundNumber: 2,
-      allocatedFund: 200000,
+      allocatedFund: 200_000,
       minimumPassportScore: 10,
       beginDate: moment().add(5, 'days').toDate(),
       endDate: moment().add(15, 'days').toDate(),
@@ -143,15 +143,15 @@ function fetchAllRoundsTestCases() {
     // Here, cumulativeCapPerProject and cumulativeCapPerUserPerProject are summed across all EarlyAccessRounds and QfRounds
 
     // For EarlyAccessRound1
-    assert.equal(earlyAccessRounds[0].cumulativeCapPerProject, 1000000);
-    assert.equal(earlyAccessRounds[0].cumulativeCapPerUserPerProject, 50000);
+    assert.equal(earlyAccessRounds[0].cumulativeCapPerProject, 1_000_000);
+    assert.equal(earlyAccessRounds[0].cumulativeCapPerUserPerProject, 50_000);
 
     // For EarlyAccessRound2
-    assert.equal(earlyAccessRounds[1].cumulativeCapPerProject, 3000000); // 1000000 + 2000000
-    assert.equal(earlyAccessRounds[1].cumulativeCapPerUserPerProject, 150000); // 50000 + 100000
+    assert.equal(earlyAccessRounds[1].cumulativeCapPerProject, 3_000_000); // 1000000 + 2000000
+    assert.equal(earlyAccessRounds[1].cumulativeCapPerUserPerProject, 150_000); // 50000 + 100000
 
     // For QfRound1
-    assert.equal(_qf1.cumulativeCapPerProject, 500000); // 1000000 + 2000000 + 500000
+    assert.equal(_qf1.cumulativeCapPerProject, 3_500_000); // 1,000,000 + 2,000,000 + 500,000
     assert.equal(_qf1.cumulativeCapPerUserPerProject, 25000); // 50000 + 100000 + 25000
 
     // For QfRound2

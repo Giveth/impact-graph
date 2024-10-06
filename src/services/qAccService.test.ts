@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import moment from 'moment';
 import { IsNull, Not } from 'typeorm';
+import _ from 'lodash';
 import {
   createDonationData,
   createProjectData,
@@ -55,7 +56,7 @@ describe('qAccService', () => {
           roundNumber: generateEARoundNumber(),
           startDate: new Date('2000-01-01'),
           endDate: new Date('2000-01-03'),
-          roundUSDCapPerProject: 1000,
+          roundUSDCapPerProject: 1_000,
           roundUSDCapPerUserPerProject: 100,
           tokenPrice: 0.1,
         },
@@ -63,7 +64,7 @@ describe('qAccService', () => {
           roundNumber: generateEARoundNumber(),
           startDate: new Date('2000-01-04'),
           endDate: new Date('2000-01-06'),
-          roundUSDCapPerProject: 1000,
+          roundUSDCapPerProject: 1_000,
           roundUSDCapPerUserPerProject: 100,
           tokenPrice: 0.2,
         },
@@ -71,7 +72,7 @@ describe('qAccService', () => {
           roundNumber: generateEARoundNumber(),
           startDate: new Date('2000-01-07'),
           endDate: new Date('2000-01-09'),
-          roundUSDCapPerProject: 1000,
+          roundUSDCapPerProject: 1_000,
           roundUSDCapPerUserPerProject: 100,
           tokenPrice: 0.3,
         },
@@ -79,7 +80,7 @@ describe('qAccService', () => {
           roundNumber: generateEARoundNumber(),
           startDate: new Date('2000-01-10'),
           endDate: new Date('2000-01-12'),
-          roundUSDCapPerProject: 2000,
+          roundUSDCapPerProject: 2_000,
           roundUSDCapPerUserPerProject: 200,
           tokenPrice: 0.4,
         },
@@ -95,8 +96,8 @@ describe('qAccService', () => {
       slug: new Date().getTime().toString() + ' - 1',
       beginDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(1, 'days').toDate(),
-      roundUSDCapPerProject: 10000,
-      roundUSDCapPerUserPerProject: 2500,
+      roundUSDCapPerProject: 10_000,
+      roundUSDCapPerUserPerProject: 2_500,
       tokenPrice: 0.5,
     }).save();
   });
@@ -242,9 +243,14 @@ describe('qAccService', () => {
   });
 
   it('should allow 250$ donation if qf round cap is filled for early access donors', async () => {
+    const amountUsd = _.sum(
+      [...earlyAccessRounds, qfRound1].map(
+        round => round.roundUSDCapPerProject!,
+      ),
+    );
     await insertDonation({
       qfRoundId: qfRound1.id,
-      amount: qfRound1.roundUSDCapPerProject! / qfRound1.tokenPrice!,
+      amount: amountUsd / qfRound1.tokenPrice!,
     });
 
     const newUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -259,9 +265,15 @@ describe('qAccService', () => {
   });
 
   it('should return correct value for users has donated close to cap if qf round', async () => {
+    const amountUsd =
+      _.sum(
+        [...earlyAccessRounds, qfRound1].map(
+          round => round.roundUSDCapPerProject!,
+        ),
+      ) - 150;
     await insertDonation({
       qfRoundId: qfRound1.id,
-      amount: (qfRound1.roundUSDCapPerProject! - 150) / qfRound1.tokenPrice!,
+      amount: amountUsd / qfRound1.tokenPrice!,
     });
 
     const newUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
