@@ -33,6 +33,7 @@ describe('qAccService', () => {
     overrides: Partial<
       Pick<Donation, 'amount' | 'earlyAccessRoundId' | 'qfRoundId' | 'status'>
     >,
+    userId: number = user.id,
   ) {
     return saveDonationDirectlyToDb(
       {
@@ -40,7 +41,7 @@ describe('qAccService', () => {
         status: DONATION_STATUS.VERIFIED,
         ...overrides,
       },
-      user.id,
+      userId,
       project.id,
     );
   }
@@ -242,7 +243,7 @@ describe('qAccService', () => {
     );
   });
 
-  it('should allow 250$ donation if qf round cap is filled for early access donors', async () => {
+  it('should allow 250$ donation if qf round cap is filled for new donors', async () => {
     const amountUsd = _.sum(
       [...earlyAccessRounds, qfRound1].map(
         round => round.roundUSDCapPerProject!,
@@ -296,5 +297,89 @@ describe('qAccService', () => {
     });
 
     assert.equal(150 / qfRound1.tokenPrice!, result);
+  });
+
+  it('should return correct value for ea donors if the qf round cap is filled', async () => {
+    const eaDonor1 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const eaDonor2 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const newUser1 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const newUser2 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const totalUsdCap = _.sum(
+      [...earlyAccessRounds, qfRound1].map(
+        round => round.roundUSDCapPerProject!,
+      ),
+    );
+
+    await insertDonation(
+      {
+        earlyAccessRoundId: earlyAccessRounds[0].id,
+        amount: 1,
+      },
+      eaDonor1.id,
+    );
+    await insertDonation(
+      {
+        earlyAccessRoundId: earlyAccessRounds[0].id,
+        amount: 1,
+      },
+      eaDonor2.id,
+    );
+
+    // donate to the cap
+    await insertDonation(
+      {
+        qfRoundId: qfRound1.id,
+        amount: totalUsdCap / qfRound1.tokenPrice!,
+      },
+      newUser1.id,
+    );
+
+    const eaDonor1QfDonationAmount = 10;
+    // EA donor 1 donat
+    await insertDonation(
+      {
+        qfRoundId: qfRound1.id,
+        amount: eaDonor1QfDonationAmount,
+      },
+      eaDonor1.id,
+    );
+
+    const eaDonor1Result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: eaDonor1.id,
+      donateTime: qfRound1.beginDate,
+    });
+    assert.equal(
+      250 / qfRound1.tokenPrice! - eaDonor1QfDonationAmount,
+      eaDonor1Result,
+    );
+    const eaDonor2Result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: eaDonor2.id,
+    });
+    assert.equal(250 / qfRound1.tokenPrice!, eaDonor2Result);
+
+    const newUser1Result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: newUser1.id,
+      donateTime: qfRound1.beginDate,
+    });
+    assert.equal(0, newUser1Result);
+
+    const newUser2Result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: newUser2.id,
+      donateTime: qfRound1.beginDate,
+    });
+    assert.equal(250 / qfRound1.tokenPrice!, newUser2Result);
   });
 });
