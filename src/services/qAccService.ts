@@ -122,7 +122,7 @@ const getQAccDonationCap = async ({
   const cumulativeUSDCapPerProject = activeRound.cumulativeCapPerProject || 0;
   const cumulativeUSDCapPerUserPerProject =
     activeRound.cumulativeCapPerUserPerProject || 0;
-  const tokenPrice = activeRound.tokenPrice || Number.MAX_SAFE_INTEGER / 2;
+  const tokenPrice = activeRound.tokenPrice || Number.MAX_SAFE_INTEGER;
 
   const projectPolRoundCap = cumulativeUSDCapPerProject / tokenPrice;
   const userPolRoundCap =
