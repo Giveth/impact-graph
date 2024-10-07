@@ -16,6 +16,11 @@ import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { QfRound } from '../entities/qfRound';
 import qAccService from './qAccService';
+import { findQfRoundById } from '../repositories/qfRoundRepository';
+import {
+  getProjectRoundRecord,
+  updateOrCreateProjectRoundRecord,
+} from '../repositories/projectRoundRecordRepository';
 
 describe('qAccService', () => {
   before(async () => {
@@ -381,5 +386,65 @@ describe('qAccService', () => {
       donateTime: qfRound1.beginDate,
     });
     assert.equal(250 / qfRound1.tokenPrice!, newUser2Result);
+  });
+
+  it('should return correct value if project has collected close enough in previous rounds', async () => {
+    const eaDonor1 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const eaDonor2 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const qfDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const totalUsdCap = _.sum(
+      [...earlyAccessRounds, qfRound1].map(
+        round => round.roundUSDCapPerProject!,
+      ),
+    );
+
+    const qfRoundCap = totalUsdCap / qfRound1.tokenPrice!;
+
+    await insertDonation(
+      {
+        earlyAccessRoundId: earlyAccessRounds[0].id,
+        amount: qfRoundCap / 2,
+      },
+      eaDonor1.id,
+    );
+
+    await insertDonation(
+      {
+        earlyAccessRoundId: earlyAccessRounds[1].id,
+        amount: qfRoundCap / 2,
+      },
+      eaDonor2.id,
+    );
+
+    const qf = await findQfRoundById(qfRound1.id);
+
+    assert.equal(qf?.cumulativeCapPerProject, totalUsdCap);
+
+    await updateOrCreateProjectRoundRecord(project.id, qfRound1.id);
+    const qfProjectRoundRecord = await getProjectRoundRecord(
+      project.id,
+      qfRound1.id,
+      undefined,
+    );
+
+    assert.equal(qfProjectRoundRecord.length, 1);
+    assert.equal(
+      qfProjectRoundRecord[0].cumulativePastRoundsDonationAmounts,
+      qfRoundCap,
+    );
+
+    const userCap = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: qfDonor.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    assert.equal(250 / qfRound1.tokenPrice!, userCap);
   });
 });

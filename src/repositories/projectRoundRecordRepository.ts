@@ -128,6 +128,7 @@ export async function getCumulativePastRoundsDonationAmounts({
     throw new Error(i18n.__(translationErrorMessagesKeys.NO_ROUND_SPECIFIED));
   }
 
+  const roundNumber = round!.roundNumber;
   try {
     let query = Donation.createQueryBuilder('donation')
       .select(
@@ -143,7 +144,7 @@ export async function getCumulativePastRoundsDonationAmounts({
       query = query
         .leftJoin('donation.earlyAccessRound', 'earlyAccessRound')
         .andWhere('earlyAccessRound.roundNumber < :roundNumber', {
-          roundNumber: round!.roundNumber,
+          roundNumber,
         });
     } else {
       // all early access rounds and all

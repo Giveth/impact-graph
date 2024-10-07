@@ -43,7 +43,11 @@ const getQfProjectRoundRecord = async ({
       projectId,
       qfRoundId: qfRoundId,
     },
-    select: ['id', 'totalDonationAmount'],
+    select: [
+      'id',
+      'totalDonationAmount',
+      'cumulativePastRoundsDonationAmounts',
+    ],
     loadEagerRelations: false,
   };
   let projectRoundRecord = await ProjectRoundRecord.findOne(condition);
@@ -144,7 +148,9 @@ const getQAccDonationCap = async ({
     });
 
     return Math.min(
-      projectPolRoundCap - projectRecord.totalDonationAmount, // project unused cap
+      projectPolRoundCap -
+        projectRecord.totalDonationAmount -
+        (projectRecord.cumulativePastRoundsDonationAmounts || 0), // project unused cap
       userPolRoundCap - userRecord.totalDonationAmount, // user unused cap
     );
   } else {
@@ -161,7 +167,9 @@ const getQAccDonationCap = async ({
 
     // 250 USD is the minimum donation amount
     const projectCap = Math.max(
-      projectPolRoundCap - (projectRecord?.totalDonationAmount || 0),
+      projectPolRoundCap -
+        (projectRecord?.totalDonationAmount || 0) -
+        (projectRecord?.cumulativePastRoundsDonationAmounts || 0),
       250 / tokenPrice, // at least 250 for any distinct user
     );
 

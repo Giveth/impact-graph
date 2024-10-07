@@ -263,6 +263,52 @@ describe('ProjectRoundRecord test cases', () => {
       expect(records[0].totalDonationAmount).to.equal(donationAmount);
       expect(records[0].totalDonationUsdAmount).to.equal(donationUsdAmount);
     });
+
+    it('should return the correct round record for qf round with early access donation', async () => {
+      const eaDonationAmount = 100;
+      const eaDonationUsdAmount = 150;
+
+      await insertDonation({
+        amount: eaDonationAmount,
+        valueUsd: eaDonationUsdAmount,
+        earlyAccessRoundId: earlyAccessRound1.id,
+      });
+      // Create a round record
+      await updateOrCreateProjectRoundRecord(
+        projectId,
+        undefined,
+        earlyAccessRound1.id,
+      );
+
+      const records = await getProjectRoundRecord(
+        projectId,
+        undefined,
+        earlyAccessRound1.id,
+      );
+
+      expect(records).to.have.lengthOf(1);
+      expect(records[0].totalDonationAmount).to.equal(eaDonationAmount);
+      expect(records[0].totalDonationUsdAmount).to.equal(eaDonationUsdAmount);
+
+      const qfDonationAmount = 200;
+      const qfDonationUsdAmount = 300;
+
+      await insertDonation({
+        amount: qfDonationAmount,
+        valueUsd: qfDonationUsdAmount,
+        qfRoundId: qfRound1.id,
+      });
+
+      // Create a round record for the same project but different qf round
+      await updateOrCreateProjectRoundRecord(projectId, qfRound1.id, undefined);
+
+      const records2 = await getProjectRoundRecord(projectId, qfRound1.id);
+      expect(records2).to.have.lengthOf(1);
+      expect(
+        records2[0].totalDonationAmount +
+          records2[0].cumulativePastRoundsDonationAmounts!,
+      ).to.equal(eaDonationAmount + qfDonationAmount);
+    });
   });
 
   describe('getCumulativePastRoundsDonationAmounts test cases', () => {
