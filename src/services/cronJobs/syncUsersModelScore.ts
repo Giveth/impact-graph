@@ -10,7 +10,7 @@ import { findUserById } from '../../repositories/userRepository';
 import { UserQfRoundModelScore } from '../../entities/userQfRoundModelScore';
 
 const cronJobTime =
-  (config.get('MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB_EXPRESSION') as string) ||
+  (config.get('SYNC_USER_MODEL_SCORE_CRONJOB_EXPRESSION') as string) ||
   '0 0 * * * *';
 
 const qfRoundUsersMissedMBDScore = Number(
