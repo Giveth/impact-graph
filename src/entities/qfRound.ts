@@ -156,7 +156,7 @@ export class QfRound extends BaseEntity {
             'sum(eaRound.roundUSDCapPerProject)',
             'cumulativeCapPerProject',
           )
-          .cache('cumulativeCapQfRound1', 300000)
+          .cache('cumulativeCapQfRound1', 3000)
           .getRawOne();
       this.cumulativeCapPerProject =
         parseFloat(cumulativeCapPerProject || 0) +
