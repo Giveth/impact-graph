@@ -1,7 +1,6 @@
 import { assert } from 'chai';
 import moment from 'moment';
 import { IsNull, Not } from 'typeorm';
-import _ from 'lodash';
 import {
   createDonationData,
   createProjectData,
@@ -103,6 +102,7 @@ describe('qAccService', () => {
       beginDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(1, 'days').toDate(),
       roundUSDCapPerProject: 10_000,
+      roundUSDCloseCapPerProject: 10_500,
       roundUSDCapPerUserPerProject: 2_500,
       tokenPrice: 0.5,
     }).save();
@@ -177,7 +177,7 @@ describe('qAccService', () => {
     })) as EarlyAccessRound;
     assert.equal(
       result,
-      lastRound!.cumulativeCapPerUserPerProject! / lastRound!.tokenPrice! -
+      lastRound!.cumulativeUSDCapPerUserPerProject! / lastRound!.tokenPrice! -
         donationSum,
     );
   });
@@ -189,7 +189,8 @@ describe('qAccService', () => {
     await insertDonation({
       earlyAccessRoundId: lastRound.id,
       amount:
-        lastRound.cumulativeCapPerUserPerProject! / lastRound.tokenPrice! - 100,
+        lastRound.cumulativeUSDCapPerUserPerProject! / lastRound.tokenPrice! -
+        100,
     });
 
     const result = await qAccService.getQAccDonationCap({
@@ -226,7 +227,7 @@ describe('qAccService', () => {
 
     assert.equal(
       result,
-      (qfRound1.roundUSDCapPerUserPerProject! / qfRound1.tokenPrice!) * 2,
+      qfRound1.roundUSDCapPerUserPerProject! / qfRound1.tokenPrice!,
     );
   });
 
@@ -249,14 +250,10 @@ describe('qAccService', () => {
   });
 
   it('should allow 250$ donation if qf round cap is filled for new donors', async () => {
-    const amountUsd = _.sum(
-      [...earlyAccessRounds, qfRound1].map(
-        round => round.roundUSDCapPerProject!,
-      ),
-    );
+    await qfRound1.reload();
     await insertDonation({
       qfRoundId: qfRound1.id,
-      amount: amountUsd / qfRound1.tokenPrice!,
+      amount: qfRound1.roundUSDCapPerProject! / qfRound1.tokenPrice!,
     });
 
     const newUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -271,12 +268,8 @@ describe('qAccService', () => {
   });
 
   it('should return correct value for users has donated close to cap if qf round', async () => {
-    const amountUsd =
-      _.sum(
-        [...earlyAccessRounds, qfRound1].map(
-          round => round.roundUSDCapPerProject!,
-        ),
-      ) - 150;
+    const amountUsd = qfRound1.roundUSDCapPerProject!;
+
     await insertDonation({
       qfRoundId: qfRound1.id,
       amount: amountUsd / qfRound1.tokenPrice!,
@@ -318,11 +311,7 @@ describe('qAccService', () => {
       generateRandomEtheriumAddress(),
     );
 
-    const totalUsdCap = _.sum(
-      [...earlyAccessRounds, qfRound1].map(
-        round => round.roundUSDCapPerProject!,
-      ),
-    );
+    const totalUsdCap = qfRound1.roundUSDCapPerProject!;
 
     await insertDonation(
       {
@@ -398,11 +387,7 @@ describe('qAccService', () => {
 
     const qfDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const totalUsdCap = _.sum(
-      [...earlyAccessRounds, qfRound1].map(
-        round => round.roundUSDCapPerProject!,
-      ),
-    );
+    const totalUsdCap = qfRound1.roundUSDCapPerProject!;
 
     const qfRoundCap = totalUsdCap / qfRound1.tokenPrice!;
 
@@ -424,7 +409,7 @@ describe('qAccService', () => {
 
     const qf = await findQfRoundById(qfRound1.id);
 
-    assert.equal(qf?.cumulativeCapPerProject, totalUsdCap);
+    assert.equal(qf?.cumulativeUSDCapPerProject, totalUsdCap);
 
     await updateOrCreateProjectRoundRecord(project.id, qfRound1.id);
     const qfProjectRoundRecord = await getProjectRoundRecord(
@@ -446,5 +431,52 @@ describe('qAccService', () => {
     });
 
     assert.equal(250 / qfRound1.tokenPrice!, userCap);
+  });
+
+  it('should return 0 after qf round close cap is reached', async () => {
+    const eaDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const qfDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const totalUsdCap = qfRound1.roundUSDCloseCapPerProject!;
+
+    await insertDonation(
+      {
+        earlyAccessRoundId: earlyAccessRounds[0].id,
+        amount: totalUsdCap / qfRound1.tokenPrice!,
+      },
+      eaDonor.id,
+    );
+
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: qfDonor.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    assert.equal(0, result);
+  });
+
+  it('should return remaining to close cap if the project has passed qf cap', async () => {
+    const eaDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const qfDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const totalUsdCap = qfRound1.roundUSDCloseCapPerProject!;
+    const remainingCap = 30;
+
+    await insertDonation(
+      {
+        earlyAccessRoundId: earlyAccessRounds[0].id,
+        amount: totalUsdCap / qfRound1.tokenPrice! - remainingCap,
+      },
+      eaDonor.id,
+    );
+
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: qfDonor.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    assert.equal(remainingCap, result);
   });
 });

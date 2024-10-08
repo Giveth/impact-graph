@@ -140,23 +140,32 @@ function fetchAllRoundsTestCases() {
     // Cumulative caps should sum up up to each round
 
     // Example assertions (adjust based on actual roundNumber assignments)
-    // Here, cumulativeCapPerProject and cumulativeCapPerUserPerProject are summed across all EarlyAccessRounds and QfRounds
+    // Here, cumulativeUSDCapPerProject and cumulativeUSDCapPerUserPerProject are summed across all EarlyAccessRounds and QfRounds
 
     // For EarlyAccessRound1
-    assert.equal(earlyAccessRounds[0].cumulativeCapPerProject, 1_000_000);
-    assert.equal(earlyAccessRounds[0].cumulativeCapPerUserPerProject, 50_000);
+    assert.equal(earlyAccessRounds[0].cumulativeUSDCapPerProject, 1_000_000);
+    assert.equal(
+      earlyAccessRounds[0].cumulativeUSDCapPerUserPerProject,
+      50_000,
+    );
 
     // For EarlyAccessRound2
-    assert.equal(earlyAccessRounds[1].cumulativeCapPerProject, 3_000_000); // 1000000 + 2000000
-    assert.equal(earlyAccessRounds[1].cumulativeCapPerUserPerProject, 150_000); // 50000 + 100000
+    assert.equal(earlyAccessRounds[1].cumulativeUSDCapPerProject, 3_000_000); // 1000000 + 2000000
+    assert.equal(
+      earlyAccessRounds[1].cumulativeUSDCapPerUserPerProject,
+      150_000,
+    ); // 50000 + 100000
 
     // For QfRound1
-    assert.equal(_qf1.cumulativeCapPerProject, 3_500_000); // 1,000,000 + 2,000,000 + 500,000
-    assert.equal(_qf1.cumulativeCapPerUserPerProject, 25000); // 50000 + 100000 + 25000
+    assert.equal(_qf1.cumulativeUSDCapPerProject, _qf1.roundUSDCapPerProject);
+    assert.equal(
+      _qf1.cumulativeUSDCapPerUserPerProject,
+      _qf1.roundUSDCapPerUserPerProject,
+    );
 
     // For QfRound2
-    assert.equal(_qf2.cumulativeCapPerProject, 0); // No additional cap
-    assert.equal(_qf2.cumulativeCapPerUserPerProject, 0); // No additional cap
+    assert.equal(_qf2.cumulativeUSDCapPerProject, 0); // No additional cap
+    assert.equal(_qf2.cumulativeUSDCapPerUserPerProject, 0); // No additional cap
   });
 }
 
@@ -235,8 +244,8 @@ function fetchActiveRoundTestCases() {
     assert.equal(response.activeRound.roundUSDCapPerProject, 500000);
     assert.equal(response.activeRound.roundUSDCapPerUserPerProject, 25000);
     assert.equal(response.activeRound.tokenPrice, 0.12345678);
-    assert.equal(response.activeRound.cumulativeCapPerProject, 500000);
-    assert.equal(response.activeRound.cumulativeCapPerUserPerProject, 25000);
+    assert.equal(response.activeRound.cumulativeUSDCapPerProject, 500000);
+    assert.equal(response.activeRound.cumulativeUSDCapPerUserPerProject, 25000);
   });
 
   it('should return the currently active QF round and no active Early Access round', async () => {
@@ -275,8 +284,8 @@ function fetchActiveRoundTestCases() {
     assert.equal(response.activeRound.roundUSDCapPerProject, 500000);
     assert.equal(response.activeRound.roundUSDCapPerUserPerProject, 25000);
     assert.equal(response.activeRound.tokenPrice, 0.12345678);
-    assert.equal(response.activeRound.cumulativeCapPerProject, 500000);
-    assert.equal(response.activeRound.cumulativeCapPerUserPerProject, 25000);
+    assert.equal(response.activeRound.cumulativeUSDCapPerProject, 500000);
+    assert.equal(response.activeRound.cumulativeUSDCapPerUserPerProject, 25000);
   });
 
   it('should not return any round when qf round isActive is true but beginDate is in the future', async () => {

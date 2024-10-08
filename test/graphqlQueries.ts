@@ -2054,8 +2054,8 @@ export const fetchAllRoundsQuery = `
         roundUSDCapPerProject
         roundUSDCapPerUserPerProject
         tokenPrice
-        cumulativeCapPerProject
-        cumulativeCapPerUserPerProject
+        cumulativeUSDCapPerProject
+        cumulativeUSDCapPerUserPerProject
       }
       ... on QfRound {
         name
@@ -2066,8 +2066,8 @@ export const fetchAllRoundsQuery = `
         roundUSDCapPerProject
         roundUSDCapPerUserPerProject
         tokenPrice
-        cumulativeCapPerProject
-        cumulativeCapPerUserPerProject
+        cumulativeUSDCapPerProject
+        cumulativeUSDCapPerUserPerProject
       }
     }
   }
@@ -2086,8 +2086,8 @@ export const fetchActiveRoundQuery = `
           roundUSDCapPerProject
           roundUSDCapPerUserPerProject
           tokenPrice
-          cumulativeCapPerProject
-          cumulativeCapPerUserPerProject
+          cumulativeUSDCapPerProject
+          cumulativeUSDCapPerUserPerProject
         }
         ... on QfRound {
           name
@@ -2098,8 +2098,8 @@ export const fetchActiveRoundQuery = `
           roundUSDCapPerProject
           roundUSDCapPerUserPerProject
           tokenPrice
-          cumulativeCapPerProject
-          cumulativeCapPerUserPerProject
+          cumulativeUSDCapPerProject
+          cumulativeUSDCapPerUserPerProject
         }
       }
     }

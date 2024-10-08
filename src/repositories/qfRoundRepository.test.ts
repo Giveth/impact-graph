@@ -648,8 +648,8 @@ function findQfRoundCumulativeCapsTestCases() {
 
     const roundFromDB = await findQfRoundById(savedRound.id);
 
-    expect(roundFromDB?.cumulativeCapPerProject).to.equal(1000000);
-    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(50000);
+    expect(roundFromDB?.cumulativeUSDCapPerProject).to.equal(1000000);
+    expect(roundFromDB?.cumulativeUSDCapPerUserPerProject).to.equal(50000);
   });
 
   it('should calculate cumulative cap across multiple rounds', async () => {
@@ -694,8 +694,8 @@ function findQfRoundCumulativeCapsTestCases() {
 
     // The cumulative cap should be the sum of caps from all previous rounds
     // Only first round matters
-    expect(roundFromDB?.cumulativeCapPerProject).to.equal(0);
-    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(0);
+    expect(roundFromDB?.cumulativeUSDCapPerProject).to.equal(0);
+    expect(roundFromDB?.cumulativeUSDCapPerUserPerProject).to.equal(0);
   });
 
   it('should only return cumulutive capsfor the first round', async () => {
@@ -738,7 +738,7 @@ function findQfRoundCumulativeCapsTestCases() {
     const roundFromDB = await findQfRoundById(firstRound.id);
 
     // The cumulative cap should skip round 2 and only sum rounds 1 and 3
-    expect(roundFromDB?.cumulativeCapPerProject).to.equal(1000000); // 1000000 + 1500000
-    expect(roundFromDB?.cumulativeCapPerUserPerProject).to.equal(50000); // 50000 + 75000
+    expect(roundFromDB?.cumulativeUSDCapPerProject).to.equal(1000000); // 1000000 + 1500000
+    expect(roundFromDB?.cumulativeUSDCapPerUserPerProject).to.equal(50000); // 50000 + 75000
   });
 }

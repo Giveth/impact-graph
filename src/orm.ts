@@ -46,6 +46,7 @@ export class AppDataSource {
         dropSchema,
         logger: 'advanced-console',
         logging: ['error'],
+        ssl: config.get('TYPEORM_DISABLE_SSL') === 'true' ? false : undefined, // use default in case it's not set
         cache: isTestEnv
           ? false
           : {

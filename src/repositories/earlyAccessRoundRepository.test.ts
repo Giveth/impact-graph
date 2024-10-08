@@ -232,8 +232,10 @@ describe('EarlyAccessRound Cumulative Cap Test Cases', () => {
       where: { id: savedRound.id },
     });
 
-    expect(updatedEarlyAccessRound?.cumulativeCapPerProject).to.equal(1000000);
-    expect(updatedEarlyAccessRound?.cumulativeCapPerUserPerProject).to.equal(
+    expect(updatedEarlyAccessRound?.cumulativeUSDCapPerProject).to.equal(
+      1000000,
+    );
+    expect(updatedEarlyAccessRound?.cumulativeUSDCapPerUserPerProject).to.equal(
       50000,
     );
   });
@@ -267,8 +269,10 @@ describe('EarlyAccessRound Cumulative Cap Test Cases', () => {
     });
 
     // The cumulative cap should be the sum of caps from all previous rounds
-    expect(updatedEarlyAccessRound?.cumulativeCapPerProject).to.equal(4500000); // 1000000 + 2000000 + 1500000
-    expect(updatedEarlyAccessRound?.cumulativeCapPerUserPerProject).to.equal(
+    expect(updatedEarlyAccessRound?.cumulativeUSDCapPerProject).to.equal(
+      4500000,
+    ); // 1000000 + 2000000 + 1500000
+    expect(updatedEarlyAccessRound?.cumulativeUSDCapPerUserPerProject).to.equal(
       225000,
     ); // 50000 + 100000 + 75000
   });
@@ -301,8 +305,10 @@ describe('EarlyAccessRound Cumulative Cap Test Cases', () => {
     });
 
     // The cumulative cap should skip round 2 and only sum rounds 1 and 3
-    expect(updatedEarlyAccessRound?.cumulativeCapPerProject).to.equal(2500000); // 1000000 + 1500000
-    expect(updatedEarlyAccessRound?.cumulativeCapPerUserPerProject).to.equal(
+    expect(updatedEarlyAccessRound?.cumulativeUSDCapPerProject).to.equal(
+      2500000,
+    ); // 1000000 + 1500000
+    expect(updatedEarlyAccessRound?.cumulativeUSDCapPerUserPerProject).to.equal(
       125000,
     ); // 50000 + 75000
   });
