@@ -134,10 +134,10 @@ export class QfRound extends BaseEntity {
 
   // Virtual fields for cumulative caps
   @Field(() => Float, { nullable: true })
-  cumulativeCapPerProject?: number;
+  cumulativeUSDCapPerProject?: number;
 
   @Field(() => Float, { nullable: true })
-  cumulativeCapPerUserPerProject?: number;
+  cumulativeUSDCapPerUserPerProject?: number;
 
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {
@@ -150,23 +150,23 @@ export class QfRound extends BaseEntity {
   @AfterLoad()
   async calculateCumulativeCaps(): Promise<void> {
     if (this.roundNumber === 1) {
-      const { cumulativeCapPerProject } =
+      const { cumulativeUSDCapPerProject } =
         await EarlyAccessRound.createQueryBuilder('eaRound')
           .select(
             'sum(eaRound.roundUSDCapPerProject)',
-            'cumulativeCapPerProject',
+            'cumulativeUSDCapPerProject',
           )
           .cache('cumulativeCapQfRound1', 3000)
           .getRawOne();
-      this.cumulativeCapPerProject =
-        parseFloat(cumulativeCapPerProject || 0) +
+      this.cumulativeUSDCapPerProject =
+        parseFloat(cumulativeUSDCapPerProject || 0) +
         (this.roundUSDCapPerProject || 0);
 
-      this.cumulativeCapPerUserPerProject =
+      this.cumulativeUSDCapPerUserPerProject =
         this.roundUSDCapPerUserPerProject || 0;
     } else {
-      this.cumulativeCapPerProject = 0;
-      this.cumulativeCapPerUserPerProject = 0;
+      this.cumulativeUSDCapPerProject = 0;
+      this.cumulativeUSDCapPerUserPerProject = 0;
     }
   }
 }

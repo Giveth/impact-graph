@@ -177,7 +177,7 @@ describe('qAccService', () => {
     })) as EarlyAccessRound;
     assert.equal(
       result,
-      lastRound!.cumulativeCapPerUserPerProject! / lastRound!.tokenPrice! -
+      lastRound!.cumulativeUSDCapPerUserPerProject! / lastRound!.tokenPrice! -
         donationSum,
     );
   });
@@ -189,7 +189,8 @@ describe('qAccService', () => {
     await insertDonation({
       earlyAccessRoundId: lastRound.id,
       amount:
-        lastRound.cumulativeCapPerUserPerProject! / lastRound.tokenPrice! - 100,
+        lastRound.cumulativeUSDCapPerUserPerProject! / lastRound.tokenPrice! -
+        100,
     });
 
     const result = await qAccService.getQAccDonationCap({
@@ -424,7 +425,7 @@ describe('qAccService', () => {
 
     const qf = await findQfRoundById(qfRound1.id);
 
-    assert.equal(qf?.cumulativeCapPerProject, totalUsdCap);
+    assert.equal(qf?.cumulativeUSDCapPerProject, totalUsdCap);
 
     await updateOrCreateProjectRoundRecord(project.id, qfRound1.id);
     const qfProjectRoundRecord = await getProjectRoundRecord(
