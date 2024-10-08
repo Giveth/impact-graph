@@ -44,10 +44,11 @@ export const updateUsersWithoutMBDScoreInRound = async () => {
       const user = await findUserById(userId);
       logger.debug(`User with ${user?.id} fetched from Db`);
       if (!user) continue;
-
-      logger.debug(`User with ${user?.id} fetching its score`);
+      logger.debug(
+        `User ${user.id} with wallet ${user.walletAddress} fetching score`,
+      );
       const userScore = await worker.syncUserScore({
-        userWallet: user?.walletAddress,
+        userWallet: user?.walletAddress?.toLowerCase(),
       });
       logger.debug(`User with ${user?.id} has score of ${userScore}`);
       if (userScore) {

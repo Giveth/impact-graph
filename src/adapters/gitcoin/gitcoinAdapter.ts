@@ -42,10 +42,7 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
           },
         },
       );
-      return (
-        result.data?.details?.models?.ethereum_activity?.score ||
-        result.data?.details?.models?.aggregate?.score
-      );
+      return result.data?.details?.models?.ethereum_activity?.score;
     } catch (e) {
       logger.error('getUserAnalysisScore error', e);
       throw new Error(
