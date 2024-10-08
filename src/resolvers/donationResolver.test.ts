@@ -2026,7 +2026,7 @@ function createDonationTestCases() {
           anonymous: true,
           transactionId: generateRandomEvmTxHash(),
           nonce: 4,
-          amount: 10,
+          amount: 10.11,
           token: QACC_DONATION_TOKEN_SYMBOL,
         },
       },
@@ -2044,6 +2044,7 @@ function createDonationTestCases() {
     });
     assert.isOk(donation);
     assert.equal(donation?.userId, user.id);
+    assert.equal(donation?.amount, 10.11);
     assert.isTrue(donation?.anonymous);
     // assert.isTrue(donation?.isTokenEligibleForGivback);
   });
