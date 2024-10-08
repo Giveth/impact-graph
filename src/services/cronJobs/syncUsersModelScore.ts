@@ -52,14 +52,11 @@ export const updateUsersWithoutMBDScoreInRound = async () => {
       });
       logger.debug(`User with ${user?.id} has score of ${userScore}`);
       if (userScore) {
-        const userScoreInRound = UserQfRoundModelScore.create({
-          userId,
-          qfRoundId: activeQfRoundId,
-          score: userScore,
-        });
-
-        await userScoreInRound.save();
-        logger.debug(`${userScore?.id} saved!`);
+        await UserQfRoundModelScore.query(`
+          INSERT INTO "user_qf_round_model_score" ("userId", "qfRoundId", "score", "createdAt", "updatedAt")
+          VALUES ('${userId}', '${activeQfRoundId}', ${userScore}, NOW(), NOW());
+        `);
+        logger.debug(`${user.id} score saved!`);
       }
     } catch (e) {
       logger.info(`User with Id ${userId} did not sync MBD score this batch`);
