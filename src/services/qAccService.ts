@@ -103,12 +103,13 @@ const getQAccDonationCap = async ({
 
   let activeRound: EarlyAccessRound | QfRound | null = null;
   const activeEarlyAccessRound = await findActiveEarlyAccessRound(donateTime);
+  let activeQfRound: QfRound | null | undefined;
   const isEarlyAccess = !!activeEarlyAccessRound;
 
   if (isEarlyAccess) {
     activeRound = activeEarlyAccessRound;
   } else {
-    const activeQfRound = await findActiveQfRound();
+    activeQfRound = await findActiveQfRound();
     if (
       donateTime &&
       activeQfRound &&
@@ -148,11 +149,14 @@ const getQAccDonationCap = async ({
       userId,
     });
 
-    return Math.min(
-      projectPolRoundCap -
-        projectRecord.totalDonationAmount -
-        (projectRecord.cumulativePastRoundsDonationAmounts || 0), // project unused cap
-      userPolRoundCap - userRecord.totalDonationAmount, // user unused cap
+    return Math.max(
+      0,
+      Math.min(
+        projectPolRoundCap -
+          projectRecord.totalDonationAmount -
+          (projectRecord.cumulativePastRoundsDonationAmounts || 0), // project unused cap
+        userPolRoundCap - userRecord.totalDonationAmount, // user unused cap
+      ),
     );
   } else {
     // QF Round
@@ -166,19 +170,24 @@ const getQAccDonationCap = async ({
       userId,
     });
 
-    // 250 USD is the minimum donation amount
+    const projectCloseCap =
+      (activeQfRound?.roundUSDCloseCapPerProject || 0) / tokenPrice;
+
+    const totalCollected =
+      (projectRecord?.totalDonationAmount || 0) +
+      (projectRecord?.cumulativePastRoundsDonationAmounts || 0);
+
     const projectCap = Math.max(
-      projectPolRoundCap -
-        (projectRecord?.totalDonationAmount || 0) -
-        (projectRecord?.cumulativePastRoundsDonationAmounts || 0),
-      250 / tokenPrice, // at least 250 for any distinct user
+      // Capacity to fill qf round cap
+      projectPolRoundCap - totalCollected,
+      // Capacity over the qr found cap per project
+      Math.min(
+        250 / tokenPrice, // 250 USD between qf round cap and qf round close
+        projectCloseCap - totalCollected, // project close cap
+      ),
     );
 
-    const effectiveCap =
-      userRecord.eaTotalDonationAmount > 0
-        ? 2 * userPolRoundCap // Early access contributors have double the cap in qf round
-        : userPolRoundCap;
-    const anyUserCall = Math.min(projectCap, effectiveCap);
+    const anyUserCall = Math.min(projectCap, userPolRoundCap);
 
     return Math.max(0, anyUserCall - userRecord.qfTotalDonationAmount);
   }
