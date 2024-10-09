@@ -210,6 +210,28 @@ describe('ProjectRoundRecord test cases', () => {
       expect(roundRecord2?.totalDonationAmount).to.equal(donationAmount2);
       expect(roundRecord2?.totalDonationUsdAmount).to.equal(donationUsdAmount2);
     });
+
+    it('should not cause issue in case of multiple call of updateOrCreateProjectRoundRecord', async () => {
+      const donationAmount1 = 100;
+      const donationUsdAmount1 = 150;
+
+      await insertDonation({
+        amount: donationAmount1,
+        valueUsd: donationUsdAmount1,
+        qfRoundId: qfRound1.id,
+      });
+
+      const record1 = await updateOrCreateProjectRoundRecord(
+        projectId,
+        qfRound1.id,
+      );
+      const record2 = await updateOrCreateProjectRoundRecord(
+        projectId,
+        qfRound1.id,
+      );
+
+      expect(record1).to.deep.equal(record2);
+    });
   });
 
   describe('getProjectRoundRecord test cases', () => {

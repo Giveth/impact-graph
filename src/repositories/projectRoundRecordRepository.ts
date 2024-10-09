@@ -42,33 +42,40 @@ export async function updateOrCreateProjectRoundRecord(
     const { totalDonationAmount, totalDonationUsdAmount } =
       await query.getRawOne();
 
-    let record = await ProjectRoundRecord.findOneBy({
-      projectId,
-      qfRoundId: qfRoundId ?? undefined,
-      earlyAccessRoundId: earlyAccessRoundId ?? undefined,
-    });
+    // If a new record was created, result will have one entry; if not, result will be empty
 
-    if (!record) {
-      record = ProjectRoundRecord.create({
-        projectId,
-        qfRoundId,
-        earlyAccessRoundId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-    }
-
-    record.totalDonationAmount = totalDonationAmount || 0;
-    record.totalDonationUsdAmount = totalDonationUsdAmount || 0;
-    record.updatedAt = new Date();
-    record.cumulativePastRoundsDonationAmounts =
+    const cumulativePastRoundsDonationAmounts =
       await getCumulativePastRoundsDonationAmounts({
         projectId,
         qfRoundId: qfRoundId || undefined,
         earlyAccessRoundId: earlyAccessRoundId || undefined,
       });
 
-    const prr = await ProjectRoundRecord.save(record);
+    const result = await ProjectRoundRecord.createQueryBuilder(
+      'projectRoundRecord',
+    )
+      .insert()
+      .values({
+        projectId,
+        qfRoundId,
+        earlyAccessRoundId,
+        totalDonationAmount: totalDonationAmount || 0,
+        totalDonationUsdAmount: totalDonationUsdAmount || 0,
+        cumulativePastRoundsDonationAmounts,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .orUpdate(
+        [
+          'totalDonationAmount',
+          'totalDonationUsdAmount',
+          'cumulativePastRoundsDonationAmounts',
+          'updatedAt',
+        ],
+        ['projectId', qfRoundId ? 'qfRoundId' : 'earlyAccessRoundId'],
+      )
+      .execute();
+    const prr = result.raw[0];
 
     logger.info(`ProjectRoundRecord updated for project ${projectId}`);
 

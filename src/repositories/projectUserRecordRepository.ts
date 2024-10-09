@@ -1,4 +1,4 @@
-import { Donation, DONATION_STATUS } from '../entities/donation';
+import { DONATION_STATUS } from '../entities/donation';
 import { ProjectUserRecord } from '../entities/projectUserRecord';
 
 export async function updateOrCreateProjectUserRecord({
@@ -8,42 +8,33 @@ export async function updateOrCreateProjectUserRecord({
   projectId: number;
   userId: number;
 }): Promise<ProjectUserRecord> {
-  const { eaTotalDonationAmount, qfTotalDonationAmount, totalDonationAmount } =
-    await Donation.createQueryBuilder('donation')
-      .select('SUM(donation.amount)', 'totalDonationAmount')
-      // sum eaTotalDonationAmount if earlyAccessRoundId is not null
-      .addSelect(
-        'SUM(CASE WHEN donation.earlyAccessRoundId IS NOT NULL THEN donation.amount ELSE 0 END)',
-        'eaTotalDonationAmount',
-      )
-      .addSelect(
-        'SUM(CASE WHEN donation.qfRoundId IS NOT NULL THEN donation.amount ELSE 0 END)',
-        'qfTotalDonationAmount',
-      )
-      .where('donation.projectId = :projectId', { projectId })
-      .andWhere('donation.status = :status', {
-        status: DONATION_STATUS.VERIFIED,
-      })
-      .andWhere('donation.userId = :userId', { userId })
-      .getRawOne();
+  const query = `
+  INSERT INTO project_user_record ("projectId", "userId", "eaTotalDonationAmount", "qfTotalDonationAmount", "totalDonationAmount")
+  SELECT 
+    $1 AS projectId, 
+    $2 AS userId, 
+    COALESCE(SUM(CASE WHEN donation."earlyAccessRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0) AS eaTotalDonationAmount,
+    COALESCE(SUM(CASE WHEN donation."qfRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0) AS qfTotalDonationAmount,
+    COALESCE(SUM(donation.amount), 0) AS totalDonationAmount
+  FROM donation
+  WHERE donation."projectId" = $1 
+    AND donation."userId" = $2
+    AND donation.status = $3 
+  ON CONFLICT ("projectId", "userId") DO UPDATE 
+  SET 
+    "eaTotalDonationAmount" = EXCLUDED."eaTotalDonationAmount",
+    "qfTotalDonationAmount" = EXCLUDED."qfTotalDonationAmount",
+    "totalDonationAmount" = EXCLUDED."totalDonationAmount"
+  RETURNING *;
+`;
 
-  let projectUserRecord = await ProjectUserRecord.findOneBy({
+  const result = await ProjectUserRecord.query(query, [
     projectId,
     userId,
-  });
+    DONATION_STATUS.VERIFIED,
+  ]);
 
-  if (!projectUserRecord) {
-    projectUserRecord = ProjectUserRecord.create({
-      projectId,
-      userId,
-    });
-  }
-
-  projectUserRecord.eaTotalDonationAmount = eaTotalDonationAmount || 0;
-  projectUserRecord.qfTotalDonationAmount = qfTotalDonationAmount || 0;
-  projectUserRecord.totalDonationAmount = totalDonationAmount || 0;
-
-  return projectUserRecord.save();
+  return result[0];
 }
 
 export type ProjectUserRecordAmounts = Pick<

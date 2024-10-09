@@ -204,4 +204,48 @@ describe('projectUserRecordRepository', () => {
       ea1DonationAmount + ea2DonationAmount + qfDonationAmount,
     );
   });
+
+  it('should update record if it already exists', async () => {
+    const donationAmount1 = 100;
+    const donationAmount2 = 200;
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: donationAmount1,
+        status: DONATION_STATUS.VERIFIED,
+      },
+      user.id,
+      project.id,
+    );
+
+    let projectUserRecord = await updateOrCreateProjectUserRecord({
+      projectId: project.id,
+      userId: user.id,
+    });
+
+    assert.isOk(projectUserRecord);
+    assert.equal(projectUserRecord.totalDonationAmount, donationAmount1);
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: donationAmount2,
+        status: DONATION_STATUS.VERIFIED,
+      },
+      user.id,
+      project.id,
+    );
+
+    projectUserRecord = await updateOrCreateProjectUserRecord({
+      projectId: project.id,
+      userId: user.id,
+    });
+
+    assert.isOk(projectUserRecord);
+    assert.equal(
+      projectUserRecord.totalDonationAmount,
+      donationAmount1 + donationAmount2,
+    );
+  });
 });
