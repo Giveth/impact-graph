@@ -11,7 +11,7 @@ export async function updateOrCreateProjectUserRecord({
   const { eaTotalDonationAmount, qfTotalDonationAmount, totalDonationAmount } =
     await Donation.createQueryBuilder('donation')
       .select('SUM(donation.amount)', 'totalDonationAmount')
-      // sum eaTotalDonationAmount if earlyAccessRoundId is not null
+      // Sum eaTotalDonationAmount if earlyAccessRoundId is not null
       .addSelect(
         'SUM(CASE WHEN donation.earlyAccessRoundId IS NOT NULL THEN donation.amount ELSE 0 END)',
         'eaTotalDonationAmount',
@@ -27,23 +27,22 @@ export async function updateOrCreateProjectUserRecord({
       .andWhere('donation.userId = :userId', { userId })
       .getRawOne();
 
-  let projectUserRecord = await ProjectUserRecord.findOneBy({
-    projectId,
-    userId,
-  });
-
-  if (!projectUserRecord) {
-    projectUserRecord = ProjectUserRecord.create({
+  // Create or update ProjectUserRecord using onConflict
+  const result = await ProjectUserRecord.createQueryBuilder()
+    .insert()
+    .values({
       projectId,
       userId,
-    });
-  }
-
-  projectUserRecord.eaTotalDonationAmount = eaTotalDonationAmount || 0;
-  projectUserRecord.qfTotalDonationAmount = qfTotalDonationAmount || 0;
-  projectUserRecord.totalDonationAmount = totalDonationAmount || 0;
-
-  return projectUserRecord.save();
+      eaTotalDonationAmount: eaTotalDonationAmount || 0,
+      qfTotalDonationAmount: qfTotalDonationAmount || 0,
+      totalDonationAmount: totalDonationAmount || 0,
+    })
+    .orUpdate(
+      ['eaTotalDonationAmount', 'qfTotalDonationAmount', 'totalDonationAmount'],
+      ['projectId', 'userId'],
+    )
+    .execute();
+  return result.raw[0];
 }
 
 export type ProjectUserRecordAmounts = Pick<
