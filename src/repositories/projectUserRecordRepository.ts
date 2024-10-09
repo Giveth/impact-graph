@@ -1,4 +1,4 @@
-import { Donation, DONATION_STATUS } from '../entities/donation';
+import { DONATION_STATUS } from '../entities/donation';
 import { ProjectUserRecord } from '../entities/projectUserRecord';
 
 export async function updateOrCreateProjectUserRecord({
@@ -8,40 +8,34 @@ export async function updateOrCreateProjectUserRecord({
   projectId: number;
   userId: number;
 }): Promise<ProjectUserRecord> {
-  const { eaTotalDonationAmount, qfTotalDonationAmount, totalDonationAmount } =
-    await Donation.createQueryBuilder('donation')
-      .select('SUM(donation.amount)', 'totalDonationAmount')
-      // Sum eaTotalDonationAmount if earlyAccessRoundId is not null
-      .addSelect(
-        'SUM(CASE WHEN donation.earlyAccessRoundId IS NOT NULL THEN donation.amount ELSE 0 END)',
-        'eaTotalDonationAmount',
-      )
-      .addSelect(
-        'SUM(CASE WHEN donation.qfRoundId IS NOT NULL THEN donation.amount ELSE 0 END)',
-        'qfTotalDonationAmount',
-      )
-      .where('donation.projectId = :projectId', { projectId })
-      .andWhere('donation.status = :status', {
-        status: DONATION_STATUS.VERIFIED,
-      })
-      .andWhere('donation.userId = :userId', { userId })
-      .getRawOne();
-
-  // Create or update ProjectUserRecord using onConflict
   const result = await ProjectUserRecord.createQueryBuilder()
     .insert()
     .values({
       projectId,
       userId,
-      eaTotalDonationAmount: eaTotalDonationAmount || 0,
-      qfTotalDonationAmount: qfTotalDonationAmount || 0,
-      totalDonationAmount: totalDonationAmount || 0,
+      eaTotalDonationAmount: () => `
+      (SELECT COALESCE(SUM(CASE WHEN donation."earlyAccessRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0)
+      FROM donation
+      WHERE donation."projectId" = :projectId AND donation.status = :status AND donation."userId" = :userId)
+    `,
+      qfTotalDonationAmount: () => `
+      (SELECT COALESCE(SUM(CASE WHEN donation."qfRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0)
+      FROM donation
+      WHERE donation."projectId" = :projectId AND donation.status = :status AND donation."userId" = :userId)
+    `,
+      totalDonationAmount: () => `
+      (SELECT COALESCE(SUM(donation.amount), 0)
+      FROM donation
+      WHERE donation."projectId" = :projectId AND donation.status = :status AND donation."userId" = :userId)
+    `,
     })
     .orUpdate(
       ['eaTotalDonationAmount', 'qfTotalDonationAmount', 'totalDonationAmount'],
       ['projectId', 'userId'],
     )
+    .setParameters({ projectId, status: DONATION_STATUS.VERIFIED, userId })
     .execute();
+
   return result.raw[0];
 }
 
