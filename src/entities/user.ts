@@ -18,6 +18,7 @@ import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { ReferredEvent } from './referredEvent';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
+import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
 
 export const publicSelectionFields = [
   'user.id',
@@ -31,6 +32,7 @@ export const publicSelectionFields = [
   'user.totalReceived',
   'user.passportScore',
   'user.passportStamps',
+  'user.acceptedToS',
 ];
 
 export enum UserRole {
@@ -192,15 +194,7 @@ export class User extends BaseEntity {
   @Column({ default: false })
   emailConfirmed: boolean;
 
-  @Field(_type => String, { nullable: true })
-  @Column('text', { nullable: true })
-  emailConfirmationToken: string | null;
-
-  @Field(_type => Date, { nullable: true })
-  @Column('timestamptz', { nullable: true })
-  emailConfirmationTokenExpiredAt: Date | null;
-
-  @Field(_type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: false })
   @Column({ default: false })
   emailConfirmationSent: boolean;
 
@@ -211,6 +205,26 @@ export class User extends BaseEntity {
   @Field(_type => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true })
   emailConfirmedAt: Date | null;
+
+  // accepted Terms of Service
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ default: false })
+  acceptedToS: boolean;
+
+  // accepted Terms of Service
+  @Field(_type => Date, { nullable: true })
+  @Column({ default: null, nullable: true })
+  acceptedToSDate: Date;
+
+  @Column('integer', { array: true, default: [] })
+  privadoVerifiedRequestIds: number[];
+
+  @Field(_type => Boolean, { nullable: true })
+  get privadoVerified(): boolean {
+    return this.privadoVerifiedRequestIds.includes(
+      PrivadoAdapter.privadoRequestId,
+    );
+  }
 
   @Field(_type => Int, { nullable: true })
   async donationsCount() {

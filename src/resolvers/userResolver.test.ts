@@ -2,11 +2,11 @@
 
 import axios from 'axios';
 import { assert } from 'chai';
+import sinon from 'sinon';
 import { User } from '../entities/user';
 import {
   createDonationData,
   createProjectData,
-  generateConfirmationEmailToken,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
@@ -16,6 +16,9 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import {
+  acceptedTermsOfService,
+  batchMintingEligibleUsers,
+  checkUserPrivadoVerifiedState,
   refreshUserScores,
   updateUser,
   userByAddress,
@@ -24,10 +27,11 @@ import {
 } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { DONATION_STATUS } from '../entities/donation';
-import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+import { getGitcoinAdapter, privadoAdapter } from '../adapters/adaptersFactory';
 import { updateUserTotalDonated } from '../services/userService';
-import { findUserById } from '../repositories/userRepository';
-import { sleep } from '../utils/utils';
+import { getUserEmailConfirmationFields } from '../repositories/userRepository';
+import { UserEmailVerification } from '../entities/userEmailVerification';
+import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -40,6 +44,21 @@ describe(
   'userVerificationConfirmEmail() test cases',
   userVerificationConfirmEmailTestCases,
 );
+describe(
+  'checkUserPrivadoVerfiedState() test cases',
+  checkUserPrivadoVerfiedStateTestCases,
+);
+
+describe(
+  'acceptedTermsOfService() test cases',
+  acceptedTermsOfServicesTestCases,
+);
+
+describe(
+  'batchMintingEligibleUsers() test cases',
+  batchMintingEligibleUsersTestCases,
+);
+
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
 function refreshUserScoresTestCases() {
@@ -356,8 +375,7 @@ function updateUserTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      firstName: 'firstName',
-      lastName: 'lastName',
+      fullName: 'firstName lastName',
       email: 'giveth@gievth.com',
       avatar: 'pinata address',
       url: 'website url',
@@ -380,22 +398,18 @@ function updateUserTestCases() {
         id: user.id,
       },
     });
-    assert.equal(updatedUser?.firstName, updateUserData.firstName);
-    assert.equal(updatedUser?.lastName, updateUserData.lastName);
+    assert.equal(updatedUser?.firstName, updateUserData.fullName.split(' ')[0]);
+    assert.equal(updatedUser?.lastName, updateUserData.fullName.split(' ')[1]);
     assert.equal(updatedUser?.email, updateUserData.email);
     assert.equal(updatedUser?.avatar, updateUserData.avatar);
     assert.equal(updatedUser?.url, updateUserData.url);
-    assert.equal(
-      updatedUser?.name,
-      updateUserData.firstName + ' ' + updateUserData.lastName,
-    );
+    assert.equal(updatedUser?.name, updateUserData.fullName);
   });
   it('should update user with sending all data and then call userByAddress query', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      firstName: 'firstName',
-      lastName: 'lastName',
+      fullName: 'firstName lastName',
       email: 'giveth@gievth.com',
       avatar: 'pinata address',
       url: 'website url',
@@ -418,18 +432,15 @@ function updateUserTestCases() {
         id: user.id,
       },
     });
-    assert.equal(updatedUser?.firstName, updateUserData.firstName);
-    assert.equal(updatedUser?.lastName, updateUserData.lastName);
+    assert.equal(updatedUser?.firstName, updateUserData.fullName.split(' ')[0]);
+    assert.equal(updatedUser?.lastName, updateUserData.fullName.split(' ')[1]);
     assert.equal(updatedUser?.email, updateUserData.email);
     assert.equal(updatedUser?.avatar, updateUserData.avatar);
     assert.equal(updatedUser?.url, updateUserData.url);
-    assert.equal(
-      updatedUser?.name,
-      updateUserData.firstName + ' ' + updateUserData.lastName,
-    );
+    assert.equal(updatedUser?.name, updateUserData.fullName);
   });
 
-  it('should fail when dont sending firstName and lastName', async () => {
+  it('should fail when dont sending fullName', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
@@ -452,14 +463,14 @@ function updateUserTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
+      errorMessages.FULL_NAME_CAN_NOT_BE_EMPTY,
     );
   });
   it('should fail when email is invalid', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      firstName: 'firstName',
+      fullName: 'fullName',
       email: 'giveth',
       avatar: 'pinata address',
       url: 'website url',
@@ -483,7 +494,7 @@ function updateUserTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      firstName: 'firstName',
+      fullName: 'fullName',
       email: 'giveth @ giveth.com',
       avatar: 'pinata address',
       url: 'website url',
@@ -503,12 +514,11 @@ function updateUserTestCases() {
 
     assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
   });
-  it('should fail when sending empty string for firstName', async () => {
+  it('should fail when sending empty string for fullName', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      firstName: '',
-      lastName: 'test lastName',
+      fullName: '',
       email: 'giveth @ giveth.com',
       avatar: 'pinata address',
       url: 'website url',
@@ -528,122 +538,121 @@ function updateUserTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.FIRSTNAME_CANT_BE_EMPTY_STRING,
+      errorMessages.FULL_NAME_CAN_NOT_BE_EMPTY,
     );
   });
-  it('should fail when sending empty string for lastName', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const accessToken = await generateTestAccessToken(user.id);
-    const updateUserData = {
-      lastName: '',
-      firstName: 'firstName',
-      email: 'giveth @ giveth.com',
-      avatar: 'pinata address',
-      url: 'website url',
-    };
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateUser,
-        variables: updateUserData,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    assert.equal(
-      result.data.errors[0].message,
-      errorMessages.LASTNAME_CANT_BE_EMPTY_STRING,
-    );
-  });
-
-  it('should update user and name of user when sending just lastName', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const firstName = 'firstName';
-    user.firstName = firstName;
-    user.name = firstName;
-    await user.save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const updateUserData = {
-      email: 'giveth@gievth.com',
-      avatar: 'pinata address',
-      url: 'website url',
-      lastName: new Date().getTime().toString(),
-    };
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateUser,
-        variables: updateUserData,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    assert.isTrue(result.data.data.updateUser);
-    const updatedUser = await User.findOne({
-      where: {
-        id: user.id,
-      },
-    });
-    assert.equal(updatedUser?.email, updateUserData.email);
-    assert.equal(updatedUser?.avatar, updateUserData.avatar);
-    assert.equal(updatedUser?.url, updateUserData.url);
-    assert.equal(updatedUser?.name, firstName + ' ' + updateUserData.lastName);
-    assert.equal(updatedUser?.firstName, firstName);
-  });
-
-  it('should update user and name of user when sending just firstName', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const lastName = 'lastName';
-    user.lastName = lastName;
-    user.name = lastName;
-    await user.save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const updateUserData = {
-      email: 'giveth@gievth.com',
-      avatar: 'pinata address',
-      url: 'website url',
-      firstName: new Date().getTime().toString(),
-    };
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateUser,
-        variables: updateUserData,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    assert.isTrue(result.data.data.updateUser);
-    const updatedUser = await User.findOne({
-      where: {
-        id: user.id,
-      },
-    });
-    assert.equal(updatedUser?.email, updateUserData.email);
-    assert.equal(updatedUser?.avatar, updateUserData.avatar);
-    assert.equal(updatedUser?.url, updateUserData.url);
-    assert.equal(updatedUser?.name, updateUserData.firstName + ' ' + lastName);
-    assert.equal(updatedUser?.lastName, lastName);
-  });
+  // it('should fail when sending empty string for lastName', async () => {
+  //   const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+  //   const accessToken = await generateTestAccessToken(user.id);
+  //   const updateUserData = {
+  //     lastName: '',
+  //     firstName: 'firstName',
+  //     email: 'giveth @ giveth.com',
+  //     avatar: 'pinata address',
+  //     url: 'website url',
+  //   };
+  //   const result = await axios.post(
+  //     graphqlUrl,
+  //     {
+  //       query: updateUser,
+  //       variables: updateUserData,
+  //     },
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${accessToken}`,
+  //       },
+  //     },
+  //   );
+  //
+  //   assert.equal(
+  //     result.data.errors[0].message,
+  //     errorMessages.LASTNAME_CANT_BE_EMPTY_STRING,
+  //   );
+  // });
+  //
+  // it('should update user and name of user when sending just lastName', async () => {
+  //   const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+  //   const firstName = 'firstName';
+  //   user.firstName = firstName;
+  //   user.name = firstName;
+  //   await user.save();
+  //   const accessToken = await generateTestAccessToken(user.id);
+  //   const updateUserData = {
+  //     email: 'giveth@gievth.com',
+  //     avatar: 'pinata address',
+  //     url: 'website url',
+  //     lastName: new Date().getTime().toString(),
+  //   };
+  //   const result = await axios.post(
+  //     graphqlUrl,
+  //     {
+  //       query: updateUser,
+  //       variables: updateUserData,
+  //     },
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${accessToken}`,
+  //       },
+  //     },
+  //   );
+  //
+  //   assert.isTrue(result.data.data.updateUser);
+  //   const updatedUser = await User.findOne({
+  //     where: {
+  //       id: user.id,
+  //     },
+  //   });
+  //   assert.equal(updatedUser?.email, updateUserData.email);
+  //   assert.equal(updatedUser?.avatar, updateUserData.avatar);
+  //   assert.equal(updatedUser?.url, updateUserData.url);
+  //   assert.equal(updatedUser?.name, firstName + ' ' + updateUserData.lastName);
+  //   assert.equal(updatedUser?.firstName, firstName);
+  // });
+  //
+  // it('should update user and name of user when sending just firstName', async () => {
+  //   const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+  //   const lastName = 'lastName';
+  //   user.lastName = lastName;
+  //   user.name = lastName;
+  //   await user.save();
+  //   const accessToken = await generateTestAccessToken(user.id);
+  //   const updateUserData = {
+  //     email: 'giveth@gievth.com',
+  //     avatar: 'pinata address',
+  //     url: 'website url',
+  //     firstName: new Date().getTime().toString(),
+  //   };
+  //   const result = await axios.post(
+  //     graphqlUrl,
+  //     {
+  //       query: updateUser,
+  //       variables: updateUserData,
+  //     },
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${accessToken}`,
+  //       },
+  //     },
+  //   );
+  //
+  //   assert.isTrue(result.data.data.updateUser);
+  //   const updatedUser = await User.findOne({
+  //     where: {
+  //       id: user.id,
+  //     },
+  //   });
+  //   assert.equal(updatedUser?.email, updateUserData.email);
+  //   assert.equal(updatedUser?.avatar, updateUserData.avatar);
+  //   assert.equal(updatedUser?.url, updateUserData.url);
+  //   assert.equal(updatedUser?.name, updateUserData.firstName + ' ' + lastName);
+  //   assert.equal(updatedUser?.lastName, lastName);
+  // });
 
   it('should accept empty string for all fields except email', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      firstName: 'test firstName',
-      lastName: 'test lastName',
+      fullName: 'firstName lastName',
       avatar: '',
       url: '',
     };
@@ -665,8 +674,8 @@ function updateUserTestCases() {
         id: user.id,
       },
     });
-    assert.equal(updatedUser?.firstName, updateUserData.firstName);
-    assert.equal(updatedUser?.lastName, updateUserData.lastName);
+    assert.equal(updatedUser?.firstName, updateUserData.fullName.split(' ')[0]);
+    assert.equal(updatedUser?.lastName, updateUserData.fullName.split(' ')[1]);
     assert.equal(updatedUser?.avatar, updateUserData.avatar);
     assert.equal(updatedUser?.url, updateUserData.url);
   });
@@ -708,10 +717,13 @@ function userVerificationSendEmailConfirmationTestCases() {
         .emailConfirmationSent,
       true,
     );
-    assert.isNotNull(
-      result.data.data.userVerificationSendEmailConfirmation
-        .emailConfirmationToken,
+
+    const emailConfirmationFields = await getUserEmailConfirmationFields(
+      user.id,
     );
+    assert.isNotNull(emailConfirmationFields);
+    assert.equal(emailConfirmationFields?.emailVerificationCode?.length, 6);
+    assert.isNotNull(emailConfirmationFields?.emailVerificationCodeExpiredAt);
   });
 
   it('should throw error when sending email confirmation if email is already confirmed', async () => {
@@ -748,10 +760,10 @@ function userVerificationConfirmEmailTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     user.email = 'test@example.com';
     user.emailConfirmed = false;
-    await user.save();
+    const userID = (await user.save()).id;
 
     const accessToken = await generateTestAccessToken(user.id);
-    const emailConfirmationSentResult = await axios.post(
+    await axios.post(
       graphqlUrl,
       {
         query: userVerificationSendEmailConfirmation,
@@ -766,16 +778,17 @@ function userVerificationConfirmEmailTestCases() {
       },
     );
 
-    const token =
-      emailConfirmationSentResult.data.data
-        .userVerificationSendEmailConfirmation.emailConfirmationToken;
+    const emailVerificationFields =
+      await getUserEmailConfirmationFields(userID);
+    const code = emailVerificationFields?.emailVerificationCode;
 
     const result = await axios.post(
       graphqlUrl,
       {
         query: userVerificationConfirmEmail,
         variables: {
-          emailConfirmationToken: token,
+          userId: user.id,
+          emailConfirmationCode: code,
         },
       },
       {
@@ -793,26 +806,26 @@ function userVerificationConfirmEmailTestCases() {
     assert.isNotNull(
       result.data.data.userVerificationConfirmEmail.emailConfirmedAt,
     );
+
+    const updatedVerificationFields =
+      await getUserEmailConfirmationFields(userID);
+    assert.isNull(updatedVerificationFields?.emailVerificationCode);
+    assert.isNull(updatedVerificationFields?.emailVerificationCodeExpiredAt);
   });
 
-  it('should throw error when confirm email token is invalid or expired for user email verification', async () => {
+  it('should throw error when email confirmation code is incorrect for user email verification', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     user.email = 'test@example.com';
     user.emailConfirmed = false;
     await user.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    const token = await generateConfirmationEmailToken(user.id);
-    user.emailConfirmationToken = token;
-    await user.save();
-    await sleep(500); // Simulating token expiration or invalidity
-
-    const result = await axios.post(
+    await axios.post(
       graphqlUrl,
       {
-        query: userVerificationConfirmEmail,
+        query: userVerificationSendEmailConfirmation,
         variables: {
-          emailConfirmationToken: token,
+          userId: user.id,
         },
       },
       {
@@ -822,12 +835,467 @@ function userVerificationConfirmEmailTestCases() {
       },
     );
 
-    assert.equal(result.data.errors[0].message, 'jwt expired');
-    const userReinitializedEmailParams = await findUserById(user.id);
+    const incorrectCode = '123456'; // This code is incorrect
 
-    assert.isFalse(userReinitializedEmailParams!.emailConfirmed);
-    assert.isFalse(userReinitializedEmailParams!.emailConfirmationSent);
-    assert.isNotOk(userReinitializedEmailParams!.emailConfirmationSentAt);
-    assert.isNull(userReinitializedEmailParams!.emailConfirmationToken);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationConfirmEmail,
+        variables: {
+          userId: user.id,
+          emailConfirmationCode: incorrectCode,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(result.data.errors[0].message, errorMessages.INCORRECT_CODE);
+  });
+
+  it('should throw error when email confirmation code is expired for user email verification', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.email = 'test@example.com';
+    user.emailConfirmed = false;
+    const userID = (await user.save()).id;
+
+    const accessToken = await generateTestAccessToken(user.id);
+    await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationSendEmailConfirmation,
+        variables: {
+          userId: user.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    // Simulate expiration
+    await UserEmailVerification.update(
+      { userId: userID },
+      { emailVerificationCodeExpiredAt: new Date(Date.now() - 10000) },
+    );
+
+    const emailVerificationFields =
+      await getUserEmailConfirmationFields(userID);
+    const expiredCode = emailVerificationFields?.emailVerificationCode;
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userVerificationConfirmEmail,
+        variables: {
+          userId: user.id,
+          emailConfirmationCode: expiredCode,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(result.data.errors[0].message, errorMessages.CODE_EXPIRED);
+  });
+}
+
+function checkUserPrivadoVerfiedStateTestCases() {
+  afterEach(() => {
+    sinon.restore();
+  });
+  it('should return true if user has request ID in privadoVerifiedRequestIds', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.privadoVerifiedRequestIds = [1, 2, 3];
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 2);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userByAddress,
+        variables: {
+          address: user.walletAddress,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result.data.data.userByAddress);
+    assert.isTrue(result.data.data.userByAddress.privadoVerified);
+  });
+
+  it('should return false if the user does not has request privadoVerifiedRequestIds', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.privadoVerifiedRequestIds = [1, 2, 3];
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 4);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userByAddress,
+        variables: {
+          address: user.walletAddress,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result.data.data.userByAddress);
+    assert.isFalse(result.data.data.userByAddress.privadoVerified);
+  });
+
+  it('should add request ID to privadoVerifiedRequestIds if user is verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.privadoVerifiedRequestIds = [1, 2, 3];
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    sinon.stub(privadoAdapter, 'checkVerificationOnchain').resolves(true);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 4);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: checkUserPrivadoVerifiedState,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.checkUserPrivadoVerifiedState);
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
+    assert.isTrue(updatedUser?.privadoVerifiedRequestIds.includes(4));
+  });
+
+  it('should not add request ID to privadoVerifiedRequestIds if user is not verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.privadoVerifiedRequestIds = [1, 2, 3];
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    sinon.stub(privadoAdapter, 'checkVerificationOnchain').resolves(false);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 4);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: checkUserPrivadoVerifiedState,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isFalse(result.data.data.checkUserPrivadoVerifiedState);
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
+    assert.isFalse(updatedUser?.privadoVerifiedRequestIds.includes(4));
+  });
+
+  it('should not change privadoVerifiedRequestIds if user is already verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const userVeriviedRequestIds = [1, 2, 3];
+    user.privadoVerifiedRequestIds = userVeriviedRequestIds;
+    await user.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    sinon.stub(privadoAdapter, 'checkVerificationOnchain').resolves(true);
+    sinon.stub(PrivadoAdapter, 'privadoRequestId').get(() => 2);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: checkUserPrivadoVerifiedState,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.checkUserPrivadoVerifiedState);
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
+    assert.isNotNull(updatedUser);
+    assert.deepEqual(
+      updatedUser?.privadoVerifiedRequestIds,
+      userVeriviedRequestIds,
+    );
+  });
+}
+
+function acceptedTermsOfServicesTestCases() {
+  it("should return true and set user's accepted terms of service with privado approved", async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+    });
+
+    const accessToken = await generateTestAccessToken(user.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: acceptedTermsOfService,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result.data.data.acceptedTermsOfService);
+    assert.isTrue(result.data.data.acceptedTermsOfService);
+
+    const updatedUser = await User.findOne({
+      where: { walletAddress: user.walletAddress },
+    });
+    assert.isTrue(updatedUser?.acceptedToS);
+  });
+
+  it('should return false without privado approval', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: acceptedTermsOfService,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result.data.data);
+    assert.isFalse(result.data.data.acceptedTermsOfService);
+
+    const updatedUser = await User.findOne({
+      where: { walletAddress: user.walletAddress },
+    });
+    assert.isNotTrue(updatedUser?.acceptedToS);
+  });
+
+  it('should not return true `acceptedToS` for users have not accepted terms of service on userByAddress query', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const fetchUserResponse = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: user.walletAddress,
+      },
+    });
+
+    assert.isOk(fetchUserResponse.data.data.userByAddress);
+    assert.isNotTrue(fetchUserResponse.data.data.userByAddress.acceptedToS);
+  });
+
+  it('should return true for users have accepted terms of service', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+    });
+    const accessToken = await generateTestAccessToken(user.id);
+
+    await axios.post(
+      graphqlUrl,
+      {
+        query: acceptedTermsOfService,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const fetchUserResponse = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: user.walletAddress,
+      },
+    });
+
+    assert.isOk(fetchUserResponse.data.data.userByAddress);
+    assert.isTrue(fetchUserResponse.data.data.userByAddress.acceptedToS);
+  });
+}
+
+function batchMintingEligibleUsersTestCases() {
+  const DAY = 86400000;
+  beforeEach(async () => {
+    // clear all users not empty accepted terms of service
+    await User.delete({ acceptedToS: true });
+  });
+
+  it('should return empty array if there is no user to mint', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, []);
+  });
+
+  it('should return users who have accepted terms of service and privado verified', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      // 2 days ago
+      acceptedToSDate: new Date(Date.now() - DAY * 2),
+    });
+
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      // yesterday
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user1.walletAddress,
+      user2.walletAddress,
+    ]);
+  });
+
+  it('should not return users who have not accepted terms of service but have privado verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user.walletAddress,
+    ]);
+  });
+
+  it('should not return users who have accepted terms of service but have not privado verified', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user1.walletAddress,
+    ]);
+  });
+
+  it('should implement pagination', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY * 3),
+    });
+
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY * 2),
+    });
+
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    let result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+      variables: {
+        limit: 2,
+        skip: 0,
+      },
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user1.walletAddress,
+      user2.walletAddress,
+    ]);
+
+    result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+      variables: {
+        limit: 2,
+        skip: 2,
+      },
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user3.walletAddress,
+    ]);
   });
 }

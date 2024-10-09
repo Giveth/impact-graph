@@ -102,5 +102,5 @@ export function getAppropriateNetworkId(params: {
 
 // This function is used to compare two numbers with a delta as a margin of error
 export const closeTo = (a: number, b: number, delta = 0.001) => {
-  return Math.abs(a - b) < delta;
+  return Math.abs(1 - a / b) < delta;
 };

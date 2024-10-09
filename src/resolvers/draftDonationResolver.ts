@@ -18,6 +18,7 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import qacc from '../utils/qacc';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
@@ -114,6 +115,14 @@ export class DraftDonationResolver {
 
       toAddress = toAddress?.toLowerCase();
       fromAddress = fromAddress?.toLowerCase();
+
+      await qacc.validateDonation({
+        projectId,
+        networkId,
+        tokenSymbol: token,
+        userAddress: donorUser.walletAddress!,
+        amount,
+      });
 
       const draftDonationId = await DraftDonation.createQueryBuilder(
         'draftDonation',

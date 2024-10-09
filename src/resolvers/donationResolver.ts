@@ -26,7 +26,7 @@ import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
   getDonationToGivethWithDonationBoxMetrics,
-  isTokenAcceptableForProject,
+  // isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
 } from '../services/donationService';
@@ -70,9 +70,10 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import qacc from '../utils/qacc';
+import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
-
 @ObjectType()
 class PaginateDonations {
   @Field(_type => [Donation], { nullable: true })
@@ -264,7 +265,8 @@ export class DonationResolver {
         .leftJoin('donation.user', 'user')
         .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project')
-        .leftJoinAndSelect('project.categories', 'categories');
+        .leftJoinAndSelect('project.categories', 'categories')
+        .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound');
 
       if (fromDate) {
         query.andWhere(`donation."createdAt" >= '${fromDate}'`);
@@ -502,6 +504,7 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .getMany();
   }
 
@@ -521,6 +524,7 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .getMany();
   }
 
@@ -557,7 +561,9 @@ export class DonationResolver {
       .createQueryBuilder('donation')
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .addSelect(publicSelectionFields)
+      .where(`donation.projectId = :projectId`, { projectId })
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
@@ -586,6 +592,9 @@ export class DonationResolver {
             },
           )
             .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            })
+            .orWhere('donation.fromWalletAddress ILIKE :searchTerm', {
               searchTerm: `%${searchTerm}%`,
             })
             .orWhere('donation.currency ILIKE :searchTerm', {
@@ -627,6 +636,7 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .getMany();
   }
 
@@ -641,6 +651,7 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
+      .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
       .where(`donation.userId = ${userId}`)
       .orderBy(
         `donation.${orderBy.field}`,
@@ -762,6 +773,15 @@ export class DonationResolver {
           ),
         );
       }
+
+      await qacc.validateDonation({
+        projectId,
+        networkId,
+        tokenSymbol: token,
+        userAddress: donorUser.walletAddress!,
+        amount,
+      });
+
       const tokenInDb = await Token.findOne({
         where: {
           networkId,
@@ -769,23 +789,24 @@ export class DonationResolver {
         },
       });
       const isCustomToken = !tokenInDb;
-      let isTokenEligibleForGivback = false;
-      if (isCustomToken && !project.organization.supportCustomTokens) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
-      } else if (tokenInDb) {
-        const acceptsToken = await isTokenAcceptableForProject({
-          projectId,
-          tokenId: tokenInDb.id,
-        });
-        if (!acceptsToken && !project.organization.supportCustomTokens) {
-          throw new Error(
-            i18n.__(
-              translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
-            ),
-          );
-        }
-        isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
-      }
+      const isTokenEligibleForGivback = false;
+      // if (isCustomToken && !project.organization.supportCustomTokens) {
+      //   throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
+      // } else if (tokenInDb) {
+      //   const acceptsToken = await isTokenAcceptableForProject({
+      //     projectId,
+      //     tokenId: tokenInDb.id,
+      //   });
+      //   if (!acceptsToken && !project.organization.supportCustomTokens) {
+      //     throw new Error(
+      //       i18n.__(
+      //         translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+      //       ),
+      //     );
+      //   }
+      //   isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
+      // }
+
       const projectRelatedAddress =
         await findProjectRecipientAddressByNetworkId({
           projectId,
@@ -866,30 +887,37 @@ export class DonationResolver {
           logger.error('get chainvine wallet address error', e);
         }
       }
-      const activeQfRoundForProject =
-        await relatedActiveQfRoundForProject(projectId);
-      if (
-        activeQfRoundForProject &&
-        activeQfRoundForProject.isEligibleNetwork(networkId)
-      ) {
-        donation.qfRound = activeQfRoundForProject;
-      }
-      if (draftDonationEnabled && draftDonationId) {
-        const draftDonation = await DraftDonation.findOne({
-          where: { id: draftDonationId, status: DRAFT_DONATION_STATUS.MATCHED },
-          select: ['matchedDonationId'],
-        });
-        if (draftDonation?.createdAt) {
-          // Because if we dont set it donation createdAt might be later than tx.time and that will make a problem on verifying donation
-          // and would fail it
-          donation.createdAt = draftDonation?.createdAt;
+      if (!(await qacc.isEarlyAccessRound())) {
+        const activeQfRoundForProject =
+          await relatedActiveQfRoundForProject(projectId);
+        if (
+          activeQfRoundForProject &&
+          activeQfRoundForProject.isEligibleNetwork(networkId)
+        ) {
+          donation.qfRound = activeQfRoundForProject;
         }
-        if (draftDonation?.matchedDonationId) {
-          return draftDonation.matchedDonationId;
+        if (draftDonationEnabled && draftDonationId) {
+          const draftDonation = await DraftDonation.findOne({
+            where: {
+              id: draftDonationId,
+              status: DRAFT_DONATION_STATUS.MATCHED,
+            },
+            select: ['matchedDonationId'],
+          });
+          if (draftDonation?.createdAt) {
+            // Because if we dont set it donation createdAt might be later than tx.time and that will make a problem on verifying donation
+            // and would fail it
+            donation.createdAt = draftDonation?.createdAt;
+          }
+          if (draftDonation?.matchedDonationId) {
+            return draftDonation.matchedDonationId;
+          }
         }
+        await donation.save();
+      } else {
+        donation.earlyAccessRound = await findActiveEarlyAccessRound();
+        await donation.save();
       }
-      await donation.save();
-
       let priceChainId;
 
       switch (transactionNetworkId) {

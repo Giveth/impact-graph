@@ -10,9 +10,10 @@ export class AppDataSource {
 
   static async initialize(_overrideDrop?: boolean) {
     if (!AppDataSource.datasource) {
+      const isTestEnv = (config.get('ENVIRONMENT') as string) === 'test';
       const dropSchema =
         _overrideDrop ?? config.get('DROP_DATABASE') === 'true';
-      const synchronize = (config.get('ENVIRONMENT') as string) === 'test';
+      const synchronize = isTestEnv;
       const entities = getEntities();
       const poolSize = Number(process.env.TYPEORM_DATABASE_POOL_SIZE) || 10; // 10 is the default value
       const slaves: PostgresConnectionCredentialsOptions[] = [];
@@ -45,13 +46,16 @@ export class AppDataSource {
         dropSchema,
         logger: 'advanced-console',
         logging: ['error'],
-        cache: {
-          type: 'redis',
-          options: {
-            ...redisConfig,
-            db: 1, // Query Caching
-          },
-        },
+        ssl: config.get('TYPEORM_DISABLE_SSL') === 'true' ? false : undefined, // use default in case it's not set
+        cache: isTestEnv
+          ? false
+          : {
+              type: 'redis',
+              options: {
+                ...redisConfig,
+                db: 1, // Query Caching
+              },
+            },
         poolSize,
         extra: {
           maxWaitingClients: 10,

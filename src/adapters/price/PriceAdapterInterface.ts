@@ -5,7 +5,7 @@ export interface GetTokenPriceParams {
 
 export interface GetTokenPriceAtDateParams {
   symbol: string;
-  date: string;
+  date: Date;
 }
 
 export interface PriceAdapterInterface {

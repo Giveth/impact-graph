@@ -55,7 +55,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: givethio
+          POSTGRES_DB: qacc
           PGDATA: /var/lib/postgresql/data/pgdata
         options: >-
           --health-cmd pg_isready
@@ -119,6 +119,7 @@ jobs:
           SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
           SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
           MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
+          PRIVADO_VERIFIER_NETWORK_ID: ${{ secrets.PRIVADO_VERIFIER_NETWORK_ID }}
 
   publish:
     needs: test

@@ -1,0 +1,23 @@
+name: Run Inverter Sync Script
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # Runs at midnight every Monday
+  workflow_dispatch: # This allows manual triggering
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into Server and Run Inverter Sync Script
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            docker compose -f docker-compose-staging.yml exec qacc-be npm run sync:inverter:production
+            docker compose -f docker-compose-staging.yml logs qacc-be

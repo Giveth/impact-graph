@@ -47,11 +47,11 @@ function fillQfRoundHistoryTestCases() {
     firstProject = await saveProjectDirectlyToDb(createProjectData());
     secondProject = await saveProjectDirectlyToDb(createProjectData());
 
-    firstProject.qfRounds = [qfRound];
-    secondProject.qfRounds = [qfRound];
+    // firstProject.qfRounds = [qfRound];
+    // secondProject.qfRounds = [qfRound];
 
-    await firstProject.save();
-    await secondProject.save();
+    // await firstProject.save();
+    // await secondProject.save();
   });
 
   afterEach(async () => {
@@ -346,11 +346,11 @@ function getQfRoundHistoriesThatDontHaveRelatedDonationsTestCases() {
     firstProject = await saveProjectDirectlyToDb(createProjectData());
     secondProject = await saveProjectDirectlyToDb(createProjectData());
 
-    firstProject.qfRounds = [qfRound];
-    secondProject.qfRounds = [qfRound];
+    // firstProject.qfRounds = [qfRound];
+    // secondProject.qfRounds = [qfRound];
 
-    await firstProject.save();
-    await secondProject.save();
+    // await firstProject.save();
+    // await secondProject.save();
   });
 
   afterEach(async () => {

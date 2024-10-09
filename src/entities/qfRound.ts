@@ -9,6 +9,7 @@ import {
   CreateDateColumn,
   Index,
   OneToMany,
+  AfterLoad,
 } from 'typeorm';
 import { Project } from './project';
 import { Donation } from './donation';
@@ -19,6 +20,11 @@ export class QfRound extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Field({ nullable: true })
+  @Column('integer', { nullable: true })
+  @Index({ unique: true })
+  roundNumber?: number;
 
   @Field({ nullable: true })
   @Column('text', { nullable: true })
@@ -101,6 +107,10 @@ export class QfRound extends BaseEntity {
   @Column({ default: false })
   isDataAnalysisDone: boolean;
 
+  @Field({ nullable: true })
+  @Column({ type: 'float', nullable: true })
+  tokenPrice?: number;
+
   @UpdateDateColumn()
   updatedAt: Date;
 
@@ -113,11 +123,42 @@ export class QfRound extends BaseEntity {
   @OneToMany(_type => Donation, donation => donation.qfRound)
   donations: Donation[];
 
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundUSDCapPerProject?: number;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundUSDCloseCapPerProject?: number;
+
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundUSDCapPerUserPerProject?: number;
+
+  // Virtual fields for cumulative caps
+  @Field(() => Float, { nullable: true })
+  cumulativeUSDCapPerProject?: number;
+
+  @Field(() => Float, { nullable: true })
+  cumulativeUSDCapPerUserPerProject?: number;
+
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {
     // when not specified, all are valid
     if (this.eligibleNetworks.length === 0) return true;
 
     return this.eligibleNetworks.includes(donationNetworkId);
+  }
+
+  @AfterLoad()
+  async calculateCumulativeCaps() {
+    if (this.roundNumber === 1) {
+      this.cumulativeUSDCapPerProject = this.roundUSDCapPerProject || 0;
+      this.cumulativeUSDCapPerUserPerProject =
+        this.roundUSDCapPerUserPerProject || 0;
+    } else {
+      this.cumulativeUSDCapPerProject = 0;
+      this.cumulativeUSDCapPerUserPerProject = 0;
+    }
   }
 }

@@ -1,6 +1,5 @@
 import { SelectQueryBuilder } from 'typeorm';
 import { ActionContext } from 'adminjs';
-import moment from 'moment';
 import {
   Donation,
   DONATION_STATUS,
@@ -279,7 +278,7 @@ export const FillPricesForDonationsWithoutPrice = async () => {
       const token = await Token.findOneBy({ symbol: donation.currency });
       if (!token || !token.coingeckoId) continue;
       const price = await coingeckoAdapter.getTokenPriceAtDate({
-        date: moment(donation.createdAt).format('DD-MM-YYYY'),
+        date: donation.createdAt,
         symbol: token.coingeckoId,
       });
       donation.valueUsd = donation.amount * price;

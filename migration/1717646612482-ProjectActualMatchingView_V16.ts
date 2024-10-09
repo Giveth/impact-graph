@@ -180,5 +180,11 @@ export class ProjectActualMatchingViewV161717646612482
     `);
   }
 
-  public async down(_queryRunner: QueryRunner): Promise<void> {}
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `
+            DROP MATERIALIZED VIEW project_actual_matching_view;
+          `,
+    );
+  }
 }

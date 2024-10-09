@@ -31,11 +31,16 @@ import { ProjectFraud } from './projectFraud';
 import { ProjectActualMatchingView } from './ProjectActualMatchingView';
 import { ProjectSocialMedia } from './projectSocialMedia';
 import { UserQfRoundModelScore } from './userQfRoundModelScore';
+import { UserEmailVerification } from './userEmailVerification';
+import { EarlyAccessRound } from './earlyAccessRound';
+import { ProjectRoundRecord } from './projectRoundRecord';
+import { ProjectUserRecord } from './projectUserRecord';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
     Organization,
     User,
+    UserEmailVerification,
     ReferredEvent,
     Project,
 
@@ -74,5 +79,8 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     Sybil,
     ProjectFraud,
     UserQfRoundModelScore,
+    EarlyAccessRound,
+    ProjectRoundRecord,
+    ProjectUserRecord,
   ];
 };

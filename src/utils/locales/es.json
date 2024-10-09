@@ -77,6 +77,7 @@
   "INVALID_WALLET_ADDRESS": "Dirección no válida",
   "INVALID_EMAIL": "Correo electrónico no válido",
   "UN_AUTHORIZED": "Sin autorización",
+  "NOT_NFT_HOLDER": "El usuario no es titular de NFT",
   "BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY": "Tanto el nombre como el apellido no pueden estar vacíos",
   "FIRSTNAME_CANT_BE_EMPTY_STRING": "El nombre no puede ser una cadena de texto vacía",
   "LASTNAME_CANT_BE_EMPTY_STRING": "El apellido no puede ser una cadena de texto vacía",
@@ -98,6 +99,14 @@
   "PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED": "El contenido es demasiado largo",
   "DRAFT_DONATION_DISABLED": "El borrador de donación está deshabilitado",
   "EVM_SUPPORT_ONLY": "Solo se admite EVM",
-
-  "NO_EMAIL_PROVIDED": "No se ha proporcionado una dirección de correo electrónico."
+  "ABC_NOT_FOUND": "ABC no encontrado",
+  "NO_EMAIL_PROVIDED": "No se ha proporcionado una dirección de correo electrónico.",
+  "INCORRECT_CODE": "El código de verificación que ingresaste es incorrecto.",
+  "NO_EMAIL_VERIFICATION_DATA": "No se encontraron datos de verificación de correo electrónico.",
+  "CODE_EXPIRED": "El código de verificación ha expirado. Por favor, solicita un nuevo código.",
+  "FULL_NAME_CAN_NOT_BE_EMPTY": "El nombre completo no puede estar vacío.",
+  "EXCEED_QACC_CAP": "Excede el límite de QACC",
+  "ROUND_NOT_FOUND": "Ronda no encontrada",
+  "ROUND_HAS_NOT_STARTED": "La ronda no ha comenzado",
+  "NO_ROUND_SPECIFIED": "No se ha especificado ninguna ronda"
 }

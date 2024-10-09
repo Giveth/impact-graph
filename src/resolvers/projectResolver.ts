@@ -52,7 +52,6 @@ import {
 } from '../utils/errorMessages';
 import {
   canUserVisitProject,
-  validateProjectRelatedAddresses,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
@@ -73,9 +72,7 @@ import {
   findProjectRecipientAddressByProjectId,
   getPurpleListAddresses,
   isWalletAddressInPurpleList,
-  removeRecipientAddressOfProject,
 } from '../repositories/projectAddressRepository';
-import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
@@ -85,8 +82,11 @@ import {
   totalProjectsPerDateByMonthAndYear,
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { NETWORK_IDS } from '../provider';
+import {
+  getAbcLauncherAdapter,
+  getNotificationAdapter,
+} from '../adapters/adaptersFactory';
+import { NETWORK_IDS, QACC_NETWORK_ID } from '../provider';
 import { getVerificationFormStatusByProjectId } from '../repositories/projectVerificationRepository';
 import {
   resourcePerDateReportValidator,
@@ -109,6 +109,17 @@ import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
 } from '../repositories/projectSocialMediaRepository';
+import {
+  QACC_DONATION_TOKEN_ADDRESS,
+  QACC_DONATION_TOKEN_SYMBOL,
+} from '../constants/qacc';
+import { ProjectRoundRecord } from '../entities/projectRoundRecord';
+import {
+  getProjectRoundRecord,
+  updateOrCreateProjectRoundRecord,
+} from '../repositories/projectRoundRecordRepository';
+import { QfRound } from '../entities/qfRound';
+import { EarlyAccessRound } from '../entities/earlyAccessRound';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -262,6 +273,12 @@ class GetProjectsArgs {
 
   @Field(_type => String, { nullable: true })
   qfRoundSlug?: string;
+
+  @Field(_type => Boolean, { nullable: true })
+  includeAllProjectStatuses?: boolean;
+
+  @Field(_type => Boolean, { nullable: true })
+  includeAllReviewStatuses?: boolean;
 }
 
 @ObjectType()
@@ -1009,8 +1026,11 @@ export class ProjectResolver {
 
   @Mutation(_returns => Project)
   async updateProject(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Arg('projectId') projectId: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Arg('newProjectData') newProjectData: UpdateProjectInput,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     if (!user)
@@ -1018,8 +1038,6 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
     const { image } = newProjectData;
-
-    // const project = await Project.findOne({ id: projectId });
     const project = await findProjectById(projectId);
 
     if (!project)
@@ -1034,48 +1052,48 @@ export class ProjectResolver {
       );
 
     for (const field in newProjectData) {
-      if (field === 'addresses' || field === 'socialMedia') {
-        // We will take care of addresses and relations manually
+      if (field === 'address' || field === 'socialMedia') {
+        // We will take care of address and relations manually
         continue;
       }
       project[field] = newProjectData[field];
     }
 
-    if (!newProjectData.categories) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-        ),
-      );
-    }
+    // if (!newProjectData.categories) {
+    //   throw new Error(
+    //     i18n.__(
+    //       translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    //     ),
+    //   );
+    // }
 
-    const categoriesPromise = newProjectData.categories.map(async category => {
-      const [c] = await this.categoryRepository.find({
-        where: {
-          name: category,
-          isActive: true,
-          canUseOnFrontend: true,
-        },
-      });
-      if (!c) {
-        throw new Error(
-          i18n.__(
-            translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-          ),
-        );
-      }
-      return c;
-    });
+    // const categoriesPromise = newProjectData.categories.map(async category => {
+    //   const [c] = await this.categoryRepository.find({
+    //     where: {
+    //       name: category,
+    //       isActive: true,
+    //       canUseOnFrontend: true,
+    //     },
+    //   });
+    //   if (!c) {
+    //     throw new Error(
+    //       i18n.__(
+    //         translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    //       ),
+    //     );
+    //   }
+    //   return c;
+    // });
 
-    const categories = await Promise.all(categoriesPromise);
-    if (categories.length > 5) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
-        ),
-      );
-    }
-    project.categories = categories;
+    // const categories = await Promise.all(categoriesPromise);
+    // if (categories.length > 5) {
+    //   throw new Error(
+    //     i18n.__(
+    //       translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+    //     ),
+    //   );
+    // }
+    // project.categories = categories;
 
     const heartCount = await Reaction.count({ where: { projectId } });
 
@@ -1086,33 +1104,37 @@ export class ProjectResolver {
     );
     if (newProjectData.title) {
       await validateProjectTitleForEdit(newProjectData.title, projectId);
+      const slugBase = creteSlugFromProject(newProjectData.title);
+      if (!slugBase) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
+        );
+      }
+      const newSlug = await getAppropriateSlug(slugBase, projectId);
+      if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
+        // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
+        project.slugHistory?.push(project.slug as string);
+      }
+      project.slug = newSlug;
     }
 
-    if (newProjectData.addresses) {
-      await validateProjectRelatedAddresses(
-        newProjectData.addresses,
-        projectId,
-      );
-    }
-    const slugBase = creteSlugFromProject(newProjectData.title);
-    if (!slugBase) {
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
-      );
-    }
-    const newSlug = await getAppropriateSlug(slugBase, projectId);
-    if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
-      // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
-      project.slugHistory?.push(project.slug as string);
-    }
+    // if (newProjectData.addresses) {
+    //   await validateProjectRelatedAddresses(
+    //     newProjectData.addresses,
+    //     projectId,
+    //   );
+    // }
     if (image !== undefined) {
       project.image = image;
     }
-    project.slug = newSlug;
     project.qualityScore = qualityScore;
     project.updatedAt = new Date();
-    project.listed = null;
-    project.reviewStatus = ReviewStatus.NotReviewed;
+    project.listed = true;
+    project.reviewStatus = ReviewStatus.Listed;
+
+    // if (newProjectData.icon !== undefined) {
+    //   project.icon = newProjectData.icon;
+    // }
 
     await project.save();
     await project.reload();
@@ -1134,36 +1156,36 @@ export class ProjectResolver {
       }
     }
 
-    const adminUser = (await findUserById(project.adminUserId)) as User;
-    if (newProjectData.addresses) {
-      await removeRecipientAddressOfProject({ project });
-      await addBulkNewProjectAddress(
-        newProjectData?.addresses.map(relatedAddress => {
-          return {
-            project,
-            user: adminUser,
-            address: relatedAddress.address,
-            chainType: relatedAddress.chainType,
+    // const adminUser = (await findUserById(project.adminUserId)) as User;
+    // if (newProjectData.addresses) {
+    //   await removeRecipientAddressOfProject({ project });
+    //   await addBulkNewProjectAddress(
+    //     newProjectData?.addresses.map(relatedAddress => {
+    //       return {
+    //         project,
+    //         user: adminUser,
+    //         address: relatedAddress.address,
+    //         chainType: relatedAddress.chainType,
 
-            // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
-            networkId: getAppropriateNetworkId({
-              networkId: relatedAddress.networkId,
-              chainType: relatedAddress.chainType,
-            }),
+    //         // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
+    //         networkId: getAppropriateNetworkId({
+    //           networkId: relatedAddress.networkId,
+    //           chainType: relatedAddress.chainType,
+    //         }),
 
-            isRecipient: true,
-          };
-        }),
-      );
-    }
+    //         isRecipient: true,
+    //       };
+    //     }),
+    //   );
+    // }
 
-    project.adminUser = adminUser;
-    project.addresses = await findProjectRecipientAddressByProjectId({
-      projectId,
-    });
+    // project.adminUser = adminUser;
+    // project.addresses = await findProjectRecipientAddressByProjectId({
+    //   projectId,
+    // });
 
-    // Edit emails
-    await getNotificationAdapter().projectEdited({ project });
+    // // Edit emails
+    // await getNotificationAdapter().projectEdited({ project });
 
     return project;
   }
@@ -1298,48 +1320,52 @@ export class ProjectResolver {
 
     const qualityScore = getQualityScore(description, Boolean(image), 0);
 
-    if (!projectInput.categories) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-        ),
-      );
-    }
+    // if (!projectInput.categories) {
+    //   throw new Error(
+    //     i18n.__(
+    //       translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    //     ),
+    //   );
+    // }
 
     // We do not create categories only use existing ones
-    const categories = await Promise.all(
-      projectInput.categories
-        ? projectInput.categories.map(async category => {
-            const [c] = await this.categoryRepository.find({
-              where: {
-                name: category,
-                isActive: true,
-                canUseOnFrontend: true,
-              },
-            });
-            if (!c) {
-              throw new Error(
-                i18n.__(
-                  translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-                ),
-              );
-            }
-            return c;
-          })
-        : [],
-    );
+    // const categories = await Promise.all(
+    //   projectInput.categories
+    //     ? projectInput.categories.map(async category => {
+    //         const [c] = await this.categoryRepository.find({
+    //           where: {
+    //             name: category,
+    //             isActive: true,
+    //             canUseOnFrontend: true,
+    //           },
+    //         });
+    //         if (!c) {
+    //           throw new Error(
+    //             i18n.__(
+    //               translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    //             ),
+    //           );
+    //         }
+    //         return c;
+    //       })
+    //     : [],
+    // );
 
-    if (categories.length > 5) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
-        ),
-      );
+    // if (categories.length > 5) {
+    //   throw new Error(
+    //     i18n.__(
+    //       translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+    //     ),
+    //   );
+    // }
+
+    const abcLauncherAdapter = getAbcLauncherAdapter();
+    const abc = await abcLauncherAdapter.getProjectAbcLaunchData(
+      projectInput.address,
+    );
+    if (!abc) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.ABC_NOT_FOUND));
     }
-
-    await validateProjectRelatedAddresses(
-      projectInput.addresses as RelatedAddressInputType[],
-    );
     await validateProjectTitle(projectInput.title);
     const slugBase = creteSlugFromProject(projectInput.title);
     if (!slugBase) {
@@ -1349,6 +1375,7 @@ export class ProjectResolver {
     }
     const slug = await getAppropriateSlug(slugBase);
 
+    // if we don't get isDraft, we set the status to active
     const status = await this.projectStatusRepository.findOne({
       where: {
         id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
@@ -1385,7 +1412,8 @@ export class ProjectResolver {
 
     const project = Project.create({
       ...projectInput,
-      categories: categories as Category[],
+      abc,
+      categories: [],
       organization: organization as Organization,
       image,
       creationDate: now,
@@ -1402,6 +1430,9 @@ export class ProjectResolver {
       verified: false,
       giveBacks: false,
       adminUser: user,
+      // make project listed by default
+      listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
 
     await project.save();
@@ -1423,8 +1454,9 @@ export class ProjectResolver {
     // const adminUser = (await findUserById(Number(newProject.admin))) as User;
     // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
-      projectInput?.addresses.map(relatedAddress => {
-        const { networkId, address, chainType } = relatedAddress;
+      [projectInput?.address].map(address => {
+        const networkId = QACC_NETWORK_ID;
+        const chainType = ChainType.EVM;
         return {
           project,
           user,
@@ -1673,29 +1705,37 @@ export class ProjectResolver {
 
   @Query(_returns => [Token])
   async getProjectAcceptTokens(
-    @Arg('projectId') projectId: number,
+    @Arg('projectId', { nullable: true }) _projectId: number,
   ): Promise<Token[]> {
     try {
-      const organization = await Organization.createQueryBuilder('organization')
-        .innerJoin(
-          'organization.projects',
-          'project',
-          'project.id = :projectId',
-          { projectId },
-        )
-        .leftJoinAndSelect('organization.tokens', 'tokens')
-        .leftJoin(
-          'project_address',
-          'pa',
-          'pa.projectId = project.id AND pa.isRecipient = true',
-        )
-        .andWhere('pa.networkId = tokens.networkId')
-        .getOne();
-
-      if (!organization) {
-        return [];
-      }
-      return sortTokensByOrderAndAlphabets(organization.tokens);
+      // const organization = await Organization.createQueryBuilder('organization')
+      //   .innerJoin(
+      //     'organization.projects',
+      //     'project',
+      //     'project.id = :projectId',
+      //     { projectId },
+      //   )
+      //   .leftJoinAndSelect('organization.tokens', 'tokens')
+      //   .leftJoin(
+      //     'project_address',
+      //     'pa',
+      //     'pa.projectId = project.id AND pa.isRecipient = true',
+      //   )
+      //   .andWhere('pa.networkId = tokens.networkId')
+      //   .getOne();
+      //
+      // if (!organization) {
+      //   return [];
+      // }
+      // return sortTokensByOrderAndAlphabets(organization.tokens);
+      const filteredTokens = await Token.find({
+        where: {
+          networkId: QACC_NETWORK_ID,
+          address: QACC_DONATION_TOKEN_ADDRESS,
+          symbol: QACC_DONATION_TOKEN_SYMBOL,
+        },
+      });
+      return sortTokensByOrderAndAlphabets(filteredTokens);
     } catch (e) {
       logger.error('getProjectAcceptTokens error', e);
       throw e;
@@ -2128,8 +2168,8 @@ export class ProjectResolver {
         user,
       });
 
-      project.listed = null;
-      project.reviewStatus = ReviewStatus.NotReviewed;
+      project.listed = true;
+      project.reviewStatus = ReviewStatus.Listed;
 
       await project.save();
 
@@ -2148,5 +2188,58 @@ export class ProjectResolver {
       SentryLogger.captureException(error);
       throw error;
     }
+  }
+
+  @Query(_returns => [ProjectRoundRecord])
+  async getProjectRoundRecords(
+    @Arg('projectId', _type => Int) projectId: number,
+    @Arg('qfRoundNumber', _type => Int, { nullable: true })
+    qfRoundNumber?: number,
+    @Arg('earlyAccessRoundNumber', _type => Int, { nullable: true })
+    earlyAccessRoundNumber?: number,
+  ): Promise<ProjectRoundRecord[]> {
+    let qfRoundId;
+    let earlyAccessRoundId;
+
+    if (qfRoundNumber) {
+      const qfRound = await QfRound.findOne({
+        where: { roundNumber: qfRoundNumber },
+        select: ['id', 'beginDate', 'endDate'],
+        loadEagerRelations: false,
+      });
+      if (!qfRound) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.ROUND_NOT_FOUND));
+      }
+      qfRoundId = qfRound.id;
+    }
+
+    if (earlyAccessRoundNumber) {
+      const earlyAccessRound = await EarlyAccessRound.findOne({
+        where: { roundNumber: earlyAccessRoundNumber },
+        select: ['id', 'startDate', 'endDate'],
+        loadEagerRelations: false,
+      });
+      if (!earlyAccessRound) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.ROUND_NOT_FOUND));
+      }
+      earlyAccessRoundId = earlyAccessRound.id;
+    }
+
+    const records = await getProjectRoundRecord(
+      projectId,
+      qfRoundId,
+      earlyAccessRoundId,
+    );
+
+    if (records.length === 0 && (qfRoundNumber || earlyAccessRoundNumber)) {
+      const record = await updateOrCreateProjectRoundRecord(
+        projectId,
+        qfRoundId,
+        earlyAccessRoundId,
+      );
+      return [record];
+    }
+
+    return records;
   }
 }

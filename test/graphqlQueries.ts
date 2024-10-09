@@ -98,6 +98,7 @@ export const createProjectQuery = `
         listed
         reviewStatus
         verified
+        icon
         organization {
           id
           name
@@ -123,6 +124,25 @@ export const createProjectQuery = `
           email
           walletAddress
         }
+        teamMembers {
+          name
+          image
+          twitter
+          linkedin
+          farcaster
+        }
+        abc {
+          tokenName
+          tokenTicker
+          issuanceTokenAddress
+          fundingManagerAddress
+          icon
+          orchestratorAddress
+          projectAddress
+          creatorAddress
+          nftContractAddress
+          chainId
+        }
       }
   }
   `;
@@ -144,6 +164,8 @@ export const updateProjectQuery = `
       adminUserId
       walletAddress
       impactLocation
+      icon
+      teaser
       categories {
         name
       }
@@ -158,6 +180,22 @@ export const updateProjectQuery = `
         name
         email
         walletAddress
+      }
+      teamMembers {
+        name
+        image
+        twitter
+        linkedin
+        farcaster
+      }
+      abc {
+        tokenName
+        tokenTicker
+        issuanceTokenAddress
+        fundingManagerAddress
+        icon
+        orchestratorAddress
+        projectAddress
       }
     }
   }
@@ -730,8 +768,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       qfRoundId: $qfRoundId
       qfRoundSlug: $qfRoundSlug
     ) {
-    
-      campaign{
+      campaign {
         slug
         title
       }
@@ -803,10 +840,10 @@ export const fetchMultiFilterAllProjectsQuery = `
         sumDonationValueUsdForActiveQfRound
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
-        estimatedMatching{
-           projectDonationsSqrtRootSum
-           allProjectsSum
-           matchingPool
+        estimatedMatching {
+          projectDonationsSqrtRootSum
+          allProjectsSum
+          matchingPool
         }
       }
       totalCount
@@ -1118,19 +1155,15 @@ export const updateUser = `
     $url: String
     $location: String
     $email: String
-    $lastName: String
-    $firstName: String
+    $fullName: String
     $avatar: String
-    $newUser: Boolean
   ) {
     updateUser(
       url: $url
       location: $location
       email: $email
-      firstName: $firstName
-      lastName: $lastName
+      fullName: $fullName
       avatar: $avatar
-      newUser: $newUser
     )
   }
 `;
@@ -1154,6 +1187,8 @@ export const userByAddress = `
       projectsCount
       passportScore
       passportStamps
+      privadoVerified
+      acceptedToS
     }
   }
 `;
@@ -1479,7 +1514,7 @@ export const projectByIdQuery = `
 
 export const getProjectsAcceptTokensQuery = `
   query(
-      $projectId: Float!,
+      $projectId: Float,
   ){
     getProjectAcceptTokens(
      projectId:$projectId){
@@ -1488,7 +1523,7 @@ export const getProjectsAcceptTokensQuery = `
       networkId
       chainType
       decimals
-      mainnetAddress
+      address
       name
     }
   }
@@ -1981,8 +2016,6 @@ export const userVerificationSendEmailConfirmation = `
       id
       email
       emailConfirmed
-      emailConfirmationToken
-      emailConfirmationTokenExpiredAt
       emailConfirmationSent
       emailConfirmationSentAt
       emailConfirmedAt
@@ -1991,16 +2024,138 @@ export const userVerificationSendEmailConfirmation = `
 `;
 
 export const userVerificationConfirmEmail = `
-  mutation userVerificationConfirmEmail($emailConfirmationToken: String!){
-    userVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
+  mutation userVerificationConfirmEmail(
+    $userId: Float!
+    $emailConfirmationCode: String!
+  ){
+    userVerificationConfirmEmail(
+      userId: $userId
+      emailConfirmationCode: $emailConfirmationCode
+    ) {
       id
       email
       emailConfirmed
-      emailConfirmationToken
-      emailConfirmationTokenExpiredAt
       emailConfirmationSent
       emailConfirmationSentAt
       emailConfirmedAt
     }
+  }
+`;
+
+export const fetchAllRoundsQuery = `
+  query {
+    allRounds {
+      ... on EarlyAccessRound {
+        roundNumber
+        startDate
+        endDate
+        createdAt
+        updatedAt
+        roundUSDCapPerProject
+        roundUSDCapPerUserPerProject
+        tokenPrice
+        cumulativeUSDCapPerProject
+        cumulativeUSDCapPerUserPerProject
+      }
+      ... on QfRound {
+        name
+        slug
+        allocatedFund
+        beginDate
+        endDate
+        roundUSDCapPerProject
+        roundUSDCapPerUserPerProject
+        tokenPrice
+        cumulativeUSDCapPerProject
+        cumulativeUSDCapPerUserPerProject
+      }
+    }
+  }
+`;
+
+export const fetchActiveRoundQuery = `
+  query {
+    activeRound {
+      activeRound {
+        ... on EarlyAccessRound {
+          roundNumber
+          startDate
+          endDate
+          createdAt
+          updatedAt
+          roundUSDCapPerProject
+          roundUSDCapPerUserPerProject
+          tokenPrice
+          cumulativeUSDCapPerProject
+          cumulativeUSDCapPerUserPerProject
+        }
+        ... on QfRound {
+          name
+          slug
+          allocatedFund
+          beginDate
+          endDate
+          roundUSDCapPerProject
+          roundUSDCapPerUserPerProject
+          tokenPrice
+          cumulativeUSDCapPerProject
+          cumulativeUSDCapPerUserPerProject
+        }
+      }
+    }
+  }
+`;
+
+export const checkUserPrivadoVerifiedState = `
+  mutation {
+    checkUserPrivadoVerifiedState
+  }
+`;
+
+export const acceptedTermsOfService = `
+  mutation {
+    acceptedTermsOfService
+  }
+`;
+
+export const batchMintingEligibleUsers = `
+  query ( $limit: Int, $skip: Int, $filterAddress: String) {
+    batchMintingEligibleUsers(limit: $limit, skip: $skip, filterAddress: $filterAddress) {
+      users
+      total
+      skip
+    }
+  }
+`;
+
+export const getProjectRoundRecordsQuery = `
+  query GetProjectRoundRecords($projectId: Int!, $qfRoundNumber: Int, $earlyAccessRoundNumber: Int) {
+    getProjectRoundRecords(projectId: $projectId, qfRoundNumber: $qfRoundNumber, earlyAccessRoundNumber: $earlyAccessRoundNumber) {
+      totalDonationAmount
+      totalDonationUsdAmount
+      qfRound {
+        id
+      }
+      earlyAccessRound {
+        id
+        roundNumber
+      }
+    }
+  }
+`;
+
+export const projectUserTotalDonationAmounts = `
+  query ProjectUserTotalDonationAmounts($projectId: Int!, $userId: Int!) {
+    projectUserTotalDonationAmounts(projectId: $projectId, userId: $userId) {
+      totalDonationAmount
+      eaTotalDonationAmount
+      qfTotalDonationAmount
+    }
+  }
+`;
+
+export const projectUserDonationCap = `
+  query ProjectUserDonationCap($projectId: Int!) {
+    projectUserDonationCap(projectId: $projectId)   
   }
 `;

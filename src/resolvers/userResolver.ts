@@ -2,25 +2,25 @@ import {
   Arg,
   Ctx,
   Field,
+  Int,
   Mutation,
   ObjectType,
   Query,
   Resolver,
 } from 'type-graphql';
 import { Repository } from 'typeorm';
-import * as jwt from 'jsonwebtoken';
 
 import moment from 'moment';
 import { User } from '../entities/user';
-import config from '../config';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { validateEmail } from '../utils/validators/commonValidators';
 import {
-  findUserByEmailConfirmationToken,
   findUserById,
   findUserByWalletAddress,
+  updateUserEmailConfirmationStatus,
+  getUserEmailConfirmationFields,
 } from '../repositories/userRepository';
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 import { UserByAddressResponse } from './types/userResolver';
@@ -28,12 +28,14 @@ import { AppDataSource } from '../orm';
 import {
   getGitcoinAdapter,
   getNotificationAdapter,
+  privadoAdapter,
 } from '../adapters/adaptersFactory';
 import { logger } from '../utils/logger';
 import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
 import { addressHasDonated } from '../repositories/donationRepository';
-import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+// import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
+import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -42,6 +44,18 @@ class UserRelatedAddressResponse {
 
   @Field(_type => Boolean, { nullable: false })
   hasDonated: boolean;
+}
+
+@ObjectType()
+class BatchMintingEligibleUserResponse {
+  @Field(_addresses => [String], { nullable: false })
+  users: string[];
+
+  @Field(_total => Number, { nullable: false })
+  total: number;
+
+  @Field(_offset => Number, { nullable: false })
+  skip: number;
 }
 
 // eslint-disable-next-line unused-imports/no-unused-imports
@@ -130,15 +144,55 @@ export class UserResolver {
     return foundUser;
   }
 
+  @Query(_returns => BatchMintingEligibleUserResponse)
+  async batchMintingEligibleUsers(
+    @Arg('limit', _type => Int, { nullable: true }) limit: number = 1000,
+    @Arg('skip', _type => Int, { nullable: true }) skip: number = 0,
+    @Arg('filterAddress', { nullable: true }) filterAddress: string,
+  ) {
+    if (filterAddress) {
+      const query = User.createQueryBuilder('user').where(
+        `LOWER("walletAddress") = :walletAddress`,
+        {
+          walletAddress: filterAddress.toLowerCase(),
+        },
+      );
+
+      const userExists = await query.getExists();
+
+      return {
+        users: userExists ? [filterAddress] : [],
+        total: userExists ? 1 : 0,
+        skip: 0,
+      };
+    }
+
+    const response = await User.createQueryBuilder('user')
+      .select('user.walletAddress')
+      .where('user.acceptedToS = true')
+      .andWhere(':privadoRequestId = ANY (user.privadoVerifiedRequestIds)', {
+        privadoRequestId: PrivadoAdapter.privadoRequestId,
+      })
+      .orderBy('user.acceptedToSDate', 'ASC')
+      .take(limit)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      users: response[0].map((user: User) => user.walletAddress),
+      total: response[1],
+      skip,
+    };
+  }
+
   @Mutation(_returns => Boolean)
   async updateUser(
-    @Arg('firstName', { nullable: true }) firstName: string,
-    @Arg('lastName', { nullable: true }) lastName: string,
+    @Arg('fullName', { nullable: true }) fullName: string,
     @Arg('location', { nullable: true }) location: string,
     @Arg('email', { nullable: true }) email: string,
     @Arg('url', { nullable: true }) url: string,
     @Arg('avatar', { nullable: true }) avatar: string,
-    @Arg('newUser', { nullable: true }) newUser: boolean,
+    // @Arg('newUser', { nullable: true }) newUser: boolean,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user)
@@ -149,29 +203,18 @@ export class UserResolver {
     if (!dbUser) {
       return false;
     }
-    if (!dbUser.name && !firstName && !lastName) {
+
+    if (!fullName || fullName === '') {
       throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
-        ),
+        i18n.__(translationErrorMessagesKeys.FULL_NAME_CAN_NOT_BE_EMPTY),
       );
     }
-    if (firstName === '') {
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.FIRSTNAME_CANT_BE_EMPTY_STRING),
-      );
-    }
-    if (lastName === '') {
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.LASTNAME_CANT_BE_EMPTY_STRING),
-      );
-    }
-    if (firstName) {
-      dbUser.firstName = firstName;
-    }
-    if (lastName) {
-      dbUser.lastName = lastName;
-    }
+    dbUser.name = fullName.trim();
+    const [first, ...rest] = fullName.split(' ');
+    dbUser.firstName = first;
+    dbUser.lastName = rest.join(' ') || '';
+
+    // Update other fields
     if (location !== undefined) {
       dbUser.location = location;
     }
@@ -181,14 +224,21 @@ export class UserResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
       }
       if (dbUser.email !== email) {
+        await updateUserEmailConfirmationStatus({
+          userId: dbUser.id,
+          emailConfirmed: false,
+          emailConfirmedAt: null,
+          emailVerificationCodeExpiredAt: null,
+          emailVerificationCode: null,
+          emailConfirmationSent: false,
+          emailConfirmationSentAt: null,
+        });
         dbUser.emailConfirmed = false;
-        dbUser.emailConfirmationSent = false;
-        dbUser.emailConfirmationToken = null;
-        dbUser.emailConfirmationTokenExpiredAt = null;
-        dbUser.emailConfirmationSentAt = null;
         dbUser.emailConfirmedAt = null;
+        dbUser.emailConfirmationSent = false;
+        dbUser.emailConfirmationSentAt = null;
+        dbUser.email = email;
       }
-      dbUser.email = email;
     }
     if (url !== undefined) {
       dbUser.url = url;
@@ -197,19 +247,18 @@ export class UserResolver {
       dbUser.avatar = avatar;
     }
 
-    dbUser.name = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim();
     await dbUser.save();
 
-    const orttoPerson = getOrttoPersonAttributes({
-      firstName: dbUser.firstName,
-      lastName: dbUser.lastName,
-      email: dbUser.email,
-      userId: dbUser.id.toString(),
-    });
-    await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
-    if (newUser) {
-      await getNotificationAdapter().createOrttoProfile(dbUser);
-    }
+    // const orttoPerson = getOrttoPersonAttributes({
+    //   firstName: dbUser.firstName,
+    //   lastName: dbUser.lastName,
+    //   email: dbUser.email,
+    //   userId: dbUser.id.toString(),
+    // });
+    // await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
+    // if (newUser) {
+    //   await getNotificationAdapter().createOrttoProfile(dbUser);
+    // }
 
     return true;
   }
@@ -273,28 +322,34 @@ export class UserResolver {
         );
       }
 
-      const token = jwt.sign(
-        { userId },
-        config.get('MAILER_JWT_SECRET') as string,
-        { expiresIn: '5m' },
-      );
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-      userToVerify.emailConfirmationTokenExpiredAt = moment()
-        .add(5, 'minutes')
+      const emailVerificationCodeExpiredAt = moment()
+        .add(30, 'minutes')
         .toDate();
-      userToVerify.emailConfirmationToken = token;
-      userToVerify.emailConfirmationSent = true;
-      userToVerify.emailConfirmed = false;
-      userToVerify.emailConfirmationSentAt = new Date();
-      await userToVerify.save();
+
+      await updateUserEmailConfirmationStatus({
+        userId: userToVerify.id,
+        emailConfirmed: false,
+        emailConfirmedAt: null,
+        emailVerificationCodeExpiredAt,
+        emailVerificationCode: code,
+        emailConfirmationSent: true,
+        emailConfirmationSentAt: new Date(),
+      });
+
+      const updatedUser = await findUserById(userId);
+
+      if (!updatedUser) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+      }
 
       await getNotificationAdapter().sendUserEmailConfirmation({
         email,
-        user: userToVerify,
-        token,
+        code,
       });
 
-      return userToVerify;
+      return updatedUser;
     } catch (e) {
       logger.error('userVerificationSendEmailConfirmation() error', e);
       throw e;
@@ -303,52 +358,97 @@ export class UserResolver {
 
   @Mutation(_returns => User)
   async userVerificationConfirmEmail(
-    @Arg('emailConfirmationToken') emailConfirmationToken: string,
+    @Arg('userId') userId: number,
+    @Arg('emailConfirmationCode') emailConfirmationCode: string,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<User> {
     try {
-      const secret = config.get('MAILER_JWT_SECRET') as string;
+      const currentUserId = user?.userId;
+      if (!currentUserId || currentUserId !== userId) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+      }
 
-      const isValidToken = await findUserByEmailConfirmationToken(
-        emailConfirmationToken,
+      const userFromDB = await findUserById(userId);
+
+      if (!userFromDB) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+      }
+
+      const emailConfirmationFields = await getUserEmailConfirmationFields(
+        userFromDB.id,
       );
 
-      if (!isValidToken) {
+      if (!emailConfirmationFields) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.NO_EMAIL_VERIFICATION_DATA),
+        );
+      }
+
+      if (
+        emailConfirmationCode !== emailConfirmationFields.emailVerificationCode
+      ) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.INCORRECT_CODE));
+      }
+
+      const currentTime = new Date();
+      if (
+        emailConfirmationFields.emailVerificationCodeExpiredAt &&
+        emailConfirmationFields.emailVerificationCodeExpiredAt < currentTime
+      ) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.CODE_EXPIRED));
+      }
+
+      await updateUserEmailConfirmationStatus({
+        userId: userFromDB.id,
+        emailConfirmed: true,
+        emailConfirmedAt: new Date(),
+        emailVerificationCodeExpiredAt: null,
+        emailVerificationCode: null,
+        emailConfirmationSent: false,
+        emailConfirmationSentAt: null,
+      });
+
+      const updatedUser = await findUserById(userId);
+
+      if (!updatedUser) {
         throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
       }
 
-      const decodedJwt: any = jwt.verify(emailConfirmationToken, secret);
-      const userId = decodedJwt.userId;
-      const user = await findUserById(userId);
-
-      if (!user) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
-      }
-
-      user.emailConfirmationTokenExpiredAt = null;
-      user.emailConfirmationToken = null;
-      user.emailConfirmedAt = new Date();
-      user.emailConfirmed = true;
-      await user.save();
-
-      return user;
+      return updatedUser;
     } catch (e) {
-      const user = await findUserByEmailConfirmationToken(
-        emailConfirmationToken,
-      );
-
-      if (!user) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
-      }
-
-      user.emailConfirmed = false;
-      user.emailConfirmationTokenExpiredAt = null;
-      user.emailConfirmationSent = false;
-      user.emailConfirmationSentAt = null;
-      user.emailConfirmationToken = null;
-
-      await user.save();
       logger.error('userVerificationConfirmEmail() error', e);
       throw e;
     }
+  }
+
+  @Mutation(_returns => Boolean)
+  async checkUserPrivadoVerifiedState(
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<boolean> {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+    return await privadoAdapter.checkUserVerified(user.userId);
+  }
+
+  @Mutation(_returns => Boolean)
+  async acceptedTermsOfService(
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<boolean> {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+
+    const userFromDB = await findUserById(user.userId);
+
+    if (userFromDB?.privadoVerified && !userFromDB.acceptedToS) {
+      userFromDB.acceptedToS = true;
+      userFromDB.acceptedToSDate = new Date();
+      await userFromDB.save();
+      return true;
+    }
+    return false;
   }
 }

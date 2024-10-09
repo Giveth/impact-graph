@@ -50,10 +50,21 @@ import { refreshProjectEstimatedMatchingView } from '../services/projectViewsSer
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
-import { corsOptions } from './cors';
+import { corsOptions, setCorsHeaders } from './cors';
 import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
-import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
+// import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
+import {
+  QACC_DONATION_TOKEN_ADDRESS,
+  QACC_DONATION_TOKEN_COINGECKO_ID,
+  QACC_DONATION_TOKEN_DECIMALS,
+  QACC_DONATION_TOKEN_NAME,
+  QACC_DONATION_TOKEN_SYMBOL,
+} from '../constants/qacc';
+import { QACC_NETWORK_ID } from '../provider';
+import { Token } from '../entities/token';
+import { ChainType } from '../types/network';
+import { runFetchRoundTokenPrice } from '../services/cronJobs/fetchRoundTokenPrice';
 
 Resource.validate = validate;
 
@@ -169,6 +180,8 @@ export async function bootstrap() {
       limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
     });
 
+    app.use(cors());
+
     // To download email addresses of projects in AdminJS projects tab
     app.get('/admin/download/:filename', (req, res) => {
       const filename = req.params.filename;
@@ -179,6 +192,7 @@ export async function bootstrap() {
     app.use(setI18nLocaleForRequest); // accept-language header
     if (process.env.DISABLE_SERVER_CORS !== 'true') {
       app.use(cors(corsOptions));
+      app.use(setCorsHeaders);
     }
     app.use(bodyParserJson);
 
@@ -324,9 +338,9 @@ export async function bootstrap() {
       runSyncLostDonations();
     }
 
-    if (process.env.ENABLE_IMPORT_DONATION_BACKUP === 'true') {
-      runSyncBackupServiceDonations();
-    }
+    // if (process.env.ENABLE_IMPORT_DONATION_BACKUP === 'true') {
+    //   runSyncBackupServiceDonations();
+    // }
 
     if (process.env.ENABLE_DRAFT_DONATION === 'true') {
       runDraftDonationMatchWorkerJob();
@@ -351,6 +365,44 @@ export async function bootstrap() {
       'initializeCronJobs() after runUpdateProjectCampaignsCacheJob() ',
       new Date(),
     );
+
+    logger.debug(
+      'initializeCronJobs() before runFetchRoundTokenPrice() ',
+      new Date(),
+    );
+    await runFetchRoundTokenPrice();
+    logger.debug(
+      'initializeCronJobs() after runFetchRoundTokenPrice() ',
+      new Date(),
+    );
+  }
+
+  async function addQAccToken() {
+    if (
+      // not test env
+      (config.get('ENVIRONMENT') as string) !== 'test' &&
+      QACC_DONATION_TOKEN_NAME &&
+      QACC_DONATION_TOKEN_ADDRESS &&
+      QACC_DONATION_TOKEN_SYMBOL &&
+      QACC_DONATION_TOKEN_DECIMALS &&
+      QACC_DONATION_TOKEN_COINGECKO_ID &&
+      QACC_NETWORK_ID
+    ) {
+      // instert into token
+      Token.createQueryBuilder()
+        .insert()
+        .values({
+          name: QACC_DONATION_TOKEN_NAME,
+          address: QACC_DONATION_TOKEN_ADDRESS.toLocaleLowerCase(),
+          symbol: QACC_DONATION_TOKEN_SYMBOL,
+          decimals: QACC_DONATION_TOKEN_DECIMALS,
+          networkId: QACC_NETWORK_ID,
+          chainType: ChainType.EVM,
+          coingeckoId: QACC_DONATION_TOKEN_COINGECKO_ID,
+        })
+        .orIgnore()
+        .execute();
+    }
   }
 
   async function performPostStartTasks() {
@@ -361,6 +413,7 @@ export async function bootstrap() {
       logger.fatal('continueDbSetup() error', e);
     }
     await initializeCronJobs();
+    await addQAccToken();
   }
 }
 

@@ -2,10 +2,11 @@ import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import { Keypair } from '@solana/web3.js';
 import config from '../src/config';
-import { NETWORK_IDS } from '../src/provider';
+import { NETWORK_IDS, QACC_NETWORK_ID } from '../src/provider';
 import { User } from '../src/entities/user';
 import { Donation, DONATION_STATUS } from '../src/entities/donation';
 import {
+  Abc,
   Project,
   ProjectUpdate,
   ProjStatus,
@@ -34,6 +35,13 @@ import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 import { ChainType } from '../src/types/network';
 import { ProjectAddress } from '../src/entities/projectAddress';
+import {
+  QACC_DONATION_TOKEN_ADDRESS,
+  QACC_DONATION_TOKEN_DECIMALS,
+  QACC_DONATION_TOKEN_NAME,
+  QACC_DONATION_TOKEN_SYMBOL,
+} from '../src/constants/qacc';
+import { EarlyAccessRound } from '../src/entities/earlyAccessRound';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -147,10 +155,12 @@ export interface CreateProjectData {
   image?: string;
   networkId?: number;
   chainType?: ChainType;
+  abc: Abc;
 }
 
 export const saveUserDirectlyToDb = async (
   walletAddress: string,
+  override: Partial<User> = {},
 ): Promise<User> => {
   const user = await findUserByWalletAddress(walletAddress);
   if (user) {
@@ -161,6 +171,8 @@ export const saveUserDirectlyToDb = async (
     walletAddress,
     firstName: `testUser-${walletAddress}`,
     email: `testEmail-${walletAddress}@giveth.io`,
+    privadoVerifiedRequestIds: [],
+    ...override,
   }).save();
 };
 
@@ -278,6 +290,22 @@ export const saveProjectDirectlyToDb = async (
     )`);
   return project;
 };
+
+export const createProjectAbcData = (override: Partial<Abc> = {}): Abc => {
+  return {
+    nftContractAddress: generateRandomEtheriumAddress(),
+    tokenName: 'tkn name',
+    tokenTicker: 'tkn',
+    issuanceTokenAddress: generateRandomEtheriumAddress(),
+    fundingManagerAddress: generateRandomEtheriumAddress(),
+    icon: '',
+    orchestratorAddress: generateRandomEtheriumAddress(),
+    projectAddress: generateRandomEtheriumAddress(),
+    creatorAddress: generateRandomEtheriumAddress(),
+    chainId: QACC_NETWORK_ID,
+    ...override,
+  };
+};
 export const createProjectData = (name?: string): CreateProjectData => {
   const title = name ? name : String(new Date().getTime());
   const walletAddress = generateRandomEtheriumAddress();
@@ -286,6 +314,7 @@ export const createProjectData = (name?: string): CreateProjectData => {
     title,
     description: 'test description',
     walletAddress,
+    abc: createProjectAbcData({ projectAddress: walletAddress }),
     categories: ['food1'],
     verified: true,
     listed: true,
@@ -330,9 +359,11 @@ export const createDonationData = (params?: {
   valueUsd?: number;
   anonymous?: boolean;
   qfRoundId?: number;
+  transactionId?: string;
+  earlyAccessRoundId?: number;
 }): CreateDonationData => {
   return {
-    transactionId: generateRandomEvmTxHash(),
+    transactionId: params?.transactionId || generateRandomEvmTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
@@ -344,6 +375,7 @@ export const createDonationData = (params?: {
     createdAt: params?.createdAt || moment().toDate(),
     segmentNotified: true,
     qfRoundId: params?.qfRoundId || undefined,
+    earlyAccessRoundId: params?.earlyAccessRoundId || undefined,
   };
 };
 
@@ -356,6 +388,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 1,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   SECOND_USER: {
     name: 'secondUser',
@@ -365,6 +398,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 2,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   THIRD_USER: {
     name: 'thirdUser',
@@ -374,6 +408,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 3,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   ADMIN_USER: {
     name: 'adminUser',
@@ -383,6 +418,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 4,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   PROJECT_OWNER_USER: {
     name: 'project owner user',
@@ -391,6 +427,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 5,
     walletAddress: generateRandomEtheriumAddress(),
+    privadoVerifiedRequestIds: [],
   },
   FIRST_PROJECT: {
     ...createProjectData(),
@@ -564,6 +601,15 @@ export const SEED_DATA = {
     },
   ],
   TOKENS: {
+    [QACC_NETWORK_ID]: [
+      {
+        name: QACC_DONATION_TOKEN_NAME,
+        symbol: QACC_DONATION_TOKEN_SYMBOL,
+        address: QACC_DONATION_TOKEN_ADDRESS,
+        decimals: QACC_DONATION_TOKEN_DECIMALS,
+        isStableCoin: false,
+      },
+    ],
     mainnet: [
       {
         name: 'Ethereum native token',
@@ -1920,11 +1966,13 @@ export interface CreateDonationData {
   status?: string;
   verified?: string;
   qfRoundId?: number;
+  earlyAccessRoundId?: number;
   tokenAddress?: string;
   qfRoundUserScore?: number;
   useDonationBox?: boolean;
   relevantDonationTxHash?: string;
   donationPercentage?: number;
+  blockNumber?: number;
 }
 
 export interface CategoryData {
@@ -2013,3 +2061,19 @@ export function generateRandomSolanaTxHash() {
 
 // list of test cases titles that doesn't require DB interaction
 export const dbIndependentTests = ['AdminJsPermissions'];
+
+export const saveEARoundDirectlyToDb = async (
+  roundData: Partial<EarlyAccessRound>,
+): Promise<EarlyAccessRound> => {
+  const round = EarlyAccessRound.create(roundData) as EarlyAccessRound;
+  return round.save();
+};
+
+let nextQfRoundNumber = 1000;
+export function generateQfRoundNumber(): number {
+  return nextQfRoundNumber++;
+}
+let nextEARoundNumber = 1000;
+export function generateEARoundNumber(): number {
+  return nextEARoundNumber++;
+}

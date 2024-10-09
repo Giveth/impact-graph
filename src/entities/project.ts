@@ -117,9 +117,58 @@ export enum ReviewStatus {
   Listed = 'Listed',
   NotListed = 'Not Listed',
 }
+@ObjectType()
+class ProjectTeamMember {
+  @Field()
+  name: string;
+
+  @Field({ nullable: true })
+  image?: string;
+
+  @Field({ nullable: true })
+  twitter?: string;
+
+  @Field({ nullable: true })
+  linkedin?: string;
+
+  @Field({ nullable: true })
+  farcaster?: string;
+}
+
+@ObjectType()
+export class Abc {
+  @Field()
+  tokenName: string;
+  @Field()
+  tokenTicker: string;
+  @Field()
+  issuanceTokenAddress: string;
+  @Field()
+  fundingManagerAddress: string;
+  @Field(_type => Float, { nullable: true })
+  tokenPrice?: number;
+  @Field(_type => Float, { nullable: true })
+  totalSupply?: number;
+  @Field(_type => Float, { nullable: true })
+  mintedAmount?: number;
+  @Field()
+  icon: string;
+  @Field()
+  orchestratorAddress: string;
+  @Field()
+  projectAddress: string;
+  @Field()
+  creatorAddress: string;
+  @Field()
+  nftContractAddress: string;
+  @Field()
+  chainId: number;
+}
 
 @Entity()
 @ObjectType()
+@Index('trgm_idx_project_title', { synchronize: false })
+@Index('trgm_idx_project_description', { synchronize: false })
 export class Project extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()
@@ -197,6 +246,18 @@ export class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   image?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  teaser?: string;
+
+  @Field(_ => [ProjectTeamMember], { nullable: true })
+  @Column('jsonb', { nullable: true })
+  teamMembers: ProjectTeamMember[];
+
+  @Field(_ => Abc, { nullable: true })
+  @Column('jsonb', { nullable: true })
+  abc: Abc;
 
   @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field({ nullable: true })
@@ -370,7 +431,7 @@ export class Project extends BaseEntity {
   @Column({
     type: 'enum',
     enum: ReviewStatus,
-    default: ReviewStatus.NotReviewed,
+    default: ReviewStatus.Listed,
   })
   reviewStatus: ReviewStatus;
 
@@ -398,6 +459,10 @@ export class Project extends BaseEntity {
 
   @Field(_type => [Campaign], { nullable: true })
   campaigns: Campaign[];
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  icon?: string;
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
@@ -627,6 +692,10 @@ export class ProjectUpdate extends BaseEntity {
 
   @Column('text', { nullable: true })
   managingFundDescription: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  icon?: string;
 
   @Field(_type => FeaturedUpdate, { nullable: true })
   @OneToOne(

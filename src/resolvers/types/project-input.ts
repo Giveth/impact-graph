@@ -2,10 +2,7 @@ import { Field, InputType } from 'type-graphql';
 import { FileUpload } from 'graphql-upload/Upload.js';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import { MaxLength } from 'class-validator';
-import {
-  ProjectSocialMediaInput,
-  RelatedAddressInputType,
-} from './ProjectVerificationUpdateInput';
+import { ProjectSocialMediaInput } from './ProjectVerificationUpdateInput';
 
 import {
   IMAGE_LINK_MAX_SIZE,
@@ -14,7 +11,6 @@ import {
   PROJECT_TITLE_MAX_LENGTH,
 } from '../../constants/validators';
 import { errorMessages } from '../../utils/errorMessages';
-
 @InputType()
 export class ImageUpload {
   // Client uploads image file
@@ -26,11 +22,25 @@ export class ImageUpload {
 }
 
 @InputType()
-class ProjectInput {
+export class ProjectTeamMemberInput {
   @Field()
-  @MaxLength(PROJECT_TITLE_MAX_LENGTH)
-  title: string;
+  name: string;
 
+  @Field({ nullable: true })
+  image?: string;
+
+  @Field({ nullable: true })
+  twitter?: string;
+
+  @Field({ nullable: true })
+  linkedin?: string;
+
+  @Field({ nullable: true })
+  farcaster?: string;
+}
+
+@InputType()
+export class ProjectInput {
   @Field({ nullable: true })
   adminUserId?: number;
 
@@ -48,6 +58,10 @@ class ProjectInput {
   image?: string;
 
   @Field({ nullable: true })
+  @MaxLength(IMAGE_LINK_MAX_SIZE)
+  teaser?: string;
+
+  @Field({ nullable: true })
   @MaxLength(IMPACT_LOCATION_MAX_SIZE)
   impactLocation?: string;
 
@@ -59,16 +73,31 @@ class ProjectInput {
 
   @Field(() => [ProjectSocialMediaInput], { nullable: true })
   socialMedia?: ProjectSocialMediaInput[];
+
+  @Field(() => [ProjectTeamMemberInput], { nullable: true })
+  teamMembers?: ProjectTeamMemberInput[];
+
+  @Field({ nullable: true })
+  @MaxLength(IMAGE_LINK_MAX_SIZE)
+  icon?: string;
 }
 
 @InputType()
 export class CreateProjectInput extends ProjectInput {
-  @Field(() => [RelatedAddressInputType], { nullable: true })
-  addresses: RelatedAddressInputType[];
+  @Field({ nullable: true })
+  address: string;
+
+  @Field()
+  @MaxLength(PROJECT_TITLE_MAX_LENGTH)
+  title: string;
 }
 
 @InputType()
 export class UpdateProjectInput extends ProjectInput {
-  @Field(() => [RelatedAddressInputType], { nullable: true })
-  addresses?: RelatedAddressInputType[];
+  @Field({ nullable: true })
+  address?: string;
+
+  @Field({ nullable: true })
+  @MaxLength(PROJECT_TITLE_MAX_LENGTH)
+  title?: string;
 }

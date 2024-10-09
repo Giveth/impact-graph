@@ -2,6 +2,8 @@ services:
   qacc-be:
     container_name: qacc-be
     build: .
+    profiles:
+      - server
     command: npm run start:docker:locally
     environment:
       - ENVIRONMENT=local
@@ -11,12 +13,18 @@ services:
       - ./config:/usr/src/app/config
       - ./config:/usr/src/app/build/config
       - ./logs:/usr/src/app/logs
+    networks:
+      - qacc
     ports:
-      - "4001:4000"
+      - '4001:4000'
 
   qacc-postgres:
     container_name: qacc-postgres
     image: postgres:16
+    profiles:
+      - server
+      - database
+      - local
     restart: always
     environment:
       - POSTGRES_DB=qacc
@@ -25,20 +33,52 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks:
+      - qacc
     ports:
-      - "5432:5432"
+      - '5442:5432'
+
+  qacc-postgres-test:
+    container_name: qacc-postgres-test
+    image: postgres:16
+    profiles:
+      - test
+      - database
+    restart: always
+    environment:
+      - POSTGRES_DB=qacc
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - db-data-test:/var/lib/postgresql/data
+    networks:
+      - qacc
+    ports:
+      - '5443:5432'
 
   qacc-redis:
     container_name: qacc-redis
     image: redis:7-alpine
+    profiles:
+      - server
+      - local
     environment:
       - REDIS_ALLOW_EMPTY_PASSWORD=yes
     restart: always
     volumes:
       - redis-data:/data
+    networks:
+      - qacc
     ports:
-      - "6379:6379"
+      - '6379:6379'
 
 volumes:
   db-data:
+  db-data-test:
   redis-data:
+
+networks:
+  qacc:
+    name: qacc-be
+    external: true

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import moment from 'moment';
 import {
   GetTokenPriceAtDateParams,
   GetTokenPriceParams,
@@ -46,9 +47,11 @@ export class CoingeckoPriceAdapter implements PriceAdapterInterface {
     params: GetTokenPriceAtDateParams,
   ): Promise<number> {
     try {
+      const formattedDate = moment(params.date).format('DD-MM-YYYY');
+
       const result = await axios.get(
-        // symbol in here means coingecko id for instance for ETC token the coingecko id is ethereum-classic
-        `https://api.coingecko.com/api/v3/coins/${params.symbol}/history?date=${params.date}`,
+        // symbol in here means coingecko id for instance
+        `https://api.coingecko.com/api/v3/coins/${params.symbol}/history?date=${formattedDate}`,
       );
 
       const priceUsd = result?.data?.market_data?.current_price?.usd;

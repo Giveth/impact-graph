@@ -1,6 +1,5 @@
 # Impact Graph
 
-
 ---
 
 ### Build status
@@ -42,12 +41,12 @@ Edit the config/development.env file in your favorite code editor and the enviro
 
 [Create a database](https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e) (we recommend Postgres) on your computer or server, we currently support for MySQL, MariaDB, Postgres, MongoDB and SQLite.
 Or if you want, you can run the docker-compose like this:
-`docker-compose -f docker-compose-local-postgres-redis.yml up -d`
+`docker-compose -f docker-compose-local.yml --profile database up -d`
 and put these to your `development.env`
 
 ```
 TYPEORM_DATABASE_TYPE=postgres
-TYPEORM_DATABASE_NAME=givethio
+TYPEORM_DATABASE_NAME=qacc
 TYPEORM_DATABASE_USER=postgres
 TYPEORM_DATABASE_PASSWORD=postgres
 TYPEORM_DATABASE_HOST=localhost
