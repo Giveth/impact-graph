@@ -8,35 +8,33 @@ export async function updateOrCreateProjectUserRecord({
   projectId: number;
   userId: number;
 }): Promise<ProjectUserRecord> {
-  const result = await ProjectUserRecord.createQueryBuilder()
-    .insert()
-    .values({
-      projectId,
-      userId,
-      eaTotalDonationAmount: () => `
-      (SELECT COALESCE(SUM(CASE WHEN donation."earlyAccessRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0)
-      FROM donation
-      WHERE donation."projectId" = :projectId AND donation.status = :status AND donation."userId" = :userId)
-    `,
-      qfTotalDonationAmount: () => `
-      (SELECT COALESCE(SUM(CASE WHEN donation."qfRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0)
-      FROM donation
-      WHERE donation."projectId" = :projectId AND donation.status = :status AND donation."userId" = :userId)
-    `,
-      totalDonationAmount: () => `
-      (SELECT COALESCE(SUM(donation.amount), 0)
-      FROM donation
-      WHERE donation."projectId" = :projectId AND donation.status = :status AND donation."userId" = :userId)
-    `,
-    })
-    .orUpdate(
-      ['eaTotalDonationAmount', 'qfTotalDonationAmount', 'totalDonationAmount'],
-      ['projectId', 'userId'],
-    )
-    .setParameters({ projectId, status: DONATION_STATUS.VERIFIED, userId })
-    .execute();
+  const query = `
+  INSERT INTO project_user_record ("projectId", "userId", "eaTotalDonationAmount", "qfTotalDonationAmount", "totalDonationAmount")
+  SELECT 
+    $1 AS projectId, 
+    $2 AS userId, 
+    COALESCE(SUM(CASE WHEN donation."earlyAccessRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0) AS eaTotalDonationAmount,
+    COALESCE(SUM(CASE WHEN donation."qfRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0) AS qfTotalDonationAmount,
+    COALESCE(SUM(donation.amount), 0) AS totalDonationAmount
+  FROM donation
+  WHERE donation."projectId" = $1 
+    AND donation."userId" = $2
+    AND donation.status = $3 
+  ON CONFLICT ("projectId", "userId") DO UPDATE 
+  SET 
+    "eaTotalDonationAmount" = EXCLUDED."eaTotalDonationAmount",
+    "qfTotalDonationAmount" = EXCLUDED."qfTotalDonationAmount",
+    "totalDonationAmount" = EXCLUDED."totalDonationAmount"
+  RETURNING *;
+`;
 
-  return result.raw[0];
+  const result = await ProjectUserRecord.query(query, [
+    projectId,
+    userId,
+    DONATION_STATUS.VERIFIED,
+  ]);
+
+  return result[0];
 }
 
 export type ProjectUserRecordAmounts = Pick<
