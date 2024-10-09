@@ -120,7 +120,7 @@ jobs:
           SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
           MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
           PRIVADO_VERIFIER_NETWORK_ID: ${{ secrets.PRIVADO_VERIFIER_NETWORK_ID }}
-
+          
   publish:
     needs: test
     runs-on: ubuntu-latest

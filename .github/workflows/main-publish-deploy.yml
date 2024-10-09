@@ -1,0 +1,70 @@
+name: publish-deploy-main-branch
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  run-linters:
+    name: Run linters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.11.0
+
+      # ESLint and Prettier must be in `package.json`
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          eslint: true
+          #prettier: true
+          continue_on_error: true
+
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/generalmagicio/qacc-be:main
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            git checkout main
+            git pull
+            docker compose -f docker-compose-production.yml pull
+            docker compose -f docker-compose-production.yml up -d
+            docker image prune -a --force
