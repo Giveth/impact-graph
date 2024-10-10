@@ -47,7 +47,7 @@ async function processReportForDonations(
   try {
     const rewardInfo: StreamingPaymentProcessorResponse =
       await adapter.getProjectRewardInfo(projectOrchestratorAddress);
-    const participants = reportData.batch.participants;
+    const participants = reportData.batch.data.participants;
     const lowerCasedParticipants = Object.keys(participants).reduce(
       (acc, key) => {
         acc[key.toLowerCase()] = participants[key];
@@ -68,32 +68,40 @@ async function processReportForDonations(
       const totalValidContribution = ethers.BigNumber.from(
         participantData.validContribution,
       );
-      const issuanceAllocation = ethers.BigNumber.from(
-        participantData.issuanceAllocation,
-      );
+      // if issuance allocation is not exist, that mean this user has not any valid contributions
+      let rewardAmount = 0;
+      if (participantData.issuanceAllocation) {
+        const issuanceAllocationRow = ethers.BigNumber.from(
+          participantData.issuanceAllocation,
+        );
+        const issuanceAllocation = parseFloat(
+          ethers.utils.formatUnits(issuanceAllocationRow, 18),
+        ); // Assuming 18 decimal places
 
-      const donationTransaction = participantData.transactions.find(
-        (tx: any) =>
-          tx.txHash.toLowerCase() === donation.transactionId.toLowerCase(),
-      );
+        const donationTransaction = participantData.transactions.find(
+          (tx: any) =>
+            tx.transactionHash.toLowerCase() ===
+            donation.transactionId.toLowerCase(),
+        );
 
-      if (!donationTransaction) {
-        console.error(`No transaction data found for donation ${donation.id}`);
-        continue;
+        if (!donationTransaction) {
+          console.error(
+            `No transaction data found for donation ${donation.id}`,
+          );
+          continue;
+        }
+
+        const donationValidContribution = ethers.BigNumber.from(
+          donationTransaction.validContribution,
+        );
+        const contributionPercentage =
+          parseFloat(ethers.utils.formatUnits(donationValidContribution, 18)) /
+          parseFloat(ethers.utils.formatUnits(totalValidContribution, 18));
+
+        // Calculate the reward proportionally based on the valid contribution
+        rewardAmount = issuanceAllocation * contributionPercentage;
       }
-
-      const donationValidContribution = ethers.BigNumber.from(
-        donationTransaction.validContribution,
-      );
-      const contributionPercentage = donationValidContribution.div(
-        totalValidContribution,
-      );
-
-      // Calculate the reward proportionally based on the valid contribution
-      const rewardAmount = issuanceAllocation.mul(contributionPercentage);
-      donation.rewardTokenAmount = parseFloat(
-        ethers.utils.formatUnits(rewardAmount, 18),
-      ); // Assuming 18 decimal places
+      donation.rewardTokenAmount = rewardAmount;
 
       // Fetch the cliff, reward start, and end dates from the InverterAdapter
       const vestingInfo = rewardInfo[0]?.vestings.find(
@@ -101,14 +109,16 @@ async function processReportForDonations(
       );
 
       if (vestingInfo) {
-        // Calculate cliff proportionally in the same way as rewardAmount
-        const totalCliff = parseFloat(vestingInfo.cliff);
-        donation.cliff = totalCliff * contributionPercentage.toNumber();
+        donation.cliff = parseFloat(vestingInfo.cliff);
         donation.rewardStreamStart = new Date(parseInt(vestingInfo.start));
         donation.rewardStreamEnd = new Date(parseInt(vestingInfo.end));
-        if (String(vestingInfo.amountRaw) !== String(issuanceAllocation)) {
+        if (
+          String(vestingInfo.amountRaw) !== '0' &&
+          String(vestingInfo.amountRaw) !==
+            String(participantData.issuanceAllocation)
+        ) {
           console.warn(`The reward amount and issuance allocation for project ${donation.projectId} is not match!\n
-          the reward raw amount is: ${vestingInfo.amountRaw} and the issuance allocation in report is: ${issuanceAllocation}`);
+          the reward raw amount is: ${vestingInfo.amountRaw} and the issuance allocation in report is: ${participantData.issuanceAllocation}`);
         }
       } else {
         console.error(
@@ -129,6 +139,7 @@ async function processReportForDonations(
 }
 
 function getRoundNumberByDonations(donations: Donation[]): number {
+  // todo: we need to find round number in a better way, because maybe there left some donations from previous rounds
   if (!donations.length) {
     return 0; // Return 0 if there are no donations
   }
