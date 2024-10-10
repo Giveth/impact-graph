@@ -138,26 +138,26 @@ async function processReportForDonations(
   }
 }
 
-function getRoundNumberByDonations(donations: Donation[]): number {
-  // todo: we need to find round number in a better way, because maybe there left some donations from previous rounds
-  if (!donations.length) {
-    return 0; // Return 0 if there are no donations
-  }
-
-  const firstDonation = donations[0]; // Assuming all donations belong to the same round
-
-  // Check if the project is in an Early Access Round or QF Round
-  if (firstDonation.earlyAccessRound) {
-    return firstDonation.earlyAccessRound.roundNumber; // Return the round number directly for Early Access
-  } else if (firstDonation.qfRound.roundNumber) {
-    return firstDonation.qfRound.roundNumber + 4; // Add 4 to the round number for QF Rounds
-  } else {
-    console.error(
-      `No round information found for donation ${firstDonation.id}`,
-    );
-    return 0; // Return 0 if no round information is found
-  }
-}
+// function getRoundNumberByDonations(donations: Donation[]): number {
+//   // todo: we need to find round number in a better way, because maybe there left some donations from previous rounds
+//   if (!donations.length) {
+//     return 0; // Return 0 if there are no donations
+//   }
+//
+//   const firstDonation = donations[0]; // Assuming all donations belong to the same round
+//
+//   // Check if the project is in an Early Access Round or QF Round
+//   if (firstDonation.earlyAccessRound) {
+//     return firstDonation.earlyAccessRound.roundNumber; // Return the round number directly for Early Access
+//   } else if (firstDonation.qfRound.roundNumber) {
+//     return firstDonation.qfRound.roundNumber + 4; // Add 4 to the round number for QF Rounds
+//   } else {
+//     console.error(
+//       `No round information found for donation ${firstDonation.id}`,
+//     );
+//     return 0; // Return 0 if no round information is found
+//   }
+// }
 
 export async function updateRewardsForDonations(
   donationFilter: FindOptionsWhere<Donation>,
@@ -192,9 +192,11 @@ export async function updateRewardsForDonations(
         continue;
       }
 
-      const roundNumber = getRoundNumberByDonations(
-        donationsByProjectId[projectId],
-      );
+      // const roundNumber = getRoundNumberByDonations(
+      //   donationsByProjectId[projectId],
+      // );
+      const roundNumber = Number(process.argv[2]);
+
       // Look for matching report files based on orchestrator address
       let matchedReportFile = null;
       for (const reportFilePath of allReportFiles) {
