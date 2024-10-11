@@ -249,8 +249,8 @@ export async function bootstrap() {
           try {
             if (req) {
               const { headers } = req;
-              const authVersion = headers.authversion || '1';
-              if (headers.authorization) {
+              const authVersion = headers?.authversion || '1';
+              if (headers?.authorization) {
                 token = headers.authorization.split(' ')[1].toString();
                 user = await authorizationHandler(authVersion as string, token);
               }
