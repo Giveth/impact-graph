@@ -1,0 +1,23 @@
+name: main-deploy-only
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            git checkout main
+            git pull
+            docker compose -f docker-compose-production.yml pull
+            docker compose -f docker-compose-production.yml up --force-recreate -d
+            docker image prune -a --force
