@@ -221,8 +221,10 @@ export class User extends BaseEntity {
 
   @Field(_type => Boolean, { nullable: true })
   get privadoVerified(): boolean {
-    return this.privadoVerifiedRequestIds.includes(
-      PrivadoAdapter.privadoRequestId,
+    return (
+      this.privadoVerifiedRequestIds?.includes(
+        PrivadoAdapter.privadoRequestId,
+      ) ?? false
     );
   }
 

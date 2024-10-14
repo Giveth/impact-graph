@@ -28,7 +28,7 @@ const ormConfig: DataSourceOptions = {
   username: process.env.TYPEORM_DATABASE_USER,
   password: process.env.TYPEORM_DATABASE_PASSWORD,
   database: process.env.TYPEORM_DATABASE_NAME,
-  ssl: process.env.TYPEORM_DISABLE_SSL === 'true' ? false : undefined, // use default in case it's not set
+  // ssl: process.env.TYPEORM_DISABLE_SSL === 'true' ? false : undefined, // use default in case it's not set
   entities: getEntities(),
   migrations: ['migration/*.ts'],
   synchronize: process.env.NODE_ENV !== 'production', // Enable sync for test environments
