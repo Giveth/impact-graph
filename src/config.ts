@@ -51,6 +51,10 @@ const envVars = [
   // 'XDAI_NODE_HTTP_URL',
   'TRACE_FILE_UPLOADER_PASSWORD',
   'DONATION_VERIFICAITON_EXPIRATION_HOURS',
+
+  // funding pot variables
+  'DELEGATE_PK_FOR_FUNDING_POT',
+  'ANKR_API_KEY_FOR_FUNDING_POT',
 ];
 
 interface requiredEnv {
