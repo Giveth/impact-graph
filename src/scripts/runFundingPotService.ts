@@ -131,7 +131,7 @@ async function fillProjectsData() {
   allProjects.forEach(project => {
     // Check if project has the required fields (orchestratorAddress, projectAddress, NFT)
     if (project.abc) {
-      const screamingSnakeCaseTitle = _.upperCase(_.snakeCase(project.title));
+      const screamingSnakeCaseTitle = _.snakeCase(_.upperCase(project.title));
       projectsData[screamingSnakeCaseTitle] = {
         SAFE: project.abc.projectAddress || '',
         ORCHESTRATOR: project.abc.orchestratorAddress || '',
