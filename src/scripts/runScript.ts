@@ -3,14 +3,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { syncDonationsWithBlockchainData } from './syncDataWithInverter';
 import { repoLocalDir, reportsDir, getReportsSubDir } from './configs';
-
-// Function to ensure directory exists or create it
-function ensureDirectoryExists(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    console.info(`Creating directory: ${dirPath}`);
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
-}
+import { ensureDirectoryExists } from './helpers';
 
 // copy reports from output of funding pot service
 async function copyReports() {
