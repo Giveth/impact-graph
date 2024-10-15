@@ -339,20 +339,6 @@ export async function bootstrap() {
         logger.error('Enabling power boosting snapshot ', e);
       }
     }
-
-    if (!isTestEnv) {
-      // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
-      // relation "project_estimated_matching_view" does not exist
-      logger.debug(
-        'continueDbSetup() before refreshProjectEstimatedMatchingView() ',
-        new Date(),
-      );
-      await refreshProjectEstimatedMatchingView();
-      logger.debug(
-        'continueDbSetup() after refreshProjectEstimatedMatchingView() ',
-        new Date(),
-      );
-    }
     logger.debug('continueDbSetup() end of function', new Date());
   }
 

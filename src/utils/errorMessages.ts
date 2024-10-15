@@ -19,6 +19,7 @@ export const setI18nLocaleForRequest = async (req, _res, next) => {
 };
 
 export const errorMessages = {
+  CLUSTER_MATCHING_API_ERROR: 'Error in the cluster matching api, check logs',
   FIAT_DONATION_ALREADY_EXISTS: 'Onramper donation already exists',
   CAMPAIGN_NOT_FOUND: 'Campaign not found',
   QF_ROUND_NOT_FOUND: 'qf round not found',
@@ -208,6 +209,7 @@ export const errorMessages = {
 };
 
 export const translationErrorMessagesKeys = {
+  CLUSTER_MATCHING_API_ERROR: 'CLUSTER_MATCHING_API_ERROR',
   GITCOIN_ERROR_FETCHING_DATA: 'GITCOIN_ERROR_FETCHING_DATA',
   TX_NOT_FOUND: 'TX_NOT_FOUND',
   INVALID_PROJECT_ID: 'INVALID_PROJECT_ID',
