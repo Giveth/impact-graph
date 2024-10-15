@@ -1,13 +1,14 @@
 /* eslint-disable no-console */
 import { exec } from 'child_process';
 import path from 'path';
+import _ from 'lodash';
 import fs from 'fs-extra';
 import simpleGit from 'simple-git';
 import { repoLocalDir, repoUrl } from './configs';
 import config from '../config';
 import { Project } from '../entities/project';
 import { AppDataSource } from '../orm';
-import { toScreamingSnakeCase, ensureDirectoryExists } from './helpers';
+import { ensureDirectoryExists } from './helpers';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { QfRound } from '../entities/qfRound';
 
@@ -130,7 +131,7 @@ async function fillProjectsData() {
   allProjects.forEach(project => {
     // Check if project has the required fields (orchestratorAddress, projectAddress, NFT)
     if (project.abc) {
-      const screamingSnakeCaseTitle = toScreamingSnakeCase(project.title);
+      const screamingSnakeCaseTitle = _.upperCase(_.snakeCase(project.title));
       projectsData[screamingSnakeCaseTitle] = {
         SAFE: project.abc.projectAddress || '',
         ORCHESTRATOR: project.abc.orchestratorAddress || '',
