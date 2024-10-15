@@ -87,7 +87,7 @@ async function generateBatchFile(batchNumber: number) {
     },
     LIMITS: {
       INDIVIDUAL: (roundData.roundUSDCapPerUserPerProject || '5000').toString(), // Default to 5000 for individual cap
-      INDIVIDUAL_2: isEarlyAccess ? undefined : '250', // Only required for QACC rounds
+      INDIVIDUAL_2: isEarlyAccess ? '0' : '250', // Only required for QACC rounds
       TOTAL: (roundData.roundUSDCapPerProject || '100000').toString(), // Default to 100000 for total limit
       TOTAL_2: isEarlyAccess
         ? '0'
