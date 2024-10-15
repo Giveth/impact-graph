@@ -7,6 +7,9 @@ import { repoLocalDir, repoUrl } from './configs';
 import config from '../config';
 import { Project } from '../entities/project';
 import { AppDataSource } from '../orm';
+import { toScreamingSnakeCase, ensureDirectoryExists } from './helpers';
+import { EarlyAccessRound } from '../entities/earlyAccessRound';
+import { QfRound } from '../entities/qfRound';
 
 // Attention: the configs of batches should be saved in the funding pot repo
 // this script pulls the latest version of funding pot service,
@@ -24,12 +27,93 @@ async function pullLatestVersionOfFundingPot() {
   }
 }
 
-// Helper function to convert a string to SCREAMING_SNAKE_CASE
-function toScreamingSnakeCase(str: string): string {
-  return str
-    .replace(/\s+/g, '_') // Replace spaces with underscores
-    .replace(/[a-z]/g, letter => letter.toUpperCase()) // Convert lowercase letters to uppercase
-    .replace(/[^A-Z0-9_]/g, ''); // Remove non-alphanumeric characters except underscores
+async function generateBatchFile(batchNumber: number) {
+  console.info(`Generating batch config for batch number: ${batchNumber}`);
+
+  // Initialize the data source (database connection)
+  const datasource = AppDataSource.getDataSource();
+  const earlyAccessRoundRepository = datasource.getRepository(EarlyAccessRound);
+  const qfRoundRepository = datasource.getRepository(QfRound);
+
+  // Step 1: Check if an Early Access Round exists for the given batchNumber
+  let roundData: any;
+  let isEarlyAccess = true; // Set this to true if it's an Early Access Round by default
+
+  roundData = await earlyAccessRoundRepository.findOne({
+    where: { roundNumber: batchNumber },
+  });
+
+  if (!roundData) {
+    // No Early Access Round found, fallback to QF Round
+    isEarlyAccess = false;
+
+    // Step 2: Get the last Early Access Round to adjust the round number
+    const lastEarlyAccessRound = await earlyAccessRoundRepository
+      .createQueryBuilder('eaRound')
+      .orderBy('eaRound.roundNumber', 'DESC')
+      .getOne();
+
+    const lastEarlyAccessRoundNumber = lastEarlyAccessRound
+      ? lastEarlyAccessRound.roundNumber
+      : 0;
+
+    // Step 3: Find the QF Round, add it to the number of the last Early Access Round
+    const qfRound = await qfRoundRepository.findOne({
+      where: { roundNumber: batchNumber - lastEarlyAccessRoundNumber },
+    });
+
+    // Step 4: If no QF round is found, throw an error
+    if (!qfRound) {
+      throw new Error(
+        `No Early Access or QF round found for batch number ${batchNumber}`,
+      );
+    }
+    roundData = qfRound;
+    roundData.startDate = qfRound.beginDate;
+  }
+
+  // Step 5: Format the data based on the round type
+  const batchConfig = {
+    TIMEFRAME: {
+      FROM_TIMESTAMP: Math.floor(
+        new Date(roundData.startDate).getTime() / 1000,
+      ), // Convert to timestamp
+      TO_TIMESTAMP: Math.floor(new Date(roundData.endDate).getTime() / 1000),
+    },
+    VESTING_DETAILS: {
+      START: Math.floor(new Date(roundData?.startDate).getTime() / 1000), // todo: should add it to rounds DB or set a default value
+      CLIFF: 100, // Default to 100 secs
+      END: Math.floor(new Date(roundData.endDate).getTime() / 1000), // todo: should add it to rounds DB or set a default value
+    },
+    LIMITS: {
+      INDIVIDUAL: (roundData.roundUSDCapPerUserPerProject || '5000').toString(), // Default to 5000 for individual cap
+      INDIVIDUAL_2: isEarlyAccess ? undefined : '250', // Only required for QACC rounds
+      TOTAL: (roundData.roundUSDCapPerProject || '100000').toString(), // Default to 100000 for total limit
+      TOTAL_2: isEarlyAccess
+        ? '0'
+        : (roundData.roundUSDCloseCapPerProject || '1050000').toString(), // Only required for QACC rounds
+    },
+    IS_EARLY_ACCESS: isEarlyAccess, // Set based on the round type
+    PRICE: (roundData.tokenPrice || '0.1').toString(), // Default price to "0.1" if not provided
+  };
+
+  // Step 6: Define the path to the {batchNumber}.json file inside the funding pot repo
+  const batchFilePath = path.join(
+    repoLocalDir,
+    'data',
+    'production',
+    'input',
+    'batches',
+    `${batchNumber}.json`,
+  );
+
+  // Ensure the directory exists
+  ensureDirectoryExists(path.dirname(batchFilePath));
+
+  // Write the batch data to the {batchNumber}.json file
+  await fs.writeJson(batchFilePath, batchConfig, { spaces: 2 });
+
+  console.info(`Batch config successfully written to ${batchFilePath}`);
 }
 
 async function fillProjectsData() {
@@ -69,7 +153,7 @@ async function fillProjectsData() {
   );
 
   // Ensure the directory exists
-  await fs.ensureDir(path.dirname(filePath));
+  ensureDirectoryExists(path.dirname(filePath));
 
   // Write the projects data to the projects.json file
   await fs.writeJson(filePath, projectsData, { spaces: 2 });
@@ -133,17 +217,18 @@ const serviceDir = path.join(repoLocalDir);
 
 async function installDependencies() {
   console.info(`Installing npm dependencies in ${serviceDir}...`);
-  await execShellCommand('npm install', serviceDir);
+  await execShellCommand('npm install --loglevel=error', serviceDir);
 }
 
-async function runFundingPotService() {
-  const command = 'npm run all ' + Number(process.argv[2]);
+async function runFundingPotService(batchNumber: number) {
+  const command = 'npm run all ' + batchNumber;
   console.info(`Running "${command}" in ${serviceDir}...`);
   await execShellCommand(command, serviceDir);
 }
 
 async function main() {
   try {
+    const batchNumber = Number(process.argv[2]);
     // Step 1
     console.info('Start pulling latest version of funding pot service...');
     await pullLatestVersionOfFundingPot();
@@ -159,6 +244,11 @@ async function main() {
     await fillProjectsData();
     console.info('Projects data filled successfully.');
 
+    // Step 5
+    console.info('Create batch config in the funding pot service...');
+    await generateBatchFile(batchNumber);
+    console.info('Batch config created successfully.');
+
     // Step 4
     console.info('Creating .env file for funding pot service...');
     await createEnvFile();
@@ -166,7 +256,7 @@ async function main() {
 
     // Step 5
     console.info('Running funding pot service...');
-    await runFundingPotService();
+    await runFundingPotService(batchNumber);
     console.info('Done!');
     process.exit();
   } catch (error) {
