@@ -202,7 +202,8 @@
     "start:docker:locally": "npm run db:migrate:run:local && npm run dev",
     "postinstall": "patch-package",
     "sync:inverter:test": "NODE_ENV=test node ./build/src/scripts/runScript.js",
-    "sync:inverter:production": "NODE_ENV=production node ./build/src/scripts/runScript.js"
+    "sync:inverter:production": "NODE_ENV=production node ./build/src/scripts/runScript.js",
+    "execute:inverter:production": "NODE_ENV=production node ./build/src/scripts/runFundingPotService.js"
   },
   "husky": {
     "hooks": {
