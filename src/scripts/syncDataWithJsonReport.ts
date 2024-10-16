@@ -105,13 +105,17 @@ async function processReportForDonations(
 
       // Fetch the cliff, reward start, and end dates from the InverterAdapter
       const vestingInfo = rewardInfo[0]?.vestings.find(
-        v => v.recipient === donation.fromWalletAddress,
+        v =>
+          v.recipient.toLowerCase() ===
+          donation.fromWalletAddress.toLowerCase(),
       );
 
       if (vestingInfo) {
         donation.cliff = parseFloat(vestingInfo.cliff);
-        donation.rewardStreamStart = new Date(parseInt(vestingInfo.start));
-        donation.rewardStreamEnd = new Date(parseInt(vestingInfo.end));
+        donation.rewardStreamStart = new Date(
+          parseInt(vestingInfo.start) * 1000,
+        );
+        donation.rewardStreamEnd = new Date(parseInt(vestingInfo.end) * 1000);
         if (
           String(vestingInfo.amountRaw) !== '0' &&
           String(vestingInfo.amountRaw) !==
