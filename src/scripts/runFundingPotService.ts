@@ -72,6 +72,14 @@ async function generateBatchFile(batchNumber: number) {
     roundData.startDate = qfRound.beginDate;
   }
 
+  const EA1Round = await earlyAccessRoundRepository.findOne({
+    where: { roundNumber: 1 },
+  });
+  const streamStartDate = Math.floor(
+    new Date(EA1Round ? EA1Round.startDate : roundData.startDate).getTime() /
+      1000,
+  ); // stream start date should be equal to EA1 round start date for every rounds
+
   // Step 5: Format the data based on the round type
   const batchConfig = {
     TIMEFRAME: {
@@ -81,9 +89,9 @@ async function generateBatchFile(batchNumber: number) {
       TO_TIMESTAMP: Math.floor(new Date(roundData.endDate).getTime() / 1000),
     },
     VESTING_DETAILS: {
-      START: Math.floor(new Date(roundData?.startDate).getTime() / 1000), // todo: should add it to rounds DB or set a default value
-      CLIFF: 100, // Default to 100 secs
-      END: Math.floor(new Date(roundData.endDate).getTime() / 1000), // todo: should add it to rounds DB or set a default value
+      START: streamStartDate,
+      CLIFF: 31536000, // 1 year in sec
+      END: streamStartDate + 63072000, // 2 years after start
     },
     LIMITS: {
       INDIVIDUAL: (roundData.roundUSDCapPerUserPerProject || '5000').toString(), // Default to 5000 for individual cap
