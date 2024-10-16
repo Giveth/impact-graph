@@ -1,10 +1,7 @@
-import axios from 'axios';
 import {
   CocmAdapterInterface,
   ProjectsEstimatedMatchings,
 } from './cocmAdapterInterface';
-import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { logger } from '../../utils/logger';
 
 export class CocmMockAdapter implements CocmAdapterInterface {
   async fetchEstimatedClusterMatchings(

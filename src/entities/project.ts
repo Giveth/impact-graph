@@ -40,11 +40,7 @@ import { Category } from './category';
 import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
-import {
-  getQfRoundTotalSqrtRootSumSquared,
-  getProjectDonationsSqrtRootSum,
-  findActiveQfRound,
-} from '../repositories/qfRoundRepository';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
@@ -501,23 +497,14 @@ export class Project extends BaseEntity {
   async estimatedMatching(): Promise<EstimatedMatching | null> {
     const activeQfRound = await findActiveQfRound();
     if (!activeQfRound) {
-      // TODO should move it to materialized view
       return null;
     }
-    const projectDonationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
-      this.id,
-      activeQfRound.id,
-    );
-
-    const allProjectsSum = await getQfRoundTotalSqrtRootSumSquared(
-      activeQfRound.id,
-    );
-
     const matchingPool = activeQfRound.allocatedFund;
 
+    // Facilitate migration in frontend return empty values for now
     return {
-      projectDonationsSqrtRootSum,
-      allProjectsSum,
+      projectDonationsSqrtRootSum: 0,
+      allProjectsSum: 0,
       matchingPool,
     };
   }

@@ -2,16 +2,13 @@ import { schedule } from 'node-cron';
 import { spawn, Worker, Thread } from 'threads';
 import config from '../../config';
 import { logger } from '../../utils/logger';
-import {
-  findActiveQfRound,
-  findUsersWithoutMBDScoreInActiveAround,
-} from '../../repositories/qfRoundRepository';
-import { findUserById } from '../../repositories/userRepository';
-import { UserQfRoundModelScore } from '../../entities/userQfRoundModelScore';
+import { findActiveQfRound } from '../../repositories/qfRoundRepository';
+import { exportClusterMatchingDonationsFormat } from '../../repositories/donationRepository';
 
 const cronJobTime =
-  (config.get('SYNC_ESTIMATED_CLUSTED_MATCHING_CRONJOB_EXPRESSION') as string) ||
-  '0 * * * * *';
+  (config.get(
+    'SYNC_ESTIMATED_CLUSTER_MATCHING_CRONJOB_EXPRESSION',
+  ) as string) || '0 * * * * *';
 
 export const runSyncEstimatedClusterMatchingCronjob = () => {
   logger.debug(
@@ -24,27 +21,33 @@ export const runSyncEstimatedClusterMatchingCronjob = () => {
 };
 
 export const fetchAndUpdateClusterEstimatedMatching = async () => {
-  const fetchWorker = await spawn(
+  const matchingWorker = await spawn(
     new Worker('../../workers/cocm/fetchEstimatedClusterMtchingWorker'),
   );
 
-  const updateWorker = await spawn(
-    new Worker('../../workers/cocm/updateProjectsEstimatedClusterMatchingWorker')
+  const activeQfRound = await findActiveQfRound();
+  if (!activeQfRound?.id) return;
+
+  const clusterMatchingDonations = await exportClusterMatchingDonationsFormat(
+    activeQfRound?.id,
   );
-  const activeQfRoundId =
-    (await findActiveQfRound())?.id;
-  if (!activeQfRoundId || activeQfRoundId === 0) return;
+  if (clusterMatchingDonations?.length === 0) return;
 
-  for (const projectId of []) {
-    try {
+  const matchingDataInput = {
+    votes_data: clusterMatchingDonations,
+    strategy: 'COCM',
+    min_donation_threshold_amount: activeQfRound.minimumValidUsdValue,
+    matching_cap_amount: activeQfRound.maximumReward,
+    matching_amount: activeQfRound.allocatedFundUSD,
+    passport_threshold: activeQfRound.minimumPassportScore,
+  };
 
-    //   const userScore = await worker.syncUserScore({
-    //     userWallet: user?.walletAddress,
-    //   });
-    } catch (e) {
-      logger.info(`User with Id ${1} did not sync MBD score this batch`);
-    }
-  }
-  await Thread.terminate(fetchWorker);
-  await Thread.terminate(updateWorker);
+  const matchingData =
+    await matchingWorker.fetchEstimatedClusterMatching(matchingDataInput);
+  await matchingWorker.updateEstimatedClusterMatching(
+    activeQfRound.id,
+    matchingData,
+  );
+
+  await Thread.terminate(matchingWorker);
 };
