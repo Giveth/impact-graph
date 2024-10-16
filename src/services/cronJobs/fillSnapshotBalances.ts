@@ -120,27 +120,44 @@ export function processFillPowerSnapshotJobs() {
         // Process in batches
         for (let i = 0; i < Math.ceil(data.length / batchNumber); i++) {
           const batch = data.slice(i * batchNumber, (i + 1) * batchNumber);
-          const addresses = batch.map(item => item.walletAddress);
+          const addressesToFetch = new Set<string>(
+            batch.map(item => item.walletAddress),
+          );
           const balances =
             await getPowerBalanceAggregatorAdapter().getAddressesBalance({
               timestamp,
-              addresses,
+              addresses: Array.from(addressesToFetch),
             });
 
           const groupByWalletAddress = _.groupBy(batch, item =>
             item.walletAddress.toLowerCase(),
           );
 
-          const snapshotBalances = balances
-            .map(balance =>
-              groupByWalletAddress[balance.address.toLowerCase()].map(item => ({
-                balance: balance.balance,
+          const snapshotBalances = balances.map(balance => {
+            const address = balance.address.toLowerCase();
+
+            // Remove the address from the set
+            addressesToFetch.delete(address);
+
+            return groupByWalletAddress[address].map(item => ({
+              balance: balance.balance,
+              powerSnapshotId: item.powerSnapshotId,
+              userId: item!.userId,
+            }));
+          });
+
+          // Fill zero for the missing balances
+          for (const missedAddress of addressesToFetch) {
+            snapshotBalances.push(
+              groupByWalletAddress[missedAddress].map(item => ({
+                balance: 0,
                 powerSnapshotId: item.powerSnapshotId,
-                userId: item!.userId,
+                userId: item.userId,
               })),
-            )
-            .flat();
-          await addOrUpdatePowerSnapshotBalances(snapshotBalances);
+            );
+          }
+
+          await addOrUpdatePowerSnapshotBalances(snapshotBalances.flat());
         }
       } catch (e) {
         logger.error('processFillPowerSnapshotJobs >> error', e);
