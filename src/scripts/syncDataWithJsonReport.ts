@@ -66,7 +66,7 @@ async function processReportForDonations(
       }
 
       const totalValidContribution = ethers.BigNumber.from(
-        participantData.validContribution,
+        participantData.validContribution.inCollateral,
       );
       // if issuance allocation is not exist, that mean this user has not any valid contributions
       let rewardAmount = 0;
