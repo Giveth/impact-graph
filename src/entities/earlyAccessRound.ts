@@ -50,6 +50,10 @@ export class EarlyAccessRound extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   tokenPrice?: number;
 
+  @Field(_type => Boolean)
+  @Column({ default: false })
+  isBatchMintingExecuted: boolean;
+
   // Virtual Field to calculate cumulative cap per project
   @Field(() => Float, { nullable: true })
   cumulativeUSDCapPerProject?: number;
