@@ -347,6 +347,16 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donation.verifyErrorMessage = e.message;
       donation.status = DONATION_STATUS.FAILED;
       await donation.save();
+
+      await updateOrCreateProjectRoundRecord(
+        donation.projectId,
+        donation.qfRoundId,
+        donation.earlyAccessRoundId,
+      );
+      await updateOrCreateProjectUserRecord({
+        projectId: donation.projectId,
+        userId: donation.userId,
+      });
     } else {
       const timeDifference =
         new Date().getTime() - donation.createdAt.getTime();
