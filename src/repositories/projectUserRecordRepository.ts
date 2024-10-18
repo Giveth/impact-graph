@@ -19,7 +19,7 @@ export async function updateOrCreateProjectUserRecord({
   FROM donation
   WHERE donation."projectId" = $1 
     AND donation."userId" = $2
-    AND donation.status = $3 
+    AND donation.status = ANY($3) 
   ON CONFLICT ("projectId", "userId") DO UPDATE 
   SET 
     "eaTotalDonationAmount" = EXCLUDED."eaTotalDonationAmount",
@@ -31,7 +31,7 @@ export async function updateOrCreateProjectUserRecord({
   const result = await ProjectUserRecord.query(query, [
     projectId,
     userId,
-    DONATION_STATUS.VERIFIED,
+    [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
   ]);
 
   return result[0];

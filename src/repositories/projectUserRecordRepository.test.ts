@@ -37,15 +37,15 @@ describe('projectUserRecordRepository', () => {
     assert.equal(projectUserRecord.totalDonationAmount, 0);
   });
 
-  it('should return the total verified donation amount', async () => {
-    const verifiedDonationAmount1 = 100;
-    const verifiedDonationAmount2 = 200;
-    const unverifiedDonationAmount = 300;
+  it('should return the total verified and pending donation amount', async () => {
+    const verifiedDonationAmount = 100;
+    const pendingDonationAmount = 200;
+    const faildDonationAmount = 300;
 
     await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount: verifiedDonationAmount1,
+        amount: verifiedDonationAmount,
         status: DONATION_STATUS.VERIFIED,
       },
       user.id,
@@ -54,17 +54,17 @@ describe('projectUserRecordRepository', () => {
     await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount: verifiedDonationAmount2,
-        status: DONATION_STATUS.VERIFIED,
-      },
-      user.id,
-      project.id,
-    );
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        amount: unverifiedDonationAmount,
+        amount: pendingDonationAmount,
         status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: faildDonationAmount,
+        status: DONATION_STATUS.FAILED,
       },
       user.id,
       project.id,
@@ -78,19 +78,19 @@ describe('projectUserRecordRepository', () => {
     assert.isOk(projectUserRecord);
     assert.equal(
       projectUserRecord.totalDonationAmount,
-      verifiedDonationAmount1 + verifiedDonationAmount2,
+      verifiedDonationAmount + pendingDonationAmount,
     );
   });
 
-  it('should return the total verified donation amount for a specific project', async () => {
-    const verifiedDonationAmount1 = 100;
-    const verifiedDonationAmount2 = 200;
-    const unverifiedDonationAmount = 300;
+  it('should return the total verified and pending donation amount for a specific project', async () => {
+    const verifiedDonationAmount = 100;
+    const pendingDonationAmount = 200;
+    const failedDonationAmount = 300;
 
     await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount: verifiedDonationAmount1,
+        amount: verifiedDonationAmount,
         status: DONATION_STATUS.VERIFIED,
       },
       user.id,
@@ -99,17 +99,17 @@ describe('projectUserRecordRepository', () => {
     await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount: verifiedDonationAmount2,
-        status: DONATION_STATUS.VERIFIED,
-      },
-      user.id,
-      project.id,
-    );
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        amount: unverifiedDonationAmount,
+        amount: pendingDonationAmount,
         status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: failedDonationAmount,
+        status: DONATION_STATUS.FAILED,
       },
       user.id,
       project.id,
@@ -127,7 +127,7 @@ describe('projectUserRecordRepository', () => {
 
     assert.equal(
       amount.totalDonationAmount,
-      verifiedDonationAmount1 + verifiedDonationAmount2,
+      verifiedDonationAmount + pendingDonationAmount,
     );
   });
 

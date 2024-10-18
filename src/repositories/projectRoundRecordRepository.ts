@@ -23,8 +23,8 @@ export async function updateOrCreateProjectRoundRecord(
       .select('SUM(donation.amount)', 'totalDonationAmount')
       .addSelect('SUM(donation.valueUsd)', 'totalDonationUsdAmount')
       .where('donation.projectId = :projectId', { projectId })
-      .andWhere('donation.status = :status', {
-        status: DONATION_STATUS.VERIFIED,
+      .andWhere('donation.status IN (:...status)', {
+        status: [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
       });
 
     if (qfRoundId) {
