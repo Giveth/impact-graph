@@ -20,8 +20,8 @@ export async function updateOrCreateProjectRoundRecord(
 ): Promise<ProjectRoundRecord> {
   try {
     let query = Donation.createQueryBuilder('donation')
-      .select('SUM(donation.amount)', 'totalDonationAmount')
-      .addSelect('SUM(donation.valueUsd)', 'totalDonationUsdAmount')
+      .select('SUM(COALESCE(donation.amount))', 'totalDonationAmount')
+      .addSelect('SUM(COALESCE(donation.valueUsd,0))', 'totalDonationUsdAmount')
       .where('donation.projectId = :projectId', { projectId })
       .andWhere('donation.status IN (:...status)', {
         status: [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
@@ -143,8 +143,8 @@ export async function getCumulativePastRoundsDonationAmounts({
         'cumulativePastRoundsDonationAmounts',
       )
       .where('donation.projectId = :projectId', { projectId })
-      .andWhere('donation.status = :status', {
-        status: DONATION_STATUS.VERIFIED,
+      .andWhere('donation.status IN (:...status)', {
+        status: [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
       });
 
     if (earlyAccessRoundId) {

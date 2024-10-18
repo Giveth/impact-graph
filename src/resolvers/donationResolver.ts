@@ -921,16 +921,6 @@ export class DonationResolver {
         await donation.save();
       }
 
-      await updateOrCreateProjectRoundRecord(
-        donation.projectId,
-        donation.qfRoundId,
-        donation.earlyAccessRoundId,
-      );
-      await updateOrCreateProjectUserRecord({
-        projectId: donation.projectId,
-        userId: donation.userId,
-      });
-
       let priceChainId;
 
       switch (transactionNetworkId) {
@@ -957,6 +947,16 @@ export class DonationResolver {
         tokenInDb!,
         priceChainId,
       );
+
+      await updateOrCreateProjectRoundRecord(
+        donation.projectId,
+        donation.qfRoundId,
+        donation.earlyAccessRoundId,
+      );
+      await updateOrCreateProjectUserRecord({
+        projectId: donation.projectId,
+        userId: donation.userId,
+      });
 
       if (chainType === ChainType.EVM) {
         await markDraftDonationStatusMatched({
