@@ -543,19 +543,32 @@ function allProjectsTestCases() {
   //   await qfRound.save();
   // });
 
-  it('should return projects, sort by project instant power DESC', async () => {
+  it.only('should return projects, sort by project instant power DESC', async () => {
     await PowerBoosting.clear();
     await InstantPowerBalance.clear();
 
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const project1 = await saveProjectDirectlyToDb(createProjectData());
-    const project2 = await saveProjectDirectlyToDb(createProjectData());
-    const project3 = await saveProjectDirectlyToDb(createProjectData());
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: true,
+      isGivbackEligible: true,
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: true,
+      isGivbackEligible: false,
+    });
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: true,
+      isGivbackEligible: true,
+    });
     const project4 = await saveProjectDirectlyToDb({
       ...createProjectData(),
       verified: false,
+      isGivbackEligible: false,
     }); // Not boosted -Not verified project
     await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
 
