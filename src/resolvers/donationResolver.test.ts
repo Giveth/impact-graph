@@ -66,6 +66,7 @@ import { QACC_DONATION_TOKEN_SYMBOL } from '../constants/qacc';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { ProjectUserRecord } from '../entities/projectUserRecord';
+import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -101,6 +102,8 @@ describe('recentDonations() test cases', recentDonationsTestCases);
 describe('donationMetrics() test cases', donationMetricsTestCases);
 
 describe('qAcc limit tests', qAccLimitTestCases);
+
+describe('qAcc cap change on donation creation', qAccCapChangeTestCases);
 
 // // describe('tokens() test cases', tokensTestCases);
 
@@ -4980,5 +4983,92 @@ function qAccLimitTestCases() {
     const errors = donationsResponse.data.errors as GraphQLError[];
     assert.isNotEmpty(errors);
     assert.equal(errors[0]!.message, errorMessages.EXCEED_QACC_CAP);
+  });
+}
+
+function qAccCapChangeTestCases() {
+  let ea;
+  const tokenPrice = 0.1;
+  beforeEach(async () => {
+    ea = await EarlyAccessRound.create({
+      roundNumber: generateEARoundNumber(),
+      startDate: moment().subtract(1, 'days').toDate(),
+      endDate: moment().add(3, 'days').toDate(),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+      tokenPrice,
+    }).save();
+    sinon
+      .stub(qAccService, 'getQAccDonationCap')
+      .resolves(Number.MAX_SAFE_INTEGER);
+    sinon
+      .stub(CoingeckoPriceAdapter.prototype, 'getTokenPrice')
+      .resolves(tokenPrice);
+  });
+
+  afterEach(async () => {
+    sinon.restore();
+    if (ea) {
+      await ProjectRoundRecord.delete({});
+      await ProjectUserRecord.delete({});
+      await Donation.delete({ earlyAccessRoundId: ea.id });
+      await EarlyAccessRound.delete({});
+      ea = null;
+    }
+  });
+
+  it('should update projectUserRecord and projectRoundRecord when donation is created', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+
+    const usdAmount = 100;
+    const donationAmount = usdAmount / ea.tokenPrice;
+
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: QACC_NETWORK_ID,
+          transactionId: generateRandomEvmTxHash(),
+          nonce: 1,
+          amount: donationAmount,
+          token: QACC_DONATION_TOKEN_SYMBOL,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+
+    assert.equal(donation?.status, DONATION_STATUS.PENDING);
+    assert.equal(donation?.earlyAccessRoundId, ea.id);
+
+    const projectUserRecord = await ProjectUserRecord.findOneBy({
+      projectId: project.id,
+      userId: user.id,
+    });
+
+    assert.isOk(projectUserRecord);
+    assert.equal(projectUserRecord?.totalDonationAmount, donationAmount);
+
+    const projectRoundRecord = await ProjectRoundRecord.findOneBy({
+      projectId: project.id,
+      earlyAccessRoundId: ea.id,
+    });
+
+    assert.isOk(projectRoundRecord);
+    assert.equal(projectRoundRecord?.totalDonationAmount, donationAmount);
+    assert.equal(projectRoundRecord?.totalDonationUsdAmount, usdAmount);
   });
 }
