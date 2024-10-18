@@ -543,7 +543,7 @@ function allProjectsTestCases() {
   //   await qfRound.save();
   // });
 
-  it.only('should return projects, sort by project instant power DESC', async () => {
+  it('should return projects, sort by project instant power DESC', async () => {
     await PowerBoosting.clear();
     await InstantPowerBalance.clear();
 
