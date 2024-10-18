@@ -72,6 +72,8 @@ import {
 } from '../entities/draftDonation';
 import qacc from '../utils/qacc';
 import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepository';
+import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
+import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 @ObjectType()
@@ -918,6 +920,17 @@ export class DonationResolver {
         donation.earlyAccessRound = await findActiveEarlyAccessRound();
         await donation.save();
       }
+
+      await updateOrCreateProjectRoundRecord(
+        donation.projectId,
+        donation.qfRoundId,
+        donation.earlyAccessRoundId,
+      );
+      await updateOrCreateProjectUserRecord({
+        projectId: donation.projectId,
+        userId: donation.userId,
+      });
+
       let priceChainId;
 
       switch (transactionNetworkId) {
