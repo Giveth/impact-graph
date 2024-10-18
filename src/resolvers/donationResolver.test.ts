@@ -65,6 +65,7 @@ import qacc from '../utils/qacc';
 import { QACC_DONATION_TOKEN_SYMBOL } from '../constants/qacc';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
+import { ProjectUserRecord } from '../entities/projectUserRecord';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -837,14 +838,30 @@ function donationsTestCases() {
 }
 
 function createDonationTestCases() {
+  let ea;
   beforeEach(async () => {
+    ea = await EarlyAccessRound.create({
+      roundNumber: generateEARoundNumber(),
+      startDate: moment().subtract(1, 'days').toDate(),
+      endDate: moment().add(3, 'days').toDate(),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+      tokenPrice: 0.1,
+    }).save();
     sinon
       .stub(qAccService, 'getQAccDonationCap')
       .resolves(Number.MAX_SAFE_INTEGER);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     sinon.restore();
+    if (ea) {
+      await ProjectRoundRecord.delete({});
+      await ProjectUserRecord.delete({});
+      await Donation.delete({ earlyAccessRoundId: ea.id });
+      await EarlyAccessRound.delete({});
+      ea = null;
+    }
   });
 
   it('do not save referrer wallet if user refers himself', async () => {
@@ -2812,18 +2829,36 @@ function donationsFromWalletsTestCases() {
 }
 
 function donationsByProjectIdTestCases() {
+  let ea;
   beforeEach(async () => {
     await Donation.delete({
       id: Not(In(Object.values(DONATION_SEED_DATA).map(d => d.id))),
     });
+
+    ea = await EarlyAccessRound.create({
+      roundNumber: generateEARoundNumber(),
+      startDate: moment().subtract(1, 'days').toDate(),
+      endDate: moment().add(3, 'days').toDate(),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+      tokenPrice: 0.1,
+    }).save();
 
     sinon
       .stub(qAccService, 'getQAccDonationCap')
       .resolves(Number.MAX_SAFE_INTEGER);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     sinon.restore();
+    // Clean up data before each test case
+    if (ea) {
+      await ProjectRoundRecord.delete({});
+      await ProjectUserRecord.delete({});
+      await Donation.delete({ earlyAccessRoundId: ea.id });
+      await EarlyAccessRound.delete({});
+      ea = null;
+    }
   });
 
   it('should return filtered by qfRound donations when specified', async () => {
