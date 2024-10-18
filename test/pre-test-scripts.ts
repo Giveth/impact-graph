@@ -40,9 +40,9 @@ import { ProjectActualMatchingViewV161717646612482 } from '../migration/17176466
 import { LastSnapshotProjectPowerViewV21717648491606 } from '../migration/1717648491606-LastSnapshotProjectPowerView_V2';
 import { ProjectFuturePowerViewV21717643016553 } from '../migration/1717643016553-ProjectFuturePowerView_V2';
 import { ProjectUserInstantPowerViewV21717644442966 } from '../migration/1717644442966-ProjectUserInstantPowerView_V2';
-import { ProjectInstantPowerViewV21717648653115 } from '../migration/1717648653115-ProjectInstantPowerView_V2';
 import { UserProjectPowerViewV21717645768886 } from '../migration/1717645768886-UserProjectPowerView_V2';
 import { ProjectGivbackRankViewV31725260193333 } from '../migration/1725260193333-projectGivbackRankView';
+import { ProjectInstantPowerViewV31724223781248 } from '../migration/1724223781248-ProjectInstantPowerViewV3';
 
 async function seedDb() {
   await seedUsers();
@@ -538,7 +538,7 @@ async function runMigrations() {
       queryRunner,
     );
     await new createOrganisatioTokenTable1646302349926().up(queryRunner);
-    await new ProjectInstantPowerViewV21717648653115().up(queryRunner);
+    await new ProjectInstantPowerViewV31724223781248().up(queryRunner);
     await new ProjectEstimatedMatchingViewV21717646357435().up(queryRunner);
     await new ProjectUserInstantPowerViewV21717644442966().up(queryRunner);
     await new TakePowerBoostingSnapshotProcedureSecondVersion1690723242749().up(
