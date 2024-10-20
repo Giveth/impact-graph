@@ -101,7 +101,7 @@ async function processReportForDonations(
         // Calculate the reward proportionally based on the valid contribution
         rewardAmount = issuanceAllocation * contributionPercentage;
       }
-      donation.rewardTokenAmount = rewardAmount;
+      donation.rewardTokenAmount = rewardAmount || 0;
 
       // Fetch the cliff, reward start, and end dates from the InverterAdapter
       const vestingInfo = rewardInfo[0]?.vestings.find(
