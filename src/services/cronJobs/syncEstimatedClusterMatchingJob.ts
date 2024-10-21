@@ -10,6 +10,8 @@ const cronJobTime =
     'SYNC_ESTIMATED_CLUSTER_MATCHING_CRONJOB_EXPRESSION',
   ) as string) || '0 * * * * *';
 
+const defaultMatchingStrategy = 'COCM';
+
 export const runSyncEstimatedClusterMatchingCronjob = () => {
   logger.debug(
     'runSyncEstimatedClusterMatchingCronjob() has been called, cronJobTime',
@@ -22,7 +24,7 @@ export const runSyncEstimatedClusterMatchingCronjob = () => {
 
 export const fetchAndUpdateClusterEstimatedMatching = async () => {
   const matchingWorker = await spawn(
-    new Worker('../../workers/cocm/fetchEstimatedClusterMtchingWorker'),
+    new Worker('../../workers/cocm/estimatedClusterMtchingWorker'),
   );
 
   const activeQfRound = await findActiveQfRound();
@@ -31,23 +33,31 @@ export const fetchAndUpdateClusterEstimatedMatching = async () => {
   const clusterMatchingDonations = await exportClusterMatchingDonationsFormat(
     activeQfRound?.id,
   );
-  if (clusterMatchingDonations?.length === 0) return;
+  if (!clusterMatchingDonations || clusterMatchingDonations?.length === 0)
+    return;
 
   const matchingDataInput = {
     votes_data: clusterMatchingDonations,
-    strategy: 'COCM',
+    strategy: defaultMatchingStrategy,
     min_donation_threshold_amount: activeQfRound.minimumValidUsdValue,
     matching_cap_amount: activeQfRound.maximumReward,
     matching_amount: activeQfRound.allocatedFundUSD,
     passport_threshold: activeQfRound.minimumPassportScore,
   };
 
-  const matchingData =
-    await matchingWorker.fetchEstimatedClusterMatching(matchingDataInput);
-  await matchingWorker.updateEstimatedClusterMatching(
-    activeQfRound.id,
-    matchingData,
-  );
+  try {
+    // Fetch from python api cluster matching
+    const matchingData =
+      await matchingWorker.fetchEstimatedClusterMatching(matchingDataInput);
+
+    // Insert the data
+    await matchingWorker.updateEstimatedClusterMatching(
+      activeQfRound.id,
+      matchingData,
+    );
+  } catch (e) {
+    logger.error('fetchAndUpdateClusterEstimatedMatching error', e);
+  }
 
   await Thread.terminate(matchingWorker);
 };

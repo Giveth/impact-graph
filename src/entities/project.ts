@@ -46,6 +46,7 @@ import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
+import { EstimatedClusterMatching } from './estimatedClusterMatching';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -501,11 +502,22 @@ export class Project extends BaseEntity {
     }
     const matchingPool = activeQfRound.allocatedFund;
 
+    const estimatedClusterMatching =
+      await EstimatedClusterMatching.createQueryBuilder('matching')
+        .where('matching."projectId" = :projectId', { projectId: this.id })
+        .getOne();
+
+    let matching: number;
+    if (!estimatedClusterMatching) matching = 0;
+
+    matching = estimatedClusterMatching!.matching;
+
     // Facilitate migration in frontend return empty values for now
     return {
       projectDonationsSqrtRootSum: 0,
       allProjectsSum: 0,
       matchingPool,
+      matching,
     };
   }
 

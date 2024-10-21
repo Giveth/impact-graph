@@ -17,9 +17,9 @@ export const exportClusterMatchingDonationsFormat = async (
     `
     SELECT 
       d."fromWalletAddress" AS voter,
-      d."toWalletAddress" AS payoutAddress,
-      d."valueUsd" AS amountUSD,
-      p."title" AS project_name,
+      d."toWalletAddress" AS "payoutAddress",
+      d."valueUsd" AS "amountUSD",
+      p."title" AS "project_name",
       d."qfRoundUserScore" AS score
     FROM 
       donation d
