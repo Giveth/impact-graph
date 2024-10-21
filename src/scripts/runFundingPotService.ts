@@ -198,7 +198,16 @@ async function createEnvFile() {
       .replace(
         'ANKR_API_KEY=""',
         `ANKR_API_KEY="${config.get('ANKR_API_KEY_FOR_FUNDING_POT') || ''}"`,
-      );
+      )
+      .replace(
+        'ANKR_NETWORK_ID="base_sepolia"',
+        'ANKR_NETWORK_ID=polygon_zkevm',
+      )
+      .replace(
+        'RPC_URL="https://rpc.ankr.com/base_sepolia"',
+        'RPC_URL="https://zkevm-rpc.com"',
+      )
+      .replace('CHAIN_ID=84532', 'CHAIN_ID=1101');
 
     await fs.writeFile(envFilePath, updatedEnvContent, 'utf-8');
   } catch (error) {
