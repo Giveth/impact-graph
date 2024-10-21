@@ -1,11 +1,9 @@
 /* eslint-disable no-console */
 import { FindOptionsWhere } from 'typeorm';
-import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import { InverterAdapter } from '../adapters/inverter/inverterAdapter';
 import { AppDataSource } from '../orm';
 import { getProvider, QACC_NETWORK_ID } from '../provider';
-import { updateRewardsForDonations } from './syncDataWithJsonReport';
 
 const adapter = new InverterAdapter(getProvider(QACC_NETWORK_ID));
 
@@ -86,16 +84,13 @@ async function fetchTokenTotalSupply(project: Project) {
   }
 }
 
-export async function syncDonationsWithBlockchainData(
+export async function syncDonationsWithIndexerData(
   {
     projectFilter,
-    donationFilter,
   }: {
     projectFilter: FindOptionsWhere<Project>;
-    donationFilter: FindOptionsWhere<Donation>;
   } = {
     projectFilter: {},
-    donationFilter: {},
   },
 ) {
   console.debug('bootstrap() before AppDataSource.initialize()', new Date());
@@ -103,6 +98,4 @@ export async function syncDonationsWithBlockchainData(
   console.debug('bootstrap() after AppDataSource.initialize()', new Date());
 
   await updateTokenPriceAndTotalSupplyForProjects(projectFilter);
-
-  await updateRewardsForDonations(donationFilter);
 }
