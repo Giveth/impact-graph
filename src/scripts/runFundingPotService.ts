@@ -7,11 +7,16 @@ import { repoLocalDir, repoUrl } from './configs';
 import config from '../config';
 import { Project } from '../entities/project';
 import { AppDataSource } from '../orm';
-import { toScreamingSnakeCase, ensureDirectoryExists } from './helpers';
+import {
+  toScreamingSnakeCase,
+  ensureDirectoryExists,
+  getStreamDetails,
+  getRoundByBatchNumber,
+} from './helpers';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
-import { QfRound } from '../entities/qfRound';
 import { findAllEarlyAccessRounds } from '../repositories/earlyAccessRoundRepository';
 import { findQfRounds } from '../repositories/qfRoundRepository';
+import { updateRewardsForDonations } from './syncDataWithJsonReport';
 
 // Attention: the configs of batches should be saved in the funding pot repo
 // this script pulls the latest version of funding pot service,
@@ -29,77 +34,19 @@ async function pullLatestVersionOfFundingPot() {
   }
 }
 
-async function getRoundByBatchNumber(batchNumber: number) {
-  const datasource = AppDataSource.getDataSource();
-  const earlyAccessRoundRepository = datasource.getRepository(EarlyAccessRound);
-  const qfRoundRepository = datasource.getRepository(QfRound);
-
-  // Step 1: Check if an Early Access Round exists for the given batchNumber
-  let round: any;
-  let isEarlyAccess = true; // Set this to true if it's an Early Access Round by default
-
-  round = await earlyAccessRoundRepository.findOne({
-    where: { roundNumber: batchNumber },
-  });
-
-  if (!round) {
-    // No Early Access Round found, fallback to QF Round
-    isEarlyAccess = false;
-
-    // Step 2: Get the last Early Access Round to adjust the round number
-    const lastEarlyAccessRound = await earlyAccessRoundRepository
-      .createQueryBuilder('eaRound')
-      .orderBy('eaRound.roundNumber', 'DESC')
-      .getOne();
-
-    const lastEarlyAccessRoundNumber = lastEarlyAccessRound
-      ? lastEarlyAccessRound.roundNumber
-      : 0;
-
-    // Step 3: Find the QF Round, add it to the number of the last Early Access Round
-    const qfRound = await qfRoundRepository.findOne({
-      where: { roundNumber: batchNumber - lastEarlyAccessRoundNumber },
-    });
-
-    // Step 4: If no QF round is found, throw an error
-    if (!qfRound) {
-      throw new Error(
-        `No Early Access or QF round found for batch number ${batchNumber}`,
-      );
-    }
-    round = qfRound;
-  }
-
-  return { round, isEarlyAccess };
-}
-
-async function generateBatchFile(batchNumber: number, onlyReport?: boolean) {
+async function generateBatchFile(batchNumber: number) {
   console.info(`Generating batch config for batch number: ${batchNumber}`);
   const { round, isEarlyAccess } = await getRoundByBatchNumber(batchNumber);
   if (!isEarlyAccess) {
     round.startDate = round.beginDate;
   }
 
-  const datasource = AppDataSource.getDataSource();
-  const earlyAccessRoundRepository = datasource.getRepository(EarlyAccessRound);
-  const EA1Round = await earlyAccessRoundRepository.findOne({
-    where: { roundNumber: 1 },
-  });
-  const streamStartDate = Math.floor(
-    new Date(EA1Round ? EA1Round.startDate : round.startDate).getTime() / 1000,
-  ); // stream start date should be equal to EA1 round start date for every rounds
-
-  // Step 5: Format the data based on the round type
   const batchConfig = {
     TIMEFRAME: {
       FROM_TIMESTAMP: Math.floor(new Date(round.startDate).getTime() / 1000), // Convert to timestamp
       TO_TIMESTAMP: Math.floor(new Date(round.endDate).getTime() / 1000),
     },
-    VESTING_DETAILS: {
-      START: streamStartDate,
-      CLIFF: 31536000, // 1 year in sec
-      END: streamStartDate + 63072000, // 2 years after start
-    },
+    VESTING_DETAILS: getStreamDetails(isEarlyAccess),
     LIMITS: {
       INDIVIDUAL: (round.roundUSDCapPerUserPerProject || '5000').toString(), // Default to 5000 for individual cap
       INDIVIDUAL_2: isEarlyAccess ? '0' : '250', // Only required for QACC rounds
@@ -110,10 +57,9 @@ async function generateBatchFile(batchNumber: number, onlyReport?: boolean) {
     },
     IS_EARLY_ACCESS: isEarlyAccess, // Set based on the round type
     PRICE: (round.tokenPrice || '0.1').toString(), // Default price to "0.1" if not provided
-    ONLY_REPORT: onlyReport, // If we set this flag, only report will be generated and no transactions propose to the safes
+    // ONLY_REPORT: onlyReport, // If we set this flag, only report will be generated and no transactions propose to the safes
   };
 
-  // Step 6: Define the path to the {batchNumber}.json file inside the funding pot repo
   const batchFilePath = path.join(
     repoLocalDir,
     'data',
@@ -333,14 +279,13 @@ async function setBatchMintingExecutionFlag(batchNumber: number) {
 
 async function main() {
   try {
-    let batchDetails;
-    const batchNumberFromArg = Number(process.argv[2]);
-    const onlyReportFromArg = Boolean(process.argv[3]);
-    if (!batchNumberFromArg) {
-      batchDetails = await getFirstRoundThatNeedExecuteBatchMinting();
-    }
-    const batchNumber = batchNumberFromArg || batchDetails?.batchNumber;
-    const onlyReport = onlyReportFromArg || batchDetails?.isExecutedBefore;
+    // Step 0
+    console.info('Get batch number from args or calculating it...');
+    const batchNumber =
+      Number(process.argv[2]) ||
+      (await getFirstRoundThatNeedExecuteBatchMinting()).batchNumber;
+    console.info('Batch number is:', batchNumber);
+
     // Step 1
     console.info('Start pulling latest version of funding pot service...');
     await pullLatestVersionOfFundingPot();
@@ -358,7 +303,7 @@ async function main() {
 
     // Step 5
     console.info('Create batch config in the funding pot service...');
-    await generateBatchFile(batchNumber, onlyReport);
+    await generateBatchFile(batchNumber);
     console.info('Batch config created successfully.');
 
     // Step 4
@@ -372,11 +317,14 @@ async function main() {
     console.info('Funding pot service executed successfully!');
 
     // Step 6
-    if (!onlyReport) {
-      console.info('Setting batch minting execution flag in round data...');
-      await setBatchMintingExecutionFlag(batchNumber);
-      console.info('Batch minting execution flag set successfully.');
-    }
+    console.info('Setting batch minting execution flag in round data...');
+    await setBatchMintingExecutionFlag(batchNumber);
+    console.info('Batch minting execution flag set successfully.');
+
+    // Step 7
+    console.info('Start Syncing reward data in donations...');
+    await updateRewardsForDonations(batchNumber);
+    console.info('Rewards data synced successfully.');
     console.info('Done!');
     process.exit();
   } catch (error) {

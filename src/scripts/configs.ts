@@ -1,7 +1,7 @@
 import path from 'path';
 
-// Path to the local reports directory inside the repo
-export const reportsDir = path.join(__dirname, 'reportFiles/output');
+export const streamStartDate = 1729500000; // should be timestamp of deploying funding pot contract in secs
+
 // The URL of the GitHub repository containing the reports
 export const repoUrl = 'https://github.com/InverterNetwork/funding-pot.git';
 // Local directory for cloning or pulling the latest reports
