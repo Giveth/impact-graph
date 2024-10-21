@@ -22,6 +22,9 @@ import { DonationSaveBackupMockAdapter } from './donationSaveBackup/DonationSave
 import { SuperFluidAdapter } from './superFluid/superFluidAdapter';
 import { SuperFluidMockAdapter } from './superFluid/superFluidMockAdapter';
 import { SuperFluidAdapterInterface } from './superFluid/superFluidAdapterInterface';
+import { CocmAdapter } from './cocmAdapter/cocmAdapter';
+import { CocmMockAdapter } from './cocmAdapter/cocmMockAdapter';
+import { CocmAdapterInterface } from './cocmAdapter/cocmAdapterInterface';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -145,5 +148,19 @@ export const getSuperFluidAdapter = (): SuperFluidAdapterInterface => {
       return superFluidMockAdapter;
     default:
       return superFluidMockAdapter;
+  }
+};
+
+const clusterMatchingAdapter = new CocmAdapter();
+const clusterMatchingMockAdapter = new CocmMockAdapter();
+
+export const getClusterMatchingAdapter = (): CocmAdapterInterface => {
+  switch (process.env.CLUSTER_MATCHING_ADAPTER) {
+    case 'clusterMatching':
+      return clusterMatchingAdapter;
+    case 'mock':
+      return clusterMatchingMockAdapter;
+    default:
+      return clusterMatchingMockAdapter;
   }
 };

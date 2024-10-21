@@ -52,6 +52,7 @@ import { ProjectSocialMedia } from './projectSocialMedia';
 import { DraftRecurringDonation } from './draftRecurringDonation';
 import { UserQfRoundModelScore } from './userQfRoundModelScore';
 import { ProjectGivbackRankView } from './ProjectGivbackRankView';
+import { EstimatedClusterMatching } from './estimatedClusterMatching';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -86,6 +87,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     PowerSnapshot,
     PowerBalanceSnapshot,
     PowerBoostingSnapshot,
+    EstimatedClusterMatching,
 
     // View
     UserProjectPowerView,
