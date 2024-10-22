@@ -14,7 +14,7 @@ async function fetchTokenPrice(project: Project) {
       project.abc.fundingManagerAddress,
     );
     logger.debug(`Fetched token price for project ${project.id}:`, tokenPrice);
-    return parseFloat(tokenPrice);
+    return tokenPrice;
   } catch (error) {
     logger.error(`Error in fetch token price of project ${project.id}`, error);
     return;
