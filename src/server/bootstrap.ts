@@ -65,6 +65,7 @@ import { QACC_NETWORK_ID } from '../provider';
 import { Token } from '../entities/token';
 import { ChainType } from '../types/network';
 import { runFetchRoundTokenPrice } from '../services/cronJobs/fetchRoundTokenPrice';
+import { runSyncDataWithInverter } from '../services/cronJobs/syncDataWithInverter';
 
 Resource.validate = validate;
 
@@ -376,6 +377,16 @@ export async function bootstrap() {
     await runFetchRoundTokenPrice();
     logger.debug(
       'initializeCronJobs() after runFetchRoundTokenPrice() ',
+      new Date(),
+    );
+
+    logger.debug(
+      'initializeCronJobs() before runSyncDataWithInverter() ',
+      new Date(),
+    );
+    await runSyncDataWithInverter();
+    logger.debug(
+      'initializeCronJobs() after runSyncDataWithInverter() ',
       new Date(),
     );
   }

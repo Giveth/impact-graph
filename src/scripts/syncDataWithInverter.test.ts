@@ -6,25 +6,16 @@ import {
   saveProjectDirectlyToDb,
   createProjectData,
   generateRandomEtheriumAddress,
-  createDonationData,
-  saveDonationDirectlyToDb,
   deleteProjectDirectlyFromDb,
-  saveEARoundDirectlyToDb,
 } from '../../test/testUtils';
-import { Donation } from '../entities/donation';
-import { syncDonationsWithBlockchainData } from './syncDataWithInverter';
+import { syncDonationsWithIndexerData } from './syncDataWithInverter';
 import { InverterAdapter } from '../adapters/inverter/inverterAdapter';
-import { EarlyAccessRound } from '../entities/earlyAccessRound';
 
 describe.skip('Sync Donations Script Test Cases', () => {
   let existingProjectIds: number[] = [];
-  let existingDonationIds: number[] = [];
   beforeEach(async () => {
     existingProjectIds =
       (await Project.find({ select: ['id'] }))?.map(project => project.id) ||
-      [];
-    existingDonationIds =
-      (await Donation.find({ select: ['id'] }))?.map(donation => donation.id) ||
       [];
   });
   afterEach(async () => {
@@ -48,36 +39,13 @@ describe.skip('Sync Donations Script Test Cases', () => {
       },
     });
 
-    const earlyAccessRound = await saveEARoundDirectlyToDb({
-      roundNumber: 1,
-      startDate: new Date('2024-09-01'),
-      endDate: new Date('2024-09-05'),
-      roundUSDCapPerProject: 1000000,
-      roundUSDCapPerUserPerProject: 50000,
-      tokenPrice: 0.12345678,
-    });
-
-    const donation = await saveDonationDirectlyToDb(
-      {
-        ...createDonationData({ transactionId: '0x123' }),
-        fromWalletAddress: '0xce989336BdED425897Ac63d1359628E26E24f794', // got from inverter
-        blockNumber: 1234,
-        earlyAccessRoundId: earlyAccessRound.id,
-      },
-      undefined,
-      project.id,
-    );
-
     sinon
       .stub(InverterAdapter.prototype, 'getBlockTimestamp')
       .resolves(1725987224);
 
-    await syncDonationsWithBlockchainData({
+    await syncDonationsWithIndexerData({
       projectFilter: {
         id: Not(In(existingProjectIds)),
-      },
-      donationFilter: {
-        id: Not(In(existingDonationIds)),
       },
     });
 
@@ -88,23 +56,6 @@ describe.skip('Sync Donations Script Test Cases', () => {
     assert.equal(updatedProject?.abc.tokenPrice, 0.000000000000004444);
     assert.equal(updatedProject?.abc.totalSupply, 201001.63618501218);
 
-    const updatedDonation = await Donation.findOneBy({
-      id: donation.id,
-    });
-
-    assert.equal(updatedDonation?.cliff, 2);
-    assert.equal(
-      updatedDonation?.rewardStreamStart?.getTime(),
-      new Date(1).getTime(),
-    );
-    assert.equal(
-      updatedDonation?.rewardStreamEnd?.getTime(),
-      new Date(10).getTime(),
-    );
-    assert.equal(updatedDonation?.rewardTokenAmount, 0.004);
-
-    await Donation.remove(donation);
-    await EarlyAccessRound.remove(earlyAccessRound);
     await deleteProjectDirectlyFromDb(project.id);
   });
 });
