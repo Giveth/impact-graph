@@ -252,7 +252,7 @@ export async function bootstrap() {
               const { headers } = req;
               const authVersion = headers?.authversion || '1';
               if (headers?.authorization) {
-                token = headers.authorization?.split(' ')[1].toString();
+                token = headers.authorization?.split(' ')[1]?.toString();
                 if (!token) {
                   throw new Error('Authorization token is missing');
                 }
