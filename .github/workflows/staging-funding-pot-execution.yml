@@ -1,4 +1,4 @@
-name: Run Inverter Sync Script
+name: run-funding-pot-service
 
 on:
 #  schedule:
