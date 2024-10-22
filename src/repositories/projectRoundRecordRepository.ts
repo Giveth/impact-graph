@@ -82,6 +82,11 @@ export async function updateOrCreateProjectRoundRecord(
     return prr;
   } catch (error) {
     logger.error('Error updating or creating ProjectRoundRecord:', error);
+    logger.error('Paramse:', {
+      projectId,
+      qfRoundId,
+      earlyAccessRoundId,
+    });
     throw new Error(
       `Failed to update or create ProjectRoundRecord, ${error.message}`,
     );
