@@ -57,7 +57,7 @@
     "marked": "^4.2.5",
     "moment": "^2.29.4",
     "mongodb": "^5.9.2",
-    "node-cron": "^3.0.2",
+    "node-cron": "^3.0.3",
     "patch-package": "^6.5.1",
     "rate-limit-redis": "^4.2.0",
     "reflect-metadata": "^0.1.13",
