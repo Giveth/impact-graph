@@ -897,6 +897,10 @@ export class DonationResolver {
           activeQfRoundForProject.isEligibleNetwork(networkId)
         ) {
           donation.qfRound = activeQfRoundForProject;
+        } else {
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.ROUND_NOT_FOUND),
+          );
         }
         if (draftDonationEnabled && draftDonationId) {
           const draftDonation = await DraftDonation.findOne({
