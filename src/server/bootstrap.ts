@@ -266,6 +266,7 @@ export async function bootstrap() {
                 req?.headers?.authversion || '1'
               }`,
             );
+            logger.error({ req });
             auth = {
               token,
               error,
