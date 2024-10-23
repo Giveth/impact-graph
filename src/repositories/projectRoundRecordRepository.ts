@@ -18,6 +18,9 @@ export async function updateOrCreateProjectRoundRecord(
   qfRoundId?: number | null,
   earlyAccessRoundId?: number | null,
 ): Promise<ProjectRoundRecord> {
+  if (!qfRoundId && !earlyAccessRoundId) {
+    throw new Error('No round specified on updateOrCreateProjectRoundRecord');
+  }
   try {
     let query = Donation.createQueryBuilder('donation')
       .select('SUM(COALESCE(donation.amount))', 'totalDonationAmount')
