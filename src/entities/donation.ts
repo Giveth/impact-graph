@@ -166,11 +166,11 @@ export class Donation extends BaseEntity {
   @Index()
   @Field(_type => QfRound, { nullable: true })
   @ManyToOne(_type => QfRound, { eager: true })
-  qfRound: QfRound;
+  qfRound?: QfRound | null;
 
   @RelationId((donation: Donation) => donation.qfRound)
   @Column({ nullable: true })
-  qfRoundId: number;
+  qfRoundId: number | null;
 
   @Index()
   @Field(_type => QfRound, { nullable: true })
@@ -267,7 +267,7 @@ export class Donation extends BaseEntity {
 
   @RelationId((donation: Donation) => donation.earlyAccessRound)
   @Column({ nullable: true })
-  earlyAccessRoundId: number;
+  earlyAccessRoundId: number | null;
 
   @Field({ nullable: true })
   @Column({ type: 'float', nullable: true })
