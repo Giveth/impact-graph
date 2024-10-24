@@ -48,9 +48,17 @@ async function generateBatchFile(batchNumber: number) {
     },
     VESTING_DETAILS: getStreamDetails(isEarlyAccess),
     LIMITS: {
-      INDIVIDUAL: (round.roundUSDCapPerUserPerProject || '5000').toString(), // Default to 5000 for individual cap
+      INDIVIDUAL: (
+        (isEarlyAccess
+          ? round.cumulativeUSDCapPerUserPerProject
+          : round.roundUSDCapPerUserPerProject) || '5000'
+      ).toString(), // Default to 5000 for individual cap
       INDIVIDUAL_2: isEarlyAccess ? '0' : '250', // Only required for QACC rounds
-      TOTAL: (round.roundUSDCapPerProject || '100000').toString(), // Default to 100000 for total limit
+      TOTAL: (
+        (isEarlyAccess
+          ? round.cumulativeUSDCapPerProject
+          : round.roundUSDCapPerProject) || '100000'
+      ).toString(), // Default to 100000 for total limit
       TOTAL_2: isEarlyAccess
         ? '0'
         : (round.roundUSDCloseCapPerProject || '1050000').toString(), // Only required for QACC rounds
