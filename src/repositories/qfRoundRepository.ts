@@ -168,12 +168,18 @@ export const findArchivedQfRounds = async (
   return fullRounds.slice(skip, skip + limit);
 };
 
-export const findActiveQfRound = async (
-  noCache?: boolean,
-): Promise<QfRound | null> => {
+export const findActiveQfRound = async ({
+  noCache = false,
+  date = new Date(),
+}: {
+  noCache?: boolean;
+  date?: Date;
+} = {}): Promise<QfRound | null> => {
   const query = QfRound.createQueryBuilder('qfRound')
     .where('"isActive" = true')
-    .andWhere('NOW() BETWEEN "qfRound"."beginDate" AND "qfRound"."endDate"');
+    .andWhere(':date BETWEEN "qfRound"."beginDate" AND "qfRound"."endDate"', {
+      date,
+    });
   if (noCache) {
     return query.getOne();
   }
