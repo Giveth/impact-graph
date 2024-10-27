@@ -246,6 +246,7 @@ export const approveVerificationForms = async (
       ? PROJECT_VERIFICATION_STATUSES.VERIFIED
       : PROJECT_VERIFICATION_STATUSES.REJECTED;
     const formIds = request?.query?.recordIds?.split(',');
+
     // call repositories
     const projectsForms = await verifyMultipleForms({
       verificationStatus,

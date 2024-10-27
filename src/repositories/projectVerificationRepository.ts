@@ -404,7 +404,8 @@ export const approveMultipleProjects = async ({
     .update<Project>(Project)
     .set({
       isGivbackEligible: approved,
-      verificationStatus: approved ? null : () => '"verificationStatus"', // Keeps current value if not approved
+      verified: approved ? true : () => 'verified',
+      verificationStatus: approved ? null : () => '"verificationStatus"',
     })
     .where('project.id IN (:...ids)', { ids: projectsIds })
     .returning('*')
