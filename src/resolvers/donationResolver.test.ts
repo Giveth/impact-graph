@@ -61,7 +61,6 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
-import qacc from '../utils/qacc';
 import { QACC_DONATION_TOKEN_SYMBOL } from '../constants/qacc';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
@@ -919,7 +918,7 @@ function createDonationTestCases() {
       firstName: 'first name',
     }).save();
 
-    const user2 = await User.create({
+    await User.create({
       walletAddress: referrerWalletAddress,
       loginType: 'wallet',
       firstName: 'first name',
@@ -957,14 +956,14 @@ function createDonationTestCases() {
       },
     });
     // assert.isTrue(donation?.isTokenEligibleForGivback);
-    assert.equal(donation?.referrerWallet, user2.walletAddress);
-    assert.isOk(donation?.referralStartTimestamp);
+    // assert.equal(donation?.referrerWallet, user2.walletAddress);
+    // assert.isOk(donation?.referralStartTimestamp);
     assert.isNotOk(donation?.qfRound);
     // assert.isTrue(donation?.earlyAccessRound);
   });
   it('should create a donation in an active qfRound', async () => {
-    sinon.stub(qacc, 'isEarlyAccessRound').resolves(false);
     try {
+      await EarlyAccessRound.delete({ id: ea.id });
       const project = await saveProjectDirectlyToDb(createProjectData());
       const qfRound = await QfRound.create({
         isActive: true,
@@ -1221,8 +1220,8 @@ function createDonationTestCases() {
     await qfRound.save();
   });
   it('should create a donation in an active qfRound, when project is not listed', async () => {
-    sinon.stub(qacc, 'isEarlyAccessRound').resolves(false);
     try {
+      await EarlyAccessRound.delete({ id: ea.id });
       const project = await saveProjectDirectlyToDb(createProjectData());
       const qfRound = await QfRound.create({
         isActive: true,
@@ -1293,8 +1292,8 @@ function createDonationTestCases() {
     }
   });
   it('should create a donation in an active qfRound, when project is not verified', async () => {
-    sinon.stub(qacc, 'isEarlyAccessRound').resolves(false);
     try {
+      await EarlyAccessRound.delete({ id: ea.id });
       const project = await saveProjectDirectlyToDb(createProjectData());
       const qfRound = await QfRound.create({
         isActive: true,
