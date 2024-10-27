@@ -1,5 +1,6 @@
 import { assert, expect } from 'chai';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
+import sinon from 'sinon';
 import moment from 'moment';
 import {
   isTokenAcceptableForProject,
@@ -13,6 +14,7 @@ import {
   createDonationData,
   createProjectData,
   DONATION_SEED_DATA,
+  generateEARoundNumber,
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -35,6 +37,10 @@ import {
 import { User } from '../entities/user';
 import { QfRoundHistory } from '../entities/qfRoundHistory';
 import { updateProjectStatistics } from './projectService';
+import { EarlyAccessRound } from '../entities/earlyAccessRound';
+import * as chains from './chains';
+import { ProjectRoundRecord } from '../entities/projectRoundRecord';
+import { ProjectUserRecord } from '../entities/projectUserRecord';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -79,27 +85,35 @@ function sendSegmentEventForDonationTestCases() {
 }
 
 function syncDonationStatusWithBlockchainNetworkTestCases() {
-  it('should verify a Polygon donation', async () => {
-    // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
+  const amount = 10;
+  const timestamp = 1706289475 * 1000;
 
-    const amount = 10;
+  const transactionInfo = {
+    txHash:
+      '0x139504e0868ce12f615c711af95a8c043197cd2d5a9a0a7df85a196d9a1ab07e',
+    currency: 'POL',
+    networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    fromAddress: '0xbdFF5cc1df5ffF6B01C4a8b0B8271328E92742Da',
+    toAddress: '0x193918F1Cb3e42007d613aaA99912aaeC4230e54',
+    amount,
+    timestamp,
+  };
+  let user: User;
+  let project: Project;
+  let donation: Donation;
+  let ea: EarlyAccessRound | undefined;
+  let qf: QfRound | undefined;
 
-    const transactionInfo = {
-      txHash:
-        '0x139504e0868ce12f615c711af95a8c043197cd2d5a9a0a7df85a196d9a1ab07e',
-      currency: 'POL',
-      networkId: NETWORK_IDS.ZKEVM_MAINNET,
-      fromAddress: '0xbdFF5cc1df5ffF6B01C4a8b0B8271328E92742Da',
-      toAddress: '0x193918F1Cb3e42007d613aaA99912aaeC4230e54',
-      amount,
-      timestamp: 1706289475 * 1000,
-    };
-    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
-    const project = await saveProjectDirectlyToDb({
+  before(async () => {
+    user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       walletAddress: transactionInfo.toAddress,
     });
-    const donation = await saveDonationDirectlyToDb(
+  });
+
+  beforeEach(async () => {
+    donation = await saveDonationDirectlyToDb(
       {
         amount: transactionInfo.amount,
         transactionNetworkId: transactionInfo.networkId,
@@ -115,6 +129,28 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       user.id,
       project.id,
     );
+  });
+
+  afterEach(async () => {
+    await Donation.delete({
+      id: donation.id,
+    });
+    await ProjectRoundRecord.delete({});
+    await ProjectUserRecord.delete({});
+    if (ea) {
+      await ea.remove();
+      ea = undefined;
+    }
+    if (qf) {
+      await qf.remove();
+      qf = undefined;
+    }
+    sinon.restore();
+  });
+
+  it('should verify a Polygon donation', async () => {
+    // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
+
     const updateDonation = await syncDonationStatusWithBlockchainNetwork({
       donationId: donation.id,
     });
@@ -122,6 +158,62 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.equal(updateDonation.id, donation.id);
     assert.isTrue(updateDonation.segmentNotified);
     assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+  });
+
+  it('should associate donation to overlapping early access round after verification', async () => {
+    sinon.stub(chains, 'validateTransactionWithInputData');
+    ea = await EarlyAccessRound.create({
+      roundNumber: generateEARoundNumber(),
+      startDate: moment(timestamp).subtract(1, 'days').toDate(),
+      endDate: moment(timestamp).add(3, 'days').toDate(),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+      tokenPrice: 0.1,
+    }).save();
+    // update donation timestamp to after the early access round end date
+    await Donation.update(
+      { id: donation.id },
+      {
+        createdAt: moment(timestamp).add(5, 'days').toDate(),
+      },
+    );
+
+    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+      donationId: donation.id,
+    });
+    assert.isOk(updateDonation);
+    assert.equal(updateDonation.id, donation.id);
+    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+    assert.equal(updateDonation.earlyAccessRoundId, ea.id);
+  });
+
+  it('should associate donation to overlapping qf round after verification', async () => {
+    sinon.stub(chains, 'validateTransactionWithInputData');
+    qf = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      allocatedFund: 100,
+      beginDate: moment(timestamp).subtract(1, 'second'),
+      endDate: moment(timestamp).add(2, 'day'),
+    }).save();
+
+    // update donation timestamp to after the qf round end date
+    await Donation.update(
+      { id: donation.id },
+      {
+        createdAt: moment(timestamp).add(5, 'days').toDate(),
+      },
+    );
+
+    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+      donationId: donation.id,
+    });
+    assert.isOk(updateDonation);
+    assert.equal(updateDonation.id, donation.id);
+    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+    assert.equal(updateDonation.qfRoundId, qf.id);
   });
 }
 

@@ -271,14 +271,15 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       findActiveEarlyAccessRound(transactionDate),
       findActiveQfRound({ date: transactionDate }),
     ]);
-    donation.earlyAccessRoundId = earlyAccessRound?.id || null;
-    donation.qfRoundId = qfRound?.id || null;
+
+    donation.earlyAccessRound = earlyAccessRound;
+    donation.qfRound = qfRound;
 
     await donation.save();
 
     // ONLY verified donations should be accumulated
     // After updating, recalculate user and project total donations
-    await updateProjectStatistics(donation.projectId);
+    await updateProjectStatistics(donation.projectId, transactionDate);
     await updateUserTotalDonated(donation.userId);
     await updateUserTotalReceived(donation.project.adminUserId);
     await updateOrCreateProjectRoundRecord(
