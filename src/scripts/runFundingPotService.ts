@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs-extra';
 import simpleGit from 'simple-git';
@@ -175,19 +175,29 @@ function execShellCommand(command: string, workingDir: string): Promise<void> {
   return new Promise((resolve, reject) => {
     console.info(`Executing command: "${command}" in ${workingDir}...`);
 
-    exec(command, { cwd: workingDir }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error executing command: ${error.message}`);
-        return reject(error);
-      }
+    // Split the command into the command and its arguments
+    const [cmd, ...args] = command.split(' ');
 
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        return reject(new Error(stderr));
-      }
+    // Use spawn to execute the command
+    const process = spawn(cmd, args, { cwd: workingDir });
 
-      console.log(`stdout: ${stdout}`);
-      resolve();
+    // Stream stdout in real-time
+    process.stdout.on('data', data => {
+      console.log(`stdout: ${data}`);
+    });
+
+    // Stream stderr in real-time
+    process.stderr.on('data', data => {
+      console.error(`stderr: ${data}`);
+    });
+
+    // Handle the process exit event
+    process.on('close', code => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Command failed with exit code ${code}`));
+      }
     });
   });
 }
