@@ -1965,8 +1965,8 @@ export interface CreateDonationData {
   projectId?: number;
   status?: string;
   verified?: string;
-  qfRoundId?: number;
-  earlyAccessRoundId?: number;
+  qfRoundId?: number | null;
+  earlyAccessRoundId?: number | null;
   tokenAddress?: string;
   qfRoundUserScore?: number;
   useDonationBox?: boolean;
