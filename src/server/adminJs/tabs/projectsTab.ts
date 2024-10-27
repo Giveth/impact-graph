@@ -200,7 +200,7 @@ export const verifyProjects = async (
       for (const project of projectsBeforeUpdating) {
         if (project.isGivbackEligible) {
           throw new Error(
-            `Project with ID ${project.id} is Givback eligible and cannot be unvouched.`,
+            `The project with ID ${project.id} is Givback-eligible, so the Vouched badge cannot be revoked.`,
           );
         }
       }

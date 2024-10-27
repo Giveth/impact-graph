@@ -261,7 +261,7 @@ export const approveVerificationForms = async (
       return project.id;
     });
 
-    // need to requery them as the RAW is not an entity
+    // need to re-query them as the RAW is not an entity
     const verificationForms = await ProjectVerificationForm.createQueryBuilder(
       'projectVerificationForm',
     )
