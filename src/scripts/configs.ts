@@ -1,6 +1,8 @@
 import path from 'path';
 
-export const streamStartDate = 1729500000; // should be timestamp of deploying funding pot contract in secs
+export const streamStartDate = 1730196000; // Oct 29, 2024, 10am GMT
+export const streamEndDate = 1793268000; // Oct 29, 2026, 10am GMT
+export const streamCliff = 31536000; // 1 year in secs = 365 * 24 * 60 * 60
 
 // The URL of the GitHub repository containing the reports
 export const repoUrl = 'https://github.com/InverterNetwork/funding-pot.git';
