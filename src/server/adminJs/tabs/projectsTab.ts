@@ -194,6 +194,18 @@ export const verifyProjects = async (
       ?.split(',')
       ?.map(strId => Number(strId)) as number[];
     const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
+
+    // Check if any project is Givback eligible and vouchedStatus is false\
+    if (!vouchedStatus) {
+      for (const project of projectsBeforeUpdating) {
+        if (project.isGivbackEligible) {
+          throw new Error(
+            `Project with ID ${project.id} is Givback eligible and cannot be unvouched.`,
+          );
+        }
+      }
+    }
+
     const updateParams = { verified: vouchedStatus };
 
     const projects = await Project.createQueryBuilder('project')
@@ -231,22 +243,31 @@ export const verifyProjects = async (
       refreshProjectPowerView(),
       refreshProjectFuturePowerView(),
     ]);
+    return {
+      redirectUrl: '/admin/resources/Project',
+      records: records.map(record => {
+        record.toJSON(context.currentAdmin);
+      }),
+      notice: {
+        message: `Project(s) successfully ${
+          vouchedStatus ? 'vouched' : 'unvouched'
+        }`,
+        type: 'success',
+      },
+    };
   } catch (error) {
     logger.error('verifyProjects() error', error);
-    throw error;
+    return {
+      redirectUrl: '/admin/resources/Project',
+      records: records.map(record => {
+        record.toJSON(context.currentAdmin);
+      }),
+      notice: {
+        message: error.message,
+        type: 'error',
+      },
+    };
   }
-  return {
-    redirectUrl: '/admin/resources/Project',
-    records: records.map(record => {
-      record.toJSON(context.currentAdmin);
-    }),
-    notice: {
-      message: `Project(s) successfully ${
-        vouchedStatus ? 'vouched' : 'unvouched'
-      }`,
-      type: 'success',
-    },
-  };
 };
 
 export const updateStatusOfProjects = async (
