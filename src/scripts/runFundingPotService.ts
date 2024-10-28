@@ -84,6 +84,17 @@ async function generateBatchFile(batchNumber: number) {
   await fs.writeJson(batchFilePath, batchConfig, { spaces: 2 });
 
   console.info(`Batch config successfully written to ${batchFilePath}`);
+
+  const outputFilePath = path.join(
+    repoLocalDir,
+    'data',
+    'production',
+    'output',
+    '.keep',
+  );
+
+  // create output directory for reports
+  ensureDirectoryExists(path.dirname(outputFilePath));
 }
 
 async function fillProjectsData() {
