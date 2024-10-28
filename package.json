@@ -188,6 +188,7 @@
     "start:test": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./test.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
     "db:migrate:run:test": "NODE_ENV=test npx typeorm-ts-node-commonjs migration:run -d ./src/ormconfig.ts",
+    "db:migrate:create:test": "NODE_ENV=test npx typeorm-ts-node-commonjs  migration:generate migration/$MIGRATION_NAME -d ./src/ormconfig.ts",
     "db:migrate:revert:test": "NODE_ENV=test npx typeorm-ts-node-commonjs migration:revert -d ./src/ormconfig.ts",
     "db:migrate:run:local": "NODE_ENV=development npx typeorm-ts-node-commonjs migration:run -d ./src/ormconfig.ts",
     "db:migrate:create:local": "NODE_ENV=development npx typeorm-ts-node-commonjs  migration:generate migration/$MIGRATION_NAME -d ./src/ormconfig.ts",

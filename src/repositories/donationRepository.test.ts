@@ -357,7 +357,7 @@ function findDonationByIdTestCases() {
     assert.equal(fetchedDonation?.id, donation.id);
     assert.isOk(fetchedDonation?.project);
     assert.equal(fetchedDonation?.project.id, project.id);
-    assert.equal(fetchedDonation?.qfRound.id, qfRound.id);
+    assert.equal(fetchedDonation?.qfRound?.id, qfRound.id);
   });
   it('should not return donation with invalid id ', async () => {
     const fetchedDonation = await findDonationById(10000000);

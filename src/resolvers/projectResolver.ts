@@ -2237,7 +2237,7 @@ export class ProjectResolver {
         qfRoundId,
         earlyAccessRoundId,
       );
-      return [record];
+      return record ? [record] : [];
     }
 
     return records;

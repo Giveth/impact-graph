@@ -27,8 +27,13 @@ export const getAppropriateSlug = async (
   return slug;
 };
 
-export const updateProjectStatistics = async (projectId: number) => {
-  const activeQfRound = await findActiveQfRound();
+export const updateProjectStatistics = async (
+  projectId: number,
+  date = new Date(),
+) => {
+  const activeQfRound = await findActiveQfRound({
+    date,
+  });
   let sumDonationValueUsdForActiveQfRound = 0,
     countUniqueDonorsForActiveQfRound = 0;
   if (activeQfRound) {
