@@ -122,6 +122,7 @@ export class DraftDonationResolver {
         tokenSymbol: token,
         userAddress: donorUser.walletAddress!,
         amount,
+        donateTime: new Date(),
       });
 
       const draftDonationId = await DraftDonation.createQueryBuilder(
