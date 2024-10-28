@@ -13,6 +13,7 @@ export interface AdminJsContextInterface {
 export interface AdminJsRequestInterface {
   payload?: any;
   record?: any;
+  rawHeaders?: any;
   query?: {
     recordIds?: string;
   };
