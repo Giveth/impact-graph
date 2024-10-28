@@ -171,6 +171,11 @@ export async function updateRewardsForDonations(batchNumber: number) {
         continue;
       }
 
+      await updateNumberOfBatchMintingTransactionsForProject(
+        project,
+        matchedReportFile,
+      );
+
       await processReportForDonations(
         donationsByProjectId[projectId],
         matchedReportFile,
@@ -178,5 +183,20 @@ export async function updateRewardsForDonations(batchNumber: number) {
     }
   } catch (error) {
     console.error(`Error updating rewards for donations`, error);
+  }
+}
+
+async function updateNumberOfBatchMintingTransactionsForProject(
+  project: Project,
+  reportData: any,
+) {
+  const transactions = reportData.safe.proposedTransactions;
+  if (transactions.length > 0) {
+    if (!project.numberOfBatchMintingTransactions) {
+      project.numberOfBatchMintingTransactions = 1;
+    } else {
+      project.numberOfBatchMintingTransactions += 1;
+    }
+    await project.save();
   }
 }

@@ -464,6 +464,10 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   icon?: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  numberOfBatchMintingTransactions?: number;
+
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
     const maxDaysForListing = moment()
