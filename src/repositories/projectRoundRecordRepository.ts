@@ -17,9 +17,10 @@ export async function updateOrCreateProjectRoundRecord(
   projectId: number,
   qfRoundId?: number | null,
   earlyAccessRoundId?: number | null,
-): Promise<ProjectRoundRecord> {
+): Promise<ProjectRoundRecord | null> {
   if (!qfRoundId && !earlyAccessRoundId) {
-    throw new Error('No round specified on updateOrCreateProjectRoundRecord');
+    return null;
+    // throw new Error('No round specified on updateOrCreateProjectRoundRecord');
   }
   try {
     let query = Donation.createQueryBuilder('donation')

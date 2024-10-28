@@ -41,6 +41,8 @@ import { CustomToken, getTokenPrice } from './priceService';
 import { updateProjectStatistics } from './projectService';
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
+import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepository';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -257,15 +259,27 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       timestamp: donation.createdAt.getTime() / 1000,
     });
     donation.status = DONATION_STATUS.VERIFIED;
+
     if (transaction.hash !== donation.transactionId) {
       donation.speedup = true;
       donation.transactionId = transaction.hash;
     }
+
+    const transactionDate = new Date(transaction.timestamp * 1000);
+
+    const [earlyAccessRound, qfRound] = await Promise.all([
+      findActiveEarlyAccessRound(transactionDate),
+      findActiveQfRound({ date: transactionDate }),
+    ]);
+
+    donation.earlyAccessRound = earlyAccessRound;
+    donation.qfRound = qfRound;
+
     await donation.save();
 
     // ONLY verified donations should be accumulated
     // After updating, recalculate user and project total donations
-    await updateProjectStatistics(donation.projectId);
+    await updateProjectStatistics(donation.projectId, transactionDate);
     await updateUserTotalDonated(donation.userId);
     await updateUserTotalReceived(donation.project.adminUserId);
     await updateOrCreateProjectRoundRecord(
