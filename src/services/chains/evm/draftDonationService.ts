@@ -272,12 +272,17 @@ async function submitMatchedDraftDonation(
       currency,
       projectId,
       +tx.nonce,
-      '',
+      '', // transakId
       {
         req: { user: { userId: draftDonation.userId }, auth: {} },
       } as ApolloContext,
       referrerId,
-      '',
+      '', // safeTransactionId
+      undefined, // draft donation id
+      undefined, // use donationBox
+      undefined, // relevant donation tx hash
+
+      new Date(+tx.timeStamp * 1000),
     );
 
     await Donation.update(Number(donationId), {

@@ -695,6 +695,7 @@ export class DonationResolver {
     useDonationBox?: boolean,
     @Arg('relevantDonationTxHash', { nullable: true })
     relevantDonationTxHash?: string,
+    donateTime = new Date(),
   ): Promise<number> {
     const logData = {
       amount,
@@ -778,6 +779,7 @@ export class DonationResolver {
         tokenSymbol: token,
         userAddress: donorUser.walletAddress!,
         amount,
+        donateTime,
       });
 
       const tokenInDb = await Token.findOne({

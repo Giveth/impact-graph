@@ -21,8 +21,9 @@ const validateDonation = async (params: {
   networkId: number;
   tokenSymbol: string;
   amount: number;
+  donateTime: Date;
 }): Promise<void> => {
-  const { projectId, userAddress, tokenSymbol, networkId } = params;
+  const { projectId, userAddress, tokenSymbol, networkId, donateTime } = params;
 
   let user = await findUserByWalletAddress(userAddress)!;
   if (!user) {
@@ -32,6 +33,7 @@ const validateDonation = async (params: {
   const cap = await qAccService.getQAccDonationCap({
     userId: user.id,
     projectId,
+    donateTime,
   });
 
   if (cap < params.amount) {
