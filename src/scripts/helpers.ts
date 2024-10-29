@@ -1,13 +1,12 @@
 /* eslint-disable no-console */
 import fs from 'fs-extra';
-import { streamStartDate } from './configs';
+import { streamCliff, streamEndDate, streamStartDate } from './configs';
 import { AppDataSource } from '../orm';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { QfRound } from '../entities/qfRound';
 
 const SIX_MONTH_IN_SEC = 15768000;
 const ONE_YEAR_IN_SEC = 31536000;
-const TWO_YEARS_IN_SEC = 63072000;
 
 // Function to ensure directory exists or create it
 export function ensureDirectoryExists(dirPath: string) {
@@ -27,8 +26,8 @@ export function toScreamingSnakeCase(str: string): string {
 export function getStreamDetails(isEarlyAccess: boolean) {
   return {
     START: streamStartDate,
-    CLIFF: isEarlyAccess ? ONE_YEAR_IN_SEC : SIX_MONTH_IN_SEC,
-    END: streamStartDate + (isEarlyAccess ? TWO_YEARS_IN_SEC : ONE_YEAR_IN_SEC),
+    CLIFF: isEarlyAccess ? streamCliff : SIX_MONTH_IN_SEC,
+    END: isEarlyAccess ? streamEndDate : streamStartDate + ONE_YEAR_IN_SEC,
   };
 }
 

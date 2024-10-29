@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs-extra';
 import simpleGit from 'simple-git';
@@ -48,9 +48,17 @@ async function generateBatchFile(batchNumber: number) {
     },
     VESTING_DETAILS: getStreamDetails(isEarlyAccess),
     LIMITS: {
-      INDIVIDUAL: (round.roundUSDCapPerUserPerProject || '5000').toString(), // Default to 5000 for individual cap
+      INDIVIDUAL: (
+        (isEarlyAccess
+          ? round.cumulativeUSDCapPerUserPerProject
+          : round.roundUSDCapPerUserPerProject) || '5000'
+      ).toString(), // Default to 5000 for individual cap
       INDIVIDUAL_2: isEarlyAccess ? '0' : '250', // Only required for QACC rounds
-      TOTAL: (round.roundUSDCapPerProject || '100000').toString(), // Default to 100000 for total limit
+      TOTAL: (
+        (isEarlyAccess
+          ? round.cumulativeUSDCapPerProject
+          : round.roundUSDCapPerProject) || '100000'
+      ).toString(), // Default to 100000 for total limit
       TOTAL_2: isEarlyAccess
         ? '0'
         : (round.roundUSDCloseCapPerProject || '1050000').toString(), // Only required for QACC rounds
@@ -76,6 +84,17 @@ async function generateBatchFile(batchNumber: number) {
   await fs.writeJson(batchFilePath, batchConfig, { spaces: 2 });
 
   console.info(`Batch config successfully written to ${batchFilePath}`);
+
+  const outputFilePath = path.join(
+    repoLocalDir,
+    'data',
+    'production',
+    'output',
+    '.keep',
+  );
+
+  // create output directory for reports
+  ensureDirectoryExists(path.dirname(outputFilePath));
 }
 
 async function fillProjectsData() {
@@ -167,19 +186,29 @@ function execShellCommand(command: string, workingDir: string): Promise<void> {
   return new Promise((resolve, reject) => {
     console.info(`Executing command: "${command}" in ${workingDir}...`);
 
-    exec(command, { cwd: workingDir }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error executing command: ${error.message}`);
-        return reject(error);
-      }
+    // Split the command into the command and its arguments
+    const [cmd, ...args] = command.split(' ');
 
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        return reject(new Error(stderr));
-      }
+    // Use spawn to execute the command
+    const process = spawn(cmd, args, { cwd: workingDir });
 
-      console.log(`stdout: ${stdout}`);
-      resolve();
+    // Stream stdout in real-time
+    process.stdout.on('data', data => {
+      console.log(`stdout: ${data}`);
+    });
+
+    // Stream stderr in real-time
+    process.stderr.on('data', data => {
+      console.error(`stderr: ${data}`);
+    });
+
+    // Handle the process exit event
+    process.on('close', code => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Command failed with exit code ${code}`));
+      }
     });
   });
 }
