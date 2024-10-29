@@ -11,11 +11,11 @@ import { closeTo } from '..';
 import { findTokenByNetworkAndAddress } from '../../../utils/tokenUtils';
 import { ITxInfo } from '../../../types/etherscan';
 import { DONATION_ORIGINS, Donation } from '../../../entities/donation';
-import { DonationResolver } from '../../../resolvers/donationResolver';
 import { ApolloContext } from '../../../types/ApolloContext';
 import { logger } from '../../../utils/logger';
 import { DraftDonationWorker } from '../../../workers/draftDonationMatchWorker';
 import { normalizeAmount } from '../../../utils/utils';
+import { getDonationResolver } from '../../donationService';
 
 export const isAmountWithinTolerance = (
   callData1,
@@ -247,8 +247,6 @@ async function submitMatchedDraftDonation(
     return;
   }
 
-  const donationResolver = new DonationResolver();
-
   const {
     amount,
     networkId,
@@ -263,7 +261,7 @@ async function submitMatchedDraftDonation(
     logger.debug(
       `Creating donation for draftDonation with ID ${draftDonation.id}`,
     );
-    const donationId = await donationResolver.createDonation(
+    const donationId = await getDonationResolver().createDonation(
       amount,
       tx.hash,
       networkId,

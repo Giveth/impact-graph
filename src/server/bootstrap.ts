@@ -66,6 +66,7 @@ import { Token } from '../entities/token';
 import { ChainType } from '../types/network';
 import { runFetchRoundTokenPrice } from '../services/cronJobs/fetchRoundTokenPrice';
 import { runSyncDataWithInverter } from '../services/cronJobs/syncDataWithInverter';
+import { runSyncWithAnkrTransfers } from '../services/cronJobs/syncWithAnkrTransfers';
 
 Resource.validate = validate;
 
@@ -390,6 +391,10 @@ export async function bootstrap() {
       'initializeCronJobs() after runSyncDataWithInverter() ',
       new Date(),
     );
+
+    if (process.env.ENABLE_ANKR_SYNC === 'true') {
+      runSyncWithAnkrTransfers();
+    }
   }
 
   async function addQAccToken() {

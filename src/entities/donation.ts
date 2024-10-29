@@ -23,6 +23,7 @@ export const DONATION_STATUS = {
 export const DONATION_ORIGINS = {
   IDRISS_TWITTER: 'Idriss',
   DRAFT_DONATION_MATCHING: 'DraftDonationMatching',
+  CHAIN: 'Chain',
   SUPER_FLUID: 'SuperFluid',
 };
 

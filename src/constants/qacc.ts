@@ -1,8 +1,10 @@
 import config from '../config';
 
-export const QACC_DONATION_TOKEN_ADDRESS: string =
+export const QACC_DONATION_TOKEN_ADDRESS: string = (
   (config.get('QACC_DONATION_TOKEN_ADDRESS') as string) ||
-  '0xa2036f0538221a77a3937f1379699f44945018d0'; //https://zkevm.polygonscan.com/token/0xa2036f0538221a77a3937f1379699f44945018d0#readContract
+  //https://zkevm.polygonscan.com/token/0x22B21BedDef74FE62F031D2c5c8F7a9F8a4b304D#readContract
+  '0x22B21BedDef74FE62F031D2c5c8F7a9F8a4b304D'
+).toLowerCase();
 export const QACC_DONATION_TOKEN_SYMBOL =
   (config.get('QACC_DONATION_TOKEN_SYMBOL') as string) || 'MATIC';
 export const QACC_DONATION_TOKEN_NAME =
