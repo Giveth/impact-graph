@@ -392,15 +392,9 @@ export async function bootstrap() {
       new Date(),
     );
 
-    logger.debug(
-      'initializeCronJobs() before syncWithAnkrTransfers',
-      new Date(),
-    );
-    runSyncWithAnkrTransfers();
-    logger.debug(
-      'initializeCronJobs() after syncWithAnkrTransfers',
-      new Date(),
-    );
+    if (process.env.ENABLE_ANKR_SYNC === 'true') {
+      runSyncWithAnkrTransfers();
+    }
   }
 
   async function addQAccToken() {
