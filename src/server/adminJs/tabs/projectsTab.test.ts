@@ -48,11 +48,14 @@ describe(
 );
 
 describe('verifyProjects() test cases', verifyProjectsTestCases);
+
 describe('listDelist() test cases', listDelistTestCases);
+
 describe(
   'addToFeaturedProjectUpdate() TestCases',
   addToFeaturedProjectUpdateTestCases,
 );
+
 describe(
   'exportProjectsWithFiltersToCsv() test cases',
   exportProjectsWithFiltersToCsvTestCases,
@@ -62,6 +65,74 @@ describe(
   'updateStatusOfProjects() test cases',
   updateStatusOfProjectsTestCases,
 );
+
+describe('unverifyProjects() test cases', unverifyProjectsTestCases);
+
+function unverifyProjectsTestCases() {
+  it('Should unverify project if isGivbacksEligible is false', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      verified: true,
+      listed: true,
+      reviewStatus: ReviewStatus.Listed,
+      isGivbackEligible: false,
+    });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
+    await verifyProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      false,
+    );
+
+    const updatedProject = await findProjectById(project.id);
+    assert.isOk(updatedProject);
+    assert.isFalse(updatedProject?.verified);
+    assert.isTrue(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
+  });
+
+  it('Should not unverify project if isGivbacksEligible is true', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: true,
+      reviewStatus: ReviewStatus.Listed,
+      isGivbackEligible: true,
+    });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
+    await verifyProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      false,
+    );
+
+    const updatedProject = await findProjectById(project.id);
+    assert.isOk(updatedProject);
+    assert.isTrue(updatedProject?.verified);
+    assert.isTrue(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
+  });
+}
 
 function updateStatusOfProjectsTestCases() {
   it('should deList and unverified project, when changing status of one project to cancelled', async () => {
@@ -421,6 +492,7 @@ function listDelistTestCases() {
     );
   });
 }
+
 function verifyProjectsTestCases() {
   it('should not change verification status of projects when the badge is revoked and set verification form as draft', async () => {
     const project = await saveProjectDirectlyToDb({
@@ -496,6 +568,7 @@ function verifyProjectsTestCases() {
     );
     assert.equal(updatedProject?.verificationStatus, RevokeSteps.Revoked);
   });
+
   it('should not change listed(true) status when verifying project and set verification form as verified', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
