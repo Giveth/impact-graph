@@ -116,7 +116,9 @@ export const processAnkrTransfers = async ({
 }): Promise<void> => {
   const ankrState = await getAnkrState();
 
-  const fromTimestamp = ankrState?.timestamp || ANKR_FETCH_START_TIMESTAMP;
+  const fromTimestamp = ankrState?.timestamp
+    ? ankrState?.timestamp + 1
+    : ANKR_FETCH_START_TIMESTAMP;
 
   const { lastTimeStamp } = await fetchAnkrTransfers({
     addresses,

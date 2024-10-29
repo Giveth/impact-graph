@@ -714,7 +714,7 @@ const ankrTransferHandler = async (transfer: TokenTransfer) => {
   );
 
   await Donation.update(Number(donationId), {
-    origin: DONATION_ORIGINS.ANKR,
+    origin: DONATION_ORIGINS.CHAIN,
   });
 
   logger.debug(
