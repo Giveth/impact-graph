@@ -55,6 +55,7 @@ import { refreshProjectEstimatedMatchingView } from '../../../services/projectVi
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 import { Category } from '../../../entities/category';
+import { getRedirectUrl } from '../adminJsUtils';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -188,6 +189,7 @@ export const verifyProjects = async (
   request: AdminJsRequestInterface,
   vouchedStatus: boolean = true,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { records, currentAdmin } = context;
   try {
     const projectIds = request?.query?.recordIds
@@ -275,6 +277,7 @@ export const updateStatusOfProjects = async (
   request: AdminJsRequestInterface,
   status,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { records, currentAdmin } = context;
   const projectIds = request?.query?.recordIds
     ?.split(',')
@@ -340,7 +343,7 @@ export const updateStatusOfProjects = async (
     ]);
   }
   return {
-    redirectUrl: '/admin/resources/Project',
+    redirectUrl: redirectUrl,
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -436,6 +439,7 @@ export const addSingleProjectToQfRound = async (
   request: AdminJsRequestInterface,
   add: boolean = true,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { record, currentAdmin } = context;
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
   const projectId = Number(request?.params?.recordId);
@@ -452,6 +456,7 @@ export const addSingleProjectToQfRound = async (
     message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
   }
   return {
+    redirectUrl: redirectUrl,
     record: record.toJSON(currentAdmin),
     notice: {
       message,
@@ -544,6 +549,7 @@ export const listDelist = async (
   request,
   reviewStatus: ReviewStatus = ReviewStatus.Listed,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { records, currentAdmin } = context;
   let listed;
   switch (reviewStatus) {
@@ -607,7 +613,7 @@ export const listDelist = async (
     throw error;
   }
   return {
-    redirectUrl: '/admin/resources/Project',
+    redirectUrl: redirectUrl,
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
