@@ -422,7 +422,7 @@ function listDelistTestCases() {
   });
 }
 function verifyProjectsTestCases() {
-  it('should unverify projects when the badge is revoked and set verification form as draft', async () => {
+  it('should not change verification status of projects when the badge is revoked and set verification form as draft', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -474,7 +474,7 @@ function verifyProjectsTestCases() {
       project.id,
     );
     assert.isOk(updatedProject);
-    assert.isFalse(updatedProject?.verified);
+    assert.isTrue(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
     assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
     assert.equal(
@@ -598,6 +598,7 @@ function verifyProjectsTestCases() {
       listed: true,
       reviewStatus: ReviewStatus.Listed,
       verificationStatus: RevokeSteps.Revoked,
+      isGivbackEligible: false,
     });
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -654,6 +655,7 @@ function verifyProjectsTestCases() {
       verified: true,
       listed: false,
       reviewStatus: ReviewStatus.NotListed,
+      isGivbackEligible: false,
     });
     const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
@@ -724,6 +726,7 @@ function verifyProjectsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      isGivbackEligible: false,
     });
     const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
