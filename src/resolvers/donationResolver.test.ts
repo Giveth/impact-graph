@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import axios, { AxiosResponse } from 'axios';
 import { In, Not } from 'typeorm';
 import sinon from 'sinon';
-import { ExecutionResult, GraphQLError } from 'graphql';
+import { ExecutionResult } from 'graphql';
 import qAccService from '../services/qAccService';
 import {
   generateTestAccessToken,
@@ -4942,7 +4942,7 @@ function qAccLimitTestCases() {
     assert.equal(donation?.earlyAccessRoundId, earlyAccessRound1.id);
   });
 
-  it('should throw exceed user limit error in an active early access round', async () => {
+  it('should not associate to round when user limit exceed in an active early access round', async () => {
     const tokenPrice = 0.1;
     const roundUSDCapPerUserPerProject = 50000;
     earlyAccessRound1 = await EarlyAccessRound.create({
@@ -4956,32 +4956,40 @@ function qAccLimitTestCases() {
 
     const amount = roundUSDCapPerUserPerProject / tokenPrice + 1;
     // send create donation request
-    const donationsResponse: AxiosResponse<
-      ExecutionResult<{ createDonation: number }>
-    > = await axios.post(
-      graphqlUrl,
-      {
-        query: createDonationMutation,
-        variables: {
-          projectId: project.id,
-          transactionNetworkId: QACC_NETWORK_ID,
-          transactionId: generateRandomEvmTxHash(),
-          nonce: 1,
-          amount: amount,
-          token: QACC_DONATION_TOKEN_SYMBOL,
+    const result: AxiosResponse<ExecutionResult<{ createDonation: number }>> =
+      await axios.post(
+        graphqlUrl,
+        {
+          query: createDonationMutation,
+          variables: {
+            projectId: project.id,
+            transactionNetworkId: QACC_NETWORK_ID,
+            transactionId: generateRandomEvmTxHash(),
+            nonce: 1,
+            amount: amount,
+            token: QACC_DONATION_TOKEN_SYMBOL,
+          },
         },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         },
-      },
-    );
+      );
 
-    assert.isOk(donationsResponse);
-    const errors = donationsResponse.data.errors as GraphQLError[];
-    assert.isNotEmpty(errors);
-    assert.equal(errors[0]!.message, errorMessages.EXCEED_QACC_CAP);
+    assert.isOk(result);
+    const donationId = result.data.data?.createDonation as number;
+
+    const donation = await Donation.findOneBy({ id: donationId });
+
+    assert.isNotOk(donation?.earlyAccessRoundId);
+    assert.isNotOk(donation?.qfRound);
+    assert.isNotOk(donation?.earlyAccessRoundId);
+    assert.isNotOk(donation?.qfRoundId);
+
+    // const errors = donationsResponse.data.errors as GraphQLError[];
+    // assert.isNotEmpty(errors);
+    // assert.equal(errors[0]!.message, errorMessages.EXCEED_QACC_CAP);
   });
 }
 
