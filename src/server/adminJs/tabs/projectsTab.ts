@@ -246,7 +246,7 @@ export const verifyProjects = async (
       refreshProjectFuturePowerView(),
     ]);
     return {
-      redirectUrl: '/admin/resources/Project',
+      redirectUrl: redirectUrl,
       records: records.map(record => record.toJSON(context.currentAdmin)),
       notice: {
         message: `Project(s) successfully ${
@@ -258,7 +258,7 @@ export const verifyProjects = async (
   } catch (error) {
     logger.error('verifyProjects() error', error);
     return {
-      redirectUrl: '/admin/resources/Project',
+      redirectUrl: redirectUrl,
       records: records.map(record => record.toJSON(context.currentAdmin)),
       notice: {
         message: error.message,
