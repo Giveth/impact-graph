@@ -247,9 +247,7 @@ export const verifyProjects = async (
     ]);
     return {
       redirectUrl: '/admin/resources/Project',
-      records: records.map(record => {
-        record.toJSON(context.currentAdmin);
-      }),
+      records: records.map(record => record.toJSON(context.currentAdmin)),
       notice: {
         message: `Project(s) successfully ${
           vouchedStatus ? 'vouched' : 'unvouched'
@@ -261,9 +259,7 @@ export const verifyProjects = async (
     logger.error('verifyProjects() error', error);
     return {
       redirectUrl: '/admin/resources/Project',
-      records: records.map(record => {
-        record.toJSON(context.currentAdmin);
-      }),
+      records: records.map(record => record.toJSON(context.currentAdmin)),
       notice: {
         message: error.message,
         type: 'error',
