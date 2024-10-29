@@ -70,6 +70,8 @@ import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepo
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import { EarlyAccessRound } from '../entities/earlyAccessRound';
+import { QfRound } from '../entities/qfRound';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 @ObjectType()
@@ -773,7 +775,7 @@ export class DonationResolver {
         );
       }
 
-      await qacc.validateDonation({
+      const hasCap = await qacc.validateDonation({
         projectId,
         networkId,
         tokenSymbol: token,
@@ -825,6 +827,16 @@ export class DonationResolver {
       //     donationPercentage = (amount / totalValue) * 100;
       //   }
       // }
+
+      let earlyAccessRound: EarlyAccessRound | null = null;
+      let qfRound: QfRound | null = null;
+
+      if (hasCap) {
+        earlyAccessRound = await findActiveEarlyAccessRound();
+        if (!earlyAccessRound) {
+          qfRound = await findActiveQfRound();
+        }
+      }
       const donation = Donation.create({
         amount: Number(amount),
         transactionId: transactionTx,
@@ -838,7 +850,9 @@ export class DonationResolver {
         isTokenEligibleForGivback,
         isCustomToken,
         isProjectVerified: project.verified,
-        createdAt: new Date(),
+        createdAt: donateTime,
+        earlyAccessRound: earlyAccessRound ?? undefined,
+        qfRound: qfRound ?? undefined,
         segmentNotified: false,
         toWalletAddress: toAddress,
         fromWalletAddress: fromAddress,
@@ -871,13 +885,6 @@ export class DonationResolver {
       //     logger.error('get chainvine wallet address error', e);
       //   }
       // }
-      const earlyAccessRound = await findActiveEarlyAccessRound();
-      if (!earlyAccessRound) {
-        donation.qfRound = await findActiveQfRound();
-      } else {
-        donation.earlyAccessRound = earlyAccessRound;
-      }
-      await donation.save();
 
       let priceChainId;
 

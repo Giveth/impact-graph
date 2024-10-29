@@ -52,7 +52,7 @@ describe(
   fillStableCoinDonationsPriceTestCases,
 );
 
-describe.only(
+describe(
   'syncDonationStatusWithBlockchainNetwork test cases',
   syncDonationStatusWithBlockchainNetworkTestCases,
 );

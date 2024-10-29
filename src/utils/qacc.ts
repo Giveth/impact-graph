@@ -22,7 +22,7 @@ const validateDonation = async (params: {
   tokenSymbol: string;
   amount: number;
   donateTime: Date;
-}): Promise<void> => {
+}): Promise<boolean> => {
   const { projectId, userAddress, tokenSymbol, networkId, donateTime } = params;
 
   let user = await findUserByWalletAddress(userAddress)!;
@@ -36,9 +36,9 @@ const validateDonation = async (params: {
     donateTime,
   });
 
-  if (cap < params.amount) {
-    throw new Error(i18n.__(translationErrorMessagesKeys.EXCEED_QACC_CAP));
-  }
+  // if (cap < params.amount) {
+  //   throw new Error(i18n.__(translationErrorMessagesKeys.EXCEED_QACC_CAP));
+  // }
 
   // token is matched
   if (
@@ -67,6 +67,8 @@ const validateDonation = async (params: {
       throw new Error(i18n.__(translationErrorMessagesKeys.NOT_NFT_HOLDER));
     }
   }
+
+  return cap >= params.amount;
 };
 
 export default {
