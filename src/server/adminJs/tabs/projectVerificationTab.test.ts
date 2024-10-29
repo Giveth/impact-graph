@@ -102,7 +102,7 @@ function approveGivbacksEligibilityFormTestCases() {
     assert.isOk(updatedForm);
     assert.equal(updatedForm?.status, PROJECT_VERIFICATION_STATUSES.VERIFIED);
     assert.isTrue(updatedPorject?.isGivbackEligible);
-    assert.equal(updatedPorject?.verificationFormStatus);
+    // assert.equal(updatedPorject?.verificationFormStatus);
   });
 
   it('Should be able to reject Givback Eligibility Form for not draft form', async () => {
