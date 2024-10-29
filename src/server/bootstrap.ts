@@ -66,6 +66,7 @@ import { Token } from '../entities/token';
 import { ChainType } from '../types/network';
 import { runFetchRoundTokenPrice } from '../services/cronJobs/fetchRoundTokenPrice';
 import { runSyncDataWithInverter } from '../services/cronJobs/syncDataWithInverter';
+import { runSyncWithAnkrTransfers } from '../services/cronJobs/syncWithAnkrTransfers';
 
 Resource.validate = validate;
 
@@ -388,6 +389,16 @@ export async function bootstrap() {
     await runSyncDataWithInverter();
     logger.debug(
       'initializeCronJobs() after runSyncDataWithInverter() ',
+      new Date(),
+    );
+
+    logger.debug(
+      'initializeCronJobs() before syncWithAnkrTransfers',
+      new Date(),
+    );
+    runSyncWithAnkrTransfers();
+    logger.debug(
+      'initializeCronJobs() after syncWithAnkrTransfers',
       new Date(),
     );
   }

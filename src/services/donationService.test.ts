@@ -8,6 +8,7 @@ import {
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
   insertDonationsFromQfRoundHistory,
+  syncDonationsWithAnkr,
 } from './donationService';
 import { NETWORK_IDS } from '../provider';
 import {
@@ -41,6 +42,7 @@ import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import * as chains from './chains';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { ProjectUserRecord } from '../entities/projectUserRecord';
+import { setAnkrTimestamp } from '../repositories/ankrStateRepository';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -56,6 +58,7 @@ describe(
   'syncDonationStatusWithBlockchainNetwork test cases',
   syncDonationStatusWithBlockchainNetworkTestCases,
 );
+describe('syncByAnkr Test Cases', syncByAnkrTestCases);
 describe(
   'sendSegmentEventForDonation test cases',
   sendSegmentEventForDonationTestCases,
@@ -739,5 +742,79 @@ function insertDonationsFromQfRoundHistoryTestCases() {
       updatedProject?.adminUser?.totalReceived,
       4 + 25 + 100 + qfRoundHistory!.matchingFund,
     );
+  });
+}
+
+function syncByAnkrTestCases() {
+  const amount = 10;
+  const timestamp = 1706289475;
+
+  const transactionInfo = {
+    txHash:
+      '0x139504e0868ce12f615c711af95a8c043197cd2d5a9a0a7df85a196d9a1ab07e'.toLowerCase(),
+    currency: 'POL',
+    networkId: NETWORK_IDS.ZKEVM_MAINNET,
+    fromAddress:
+      '0xbdFF5cc1df5ffF6B01C4a8b0B8271328E92742Da'.toLocaleLowerCase(),
+    toAddress: '0x193918F1Cb3e42007d613aaA99912aaeC4230e54'.toLocaleLowerCase(),
+    amount,
+    timestamp,
+  };
+  let user: User;
+  let project: Project;
+  let donation: Donation;
+  let ea: EarlyAccessRound | undefined;
+  let qf: QfRound | undefined;
+
+  before(async () => {
+    user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    await Donation.delete({ transactionId: transactionInfo.txHash });
+  });
+
+  afterEach(async () => {
+    if (!donation) return;
+    await Donation.delete({
+      id: donation.id,
+    });
+    await ProjectRoundRecord.delete({});
+    await ProjectUserRecord.delete({});
+    if (ea) {
+      await ea.remove();
+      ea = undefined;
+    }
+    if (qf) {
+      await qf.remove();
+      qf = undefined;
+    }
+    sinon.restore();
+  });
+
+  it.skip('should create donation after sync by ankr', async () => {
+    await setAnkrTimestamp(timestamp - 10);
+
+    await syncDonationsWithAnkr();
+
+    const donation = await Donation.findOne({
+      where: {
+        transactionId: transactionInfo.txHash,
+      },
+      select: {
+        id: true,
+        transactionId: true,
+        userId: true,
+        projectId: true,
+        status: true,
+      },
+    });
+
+    assert.isOk(donation);
+    assert.equal(donation?.transactionId, transactionInfo.txHash);
+    assert.equal(donation?.userId, user.id);
+    assert.equal(donation?.projectId, project.id);
+    assert.equal(donation?.status, DONATION_STATUS.PENDING);
   });
 }

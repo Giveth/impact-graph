@@ -35,6 +35,7 @@ import { UserEmailVerification } from './userEmailVerification';
 import { EarlyAccessRound } from './earlyAccessRound';
 import { ProjectRoundRecord } from './projectRoundRecord';
 import { ProjectUserRecord } from './projectUserRecord';
+import { AnkrState } from './ankrState';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -82,5 +83,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     EarlyAccessRound,
     ProjectRoundRecord,
     ProjectUserRecord,
+
+    AnkrState,
   ];
 };
