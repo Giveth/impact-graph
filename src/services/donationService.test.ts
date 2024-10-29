@@ -193,11 +193,17 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
   it('should associate donation to overlapping qf round after verification', async () => {
     sinon.stub(chains, 'validateTransactionWithInputData');
     qf = await QfRound.create({
+      roundNumber: 1,
       isActive: true,
-      name: new Date().toString(),
-      minimumPassportScore: 8,
-      slug: new Date().getTime().toString(),
+      name: new Date().toString() + ' - 1',
       allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 1',
+      roundUSDCapPerProject: 10_000,
+      roundUSDCloseCapPerProject: 10_500,
+      roundUSDCapPerUserPerProject: 2_500,
+      tokenPrice: 0.5,
+
       beginDate: moment(timestamp).subtract(1, 'second'),
       endDate: moment(timestamp).add(2, 'day'),
     }).save();

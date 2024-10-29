@@ -109,7 +109,9 @@ const getQAccDonationCap = async ({
   if (isEarlyAccess) {
     activeRound = activeEarlyAccessRound;
   } else {
-    activeQfRound = await findActiveQfRound();
+    activeQfRound = await findActiveQfRound({
+      date: donateTime,
+    });
     if (
       donateTime &&
       activeQfRound &&
