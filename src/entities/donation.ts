@@ -40,6 +40,8 @@ export enum SortField {
   CreationDate = 'createdAt',
   TokenAmount = 'amount',
   UsdAmount = 'valueUsd',
+  EarlyAccessRound = 'earlyAccessRoundId',
+  RewardTokenAmount = 'rewardTokenAmount',
 }
 
 @Entity()
