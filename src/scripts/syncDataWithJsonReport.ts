@@ -174,6 +174,7 @@ export async function updateRewardsForDonations(batchNumber: number) {
       await updateNumberOfBatchMintingTransactionsForProject(
         project,
         matchedReportFile,
+        batchNumber,
       );
 
       await processReportForDonations(
@@ -189,13 +190,14 @@ export async function updateRewardsForDonations(batchNumber: number) {
 async function updateNumberOfBatchMintingTransactionsForProject(
   project: Project,
   reportData: any,
+  batchNumber: number,
 ) {
   const transactions = reportData.safe.proposedTransactions;
   if (transactions.length > 0) {
-    if (!project.numberOfBatchMintingTransactions) {
-      project.numberOfBatchMintingTransactions = 1;
+    if (!project.batchNumbersWithSafeTransactions) {
+      project.batchNumbersWithSafeTransactions = [batchNumber];
     } else {
-      project.numberOfBatchMintingTransactions += 1;
+      project.batchNumbersWithSafeTransactions.push(batchNumber);
     }
     await project.save();
   }

@@ -20,6 +20,7 @@ import {
 } from 'typeorm';
 
 import { Int } from 'type-graphql/dist/scalars/aliases';
+import { number } from 'joi';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { User } from './user';
@@ -464,9 +465,9 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   icon?: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  numberOfBatchMintingTransactions?: number;
+  @Field(_type => [number], { nullable: true })
+  @Column('integer', { array: true, default: [] })
+  batchNumbersWithSafeTransactions?: number[];
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
