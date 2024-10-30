@@ -832,9 +832,9 @@ export class DonationResolver {
       let qfRound: QfRound | null = null;
 
       if (hasCap) {
-        earlyAccessRound = await findActiveEarlyAccessRound();
+        earlyAccessRound = await findActiveEarlyAccessRound(donateTime);
         if (!earlyAccessRound) {
-          qfRound = await findActiveQfRound();
+          qfRound = await findActiveQfRound({ date: donateTime });
         }
       }
       const donation = Donation.create({
