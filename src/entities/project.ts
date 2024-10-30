@@ -20,7 +20,6 @@ import {
 } from 'typeorm';
 
 import { Int } from 'type-graphql/dist/scalars/aliases';
-import { number } from 'joi';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { User } from './user';
@@ -465,7 +464,7 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   icon?: string;
 
-  @Field(_type => [number], { nullable: true })
+  @Field(_type => [Float], { nullable: true })
   @Column('integer', { array: true, default: [] })
   batchNumbersWithSafeTransactions?: number[];
 
