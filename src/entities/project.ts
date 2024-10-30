@@ -464,9 +464,9 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   icon?: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  numberOfBatchMintingTransactions?: number;
+  @Field(_type => [Float], { nullable: true })
+  @Column('integer', { array: true, default: [] })
+  batchNumbersWithSafeTransactions?: number[];
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
