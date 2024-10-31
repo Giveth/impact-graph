@@ -1,6 +1,6 @@
 services:
-  qacc-be:
-    container_name: qacc-be
+  qacc-be-graph-ql:
+    container_name: qacc-be-graph-ql
     build: .
     profiles:
       - server
@@ -8,6 +8,7 @@ services:
     environment:
       - ENVIRONMENT=local
       - LOG_PATH=/usr/src/app/logs/qacc.log
+      - GRAPHQL_MODE=true
     restart: always
     volumes:
       - ./config:/usr/src/app/config
@@ -17,6 +18,24 @@ services:
       - qacc
     ports:
       - '4001:4000'
+
+  qacc-be:
+    container_name: qacc-be-job
+    build: .
+    profiles:
+      - server
+    command: npm run start:docker:locally
+    environment:
+      - ENVIRONMENT=local
+      - LOG_PATH=/usr/src/app/logs/qacc.log
+      - JOB_MODE=true
+    restart: always
+    volumes:
+      - ./config:/usr/src/app/config
+      - ./config:/usr/src/app/build/config
+      - ./logs:/usr/src/app/logs
+    networks:
+      - qacc
 
   qacc-postgres:
     container_name: qacc-postgres
