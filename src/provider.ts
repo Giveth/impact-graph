@@ -506,7 +506,7 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       break;
     case NETWORK_IDS.ZKEVM_MAINNET:
       apiUrl = config.get('ZKEVM_MAINNET_SCAN_API_URL');
-      apiKey = config.get('ZKEVM_MAINET_SCAN_API_KEY');
+      apiKey = config.get('ZKEVM_MAINNET_SCAN_API_KEY');
       break;
     case NETWORK_IDS.ZKEVM_CARDONA:
       apiUrl = config.get('ZKEVM_CARDONA_SCAN_API_URL');

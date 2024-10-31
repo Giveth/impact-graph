@@ -155,7 +155,12 @@ export async function bootstrap() {
 
   async function initializeCronJobs() {
     logger.debug('initializeCronJobs() has been called', new Date());
+    if (process.env.ENABLE_ANKR_SYNC === 'true') {
+      runSyncWithAnkrTransfers();
+    }
+
     runCheckPendingDonationsCronJob();
+
     runNotifyMissingDonationsCronJob();
 
     if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
@@ -209,10 +214,6 @@ export async function bootstrap() {
       'initializeCronJobs() after runSyncDataWithInverter() ',
       new Date(),
     );
-
-    if (process.env.ENABLE_ANKR_SYNC === 'true') {
-      runSyncWithAnkrTransfers();
-    }
   }
 
   async function addQAccToken() {

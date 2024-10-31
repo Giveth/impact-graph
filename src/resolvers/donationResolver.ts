@@ -850,7 +850,7 @@ export class DonationResolver {
         isTokenEligibleForGivback,
         isCustomToken,
         isProjectVerified: project.verified,
-        createdAt: donateTime,
+        createdAt: donateTime.toISOString(),
         earlyAccessRound: earlyAccessRound ?? undefined,
         qfRound: qfRound ?? undefined,
         segmentNotified: false,
