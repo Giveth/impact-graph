@@ -15,16 +15,33 @@ import {
   getProjectUserRecordAmount,
   updateOrCreateProjectUserRecord,
 } from './projectUserRecordRepository';
-import { DONATION_STATUS } from '../entities/donation';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 import { QfRound } from '../entities/qfRound';
+import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 
 describe('projectUserRecordRepository', () => {
   let project;
   let user;
+  let eaRound;
 
   beforeEach(async () => {
     project = await saveProjectDirectlyToDb(createProjectData());
     user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    eaRound = await saveEARoundDirectlyToDb({
+      roundNumber: generateEARoundNumber(),
+      startDate: new Date('2024-09-01'),
+      endDate: new Date('2024-09-05'),
+    });
+  });
+
+  afterEach(async () => {
+    if (eaRound) {
+      Donation.delete({ earlyAccessRoundId: eaRound.id });
+      ProjectRoundRecord.delete({ earlyAccessRoundId: eaRound.id });
+
+      await eaRound.remove();
+      eaRound = null;
+    }
   });
 
   it('should return 0 when there is no donation', async () => {
@@ -47,6 +64,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: verifiedDonationAmount,
         status: DONATION_STATUS.VERIFIED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -56,6 +74,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: pendingDonationAmount,
         status: DONATION_STATUS.PENDING,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -65,6 +84,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: faildDonationAmount,
         status: DONATION_STATUS.FAILED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -92,6 +112,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: verifiedDonationAmount,
         status: DONATION_STATUS.VERIFIED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -101,6 +122,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: pendingDonationAmount,
         status: DONATION_STATUS.PENDING,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -110,6 +132,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: failedDonationAmount,
         status: DONATION_STATUS.FAILED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -214,6 +237,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: donationAmount1,
         status: DONATION_STATUS.VERIFIED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -232,6 +256,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: donationAmount2,
         status: DONATION_STATUS.VERIFIED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
