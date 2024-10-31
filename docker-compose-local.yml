@@ -81,6 +81,7 @@ services:
     image: redis:7-alpine
     profiles:
       - server
+      - test
       - local
     environment:
       - REDIS_ALLOW_EMPTY_PASSWORD=yes
