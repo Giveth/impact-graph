@@ -300,6 +300,9 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donateTime: transactionDate,
     });
 
+    logger.debug(
+      `the available cap at time ${transaction.timestamp} is ${cap}, and donation amount is ${donation.amount}`,
+    );
     if (cap >= donation.amount) {
       const [earlyAccessRound, qfRound] = await Promise.all([
         findActiveEarlyAccessRound(transactionDate),
