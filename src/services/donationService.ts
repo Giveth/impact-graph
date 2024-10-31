@@ -50,8 +50,6 @@ import { CustomToken, getTokenPrice } from './priceService';
 import { updateProjectStatistics } from './projectService';
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
-import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepository';
-import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { ProjectAddress } from '../entities/projectAddress';
 import { processAnkrTransfers } from './ankrService';
 import { User } from '../entities/user';
@@ -61,7 +59,6 @@ import {
   QACC_DONATION_TOKEN_SYMBOL,
 } from '../constants/qacc';
 import { ApolloContext } from '../types/ApolloContext';
-import qAccService from './qAccService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -295,28 +292,28 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     const transactionDate = new Date(transaction.timestamp * 1000);
 
     // Only double check if the donation is not already assigned to a round
-    if (!donation.earlyAccessRoundId && !donation.qfRoundId) {
-      const cap = await qAccService.getQAccDonationCap({
-        userId: donation.userId,
-        projectId: donation.projectId,
-        donateTime: transactionDate,
-      });
+    // if (!donation.earlyAccessRoundId && !donation.qfRoundId) {
+    //   const cap = await qAccService.getQAccDonationCap({
+    //     userId: donation.userId,
+    //     projectId: donation.projectId,
+    //     donateTime: transactionDate,
+    //   });
 
-      logger.debug(
-        `the available cap at time ${transaction.timestamp} is ${cap}, and donation amount is ${donation.amount}`,
-      );
-      if (cap >= donation.amount) {
-        const [earlyAccessRound, qfRound] = await Promise.all([
-          findActiveEarlyAccessRound(transactionDate),
-          findActiveQfRound({ date: transactionDate }),
-        ]);
-        donation.earlyAccessRound = earlyAccessRound;
-        donation.qfRound = qfRound;
-      } else {
-        donation.earlyAccessRound = null;
-        donation.qfRound = null;
-      }
-    }
+    //   logger.debug(
+    //     `the available cap at time ${transaction.timestamp} is ${cap}, and donation amount is ${donation.amount}`,
+    //   );
+    //   if (cap >= donation.amount) {
+    //     const [earlyAccessRound, qfRound] = await Promise.all([
+    //       findActiveEarlyAccessRound(transactionDate),
+    //       findActiveQfRound({ date: transactionDate }),
+    //     ]);
+    //     donation.earlyAccessRound = earlyAccessRound;
+    //     donation.qfRound = qfRound;
+    //   } else {
+    //     donation.earlyAccessRound = null;
+    //     donation.qfRound = null;
+    //   }
+    // }
     await donation.save();
 
     // ONLY verified donations should be accumulated
@@ -721,6 +718,7 @@ const ankrTransferHandler = async (transfer: TokenTransfer) => {
 
     await Donation.update(Number(donationId), {
       origin: DONATION_ORIGINS.CHAIN,
+      status: DONATION_STATUS.VERIFIED,
     });
 
     logger.debug(
