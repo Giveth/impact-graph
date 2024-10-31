@@ -28,10 +28,10 @@ export const findActiveEarlyAccessRound = async (
   try {
     const query = EarlyAccessRound.createQueryBuilder('earlyAccessRound')
       .where('earlyAccessRound.startDate <= :date', {
-        date,
+        date: date.toISOString(),
       })
       .andWhere('earlyAccessRound.endDate >= :date', {
-        date,
+        date: date.toISOString(),
       });
 
     return query.getOne();

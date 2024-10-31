@@ -178,7 +178,7 @@ export const findActiveQfRound = async ({
   const query = QfRound.createQueryBuilder('qfRound')
     .where('"isActive" = true')
     .andWhere(':date BETWEEN "qfRound"."beginDate" AND "qfRound"."endDate"', {
-      date,
+      date: date.toISOString(),
     });
   if (noCache) {
     return query.getOne();
