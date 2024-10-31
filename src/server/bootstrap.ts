@@ -83,13 +83,29 @@ export async function bootstrap() {
   try {
     logger.debug('bootstrap() has been called', new Date());
 
+    const isGraphQlMode = config.get('GRAPHQL_MODE') === 'true';
+    const isJobMode = config.get('JOB_MODE') === 'true';
+
+    logger.info('isGraphQlMode: ', isGraphQlMode);
+    logger.info('isJobMode: ', isJobMode);
+
+    if (!isGraphQlMode && !isJobMode) {
+      logger.error('GRAPHQL_MODE or JOB_MODE must be true');
+      process.exit(1);
+    }
+
     logger.debug('bootstrap() before AppDataSource.initialize()', new Date());
     await AppDataSource.initialize();
     logger.debug('bootstrap() after AppDataSource.initialize()', new Date());
 
-    logger.debug('bootstrap() before CronDataSource.initialize()', new Date());
-    await CronDataSource.initialize();
-    logger.debug('bootstrap() after CronDataSource.initialize()', new Date());
+    if (isJobMode) {
+      logger.debug(
+        'bootstrap() before CronDataSource.initialize()',
+        new Date(),
+      );
+      await CronDataSource.initialize();
+      logger.debug('bootstrap() after CronDataSource.initialize()', new Date());
+    }
 
     Container.set(DataSource, AppDataSource.getDataSource());
 
@@ -109,6 +125,125 @@ export async function bootstrap() {
       }
     }
 
+    if (isGraphQlMode) {
+      await runGraphQlModeTasks();
+    }
+    if (isJobMode) {
+      await runJobModeTasks();
+    }
+  } catch (err) {
+    logger.fatal('bootstrap() error', err);
+  }
+
+  async function refreshEstimateMatching() {
+    logger.debug('continueDbSetup() has been called', new Date());
+    if (!isTestEnv) {
+      // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
+      // relation "project_estimated_matching_view" does not exist
+      logger.debug(
+        'continueDbSetup() before refreshProjectEstimatedMatchingView() ',
+        new Date(),
+      );
+      await refreshProjectEstimatedMatchingView();
+      logger.debug(
+        'continueDbSetup() after refreshProjectEstimatedMatchingView() ',
+        new Date(),
+      );
+    }
+    logger.debug('continueDbSetup() end of function', new Date());
+  }
+
+  async function initializeCronJobs() {
+    logger.debug('initializeCronJobs() has been called', new Date());
+    runCheckPendingDonationsCronJob();
+    runNotifyMissingDonationsCronJob();
+
+    if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
+      runSyncLostDonations();
+    }
+
+    // if (process.env.ENABLE_IMPORT_DONATION_BACKUP === 'true') {
+    //   runSyncBackupServiceDonations();
+    // }
+
+    if (process.env.ENABLE_DRAFT_DONATION === 'true') {
+      runDraftDonationMatchWorkerJob();
+    }
+
+    logger.debug(
+      'initializeCronJobs() before runCheckActiveStatusOfQfRounds() ',
+      new Date(),
+    );
+    await runCheckActiveStatusOfQfRounds();
+    logger.debug(
+      'initializeCronJobs() after runCheckActiveStatusOfQfRounds() ',
+      new Date(),
+    );
+
+    logger.debug(
+      'initializeCronJobs() before runUpdateProjectCampaignsCacheJob() ',
+      new Date(),
+    );
+    await runUpdateProjectCampaignsCacheJob();
+    logger.debug(
+      'initializeCronJobs() after runUpdateProjectCampaignsCacheJob() ',
+      new Date(),
+    );
+
+    logger.debug(
+      'initializeCronJobs() before runFetchRoundTokenPrice() ',
+      new Date(),
+    );
+    await runFetchRoundTokenPrice();
+    logger.debug(
+      'initializeCronJobs() after runFetchRoundTokenPrice() ',
+      new Date(),
+    );
+
+    logger.debug(
+      'initializeCronJobs() before runSyncDataWithInverter() ',
+      new Date(),
+    );
+    await runSyncDataWithInverter();
+    logger.debug(
+      'initializeCronJobs() after runSyncDataWithInverter() ',
+      new Date(),
+    );
+
+    if (process.env.ENABLE_ANKR_SYNC === 'true') {
+      runSyncWithAnkrTransfers();
+    }
+  }
+
+  async function addQAccToken() {
+    if (
+      // not test env
+      (config.get('ENVIRONMENT') as string) !== 'test' &&
+      QACC_DONATION_TOKEN_NAME &&
+      QACC_DONATION_TOKEN_ADDRESS &&
+      QACC_DONATION_TOKEN_SYMBOL &&
+      QACC_DONATION_TOKEN_DECIMALS &&
+      QACC_DONATION_TOKEN_COINGECKO_ID &&
+      QACC_NETWORK_ID
+    ) {
+      // instert into token
+      Token.createQueryBuilder()
+        .insert()
+        .values({
+          name: QACC_DONATION_TOKEN_NAME,
+          address: QACC_DONATION_TOKEN_ADDRESS.toLocaleLowerCase(),
+          symbol: QACC_DONATION_TOKEN_SYMBOL,
+          decimals: QACC_DONATION_TOKEN_DECIMALS,
+          networkId: QACC_NETWORK_ID,
+          chainType: ChainType.EVM,
+          coingeckoId: QACC_DONATION_TOKEN_COINGECKO_ID,
+        })
+        .orIgnore()
+        .execute();
+    }
+  }
+
+  async function runGraphQlModeTasks() {
     const schema = await createSchema();
 
     // instantiate pool once and pass as context
@@ -117,7 +252,6 @@ export async function bootstrap() {
         () => spawn(new Worker('../workers/projectsResolverWorker')),
         options,
       );
-
     const apolloServerPlugins = [
       process.env.DISABLE_APOLLO_PLAYGROUND !== 'true'
         ? ApolloServerPluginLandingPageGraphQLPlayground({
@@ -302,7 +436,6 @@ export async function bootstrap() {
           logger.debug(
             `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
           );
-          performPostStartTasks();
           resolve(); // Resolve the Promise once the server is successfully listening
         })
         .on('error', err => {
@@ -310,125 +443,14 @@ export async function bootstrap() {
           reject(err); // Reject the Promise if there's an error starting the server
         });
     });
-
-    // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
-  } catch (err) {
-    logger.fatal('bootstrap() error', err);
+    // AdminJs!
   }
 
-  async function continueDbSetup() {
-    logger.debug('continueDbSetup() has been called', new Date());
-    if (!isTestEnv) {
-      // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
-      // relation "project_estimated_matching_view" does not exist
-      logger.debug(
-        'continueDbSetup() before refreshProjectEstimatedMatchingView() ',
-        new Date(),
-      );
-      await refreshProjectEstimatedMatchingView();
-      logger.debug(
-        'continueDbSetup() after refreshProjectEstimatedMatchingView() ',
-        new Date(),
-      );
-    }
-    logger.debug('continueDbSetup() end of function', new Date());
-  }
-
-  async function initializeCronJobs() {
-    logger.debug('initializeCronJobs() has been called', new Date());
-    runCheckPendingDonationsCronJob();
-    runNotifyMissingDonationsCronJob();
-
-    if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
-      runSyncLostDonations();
-    }
-
-    // if (process.env.ENABLE_IMPORT_DONATION_BACKUP === 'true') {
-    //   runSyncBackupServiceDonations();
-    // }
-
-    if (process.env.ENABLE_DRAFT_DONATION === 'true') {
-      runDraftDonationMatchWorkerJob();
-    }
-
-    logger.debug(
-      'initializeCronJobs() before runCheckActiveStatusOfQfRounds() ',
-      new Date(),
-    );
-    await runCheckActiveStatusOfQfRounds();
-    logger.debug(
-      'initializeCronJobs() after runCheckActiveStatusOfQfRounds() ',
-      new Date(),
-    );
-
-    logger.debug(
-      'initializeCronJobs() before runUpdateProjectCampaignsCacheJob() ',
-      new Date(),
-    );
-    await runUpdateProjectCampaignsCacheJob();
-    logger.debug(
-      'initializeCronJobs() after runUpdateProjectCampaignsCacheJob() ',
-      new Date(),
-    );
-
-    logger.debug(
-      'initializeCronJobs() before runFetchRoundTokenPrice() ',
-      new Date(),
-    );
-    await runFetchRoundTokenPrice();
-    logger.debug(
-      'initializeCronJobs() after runFetchRoundTokenPrice() ',
-      new Date(),
-    );
-
-    logger.debug(
-      'initializeCronJobs() before runSyncDataWithInverter() ',
-      new Date(),
-    );
-    await runSyncDataWithInverter();
-    logger.debug(
-      'initializeCronJobs() after runSyncDataWithInverter() ',
-      new Date(),
-    );
-
-    if (process.env.ENABLE_ANKR_SYNC === 'true') {
-      runSyncWithAnkrTransfers();
-    }
-  }
-
-  async function addQAccToken() {
-    if (
-      // not test env
-      (config.get('ENVIRONMENT') as string) !== 'test' &&
-      QACC_DONATION_TOKEN_NAME &&
-      QACC_DONATION_TOKEN_ADDRESS &&
-      QACC_DONATION_TOKEN_SYMBOL &&
-      QACC_DONATION_TOKEN_DECIMALS &&
-      QACC_DONATION_TOKEN_COINGECKO_ID &&
-      QACC_NETWORK_ID
-    ) {
-      // instert into token
-      Token.createQueryBuilder()
-        .insert()
-        .values({
-          name: QACC_DONATION_TOKEN_NAME,
-          address: QACC_DONATION_TOKEN_ADDRESS.toLocaleLowerCase(),
-          symbol: QACC_DONATION_TOKEN_SYMBOL,
-          decimals: QACC_DONATION_TOKEN_DECIMALS,
-          networkId: QACC_NETWORK_ID,
-          chainType: ChainType.EVM,
-          coingeckoId: QACC_DONATION_TOKEN_COINGECKO_ID,
-        })
-        .orIgnore()
-        .execute();
-    }
-  }
-
-  async function performPostStartTasks() {
+  async function runJobModeTasks() {
     // All heavy and non-critical initializations here
     try {
-      await continueDbSetup();
+      await refreshEstimateMatching();
     } catch (e) {
       logger.fatal('continueDbSetup() error', e);
     }
