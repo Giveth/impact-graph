@@ -693,36 +693,40 @@ const ankrTransferHandler = async (transfer: TokenTransfer) => {
     return;
   }
 
-  // insert the donation
-  const donationId = await getDonationResolver().createDonation(
-    +transfer.value,
-    txHash,
-    QACC_NETWORK_ID,
-    QACC_DONATION_TOKEN_ADDRESS,
-    false,
-    QACC_DONATION_TOKEN_SYMBOL,
-    projectAddress?.projectId,
-    +transaction.nonce,
-    '', // transakId
-    {
-      req: { user: { userId: user.id }, auth: {} },
-    } as ApolloContext,
-    '',
-    '', // safeTransactionId
-    undefined, // draft donation id
-    undefined, // use donationBox
-    undefined, // relevant donation tx hash
+  try {
+    // insert the donation
+    const donationId = await getDonationResolver().createDonation(
+      +transfer.value,
+      txHash,
+      QACC_NETWORK_ID,
+      QACC_DONATION_TOKEN_ADDRESS,
+      false,
+      QACC_DONATION_TOKEN_SYMBOL,
+      projectAddress?.projectId,
+      +transaction.nonce,
+      '', // transakId
+      {
+        req: { user: { userId: user.id }, auth: {} },
+      } as ApolloContext,
+      '',
+      '', // safeTransactionId
+      undefined, // draft donation id
+      undefined, // use donationBox
+      undefined, // relevant donation tx hash
 
-    new Date(transfer.timestamp * 1000),
-  );
+      new Date(transfer.timestamp * 1000),
+    );
 
-  await Donation.update(Number(donationId), {
-    origin: DONATION_ORIGINS.CHAIN,
-  });
+    await Donation.update(Number(donationId), {
+      origin: DONATION_ORIGINS.CHAIN,
+    });
 
-  logger.debug(
-    `Donation with ID ${donationId} has been created by importing from ankr transfer ${txHash}`,
-  );
+    logger.debug(
+      `Donation with ID ${donationId} has been created by importing from ankr transfer ${txHash}`,
+    );
+  } catch (e) {
+    logger.error('ankrTransferHandler() error', e);
+  }
 };
 
 export async function syncDonationsWithAnkr() {
