@@ -54,6 +54,7 @@ export class Donation extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
+  @Index('unique_transaction_id', { unique: true })
   transactionId: string;
 
   @Field({ nullable: true })
