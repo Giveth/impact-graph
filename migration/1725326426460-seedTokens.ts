@@ -4,8 +4,8 @@ import { Token } from '../src/entities/token';
 
 const tokens = [
   {
-    name: 'Matic Token',
-    symbol: 'MATIC',
+    name: 'Polygon Ecosystem Token',
+    symbol: 'POL',
     decimals: 18,
     address: '0xa2036f0538221a77a3937f1379699f44945018d0',
     coingeckoId: 'matic-network',
