@@ -23,12 +23,16 @@ export const findAllEarlyAccessRounds = async (): Promise<
 
 // Find the currently active Early Access Round
 export const findActiveEarlyAccessRound = async (
-  currentDate = new Date(),
+  date = new Date(),
 ): Promise<EarlyAccessRound | null> => {
   try {
     const query = EarlyAccessRound.createQueryBuilder('earlyAccessRound')
-      .where('earlyAccessRound.startDate <= :currentDate', { currentDate })
-      .andWhere('earlyAccessRound.endDate >= :currentDate', { currentDate });
+      .where('earlyAccessRound.startDate <= :date', {
+        date: date.toISOString(),
+      })
+      .andWhere('earlyAccessRound.endDate >= :date', {
+        date: date.toISOString(),
+      });
 
     return query.getOne();
   } catch (error) {

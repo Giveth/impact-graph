@@ -135,6 +135,10 @@ export class QfRound extends BaseEntity {
   @Column({ nullable: true })
   roundUSDCapPerUserPerProject?: number;
 
+  @Field(_type => Boolean)
+  @Column({ default: false })
+  isBatchMintingExecuted: boolean;
+
   // Virtual fields for cumulative caps
   @Field(() => Float, { nullable: true })
   cumulativeUSDCapPerProject?: number;

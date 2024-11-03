@@ -15,11 +15,11 @@ export async function updateOrCreateProjectUserRecord({
     $2 AS userId, 
     COALESCE(SUM(CASE WHEN donation."earlyAccessRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0) AS eaTotalDonationAmount,
     COALESCE(SUM(CASE WHEN donation."qfRoundId" IS NOT NULL THEN donation.amount ELSE 0 END), 0) AS qfTotalDonationAmount,
-    COALESCE(SUM(donation.amount), 0) AS totalDonationAmount
+    COALESCE(SUM(CASE WHEN ((donation."earlyAccessRoundId" IS NOT NULL) OR (donation."qfRoundId" IS NOT NULL)) THEN donation.amount ELSE 0 END), 0) AS totalDonationAmount
   FROM donation
   WHERE donation."projectId" = $1 
     AND donation."userId" = $2
-    AND donation.status = $3 
+    AND donation.status = ANY($3) 
   ON CONFLICT ("projectId", "userId") DO UPDATE 
   SET 
     "eaTotalDonationAmount" = EXCLUDED."eaTotalDonationAmount",
@@ -31,7 +31,7 @@ export async function updateOrCreateProjectUserRecord({
   const result = await ProjectUserRecord.query(query, [
     projectId,
     userId,
-    DONATION_STATUS.VERIFIED,
+    [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
   ]);
 
   return result[0];

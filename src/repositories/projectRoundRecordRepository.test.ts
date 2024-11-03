@@ -105,16 +105,29 @@ describe('ProjectRoundRecord test cases', () => {
 
   describe('updateOrCreateProjectRoundRecord test cases', () => {
     it('should create a new round record if none exists', async () => {
-      const amount = 100;
-      const valueUsd = 150;
+      const verifiedAmount = 100;
+      const verifiedValueUsd = 150;
 
-      const unverifiedAmount = 200;
-      const unverifiedValueUsd = 300;
+      const failedAmount = 200;
+      const failedValueUsd = 300;
 
-      await insertDonation({ amount, valueUsd, qfRoundId: qfRound1.id });
+      const pendingAmount = 300;
+      const pendingValueUsd = 450;
+
       await insertDonation({
-        amount: unverifiedAmount,
-        valueUsd: unverifiedValueUsd,
+        amount: verifiedAmount,
+        valueUsd: verifiedValueUsd,
+        qfRoundId: qfRound1.id,
+      });
+      await insertDonation({
+        amount: failedAmount,
+        valueUsd: failedValueUsd,
+        status: DONATION_STATUS.FAILED,
+        qfRoundId: qfRound1.id,
+      });
+      await insertDonation({
+        amount: pendingAmount,
+        valueUsd: pendingValueUsd,
         status: DONATION_STATUS.PENDING,
         qfRoundId: qfRound1.id,
       });
@@ -126,8 +139,12 @@ describe('ProjectRoundRecord test cases', () => {
       });
 
       expect(record).to.exist;
-      expect(record?.totalDonationAmount).to.equal(amount);
-      expect(record?.totalDonationUsdAmount).to.equal(valueUsd);
+      expect(record?.totalDonationAmount).to.equal(
+        verifiedAmount + pendingAmount,
+      );
+      expect(record?.totalDonationUsdAmount).to.equal(
+        verifiedValueUsd + pendingValueUsd,
+      );
     });
 
     it('should update an existing round record with two amounts', async () => {

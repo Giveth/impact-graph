@@ -1,5 +1,10 @@
 import { Max, Min } from 'class-validator';
-import { Brackets, getMetadataArgsStorage, Repository } from 'typeorm';
+import {
+  Brackets,
+  getMetadataArgsStorage,
+  LessThan,
+  Repository,
+} from 'typeorm';
 import { Service } from 'typedi';
 import {
   Arg,
@@ -2203,7 +2208,7 @@ export class ProjectResolver {
 
     if (qfRoundNumber) {
       const qfRound = await QfRound.findOne({
-        where: { roundNumber: qfRoundNumber },
+        where: { roundNumber: qfRoundNumber, beginDate: LessThan(new Date()) },
         select: ['id', 'beginDate', 'endDate'],
         loadEagerRelations: false,
       });
@@ -2215,7 +2220,10 @@ export class ProjectResolver {
 
     if (earlyAccessRoundNumber) {
       const earlyAccessRound = await EarlyAccessRound.findOne({
-        where: { roundNumber: earlyAccessRoundNumber },
+        where: {
+          roundNumber: earlyAccessRoundNumber,
+          startDate: LessThan(new Date()),
+        },
         select: ['id', 'startDate', 'endDate'],
         loadEagerRelations: false,
       });
@@ -2237,7 +2245,7 @@ export class ProjectResolver {
         qfRoundId,
         earlyAccessRoundId,
       );
-      return [record];
+      return record ? [record] : [];
     }
 
     return records;

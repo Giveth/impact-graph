@@ -21,8 +21,9 @@ const validateDonation = async (params: {
   networkId: number;
   tokenSymbol: string;
   amount: number;
-}): Promise<void> => {
-  const { projectId, userAddress, tokenSymbol, networkId } = params;
+  donateTime: Date;
+}): Promise<boolean> => {
+  const { projectId, userAddress, tokenSymbol, networkId, donateTime } = params;
 
   let user = await findUserByWalletAddress(userAddress)!;
   if (!user) {
@@ -32,11 +33,12 @@ const validateDonation = async (params: {
   const cap = await qAccService.getQAccDonationCap({
     userId: user.id,
     projectId,
+    donateTime,
   });
 
-  if (cap < params.amount) {
-    throw new Error(i18n.__(translationErrorMessagesKeys.EXCEED_QACC_CAP));
-  }
+  // if (cap < params.amount) {
+  //   throw new Error(i18n.__(translationErrorMessagesKeys.EXCEED_QACC_CAP));
+  // }
 
   // token is matched
   if (
@@ -65,6 +67,8 @@ const validateDonation = async (params: {
       throw new Error(i18n.__(translationErrorMessagesKeys.NOT_NFT_HOLDER));
     }
   }
+
+  return cap >= params.amount;
 };
 
 export default {

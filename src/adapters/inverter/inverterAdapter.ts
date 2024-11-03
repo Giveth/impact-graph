@@ -93,11 +93,11 @@ export class InverterAdapter {
     }
   }
 
-  public async getTokenPrice(contractAddress: string): Promise<string> {
+  public async getTokenPrice(contractAddress: string): Promise<number> {
     try {
       const contract = new ethers.Contract(contractAddress, abi, this.provider);
       const price: ethers.BigNumber = await contract.getStaticPriceForBuying();
-      return ethers.utils.formatUnits(price, 18); // Assuming the price is returned in 18 decimals
+      return parseFloat((price || '0').toString()) / 1_000_000; // convert PPM to price in POL
     } catch (error) {
       logger.error('Error fetching token price:', error);
       throw error;

@@ -17,14 +17,18 @@ export async function updateOrCreateProjectRoundRecord(
   projectId: number,
   qfRoundId?: number | null,
   earlyAccessRoundId?: number | null,
-): Promise<ProjectRoundRecord> {
+): Promise<ProjectRoundRecord | null> {
+  if (!qfRoundId && !earlyAccessRoundId) {
+    return null;
+    // throw new Error('No round specified on updateOrCreateProjectRoundRecord');
+  }
   try {
     let query = Donation.createQueryBuilder('donation')
-      .select('SUM(donation.amount)', 'totalDonationAmount')
-      .addSelect('SUM(donation.valueUsd)', 'totalDonationUsdAmount')
+      .select('SUM(COALESCE(donation.amount))', 'totalDonationAmount')
+      .addSelect('SUM(COALESCE(donation.valueUsd,0))', 'totalDonationUsdAmount')
       .where('donation.projectId = :projectId', { projectId })
-      .andWhere('donation.status = :status', {
-        status: DONATION_STATUS.VERIFIED,
+      .andWhere('donation.status IN (:...status)', {
+        status: [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
       });
 
     if (qfRoundId) {
@@ -82,6 +86,11 @@ export async function updateOrCreateProjectRoundRecord(
     return prr;
   } catch (error) {
     logger.error('Error updating or creating ProjectRoundRecord:', error);
+    logger.error('Paramse:', {
+      projectId,
+      qfRoundId,
+      earlyAccessRoundId,
+    });
     throw new Error(
       `Failed to update or create ProjectRoundRecord, ${error.message}`,
     );
@@ -143,8 +152,8 @@ export async function getCumulativePastRoundsDonationAmounts({
         'cumulativePastRoundsDonationAmounts',
       )
       .where('donation.projectId = :projectId', { projectId })
-      .andWhere('donation.status = :status', {
-        status: DONATION_STATUS.VERIFIED,
+      .andWhere('donation.status IN (:...status)', {
+        status: [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
       });
 
     if (earlyAccessRoundId) {

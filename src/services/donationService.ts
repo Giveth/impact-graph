@@ -1,7 +1,12 @@
 import { getTokenPrices } from '@giveth/monoswap';
+import { TokenTransfer } from '@ankr.com/ankr.js';
 import { Project } from '../entities/project';
 import { Token } from '../entities/token';
-import { Donation, DONATION_STATUS } from '../entities/donation';
+import {
+  Donation,
+  DONATION_ORIGINS,
+  DONATION_STATUS,
+} from '../entities/donation';
 import { TransakOrder } from './transak/order';
 import { logger } from '../utils/logger';
 import {
@@ -33,7 +38,11 @@ import { refreshProjectEstimatedMatchingView } from './projectViewsService';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { fetchSafeTransactionHash } from './safeServices';
-import { NETWORKS_IDS_TO_NAME } from '../provider';
+import {
+  getProvider,
+  NETWORKS_IDS_TO_NAME,
+  QACC_NETWORK_ID,
+} from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
 import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
@@ -41,8 +50,25 @@ import { CustomToken, getTokenPrice } from './priceService';
 import { updateProjectStatistics } from './projectService';
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
+import { ProjectAddress } from '../entities/projectAddress';
+import { processAnkrTransfers } from './ankrService';
+import { User } from '../entities/user';
+import { DonationResolver } from '../resolvers/donationResolver';
+import {
+  QACC_DONATION_TOKEN_ADDRESS,
+  QACC_DONATION_TOKEN_SYMBOL,
+} from '../constants/qacc';
+import { ApolloContext } from '../types/ApolloContext';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
+
+let _donationResolver: DonationResolver | undefined = undefined;
+export const getDonationResolver = (): DonationResolver => {
+  if (!_donationResolver) {
+    _donationResolver = new DonationResolver();
+  }
+  return _donationResolver;
+};
 
 export const updateDonationPricesAndValues = async (
   donation: Donation,
@@ -257,15 +283,42 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       timestamp: donation.createdAt.getTime() / 1000,
     });
     donation.status = DONATION_STATUS.VERIFIED;
+
     if (transaction.hash !== donation.transactionId) {
       donation.speedup = true;
       donation.transactionId = transaction.hash;
     }
+
+    const transactionDate = new Date(transaction.timestamp * 1000);
+
+    // Only double check if the donation is not already assigned to a round
+    // if (!donation.earlyAccessRoundId && !donation.qfRoundId) {
+    //   const cap = await qAccService.getQAccDonationCap({
+    //     userId: donation.userId,
+    //     projectId: donation.projectId,
+    //     donateTime: transactionDate,
+    //   });
+
+    //   logger.debug(
+    //     `the available cap at time ${transaction.timestamp} is ${cap}, and donation amount is ${donation.amount}`,
+    //   );
+    //   if (cap >= donation.amount) {
+    //     const [earlyAccessRound, qfRound] = await Promise.all([
+    //       findActiveEarlyAccessRound(transactionDate),
+    //       findActiveQfRound({ date: transactionDate }),
+    //     ]);
+    //     donation.earlyAccessRound = earlyAccessRound;
+    //     donation.qfRound = qfRound;
+    //   } else {
+    //     donation.earlyAccessRound = null;
+    //     donation.qfRound = null;
+    //   }
+    // }
     await donation.save();
 
     // ONLY verified donations should be accumulated
     // After updating, recalculate user and project total donations
-    await updateProjectStatistics(donation.projectId);
+    await updateProjectStatistics(donation.projectId, transactionDate);
     await updateUserTotalDonated(donation.userId);
     await updateUserTotalReceived(donation.project.adminUserId);
     await updateOrCreateProjectRoundRecord(
@@ -347,6 +400,16 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donation.verifyErrorMessage = e.message;
       donation.status = DONATION_STATUS.FAILED;
       await donation.save();
+
+      await updateOrCreateProjectRoundRecord(
+        donation.projectId,
+        donation.qfRoundId,
+        donation.earlyAccessRoundId,
+      );
+      await updateOrCreateProjectUserRecord({
+        projectId: donation.projectId,
+        userId: donation.userId,
+      });
     } else {
       const timeDifference =
         new Date().getTime() - donation.createdAt.getTime();
@@ -554,4 +617,143 @@ export async function getDonationToGivethWithDonationBoxMetrics(
     totalUsdValueToGiveth,
     averagePercentageToGiveth,
   };
+}
+
+const ankrTransferHandler = async (transfer: TokenTransfer) => {
+  const fromAddress = transfer.fromAddress?.toLowerCase();
+  const toAddress = transfer.toAddress?.toLowerCase();
+  const txHash = transfer.transactionHash.toLowerCase();
+  // Check user exists with from address
+  const user = await User.findOne({
+    where: {
+      walletAddress: fromAddress,
+    },
+    select: {
+      id: true,
+    },
+    loadRelationIds: false,
+  });
+
+  if (!user) {
+    return;
+  }
+
+  const projectAddress = await ProjectAddress.findOne({
+    where: {
+      address: toAddress,
+    },
+    select: {
+      id: true,
+      projectId: true,
+    },
+    loadRelationIds: false,
+  });
+
+  if (!projectAddress) {
+    logger.debug('projectAddress not found for address:', toAddress);
+    return;
+  }
+
+  // check donation with corresponding transactionId
+  const donation = await Donation.findOne({
+    where: {
+      transactionId: txHash,
+    },
+    select: {
+      id: true,
+      status: true,
+    },
+    loadRelationIds: false,
+  });
+
+  if (donation) {
+    if (donation?.status === DONATION_STATUS.FAILED) {
+      await Donation.update(
+        {
+          id: donation.id,
+        },
+        {
+          status: DONATION_STATUS.PENDING,
+          createdAt: new Date(transfer.timestamp * 1000).toISOString(),
+        },
+      );
+    } else {
+      logger.debug(`Donation with hash ${txHash} already exists`);
+    }
+    return;
+  }
+
+  // get transaction from ankr
+  const provider = getProvider(QACC_NETWORK_ID);
+  const transaction = await provider.getTransaction(txHash);
+
+  if (!transaction) {
+    logger.error('ankrTransferHandler() transaction not found');
+    return;
+  }
+
+  try {
+    // insert the donation
+    const donationId = await getDonationResolver().createDonation(
+      +transfer.value,
+      txHash,
+      QACC_NETWORK_ID,
+      QACC_DONATION_TOKEN_ADDRESS,
+      false,
+      QACC_DONATION_TOKEN_SYMBOL,
+      projectAddress?.projectId,
+      +transaction.nonce,
+      '', // transakId
+      {
+        req: { user: { userId: user.id }, auth: {} },
+      } as ApolloContext,
+      '',
+      '', // safeTransactionId
+      undefined, // draft donation id
+      undefined, // use donationBox
+      undefined, // relevant donation tx hash
+
+      new Date(transfer.timestamp * 1000),
+    );
+
+    await Donation.update(Number(donationId), {
+      origin: DONATION_ORIGINS.CHAIN,
+      status: DONATION_STATUS.VERIFIED,
+    });
+
+    logger.debug(
+      `Donation with ID ${donationId} has been created by importing from ankr transfer ${txHash}`,
+    );
+  } catch (e) {
+    logger.error('ankrTransferHandler() error', e);
+  }
+};
+
+export async function syncDonationsWithAnkr() {
+  // uniq project addresses with network id equals to QACC_NETWORK_ID
+  const projectAddresses = await ProjectAddress.createQueryBuilder(
+    'projectAddress',
+  )
+    .select('DISTINCT(projectAddress.address)', 'address')
+    .where('projectAddress.networkId = :networkId', {
+      networkId: QACC_NETWORK_ID,
+    })
+    .getRawMany();
+
+  const addresses = projectAddresses.map(
+    projectAddress => projectAddress.address,
+  );
+  if (!addresses || addresses.length === 0) {
+    logger.error('syncDonationsWithAnkr() addresses not found');
+    return;
+  }
+
+  try {
+    await processAnkrTransfers({
+      addresses,
+      transferHandler: ankrTransferHandler,
+    });
+  } catch (e) {
+    logger.error('syncDonationsWithAnkr() error', e);
+  }
 }

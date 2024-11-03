@@ -1,19 +1,13 @@
 /* eslint-disable no-console */
-import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 import { ethers } from 'ethers';
-import { FindOptionsWhere } from 'typeorm';
+import fs from 'fs-extra';
 import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import { AppDataSource } from '../orm';
-import {
-  InverterAdapter,
-  StreamingPaymentProcessorResponse,
-} from '../adapters/inverter/inverterAdapter';
-import { getProvider, QACC_NETWORK_ID } from '../provider';
-
-const adapter = new InverterAdapter(getProvider(QACC_NETWORK_ID));
+import { getStreamDetails } from './helpers';
+import { repoLocalDir, getReportsSubDir } from './configs';
 
 async function loadReportFile(filePath: string) {
   try {
@@ -40,13 +34,10 @@ function getAllReportFiles(dirPath: string) {
 }
 
 async function processReportForDonations(
-  projectOrchestratorAddress: string,
   donations: Donation[],
   reportData: any,
 ) {
   try {
-    const rewardInfo: StreamingPaymentProcessorResponse =
-      await adapter.getProjectRewardInfo(projectOrchestratorAddress);
     const participants = reportData.batch.data.participants;
     const lowerCasedParticipants = Object.keys(participants).reduce(
       (acc, key) => {
@@ -66,7 +57,7 @@ async function processReportForDonations(
       }
 
       const totalValidContribution = ethers.BigNumber.from(
-        participantData.validContribution,
+        participantData.validContribution.inCollateral,
       );
       // if issuance allocation is not exist, that mean this user has not any valid contributions
       let rewardAmount = 0;
@@ -101,30 +92,14 @@ async function processReportForDonations(
         // Calculate the reward proportionally based on the valid contribution
         rewardAmount = issuanceAllocation * contributionPercentage;
       }
-      donation.rewardTokenAmount = rewardAmount;
+      donation.rewardTokenAmount = rewardAmount || 0;
 
-      // Fetch the cliff, reward start, and end dates from the InverterAdapter
-      const vestingInfo = rewardInfo[0]?.vestings.find(
-        v => v.recipient === donation.fromWalletAddress,
-      );
+      const isEarlyAccessRound = reportData.batch.config.isEarlyAccess;
+      const vestingInfo = getStreamDetails(isEarlyAccessRound);
 
-      if (vestingInfo) {
-        donation.cliff = parseFloat(vestingInfo.cliff);
-        donation.rewardStreamStart = new Date(parseInt(vestingInfo.start));
-        donation.rewardStreamEnd = new Date(parseInt(vestingInfo.end));
-        if (
-          String(vestingInfo.amountRaw) !== '0' &&
-          String(vestingInfo.amountRaw) !==
-            String(participantData.issuanceAllocation)
-        ) {
-          console.warn(`The reward amount and issuance allocation for project ${donation.projectId} is not match!\n
-          the reward raw amount is: ${vestingInfo.amountRaw} and the issuance allocation in report is: ${participantData.issuanceAllocation}`);
-        }
-      } else {
-        console.error(
-          `No vesting information found for donation ${donation.id}`,
-        );
-      }
+      donation.cliff = vestingInfo.CLIFF * 1000;
+      donation.rewardStreamStart = new Date(vestingInfo.START * 1000);
+      donation.rewardStreamEnd = new Date(vestingInfo.END * 1000);
 
       await donation.save();
       console.debug(
@@ -138,30 +113,7 @@ async function processReportForDonations(
   }
 }
 
-// function getRoundNumberByDonations(donations: Donation[]): number {
-//   // todo: we need to find round number in a better way, because maybe there left some donations from previous rounds
-//   if (!donations.length) {
-//     return 0; // Return 0 if there are no donations
-//   }
-//
-//   const firstDonation = donations[0]; // Assuming all donations belong to the same round
-//
-//   // Check if the project is in an Early Access Round or QF Round
-//   if (firstDonation.earlyAccessRound) {
-//     return firstDonation.earlyAccessRound.roundNumber; // Return the round number directly for Early Access
-//   } else if (firstDonation.qfRound.roundNumber) {
-//     return firstDonation.qfRound.roundNumber + 4; // Add 4 to the round number for QF Rounds
-//   } else {
-//     console.error(
-//       `No round information found for donation ${firstDonation.id}`,
-//     );
-//     return 0; // Return 0 if no round information is found
-//   }
-// }
-
-export async function updateRewardsForDonations(
-  donationFilter: FindOptionsWhere<Donation>,
-) {
+export async function updateRewardsForDonations(batchNumber: number) {
   try {
     const datasource = AppDataSource.getDataSource();
     const donationRepository = datasource.getRepository(Donation);
@@ -170,14 +122,13 @@ export async function updateRewardsForDonations(
         { rewardStreamEnd: undefined },
         { rewardStreamStart: undefined },
         { rewardTokenAmount: undefined },
-        donationFilter,
       ],
     });
 
     const donationsByProjectId = _.groupBy(donations, 'projectId');
-    const allReportFiles = getAllReportFiles(
-      path.join(__dirname, '/reportFiles/output'),
-    );
+
+    const reportFilesDir = path.join(repoLocalDir, getReportsSubDir());
+    const allReportFiles = getAllReportFiles(reportFilesDir);
 
     for (const projectId of Object.keys(donationsByProjectId)) {
       console.debug(`Start processing project ${projectId} for donations.`);
@@ -192,17 +143,12 @@ export async function updateRewardsForDonations(
         continue;
       }
 
-      // const roundNumber = getRoundNumberByDonations(
-      //   donationsByProjectId[projectId],
-      // );
-      const roundNumber = Number(process.argv[2]);
-
       // Look for matching report files based on orchestrator address
       let matchedReportFile = null;
       for (const reportFilePath of allReportFiles) {
         const fileName = path.basename(reportFilePath);
 
-        if (fileName.endsWith(`${roundNumber}.json`)) {
+        if (fileName.endsWith(`${batchNumber}.json`)) {
           const reportData = await loadReportFile(reportFilePath);
           if (!reportData) continue;
 
@@ -220,18 +166,39 @@ export async function updateRewardsForDonations(
 
       if (!matchedReportFile) {
         console.error(
-          `No matching report found for project with orchestrator address ${project.abc.orchestratorAddress}, for round number ${roundNumber}`,
+          `No matching report found for project with orchestrator address ${project.abc.orchestratorAddress}, for batch number ${batchNumber}`,
         );
         continue;
       }
 
+      await updateNumberOfBatchMintingTransactionsForProject(
+        project,
+        matchedReportFile,
+        batchNumber,
+      );
+
       await processReportForDonations(
-        project.abc.orchestratorAddress,
         donationsByProjectId[projectId],
         matchedReportFile,
       );
     }
   } catch (error) {
     console.error(`Error updating rewards for donations`, error);
+  }
+}
+
+async function updateNumberOfBatchMintingTransactionsForProject(
+  project: Project,
+  reportData: any,
+  batchNumber: number,
+) {
+  const transactions = reportData.safe.proposedTransactions;
+  if (transactions.length > 0) {
+    if (!project.batchNumbersWithSafeTransactions) {
+      project.batchNumbersWithSafeTransactions = [batchNumber];
+    } else {
+      project.batchNumbersWithSafeTransactions.push(batchNumber);
+    }
+    await project.save();
   }
 }

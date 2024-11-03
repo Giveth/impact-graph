@@ -116,13 +116,18 @@ export class DraftDonationResolver {
       toAddress = toAddress?.toLowerCase();
       fromAddress = fromAddress?.toLowerCase();
 
-      await qacc.validateDonation({
+      const hasCap = await qacc.validateDonation({
         projectId,
         networkId,
         tokenSymbol: token,
         userAddress: donorUser.walletAddress!,
         amount,
+        donateTime: new Date(),
       });
+
+      if (!hasCap) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.EXCEED_QACC_CAP));
+      }
 
       const draftDonationId = await DraftDonation.createQueryBuilder(
         'draftDonation',

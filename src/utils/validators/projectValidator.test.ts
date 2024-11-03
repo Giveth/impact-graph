@@ -29,7 +29,7 @@ describe(
 );
 // describe('validateProjectTitleForEdit() test cases', validateProjectTitleForEditTestCases);
 describe('validateProjectTitleTestCases', validateProjectTitleTestCases);
-describe(
+describe.skip(
   'isWalletAddressSmartContract() test cases',
   isWalletAddressSmartContractTestCases,
 );

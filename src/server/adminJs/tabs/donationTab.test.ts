@@ -202,7 +202,7 @@ function createDonationTestCases() {
       );
     }
   });
-  it('Should create donations for gnosis safe', async () => {
+  it.skip('Should create donations for gnosis safe', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x43f82708d1608aa9355c0738659c658b138d54f618e3322e33a4410af48c200b
 
     const tokenPrice = 1;

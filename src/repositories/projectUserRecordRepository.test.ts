@@ -15,16 +15,33 @@ import {
   getProjectUserRecordAmount,
   updateOrCreateProjectUserRecord,
 } from './projectUserRecordRepository';
-import { DONATION_STATUS } from '../entities/donation';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 import { QfRound } from '../entities/qfRound';
+import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 
 describe('projectUserRecordRepository', () => {
   let project;
   let user;
+  let eaRound;
 
   beforeEach(async () => {
     project = await saveProjectDirectlyToDb(createProjectData());
     user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    eaRound = await saveEARoundDirectlyToDb({
+      roundNumber: generateEARoundNumber(),
+      startDate: new Date('2024-09-01'),
+      endDate: new Date('2024-09-05'),
+    });
+  });
+
+  afterEach(async () => {
+    if (eaRound) {
+      Donation.delete({ earlyAccessRoundId: eaRound.id });
+      ProjectRoundRecord.delete({ earlyAccessRoundId: eaRound.id });
+
+      await eaRound.remove();
+      eaRound = null;
+    }
   });
 
   it('should return 0 when there is no donation', async () => {
@@ -37,16 +54,17 @@ describe('projectUserRecordRepository', () => {
     assert.equal(projectUserRecord.totalDonationAmount, 0);
   });
 
-  it('should return the total verified donation amount', async () => {
-    const verifiedDonationAmount1 = 100;
-    const verifiedDonationAmount2 = 200;
-    const unverifiedDonationAmount = 300;
+  it('should return the total verified and pending donation amount', async () => {
+    const verifiedDonationAmount = 100;
+    const pendingDonationAmount = 200;
+    const faildDonationAmount = 300;
 
     await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount: verifiedDonationAmount1,
+        amount: verifiedDonationAmount,
         status: DONATION_STATUS.VERIFIED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -54,17 +72,19 @@ describe('projectUserRecordRepository', () => {
     await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount: verifiedDonationAmount2,
-        status: DONATION_STATUS.VERIFIED,
-      },
-      user.id,
-      project.id,
-    );
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        amount: unverifiedDonationAmount,
+        amount: pendingDonationAmount,
         status: DONATION_STATUS.PENDING,
+        earlyAccessRoundId: eaRound.id,
+      },
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: faildDonationAmount,
+        status: DONATION_STATUS.FAILED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -78,20 +98,21 @@ describe('projectUserRecordRepository', () => {
     assert.isOk(projectUserRecord);
     assert.equal(
       projectUserRecord.totalDonationAmount,
-      verifiedDonationAmount1 + verifiedDonationAmount2,
+      verifiedDonationAmount + pendingDonationAmount,
     );
   });
 
-  it('should return the total verified donation amount for a specific project', async () => {
-    const verifiedDonationAmount1 = 100;
-    const verifiedDonationAmount2 = 200;
-    const unverifiedDonationAmount = 300;
+  it('should return the total verified and pending donation amount for a specific project', async () => {
+    const verifiedDonationAmount = 100;
+    const pendingDonationAmount = 200;
+    const failedDonationAmount = 300;
 
     await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount: verifiedDonationAmount1,
+        amount: verifiedDonationAmount,
         status: DONATION_STATUS.VERIFIED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -99,17 +120,19 @@ describe('projectUserRecordRepository', () => {
     await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        amount: verifiedDonationAmount2,
-        status: DONATION_STATUS.VERIFIED,
-      },
-      user.id,
-      project.id,
-    );
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        amount: unverifiedDonationAmount,
+        amount: pendingDonationAmount,
         status: DONATION_STATUS.PENDING,
+        earlyAccessRoundId: eaRound.id,
+      },
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: failedDonationAmount,
+        status: DONATION_STATUS.FAILED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -127,7 +150,7 @@ describe('projectUserRecordRepository', () => {
 
     assert.equal(
       amount.totalDonationAmount,
-      verifiedDonationAmount1 + verifiedDonationAmount2,
+      verifiedDonationAmount + pendingDonationAmount,
     );
   });
 
@@ -214,6 +237,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: donationAmount1,
         status: DONATION_STATUS.VERIFIED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,
@@ -232,6 +256,7 @@ describe('projectUserRecordRepository', () => {
         ...createDonationData(),
         amount: donationAmount2,
         status: DONATION_STATUS.VERIFIED,
+        earlyAccessRoundId: eaRound.id,
       },
       user.id,
       project.id,

@@ -23,6 +23,7 @@ export const DONATION_STATUS = {
 export const DONATION_ORIGINS = {
   IDRISS_TWITTER: 'Idriss',
   DRAFT_DONATION_MATCHING: 'DraftDonationMatching',
+  CHAIN: 'Chain',
   SUPER_FLUID: 'SuperFluid',
 };
 
@@ -39,6 +40,8 @@ export enum SortField {
   CreationDate = 'createdAt',
   TokenAmount = 'amount',
   UsdAmount = 'valueUsd',
+  EarlyAccessRound = 'earlyAccessRoundId',
+  RewardTokenAmount = 'rewardTokenAmount',
 }
 
 @Entity()
@@ -51,6 +54,7 @@ export class Donation extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
+  @Index('unique_transaction_id', { unique: true })
   transactionId: string;
 
   @Field({ nullable: true })
@@ -166,11 +170,11 @@ export class Donation extends BaseEntity {
   @Index()
   @Field(_type => QfRound, { nullable: true })
   @ManyToOne(_type => QfRound, { eager: true })
-  qfRound: QfRound;
+  qfRound?: QfRound | null;
 
   @RelationId((donation: Donation) => donation.qfRound)
   @Column({ nullable: true })
-  qfRoundId: number;
+  qfRoundId: number | null;
 
   @Index()
   @Field(_type => QfRound, { nullable: true })
@@ -267,7 +271,7 @@ export class Donation extends BaseEntity {
 
   @RelationId((donation: Donation) => donation.earlyAccessRound)
   @Column({ nullable: true })
-  earlyAccessRoundId: number;
+  earlyAccessRoundId: number | null;
 
   @Field({ nullable: true })
   @Column({ type: 'float', nullable: true })

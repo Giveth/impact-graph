@@ -1,8 +1,8 @@
-name: Run Inverter Sync Script
+name: run-funding-pot-service
 
 on:
-  schedule:
-    - cron: '0 0 * * 1' # Runs at midnight every Monday
+#  schedule:
+#    - cron: '0 0 * * 1' # Runs at midnight every Monday
   workflow_dispatch: # This allows manual triggering
 
 jobs:
@@ -10,8 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: SSH into Server and Run Inverter Sync Script
+      - name: SSH into Server and Run Funding Pot Service
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          DELEGATE_PK_FOR_FUNDING_POT: ${{ secrets.DELEGATE_PK_FOR_FUNDING_POT }}
+          ANKR_API_KEY_FOR_FUNDING_POT: ${{ secrets.ANKR_API_KEY_FOR_FUNDING_POT }}
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USERNAME }}
@@ -19,5 +22,5 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
-            docker compose -f docker-compose-staging.yml exec qacc-be npm run sync:inverter:production
+            docker compose -f docker-compose-staging.yml exec qacc-be npm run execute:inverter:production
             docker compose -f docker-compose-staging.yml logs qacc-be
