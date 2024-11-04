@@ -121,4 +121,7 @@ class Config {
 
 const config = new Config(process.env);
 
+export const isGraphQlMode = config.get('GRAPHQL_MODE') === 'true';
+export const isJobMode = config.get('JOB_MODE') === 'true';
+
 export default config;

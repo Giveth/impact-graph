@@ -18,7 +18,7 @@ import bodyParser from 'body-parser';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
-import config from '../config';
+import config, { isGraphQlMode, isJobMode } from '../config';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
 import SentryLogger from '../sentryLogger';
@@ -82,9 +82,6 @@ const options = {
 export async function bootstrap() {
   try {
     logger.debug('bootstrap() has been called', new Date());
-
-    const isGraphQlMode = config.get('GRAPHQL_MODE') === 'true';
-    const isJobMode = config.get('JOB_MODE') === 'true';
 
     logger.info('isGraphQlMode: ', isGraphQlMode);
     logger.info('isJobMode: ', isJobMode);
