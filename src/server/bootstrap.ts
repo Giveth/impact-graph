@@ -7,7 +7,7 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
-import express, { json, Request } from 'express';
+import express, { json, Request, RequestHandler } from 'express';
 import { Container } from 'typedi';
 import { Resource } from '@adminjs/typeorm';
 import { validate } from 'class-validator';
@@ -424,9 +424,7 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       handleStripeWebhook,
     );
-    app.get('/health', (_req, res) => {
-      res.send('Hi every thing seems ok');
-    });
+    app.get('/health', healthCheck);
     app.post('/transak_webhook', webhookHandler);
 
     const httpServer = http.createServer(app);
@@ -472,3 +470,13 @@ async function setPgTrgmParameters(ds: DataSource) {
     `SET pg_trgm.word_similarity_threshold TO ${similarityThreshold};`,
   );
 }
+
+const healthCheck: RequestHandler = async (_req, res) => {
+  const ds = AppDataSource.getDataSource();
+  const result = (await ds.query('select version()')) || [];
+  const version = result[0]?.version || '';
+  if (!version.startsWith('PostgreSQL')) {
+    throw new Error('Unexpected db result');
+  }
+  res.send('Hi every thing seems ok');
+};
