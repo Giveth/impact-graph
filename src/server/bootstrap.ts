@@ -7,7 +7,7 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
-import express, { json, Request } from 'express';
+import express, { json, Request, RequestHandler } from 'express';
 import { Container } from 'typedi';
 import { Resource } from '@adminjs/typeorm';
 import { validate } from 'class-validator';
@@ -18,7 +18,7 @@ import bodyParser from 'body-parser';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
-import config from '../config';
+import config, { isGraphQlMode, isJobMode } from '../config';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
 import SentryLogger from '../sentryLogger';
@@ -82,9 +82,6 @@ const options = {
 export async function bootstrap() {
   try {
     logger.debug('bootstrap() has been called', new Date());
-
-    const isGraphQlMode = config.get('GRAPHQL_MODE') === 'true';
-    const isJobMode = config.get('JOB_MODE') === 'true';
 
     logger.info('isGraphQlMode: ', isGraphQlMode);
     logger.info('isJobMode: ', isJobMode);
@@ -424,9 +421,7 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       handleStripeWebhook,
     );
-    app.get('/health', (_req, res) => {
-      res.send('Hi every thing seems ok');
-    });
+    app.get('/health', healthCheck);
     app.post('/transak_webhook', webhookHandler);
 
     const httpServer = http.createServer(app);
@@ -472,3 +467,13 @@ async function setPgTrgmParameters(ds: DataSource) {
     `SET pg_trgm.word_similarity_threshold TO ${similarityThreshold};`,
   );
 }
+
+const healthCheck: RequestHandler = async (_req, res) => {
+  const ds = AppDataSource.getDataSource();
+  const result = (await ds.query('select version()')) || [];
+  const version = result[0]?.version || '';
+  if (!version.startsWith('PostgreSQL')) {
+    throw new Error('Unexpected db result');
+  }
+  res.sendStatus(200);
+};

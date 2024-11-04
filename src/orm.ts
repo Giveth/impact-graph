@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { PostgresConnectionCredentialsOptions } from 'typeorm/driver/postgres/PostgresConnectionCredentialsOptions';
-import config from './config';
+import config, { isJobMode } from './config';
 import { CronJob } from './entities/CronJob';
 import { getEntities } from './entities/entities';
 import { redisConfig } from './redis';
@@ -57,6 +57,7 @@ export class AppDataSource {
               },
             },
         poolSize,
+        migrationsRun: isJobMode,
         extra: {
           maxWaitingClients: 10,
           evictionRunIntervalMillis: 500,

@@ -186,6 +186,7 @@
     "test:bootstrap": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/server/bootstrap.test.ts",
     "test:utils": "NODE_ENV=test mocha ./src/utils/utils.test.ts",
     "test:inverterScript": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/scripts/syncDataWithInverter.test.ts",
+    "test:healthCheck": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/server/bootstrap.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
     "start:test": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./test.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
