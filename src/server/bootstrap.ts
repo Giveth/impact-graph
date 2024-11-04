@@ -478,5 +478,5 @@ const healthCheck: RequestHandler = async (_req, res) => {
   if (!version.startsWith('PostgreSQL')) {
     throw new Error('Unexpected db result');
   }
-  res.send('Hi every thing seems ok');
+  res.sendStatus(200);
 };
