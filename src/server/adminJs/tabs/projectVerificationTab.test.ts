@@ -98,11 +98,11 @@ function approveGivbacksEligibilityFormTestCases() {
     const updatedForm = await findProjectVerificationFormById(
       projectVerificationForm.id,
     );
-    const updatedPorject = await findProjectById(project.id);
+    const updatedProject = await findProjectById(project.id);
     assert.isOk(updatedForm);
     assert.equal(updatedForm?.status, PROJECT_VERIFICATION_STATUSES.VERIFIED);
-    assert.isTrue(updatedPorject?.isGivbackEligible);
-    // assert.equal(updatedPorject?.verificationFormStatus);
+    assert.isTrue(updatedProject?.isGivbackEligible);
+    // assert.equal(updatedProject?.verificationFormStatus);
   });
 
   it('Should be able to reject Givback Eligibility Form for not draft form', async () => {
@@ -142,10 +142,10 @@ function approveGivbacksEligibilityFormTestCases() {
     const updatedForm = await findProjectVerificationFormById(
       projectVerificationForm.id,
     );
-    const updatedPorject = await findProjectById(project.id);
+    const updatedProject = await findProjectById(project.id);
 
     assert.isOk(updatedForm);
     assert.equal(updatedForm?.status, PROJECT_VERIFICATION_STATUSES.REJECTED);
-    assert.isFalse(updatedPorject?.isGivbackEligible);
+    assert.isFalse(updatedProject?.isGivbackEligible);
   });
 }
