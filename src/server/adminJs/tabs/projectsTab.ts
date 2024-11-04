@@ -238,6 +238,15 @@ export const verifyProjects = async (
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
+      if (vouchedStatus) {
+        await getNotificationAdapter().projectVerified({
+          project: project,
+        });
+      } else {
+        await getNotificationAdapter().projectUnVerified({
+          project: project,
+        });
+      }
     }
 
     await Promise.all([
