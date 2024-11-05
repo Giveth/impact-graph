@@ -63,8 +63,57 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
+            git reset --hard HEAD~1
             git checkout main
-            git pull
-            docker compose -f docker-compose-production.yml pull
-            docker compose -f docker-compose-production.yml up --force-recreate -d
+            git pull origin main
             docker image prune -a --force
+            docker compose pull
+
+            ## Update each backend service one by one
+            ## First Deployment
+            docker compose up -d --no-deps --scale qacc-be-graph-ql1=0 qacc-be-graph-ql2=1 qacc-be-graph-ql3=1
+            docker compose up -d --no-deps --scale qacc-be-job1=0 qacc-be-job2=1 qacc-be-job3=1
+            docker compose up -d
+            # Check the health of qacc-be-graph-ql1
+            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-graph-ql1)" != "\"running\"" ]; then
+              echo "qacc-be-graph-ql1 is not running, stopping deployment"
+              exit 1
+            fi
+            # Check the health of qacc-be-job1
+            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-job1)" != "\"running\"" ]; then
+              echo "qacc-be-job1 is not running, stopping deployment"
+              exit 1
+            fi
+
+            ## Second Deployment
+            docker compose up -d --no-deps --scale qacc-be-graph-ql1=1 qacc-be-graph-ql2=0 qacc-be-graph-ql3=1
+            docker compose up -d --no-deps --scale qacc-be-job1=1 qacc-be-job2=0 qacc-be-job3=1
+            docker compose up -d
+            # Check the health of qacc-be-graph-ql2
+            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-graph-ql2)" != "\"running\"" ]; then
+              echo "qacc-be-graph-ql2 is not running, stopping deployment"
+              exit 1
+            fi
+
+            # Check the health of qacc-be-job2
+            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-job2)" != "\"running\"" ]; then
+              echo "qacc-be-job2 is not running, stopping deployment"
+              exit 1
+            fi
+
+
+            ## Third Deployment
+            docker compose up -d --no-deps --scale qacc-be-graph-ql1=1 qacc-be-graph-ql2=1 qacc-be-graph-ql3=0
+            docker compose up -d --no-deps --scale qacc-be-job1=1 qacc-be-job2=1 qacc-be-job3=0
+            docker compose up -d
+            # Check the health of qacc-be-graph-ql3
+            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-graph-ql3)" != "\"running\"" ]; then
+              echo "qacc-be-graph-ql3 is not running, stopping deployment"
+              exit 1
+            fi
+
+            # Check the health of qacc-be-job3
+            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-job3)" != "\"running\"" ]; then
+              echo "qacc-be-job3 is not running, stopping deployment"
+              exit 1
+            fi
