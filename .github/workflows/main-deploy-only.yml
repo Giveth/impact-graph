@@ -22,10 +22,23 @@ jobs:
             docker image prune -a --force
             docker compose pull
 
+  rollout-deploy-1:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
             ## Update each backend service one by one
             ## First Deployment
-            docker compose up -d --no-deps --scale qacc-be-graph-ql1=0 --scale qacc-be-graph-ql2=1 --scale qacc-be-graph-ql3=1
-            docker compose up -d --no-deps --scale qacc-be-job1=0 --scale qacc-be-job2=1 --scale qacc-be-job3=1
+            docker compose up -d --no-deps --scale qacc-be-graph-ql1=0
+            docker compose up -d --no-deps --scale qacc-be-job1=0
             docker compose up -d
 
             # Wait for qacc-be-graph-ql1 to be healthy (timeout after 5 minutes)
@@ -47,9 +60,22 @@ jobs:
             fi
             echo "First deployment phase completed successfully"
 
+  rollout-deploy-2:
+    needs: rollout-deploy-1
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
             ## Second Deployment
-            docker compose up -d --no-deps --scale qacc-be-graph-ql1=1 --scale qacc-be-graph-ql2=0 --scale qacc-be-graph-ql3=1
-            docker compose up -d --no-deps --scale qacc-be-job1=1 --scale qacc-be-job2=0 --scale qacc-be-job3=1
+            docker compose up -d --no-deps --scale qacc-be-graph-ql2=0
+            docker compose up -d --no-deps --scale qacc-be-job2=0
             docker compose up -d
 
             # Wait for qacc-be-graph-ql2 to be healthy (timeout after 5 minutes)
@@ -71,9 +97,22 @@ jobs:
             fi
             echo "Second deployment phase completed successfully"
 
+  rollout-deploy-3:
+    needs: rollout-deploy-2
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
             ## Third Deployment
-            docker compose up -d --no-deps --scale qacc-be-graph-ql1=1 --scale qacc-be-graph-ql2=1 --scale qacc-be-graph-ql3=0
-            docker compose up -d --no-deps --scale qacc-be-job1=1 --scale qacc-be-job2=1 --scale qacc-be-job3=0
+            docker compose up -d --no-deps --scale qacc-be-graph-ql3=0
+            docker compose up -d --no-deps --scale qacc-be-job3=0
             docker compose up -d
 
             # Wait for qacc-be-graph-ql3 to be healthy (timeout after 5 minutes)
