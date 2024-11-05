@@ -39,7 +39,8 @@ jobs:
             ## First Deployment
             docker compose up -d --no-deps --scale qacc-be-graph-ql1=0
             docker compose up -d --no-deps --scale qacc-be-job1=0
-            docker compose up -d
+            docker compose up --force-recreate -d qacc-be-graph-ql1
+            docker compose up --force-recreate -d qacc-be-job1
 
             # Wait for qacc-be-graph-ql1 to be healthy (timeout after 5 minutes)
             echo "Waiting for qacc-be-graph-ql1 to become healthy..."
@@ -76,7 +77,8 @@ jobs:
             ## Second Deployment
             docker compose up -d --no-deps --scale qacc-be-graph-ql2=0
             docker compose up -d --no-deps --scale qacc-be-job2=0
-            docker compose up -d
+            docker compose up --force-recreate -d qacc-be-graph-ql2
+            docker compose up --force-recreate -d qacc-be-job2
 
             # Wait for qacc-be-graph-ql2 to be healthy (timeout after 5 minutes)
             echo "Waiting for qacc-be-graph-ql2 to become healthy..."
@@ -113,7 +115,8 @@ jobs:
             ## Third Deployment
             docker compose up -d --no-deps --scale qacc-be-graph-ql3=0
             docker compose up -d --no-deps --scale qacc-be-job3=0
-            docker compose up -d
+            docker compose up --force-recreate -d qacc-be-graph-ql3
+            docker compose up --force-recreate -d qacc-be-job3
 
             # Wait for qacc-be-graph-ql3 to be healthy (timeout after 5 minutes)
             echo "Waiting for qacc-be-graph-ql3 to become healthy..."
