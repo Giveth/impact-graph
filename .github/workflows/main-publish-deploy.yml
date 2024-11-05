@@ -84,8 +84,8 @@ jobs:
             cd QAcc-BE
             ## Update each backend service one by one
             ## First Deployment
-            docker compose up -d --no-deps --scale qacc-be-graph-ql1=0
-            docker compose up -d --no-deps --scale qacc-be-job1=0
+            docker compose down qacc-be-graph-ql1
+            docker compose down qacc-be-job1
             docker compose up --force-recreate -d qacc-be-graph-ql1
             docker compose up --force-recreate -d qacc-be-job1
 
@@ -122,8 +122,8 @@ jobs:
           script: |
             cd QAcc-BE
             ## Second Deployment
-            docker compose up -d --no-deps --scale qacc-be-graph-ql2=0
-            docker compose up -d --no-deps --scale qacc-be-job2=0
+            docker compose down qacc-be-graph-ql2
+            docker compose down qacc-be-job2
             docker compose up --force-recreate -d qacc-be-graph-ql2
             docker compose up --force-recreate -d qacc-be-job2
 
@@ -160,8 +160,8 @@ jobs:
           script: |
             cd QAcc-BE
             ## Third Deployment
-            docker compose up -d --no-deps --scale qacc-be-graph-ql3=0
-            docker compose up -d --no-deps --scale qacc-be-job3=0
+            docker compose down qacc-be-graph-ql3
+            docker compose down qacc-be-job3
             docker compose up --force-recreate -d qacc-be-graph-ql3
             docker compose up --force-recreate -d qacc-be-job3
 
