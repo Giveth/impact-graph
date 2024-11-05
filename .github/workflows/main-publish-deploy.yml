@@ -71,49 +71,73 @@ jobs:
 
             ## Update each backend service one by one
             ## First Deployment
-            docker compose up -d --no-deps --scale qacc-be-graph-ql1=0 qacc-be-graph-ql2=1 qacc-be-graph-ql3=1
-            docker compose up -d --no-deps --scale qacc-be-job1=0 qacc-be-job2=1 qacc-be-job3=1
+            docker compose up -d --no-deps --scale qacc-be-graph-ql1=0 --scale qacc-be-graph-ql2=1 --scale qacc-be-graph-ql3=1
+            docker compose up -d --no-deps --scale qacc-be-job1=0 --scale qacc-be-job2=1 --scale qacc-be-job3=1
             docker compose up -d
-            # Check the health of qacc-be-graph-ql1
-            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-graph-ql1)" != "\"running\"" ]; then
-              echo "qacc-be-graph-ql1 is not running, stopping deployment"
-              exit 1
+
+            # Wait for qacc-be-graph-ql1 to be healthy (timeout after 5 minutes)
+            echo "Waiting for qacc-be-graph-ql1 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" qacc-be-graph-ql1)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql1 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for qacc-be-graph-ql1 to become healthy"
+                exit 1
             fi
-            # Check the health of qacc-be-job1
+            # Check if qacc-be-graph-ql1 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' qacc-be-graph-ql1)" != "\"healthy\"" ]; then
+                echo "qacc-be-graph-ql1 is not healthy, stopping deployment"
+                exit 1
+            fi
+            # Check if qacc-be-job1 is running
             if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-job1)" != "\"running\"" ]; then
-              echo "qacc-be-job1 is not running, stopping deployment"
-              exit 1
+                echo "qacc-be-job1 is not running, stopping deployment"
+                exit 1
             fi
+            echo "First deployment phase completed successfully"
 
             ## Second Deployment
-            docker compose up -d --no-deps --scale qacc-be-graph-ql1=1 qacc-be-graph-ql2=0 qacc-be-graph-ql3=1
-            docker compose up -d --no-deps --scale qacc-be-job1=1 qacc-be-job2=0 qacc-be-job3=1
+            docker compose up -d --no-deps --scale qacc-be-graph-ql1=1 --scale qacc-be-graph-ql2=0 --scale qacc-be-graph-ql3=1
+            docker compose up -d --no-deps --scale qacc-be-job1=1 --scale qacc-be-job2=0 --scale qacc-be-job3=1
             docker compose up -d
-            # Check the health of qacc-be-graph-ql2
-            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-graph-ql2)" != "\"running\"" ]; then
-              echo "qacc-be-graph-ql2 is not running, stopping deployment"
-              exit 1
-            fi
 
-            # Check the health of qacc-be-job2
+            # Wait for qacc-be-graph-ql2 to be healthy (timeout after 5 minutes)
+            echo "Waiting for qacc-be-graph-ql2 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" qacc-be-graph-ql2)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql2 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for qacc-be-graph-ql2 to become healthy"
+                exit 1
+            fi
+            # Check if qacc-be-graph-ql2 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' qacc-be-graph-ql2)" != "\"healthy\"" ]; then
+                echo "qacc-be-graph-ql2 is not healthy, stopping deployment"
+                exit 1
+            fi
+            # Check if qacc-be-job2 is running
             if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-job2)" != "\"running\"" ]; then
-              echo "qacc-be-job2 is not running, stopping deployment"
-              exit 1
+                echo "qacc-be-job2 is not running, stopping deployment"
+                exit 1
             fi
-
+            echo "Second deployment phase completed successfully"
 
             ## Third Deployment
-            docker compose up -d --no-deps --scale qacc-be-graph-ql1=1 qacc-be-graph-ql2=1 qacc-be-graph-ql3=0
-            docker compose up -d --no-deps --scale qacc-be-job1=1 qacc-be-job2=1 qacc-be-job3=0
+            docker compose up -d --no-deps --scale qacc-be-graph-ql1=1 --scale qacc-be-graph-ql2=1 --scale qacc-be-graph-ql3=0
+            docker compose up -d --no-deps --scale qacc-be-job1=1 --scale qacc-be-job2=1 --scale qacc-be-job3=0
             docker compose up -d
-            # Check the health of qacc-be-graph-ql3
-            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-graph-ql3)" != "\"running\"" ]; then
-              echo "qacc-be-graph-ql3 is not running, stopping deployment"
-              exit 1
-            fi
 
-            # Check the health of qacc-be-job3
-            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-job3)" != "\"running\"" ]; then
-              echo "qacc-be-job3 is not running, stopping deployment"
-              exit 1
+            # Wait for qacc-be-graph-ql3 to be healthy (timeout after 5 minutes)
+            echo "Waiting for qacc-be-graph-ql3 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" qacc-be-graph-ql3)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql3 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for qacc-be-graph-ql3 to become healthy"
+                exit 1
             fi
+            # Check if qacc-be-graph-ql3 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' qacc-be-graph-ql3)" != "\"healthy\"" ]; then
+                echo "qacc-be-graph-ql3 is not healthy, stopping deployment"
+                exit 1
+            fi
+            # Check if qacc-be-job3 is running
+            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-job3)" != "\"running\"" ]; then
+                echo "qacc-be-job3 is not running, stopping deployment"
+                exit 1
+            fi
+            echo "First deployment phase completed successfully"
