@@ -65,6 +65,6 @@ jobs:
             cd QAcc-BE
             git checkout main
             git pull
-            docker compose -f docker-compose-production.yml pull
-            docker compose -f docker-compose-production.yml up --force-recreate -d
+            docker compose pull
+            docker compose up --force-recreate -d
             docker image prune -a --force

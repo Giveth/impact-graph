@@ -160,6 +160,6 @@ jobs:
             cd QAcc-BE
             git checkout main
             git pull
-            docker compose -f docker-compose-production.yml pull
-            docker compose -f docker-compose-production.yml up -d
+            docker compose pull
+            docker compose up -d
             docker image prune -a --force

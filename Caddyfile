@@ -1,3 +1,17 @@
 {$MY_URL} {
-    reverse_proxy qacc-be:4000
+  route {
+      @allowed {
+          path /*
+          remote_ip {$IP_WHITELIST}
+      }
+      reverse_proxy @allowed {
+        to qacc-be-graph-ql1:4000 qacc-be-graph-ql2:4000 qacc-be-graph-ql3:4000
+        lb_policy round_robin
+        health_uri /health
+        health_interval 5s
+        health_timeout 2s
+        health_status 200
+      }
+      respond 403
+  }
 }
