@@ -2,20 +2,20 @@ services:
   qacc-be-graph-ql1:
     container_name: qacc-be-graph-ql1
     image: ${DOCKER_IMAGE}
-    command: npm run start:docker:server
+    command: npm run start:docker:server-graphql
     environment:
       - ENVIRONMENT=production
       - LOG_PATH=/usr/src/app/logs/qacc.log
       - GRAPHQL_MODE=true
     restart: always
     labels:
-      - "autoheal=true"
+      - 'autoheal=true'
     volumes:
       - ./config:/usr/src/app/config
       - ./config:/usr/src/app/build/config
       - ./logs-graph-ql:/usr/src/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
       interval: 30s
       timeout: 10s
       retries: 5
@@ -28,20 +28,20 @@ services:
   qacc-be-graph-ql2:
     container_name: qacc-be-graph-ql2
     image: ${DOCKER_IMAGE}
-    command: npm run start:docker:server
+    command: npm run start:docker:server-graphql
     environment:
       - ENVIRONMENT=production
       - LOG_PATH=/usr/src/app/logs/qacc.log
       - GRAPHQL_MODE=true
     restart: always
     labels:
-      - "autoheal=true"
+      - 'autoheal=true'
     volumes:
       - ./config:/usr/src/app/config
       - ./config:/usr/src/app/build/config
       - ./logs-graph-ql:/usr/src/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
       interval: 30s
       timeout: 10s
       retries: 5
@@ -54,20 +54,20 @@ services:
   qacc-be-graph-ql3:
     container_name: qacc-be-graph-ql3
     image: ${DOCKER_IMAGE}
-    command: npm run start:docker:server
+    command: npm run start:docker:server-graphql
     environment:
       - ENVIRONMENT=production
       - LOG_PATH=/usr/src/app/logs/qacc.log
       - GRAPHQL_MODE=true
     restart: always
     labels:
-      - "autoheal=true"
+      - 'autoheal=true'
     volumes:
       - ./config:/usr/src/app/config
       - ./config:/usr/src/app/build/config
       - ./logs-graph-ql:/usr/src/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
       interval: 30s
       timeout: 10s
       retries: 5
@@ -80,7 +80,7 @@ services:
   qacc-be-job:
     container_name: qacc-be-job1
     image: ${DOCKER_IMAGE}
-    command: npm run start:docker:server
+    command: npm run start:docker:server-job
     environment:
       - ENVIRONMENT=production
       - LOG_PATH=/usr/src/app/logs/qacc.log
