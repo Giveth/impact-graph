@@ -78,7 +78,7 @@ services:
       - '4003:4000'
 
   qacc-be-job:
-    container_name: qacc-be-job1
+    container_name: qacc-be-job
     image: ${DOCKER_IMAGE}
     command: npm run start:docker:server-job
     environment:
