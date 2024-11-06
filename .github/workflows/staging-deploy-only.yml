@@ -16,8 +16,109 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
+            git reset --hard HEAD~1
             git checkout staging
-            git pull
-            docker compose -f docker-compose-staging.yml pull
-            docker compose -f docker-compose-staging.yml up --force-recreate -d
+            git pull origin staging
             docker image prune -a --force
+            docker compose pull
+
+  rollout-deploy-1:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            ## Update each backend service one by one
+            ## First Deployment
+            docker compose down qacc-be-graph-ql1
+            docker compose down qacc-be-job
+            docker compose up --force-recreate -d qacc-be-graph-ql1
+            docker compose up --force-recreate -d qacc-be-job
+
+            # Wait for qacc-be-graph-ql1 to be healthy (timeout after 5 minutes)
+            echo "Waiting for qacc-be-graph-ql1 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" qacc-be-graph-ql1)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql1 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for qacc-be-graph-ql1 to become healthy"
+                exit 1
+            fi
+            # Check if qacc-be-graph-ql1 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' qacc-be-graph-ql1)" != "\"healthy\"" ]; then
+                echo "qacc-be-graph-ql1 is not healthy, stopping deployment"
+                exit 1
+            fi
+            # Check if qacc-be-job is running
+            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-job)" != "\"running\"" ]; then
+                echo "qacc-be-job is not running, stopping deployment"
+                exit 1
+            fi
+            echo "First deployment phase completed successfully"
+
+  rollout-deploy-2:
+    needs: rollout-deploy-1
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            ## Second Deployment
+            docker compose down qacc-be-graph-ql2
+            docker compose up --force-recreate -d qacc-be-graph-ql2
+
+            # Wait for qacc-be-graph-ql2 to be healthy (timeout after 5 minutes)
+            echo "Waiting for qacc-be-graph-ql2 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" qacc-be-graph-ql2)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql2 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for qacc-be-graph-ql2 to become healthy"
+                exit 1
+            fi
+            # Check if qacc-be-graph-ql2 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' qacc-be-graph-ql2)" != "\"healthy\"" ]; then
+                echo "qacc-be-graph-ql2 is not healthy, stopping deployment"
+                exit 1
+            fi
+            echo "Second deployment phase completed successfully"
+
+  rollout-deploy-3:
+    needs: rollout-deploy-2
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            ## Third Deployment
+            docker compose down qacc-be-graph-ql3
+            docker compose up --force-recreate -d qacc-be-graph-ql3
+
+            # Wait for qacc-be-graph-ql3 to be healthy (timeout after 5 minutes)
+            echo "Waiting for qacc-be-graph-ql3 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" qacc-be-graph-ql3)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql3 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for qacc-be-graph-ql3 to become healthy"
+                exit 1
+            fi
+            # Check if qacc-be-graph-ql3 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' qacc-be-graph-ql3)" != "\"healthy\"" ]; then
+                echo "qacc-be-graph-ql3 is not healthy, stopping deployment"
+                exit 1
+            fi
+            echo "First deployment phase completed successfully"

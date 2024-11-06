@@ -1,0 +1,150 @@
+services:
+  qacc-be-graph-ql1:
+    container_name: qacc-be-graph-ql1
+    image: ${DOCKER_IMAGE}
+    command: npm run start:docker:server-graphql
+    environment:
+      - ENVIRONMENT=production
+      - LOG_PATH=/usr/src/app/logs/qacc.log
+      - GRAPHQL_MODE=true
+    restart: always
+    labels:
+      - 'autoheal=true'
+    volumes:
+      - ./config:/usr/src/app/config
+      - ./config:/usr/src/app/build/config
+      - ./logs-graph-ql:/usr/src/app/logs
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - qacc
+    ports:
+      - '4001:4000'
+
+  qacc-be-graph-ql2:
+    container_name: qacc-be-graph-ql2
+    image: ${DOCKER_IMAGE}
+    command: npm run start:docker:server-graphql
+    environment:
+      - ENVIRONMENT=production
+      - LOG_PATH=/usr/src/app/logs/qacc.log
+      - GRAPHQL_MODE=true
+    restart: always
+    labels:
+      - 'autoheal=true'
+    volumes:
+      - ./config:/usr/src/app/config
+      - ./config:/usr/src/app/build/config
+      - ./logs-graph-ql:/usr/src/app/logs
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - qacc
+    ports:
+      - '4002:4000'
+
+  qacc-be-graph-ql3:
+    container_name: qacc-be-graph-ql3
+    image: ${DOCKER_IMAGE}
+    command: npm run start:docker:server-graphql
+    environment:
+      - ENVIRONMENT=production
+      - LOG_PATH=/usr/src/app/logs/qacc.log
+      - GRAPHQL_MODE=true
+    restart: always
+    labels:
+      - 'autoheal=true'
+    volumes:
+      - ./config:/usr/src/app/config
+      - ./config:/usr/src/app/build/config
+      - ./logs-graph-ql:/usr/src/app/logs
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - qacc
+    ports:
+      - '4003:4000'
+
+  qacc-be-job:
+    container_name: qacc-be-job
+    image: ${DOCKER_IMAGE}
+    command: npm run start:docker:server-job
+    environment:
+      - ENVIRONMENT=production
+      - LOG_PATH=/usr/src/app/logs/qacc.log
+      - JOB_MODE=true
+    restart: always
+    volumes:
+      - ./config:/usr/src/app/config
+      - ./config:/usr/src/app/build/config
+      - ./logs-job:/usr/src/app/logs
+    networks:
+      - qacc
+
+  qacc-redis:
+    container_name: qacc-redis
+    image: redis:7-alpine
+    environment:
+      - REDIS_ALLOW_EMPTY_PASSWORD=yes
+    restart: always
+    volumes:
+      - redis-data:/data
+    networks:
+      - qacc
+    ports:
+      - '6379:6379'
+
+  autoheal:
+    container_name: autoheal
+    image: willfarrell/autoheal:latest
+    tty: true
+    restart: always
+    environment:
+      - AUTOHEAL_INTERVAL=30
+      - AUTOHEAL_START_PERIOD=300
+      - AUTOHEAL_DEFAULT_STOP_TIMEOUT=10
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - qacc
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    networks:
+      - qacc
+    ports:
+      - 80:80
+      - 443:443
+    env_file:
+      - .env
+    environment:
+      - MY_URL=${MY_URL:-}
+      - IP_WHITELIST=${IP_WHITELIST:-}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile
+
+volumes:
+  redis-data:
+  caddy_config:
+  caddy_data:
+
+networks:
+  qacc:
+    name: qacc-be_qacc
+    external: true

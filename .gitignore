@@ -35,3 +35,4 @@ src/scripts/*.json
 
 .DS_Store
 .caddy.env
+.env

@@ -7,7 +7,7 @@ import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import { AppDataSource } from '../orm';
 import { getStreamDetails } from './helpers';
-import { repoLocalDir, getReportsSubDir } from './configs';
+import { reportFilesDir } from './configs';
 
 async function loadReportFile(filePath: string) {
   try {
@@ -48,63 +48,73 @@ async function processReportForDonations(
     );
 
     for (const donation of donations) {
-      const participantData =
-        lowerCasedParticipants[donation.fromWalletAddress.toLowerCase()];
+      try {
+        const participantData =
+          lowerCasedParticipants[donation.fromWalletAddress.toLowerCase()];
 
-      if (!participantData) {
-        console.error(`No participant data found for donation ${donation.id}`);
-        continue;
-      }
-
-      const totalValidContribution = ethers.BigNumber.from(
-        participantData.validContribution.inCollateral,
-      );
-      // if issuance allocation is not exist, that mean this user has not any valid contributions
-      let rewardAmount = 0;
-      if (participantData.issuanceAllocation) {
-        const issuanceAllocationRow = ethers.BigNumber.from(
-          participantData.issuanceAllocation,
-        );
-        const issuanceAllocation = parseFloat(
-          ethers.utils.formatUnits(issuanceAllocationRow, 18),
-        ); // Assuming 18 decimal places
-
-        const donationTransaction = participantData.transactions.find(
-          (tx: any) =>
-            tx.transactionHash.toLowerCase() ===
-            donation.transactionId.toLowerCase(),
-        );
-
-        if (!donationTransaction) {
+        if (!participantData) {
           console.error(
-            `No transaction data found for donation ${donation.id}`,
+            `No participant data found for donation ${donation.id}`,
           );
           continue;
         }
 
-        const donationValidContribution = ethers.BigNumber.from(
-          donationTransaction.validContribution,
+        const totalValidContribution = ethers.BigNumber.from(
+          participantData.validContribution.inCollateral,
         );
-        const contributionPercentage =
-          parseFloat(ethers.utils.formatUnits(donationValidContribution, 18)) /
-          parseFloat(ethers.utils.formatUnits(totalValidContribution, 18));
+        // if issuance allocation is not exist, that mean this user has not any valid contributions
+        let rewardAmount = 0;
+        if (participantData.issuanceAllocation) {
+          const issuanceAllocationRow = ethers.BigNumber.from(
+            participantData.issuanceAllocation,
+          );
+          const issuanceAllocation = parseFloat(
+            ethers.utils.formatUnits(issuanceAllocationRow, 18),
+          ); // Assuming 18 decimal places
 
-        // Calculate the reward proportionally based on the valid contribution
-        rewardAmount = issuanceAllocation * contributionPercentage;
+          const donationTransaction = participantData.transactions.find(
+            (tx: any) =>
+              tx.transactionHash.toLowerCase() ===
+              donation.transactionId.toLowerCase(),
+          );
+
+          if (!donationTransaction) {
+            console.error(
+              `No transaction data found for donation ${donation.id}`,
+            );
+            continue;
+          }
+
+          const donationValidContribution = ethers.BigNumber.from(
+            donationTransaction.validContribution,
+          );
+          const contributionPercentage =
+            parseFloat(
+              ethers.utils.formatUnits(donationValidContribution, 18),
+            ) /
+            parseFloat(ethers.utils.formatUnits(totalValidContribution, 18));
+
+          // Calculate the reward proportionally based on the valid contribution
+          rewardAmount = issuanceAllocation * contributionPercentage;
+        }
+        donation.rewardTokenAmount = rewardAmount || 0;
+
+        const isEarlyAccessRound = reportData.batch.config.isEarlyAccess;
+        const vestingInfo = getStreamDetails(isEarlyAccessRound);
+
+        donation.cliff = vestingInfo.CLIFF * 1000;
+        donation.rewardStreamStart = new Date(vestingInfo.START * 1000);
+        donation.rewardStreamEnd = new Date(vestingInfo.END * 1000);
+
+        await donation.save();
+        console.debug(
+          `Reward data for donation ${donation.id} successfully updated`,
+        );
+      } catch (e) {
+        console.error(
+          `Failed to process donations rewards for project ${donations[0].projectId} and donation ${donation.id}: ${e.message}`,
+        );
       }
-      donation.rewardTokenAmount = rewardAmount || 0;
-
-      const isEarlyAccessRound = reportData.batch.config.isEarlyAccess;
-      const vestingInfo = getStreamDetails(isEarlyAccessRound);
-
-      donation.cliff = vestingInfo.CLIFF * 1000;
-      donation.rewardStreamStart = new Date(vestingInfo.START * 1000);
-      donation.rewardStreamEnd = new Date(vestingInfo.END * 1000);
-
-      await donation.save();
-      console.debug(
-        `Reward data for donation ${donation.id} successfully updated`,
-      );
     }
   } catch (error) {
     console.error(
@@ -127,7 +137,6 @@ export async function updateRewardsForDonations(batchNumber: number) {
 
     const donationsByProjectId = _.groupBy(donations, 'projectId');
 
-    const reportFilesDir = path.join(repoLocalDir, getReportsSubDir());
     const allReportFiles = getAllReportFiles(reportFilesDir);
 
     for (const projectId of Object.keys(donationsByProjectId)) {
@@ -196,8 +205,12 @@ async function updateNumberOfBatchMintingTransactionsForProject(
   if (transactions.length > 0) {
     if (!project.batchNumbersWithSafeTransactions) {
       project.batchNumbersWithSafeTransactions = [batchNumber];
-    } else {
+    } else if (
+      !project.batchNumbersWithSafeTransactions.includes(batchNumber)
+    ) {
       project.batchNumbersWithSafeTransactions.push(batchNumber);
+    } else {
+      return;
     }
     await project.save();
   }

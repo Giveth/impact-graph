@@ -19,3 +19,5 @@ export function getReportsSubDir() {
   reportsSubDir += '/output';
   return reportsSubDir;
 }
+
+export const reportFilesDir = path.join(repoLocalDir, getReportsSubDir());
