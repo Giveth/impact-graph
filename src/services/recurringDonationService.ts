@@ -428,8 +428,8 @@ export const recurringDonationsCountPerDateRange = async (
 ): Promise<number> => {
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
     .select('COALESCE(COUNT(recurringDonation.id), 0)', 'count')
-    .where('recurringDonation.status = :status', {
-      status: RECURRING_DONATION_STATUS.ACTIVE,
+    .where('recurringDonation.status != :status', {
+      status: RECURRING_DONATION_STATUS.FAILED,
     });
 
   if (fromDate) {
@@ -477,8 +477,8 @@ export const recurringDonationsCountPerDateRangePerMonth = async (
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
     .select('COUNT(recurringDonation.id)', 'total')
     .addSelect("TO_CHAR(recurringDonation.createdAt, 'YYYY/MM')", 'date')
-    .where('recurringDonation.status = :status', {
-      status: RECURRING_DONATION_STATUS.ACTIVE,
+    .where('recurringDonation.status != :status', {
+      status: RECURRING_DONATION_STATUS.FAILED,
     });
 
   if (fromDate) {
@@ -672,8 +672,8 @@ export const recurringDonationsCountPerToken = async (params: {
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
     .select('recurringDonation.currency', 'token')
     .addSelect('COALESCE(COUNT(recurringDonation.id), 0)', 'total')
-    .where('recurringDonation.status = :status', {
-      status: RECURRING_DONATION_STATUS.ACTIVE,
+    .where('recurringDonation.status != :status', {
+      status: RECURRING_DONATION_STATUS.FAILED,
     })
     .groupBy('recurringDonation.currency')
     .having('COUNT(recurringDonation.id) > 0');
