@@ -46,6 +46,8 @@ export class AbcLauncherAdapter implements IAbcLauncher {
         projectAddress: projectAddress.toLocaleLowerCase(),
       });
 
+      logger.info(`get abc of project address ${projectAddress} `, abc);
+
       return (
         abc && {
           tokenTicker: abc.tokenTicker,
