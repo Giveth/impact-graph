@@ -93,10 +93,29 @@ services:
     ports:
       - '6379:6379'
 
+  qacc-mongo:
+    container_name: qacc-mongo
+    image: mongo:latest
+    profiles:
+      - server
+      - database
+      - local
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - qacc
+    ports:
+      - '27017:27017'
+
 volumes:
   db-data:
   db-data-test:
   redis-data:
+  mongo-data:
 
 networks:
   qacc:

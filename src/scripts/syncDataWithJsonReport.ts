@@ -7,7 +7,7 @@ import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import { AppDataSource } from '../orm';
 import { getStreamDetails } from './helpers';
-import { repoLocalDir, getReportsSubDir } from './configs';
+import { reportFilesDir } from './configs';
 
 async function loadReportFile(filePath: string) {
   try {
@@ -137,7 +137,6 @@ export async function updateRewardsForDonations(batchNumber: number) {
 
     const donationsByProjectId = _.groupBy(donations, 'projectId');
 
-    const reportFilesDir = path.join(repoLocalDir, getReportsSubDir());
     const allReportFiles = getAllReportFiles(reportFilesDir);
 
     for (const projectId of Object.keys(donationsByProjectId)) {

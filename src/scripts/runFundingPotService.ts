@@ -3,7 +3,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs-extra';
 import simpleGit from 'simple-git';
-import { repoLocalDir, repoUrl } from './configs';
+import { repoLocalDir, reportFilesDir, repoUrl } from './configs';
 import config from '../config';
 import { Project } from '../entities/project';
 import { AppDataSource } from '../orm';
@@ -17,6 +17,7 @@ import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { findAllEarlyAccessRounds } from '../repositories/earlyAccessRoundRepository';
 import { findQfRounds } from '../repositories/qfRoundRepository';
 import { updateRewardsForDonations } from './syncDataWithJsonReport';
+import { restoreReportsFromDB, saveReportsToDB } from './reportService';
 
 // Attention: the configs of batches should be saved in the funding pot repo
 // this script pulls the latest version of funding pot service,
@@ -223,7 +224,13 @@ async function installDependencies() {
 async function runFundingPotService(batchNumber: number) {
   const command = 'npm run all ' + batchNumber;
   console.info(`Running "${command}" in ${serviceDir}...`);
-  await execShellCommand(command, serviceDir);
+  try {
+    await execShellCommand(command, serviceDir);
+  } catch (e) {
+    console.error('Error in funding pot execution:', e);
+  }
+  console.info('Saving reports to the DB...');
+  await saveReportsToDB(reportFilesDir);
 }
 
 async function getFirstRoundThatNeedExecuteBatchMinting() {
@@ -341,16 +348,21 @@ async function main() {
     console.info('Env file created successfully.');
 
     // Step 5
+    console.info('Restoring previous report files...');
+    await restoreReportsFromDB(reportFilesDir);
+    console.info('Previous report files restored successfully!');
+
+    // Step 6
     console.info('Running funding pot service...');
     await runFundingPotService(batchNumber);
     console.info('Funding pot service executed successfully!');
 
-    // Step 6
+    // Step 7
     console.info('Setting batch minting execution flag in round data...');
     await setBatchMintingExecutionFlag(batchNumber);
     console.info('Batch minting execution flag set successfully.');
 
-    // Step 7
+    // Step 8
     console.info('Start Syncing reward data in donations...');
     await updateRewardsForDonations(batchNumber);
     console.info('Rewards data synced successfully.');
