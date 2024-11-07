@@ -661,12 +661,14 @@ export async function isVerifiedDonationExistsInQfRound(params: {
       `
       SELECT EXISTS (
         SELECT 1
-        FROM donation
+        FROM donation as d
+        INNER JOIN "qf_round" as qr on qr.id = $1
         WHERE 
-          status = 'verified' AND 
-          "qfRoundId" = $1 AND 
-          "projectId" = $2 AND 
-          "userId" = $3
+          d.status = 'verified' AND 
+          d."qfRoundId" = $1 AND 
+          d."projectId" = $2 AND 
+          d."userId" = $3 AND
+          d."createdAt" >= qr."beginDate" AND d."createdAt" <= qr."endDate"
       ) AS exists;
       `,
       [params.qfRoundId, params.projectId, params.userId],
