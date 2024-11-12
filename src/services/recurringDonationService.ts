@@ -529,13 +529,13 @@ export const recurringDonationsStreamedCUsdTotal = async (
   ).select('COALESCE(SUM(recurringDonation.totalUsdStreamed), 0)', 'total');
 
   if (fromDate) {
-    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+    query.andWhere('recurringDonation.updatedAt >= :fromDate', {
       fromDate: new Date(fromDate),
     });
   }
 
   if (toDate) {
-    query.andWhere('recurringDonation.createdAt <= :toDate', {
+    query.andWhere('recurringDonation.updatedAt <= :toDate', {
       toDate: new Date(toDate),
     });
   }
@@ -572,16 +572,16 @@ export const recurringDonationsStreamedCUsdTotalPerMonth = async (
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
     .select('SUM(recurringDonation.totalUsdStreamed)', 'total')
-    .addSelect("TO_CHAR(recurringDonation.createdAt, 'YYYY/MM')", 'date');
+    .addSelect("TO_CHAR(recurringDonation.updatedAt, 'YYYY/MM')", 'date');
 
   if (fromDate) {
-    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+    query.andWhere('recurringDonation.updatedAt >= :fromDate', {
       fromDate: new Date(fromDate),
     });
   }
 
   if (toDate) {
-    query.andWhere('recurringDonation.createdAt <= :toDate', {
+    query.andWhere('recurringDonation.updatedAt <= :toDate', {
       toDate: new Date(toDate),
     });
   }
@@ -627,13 +627,13 @@ export const recurringDonationsTotalPerToken = async (params: {
     .having('SUM(recurringDonation.totalUsdStreamed) > 0');
 
   if (fromDate) {
-    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+    query.andWhere('recurringDonation.updatedAt >= :fromDate', {
       fromDate: new Date(fromDate),
     });
   }
 
   if (toDate) {
-    query.andWhere('recurringDonation.createdAt <= :toDate', {
+    query.andWhere('recurringDonation.updatedAt <= :toDate', {
       toDate: new Date(toDate),
     });
   }
