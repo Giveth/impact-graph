@@ -56,8 +56,6 @@ import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
-import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { corsOptions } from './cors';
@@ -338,20 +336,6 @@ export async function bootstrap() {
       } catch (e) {
         logger.error('Enabling power boosting snapshot ', e);
       }
-    }
-
-    if (!isTestEnv) {
-      // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
-      // relation "project_estimated_matching_view" does not exist
-      logger.debug(
-        'continueDbSetup() before refreshProjectEstimatedMatchingView() ',
-        new Date(),
-      );
-      await refreshProjectEstimatedMatchingView();
-      logger.debug(
-        'continueDbSetup() after refreshProjectEstimatedMatchingView() ',
-        new Date(),
-      );
     }
     logger.debug('continueDbSetup() end of function', new Date());
   }
