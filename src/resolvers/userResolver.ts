@@ -30,6 +30,8 @@ import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepos
 import { addressHasDonated } from '../repositories/donationRepository';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
+import { getLoggedInUser } from '../services/authorizationServices';
+import { generateRandomNumericCode } from '../utils/utils';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -229,5 +231,41 @@ export class UserResolver {
     await createNewAccountVerification(associatedVerifications);
 
     return true;
+  }
+
+  @Mutation(_returns => String)
+  async sendUserEmailConfirmationCodeFlow(
+    @Arg('email') email: string,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<string> {
+    const user = await getLoggedInUser(ctx);
+
+    // Check if email aready veriffied
+    if (user.isEmailVerified) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.USER_EMAIL_ALREADY_VERIFIED),
+      );
+    }
+
+    // Check do we have an email already in the database
+    const isEmailAlreadyUsed = await User.findOne({
+      where: { email: email },
+    });
+
+    if (isEmailAlreadyUsed && isEmailAlreadyUsed.id !== user.id) {
+      return 'EMAIL_EXIST';
+    }
+
+    // Send verification code
+    const code = generateRandomNumericCode(5).toString();
+
+    user.emailVerificationCode = code;
+
+    await getNotificationAdapter().sendUserEmailConfirmationCodeFlow({
+      email: email,
+      user: user,
+    });
+
+    return 'VERIFICATION_SENT';
   }
 }

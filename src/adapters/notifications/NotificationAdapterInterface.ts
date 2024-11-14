@@ -72,6 +72,11 @@ export interface NotificationAdapterInterface {
     networkName: string;
   }): Promise<void>;
 
+  sendUserEmailConfirmationCodeFlow(params: {
+    email: string;
+    user: User;
+  }): Promise<void>;
+
   projectVerified(params: { project: Project }): Promise<void>;
   projectBoosted(params: { projectId: number; userId: number }): Promise<void>;
   projectBoostedBatch(params: {
