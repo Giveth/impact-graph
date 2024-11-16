@@ -42,10 +42,15 @@ async function generateBatchFile(batchNumber: number) {
     round.startDate = round.beginDate;
   }
 
+  const now = new Date();
+  const offsetSecs = now.getTimezoneOffset() * 60;
+
   const batchConfig = {
     TIMEFRAME: {
-      FROM_TIMESTAMP: Math.floor(new Date(round.startDate).getTime() / 1000), // Convert to timestamp
-      TO_TIMESTAMP: Math.floor(new Date(round.endDate).getTime() / 1000),
+      FROM_TIMESTAMP:
+        Math.floor(new Date(round.startDate).getTime() / 1000) - offsetSecs, // Convert to timestamp
+      TO_TIMESTAMP:
+        Math.floor(new Date(round.endDate).getTime() / 1000) - offsetSecs,
     },
     VESTING_DETAILS: getStreamDetails(isEarlyAccess),
     LIMITS: {
