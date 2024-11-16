@@ -178,7 +178,11 @@ async function createEnvFile() {
         'RPC_URL="https://rpc.ankr.com/base_sepolia"',
         'RPC_URL="https://zkevm-rpc.com"',
       )
-      .replace('CHAIN_ID=84532', 'CHAIN_ID=1101');
+      .replace('CHAIN_ID=84532', 'CHAIN_ID=1101')
+      .replace(
+        'BACKEND_URL="https://staging.qacc-be.generalmagic.io/graphql"',
+        `BACKEND_URL="${config.get('SERVER_URL')}/graphql"`,
+      );
 
     await fs.writeFile(envFilePath, updatedEnvContent, 'utf-8');
   } catch (error) {
