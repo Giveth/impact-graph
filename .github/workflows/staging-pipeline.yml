@@ -179,8 +179,8 @@ jobs:
             cd QAcc-BE
             ## Update each backend service one by one
             ## First Deployment
-            docker compose down qacc-be-graph-ql1
-            docker compose down qacc-be-job
+            docker compose rm -fs qacc-be-graph-ql1
+            docker compose rm -fs qacc-be-job
             docker compose up --force-recreate -d qacc-be-graph-ql1
             docker compose up --force-recreate -d qacc-be-job
 
@@ -217,7 +217,7 @@ jobs:
           script: |
             cd QAcc-BE
             ## Second Deployment
-            docker compose down qacc-be-graph-ql2
+            docker compose rm -fs qacc-be-graph-ql2
             docker compose up --force-recreate -d qacc-be-graph-ql2
 
             # Wait for qacc-be-graph-ql2 to be healthy (timeout after 5 minutes)
@@ -248,7 +248,7 @@ jobs:
           script: |
             cd QAcc-BE
             ## Third Deployment
-            docker compose down qacc-be-graph-ql3
+            docker compose rm -fs qacc-be-graph-ql3
             docker compose up --force-recreate -d qacc-be-graph-ql3
 
             # Wait for qacc-be-graph-ql3 to be healthy (timeout after 5 minutes)
