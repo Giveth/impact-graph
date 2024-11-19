@@ -427,7 +427,7 @@ export const recurringDonationsCountPerDateRange = async (
   onlyVerified?: boolean,
 ): Promise<number> => {
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
-    .select('COALESCE(COUNT(recurringDonation.id), 0)', 'count')
+    .select('COALESCE(COUNT(DISTINCT recurringDonation.id), 0)', 'count')
     .innerJoin('recurringDonation.donations', 'donations')
     .where('recurringDonation.status != :status', {
       status: RECURRING_DONATION_STATUS.FAILED,
@@ -476,7 +476,7 @@ export const recurringDonationsCountPerDateRangePerMonth = async (
   onlyVerified?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
-    .select('COUNT(recurringDonation.id)', 'total')
+    .select('COUNT(DISTINCT recurringDonation.id)', 'total')
     .addSelect("TO_CHAR(recurringDonation.createdAt, 'YYYY/MM')", 'date')
     .innerJoin('recurringDonation.donations', 'donations')
     .where('recurringDonation.status != :status', {
@@ -675,7 +675,7 @@ export const recurringDonationsCountPerToken = async (params: {
   const { fromDate, toDate, networkId, onlyVerified } = params;
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
     .select('donations.currency', 'token')
-    .addSelect('COALESCE(COUNT(recurringDonation.id), 0)', 'total')
+    .addSelect('COALESCE(COUNT(DISTINCT recurringDonation.id), 0)', 'total')
     .innerJoin('recurringDonation.donations', 'donations')
     .where('recurringDonation.status != :status', {
       status: RECURRING_DONATION_STATUS.FAILED,
