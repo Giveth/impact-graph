@@ -143,6 +143,7 @@ export class UserResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
     const dbUser = await findUserById(user.userId);
+
     if (!dbUser) {
       return false;
     }
@@ -171,6 +172,14 @@ export class UserResolver {
     }
     if (location !== undefined) {
       dbUser.location = location;
+    }
+    // Check if user email is verified
+    if (!dbUser.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
+    // Check if old email is verified and user entered new one
+    if (dbUser.isEmailVerified && email !== dbUser.email) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
     if (email !== undefined) {
       // User can unset his email by putting empty string
@@ -268,7 +277,7 @@ export class UserResolver {
     const user = await getLoggedInUser(ctx);
 
     // Check if email aready verified
-    if (user.isEmailVerified) {
+    if (user.isEmailVerified && user.email === email) {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.USER_EMAIL_ALREADY_VERIFIED),
       );
@@ -287,7 +296,6 @@ export class UserResolver {
     const code = generateRandomNumericCode(5).toString();
 
     user.emailVerificationCode = code;
-    user.email = email;
 
     await getNotificationAdapter().sendUserEmailConfirmationCodeFlow({
       email: email,
@@ -320,6 +328,7 @@ export class UserResolver {
    * 7. **Return Status**:
    *    - Returns `'VERIFICATION_SUCCESS'` to indicate the email verification was completed successfully.
    *
+   * @param {string} email - The email address associated with the user's account.
    * @param {string} verifyCode - The verification code submitted by the user for validation.
    * @param {ApolloContext} ctx - The GraphQL context containing the logged-in user's information.
    * @returns {Promise<string>} - A status string indicating the result of the verification process:
@@ -331,13 +340,14 @@ export class UserResolver {
    */
   @Mutation(_returns => String)
   async sendUserConfirmationCodeFlow(
+    @Arg('email') email: string,
     @Arg('verifyCode') verifyCode: string,
     @Ctx() ctx: ApolloContext,
   ): Promise<string> {
     const user = await getLoggedInUser(ctx);
 
     // Check if email aready verified
-    if (user.isEmailVerified) {
+    if (user.isEmailVerified && user.email === email) {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.USER_EMAIL_ALREADY_VERIFIED),
       );
@@ -360,6 +370,7 @@ export class UserResolver {
     // Save Updated User Data
     user.emailVerificationCode = null;
     user.isEmailVerified = true;
+    user.email = email;
 
     await user.save();
 

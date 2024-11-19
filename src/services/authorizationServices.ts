@@ -44,6 +44,7 @@ export interface JwtVerifiedUser {
   firstName?: string;
   lastName?: string;
   walletAddress?: string;
+  isEmailVerified?: boolean;
   userId: number;
   token: string;
 }
@@ -119,6 +120,7 @@ export const validateAuthMicroserviceJwt = async (
       name: user?.name,
       walletAddress: user?.walletAddress,
       userId: user!.id,
+      isEmailVerified: user?.isEmailVerified,
       token,
     };
   } catch (e) {

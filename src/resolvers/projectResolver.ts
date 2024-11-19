@@ -1079,6 +1079,12 @@ export class ProjectResolver {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
+
+    // Check if user email is verified
+    if (!user.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
+
     const { image } = newProjectData;
 
     // const project = await Project.findOne({ id: projectId });
@@ -1361,6 +1367,11 @@ export class ProjectResolver {
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx);
     const { image, description } = projectInput;
+
+    // Check if user email is verified
+    if (!user.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
 
     const qualityScore = getQualityScore(description, Boolean(image), 0);
 
