@@ -136,6 +136,7 @@ export class UserResolver {
     @Arg('url', { nullable: true }) url: string,
     @Arg('avatar', { nullable: true }) avatar: string,
     @Arg('newUser', { nullable: true }) newUser: boolean,
+    @Arg('isFirstUpdate', { nullable: true }) isFirstUpdate: boolean,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user)
@@ -173,12 +174,12 @@ export class UserResolver {
     if (location !== undefined) {
       dbUser.location = location;
     }
-    // Check if user email is verified
-    if (!dbUser.isEmailVerified) {
+    // Check if user email is verified and it's not the first update
+    if (!dbUser.isEmailVerified && !isFirstUpdate) {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
-    // Check if old email is verified and user entered new one
-    if (dbUser.isEmailVerified && email !== dbUser.email) {
+    // Check if old email is verified and user entered new one and it's not the first update
+    if (dbUser.isEmailVerified && email !== dbUser.email && !isFirstUpdate) {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
     if (email !== undefined) {
@@ -276,6 +277,11 @@ export class UserResolver {
   ): Promise<string> {
     const user = await getLoggedInUser(ctx);
 
+    // Check is mail valid
+    if (!validateEmail(email)) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
+    }
+
     // Check if email aready verified
     if (user.isEmailVerified && user.email === email) {
       throw new Error(
@@ -345,6 +351,11 @@ export class UserResolver {
     @Ctx() ctx: ApolloContext,
   ): Promise<string> {
     const user = await getLoggedInUser(ctx);
+
+    // Check is mail valid
+    if (!validateEmail(email)) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
+    }
 
     // Check if email aready verified
     if (user.isEmailVerified && user.email === email) {
