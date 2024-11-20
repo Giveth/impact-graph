@@ -391,6 +391,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 1,
     walletAddress: generateRandomEtheriumAddress(),
+    isEmailVerified: true,
   },
   SECOND_USER: {
     name: 'secondUser',
@@ -400,6 +401,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 2,
     walletAddress: generateRandomEtheriumAddress(),
+    isEmailVerified: true,
   },
   THIRD_USER: {
     name: 'thirdUser',
@@ -409,6 +411,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 3,
     walletAddress: generateRandomEtheriumAddress(),
+    isEmailVerified: true,
   },
   ADMIN_USER: {
     name: 'adminUser',
@@ -418,6 +421,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 4,
     walletAddress: generateRandomEtheriumAddress(),
+    isEmailVerified: true,
   },
   PROJECT_OWNER_USER: {
     name: 'project owner user',
@@ -426,6 +430,7 @@ export const SEED_DATA = {
     loginType: 'wallet',
     id: 5,
     walletAddress: generateRandomEtheriumAddress(),
+    isEmailVerified: true,
   },
   FIRST_PROJECT: {
     ...createProjectData(),
