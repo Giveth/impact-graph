@@ -92,6 +92,7 @@ export const generateTestAccessToken = async (id: number): Promise<string> => {
       walletAddress: user?.walletAddress,
       name: user?.name,
       lastName: user?.lastName,
+      isEmailVerified: user?.isEmailVerified,
     },
     config.get('JWT_SECRET') as string,
     { expiresIn: '30d' },

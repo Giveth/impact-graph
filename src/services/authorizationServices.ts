@@ -82,6 +82,7 @@ export const validateImpactGraphJwt = async (
     lastName: decodedJwt?.lastName,
     walletAddress: decodedJwt?.walletAddress,
     userId: decodedJwt?.userId,
+    isEmailVerified: decodedJwt?.isEmailVerified,
     token,
   };
 
