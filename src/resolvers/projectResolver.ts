@@ -1080,8 +1080,10 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
+    const dbUser = await findUserById(user.userId);
+
     // Check if user email is verified
-    if (!user.isEmailVerified) {
+    if (!dbUser || !dbUser.isEmailVerified) {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
 
@@ -1368,8 +1370,10 @@ export class ProjectResolver {
     const user = await getLoggedInUser(ctx);
     const { image, description } = projectInput;
 
+    const dbUser = await findUserById(user.id);
+
     // Check if user email is verified
-    if (!user.isEmailVerified) {
+    if (!dbUser || !dbUser.isEmailVerified) {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
 
