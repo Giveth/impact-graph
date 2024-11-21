@@ -613,10 +613,10 @@ function updateUserTestCases() {
     const updateUserData = {
       firstName: 'firstName',
       lastName: 'lastName',
-      email: 'giveth@gievth.com',
+      location: 'location',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
-      isFirstUpdate: true, // bypassing verification of email
     };
     const result = await axios.post(
       graphqlUrl,
@@ -652,10 +652,9 @@ function updateUserTestCases() {
     const updateUserData = {
       firstName: 'firstName',
       lastName: 'lastName',
-      email: 'giveth@gievth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
-      isFirstUpdate: true, // bypassing verification of email
     };
     const result = await axios.post(
       graphqlUrl,
@@ -690,7 +689,7 @@ function updateUserTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      email: 'giveth@gievth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
     };
@@ -712,66 +711,16 @@ function updateUserTestCases() {
       errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
     );
   });
-  it('should fail when email is invalid first case', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const accessToken = await generateTestAccessToken(user.id);
-    const updateUserData = {
-      firstName: 'firstName',
-      email: 'giveth',
-      avatar: 'pinata address',
-      url: 'website url',
-      isFirstUpdate: true, // bypassing verification of email
-    };
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateUser,
-        variables: updateUserData,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
 
-    assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
-  });
-  it('should fail when email is invalid second case', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const accessToken = await generateTestAccessToken(user.id);
-    const updateUserData = {
-      firstName: 'firstName',
-      email: 'giveth @ giveth.com',
-      avatar: 'pinata address',
-      url: 'website url',
-      isFirstUpdate: true, // bypassing verification of email
-    };
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateUser,
-        variables: updateUserData,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
-  });
   it('should fail when sending empty string for firstName', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
       firstName: '',
       lastName: 'test lastName',
-      email: 'giveth @ giveth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
-      isFirstUpdate: true, // bypassing verification of email
     };
     const result = await axios.post(
       graphqlUrl,
@@ -797,10 +746,9 @@ function updateUserTestCases() {
     const updateUserData = {
       lastName: '',
       firstName: 'firstName',
-      email: 'giveth @ giveth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
-      isFirstUpdate: true, // bypassing verification of email
     };
     const result = await axios.post(
       graphqlUrl,
@@ -829,11 +777,10 @@ function updateUserTestCases() {
     await user.save();
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      email: 'giveth@gievth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
       lastName: new Date().getTime().toString(),
-      isFirstUpdate: true, // bypassing verification of email
     };
     const result = await axios.post(
       graphqlUrl,
@@ -869,11 +816,10 @@ function updateUserTestCases() {
     await user.save();
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      email: 'giveth@gievth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
       firstName: new Date().getTime().toString(),
-      isFirstUpdate: true, // bypassing verification of email
     };
     const result = await axios.post(
       graphqlUrl,
@@ -899,40 +845,6 @@ function updateUserTestCases() {
     assert.equal(updatedUser?.url, updateUserData.url);
     assert.equal(updatedUser?.name, updateUserData.firstName + ' ' + lastName);
     assert.equal(updatedUser?.lastName, lastName);
-  });
-
-  it('should accept empty string for all fields except email', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const accessToken = await generateTestAccessToken(user.id);
-    const updateUserData = {
-      firstName: 'test firstName',
-      lastName: 'test lastName',
-      avatar: '',
-      url: '',
-      isFirstUpdate: true, // bypassing verification of email
-    };
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateUser,
-        variables: updateUserData,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isTrue(result.data.data.updateUser);
-    const updatedUser = await User.findOne({
-      where: {
-        id: user.id,
-      },
-    });
-    assert.equal(updatedUser?.firstName, updateUserData.firstName);
-    assert.equal(updatedUser?.lastName, updateUserData.lastName);
-    assert.equal(updatedUser?.avatar, updateUserData.avatar);
-    assert.equal(updatedUser?.url, updateUserData.url);
   });
 }
 

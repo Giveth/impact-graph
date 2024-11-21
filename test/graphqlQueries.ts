@@ -1337,7 +1337,6 @@ export const updateUser = `
     $firstName: String
     $avatar: String
     $newUser: Boolean
-    $isFirstUpdate: Boolean
   ) {
     updateUser(
       url: $url
@@ -1347,7 +1346,6 @@ export const updateUser = `
       lastName: $lastName
       avatar: $avatar
       newUser: $newUser
-      isFirstUpdate: $isFirstUpdate
     )
   }
 `;
