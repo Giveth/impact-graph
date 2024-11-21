@@ -136,7 +136,6 @@ export class UserResolver {
     @Arg('url', { nullable: true }) url: string,
     @Arg('avatar', { nullable: true }) avatar: string,
     @Arg('newUser', { nullable: true }) newUser: boolean,
-    @Arg('isFirstUpdate', { nullable: true }) isFirstUpdate: boolean,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user)
@@ -175,11 +174,11 @@ export class UserResolver {
       dbUser.location = location;
     }
     // Check if user email is verified and it's not the first update
-    if (!dbUser.isEmailVerified && !isFirstUpdate) {
+    if (!dbUser.isEmailVerified) {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
     // Check if old email is verified and user entered new one and it's not the first update
-    if (dbUser.isEmailVerified && email !== dbUser.email && !isFirstUpdate) {
+    if (dbUser.isEmailVerified && email !== dbUser.email) {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
     if (email !== undefined) {
