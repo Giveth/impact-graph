@@ -227,6 +227,7 @@ export const updateProjectQuery = `
         name
         email
         walletAddress
+        isEmailVerified
       }
     }
   }

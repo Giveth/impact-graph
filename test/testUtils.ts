@@ -167,6 +167,7 @@ export const saveUserDirectlyToDb = async (
     walletAddress,
     firstName: `testUser-${walletAddress}`,
     email: `testEmail-${walletAddress}@giveth.io`,
+    isEmailVerified: true,
   }).save();
 };
 
