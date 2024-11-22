@@ -33,6 +33,7 @@ import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
 describe('refreshUserScores() test cases', refreshUserScoresTestCases);
+describe('userEmailVerification() test cases', userEmailVerification);
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
 function refreshUserScoresTestCases() {
@@ -612,7 +613,8 @@ function updateUserTestCases() {
     const updateUserData = {
       firstName: 'firstName',
       lastName: 'lastName',
-      email: 'giveth@gievth.com',
+      location: 'location',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
     };
@@ -650,7 +652,7 @@ function updateUserTestCases() {
     const updateUserData = {
       firstName: 'firstName',
       lastName: 'lastName',
-      email: 'giveth@gievth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
     };
@@ -687,7 +689,7 @@ function updateUserTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      email: 'giveth@gievth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
     };
@@ -709,61 +711,14 @@ function updateUserTestCases() {
       errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
     );
   });
-  it('should fail when email is invalid', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const accessToken = await generateTestAccessToken(user.id);
-    const updateUserData = {
-      firstName: 'firstName',
-      email: 'giveth',
-      avatar: 'pinata address',
-      url: 'website url',
-    };
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateUser,
-        variables: updateUserData,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
 
-    assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
-  });
-  it('should fail when email is invalid', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const accessToken = await generateTestAccessToken(user.id);
-    const updateUserData = {
-      firstName: 'firstName',
-      email: 'giveth @ giveth.com',
-      avatar: 'pinata address',
-      url: 'website url',
-    };
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateUser,
-        variables: updateUserData,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
-  });
   it('should fail when sending empty string for firstName', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
       firstName: '',
       lastName: 'test lastName',
-      email: 'giveth @ giveth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
     };
@@ -791,7 +746,7 @@ function updateUserTestCases() {
     const updateUserData = {
       lastName: '',
       firstName: 'firstName',
-      email: 'giveth @ giveth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
     };
@@ -822,7 +777,7 @@ function updateUserTestCases() {
     await user.save();
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      email: 'giveth@gievth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
       lastName: new Date().getTime().toString(),
@@ -861,7 +816,7 @@ function updateUserTestCases() {
     await user.save();
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
-      email: 'giveth@gievth.com',
+      email: user.email, // email should not be updated because verification is required
       avatar: 'pinata address',
       url: 'website url',
       firstName: new Date().getTime().toString(),
@@ -891,37 +846,326 @@ function updateUserTestCases() {
     assert.equal(updatedUser?.name, updateUserData.firstName + ' ' + lastName);
     assert.equal(updatedUser?.lastName, lastName);
   });
+}
 
-  it('should accept empty string for all fields except email', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const accessToken = await generateTestAccessToken(user.id);
-    const updateUserData = {
-      firstName: 'test firstName',
-      lastName: 'test lastName',
-      avatar: '',
-      url: '',
-    };
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateUser,
-        variables: updateUserData,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
+function userEmailVerification() {
+  describe('userEmailVerification() test cases', () => {
+    it('should send a verification code if the email is valid and not used by another user', async () => {
+      // Create a user
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      user.isEmailVerified = false; // Ensure the email is not verified
+      await user.save();
+
+      // Update user email to match the expected test email
+      const newEmail = `newemail-${generateRandomEtheriumAddress()}@giveth.io`;
+      user.email = newEmail; // Update the email
+      await user.save();
+
+      const accessToken = await generateTestAccessToken(user.id);
+
+      const result = await axios.post(
+        graphqlUrl,
+        {
+          query: `
+            mutation SendUserEmailConfirmationCodeFlow($email: String!) {
+              sendUserEmailConfirmationCodeFlow(email: $email)
+            }
+          `,
+          variables: { email: newEmail },
         },
-      },
-    );
-    assert.isTrue(result.data.data.updateUser);
-    const updatedUser = await User.findOne({
-      where: {
-        id: user.id,
-      },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Assert the response
+      assert.equal(
+        result.data.data.sendUserEmailConfirmationCodeFlow,
+        'VERIFICATION_SENT',
+      );
+
+      // Assert the user is updated in the database
+      const updatedUser = await User.findOne({ where: { id: user.id } });
+      assert.equal(updatedUser?.email, newEmail);
+      assert.isNotNull(updatedUser?.emailVerificationCode);
     });
-    assert.equal(updatedUser?.firstName, updateUserData.firstName);
-    assert.equal(updatedUser?.lastName, updateUserData.lastName);
-    assert.equal(updatedUser?.avatar, updateUserData.avatar);
-    assert.equal(updatedUser?.url, updateUserData.url);
+
+    it('should fail if the email is invalid', async () => {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      const accessToken = await generateTestAccessToken(user.id);
+
+      const result = await axios.post(
+        graphqlUrl,
+        {
+          query: `
+            mutation SendUserEmailConfirmationCodeFlow($email: String!) {
+              sendUserEmailConfirmationCodeFlow(email: $email)
+            }
+          `,
+          variables: { email: 'invalid-email' },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Assert the error
+      assert.exists(result.data.errors);
+      assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
+    });
+
+    it('should fail if the email is already verified', async () => {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      user.isEmailVerified = true; // Simulate an already verified email
+      user.email = 'already-verified@giveth.io';
+      await user.save();
+
+      const accessToken = await generateTestAccessToken(user.id);
+
+      const result = await axios.post(
+        graphqlUrl,
+        {
+          query: `
+            mutation SendUserEmailConfirmationCodeFlow($email: String!) {
+              sendUserEmailConfirmationCodeFlow(email: $email)
+            }
+          `,
+          variables: { email: 'already-verified@giveth.io' },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Assert the error
+      assert.exists(result.data.errors);
+      assert.equal(
+        result.data.errors[0].message,
+        errorMessages.USER_EMAIL_ALREADY_VERIFIED,
+      );
+    });
+
+    it('should return EMAIL_EXIST if the email is already used by another user', async () => {
+      const existingUser = await saveUserDirectlyToDb(
+        generateRandomEtheriumAddress(),
+      );
+      existingUser.email = 'existing-user@giveth.io';
+      existingUser.isEmailVerified = true;
+      await existingUser.save();
+
+      const newUser = await saveUserDirectlyToDb(
+        generateRandomEtheriumAddress(),
+      );
+      const accessToken = await generateTestAccessToken(newUser.id);
+
+      const result = await axios.post(
+        graphqlUrl,
+        {
+          query: `
+            mutation SendUserEmailConfirmationCodeFlow($email: String!) {
+              sendUserEmailConfirmationCodeFlow(email: $email)
+            }
+          `,
+          variables: { email: 'existing-user@giveth.io' },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Assert the response
+      assert.equal(
+        result.data.data.sendUserEmailConfirmationCodeFlow,
+        'EMAIL_EXIST',
+      );
+    });
+  });
+
+  describe('sendUserConfirmationCodeFlow() test cases', () => {
+    it('should successfully verify the email when provided with valid inputs', async () => {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      user.isEmailVerified = false; // Ensure email is not verified
+      user.emailVerificationCode = '12345'; // Set a valid verification code
+      await user.save();
+
+      const accessToken = await generateTestAccessToken(user.id);
+      const email = `verified-${generateRandomEtheriumAddress()}@giveth.io`;
+      const verifyCode = '12345';
+
+      const result = await axios.post(
+        graphqlUrl,
+        {
+          query: `
+            mutation SendUserConfirmationCodeFlow($email: String!, $verifyCode: String!) {
+              sendUserConfirmationCodeFlow(email: $email, verifyCode: $verifyCode)
+            }
+          `,
+          variables: { email, verifyCode },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Assert the response
+      assert.equal(
+        result.data.data.sendUserConfirmationCodeFlow,
+        'VERIFICATION_SUCCESS',
+      );
+
+      // Verify the database state
+      const updatedUser = await User.findOne({ where: { id: user.id } });
+      assert.isTrue(updatedUser?.isEmailVerified);
+      assert.isNull(updatedUser?.emailVerificationCode);
+      assert.equal(updatedUser?.email, email);
+    });
+
+    it('should fail if the email format is invalid', async () => {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      user.isEmailVerified = false;
+      user.emailVerificationCode = '12345';
+      await user.save();
+
+      const accessToken = await generateTestAccessToken(user.id);
+      const email = 'invalid-email';
+      const verifyCode = '12345';
+
+      const result = await axios.post(
+        graphqlUrl,
+        {
+          query: `
+            mutation SendUserConfirmationCodeFlow($email: String!, $verifyCode: String!) {
+              sendUserConfirmationCodeFlow(email: $email, verifyCode: $verifyCode)
+            }
+          `,
+          variables: { email, verifyCode },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Assert the error
+      assert.exists(result.data.errors);
+      assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
+    });
+
+    it('should fail if the email is already verified', async () => {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      user.isEmailVerified = true;
+      user.email = 'already-verified@giveth.io';
+      user.emailVerificationCode = null; // No verification code
+      await user.save();
+
+      const accessToken = await generateTestAccessToken(user.id);
+
+      const result = await axios.post(
+        graphqlUrl,
+        {
+          query: `
+            mutation SendUserConfirmationCodeFlow($email: String!, $verifyCode: String!) {
+              sendUserConfirmationCodeFlow(email: $email, verifyCode: $verifyCode)
+            }
+          `,
+          variables: {
+            email: 'already-verified@giveth.io',
+            verifyCode: '12345',
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Assert the error
+      assert.exists(result.data.errors);
+      assert.equal(
+        result.data.errors[0].message,
+        errorMessages.USER_EMAIL_ALREADY_VERIFIED,
+      );
+    });
+
+    it('should fail if no verification code is found', async () => {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      user.isEmailVerified = false;
+      user.emailVerificationCode = null; // No verification code
+      await user.save();
+
+      const accessToken = await generateTestAccessToken(user.id);
+      const email = `missing-code-${generateRandomEtheriumAddress()}@giveth.io`;
+
+      const result = await axios.post(
+        graphqlUrl,
+        {
+          query: `
+            mutation SendUserConfirmationCodeFlow($email: String!, $verifyCode: String!) {
+              sendUserConfirmationCodeFlow(email: $email, verifyCode: $verifyCode)
+            }
+          `,
+          variables: { email, verifyCode: '12345' },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Assert the error
+      assert.exists(result.data.errors);
+      assert.equal(
+        result.data.errors[0].message,
+        errorMessages.USER_EMAIL_CODE_NOT_FOUND,
+      );
+    });
+
+    it('should fail if the verification code does not match', async () => {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      user.isEmailVerified = false;
+      user.emailVerificationCode = '54321'; // Incorrect code
+      await user.save();
+
+      const accessToken = await generateTestAccessToken(user.id);
+      const email = `mismatch-${generateRandomEtheriumAddress()}@giveth.io`;
+      const verifyCode = '12345'; // Incorrect code
+
+      const result = await axios.post(
+        graphqlUrl,
+        {
+          query: `
+            mutation SendUserConfirmationCodeFlow($email: String!, $verifyCode: String!) {
+              sendUserConfirmationCodeFlow(email: $email, verifyCode: $verifyCode)
+            }
+          `,
+          variables: { email, verifyCode },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      // Assert the error
+      assert.exists(result.data.errors);
+      assert.equal(
+        result.data.errors[0].message,
+        errorMessages.USER_EMAIL_CODE_NOT_MATCH,
+      );
+    });
   });
 }

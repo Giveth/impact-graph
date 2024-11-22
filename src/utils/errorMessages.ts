@@ -205,6 +205,10 @@ export const errorMessages = {
   DRAFT_DONATION_CANNOT_BE_MARKED_AS_FAILED:
     'Draft donation cannot be marked as failed',
   QR_CODE_DATA_URL_REQUIRED: 'QR code data URL is required',
+  USER_EMAIL_ALREADY_VERIFIED: 'User email already verified',
+  USER_EMAIL_CODE_NOT_FOUND: 'User email verification code not found',
+  USER_EMAIL_CODE_NOT_MATCH: 'User email verification code not match',
+  EMAIL_NOT_VERIFIED: 'Email not verified',
 };
 
 export const translationErrorMessagesKeys = {
@@ -379,4 +383,8 @@ export const translationErrorMessagesKeys = {
   DRAFT_DONATION_CANNOT_BE_MARKED_AS_FAILED:
     'DRAFT_DONATION_CANNOT_BE_MARKED_AS_FAILED',
   QR_CODE_DATA_URL_REQUIRED: 'QR_CODE_DATA_URL_REQUIRED',
+  USER_EMAIL_ALREADY_VERIFIED: 'USER_EMAIL_ALREADY_VERIFIED',
+  USER_EMAIL_CODE_NOT_FOUND: 'USER_EMAIL_CODE_NOT_FOUND',
+  USER_EMAIL_CODE_NOT_MATCH: 'USER_EMAIL_CODE_NOT_MATCH',
+  EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
 };
