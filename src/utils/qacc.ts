@@ -9,10 +9,17 @@ import {
   findUserByWalletAddress,
 } from '../repositories/userRepository';
 import qAccService from '../services/qAccService';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import config from '../config';
 
 const isEarlyAccessRound = async () => {
   const earlyAccessRound = await findActiveEarlyAccessRound();
   return !!earlyAccessRound;
+};
+
+const isQfRound = async () => {
+  const qfRound = await findActiveQfRound();
+  return !!qfRound;
 };
 
 const validateDonation = async (params: {
@@ -66,6 +73,15 @@ const validateDonation = async (params: {
     ) {
       throw new Error(i18n.__(translationErrorMessagesKeys.NOT_NFT_HOLDER));
     }
+  } else if (
+    Boolean(config.get('ACTIVATE_GITCOIN_SCORE_CHECK')) &&
+    (await isQfRound())
+  ) {
+    await qAccService.validDonationAmountBasedOnKYCAndScore({
+      user,
+      projectId,
+      amount: params.amount,
+    });
   }
 
   return cap >= params.amount;
