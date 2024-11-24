@@ -28,6 +28,22 @@ export const createDonationMutation = `
   }
 `;
 
+export const validateDonationQuery = `
+  query (
+    $amount: Float!
+    $token: String!
+    $transactionNetworkId: Float!
+    $projectId: Float!
+  ) {
+    validateDonation(
+      amount: $amount
+      token: $token
+      transactionNetworkId: $transactionNetworkId
+      projectId: $projectId
+    )
+  }
+`;
+
 export const scoreUserAddressMutation = `
   query (
     $address: String!
