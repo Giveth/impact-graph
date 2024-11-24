@@ -678,6 +678,73 @@ export class DonationResolver {
     };
   }
 
+  @Query(_returns => Boolean)
+  async validateDonation(
+    @Arg('amount') amount: number,
+    @Arg('token') token: string,
+    @Arg('transactionNetworkId') transactionNetworkId: number,
+    @Arg('projectId') projectId: number,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<boolean> {
+    const logData = {
+      amount,
+      transactionNetworkId,
+      token,
+      projectId,
+      userId: ctx?.req?.user?.userId,
+    };
+    logger.debug(
+      'validateDonation() resolver has been called with this data',
+      logData,
+    );
+    try {
+      const userId = ctx?.req?.user?.userId;
+      if (!userId) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+      }
+      // Fetch user data
+      const donorUser = await findUserById(userId);
+      if (!donorUser) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+      }
+      const chainType = detectAddressChainType(donorUser.walletAddress!);
+      const networkId = getAppropriateNetworkId({
+        networkId: transactionNetworkId,
+        chainType,
+      });
+      const project = await findProjectById(projectId);
+
+      if (!project)
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+        );
+      if (project.status.id !== ProjStatus.active) {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
+          ),
+        );
+      }
+      const donateTime = new Date();
+
+      return await qacc.validateDonation({
+        projectId,
+        networkId,
+        tokenSymbol: token,
+        userAddress: donorUser.walletAddress!,
+        amount,
+        donateTime,
+      });
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('validateDonation() error', {
+        error: e,
+        inputData: logData,
+      });
+      throw e;
+    }
+  }
+
   @Mutation(_returns => Number)
   async createDonation(
     @Arg('amount') amount: number,
