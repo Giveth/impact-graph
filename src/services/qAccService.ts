@@ -2,11 +2,14 @@ import { FindOneOptions } from 'typeorm';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { ProjectUserRecord } from '../entities/projectUserRecord';
+import { User } from '../entities/user';
 import { QfRound } from '../entities/qfRound';
 import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepository';
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import config from '../config';
+import { updateUserGitcoinScore } from './userService';
 
 const getEaProjectRoundRecord = async ({
   projectId,
@@ -195,6 +198,43 @@ const getQAccDonationCap = async ({
   }
 };
 
+const validDonationAmountBasedOnKYCAndScore = async ({
+  projectId,
+  user,
+  amount,
+}: {
+  projectId: number;
+  user: User;
+  amount: number;
+}): Promise<boolean> => {
+  if (user.privadoVerified) {
+    return true;
+  }
+  if (!user.passportScore) {
+    await updateUserGitcoinScore(user);
+  }
+  if (
+    !user.passportScore ||
+    user.passportScore < Number(config.get('GITCOIN_MIN_SCORE'))
+  ) {
+    throw new Error(
+      `passport score is less than ${config.get('GITCOIN_MIN_SCORE')}`,
+    );
+  }
+  const userRecord = await getUserProjectRecord({
+    projectId,
+    userId: user.id,
+  });
+  const qfTotalDonationAmount = userRecord.qfTotalDonationAmount;
+  const remainedCap =
+    Number(config.get('MAX_AMOUNT_NO_KYC')) - qfTotalDonationAmount;
+  if (amount > remainedCap) {
+    throw new Error('amount is more than allowed cap with gitcoin score');
+  }
+  return true;
+};
+
 export default {
   getQAccDonationCap,
+  validDonationAmountBasedOnKYCAndScore,
 };
