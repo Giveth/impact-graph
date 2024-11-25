@@ -117,8 +117,8 @@ export class User extends BaseEntity {
   @Column({ type: 'real', nullable: true, default: null })
   passportScore?: number;
 
-  @Field(_type => BigInt, { nullable: true })
-  @Column('bigint', { nullable: true, default: null })
+  @Field(_type => String, { nullable: true })
+  @Column({ nullable: true })
   passportScoreUpdateTimestamp?: string;
 
   @Field(_type => Number, { nullable: true })
