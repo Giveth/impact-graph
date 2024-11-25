@@ -213,7 +213,7 @@ const validDonationAmountBasedOnKYCAndScore = async ({
   if (
     !user.passportScore ||
     !user.passportScoreUpdateTimestamp ||
-    user.passportScoreUpdateTimestamp >
+    +user.passportScoreUpdateTimestamp >
       Date.now() - (Number(config.get('VALID_SCORE_TIMESTAMP')) || 86400000) // default value is 1 day
   ) {
     await updateUserGitcoinScore(user);

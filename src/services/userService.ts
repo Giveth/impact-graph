@@ -93,7 +93,7 @@ export const updateUserGitcoinScore = async (user: User) => {
   if (passportScore && passportScore?.score) {
     const score = Number(passportScore.score);
     user.passportScore = score;
-    user.passportScoreUpdateTimestamp = Date.now();
+    user.passportScoreUpdateTimestamp = Date.now().toString();
     await user.save();
   }
 };
