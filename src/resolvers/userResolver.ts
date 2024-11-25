@@ -288,9 +288,9 @@ export class UserResolver {
       );
     }
 
-    // Check do we have an email already in the database
+    // Check do we have an email already in the database and is it verified
     const isEmailAlreadyUsed = await User.findOne({
-      where: { email: email },
+      where: { email: email, isEmailVerified: true },
     });
 
     if (isEmailAlreadyUsed && isEmailAlreadyUsed.id !== user.id) {
