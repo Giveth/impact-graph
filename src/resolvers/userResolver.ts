@@ -126,6 +126,7 @@ export class UserResolver {
       if (passportScore && passportScore?.score) {
         const score = Number(passportScore.score);
         foundUser.passportScore = score;
+        foundUser.passportScoreUpdateTimestamp = Date.now();
       }
       if (passportStamps)
         foundUser.passportStamps = passportStamps.items.length;

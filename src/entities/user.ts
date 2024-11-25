@@ -119,6 +119,10 @@ export class User extends BaseEntity {
 
   @Field(_type => Number, { nullable: true })
   @Column({ nullable: true, default: null })
+  passportScoreUpdateTimestamp?: number;
+
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true, default: null })
   passportStamps?: number;
 
   @Field(_type => String, { nullable: true })
