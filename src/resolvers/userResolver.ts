@@ -32,6 +32,7 @@ import { getOrttoPersonAttributes } from '../adapters/notifications/Notification
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
 import { getLoggedInUser } from '../services/authorizationServices';
 import { generateRandomNumericCode } from '../utils/utils';
+import { isSolanaAddress } from '../utils/networks';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -173,11 +174,11 @@ export class UserResolver {
     if (location !== undefined) {
       dbUser.location = location;
     }
-    // Check if user email is verified and it's not the first update
+    // Check if user email is verified
     if (!dbUser.isEmailVerified) {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
-    // Check if old email is verified and user entered new one and it's not the first update
+    // Check if old email is verified and user entered new one
     if (dbUser.isEmailVerified && email !== dbUser.email) {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
@@ -289,11 +290,46 @@ export class UserResolver {
     }
 
     // Check do we have an email already in the database and is it verified
-    const isEmailAlreadyUsed = await User.findOne({
-      where: { email: email, isEmailVerified: true },
-    });
+    // We need here to check if user wallet solana address or not
+    // User can have sam email for solana end ethereum wallet
+    const isSolanaAddressCheck = user?.walletAddress
+      ? isSolanaAddress(user.walletAddress)
+      : false;
+    let isEmailAlreadyUsed;
+    if (isSolanaAddressCheck) {
+      const rawQuery = `
+        SELECT *
+        FROM public."user"
+        WHERE "email" = $1
+          AND "isEmailVerified" = true
+          AND (
+            "walletAddress" = LEFT("walletAddress", 43) OR
+            "walletAddress" = LEFT("walletAddress", 44)
+          )
+          AND "walletAddress" ~ '^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$'
+        LIMIT 1
+      `;
 
-    if (isEmailAlreadyUsed && isEmailAlreadyUsed.id !== user.id) {
+      isEmailAlreadyUsed = await User.query(rawQuery, [email]);
+    } else {
+      const rawQuery = `
+        SELECT *
+        FROM public."user"
+        WHERE "email" = $1
+          AND "isEmailVerified" = true
+          AND "walletAddress" = LEFT("walletAddress", 42)
+          AND "walletAddress" ~ '^0x[0-9a-fA-F]{40}$'
+        LIMIT 1
+      `;
+
+      isEmailAlreadyUsed = await User.query(rawQuery, [email]);
+    }
+
+    if (
+      isEmailAlreadyUsed &&
+      isEmailAlreadyUsed.length > 0 &&
+      isEmailAlreadyUsed.id !== user.id
+    ) {
       return 'EMAIL_EXIST';
     }
 
