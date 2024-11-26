@@ -12,7 +12,7 @@ import { getProjectUserRecordAmount } from '../repositories/projectUserRecordRep
 import qAccService from '../services/qAccService';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { getUserById } from '../services/userService';
+import { findUserById } from '../repositories/userRepository';
 
 @ObjectType()
 class ProjectUserRecordAmounts {
@@ -85,7 +85,10 @@ export class QAccResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const dbUser = await getUserById(user.userId);
+    const dbUser = await findUserById(user.userId);
+    if (!dbUser) {
+      throw new Error(`user not found with id ${user.userId}`);
+    }
 
     const qAccCap = await qAccService.getQAccDonationCap({
       projectId,
