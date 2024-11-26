@@ -30,7 +30,7 @@ import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import {
   GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
-  MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_IN_USD,
+  MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD,
 } from '../constants/gitcoin';
 
 describe(
@@ -330,7 +330,7 @@ function userCapsTestCases() {
     );
     assert.equal(
       response.data?.userCaps?.gitcoinPassport?.unusedCap,
-      MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_IN_USD /
+      MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD /
         Number(qfRound1.tokenPrice) -
         donationAmount,
     );
