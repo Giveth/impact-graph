@@ -294,7 +294,7 @@ function userCapsTestCases() {
     // Simulate valid GitcoinPassport score
     sinon.stub(user, 'analysisScore').value(80);
     sinon.stub(user, 'passportScoreUpdateTimestamp').value(new Date());
-    sinon.stub(user, 'hasEnoughAnalysisScore').value(true);
+    sinon.stub(user, 'hasEnoughGitcoinAnalysisScore').value(true);
 
     // Act: Call the resolver through a GraphQL query
     const response: ExecutionResult<{
@@ -375,7 +375,7 @@ function userCapsTestCases() {
   it('should throw an error if the user does not meet the minimum analysis score', async () => {
     // Simulate invalid GitcoinPassport score
     sinon.stub(user, 'analysisScore').value(40); // Below threshold
-    sinon.stub(user, 'hasEnoughAnalysisScore').value(false);
+    sinon.stub(user, 'hasEnoughGitcoinAnalysisScore').value(false);
 
     // Act: Call the resolver through a GraphQL query and expect an error
     try {
