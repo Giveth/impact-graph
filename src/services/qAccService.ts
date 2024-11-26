@@ -202,18 +202,13 @@ const getQAccDonationCap = async ({
   }
 };
 
-const validDonationAmountBasedOnKYCAndScore = async ({
+const getUserRemainedCapBasedOnGitcoinScore = async ({
   projectId,
   user,
-  amount,
 }: {
   projectId: number;
   user: User;
-  amount: number;
-}): Promise<boolean> => {
-  if (user.privadoVerified) {
-    return true;
-  }
+}): Promise<number> => {
   if (
     !user.analysisScore ||
     !user.passportScoreUpdateTimestamp ||
@@ -232,8 +227,25 @@ const validDonationAmountBasedOnKYCAndScore = async ({
     userId: user.id,
   });
   const qfTotalDonationAmount = userRecord.qfTotalDonationAmount;
-  const remainedCap =
-    MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY - qfTotalDonationAmount;
+  return MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY - qfTotalDonationAmount;
+};
+
+const validDonationAmountBasedOnKYCAndScore = async ({
+  projectId,
+  user,
+  amount,
+}: {
+  projectId: number;
+  user: User;
+  amount: number;
+}): Promise<boolean> => {
+  if (user.privadoVerified) {
+    return true;
+  }
+  const remainedCap = await getUserRemainedCapBasedOnGitcoinScore({
+    projectId,
+    user,
+  });
   if (amount > remainedCap) {
     throw new Error('amount is more than allowed cap with gitcoin score');
   }
@@ -243,4 +255,5 @@ const validDonationAmountBasedOnKYCAndScore = async ({
 export default {
   getQAccDonationCap,
   validDonationAmountBasedOnKYCAndScore,
+  getUserRemainedCapBasedOnGitcoinScore,
 };
