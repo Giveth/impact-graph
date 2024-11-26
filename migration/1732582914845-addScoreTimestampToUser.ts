@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddScoreTimestampToUser1732495872789
+export class AddScoreTimestampToUser1732582914845
   implements MigrationInterface
 {
-  name = 'AddScoreTimestampToUser1732495872789';
+  name = 'AddScoreTimestampToUser1732582914845';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "user" ADD "passportScoreUpdateTimestamp" character varying`,
+      `ALTER TABLE "user" ADD "passportScoreUpdateTimestamp" TIMESTAMP WITH TIME ZONE`,
     );
   }
 

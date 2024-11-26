@@ -8,8 +8,12 @@ import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepo
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
-import config from '../config';
 import { updateUserGitcoinScore } from './userService';
+import {
+  GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS,
+  GITCOIN_PASSPORT_MIN_VALID_SCORE,
+  MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY,
+} from '../constants/qacc';
 
 const getEaProjectRoundRecord = async ({
   projectId,
@@ -213,17 +217,17 @@ const validDonationAmountBasedOnKYCAndScore = async ({
   if (
     !user.passportScore ||
     !user.passportScoreUpdateTimestamp ||
-    +user.passportScoreUpdateTimestamp >
-      Date.now() - (Number(config.get('VALID_SCORE_TIMESTAMP')) || 86400000) // default value is 1 day
+    user.passportScoreUpdateTimestamp.getTime() >
+      Date.now() - GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS
   ) {
     await updateUserGitcoinScore(user);
   }
   if (
     !user.passportScore ||
-    user.passportScore < Number(config.get('GITCOIN_MIN_SCORE'))
+    user.passportScore < GITCOIN_PASSPORT_MIN_VALID_SCORE
   ) {
     throw new Error(
-      `passport score is less than ${config.get('GITCOIN_MIN_SCORE')}`,
+      `passport score is less than ${GITCOIN_PASSPORT_MIN_VALID_SCORE}`,
     );
   }
   const userRecord = await getUserProjectRecord({
@@ -232,7 +236,7 @@ const validDonationAmountBasedOnKYCAndScore = async ({
   });
   const qfTotalDonationAmount = userRecord.qfTotalDonationAmount;
   const remainedCap =
-    Number(config.get('MAX_AMOUNT_NO_KYC')) - qfTotalDonationAmount;
+    MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY - qfTotalDonationAmount;
   if (amount > remainedCap) {
     throw new Error('amount is more than allowed cap with gitcoin score');
   }

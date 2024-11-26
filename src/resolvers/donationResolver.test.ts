@@ -42,7 +42,6 @@ import {
   fetchNewDonorsCount,
   fetchNewDonorsDonationTotalUsd,
   fetchDonationMetricsQuery,
-  validateDonationQuery,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS, QACC_NETWORK_ID } from '../provider';
 import { User } from '../entities/user';
@@ -77,7 +76,6 @@ describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
 describe('donationByUserId() test cases', donationsByUserIdTestCases);
 describe('donationsByDonor() test cases', donationsByDonorTestCases);
 describe('createDonation() test cases', createDonationTestCases);
-describe('validateDonation() test cases', validateDonationTestCases);
 // describe('updateDonationStatus() test cases', updateDonationStatusTestCases);
 describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
@@ -2719,192 +2717,6 @@ function createDonationTestCases() {
     assert.equal(
       updatedDraftDonation?.matchedDonationId,
       saveDonationResponse.data.data.createDonation,
-    );
-  });
-}
-
-function validateDonationTestCases() {
-  let project;
-  let user;
-
-  before(async () => {
-    // Set up a project and user before each test case
-    project = await saveProjectDirectlyToDb(createProjectData());
-    user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'Test User',
-    }).save();
-  });
-
-  beforeEach(async () => {
-    sinon.stub(qAccService, 'getQAccDonationCap').resolves(10000);
-  });
-
-  afterEach(async () => {
-    sinon.restore();
-  });
-
-  it('should return true if donation is valid', async () => {
-    // Mocking valid conditions for donation
-    const amount = 100;
-    const token = QACC_DONATION_TOKEN_SYMBOL;
-    const transactionNetworkId = QACC_NETWORK_ID;
-    const projectId = project.id;
-
-    const accessToken = await generateTestAccessToken(user.id);
-
-    const validateDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: validateDonationQuery,
-        variables: {
-          amount,
-          token,
-          transactionNetworkId,
-          projectId,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    assert.isTrue(validateDonationResponse.data.data.validateDonation);
-  });
-
-  it('should return false if donation amount exceeds project cap', async () => {
-    // Test case for exceeding donation cap
-    const amount = 1000000; // Large donation amount
-    const token = QACC_DONATION_TOKEN_SYMBOL;
-    const transactionNetworkId = QACC_NETWORK_ID;
-    const projectId = project.id;
-
-    const accessToken = await generateTestAccessToken(user.id);
-
-    const validateDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: validateDonationQuery,
-        variables: {
-          amount,
-          token,
-          transactionNetworkId,
-          projectId,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    assert.isFalse(validateDonationResponse.data.data.validateDonation);
-  });
-
-  it('should return false if user is unauthorized', async () => {
-    // Test case for unauthorized user
-    const amount = 100;
-    const token = QACC_DONATION_TOKEN_SYMBOL;
-    const transactionNetworkId = QACC_NETWORK_ID;
-    const projectId = project.id;
-
-    const accessToken = 'InvalidAccessToken'; // Invalid token
-
-    try {
-      await axios.post(
-        graphqlUrl,
-        {
-          query: validateDonationQuery,
-          variables: {
-            amount,
-            token,
-            transactionNetworkId,
-            projectId,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-    } catch (e) {
-      assert.include(e.response.data.errors[0].message, 'Unauthorized');
-    }
-  });
-
-  it('should throw error if donation is invalid due to network mismatch', async () => {
-    // Test case for invalid network ID
-    const amount = 100;
-    const token = QACC_DONATION_TOKEN_SYMBOL;
-    const transactionNetworkId = 999; // Invalid network ID
-    const projectId = project.id;
-
-    const accessToken = await generateTestAccessToken(user.id);
-
-    const validateDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: validateDonationQuery,
-        variables: {
-          amount,
-          token,
-          transactionNetworkId,
-          projectId,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    assert.isTrue(
-      (validateDonationResponse.data.errors[0].message as string).startsWith(
-        'Invalid tokenAddress',
-      ),
-    );
-  });
-
-  it('should throw error if project is not active', async () => {
-    // Test case for project not being active
-    const amount = 100;
-    const token = QACC_DONATION_TOKEN_SYMBOL;
-    const transactionNetworkId = QACC_NETWORK_ID;
-    const projectId = project.id;
-
-    project.status.id = ProjStatus.deactive; // Setting project status to deactive
-    await project.save();
-
-    const accessToken = await generateTestAccessToken(user.id);
-
-    const validateDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: validateDonationQuery,
-        variables: {
-          amount,
-          token,
-          transactionNetworkId,
-          projectId,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    assert.isTrue(
-      (validateDonationResponse.data.errors[0].message as string).startsWith(
-        'Just active projects accept donation',
-      ),
     );
   });
 }

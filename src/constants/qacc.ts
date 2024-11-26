@@ -15,3 +15,10 @@ export const QACC_DONATION_TOKEN_COINGECKO_ID =
   (config.get('QACC_DONATION_TOKEN_COINGECKO_ID') as string) || 'matic-network';
 export const QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS =
   (+config.get('QACC_PRICE_FETCH_LEAD_TIME_IN_SECONDS') as number) || 300; // 5 minutes
+export const GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS =
+  (+config.get('GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS') as number) || 86400000; // 1 day
+export const GITCOIN_PASSPORT_MIN_VALID_SCORE =
+  (+config.get('GITCOIN_PASSPORT_MIN_VALID_SCORE') as number) || 50;
+export const MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY =
+  (+config.get('MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY') as number) ||
+  1000;
