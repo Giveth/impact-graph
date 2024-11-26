@@ -19,7 +19,7 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { ReferredEvent } from './referredEvent';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
-import config from '../config';
+import { GITCOIN_PASSPORT_MIN_VALID_SCORE } from '../constants/qacc';
 
 export const publicSelectionFields = [
   'user.id',
@@ -117,6 +117,10 @@ export class User extends BaseEntity {
   @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: null })
   passportScore?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true, default: null })
+  analysisScore?: number;
 
   @Field(_type => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true })
@@ -234,11 +238,10 @@ export class User extends BaseEntity {
   }
 
   @Field(_type => Boolean, { nullable: true })
-  get hasEnoughPassportScore(): boolean {
+  get hasEnoughAnalysisScore(): boolean {
     return !!(
-      this.passportScore &&
-      this.passportScore >=
-        Number(config.get('GITCOIN_PASSPORT_MIN_VALID_SCORE'))
+      this.analysisScore &&
+      this.analysisScore >= GITCOIN_PASSPORT_MIN_VALID_SCORE
     );
   }
 

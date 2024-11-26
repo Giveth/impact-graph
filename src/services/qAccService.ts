@@ -8,7 +8,7 @@ import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepo
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
-import { updateUserGitcoinScore } from './userService';
+import { updateUserGitcoinAnalysisScore } from './userService';
 import {
   GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS,
   GITCOIN_PASSPORT_MIN_VALID_SCORE,
@@ -215,19 +215,16 @@ const validDonationAmountBasedOnKYCAndScore = async ({
     return true;
   }
   if (
-    !user.passportScore ||
+    !user.analysisScore ||
     !user.passportScoreUpdateTimestamp ||
     user.passportScoreUpdateTimestamp.getTime() >
       Date.now() - GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS
   ) {
-    await updateUserGitcoinScore(user);
+    await updateUserGitcoinAnalysisScore(user);
   }
-  if (
-    !user.passportScore ||
-    user.passportScore < GITCOIN_PASSPORT_MIN_VALID_SCORE
-  ) {
+  if (!user.hasEnoughAnalysisScore) {
     throw new Error(
-      `passport score is less than ${GITCOIN_PASSPORT_MIN_VALID_SCORE}`,
+      `analysis score is less than ${GITCOIN_PASSPORT_MIN_VALID_SCORE}`,
     );
   }
   const userRecord = await getUserProjectRecord({

@@ -86,14 +86,16 @@ export const fetchAdminAndValidatePassword = async (params: {
   }
 };
 
-export const updateUserGitcoinScore = async (user: User) => {
-  const passportScore = await getGitcoinAdapter().getWalletAddressScore(
+export const updateUserGitcoinAnalysisScore = async (user: User) => {
+  // const passportScore = await getGitcoinAdapter().getWalletAddressScore(
+  //   user.walletAddress as string,
+  // );
+  // if (passportScore && passportScore?.score) {
+  //   user.passportScore = Number(passportScore.score);
+  //   user.passportScoreUpdateTimestamp = new Date();
+  // }
+  user.analysisScore = await getGitcoinAdapter().getUserAnalysisScore(
     user.walletAddress as string,
   );
-  if (passportScore && passportScore?.score) {
-    const score = Number(passportScore.score);
-    user.passportScore = score;
-    user.passportScoreUpdateTimestamp = new Date();
-    await user.save();
-  }
+  await user.save();
 };

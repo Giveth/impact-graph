@@ -123,6 +123,9 @@ export class UserResolver {
       const passportStamps =
         await getGitcoinAdapter().getPassportStamps(address);
 
+      const analysisScore =
+        await getGitcoinAdapter().getUserAnalysisScore(address);
+
       if (passportScore && passportScore?.score) {
         const score = Number(passportScore.score);
         foundUser.passportScore = score;
@@ -137,6 +140,7 @@ export class UserResolver {
       if (activeQFMBDScore) {
         foundUser.activeQFMBDScore = activeQFMBDScore;
       }
+      foundUser.analysisScore = analysisScore;
       await foundUser.save();
     } catch (e) {
       logger.error(`refreshUserScores Error with address ${address}: `, e);
