@@ -334,6 +334,7 @@ function userCapsTestCases() {
         ...createDonationData(),
         amount: donationAmount,
         status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound1.id,
       },
       user.id,
       project.id,
