@@ -106,7 +106,8 @@ export const updateRecurringDonationFromTheStreamDonations = async (
         SELECT COALESCE(SUM(d."amount"), 0)
         FROM donation as d
         WHERE d."recurringDonationId" = $1
-      )
+      ),
+      "updatedAt" = NOW()
       WHERE "id" = $1
     `,
       [recurringDonationId],
