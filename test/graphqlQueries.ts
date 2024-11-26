@@ -2159,3 +2159,17 @@ export const projectUserDonationCap = `
     projectUserDonationCap(projectId: $projectId)   
   }
 `;
+
+export const userCaps = `
+  query UserCaps($projectId: Int!) {
+    userCaps(projectId: $projectId) {
+      qAccCap
+      gitcoinPassport {
+        unusedCapped
+      }
+      zkId {
+        unusedCapped
+      }
+    }
+  }
+`;

@@ -12,6 +12,7 @@ import { getProjectUserRecordAmount } from '../repositories/projectUserRecordRep
 import qAccService from '../services/qAccService';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { findUserById } from '../repositories/userRepository';
 
 @ObjectType()
 class ProjectUserRecordAmounts {
@@ -24,6 +25,25 @@ class ProjectUserRecordAmounts {
   @Field(_type => Float)
   qfTotalDonationAmount: number;
 }
+
+@ObjectType()
+class UnusedCapResponse {
+  @Field(_type => Float)
+  unusedCap: number;
+}
+
+@ObjectType()
+class QAccResponse {
+  @Field(_type => Float)
+  qAccCap: number;
+
+  @Field(_type => UnusedCapResponse, { nullable: true })
+  gitcoinPassport?: UnusedCapResponse;
+
+  @Field(_type => UnusedCapResponse, { nullable: true })
+  zkId?: UnusedCapResponse;
+}
+
 @Resolver()
 export class QAccResolver {
   @Query(_returns => ProjectUserRecordAmounts)
@@ -53,5 +73,46 @@ export class QAccResolver {
       projectId,
       userId: user.userId,
     });
+  }
+
+  @Query(_returns => QAccResponse)
+  async userCaps(
+    @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<QAccResponse> {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+
+    const dbUser = await findUserById(user.userId);
+    if (!dbUser) {
+      throw new Error(`user not found with id ${user.userId}`);
+    }
+
+    const qAccCap = await qAccService.getQAccDonationCap({
+      projectId,
+      userId: user.userId,
+    });
+
+    const response: QAccResponse = {
+      qAccCap,
+    };
+
+    if (dbUser.privadoVerified) {
+      response.zkId = {
+        unusedCap: qAccCap,
+      };
+    } else if (dbUser.hasEnoughGitcoinAnalysisScore) {
+      const cap = await qAccService.getUserRemainedCapBasedOnGitcoinScore({
+        projectId,
+        user: dbUser,
+      });
+      response.gitcoinPassport = {
+        unusedCap: cap,
+      };
+    }
+
+    return response;
   }
 }
