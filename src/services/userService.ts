@@ -95,11 +95,11 @@ export const updateUserGitcoinAnalysisScore = async (user: User) => {
   // );
   // if (passportScore && passportScore?.score) {
   //   user.passportScore = Number(passportScore.score);
-  //   user.passportScoreUpdateTimestamp = new Date();
   // }
   user.analysisScore = await getGitcoinAdapter().getUserAnalysisScore(
     user.walletAddress as string,
   );
+  user.passportScoreUpdateTimestamp = new Date();
   await user.save();
 };
 

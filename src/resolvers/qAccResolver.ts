@@ -27,15 +27,9 @@ class ProjectUserRecordAmounts {
 }
 
 @ObjectType()
-class GitcoinPassportResponse {
+class UnusedCapResponse {
   @Field(_type => Float)
-  unusedCapped: number;
-}
-
-@ObjectType()
-class ZkIdResponse {
-  @Field(_type => Float)
-  unusedCapped: number;
+  unusedCap: number;
 }
 
 @ObjectType()
@@ -43,11 +37,11 @@ class QAccResponse {
   @Field(_type => Float)
   qAccCap: number;
 
-  @Field(_type => GitcoinPassportResponse, { nullable: true })
-  gitcoinPassport?: GitcoinPassportResponse;
+  @Field(_type => UnusedCapResponse, { nullable: true })
+  gitcoinPassport?: UnusedCapResponse;
 
-  @Field(_type => ZkIdResponse, { nullable: true })
-  zkId?: ZkIdResponse;
+  @Field(_type => UnusedCapResponse, { nullable: true })
+  zkId?: UnusedCapResponse;
 }
 
 @Resolver()
@@ -104,15 +98,15 @@ export class QAccResolver {
 
     if (dbUser.privadoVerified) {
       response.zkId = {
-        unusedCapped: qAccCap,
+        unusedCap: qAccCap,
       };
-    } else if (dbUser.hasEnoughAnalysisScore) {
+    } else if (dbUser.hasEnoughGitcoinAnalysisScore) {
       const cap = await qAccService.getUserRemainedCapBasedOnGitcoinScore({
         projectId,
         user: dbUser,
       });
       response.gitcoinPassport = {
-        unusedCapped: cap,
+        unusedCap: cap,
       };
     }
 
