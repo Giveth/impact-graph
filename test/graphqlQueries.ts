@@ -2165,10 +2165,10 @@ export const userCaps = `
     userCaps(projectId: $projectId) {
       qAccCap
       gitcoinPassport {
-        unusedCapped
+        unusedCap
       }
       zkId {
-        unusedCapped
+        unusedCap
       }
     }
   }
