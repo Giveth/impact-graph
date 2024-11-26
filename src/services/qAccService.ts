@@ -12,7 +12,7 @@ import { updateUserGitcoinAnalysisScore } from './userService';
 import {
   GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS,
   GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
-  MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_IN_USD,
+  MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD,
 } from '../constants/gitcoin';
 
 const getEaProjectRoundRecord = async ({
@@ -232,7 +232,7 @@ const getUserRemainedCapBasedOnGitcoinScore = async ({
     throw new Error('active qf round does not have token price!');
   }
   return (
-    MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_IN_USD /
+    MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD /
       activeQfRound?.tokenPrice -
     qfTotalDonationAmount
   );
