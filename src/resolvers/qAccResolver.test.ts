@@ -28,7 +28,10 @@ import {
 } from '../../test/graphqlQueries';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
-import { GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE } from '../constants/gitcoin';
+import {
+  GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
+  MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_IN_USD,
+} from '../constants/gitcoin';
 
 describe(
   'projectUserTotalDonationAmount() test cases',
@@ -296,7 +299,6 @@ function userCapsTestCases() {
     sinon.stub(user, 'passportScoreUpdateTimestamp').value(new Date());
     sinon.stub(user, 'hasEnoughGitcoinAnalysisScore').value(true);
 
-    // Act: Call the resolver through a GraphQL query
     const response: ExecutionResult<{
       userCaps: {
         qAccCap: number;
@@ -320,9 +322,18 @@ function userCapsTestCases() {
       },
     );
 
-    // Assert: Verify the response matches expected values
-    assert.equal(response.data?.userCaps?.qAccCap, 4900); // Adjust based on logic
-    assert.equal(response.data?.userCaps?.gitcoinPassport?.unusedCap, 1200);
+    assert.equal(
+      response.data?.userCaps?.qAccCap,
+      Number(qfRound1.roundUSDCapPerUserPerProject) /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
+    assert.equal(
+      response.data?.userCaps?.gitcoinPassport?.unusedCap,
+      MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_IN_USD /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
     assert.isUndefined(response.data?.userCaps?.zkId);
   });
 
@@ -342,7 +353,6 @@ function userCapsTestCases() {
 
     sinon.stub(user, 'privadoVerified').value(true);
 
-    // Act: Call the resolver through a GraphQL query
     const response: ExecutionResult<{
       userCaps: {
         qAccCap: number;
@@ -367,8 +377,18 @@ function userCapsTestCases() {
     );
 
     // Assert: Verify the response matches expected values
-    assert.equal(response.data?.userCaps?.qAccCap, 4500); // Adjust based on logic
-    assert.equal(response.data?.userCaps?.zkId?.unusedCap, 900);
+    assert.equal(
+      response.data?.userCaps?.qAccCap,
+      Number(qfRound1.roundUSDCapPerUserPerProject) /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
+    assert.equal(
+      response.data?.userCaps?.zkId?.unusedCap,
+      Number(qfRound1.roundUSDCapPerUserPerProject) /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
     assert.isUndefined(response.data?.userCaps?.gitcoinPassport);
   });
 
