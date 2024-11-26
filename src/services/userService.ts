@@ -1,10 +1,7 @@
 import { User } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { logger } from '../utils/logger';
-import {
-  findAdminUserByEmail,
-  findUserById,
-} from '../repositories/userRepository';
+import { findAdminUserByEmail } from '../repositories/userRepository';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcrypt');
@@ -101,12 +98,4 @@ export const updateUserGitcoinAnalysisScore = async (user: User) => {
   );
   user.passportScoreUpdateTimestamp = new Date();
   await user.save();
-};
-
-export const getUserById = async (userId: number) => {
-  const foundedUser = await findUserById(userId);
-  if (foundedUser) {
-    return foundedUser;
-  }
-  throw new Error(`user not found with id ${userId}`);
 };
