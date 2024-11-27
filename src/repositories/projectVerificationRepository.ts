@@ -27,6 +27,10 @@ export const createProjectVerificationForm = async (params: {
   return ProjectVerificationForm.create({
     project,
     user,
+    // This has been added becasue we are now doing verification of the email on user profile
+    email: user?.email || '',
+    emailConfirmed: true,
+    emailConfirmedAt: new Date(),
   } as ProjectVerificationForm).save();
 };
 
