@@ -32,6 +32,7 @@ import {
   GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
   MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD,
 } from '../constants/gitcoin';
+import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
 
 describe(
   'projectUserTotalDonationAmount() test cases',
@@ -269,7 +270,7 @@ function userCapsTestCases() {
       tokenPrice: 0.5,
     }).save();
     sinon.useFakeTimers({
-      now: qfRound1.beginDate.getTime(),
+      now: new Date('2001-01-15').getTime(),
     });
   });
   afterEach(async () => {
@@ -295,18 +296,20 @@ function userCapsTestCases() {
     );
 
     // Simulate valid GitcoinPassport score
-    sinon.stub(user, 'analysisScore').value(80);
-    sinon.stub(user, 'passportScoreUpdateTimestamp').value(new Date());
-    sinon.stub(user, 'hasEnoughGitcoinAnalysisScore').value(true);
+    user.analysisScore = 80;
+    user.passportScoreUpdateTimestamp = new Date();
+    await user.save();
 
     const response: ExecutionResult<{
-      userCaps: {
-        qAccCap: number;
-        gitcoinPassport?: {
-          unusedCap: number;
-        };
-        zkId?: {
-          unusedCap: number;
+      data: {
+        userCaps: {
+          qAccCap: number;
+          gitcoinPassport?: {
+            unusedCap: number;
+          };
+          zkId?: {
+            unusedCap: number;
+          };
         };
       };
     }> = await axios.post(
@@ -323,18 +326,18 @@ function userCapsTestCases() {
     );
 
     assert.equal(
-      response.data?.userCaps?.qAccCap,
+      response.data?.data.userCaps?.qAccCap,
       Number(qfRound1.roundUSDCapPerUserPerProject) /
         Number(qfRound1.tokenPrice) -
         donationAmount,
     );
     assert.equal(
-      response.data?.userCaps?.gitcoinPassport?.unusedCap,
+      response.data?.data.userCaps?.gitcoinPassport?.unusedCap,
       MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD /
         Number(qfRound1.tokenPrice) -
         donationAmount,
     );
-    assert.isUndefined(response.data?.userCaps?.zkId);
+    assert.isNull(response.data?.data.userCaps?.zkId);
   });
 
   it('should return correct caps for a user with ZkId', async () => {
@@ -351,16 +354,19 @@ function userCapsTestCases() {
       project.id,
     );
 
-    sinon.stub(user, 'privadoVerified').value(true);
+    user.privadoVerifiedRequestIds = [PrivadoAdapter.privadoRequestId];
+    await user.save();
 
     const response: ExecutionResult<{
-      userCaps: {
-        qAccCap: number;
-        gitcoinPassport?: {
-          unusedCap: number;
-        };
-        zkId?: {
-          unusedCap: number;
+      data: {
+        userCaps: {
+          qAccCap: number;
+          gitcoinPassport?: {
+            unusedCap: number;
+          };
+          zkId?: {
+            unusedCap: number;
+          };
         };
       };
     }> = await axios.post(
@@ -378,18 +384,18 @@ function userCapsTestCases() {
 
     // Assert: Verify the response matches expected values
     assert.equal(
-      response.data?.userCaps?.qAccCap,
+      response.data?.data.userCaps?.qAccCap,
       Number(qfRound1.roundUSDCapPerUserPerProject) /
         Number(qfRound1.tokenPrice) -
         donationAmount,
     );
     assert.equal(
-      response.data?.userCaps?.zkId?.unusedCap,
+      response.data?.data.userCaps?.zkId?.unusedCap,
       Number(qfRound1.roundUSDCapPerUserPerProject) /
         Number(qfRound1.tokenPrice) -
         donationAmount,
     );
-    assert.isUndefined(response.data?.userCaps?.gitcoinPassport);
+    assert.isNull(response.data?.data.userCaps?.gitcoinPassport);
   });
 
   it('should throw an error if the user does not meet the minimum analysis score', async () => {
