@@ -103,7 +103,10 @@ export class QAccResolver {
       response.zkId = {
         unusedCap: qAccCap,
       };
-    } else if (dbUser.hasEnoughGitcoinAnalysisScore) {
+    } else if (
+      dbUser.hasEnoughGitcoinAnalysisScore ||
+      dbUser.hasEnoughGitcoinPassportScore
+    ) {
       const cap = await qAccService.getUserRemainedCapBasedOnGitcoinScore({
         projectId,
         user: dbUser,

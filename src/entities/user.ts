@@ -19,7 +19,10 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { ReferredEvent } from './referredEvent';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
-import { GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE } from '../constants/gitcoin';
+import {
+  GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
+  GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
+} from '../constants/gitcoin';
 
 export const publicSelectionFields = [
   'user.id',
@@ -242,6 +245,14 @@ export class User extends BaseEntity {
     return !!(
       this.analysisScore &&
       this.analysisScore >= GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE
+    );
+  }
+
+  @Field(_type => Boolean, { nullable: true })
+  get hasEnoughGitcoinPassportScore(): boolean {
+    return !!(
+      this.passportScore &&
+      this.passportScore >= GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE
     );
   }
 

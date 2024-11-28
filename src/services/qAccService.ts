@@ -8,10 +8,11 @@ import { findActiveEarlyAccessRound } from '../repositories/earlyAccessRoundRepo
 import { updateOrCreateProjectRoundRecord } from '../repositories/projectRoundRecordRepository';
 import { updateOrCreateProjectUserRecord } from '../repositories/projectUserRecordRepository';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
-import { updateUserGitcoinAnalysisScore } from './userService';
+import { updateUserGitcoinScores } from './userService';
 import {
   GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS,
   GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
+  GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
   MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD,
 } from '../constants/gitcoin';
 
@@ -210,16 +211,21 @@ const getUserRemainedCapBasedOnGitcoinScore = async ({
   user: User;
 }): Promise<number> => {
   if (
-    !user.analysisScore ||
+    user.passportScore === null ||
+    user.analysisScore === null ||
     !user.passportScoreUpdateTimestamp ||
     user.passportScoreUpdateTimestamp.getTime() <
       Date.now() - GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS
   ) {
-    await updateUserGitcoinAnalysisScore(user);
+    await updateUserGitcoinScores(user);
   }
-  if (!user.hasEnoughGitcoinAnalysisScore) {
+  if (
+    !user.hasEnoughGitcoinAnalysisScore &&
+    !user.hasEnoughGitcoinPassportScore
+  ) {
     throw new Error(
-      `analysis score is less than ${GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE}`,
+      `analysis score is less than ${GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE}
+       and passport score is less than ${GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE}`,
     );
   }
   const userRecord = await getUserProjectRecord({
