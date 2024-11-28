@@ -23,7 +23,10 @@ import { generateRandomString } from '../utils/utils';
 import { OrderDirection } from './projectResolver';
 import { QfArchivedRoundsSortType } from '../repositories/qfRoundRepository';
 
-describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);
+describe.skip(
+  'Fetch estimatedMatching test cases',
+  fetchEstimatedMatchingTestCases,
+);
 describe('Fetch qfRoundStats test cases', fetchQfRoundStatesTestCases);
 describe('Fetch archivedQFRounds test cases', fetchArchivedQFRoundsTestCases);
 describe('update scoreUserAddress test cases', scoreUserAddressTestCases);

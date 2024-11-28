@@ -2,6 +2,7 @@ import { User } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { logger } from '../utils/logger';
 import { findAdminUserByEmail } from '../repositories/userRepository';
+import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcrypt');
 
@@ -83,4 +84,18 @@ export const fetchAdminAndValidatePassword = async (params: {
     logger.error('fetchAdminAndValidatePassword() error', e);
     return;
   }
+};
+
+export const updateUserGitcoinScores = async (user: User) => {
+  const passportScore = await getGitcoinAdapter().getWalletAddressScore(
+    user.walletAddress as string,
+  );
+  if (passportScore && passportScore?.score) {
+    user.passportScore = Number(passportScore.score);
+  }
+  user.analysisScore = await getGitcoinAdapter().getUserAnalysisScore(
+    user.walletAddress as string,
+  );
+  user.passportScoreUpdateTimestamp = new Date();
+  await user.save();
 };

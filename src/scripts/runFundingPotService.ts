@@ -35,17 +35,22 @@ async function pullLatestVersionOfFundingPot() {
   }
 }
 
-async function generateBatchFile(batchNumber: number) {
+async function generateBatchFile(batchNumber: number, dryRun: boolean) {
   console.info(`Generating batch config for batch number: ${batchNumber}`);
   const { round, isEarlyAccess } = await getRoundByBatchNumber(batchNumber);
   if (!isEarlyAccess) {
     round.startDate = round.beginDate;
   }
 
+  const now = new Date();
+  const offsetSecs = now.getTimezoneOffset() * 60;
+
   const batchConfig = {
     TIMEFRAME: {
-      FROM_TIMESTAMP: Math.floor(new Date(round.startDate).getTime() / 1000), // Convert to timestamp
-      TO_TIMESTAMP: Math.floor(new Date(round.endDate).getTime() / 1000),
+      FROM_TIMESTAMP:
+        Math.floor(new Date(round.startDate).getTime() / 1000) - offsetSecs, // Convert to timestamp
+      TO_TIMESTAMP:
+        Math.floor(new Date(round.endDate).getTime() / 1000) - offsetSecs,
     },
     VESTING_DETAILS: getStreamDetails(isEarlyAccess),
     LIMITS: {
@@ -66,7 +71,7 @@ async function generateBatchFile(batchNumber: number) {
     },
     IS_EARLY_ACCESS: isEarlyAccess, // Set based on the round type
     PRICE: (round.tokenPrice || '0.1').toString(), // Default price to "0.1" if not provided
-    // ONLY_REPORT: onlyReport, // If we set this flag, only report will be generated and no transactions propose to the safes
+    ONLY_REPORT: dryRun, // If we set this flag, only report will be generated and no transactions propose to the safes
   };
 
   const batchFilePath = path.join(
@@ -173,7 +178,11 @@ async function createEnvFile() {
         'RPC_URL="https://rpc.ankr.com/base_sepolia"',
         'RPC_URL="https://zkevm-rpc.com"',
       )
-      .replace('CHAIN_ID=84532', 'CHAIN_ID=1101');
+      .replace('CHAIN_ID=84532', 'CHAIN_ID=1101')
+      .replace(
+        'BACKEND_URL="https://staging.qacc-be.generalmagic.io/graphql"',
+        `BACKEND_URL="${config.get('SERVER_URL')}/graphql"`,
+      );
 
     await fs.writeFile(envFilePath, updatedEnvContent, 'utf-8');
   } catch (error) {
@@ -221,7 +230,7 @@ async function installDependencies() {
   await execShellCommand('npm install --loglevel=error', serviceDir);
 }
 
-async function runFundingPotService(batchNumber: number) {
+async function runFundingPotService(batchNumber: number, dryRun?: boolean) {
   const command = 'npm run all ' + batchNumber;
   console.info(`Running "${command}" in ${serviceDir}...`);
   try {
@@ -229,8 +238,10 @@ async function runFundingPotService(batchNumber: number) {
   } catch (e) {
     console.error('Error in funding pot execution:', e);
   }
-  console.info('Saving reports to the DB...');
-  await saveReportsToDB(reportFilesDir);
+  if (!dryRun) {
+    console.info('Saving reports to the DB...');
+    await saveReportsToDB(reportFilesDir);
+  }
 }
 
 async function getFirstRoundThatNeedExecuteBatchMinting() {
@@ -322,6 +333,7 @@ async function main() {
       (await getFirstRoundThatNeedExecuteBatchMinting()).batchNumber;
     console.info('Batch number is:', batchNumber);
 
+    const dryRun = Boolean(process.argv[3]) || false;
     // Step 1
     console.info('Start pulling latest version of funding pot service...');
     await pullLatestVersionOfFundingPot();
@@ -339,7 +351,7 @@ async function main() {
 
     // Step 5
     console.info('Create batch config in the funding pot service...');
-    await generateBatchFile(batchNumber);
+    await generateBatchFile(batchNumber, dryRun);
     console.info('Batch config created successfully.');
 
     // Step 4
@@ -354,18 +366,20 @@ async function main() {
 
     // Step 6
     console.info('Running funding pot service...');
-    await runFundingPotService(batchNumber);
+    await runFundingPotService(batchNumber, dryRun);
     console.info('Funding pot service executed successfully!');
 
     // Step 7
-    console.info('Setting batch minting execution flag in round data...');
-    await setBatchMintingExecutionFlag(batchNumber);
-    console.info('Batch minting execution flag set successfully.');
+    if (!dryRun) {
+      console.info('Setting batch minting execution flag in round data...');
+      await setBatchMintingExecutionFlag(batchNumber);
+      console.info('Batch minting execution flag set successfully.');
 
-    // Step 8
-    console.info('Start Syncing reward data in donations...');
-    await updateRewardsForDonations(batchNumber);
-    console.info('Rewards data synced successfully.');
+      // Step 8
+      console.info('Start Syncing reward data in donations...');
+      await updateRewardsForDonations(batchNumber);
+      console.info('Rewards data synced successfully.');
+    }
     console.info('Done!');
     process.exit();
   } catch (error) {

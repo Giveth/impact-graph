@@ -24,9 +24,16 @@ import {
 import {
   projectUserDonationCap,
   projectUserTotalDonationAmounts,
+  userCaps,
 } from '../../test/graphqlQueries';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
+import {
+  GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
+  GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
+  MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD,
+} from '../constants/gitcoin';
+import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
 
 describe(
   'projectUserTotalDonationAmount() test cases',
@@ -37,6 +44,8 @@ describe(
   'projectUserDonationCap() test cases',
   projectUserDonationCapTestCases,
 );
+
+describe('userCaps() test cases', userCapsTestCases);
 
 function projectUserTotalDonationAmountTestCases() {
   it('should return total donation amount of a user for a project', async () => {
@@ -234,5 +243,251 @@ function projectUserDonationCapTestCases() {
       firstEarlyAccessRound.roundUSDCapPerUserPerProject! /
         firstEarlyAccessRound.tokenPrice!,
     );
+  });
+}
+
+function userCapsTestCases() {
+  let project;
+  let user;
+  let accessToken;
+  let qfRound1: QfRound;
+  beforeEach(async () => {
+    project = await saveProjectDirectlyToDb(createProjectData());
+
+    user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    accessToken = await generateTestAccessToken(user.id);
+
+    qfRound1 = await QfRound.create({
+      roundNumber: 1,
+      isActive: true,
+      name: new Date().toString() + ' - 1',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 1',
+      beginDate: new Date('2001-01-14'),
+      endDate: new Date('2001-01-16'),
+      roundUSDCapPerProject: 10000,
+      roundUSDCapPerUserPerProject: 2500,
+      tokenPrice: 0.5,
+    }).save();
+    sinon.useFakeTimers({
+      now: new Date('2001-01-15').getTime(),
+    });
+  });
+  afterEach(async () => {
+    // Clean up the database after each test
+    await ProjectRoundRecord.delete({});
+    await Donation.delete({ projectId: project.id });
+    await QfRound.delete(qfRound1.id);
+
+    sinon.restore();
+  });
+  it('should return correct caps for a user with analysis score', async () => {
+    // Save donations
+    const donationAmount = 100;
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: donationAmount,
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound1.id,
+      },
+      user.id,
+      project.id,
+    );
+
+    // Simulate valid analysis score
+    user.analysisScore = 80;
+    user.passportScore = 0;
+    user.passportScoreUpdateTimestamp = new Date();
+    await user.save();
+
+    const response: ExecutionResult<{
+      data: {
+        userCaps: {
+          qAccCap: number;
+          gitcoinPassport?: {
+            unusedCap: number;
+          };
+          zkId?: {
+            unusedCap: number;
+          };
+        };
+      };
+    }> = await axios.post(
+      graphqlUrl,
+      {
+        query: userCaps,
+        variables: { projectId: project.id },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      response.data?.data.userCaps?.qAccCap,
+      Number(qfRound1.roundUSDCapPerUserPerProject) /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
+    assert.equal(
+      response.data?.data.userCaps?.gitcoinPassport?.unusedCap,
+      MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
+    assert.isNull(response.data?.data.userCaps?.zkId);
+  });
+
+  it('should return correct caps for a user with passport score', async () => {
+    // Save donations
+    const donationAmount = 100;
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: donationAmount,
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound1.id,
+      },
+      user.id,
+      project.id,
+    );
+
+    // Simulate valid GitcoinPassport score
+    user.analysisScore = 0;
+    user.passportScore = 30;
+    user.passportScoreUpdateTimestamp = new Date();
+    await user.save();
+
+    const response: ExecutionResult<{
+      data: {
+        userCaps: {
+          qAccCap: number;
+          gitcoinPassport?: {
+            unusedCap: number;
+          };
+          zkId?: {
+            unusedCap: number;
+          };
+        };
+      };
+    }> = await axios.post(
+      graphqlUrl,
+      {
+        query: userCaps,
+        variables: { projectId: project.id },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      response.data?.data.userCaps?.qAccCap,
+      Number(qfRound1.roundUSDCapPerUserPerProject) /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
+    assert.equal(
+      response.data?.data.userCaps?.gitcoinPassport?.unusedCap,
+      MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
+    assert.isNull(response.data?.data.userCaps?.zkId);
+  });
+
+  it('should return correct caps for a user with ZkId', async () => {
+    // Save donations
+    const donationAmount = 500;
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: donationAmount,
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound1.id,
+      },
+      user.id,
+      project.id,
+    );
+
+    user.privadoVerifiedRequestIds = [PrivadoAdapter.privadoRequestId];
+    await user.save();
+
+    const response: ExecutionResult<{
+      data: {
+        userCaps: {
+          qAccCap: number;
+          gitcoinPassport?: {
+            unusedCap: number;
+          };
+          zkId?: {
+            unusedCap: number;
+          };
+        };
+      };
+    }> = await axios.post(
+      graphqlUrl,
+      {
+        query: userCaps,
+        variables: { projectId: project.id },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    // Assert: Verify the response matches expected values
+    assert.equal(
+      response.data?.data.userCaps?.qAccCap,
+      Number(qfRound1.roundUSDCapPerUserPerProject) /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
+    assert.equal(
+      response.data?.data.userCaps?.zkId?.unusedCap,
+      Number(qfRound1.roundUSDCapPerUserPerProject) /
+        Number(qfRound1.tokenPrice) -
+        donationAmount,
+    );
+    assert.isNull(response.data?.data.userCaps?.gitcoinPassport);
+  });
+
+  it('should throw an error if the user does not meet the minimum analysis score and passport score', async () => {
+    // Simulate invalid GitcoinPassport scores
+    user.analysisScore = 40;
+    user.passportScore = 10;
+    user.passportScoreUpdateTimestamp = new Date();
+    await user.save();
+
+    // Act: Call the resolver through a GraphQL query and expect an error
+    try {
+      await axios.post(
+        graphqlUrl,
+        {
+          query: userCaps,
+          variables: { projectId: project.id },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+    } catch (error: any) {
+      // Assert: Verify the error message
+      assert.equal(
+        error.response.data.errors[0].message,
+        `analysis score is less than ${GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE}
+         and passport score is less than ${GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE}`,
+      );
+    }
   });
 }

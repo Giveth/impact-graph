@@ -19,6 +19,10 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { ReferredEvent } from './referredEvent';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
+import {
+  GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
+  GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
+} from '../constants/gitcoin';
 
 export const publicSelectionFields = [
   'user.id',
@@ -116,6 +120,14 @@ export class User extends BaseEntity {
   @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: null })
   passportScore?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true, default: null })
+  analysisScore?: number;
+
+  @Field(_type => Date, { nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
+  passportScoreUpdateTimestamp?: Date;
 
   @Field(_type => Number, { nullable: true })
   @Column({ nullable: true, default: null })
@@ -225,6 +237,22 @@ export class User extends BaseEntity {
       this.privadoVerifiedRequestIds?.includes(
         PrivadoAdapter.privadoRequestId,
       ) ?? false
+    );
+  }
+
+  @Field(_type => Boolean, { nullable: true })
+  get hasEnoughGitcoinAnalysisScore(): boolean {
+    return !!(
+      this.analysisScore &&
+      this.analysisScore >= GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE
+    );
+  }
+
+  @Field(_type => Boolean, { nullable: true })
+  get hasEnoughGitcoinPassportScore(): boolean {
+    return !!(
+      this.passportScore &&
+      this.passportScore >= GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE
     );
   }
 
