@@ -86,13 +86,13 @@ export const fetchAdminAndValidatePassword = async (params: {
   }
 };
 
-export const updateUserGitcoinAnalysisScore = async (user: User) => {
-  // const passportScore = await getGitcoinAdapter().getWalletAddressScore(
-  //   user.walletAddress as string,
-  // );
-  // if (passportScore && passportScore?.score) {
-  //   user.passportScore = Number(passportScore.score);
-  // }
+export const updateUserGitcoinScores = async (user: User) => {
+  const passportScore = await getGitcoinAdapter().getWalletAddressScore(
+    user.walletAddress as string,
+  );
+  if (passportScore && passportScore?.score) {
+    user.passportScore = Number(passportScore.score);
+  }
   user.analysisScore = await getGitcoinAdapter().getUserAnalysisScore(
     user.walletAddress as string,
   );
