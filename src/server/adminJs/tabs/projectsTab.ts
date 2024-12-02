@@ -28,7 +28,6 @@ import {
   refreshProjectPowerView,
 } from '../../../repositories/projectPowerViewRepository';
 import { logger } from '../../../utils/logger';
-import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
 import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
 import {
   AdminJsContextInterface,
@@ -451,7 +450,6 @@ export const fillSocialProfileAndQfRounds: After<
   // both cases for projectVerificationForms and projects' ids
   const projectId = record.params.projectId || record.params.id;
 
-  const socials = await findSocialProfilesByProjectId({ projectId });
   const projectUpdates = await findProjectUpdatesByProjectId(projectId);
   const project = await findProjectById(projectId);
   const adminJsBaseUrl = process.env.SERVER_URL;
@@ -470,7 +468,6 @@ export const fillSocialProfileAndQfRounds: After<
       projectUrl: `${process.env.GIVETH_IO_DAPP_BASE_URL}/project/${
         project!.slug
       }`,
-      socials,
       qfRounds: project?.qfRounds,
       projectUpdates,
       adminJsBaseUrl,
@@ -674,19 +671,6 @@ export const projectsTab = {
       statusId: {
         isVisible: { list: true, filter: true, show: true, edit: true },
       },
-      socials: {
-        type: 'mixed',
-        isVisible: {
-          list: false,
-          filter: false,
-          show: true,
-          edit: false,
-          new: false,
-        },
-        components: {
-          show: adminJs.bundle('./components/VerificationFormSocials'),
-        },
-      },
       adminUserId: {
         type: 'Number',
         isVisible: {
@@ -807,6 +791,17 @@ export const projectsTab = {
         isVisible: false,
       },
       stripeAccountId: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+        },
+      },
+      socialMedia: {
+        type: 'reference',
+        isArray: true,
+        reference: 'ProjectSocialMedia',
         isVisible: {
           list: false,
           filter: false,
