@@ -448,7 +448,12 @@ export class UserResolver {
 
     const userFromDB = await findUserById(user.userId);
 
-    if (userFromDB?.privadoVerified && !userFromDB.acceptedToS) {
+    if (
+      (userFromDB?.hasEnoughGitcoinAnalysisScore ||
+        userFromDB?.hasEnoughGitcoinPassportScore ||
+        userFromDB?.privadoVerified) &&
+      !userFromDB.acceptedToS
+    ) {
       userFromDB.acceptedToS = true;
       userFromDB.acceptedToSDate = new Date();
       await userFromDB.save();
