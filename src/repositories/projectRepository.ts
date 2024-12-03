@@ -209,8 +209,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.InstantBoosting: // This is our default sorting
       query
-        .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
-        .addOrderBy('project.verified', 'DESC') // Secondary sorting condition
         .addOrderBy(
           'projectInstantPower.totalPower',
           OrderDirection.DESC,
