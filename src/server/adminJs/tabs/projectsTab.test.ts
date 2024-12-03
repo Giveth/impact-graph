@@ -35,12 +35,12 @@ import {
   addFeaturedProjectUpdate,
   exportProjectsWithFiltersToCsv,
   listDelist,
+  revokeGivbacksEligibility,
   updateStatusOfProjects,
   verifyProjects,
 } from './projectsTab';
 import { messages } from '../../../utils/messages';
 import { ProjectStatus } from '../../../entities/projectStatus';
-import { revokeGivbacksEligibility } from './projectVerificationTab';
 
 describe(
   'verifyMultipleProjects() test cases',

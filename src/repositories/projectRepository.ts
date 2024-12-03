@@ -215,7 +215,10 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           'projectInstantPower.totalPower',
           OrderDirection.DESC,
           'NULLS LAST',
-        );
+        )
+        .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
+        .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
+
       if (isFilterByQF) {
         query.addOrderBy(
           'project.sumDonationValueUsdForActiveQfRound',
