@@ -10,6 +10,18 @@ import { convertTimeStampToSeconds } from '../../utils/utils';
 export class GivPowerBalanceAggregatorAdapterMock
   implements IGivPowerBalanceAggregator
 {
+  private excludedAddresses: Set<string> = new Set();
+
+  addExcludedAddresses(addresses: string[]): void {
+    addresses.forEach(address => {
+      this.excludedAddresses.add(address);
+    });
+  }
+
+  clearExcludedAddresses(): void {
+    this.excludedAddresses.clear();
+  }
+
   async getAddressesBalance(
     params: BalancesAtTimestampInputParams,
   ): Promise<BalanceResponse[]> {
@@ -21,14 +33,16 @@ export class GivPowerBalanceAggregatorAdapterMock
         'addresses length can not be greater than NUMBER_OF_BALANCE_AGGREGATOR_BATCH that is defined in .env',
       );
     }
-    return _.uniq(params.addresses).map(address => {
-      return {
-        address,
-        balance: 13, // Just an example balance
-        updatedAt: new Date('2023-08-10T16:18:02.655Z'),
-        networks: [100],
-      };
-    });
+    return _.uniq(params.addresses)
+      .filter(address => !this.excludedAddresses.has(address))
+      .map(address => {
+        return {
+          address,
+          balance: 13, // Just an example balance
+          updatedAt: new Date('2023-08-10T16:18:02.655Z'),
+          networks: [100],
+        };
+      });
   }
 
   async getLatestBalances(
