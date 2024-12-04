@@ -135,6 +135,10 @@ export class QfRound extends BaseEntity {
   @Column({ nullable: true })
   roundUSDCapPerUserPerProject?: number;
 
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundUSDCapPerUserPerProjectWithGitcoinScoreOnly?: number;
+
   @Field(_type => Boolean)
   @Column({ default: false })
   isBatchMintingExecuted: boolean;
