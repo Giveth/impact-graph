@@ -61,8 +61,9 @@ const updateLastStep = async (params: {
 export const updateProjectVerificationFormByUser = async (params: {
   projectVerificationForm: ProjectVerificationForm;
   projectVerificationUpdateInput: ProjectVerificationUpdateInput;
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { projectVerificationUpdateInput } = params;
+  const { projectVerificationUpdateInput, email } = params;
   const { projectVerificationId, step } = projectVerificationUpdateInput;
   const personalInfo =
     projectVerificationUpdateInput.personalInfo as PersonalInfo;
@@ -101,6 +102,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         await updateProjectContactsOfProjectVerification({
           projectVerificationId,
           projectContacts,
+          email,
         });
       break;
     case PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY:
@@ -114,6 +116,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         await updateProjectRegistryOfProjectVerification({
           projectVerificationId,
           projectRegistry,
+          email,
         });
       break;
     case PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS:
@@ -127,6 +130,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         await updateManagingFundsOfProjectVerification({
           projectVerificationId,
           managingFunds,
+          email,
         });
       break;
     case PROJECT_VERIFICATION_STEPS.MILESTONES:
@@ -140,6 +144,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         await updateMilestonesOfProjectVerification({
           projectVerificationId,
           milestones,
+          email,
         });
       break;
     case PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION: {
@@ -153,6 +158,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         await updateTermsAndConditionsOfProjectVerification({
           projectVerificationId,
           isTermAndConditionsAccepted,
+          email,
         });
 
       break;

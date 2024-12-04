@@ -34,6 +34,7 @@ import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { findUserById } from '../repositories/userRepository';
 
 @Resolver(_of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
@@ -256,6 +257,7 @@ export class ProjectVerificationFormResolver {
   ): Promise<ProjectVerificationForm> {
     try {
       const userId = user?.userId;
+      const userData = await findUserById(userId);
       const { projectVerificationId } = projectVerificationUpdateInput;
       if (!userId) {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
@@ -285,9 +287,11 @@ export class ProjectVerificationFormResolver {
           i18n.__(translationErrorMessagesKeys.PROJECT_IS_ALREADY_VERIFIED),
         );
       }
+      const email = userData?.email || '';
       const verificationForm = await updateProjectVerificationFormByUser({
         projectVerificationForm,
         projectVerificationUpdateInput,
+        email,
       });
 
       return verificationForm;
