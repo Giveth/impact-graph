@@ -5529,6 +5529,7 @@ function editProjectUpdateTestCases() {
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
       firstName: 'testEditProjectUpdateFateme',
+      isEmailVerified: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const projectUpdateCount = await ProjectUpdate.count();
@@ -5644,6 +5645,7 @@ function deleteProjectUpdateTestCases() {
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
       firstName: 'testDeleteProjectUpdateFateme',
+      isEmailVerified: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const projectUpdateCount = await ProjectUpdate.count();

@@ -466,3 +466,19 @@ export const isSocialMediaEqual = (
       .sort(),
   );
 };
+
+/**
+ * Generates a random numeric code with the specified number of digits.
+ *
+ * @param {number} digits - The number of digits for the generated code. Defaults to 6 if not provided.
+ * @returns {number} A random numeric code with the specified number of digits.
+ *
+ * Example:
+ * generateRandomNumericCode(4) // Returns a 4-digit number, e.g., 3741
+ * generateRandomNumericCode(8) // Returns an 8-digit number, e.g., 29384756
+ */
+export const generateRandomNumericCode = (digits: number = 6): number => {
+  const min = Math.pow(10, digits - 1);
+  const max = Math.pow(10, digits) - 1;
+  return Math.floor(min + Math.random() * (max - min + 1));
+};

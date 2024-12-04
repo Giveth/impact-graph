@@ -9,6 +9,7 @@ import {
   ProjectVerificationForm,
 } from '../../../entities/projectVerificationForm';
 import {
+  canAccessProjectAction,
   canAccessProjectVerificationFormAction,
   ResourceActions,
 } from '../adminJsPermissions';
@@ -21,6 +22,7 @@ import {
   approveMultipleProjects,
   approveProject,
   findProjectVerificationFormById,
+  getVerificationFormByProjectId,
   makeFormDraft,
   verifyForm,
   verifyMultipleForms,
@@ -35,8 +37,13 @@ import {
 } from '../../../repositories/projectRepository';
 import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
 import { logger } from '../../../utils/logger';
-import { Project } from '../../../entities/project';
+import { Project, RevokeSteps } from '../../../entities/project';
 import { fillSocialProfileAndQfRounds } from './projectsTab';
+import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository';
+import {
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../../../repositories/projectPowerViewRepository';
 
 const extractLastComment = (verificationForm: ProjectVerificationForm) => {
   const commentsSorted = verificationForm.commentsSection?.comments?.sort(
@@ -299,6 +306,67 @@ export const approveVerificationForms = async (
     notice: {
       message: responseMessage,
       type: responseType,
+    },
+  };
+};
+
+export const revokeGivbacksEligibility = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+) => {
+  const { records, currentAdmin } = context;
+  try {
+    const projectFormIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const projectIds: number[] = [];
+    for (const formId of projectFormIds) {
+      const verificationForm = await findProjectVerificationFormById(formId);
+      if (verificationForm) {
+        projectIds.push(verificationForm.projectId);
+      }
+    }
+    const updateParams = { isGivbackEligible: false };
+    const projects = await Project.createQueryBuilder('project')
+      .update<Project>(Project, updateParams)
+      .where('project.id IN (:...ids)')
+      .setParameter('ids', projectIds)
+      .returning('*')
+      .updateEntity(true)
+      .execute();
+
+    for (const project of projects.raw) {
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+      projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
+      await projectWithAdmin.save();
+      await getNotificationAdapter().projectBadgeRevoked({
+        project: projectWithAdmin,
+      });
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (verificationForm) {
+        await makeFormDraft({
+          formId: verificationForm.id,
+          adminId: currentAdmin.id,
+        });
+      }
+    }
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
+  } catch (error) {
+    logger.error('revokeGivbacksEligibility() error', error);
+    throw error;
+  }
+  return {
+    redirectUrl: '/admin/resources/ProjectVerificationForm',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message: 'Project(s) successfully revoked from Givbacks eligibility',
+      type: 'success',
     },
   };
 };
@@ -675,6 +743,19 @@ export const projectVerificationTab = {
           ),
         handler: async (request, response, context) => {
           return approveVerificationForms(context, request, false);
+        },
+        component: false,
+      },
+      revokeGivbacksEligible: {
+        actionType: 'bulk',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectAction(
+            { currentAdmin },
+            ResourceActions.REVOKE_BADGE,
+          ),
+        handler: async (request, _response, context) => {
+          return revokeGivbacksEligibility(context, request);
         },
         component: false,
       },

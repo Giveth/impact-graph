@@ -29,7 +29,6 @@ import {
   refreshProjectPowerView,
 } from '../../../repositories/projectPowerViewRepository';
 import { logger } from '../../../utils/logger';
-import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
 import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
 import {
   AdminJsContextInterface,
@@ -56,6 +55,7 @@ import { refreshProjectEstimatedMatchingView } from '../../../services/projectVi
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 import { Category } from '../../../entities/category';
+import { getRedirectUrl } from '../adminJsUtils';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -243,6 +243,7 @@ export const verifyProjects = async (
   request: AdminJsRequestInterface,
   vouchedStatus: boolean = true,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { records, currentAdmin } = context;
   try {
     const projectIds = request?.query?.recordIds
@@ -291,7 +292,7 @@ export const verifyProjects = async (
     throw error;
   }
   return {
-    redirectUrl: '/admin/resources/Project',
+    redirectUrl: redirectUrl,
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -309,6 +310,7 @@ export const updateStatusOfProjects = async (
   request: AdminJsRequestInterface,
   status,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { records, currentAdmin } = context;
   const projectIds = request?.query?.recordIds
     ?.split(',')
@@ -374,7 +376,7 @@ export const updateStatusOfProjects = async (
     ]);
   }
   return {
-    redirectUrl: '/admin/resources/Project',
+    redirectUrl: redirectUrl,
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -470,6 +472,7 @@ export const addSingleProjectToQfRound = async (
   request: AdminJsRequestInterface,
   add: boolean = true,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { record, currentAdmin } = context;
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
   const projectId = Number(request?.params?.recordId);
@@ -486,6 +489,7 @@ export const addSingleProjectToQfRound = async (
     message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
   }
   return {
+    redirectUrl: redirectUrl,
     record: record.toJSON(currentAdmin),
     notice: {
       message,
@@ -501,7 +505,6 @@ export const fillSocialProfileAndQfRounds: After<
   // both cases for projectVerificationForms and projects' ids
   const projectId = record.params.projectId || record.params.id;
 
-  const socials = await findSocialProfilesByProjectId({ projectId });
   const projectUpdates = await findProjectUpdatesByProjectId(projectId);
   const project = await findProjectById(projectId);
   const adminJsBaseUrl = process.env.SERVER_URL;
@@ -520,7 +523,6 @@ export const fillSocialProfileAndQfRounds: After<
       projectUrl: `${process.env.GIVETH_IO_DAPP_BASE_URL}/project/${
         project!.slug
       }`,
-      socials,
       qfRounds: project?.qfRounds,
       projectUpdates,
       adminJsBaseUrl,
@@ -578,6 +580,7 @@ export const listDelist = async (
   request,
   reviewStatus: ReviewStatus = ReviewStatus.Listed,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { records, currentAdmin } = context;
   let listed;
   switch (reviewStatus) {
@@ -641,7 +644,7 @@ export const listDelist = async (
     throw error;
   }
   return {
-    redirectUrl: '/admin/resources/Project',
+    redirectUrl: redirectUrl,
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -722,19 +725,6 @@ export const projectsTab = {
       },
       statusId: {
         isVisible: { list: true, filter: true, show: true, edit: true },
-      },
-      socials: {
-        type: 'mixed',
-        isVisible: {
-          list: false,
-          filter: false,
-          show: true,
-          edit: false,
-          new: false,
-        },
-        components: {
-          show: adminJs.bundle('./components/VerificationFormSocials'),
-        },
       },
       adminUserId: {
         type: 'Number',
@@ -856,6 +846,17 @@ export const projectsTab = {
         isVisible: false,
       },
       stripeAccountId: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+        },
+      },
+      socialMedia: {
+        type: 'reference',
+        isArray: true,
+        reference: 'ProjectSocialMedia',
         isVisible: {
           list: false,
           filter: false,
@@ -1307,19 +1308,6 @@ export const projectsTab = {
           ),
         handler: async (request, response, context) => {
           return verifyProjects(context, request, false);
-        },
-        component: false,
-      },
-      revokeGivbacksEligible: {
-        actionType: 'bulk',
-        isVisible: true,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessProjectAction(
-            { currentAdmin },
-            ResourceActions.REVOKE_BADGE,
-          ),
-        handler: async (request, _response, context) => {
-          return revokeGivbacksEligibility(context, request);
         },
         component: false,
       },

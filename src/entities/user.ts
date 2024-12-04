@@ -34,6 +34,7 @@ export const publicSelectionFields = [
   'user.totalReceived',
   'user.passportScore',
   'user.passportStamps',
+  'user.isEmailVerified',
 ];
 
 export enum UserRole {
@@ -194,6 +195,13 @@ export class User extends BaseEntity {
 
   @Field(_type => Float, { nullable: true })
   activeQFMBDScore?: number;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column('bool', { default: false })
+  isEmailVerified: boolean;
+
+  @Column('varchar', { nullable: true, default: null })
+  emailVerificationCode?: string | null;
 
   @Field(_type => Int, { nullable: true })
   async donationsCount() {
