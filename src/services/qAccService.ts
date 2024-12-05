@@ -13,7 +13,6 @@ import {
   GITCOIN_PASSPORT_EXPIRATION_PERIOD_MS,
   GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
   GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
-  MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD,
 } from '../constants/gitcoin';
 
 const getEaProjectRoundRecord = async ({
@@ -237,9 +236,14 @@ const getUserRemainedCapBasedOnGitcoinScore = async ({
   if (!activeQfRound?.tokenPrice) {
     throw new Error('active qf round does not have token price!');
   }
+  if (!activeQfRound?.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly) {
+    throw new Error(
+      'active qf round does not have round USDCapPerUserPerProjectWithGitcoinScoreOnly!',
+    );
+  }
   return (
-    MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD /
-      activeQfRound?.tokenPrice -
+    activeQfRound.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly /
+      activeQfRound.tokenPrice -
     qfTotalDonationAmount
   );
 };

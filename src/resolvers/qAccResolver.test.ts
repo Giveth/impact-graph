@@ -31,7 +31,6 @@ import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import {
   GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
   GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
-  MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD,
 } from '../constants/gitcoin';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
 
@@ -268,6 +267,7 @@ function userCapsTestCases() {
       endDate: new Date('2001-01-16'),
       roundUSDCapPerProject: 10000,
       roundUSDCapPerUserPerProject: 2500,
+      roundUSDCapPerUserPerProjectWithGitcoinScoreOnly: 1000,
       tokenPrice: 0.5,
     }).save();
     sinon.useFakeTimers({
@@ -335,7 +335,7 @@ function userCapsTestCases() {
     );
     assert.equal(
       response.data?.data.userCaps?.gitcoinPassport?.unusedCap,
-      MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD /
+      Number(qfRound1.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly) /
         Number(qfRound1.tokenPrice) -
         donationAmount,
     );
@@ -395,7 +395,7 @@ function userCapsTestCases() {
     );
     assert.equal(
       response.data?.data.userCaps?.gitcoinPassport?.unusedCap,
-      MAX_CONTRIBUTION_WITH_GITCOIN_PASSPORT_ONLY_USD /
+      Number(qfRound1.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly) /
         Number(qfRound1.tokenPrice) -
         donationAmount,
     );
