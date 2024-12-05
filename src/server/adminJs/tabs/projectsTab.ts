@@ -12,6 +12,7 @@ import {
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
+  RevokeSteps,
 } from '../../../entities/project';
 import { canAccessProjectAction, ResourceActions } from '../adminJsPermissions';
 import {
@@ -178,6 +179,60 @@ export const addFeaturedProjectUpdate = async (
     }),
     notice: {
       message: `ProjectUpdates(s) successfully added to the featured Project list`,
+      type: 'success',
+    },
+  };
+};
+
+export const revokeGivbacksEligibility = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+) => {
+  const { records, currentAdmin } = context;
+  try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const updateParams = { isGivbackEligible: false };
+    const projects = await Project.createQueryBuilder('project')
+      .update<Project>(Project, updateParams)
+      .where('project.id IN (:...ids)')
+      .setParameter('ids', projectIds)
+      .returning('*')
+      .updateEntity(true)
+      .execute();
+
+    for (const project of projects.raw) {
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+      projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
+      await projectWithAdmin.save();
+      await getNotificationAdapter().projectBadgeRevoked({
+        project: projectWithAdmin,
+      });
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (verificationForm) {
+        await makeFormDraft({
+          formId: verificationForm.id,
+          adminId: currentAdmin.id,
+        });
+      }
+    }
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
+  } catch (error) {
+    logger.error('revokeGivbacksEligibility() error', error);
+    throw error;
+  }
+  return {
+    redirectUrl: '/admin/resources/Project',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message: 'Project(s) successfully revoked from Givbacks eligibility',
       type: 'success',
     },
   };
