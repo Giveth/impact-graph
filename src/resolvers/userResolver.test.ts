@@ -32,6 +32,11 @@ import { updateUserTotalDonated } from '../services/userService';
 import { getUserEmailConfirmationFields } from '../repositories/userRepository';
 import { UserEmailVerification } from '../entities/userEmailVerification';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
+import { UserKycType } from './userResolver';
+import {
+  GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
+  GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
+} from '../constants/gitcoin';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -1188,16 +1193,23 @@ function batchMintingEligibleUsersTestCases() {
     assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, []);
   });
 
-  it('should return users who have accepted terms of service and privado verified', async () => {
+  it('should return users who have accepted terms of service and has valid kyc status', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
       privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
       acceptedToS: true,
       // 2 days ago
-      acceptedToSDate: new Date(Date.now() - DAY * 2),
+      acceptedToSDate: new Date(Date.now() - DAY * 3),
     });
 
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
-      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      analysisScore: GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE + 0.001,
+      acceptedToS: true,
+      // yesterday
+      acceptedToSDate: new Date(Date.now() - DAY * 2),
+    });
+
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      passportScore: GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE + 0.001,
       acceptedToS: true,
       // yesterday
       acceptedToSDate: new Date(Date.now() - DAY),
@@ -1208,8 +1220,9 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
-      user1.walletAddress,
-      user2.walletAddress,
+      { address: user1.walletAddress, kycType: UserKycType.zkId },
+      { address: user2.walletAddress, kycType: UserKycType.GTCPass },
+      { address: user3.walletAddress, kycType: UserKycType.GTCPass },
     ]);
   });
 
@@ -1229,11 +1242,11 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
-      user.walletAddress,
+      { address: user.walletAddress, kycType: UserKycType.zkId },
     ]);
   });
 
-  it('should not return users who have accepted terms of service but have not privado verified', async () => {
+  it('should not return users who have accepted terms of service but have not valid kyc status', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
       privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
       acceptedToS: true,
@@ -1241,6 +1254,9 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId + 1],
+      passportScore: GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE - 0.001,
+      analysisScore: GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE - 0.001,
       acceptedToS: true,
       acceptedToSDate: new Date(Date.now() - DAY),
     });
@@ -1250,7 +1266,7 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
-      user1.walletAddress,
+      { address: user1.walletAddress, kycType: UserKycType.zkId },
     ]);
   });
 
@@ -1262,13 +1278,13 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
-      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      analysisScore: GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE + 0.001,
       acceptedToS: true,
       acceptedToSDate: new Date(Date.now() - DAY * 2),
     });
 
     const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
-      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      passportScore: GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE + 0.001,
       acceptedToS: true,
       acceptedToSDate: new Date(Date.now() - DAY),
     });
@@ -1282,8 +1298,8 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
-      user1.walletAddress,
-      user2.walletAddress,
+      { address: user1.walletAddress, kycType: UserKycType.zkId },
+      { address: user2.walletAddress, kycType: UserKycType.GTCPass },
     ]);
 
     result = await axios.post(graphqlUrl, {
@@ -1295,7 +1311,60 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
-      user3.walletAddress,
+      { address: user3.walletAddress, kycType: UserKycType.GTCPass },
+    ]);
+  });
+
+  it('should prioritize zkId over GTCPass', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      analysisScore: GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE + 0.001,
+      passportScore: GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE + 0.001,
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY * 4),
+    });
+
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      analysisScore: GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE - 0.001,
+      passportScore: GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE + 0.001,
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY * 3),
+    });
+
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      analysisScore: GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE + 0.001,
+      passportScore: GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE - 0.001,
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY * 2),
+    });
+
+    const user4 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId + 1],
+      analysisScore: GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE + 0.001,
+      passportScore: GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE + 0.001,
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId + 1],
+      analysisScore: GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE - 0.001,
+      passportScore: GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE - 0.001,
+      acceptedToS: true,
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsers,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      { address: user1.walletAddress, kycType: UserKycType.zkId },
+      { address: user2.walletAddress, kycType: UserKycType.zkId },
+      { address: user3.walletAddress, kycType: UserKycType.zkId },
+      { address: user4.walletAddress, kycType: UserKycType.GTCPass },
     ]);
   });
 }

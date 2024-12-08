@@ -2120,8 +2120,11 @@ export const acceptedTermsOfService = `
 
 export const batchMintingEligibleUsers = `
   query ( $limit: Int, $skip: Int, $filterAddress: String) {
-    batchMintingEligibleUsers(limit: $limit, skip: $skip, filterAddress: $filterAddress) {
-      users
+    batchMintingEligibleUsers: batchMintingEligibleUsersV2(limit: $limit, skip: $skip, filterAddress: $filterAddress) {
+      users {
+        address
+        kycType
+      }
       total
       skip
     }

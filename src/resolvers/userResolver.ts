@@ -6,9 +6,10 @@ import {
   Mutation,
   ObjectType,
   Query,
+  registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 
 import moment from 'moment';
 import { User } from '../entities/user';
@@ -36,6 +37,10 @@ import { addressHasDonated } from '../repositories/donationRepository';
 // import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
+import {
+  GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
+  GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
+} from '../constants/gitcoin';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -46,10 +51,29 @@ class UserRelatedAddressResponse {
   hasDonated: boolean;
 }
 
+export enum UserKycType {
+  zkId = 'zkId',
+  GTCPass = 'GTCPass',
+}
+
+registerEnumType(UserKycType, {
+  name: 'UserKycType',
+  description: 'User KYC type either Privado zk ID or Gitcoin Passport',
+});
+
+@ObjectType()
+class EligibleUser {
+  @Field(_type => String, { nullable: false })
+  address: string;
+
+  @Field(_type => UserKycType, { nullable: false })
+  kycType: UserKycType;
+}
+
 @ObjectType()
 class BatchMintingEligibleUserResponse {
-  @Field(_addresses => [String], { nullable: false })
-  users: string[];
+  @Field(_addresses => [EligibleUser], { nullable: false })
+  users: EligibleUser[];
 
   @Field(_total => Number, { nullable: false })
   total: number;
@@ -150,42 +174,56 @@ export class UserResolver {
   }
 
   @Query(_returns => BatchMintingEligibleUserResponse)
-  async batchMintingEligibleUsers(
+  async batchMintingEligibleUsersV2(
     @Arg('limit', _type => Int, { nullable: true }) limit: number = 1000,
     @Arg('skip', _type => Int, { nullable: true }) skip: number = 0,
     @Arg('filterAddress', { nullable: true }) filterAddress: string,
   ) {
-    if (filterAddress) {
-      const query = User.createQueryBuilder('user').where(
-        `LOWER("walletAddress") = :walletAddress`,
-        {
-          walletAddress: filterAddress.toLowerCase(),
-        },
+    let query = User.createQueryBuilder('user')
+      .select('user.walletAddress', 'address')
+      .addSelect(
+        'CASE WHEN :privadoRequestId = ANY (user.privadoVerifiedRequestIds) THEN :zkId ELSE :GTCPass END',
+        'kycType',
+      )
+      .setParameters({
+        privadoRequestId: PrivadoAdapter.privadoRequestId,
+        zkId: UserKycType.zkId,
+        GTCPass: UserKycType.GTCPass,
+      })
+      .where('user.acceptedToS = true')
+      .andWhere(
+        new Brackets(qb => {
+          qb.where('user.analysisScore >= :minAnalysisScore', {
+            minAnalysisScore: GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
+          })
+            .orWhere('user.passportScore >= :minPassportScore', {
+              minPassportScore: GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
+            })
+            .orWhere(
+              ':privadoRequestId = ANY (user.privadoVerifiedRequestIds)',
+              {
+                privadoRequestId: PrivadoAdapter.privadoRequestId,
+              },
+            );
+        }),
       );
 
-      const userExists = await query.getExists();
-
-      return {
-        users: userExists ? [filterAddress] : [],
-        total: userExists ? 1 : 0,
-        skip: 0,
-      };
+    if (filterAddress) {
+      query = query.andWhere(`LOWER("walletAddress") = :walletAddress`, {
+        walletAddress: filterAddress.toLowerCase(),
+      });
     }
 
-    const response = await User.createQueryBuilder('user')
-      .select('user.walletAddress')
-      .where('user.acceptedToS = true')
-      .andWhere(':privadoRequestId = ANY (user.privadoVerifiedRequestIds)', {
-        privadoRequestId: PrivadoAdapter.privadoRequestId,
-      })
+    const count = await query.getCount();
+    const response = await query
       .orderBy('user.acceptedToSDate', 'ASC')
       .take(limit)
       .skip(skip)
-      .getManyAndCount();
+      .getRawMany();
 
     return {
-      users: response[0].map((user: User) => user.walletAddress),
-      total: response[1],
+      users: response,
+      total: count,
       skip,
     };
   }
