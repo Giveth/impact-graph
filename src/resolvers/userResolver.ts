@@ -72,6 +72,17 @@ class EligibleUser {
 
 @ObjectType()
 class BatchMintingEligibleUserResponse {
+  @Field(_addresses => [String], { nullable: false })
+  users: string[];
+
+  @Field(_total => Number, { nullable: false })
+  total: number;
+
+  @Field(_offset => Number, { nullable: false })
+  skip: number;
+}
+@ObjectType()
+class BatchMintingEligibleUserV2Response {
   @Field(_addresses => [EligibleUser], { nullable: false })
   users: EligibleUser[];
 
@@ -174,6 +185,37 @@ export class UserResolver {
   }
 
   @Query(_returns => BatchMintingEligibleUserResponse)
+  async batchMintingEligibleUsers(
+    @Arg('limit', _type => Int, { nullable: true }) limit: number = 1000,
+    @Arg('skip', _type => Int, { nullable: true }) skip: number = 0,
+    @Arg('filterAddress', { nullable: true }) filterAddress: string,
+  ) {
+    let query = User.createQueryBuilder('user')
+      .select('user.walletAddress')
+      .where('user.acceptedToS = true')
+      .andWhere(':privadoRequestId = ANY (user.privadoVerifiedRequestIds)', {
+        privadoRequestId: PrivadoAdapter.privadoRequestId,
+      });
+    if (filterAddress) {
+      query = query.andWhere(`LOWER("walletAddress") = :walletAddress`, {
+        walletAddress: filterAddress.toLowerCase(),
+      });
+    }
+
+    const response = await query
+      .orderBy('user.acceptedToSDate', 'ASC')
+      .take(limit)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      users: response[0].map((user: User) => user.walletAddress),
+      total: response[1],
+      skip,
+    };
+  }
+
+  @Query(_returns => BatchMintingEligibleUserV2Response)
   async batchMintingEligibleUsersV2(
     @Arg('limit', _type => Int, { nullable: true }) limit: number = 1000,
     @Arg('skip', _type => Int, { nullable: true }) skip: number = 0,

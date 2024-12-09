@@ -18,6 +18,7 @@ import {
 import {
   acceptedTermsOfService,
   batchMintingEligibleUsers,
+  batchMintingEligibleUsersV2,
   checkUserPrivadoVerifiedState,
   refreshUserScores,
   updateUser,
@@ -62,6 +63,10 @@ describe(
 describe(
   'batchMintingEligibleUsers() test cases',
   batchMintingEligibleUsersTestCases,
+);
+describe(
+  'batchMintingEligibleV2Users() test cases',
+  batchMintingEligibleUsersV2TestCases,
 );
 
 // TODO I think we can delete  addUserVerification query
@@ -1184,13 +1189,53 @@ function batchMintingEligibleUsersTestCases() {
     // clear all users not empty accepted terms of service
     await User.delete({ acceptedToS: true });
   });
+  it('should return users who have accepted terms of service and privado verified', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      // 2 days ago
+      acceptedToSDate: new Date(Date.now() - DAY * 3),
+    });
 
-  it('should return empty array if there is no user to mint', async () => {
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      // yesterday
+      acceptedToSDate: new Date(Date.now() - DAY * 2),
+    });
+
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
+      privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
+      acceptedToS: true,
+      // yesterday
+      acceptedToSDate: new Date(Date.now() - DAY),
+    });
+
     const result = await axios.post(graphqlUrl, {
       query: batchMintingEligibleUsers,
     });
 
-    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, []);
+    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+      user1.walletAddress,
+      user2.walletAddress,
+      user3.walletAddress,
+    ]);
+  });
+}
+
+function batchMintingEligibleUsersV2TestCases() {
+  const DAY = 86400000;
+  beforeEach(async () => {
+    // clear all users not empty accepted terms of service
+    await User.delete({ acceptedToS: true });
+  });
+
+  it('should return empty array if there is no user to mint', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: batchMintingEligibleUsersV2,
+    });
+
+    assert.deepEqual(result.data.data.batchMintingEligibleUsersV2.users, []);
   });
 
   it('should return users who have accepted terms of service and has valid kyc status', async () => {
@@ -1216,10 +1261,10 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     const result = await axios.post(graphqlUrl, {
-      query: batchMintingEligibleUsers,
+      query: batchMintingEligibleUsersV2,
     });
 
-    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+    assert.deepEqual(result.data.data.batchMintingEligibleUsersV2.users, [
       { address: user1.walletAddress, kycType: UserKycType.zkId },
       { address: user2.walletAddress, kycType: UserKycType.GTCPass },
       { address: user3.walletAddress, kycType: UserKycType.GTCPass },
@@ -1238,10 +1283,10 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     const result = await axios.post(graphqlUrl, {
-      query: batchMintingEligibleUsers,
+      query: batchMintingEligibleUsersV2,
     });
 
-    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+    assert.deepEqual(result.data.data.batchMintingEligibleUsersV2.users, [
       { address: user.walletAddress, kycType: UserKycType.zkId },
     ]);
   });
@@ -1262,10 +1307,10 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     const result = await axios.post(graphqlUrl, {
-      query: batchMintingEligibleUsers,
+      query: batchMintingEligibleUsersV2,
     });
 
-    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+    assert.deepEqual(result.data.data.batchMintingEligibleUsersV2.users, [
       { address: user1.walletAddress, kycType: UserKycType.zkId },
     ]);
   });
@@ -1290,27 +1335,27 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     let result = await axios.post(graphqlUrl, {
-      query: batchMintingEligibleUsers,
+      query: batchMintingEligibleUsersV2,
       variables: {
         limit: 2,
         skip: 0,
       },
     });
 
-    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+    assert.deepEqual(result.data.data.batchMintingEligibleUsersV2.users, [
       { address: user1.walletAddress, kycType: UserKycType.zkId },
       { address: user2.walletAddress, kycType: UserKycType.GTCPass },
     ]);
 
     result = await axios.post(graphqlUrl, {
-      query: batchMintingEligibleUsers,
+      query: batchMintingEligibleUsersV2,
       variables: {
         limit: 2,
         skip: 2,
       },
     });
 
-    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+    assert.deepEqual(result.data.data.batchMintingEligibleUsersV2.users, [
       { address: user3.walletAddress, kycType: UserKycType.GTCPass },
     ]);
   });
@@ -1357,10 +1402,10 @@ function batchMintingEligibleUsersTestCases() {
     });
 
     const result = await axios.post(graphqlUrl, {
-      query: batchMintingEligibleUsers,
+      query: batchMintingEligibleUsersV2,
     });
 
-    assert.deepEqual(result.data.data.batchMintingEligibleUsers.users, [
+    assert.deepEqual(result.data.data.batchMintingEligibleUsersV2.users, [
       { address: user1.walletAddress, kycType: UserKycType.zkId },
       { address: user2.walletAddress, kycType: UserKycType.zkId },
       { address: user3.walletAddress, kycType: UserKycType.zkId },
