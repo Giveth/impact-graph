@@ -83,6 +83,7 @@ export type FilterProjectQueryInputParams = {
   qfRoundId?: number;
   activeQfRoundId?: number;
   qfRoundSlug?: string;
+  includeUnlisted?: boolean;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -97,6 +98,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     qfRoundId,
     qfRoundSlug,
     activeQfRoundId,
+    includeUnlisted,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -122,11 +124,16 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'projectPower.totalPower',
       'projectPower.powerRank',
       'projectPower.round',
-    ])
-    .where(
+    ]);
+
+  if (includeUnlisted) {
+    query = query.where(`project.statusId = ${ProjStatus.active}`);
+  } else {
+    query = query.where(
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
+  }
 
   const isFilterByQF =
     !!filters?.find(f => f === FilterField.ActiveQfRound) && activeQfRoundId;
@@ -255,7 +262,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.BestMatch:
       break;
-
     default:
       query
         .addOrderBy('projectInstantPower.totalPower', OrderDirection.DESC)
