@@ -250,6 +250,18 @@ export const verifyProjects = async (
       ?.split(',')
       ?.map(strId => Number(strId)) as number[];
     const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
+
+    // Check if any project is Givback eligible and vouchedStatus is false\
+    if (!vouchedStatus) {
+      for (const project of projectsBeforeUpdating) {
+        if (project.isGivbackEligible) {
+          throw new Error(
+            `The project with ID ${project.id} is Givback-eligible, so the Vouched badge cannot be revoked.`,
+          );
+        }
+      }
+    }
+
     const updateParams = { verified: vouchedStatus };
 
     const projects = await Project.createQueryBuilder('project')
@@ -280,6 +292,15 @@ export const verifyProjects = async (
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
+      if (vouchedStatus) {
+        await getNotificationAdapter().projectVerified({
+          project: project,
+        });
+      } else {
+        await getNotificationAdapter().projectUnVerified({
+          project: project,
+        });
+      }
     }
 
     await Promise.all([
@@ -287,22 +308,27 @@ export const verifyProjects = async (
       refreshProjectPowerView(),
       refreshProjectFuturePowerView(),
     ]);
+    return {
+      redirectUrl: redirectUrl,
+      records: records.map(record => record.toJSON(context.currentAdmin)),
+      notice: {
+        message: `Project(s) successfully ${
+          vouchedStatus ? 'vouched' : 'unvouched'
+        }`,
+        type: 'success',
+      },
+    };
   } catch (error) {
     logger.error('verifyProjects() error', error);
-    throw error;
+    return {
+      redirectUrl: redirectUrl,
+      records: records.map(record => record.toJSON(context.currentAdmin)),
+      notice: {
+        message: error.message,
+        type: 'error',
+      },
+    };
   }
-  return {
-    redirectUrl: redirectUrl,
-    records: records.map(record => {
-      record.toJSON(context.currentAdmin);
-    }),
-    notice: {
-      message: `Project(s) successfully ${
-        vouchedStatus ? 'vouched' : 'unvouched'
-      }`,
-      type: 'success',
-    },
-  };
 };
 
 export const updateStatusOfProjects = async (
