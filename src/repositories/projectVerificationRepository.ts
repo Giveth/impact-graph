@@ -204,8 +204,9 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
 export const updateProjectRegistryOfProjectVerification = async (params: {
   projectVerificationId: number;
   projectRegistry: ProjectRegistry;
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { projectRegistry, projectVerificationId } = params;
+  const { projectRegistry, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -216,6 +217,9 @@ export const updateProjectRegistryOfProjectVerification = async (params: {
   }
   await ProjectVerificationForm.update(projectVerificationId, {
     projectRegistry,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email,
   });
   projectVerificationForm.projectRegistry = projectRegistry;
   return projectVerificationForm;
@@ -264,8 +268,9 @@ export const updateProjectVerificationLastStep = async (params: {
 export const updateProjectContactsOfProjectVerification = async (params: {
   projectVerificationId: number;
   projectContacts: ProjectContacts[];
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { projectContacts, projectVerificationId } = params;
+  const { projectContacts, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -278,6 +283,9 @@ export const updateProjectContactsOfProjectVerification = async (params: {
   // projectContacts2.linkedin = projectContacts.linkedin
   await ProjectVerificationForm.update(projectVerificationId, {
     projectContacts,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email,
   });
   projectVerificationForm.projectContacts = projectContacts;
   return projectVerificationForm;
@@ -285,8 +293,9 @@ export const updateProjectContactsOfProjectVerification = async (params: {
 export const updateMilestonesOfProjectVerification = async (params: {
   projectVerificationId: number;
   milestones: Milestones;
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { milestones, projectVerificationId } = params;
+  const { milestones, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -297,6 +306,9 @@ export const updateMilestonesOfProjectVerification = async (params: {
   }
   await ProjectVerificationForm.update(projectVerificationId, {
     milestones,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email: email,
   });
   projectVerificationForm.milestones = milestones;
   return projectVerificationForm;
@@ -304,8 +316,9 @@ export const updateMilestonesOfProjectVerification = async (params: {
 export const updateTermsAndConditionsOfProjectVerification = async (params: {
   projectVerificationId: number;
   isTermAndConditionsAccepted: boolean;
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { isTermAndConditionsAccepted, projectVerificationId } = params;
+  const { isTermAndConditionsAccepted, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -318,6 +331,9 @@ export const updateTermsAndConditionsOfProjectVerification = async (params: {
     isTermAndConditionsAccepted;
   await ProjectVerificationForm.update(projectVerificationId, {
     isTermAndConditionsAccepted,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email,
   });
   return projectVerificationForm;
 };
@@ -325,8 +341,9 @@ export const updateTermsAndConditionsOfProjectVerification = async (params: {
 export const updateManagingFundsOfProjectVerification = async (params: {
   projectVerificationId: number;
   managingFunds: ManagingFunds;
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { managingFunds, projectVerificationId } = params;
+  const { managingFunds, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -350,6 +367,9 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   projectVerificationForm.managingFunds = managingFunds;
   await ProjectVerificationForm.update(projectVerificationId, {
     managingFunds,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email,
   });
   return projectVerificationForm;
 };
