@@ -16,7 +16,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
-            git reset --hard HEAD~1
+            git reset --hard origin/staging
             git checkout staging
             git pull origin staging
             docker image prune -a --force

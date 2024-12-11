@@ -63,7 +63,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
-            git reset --hard HEAD~1
+            git reset --hard origin/main
             git checkout main
             git pull origin main
             docker image prune -a --force
