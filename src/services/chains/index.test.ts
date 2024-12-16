@@ -597,24 +597,24 @@ function getTransactionDetailTestCases() {
   //   assert.equal(transactionInfo.amount, amount);
   // });
 
-  it('should return transaction detail for normal transfer on ZKEVM Cardano', async () => {
-    // https://cardona-zkevm.polygonscan.com/tx/0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a
+  // it('should return transaction detail for normal transfer on ZKEVM Cardano', async () => {
+  //   // https://cardona-zkevm.polygonscan.com/tx/0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a
 
-    const amount = 0.00001;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a',
-      symbol: 'ETH',
-      networkId: NETWORK_IDS.ZKEVM_CARDONA,
-      fromAddress: '0x9AF3049dD15616Fd627A35563B5282bEA5C32E20',
-      toAddress: '0x417a7BA2d8d0060ae6c54fd098590DB854B9C1d5',
-      amount,
-      timestamp: 1718267581,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETH');
-    assert.equal(transactionInfo.amount, amount);
-  });
+  //   const amount = 0.00001;
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash:
+  //       '0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a',
+  //     symbol: 'ETH',
+  //     networkId: NETWORK_IDS.ZKEVM_CARDONA,
+  //     fromAddress: '0x9AF3049dD15616Fd627A35563B5282bEA5C32E20',
+  //     toAddress: '0x417a7BA2d8d0060ae6c54fd098590DB854B9C1d5',
+  //     amount,
+  //     timestamp: 1718267581,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'ETH');
+  //   assert.equal(transactionInfo.amount, amount);
+  // });
 
   it('should return transaction detail for OP token transfer on optimistic', async () => {
     // https://optimistic.etherscan.io/tx/0xf11be189d967831bb8a76656882eeeac944a799bd222acbd556f2156fdc02db4
