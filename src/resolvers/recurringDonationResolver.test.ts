@@ -30,6 +30,11 @@ import { generateRandomString } from '../utils/utils';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 
 describe(
+  'recurringDonationEligibleProjects test cases',
+  recurringDonationEligibleProjectsTestCases,
+);
+
+describe(
   'createRecurringDonation test cases',
   createRecurringDonationTestCases,
 );
@@ -62,6 +67,85 @@ describe(
   'recurringDonationsByProjectDate test cases',
   recurringDonationsByProjectDateTestCases,
 );
+
+function recurringDonationEligibleProjectsTestCases() {
+  it('should return eligible projects with their anchor contracts', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const project = await saveProjectDirectlyToDb(
+      {
+        ...createProjectData(),
+        isGivbackEligible: true,
+      },
+      projectOwner,
+    );
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: projectOwner,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const anchorContractAddressBASE = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: projectOwner,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.BASE_MAINNET,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: `
+          query {
+            recurringDonationEligibleProjects {
+              id
+              slug
+              title
+              anchorContracts {
+                address
+                networkId
+                isActive
+              }
+            }
+          }
+        `,
+    });
+
+    assert.isNotNull(result.data.data.recurringDonationEligibleProjects);
+    const foundProject =
+      result.data.data.recurringDonationEligibleProjects.find(
+        p => p.id === project.id,
+      );
+
+    assert.isNotNull(
+      foundProject,
+      'Project should be found in eligible projects',
+    );
+    assert.equal(foundProject.slug, project.slug);
+    assert.equal(foundProject.title, project.title);
+    assert.equal(foundProject.anchorContracts.length, 2);
+
+    // Assert Optimistic anchor contract
+    const optimisticContract = foundProject.anchorContracts.find(
+      contract => contract.networkId === NETWORK_IDS.OPTIMISTIC,
+    );
+    assert.isNotNull(optimisticContract);
+    assert.equal(optimisticContract.address, anchorContractAddress.address);
+
+    // Assert BASE anchor contract
+    const baseContract = foundProject.anchorContracts.find(
+      contract => contract.networkId === NETWORK_IDS.BASE_MAINNET,
+    );
+    assert.isNotNull(baseContract);
+    assert.equal(baseContract.address, anchorContractAddressBASE.address);
+  });
+}
 
 function createRecurringDonationTestCases() {
   it('should create recurringDonation successfully', async () => {

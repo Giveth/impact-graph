@@ -56,6 +56,23 @@ import {
 } from '../services/recurringDonationService';
 import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
 import { ResourcePerDateRange } from './donationResolver';
+import { Project } from '../entities/project';
+
+@ObjectType()
+class RecurringDonationEligibleProject {
+  @Field()
+  id: number;
+
+  @Field()
+  slug: string;
+
+  @Field()
+  title: string;
+
+  @Field(_type => [AnchorContractAddress])
+  anchorContracts: AnchorContractAddress[];
+}
+
 @InputType()
 class RecurringDonationSortBy {
   @Field(_type => RecurringDonationSortField)
@@ -705,6 +722,48 @@ export class RecurringDonationResolver {
       SentryLogger.captureException(e);
       logger.error('updateRecurringDonationStatus() error ', e);
       throw e;
+    }
+  }
+
+  @Query(_return => [RecurringDonationEligibleProject], { nullable: true })
+  async recurringDonationEligibleProjects(
+    @Arg('networkId', { nullable: true }) networkId?: string,
+    @Arg('page', _type => Int, { nullable: true, defaultValue: 1 })
+    page: number = 1,
+    @Arg('limit', _type => Int, { nullable: true, defaultValue: 50 })
+    limit: number = 50,
+  ): Promise<RecurringDonationEligibleProject[]> {
+    try {
+      const offset = (page - 1) * limit;
+
+      let networkFilter = '';
+      if (networkId) {
+        networkFilter = `AND anchor_contract_address."networkId" = ${networkId}`;
+      }
+
+      return await Project.getRepository().query(`
+        SELECT 
+          project.id,
+          project.slug,
+          project.title,
+          array_agg(json_build_object(
+            'address', anchor_contract_address.address,
+            'networkId', anchor_contract_address."networkId",
+            'isActive', anchor_contract_address."isActive"
+          )) as "anchorContracts"
+        FROM project
+        INNER JOIN anchor_contract_address ON project.id = anchor_contract_address."projectId"
+        WHERE project."isGivbackEligible" = true
+          AND anchor_contract_address."isActive" = true
+          ${networkFilter}
+        GROUP BY project.id, project.slug, project.title
+        OFFSET ${offset}
+        LIMIT ${limit}
+      `);
+    } catch (error) {
+      throw new Error(
+        `Error fetching eligible projects for donation: ${error}`,
+      );
     }
   }
 
