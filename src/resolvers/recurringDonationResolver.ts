@@ -184,6 +184,9 @@ class UserRecurringDonationsArgs {
 
   @Field(_type => [String], { nullable: true, defaultValue: [] })
   filteredTokens: string[];
+
+  @Field(_type => Int, { nullable: true })
+  networkId?: number;
 }
 
 @ObjectType()
@@ -428,6 +431,12 @@ export class RecurringDonationResolver {
       },
     })
     orderBy: RecurringDonationSortBy,
+    @Arg('networkId', _type => Int, { nullable: true }) networkId: number,
+    @Arg('filteredTokens', _type => [String], {
+      nullable: true,
+      defaultValue: [],
+    })
+    filteredTokens: string[],
   ) {
     const project = await findProjectById(projectId);
     if (!project) {
@@ -481,6 +490,12 @@ export class RecurringDonationResolver {
       });
     }
 
+    if (filteredTokens && filteredTokens.length > 0) {
+      query.andWhere(`recurringDonation.currency IN (:...filteredTokens)`, {
+        filteredTokens,
+      });
+    }
+
     if (searchTerm) {
       query.andWhere(
         new Brackets(qb => {
@@ -508,6 +523,13 @@ export class RecurringDonationResolver {
         }),
       );
     }
+
+    if (networkId) {
+      query.andWhere(`recurringDonation.networkId = :networkId`, {
+        networkId,
+      });
+    }
+
     const [recurringDonations, donationsCount] = await query
       .take(take)
       .skip(skip)
@@ -576,6 +598,7 @@ export class RecurringDonationResolver {
       includeArchived,
       finishStatus,
       filteredTokens,
+      networkId,
     }: UserRecurringDonationsArgs,
     @Ctx() ctx: ApolloContext,
   ) {
@@ -636,6 +659,12 @@ export class RecurringDonationResolver {
     if (filteredTokens && filteredTokens.length > 0) {
       query.andWhere(`recurringDonation.currency IN (:...filteredTokens)`, {
         filteredTokens,
+      });
+    }
+
+    if (networkId) {
+      query.andWhere(`recurringDonation.networkId = :networkId`, {
+        networkId,
       });
     }
 
