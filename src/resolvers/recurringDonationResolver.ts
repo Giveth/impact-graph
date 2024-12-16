@@ -756,7 +756,7 @@ export class RecurringDonationResolver {
 
   @Query(_return => [RecurringDonationEligibleProject], { nullable: true })
   async recurringDonationEligibleProjects(
-    @Arg('networkId', { nullable: true }) networkId?: string,
+    @Arg('networkId', { nullable: true }) networkId?: number,
     @Arg('page', _type => Int, { nullable: true, defaultValue: 1 })
     page: number = 1,
     @Arg('limit', _type => Int, { nullable: true, defaultValue: 50 })
@@ -765,12 +765,17 @@ export class RecurringDonationResolver {
     try {
       const offset = (page - 1) * limit;
 
+      const queryParams = [offset, limit];
       let networkFilter = '';
+      let paramIndex = 3;
       if (networkId) {
-        networkFilter = `AND anchor_contract_address."networkId" = ${networkId}`;
+        networkFilter = `AND anchor_contract_address."networkId" = $${paramIndex}`;
+        queryParams.push(networkId);
+        paramIndex++;
       }
 
-      return await Project.getRepository().query(`
+      return await Project.getRepository().query(
+        `
         SELECT 
           project.id,
           project.slug,
@@ -786,9 +791,11 @@ export class RecurringDonationResolver {
           AND anchor_contract_address."isActive" = true
           ${networkFilter}
         GROUP BY project.id, project.slug, project.title
-        OFFSET ${offset}
-        LIMIT ${limit}
-      `);
+        OFFSET $1
+        LIMIT $2
+      `,
+        queryParams,
+      );
     } catch (error) {
       throw new Error(
         `Error fetching eligible projects for donation: ${error}`,
