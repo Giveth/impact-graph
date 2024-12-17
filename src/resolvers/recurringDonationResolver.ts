@@ -56,6 +56,23 @@ import {
 } from '../services/recurringDonationService';
 import { markDraftRecurringDonationStatusMatched } from '../repositories/draftRecurringDonationRepository';
 import { ResourcePerDateRange } from './donationResolver';
+import { Project } from '../entities/project';
+
+@ObjectType()
+class RecurringDonationEligibleProject {
+  @Field()
+  id: number;
+
+  @Field()
+  slug: string;
+
+  @Field()
+  title: string;
+
+  @Field(_type => [AnchorContractAddress])
+  anchorContracts: AnchorContractAddress[];
+}
+
 @InputType()
 class RecurringDonationSortBy {
   @Field(_type => RecurringDonationSortField)
@@ -167,6 +184,9 @@ class UserRecurringDonationsArgs {
 
   @Field(_type => [String], { nullable: true, defaultValue: [] })
   filteredTokens: string[];
+
+  @Field(_type => Int, { nullable: true })
+  networkId?: number;
 }
 
 @ObjectType()
@@ -411,6 +431,12 @@ export class RecurringDonationResolver {
       },
     })
     orderBy: RecurringDonationSortBy,
+    @Arg('networkId', _type => Int, { nullable: true }) networkId: number,
+    @Arg('filteredTokens', _type => [String], {
+      nullable: true,
+      defaultValue: [],
+    })
+    filteredTokens: string[],
   ) {
     const project = await findProjectById(projectId);
     if (!project) {
@@ -464,6 +490,12 @@ export class RecurringDonationResolver {
       });
     }
 
+    if (filteredTokens && filteredTokens.length > 0) {
+      query.andWhere(`recurringDonation.currency IN (:...filteredTokens)`, {
+        filteredTokens,
+      });
+    }
+
     if (searchTerm) {
       query.andWhere(
         new Brackets(qb => {
@@ -491,6 +523,13 @@ export class RecurringDonationResolver {
         }),
       );
     }
+
+    if (networkId) {
+      query.andWhere(`recurringDonation.networkId = :networkId`, {
+        networkId,
+      });
+    }
+
     const [recurringDonations, donationsCount] = await query
       .take(take)
       .skip(skip)
@@ -559,6 +598,7 @@ export class RecurringDonationResolver {
       includeArchived,
       finishStatus,
       filteredTokens,
+      networkId,
     }: UserRecurringDonationsArgs,
     @Ctx() ctx: ApolloContext,
   ) {
@@ -619,6 +659,12 @@ export class RecurringDonationResolver {
     if (filteredTokens && filteredTokens.length > 0) {
       query.andWhere(`recurringDonation.currency IN (:...filteredTokens)`, {
         filteredTokens,
+      });
+    }
+
+    if (networkId) {
+      query.andWhere(`recurringDonation.networkId = :networkId`, {
+        networkId,
       });
     }
 
@@ -705,6 +751,55 @@ export class RecurringDonationResolver {
       SentryLogger.captureException(e);
       logger.error('updateRecurringDonationStatus() error ', e);
       throw e;
+    }
+  }
+
+  @Query(_return => [RecurringDonationEligibleProject], { nullable: true })
+  async recurringDonationEligibleProjects(
+    @Arg('networkId', { nullable: true }) networkId?: number,
+    @Arg('page', _type => Int, { nullable: true, defaultValue: 1 })
+    page: number = 1,
+    @Arg('limit', _type => Int, { nullable: true, defaultValue: 50 })
+    limit: number = 50,
+  ): Promise<RecurringDonationEligibleProject[]> {
+    try {
+      const offset = (page - 1) * limit;
+
+      const queryParams = [offset, limit];
+      let networkFilter = '';
+      let paramIndex = 3;
+      if (networkId) {
+        networkFilter = `AND anchor_contract_address."networkId" = $${paramIndex}`;
+        queryParams.push(networkId);
+        paramIndex++;
+      }
+
+      return await Project.getRepository().query(
+        `
+        SELECT 
+          project.id,
+          project.slug,
+          project.title,
+          array_agg(json_build_object(
+            'address', anchor_contract_address.address,
+            'networkId', anchor_contract_address."networkId",
+            'isActive', anchor_contract_address."isActive"
+          )) as "anchorContracts"
+        FROM project
+        INNER JOIN anchor_contract_address ON project.id = anchor_contract_address."projectId"
+        WHERE project."isGivbackEligible" = true
+          AND anchor_contract_address."isActive" = true
+          ${networkFilter}
+        GROUP BY project.id, project.slug, project.title
+        OFFSET $1
+        LIMIT $2
+      `,
+        queryParams,
+      );
+    } catch (error) {
+      throw new Error(
+        `Error fetching eligible projects for donation: ${error}`,
+      );
     }
   }
 
