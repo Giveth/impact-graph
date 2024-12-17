@@ -13,7 +13,12 @@ import {
   findRecurringDonationById,
 } from '../../repositories/recurringDonationRepository';
 import { getCurrentDateFormatted } from '../../utils/utils';
-import { getNetworkNameById, superTokens } from '../../provider';
+import {
+  getNetworkNameById,
+  NETWORK_IDS,
+  superTokens,
+  superTokensBase,
+} from '../../provider';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 
 const runCheckUserSuperTokenBalancesQueue = new Bull(
@@ -112,10 +117,24 @@ export const validateDonorSuperTokenBalance = async (
 
   if (!accountBalances || accountBalances.length === 0) return;
 
+  let superTokenDataArray = superTokens;
+
+  if (
+    recurringDonation.networkId === NETWORK_IDS.BASE_SEPOLIA ||
+    recurringDonation.networkId === NETWORK_IDS.BASE_MAINNET
+  ) {
+    superTokenDataArray = superTokensBase;
+  } else if (
+    recurringDonation.networkId === NETWORK_IDS.OPTIMISM_SEPOLIA ||
+    recurringDonation.networkId === NETWORK_IDS.OPTIMISTIC
+  ) {
+    superTokenDataArray = superTokens;
+  }
+
   for (const tokenBalance of accountBalances) {
     const { maybeCriticalAtTimestamp, token } = tokenBalance;
     if (!user!.email) continue;
-    const tokenSymbol = superTokens.find(t => t.id === token.id)
+    const tokenSymbol = superTokenDataArray.find(t => t.id === token.id)
       ?.underlyingToken.symbol;
     // We shouldn't notify the user if the token is not the same as the recurring donation
     if (tokenSymbol !== recurringDonation.currency) continue;

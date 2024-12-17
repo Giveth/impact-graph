@@ -33,7 +33,6 @@ import {
 } from './donationService';
 import { calculateGivbackFactor } from './givbackService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
-import config from '../config';
 import { User } from '../entities/user';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
@@ -122,18 +121,17 @@ export const createRelatedDonationsToStream = async (
       });
     }
   }
+  let networkId: number = recurringDonation.networkId;
+
+  if (networkId === NETWORK_IDS.BASE_SEPOLIA) {
+    networkId = NETWORK_IDS.BASE_MAINNET;
+  }
+
   // create donation if any virtual period is missing
   if (uniquePeriods.length === 0) return;
 
   for (const streamPeriod of uniquePeriods) {
     try {
-      const environment = config.get('ENVIRONMENT') as string;
-
-      const networkId: number =
-        environment !== 'production'
-          ? NETWORK_IDS.OPTIMISM_SEPOLIA
-          : NETWORK_IDS.OPTIMISTIC;
-
       const symbolCurrency = recurringDonation.currency.includes('x')
         ? superTokensToToken[recurringDonation.currency]
         : recurringDonation.currency;
