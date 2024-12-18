@@ -14,6 +14,7 @@ import {
   GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
   GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
 } from '../constants/gitcoin';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 
 const getEaProjectRoundRecord = async ({
   projectId,
@@ -270,8 +271,49 @@ const validDonationAmountBasedOnKYCAndScore = async ({
   return true;
 };
 
+const getQAccStat = async (): Promise<{
+  totalCollected: number;
+  qfTotalCollected: number;
+  totalContributors: number;
+}> => {
+  const [qfTotalCollected, totalCollected, totalContributors] =
+    await Promise.all([
+      Donation.createQueryBuilder('donation')
+        .select('COALESCE(sum(donation.amount), 0)', 'total_qf_collected')
+        .where('donation.status = :status', {
+          status: DONATION_STATUS.VERIFIED,
+        })
+        .andWhere('donation."qfRoundId" IS NOT NULL')
+        .cache('qf_total_collected_donation', 1000)
+        .getRawOne(),
+
+      Donation.createQueryBuilder('donation')
+        .select('COALESCE(sum(donation.amount), 0)', 'total_collected')
+        .where('donation.status = :status', {
+          status: DONATION_STATUS.VERIFIED,
+        })
+        .cache('total_collected_donation', 1000)
+        .getRawOne(),
+
+      Donation.createQueryBuilder('donation')
+        .select('count(distinct donation."userId")', 'total_contributors')
+        .where('donation.status = :status', {
+          status: DONATION_STATUS.VERIFIED,
+        })
+        .cache('total_contributors', 1000)
+        .getRawOne(),
+    ]);
+
+  return {
+    totalCollected: totalCollected.total_collected,
+    qfTotalCollected: qfTotalCollected.total_qf_collected,
+    totalContributors: totalContributors.total_contributors,
+  };
+};
+
 export default {
   getQAccDonationCap,
   validDonationAmountBasedOnKYCAndScore,
   getUserRemainedCapBasedOnGitcoinScore,
+  getQAccStat,
 };
