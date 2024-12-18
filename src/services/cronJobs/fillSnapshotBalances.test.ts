@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import sinon from 'sinon';
+import { In } from 'typeorm';
 import {
   addFillPowerSnapshotBalanceJobsToQueue,
   processFillPowerSnapshotJobs,
@@ -16,7 +17,10 @@ import { PowerSnapshot } from '../../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../../orm';
 import { PowerBalanceSnapshot } from '../../entities/powerBalanceSnapshot';
-import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory';
+import {
+  getPowerBalanceAggregatorAdapter,
+  mockPowerBalanceAggregator,
+} from '../../adapters/adaptersFactory';
 import { convertTimeStampToSeconds } from '../../utils/utils';
 
 describe(
@@ -33,6 +37,7 @@ async function processFillPowerSnapshotJobsTestCases() {
     );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
+    mockPowerBalanceAggregator.clearExcludedAddresses();
   });
 
   afterEach(() => {
@@ -295,6 +300,98 @@ async function processFillPowerSnapshotJobsTestCases() {
     await sleep(4_000);
 
     assert.equal((await getPowerBoostingSnapshotWithoutBalance()).length, 0);
-    // assert.isEmpty(await getPowerBoostingSnapshotWithoutBalance());
+  });
+
+  it('should fill zero snapshot balance for users with no balance on balance aggreagator', async () => {
+    const powerSnapshotTime = new Date().getTime() - 10 * 3600 * 1000; // 10 hour earlier
+    const excludedAddresses: string[] = [];
+    const excludedUserIds: number[] = [];
+
+    const ITERATIONS = 10;
+    for (let i = 0; i < ITERATIONS; i++) {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+      excludedAddresses.push(user2.walletAddress as string);
+      excludedUserIds.push(user2.id);
+
+      const project = await saveProjectDirectlyToDb(createProjectData());
+      const powerSnapshots = PowerSnapshot.create([
+        {
+          time: new Date(powerSnapshotTime + (i + 1) * 1000),
+        },
+        {
+          time: new Date(powerSnapshotTime + 500 + (i + 1) * 1000),
+        },
+      ]);
+      await PowerSnapshot.save(powerSnapshots);
+
+      const powerBoostingSnapshots = PowerBoostingSnapshot.create([
+        {
+          userId: user.id,
+          projectId: project.id,
+          percentage: 10,
+          powerSnapshot: powerSnapshots[0],
+        },
+        {
+          userId: user2.id,
+          projectId: project.id,
+          percentage: 20,
+          powerSnapshot: powerSnapshots[0],
+        },
+        {
+          userId: user.id,
+          projectId: project.id,
+          percentage: 30,
+          powerSnapshot: powerSnapshots[1],
+        },
+        {
+          userId: user2.id,
+          projectId: project.id,
+          percentage: 40,
+          powerSnapshot: powerSnapshots[1],
+        },
+      ]);
+      await PowerBoostingSnapshot.save(powerBoostingSnapshots);
+
+      const powerBalances = PowerBalanceSnapshot.create([
+        {
+          userId: user.id,
+          powerSnapshot: powerSnapshots[0],
+        },
+        {
+          userId: user2.id,
+          powerSnapshot: powerSnapshots[0],
+        },
+        {
+          userId: user.id,
+          powerSnapshot: powerSnapshots[1],
+        },
+        {
+          userId: user2.id,
+          powerSnapshot: powerSnapshots[1],
+        },
+      ]);
+      await PowerBalanceSnapshot.save(powerBalances);
+    }
+
+    mockPowerBalanceAggregator.addExcludedAddresses(excludedAddresses);
+
+    assert.isNotEmpty(await getPowerBoostingSnapshotWithoutBalance());
+
+    await addFillPowerSnapshotBalanceJobsToQueue();
+
+    await sleep(4_000);
+
+    assert.equal((await getPowerBoostingSnapshotWithoutBalance()).length, 0);
+
+    const excludedUsersPowerBalances = await PowerBalanceSnapshot.find({
+      where: {
+        userId: In(excludedUserIds),
+      },
+    });
+
+    assert.lengthOf(excludedUsersPowerBalances, ITERATIONS * 2);
+    assert.isTrue(excludedUsersPowerBalances.every(pb => pb.balance === 0));
   });
 }
