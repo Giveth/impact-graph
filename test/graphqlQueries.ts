@@ -2186,3 +2186,13 @@ export const userCaps = `
     }
   }
 `;
+
+export const qAccStat = `
+ query {
+    qAccStat {
+      totalCollected
+      qfTotalCollected
+      contributorsCount
+    }
+  }
+`;
