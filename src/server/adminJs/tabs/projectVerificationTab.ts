@@ -246,6 +246,25 @@ export const approveVerificationForms = async (
       ? PROJECT_VERIFICATION_STATUSES.VERIFIED
       : PROJECT_VERIFICATION_STATUSES.REJECTED;
     const formIds = request?.query?.recordIds?.split(',');
+
+    logger.info('approveVerificationForms() formIds', formIds);
+
+    // Preliminary check for DRAFT status
+    const draftProjects = await ProjectVerificationForm.createQueryBuilder(
+      'form',
+    )
+      .where('form.id IN (:...formIds)', { formIds })
+      .andWhere('form.status = :status', {
+        status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      })
+      .getMany();
+
+    if (draftProjects.length > 0) {
+      throw new Error(
+        `Cannot ${approved ? 'approve' : 'reject'} project${draftProjects.length > 1 ? 's' : ''} in DRAFT status.`,
+      );
+    }
+
     // call repositories
     const projectsForms = await verifyMultipleForms({
       verificationStatus,
@@ -261,7 +280,7 @@ export const approveVerificationForms = async (
       return project.id;
     });
 
-    // need to requery them as the RAW is not an entity
+    // need to re-query them as the RAW is not an entity
     const verificationForms = await ProjectVerificationForm.createQueryBuilder(
       'projectVerificationForm',
     )
@@ -294,7 +313,7 @@ export const approveVerificationForms = async (
     }`;
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
-    responseMessage = `Bulk verify failed ${error.message}`;
+    responseMessage = `Bulk verify failed: ${error.message}`;
     responseType = 'danger';
   }
   return {

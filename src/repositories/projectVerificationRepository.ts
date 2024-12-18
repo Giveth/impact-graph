@@ -417,24 +417,20 @@ export const approveProject = async (params: {
   return project.save();
 };
 
-export const approveMultipleProjects = async (params: {
+export const approveMultipleProjects = async ({
+  approved,
+  projectsIds,
+}: {
   approved: boolean;
   projectsIds: string[] | number[];
 }): Promise<UpdateResult> => {
-  if (params.approved) {
-    await Project.query(`
-      UPDATE project
-      SET "verificationStatus" = NULL
-      WHERE id IN (${params.projectsIds?.join(',')})
-    `);
-  }
-
   return Project.createQueryBuilder('project')
-    .update<Project>(Project, {
-      isGivbackEligible: params.approved,
+    .update<Project>(Project)
+    .set({
+      isGivbackEligible: approved,
+      ...(approved && { verificationStatus: null, verified: true }),
     })
-    .where('project.id IN (:...ids)')
-    .setParameter('ids', params.projectsIds)
+    .where('project.id IN (:...ids)', { ids: projectsIds })
     .returning('*')
     .updateEntity(true)
     .execute();
