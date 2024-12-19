@@ -59,7 +59,11 @@ async function generateBatchFile(batchNumber: number, dryRun: boolean) {
           ? round.cumulativeUSDCapPerUserPerProject
           : round.roundUSDCapPerUserPerProject) || '5000'
       ).toString(), // Default to 5000 for individual cap
-      INDIVIDUAL_2: isEarlyAccess ? '0' : '250', // Only required for QACC rounds
+      INDIVIDUAL_2: isEarlyAccess
+        ? '0'
+        : (
+            round.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly || '1000'
+          ).toString(), // Only required for QACC rounds if for users with GP score only
       TOTAL: (
         (isEarlyAccess
           ? round.cumulativeUSDCapPerProject
@@ -122,6 +126,7 @@ async function fillProjectsData() {
         SAFE: project.abc.projectAddress || '',
         ORCHESTRATOR: project.abc.orchestratorAddress || '',
         NFT: project.abc.nftContractAddress || '',
+        MATCHING_FUNDS: project.matchingFunds || '',
       };
     } else {
       console.warn(
@@ -175,7 +180,7 @@ async function createEnvFile() {
         'ANKR_NETWORK_ID=polygon_zkevm',
       )
       .replace(
-        'RPC_URL="https://rpc.ankr.com/base_sepolia"',
+        'RPC_URL="https://sepolia.base.org"',
         'RPC_URL="https://zkevm-rpc.com"',
       )
       .replace('CHAIN_ID=84532', 'CHAIN_ID=1101')

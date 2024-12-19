@@ -472,6 +472,10 @@ export class Project extends BaseEntity {
   @Column('integer', { array: true, default: [] })
   batchNumbersWithSafeTransactions?: number[];
 
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  matchingFunds?: number;
+
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
     const maxDaysForListing = moment()
