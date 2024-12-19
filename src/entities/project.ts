@@ -259,6 +259,10 @@ export class Project extends BaseEntity {
   @Column('jsonb', { nullable: true })
   abc: Abc;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  tributeClaimModuleAddress: string;
+
   @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field({ nullable: true })
   @Column({ nullable: true })
