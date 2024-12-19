@@ -259,6 +259,10 @@ export class Project extends BaseEntity {
   @Column('jsonb', { nullable: true })
   abc: Abc;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  tributeClaimModuleAddress: string;
+
   @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -467,6 +471,10 @@ export class Project extends BaseEntity {
   @Field(_type => [Float], { nullable: true })
   @Column('integer', { array: true, default: [] })
   batchNumbersWithSafeTransactions?: number[];
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  matchingFunds?: number;
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {

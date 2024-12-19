@@ -24,6 +24,7 @@ import {
 import {
   projectUserDonationCap,
   projectUserTotalDonationAmounts,
+  qAccStat,
   userCaps,
 } from '../../test/graphqlQueries';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
@@ -33,6 +34,7 @@ import {
   GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
 } from '../constants/gitcoin';
 import { PrivadoAdapter } from '../adapters/privado/privadoAdapter';
+import { AppDataSource } from '../orm';
 
 describe(
   'projectUserTotalDonationAmount() test cases',
@@ -45,6 +47,8 @@ describe(
 );
 
 describe('userCaps() test cases', userCapsTestCases);
+
+describe('qAccStat() test cases', qAccStatTestCases);
 
 function projectUserTotalDonationAmountTestCases() {
   it('should return total donation amount of a user for a project', async () => {
@@ -489,5 +493,98 @@ function userCapsTestCases() {
          and passport score is less than ${GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE}`,
       );
     }
+  });
+}
+
+function qAccStatTestCases() {
+  let project;
+  let user;
+  let qfRound1: QfRound;
+  beforeEach(async () => {
+    project = await saveProjectDirectlyToDb(createProjectData());
+    user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    qfRound1 = await QfRound.create({
+      roundNumber: 1,
+      isActive: true,
+      name: new Date().toString() + ' - 1',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 1',
+      beginDate: new Date('2001-01-14'),
+      endDate: new Date('2001-01-16'),
+      roundUSDCapPerProject: 10000,
+      roundUSDCapPerUserPerProject: 2500,
+      roundUSDCapPerUserPerProjectWithGitcoinScoreOnly: 1000,
+      tokenPrice: 0.5,
+    }).save();
+    sinon.useFakeTimers({
+      now: new Date('2001-01-15').getTime(),
+    });
+  });
+  afterEach(async () => {
+    // Clean up the database after each test
+    await ProjectRoundRecord.delete({});
+    await Donation.delete({ projectId: project.id });
+    await QfRound.delete(qfRound1.id);
+
+    sinon.restore();
+  });
+  it('should return correct qacc stats', async () => {
+    const qfDonationAmount = Math.round(Math.random() * 1_000_000_00) / 100;
+    const nonQfDonationAmount = Math.round(Math.random() * 1_000_000_00) / 100;
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: nonQfDonationAmount,
+        status: DONATION_STATUS.VERIFIED,
+      },
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: qfDonationAmount,
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound1.id,
+      },
+      user.id,
+      project.id,
+    );
+    const result: AxiosResponse<
+      ExecutionResult<{
+        qAccStat: {
+          totalCollected: number;
+          qfTotalCollected: number;
+          contributorsCount: number;
+        };
+      }>
+    > = await axios.post(graphqlUrl, {
+      query: qAccStat,
+    });
+
+    assert.isOk(result.data);
+
+    const dataSource = AppDataSource.getDataSource();
+    const totalDonations = await dataSource.query(`
+      SELECT COALESCE(SUM(amount), 0) as totalCollected from donation where status = '${DONATION_STATUS.VERIFIED}'
+      `);
+    const qfTotalDonations = await dataSource.query(`
+      SELECT COALESCE(SUM(amount), 0) as qfTotalCollected from donation where status = '${DONATION_STATUS.VERIFIED}' AND "qfRoundId" IS NOT NULL
+      `);
+    // count unique contributors
+    const contributorsCount = await Donation.createQueryBuilder('donation')
+      .select('COUNT(DISTINCT "userId")', 'contributorsCount')
+      .where('donation.status = :status', {
+        status: DONATION_STATUS.VERIFIED,
+      })
+      .getRawOne();
+
+    assert.deepEqual(result.data.data?.qAccStat, {
+      totalCollected: totalDonations[0].totalcollected,
+      qfTotalCollected: qfTotalDonations[0].qftotalcollected,
+      contributorsCount: +contributorsCount?.contributorsCount,
+    });
   });
 }

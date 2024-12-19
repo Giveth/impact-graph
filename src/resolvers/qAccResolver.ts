@@ -27,6 +27,18 @@ class ProjectUserRecordAmounts {
 }
 
 @ObjectType()
+class QaccStat {
+  @Field(_type => Float)
+  totalCollected: number;
+
+  @Field(_type => Float)
+  qfTotalCollected: number;
+
+  @Field(_type => Int)
+  contributorsCount: number;
+}
+
+@ObjectType()
 class UnusedCapResponse {
   @Field(_type => Float)
   unusedCap: number;
@@ -117,5 +129,15 @@ export class QAccResolver {
     }
 
     return response;
+  }
+
+  @Query(_returns => QaccStat)
+  async qAccStat() {
+    const state = await qAccService.getQAccStat();
+    return {
+      totalCollected: state.totalCollected,
+      qfTotalCollected: state.qfTotalCollected,
+      contributorsCount: state.totalContributors,
+    };
   }
 }

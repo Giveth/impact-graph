@@ -73,6 +73,13 @@ function createProjectTestCases() {
     accessToken = await generateTestAccessToken(user.id);
   });
 
+  afterEach(async () => {
+    const project = await Project.findOneBy({ adminUserId: user.id });
+    if (project) {
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+  });
+
   it('should create project with team members successfully', async () => {
     assert.isOk(user);
     assert.isOk(accessToken);
@@ -328,10 +335,10 @@ function createProjectTestCases() {
         SEED_DATA.FOOD_SUB_CATEGORIES[1],
       ],
       description: '<div>Sample Project Creation</div>',
-      adminUserId: SEED_DATA.FIRST_USER.id,
+      adminUserId: user.id,
       address: generateRandomEtheriumAddress(),
     };
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
       graphqlUrl,
       {
@@ -357,10 +364,10 @@ function createProjectTestCases() {
       title: String(new Date().getTime()),
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
-      adminUserId: SEED_DATA.FIRST_USER.id,
+      adminUserId: user.id,
       address: generateRandomEtheriumAddress(),
     };
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const accessToken = await generateTestAccessToken(user.id);
     const addProjectResponse = await axios.post(
       graphqlUrl,
       {
@@ -390,10 +397,10 @@ function createProjectTestCases() {
       description: 'a'.repeat(PROJECT_DESCRIPTION_MAX_LENGTH + 1),
       image:
         'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
-      adminUserId: SEED_DATA.FIRST_USER.id,
+      adminUserId: user.id,
       address: generateRandomEtheriumAddress(),
     };
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const accessToken = await generateTestAccessToken(user.id);
     let result = await axios.post(
       graphqlUrl,
       {
@@ -443,10 +450,10 @@ function createProjectTestCases() {
       description: 'description',
       image:
         'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
-      adminUserId: SEED_DATA.FIRST_USER.id,
+      adminUserId: user.id,
       address: generateRandomEtheriumAddress(),
     };
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
       graphqlUrl,
       {
@@ -476,10 +483,7 @@ function createProjectTestCases() {
       ReviewStatus.Listed,
     );
 
-    assert.equal(
-      result.data.data.createProject.adminUser.id,
-      SEED_DATA.FIRST_USER.id,
-    );
+    assert.equal(result.data.data.createProject.adminUser.id, user.id);
     assert.equal(result.data.data.createProject.verified, false);
     assert.equal(
       result.data.data.createProject.status.id,
@@ -492,7 +496,7 @@ function createProjectTestCases() {
 
     assert.equal(
       result.data.data.createProject.adminUser.walletAddress,
-      SEED_DATA.FIRST_USER.walletAddress,
+      user.walletAddress,
     );
     assert.equal(result.data.data.createProject.image, sampleProject.image);
     assert.equal(

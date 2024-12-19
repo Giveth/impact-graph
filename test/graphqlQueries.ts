@@ -143,6 +143,7 @@ export const createProjectQuery = `
           nftContractAddress
           chainId
         }
+        tributeClaimModuleAddress
       }
   }
   `;
@@ -197,6 +198,7 @@ export const updateProjectQuery = `
         orchestratorAddress
         projectAddress
       }
+      tributeClaimModuleAddress
     }
   }
  `;
@@ -1001,6 +1003,19 @@ export const fetchProjectBySlugQuery = `
       totalReactions
       totalDonations
       totalTraceDonations
+      abc {
+        tokenName
+        tokenTicker
+        issuanceTokenAddress
+        fundingManagerAddress
+        icon
+        orchestratorAddress
+        projectAddress
+        creatorAddress
+        nftContractAddress
+        chainId
+      }
+      tributeClaimModuleAddress
     }
   }
 `;
@@ -1508,6 +1523,19 @@ export const projectByIdQuery = `
         id
         walletAddress
       }
+      abc {
+        tokenName
+        tokenTicker
+        issuanceTokenAddress
+        fundingManagerAddress
+        icon
+        orchestratorAddress
+        projectAddress
+        creatorAddress
+        nftContractAddress
+        chainId
+      }
+      tributeClaimModuleAddress
     }
   }
 `;
@@ -2183,6 +2211,16 @@ export const userCaps = `
       zkId {
         unusedCap
       }
+    }
+  }
+`;
+
+export const qAccStat = `
+ query {
+    qAccStat {
+      totalCollected
+      qfTotalCollected
+      contributorsCount
     }
   }
 `;
