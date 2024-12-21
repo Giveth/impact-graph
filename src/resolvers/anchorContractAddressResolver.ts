@@ -103,14 +103,6 @@ export class AnchorContractAddressResolver {
 
     const iface = new ethers.utils.Interface(abi);
     const decodedData = iface.parseTransaction({ data: networkData.data });
-    const txProjectId = decodedData.args[1];
-    if (Number(txProjectId) !== projectId) {
-      logger.debug('txProjectId odoes not match the project id', {
-        txProjectId,
-        projectId,
-      });
-      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_ID));
-    }
     const profileOwnerWalletAddress = decodedData.args[3];
     if (
       profileOwnerWalletAddress.toLowerCase() !==
