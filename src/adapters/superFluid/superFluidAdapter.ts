@@ -1,19 +1,33 @@
 import axios from 'axios';
 import { logger } from '../../utils/logger';
-import { isProduction } from '../../utils/utils';
 import {
   FlowUpdatedEvent,
   SuperFluidAdapterInterface,
 } from './superFluidAdapterInterface';
+import { NETWORK_IDS } from '../../provider';
 
-const superFluidGraphqlUrl =
+const superFluidGraphqlPolygonUrl =
   'https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1';
-const superFluidGraphqlStagingUrl =
+const superFluidGraphqlPolygonStagingUrl =
   'https://optimism-sepolia.subgraph.x.superfluid.dev';
+const superFluidGraphBaseUrl =
+  'https://subgraph-endpoints.superfluid.dev/base-mainnet/protocol-v1';
 
-const subgraphUrl = isProduction
-  ? superFluidGraphqlUrl
-  : superFluidGraphqlStagingUrl;
+const subgraphUrlMap = {
+  [NETWORK_IDS.OPTIMISTIC]: superFluidGraphqlPolygonUrl,
+  [NETWORK_IDS.OPTIMISM_SEPOLIA]: superFluidGraphqlPolygonStagingUrl,
+  [NETWORK_IDS.BASE_MAINNET]: superFluidGraphBaseUrl,
+  [NETWORK_IDS.BASE_SEPOLIA]: superFluidGraphBaseUrl,
+};
+
+// Function to retrieve the subgraph URL for a given network ID
+const getSubgraphUrl = (networkId: number) => {
+  const url = subgraphUrlMap[networkId];
+  if (!url) {
+    throw new Error(`No subgraph URL found for network ID: ${networkId}`);
+  }
+  return url;
+};
 
 // Define your GraphQL query as a string and prepare your variables
 const accountQuery = `
@@ -169,8 +183,9 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
     */
 
   // Optimism works
-  async accountBalance(accountId: string) {
+  async accountBalance(accountId: string, networkId: number) {
     try {
+      const subgraphUrl = getSubgraphUrl(networkId);
       const response = await axios.post(subgraphUrl, {
         query: accountQuery,
         variables: {
@@ -189,8 +204,10 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
     sender: string;
     flowRate: string;
     transactionHash: string;
+    networkId: number;
   }): Promise<FlowUpdatedEvent | undefined> {
     try {
+      const subgraphUrl = getSubgraphUrl(params.networkId);
       const response = await axios.post(subgraphUrl, {
         query: getFlowsQuery,
         variables: {
@@ -213,8 +230,11 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
     sender: string;
     flowRate: string;
     timestamp_gt: number;
+    networkId: number;
   }): Promise<FlowUpdatedEvent | undefined> {
     try {
+      const subgraphUrl = getSubgraphUrl(params.networkId);
+
       logger.debug('getFlowByReceiverSenderFlowRate has been called', params);
 
       const response = await axios.post(subgraphUrl, {

@@ -108,6 +108,7 @@ export const validateDonorSuperTokenBalance = async (
 
   const accountBalances = await superFluidAdapter.accountBalance(
     user.walletAddress!,
+    recurringDonation.networkId,
   );
 
   logger.debug(

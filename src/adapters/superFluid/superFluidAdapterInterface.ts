@@ -20,12 +20,13 @@ export interface SuperFluidAdapterInterface {
     currency: string;
     recurringDonationTxHash: string;
   }): Promise<any>;
-  accountBalance(accountId: string): Promise<any>;
+  accountBalance(accountId: string, networkId: number): Promise<any>;
   getFlowByTxHash(params: {
     receiver: string;
     sender: string;
     flowRate: string;
     transactionHash: string;
+    networkId: number;
   }): Promise<FlowUpdatedEvent | undefined>;
   getFlowByReceiverSenderFlowRate(params: {
     receiver: string;

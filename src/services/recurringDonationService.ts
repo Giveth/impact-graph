@@ -393,6 +393,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
       flowRate: recurringDonation.flowRate,
       sender: recurringDonation?.donor?.walletAddress?.toLowerCase() as string,
       transactionHash: recurringDonation.txHash,
+      networkId: recurringDonation.networkId,
     });
     if (!txData) {
       throw new Error(

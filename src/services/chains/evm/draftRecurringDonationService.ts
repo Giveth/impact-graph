@@ -47,6 +47,7 @@ export async function matchDraftRecurringDonations(
         timestamp_gt: convertTimeStampToSeconds(
           draftRecurringDonation.createdAt.getTime(),
         ),
+        networkId: draftRecurringDonation.networkId,
       };
       const flow =
         await superFluidAdapter.getFlowByReceiverSenderFlowRate(getFlowParams);
