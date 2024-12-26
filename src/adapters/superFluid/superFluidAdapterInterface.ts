@@ -33,5 +33,6 @@ export interface SuperFluidAdapterInterface {
     sender: string;
     flowRate: string;
     timestamp_gt: number;
+    networkId: number;
   }): Promise<FlowUpdatedEvent | undefined>;
 }

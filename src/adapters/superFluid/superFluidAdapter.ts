@@ -208,10 +208,12 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
   }): Promise<FlowUpdatedEvent | undefined> {
     try {
       const subgraphUrl = getSubgraphUrl(params.networkId);
+      const { networkId, ...whereParams } = params;
+
       const response = await axios.post(subgraphUrl, {
         query: getFlowsQuery,
         variables: {
-          where: params,
+          where: whereParams,
           orderBy: 'timestamp',
           orderDirection: 'asc',
         },
@@ -237,10 +239,12 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
 
       logger.debug('getFlowByReceiverSenderFlowRate has been called', params);
 
+      const { networkId, ...whereParams } = params;
+
       const response = await axios.post(subgraphUrl, {
         query: getFlowsQuery,
         variables: {
-          where: params,
+          where: whereParams,
           orderBy: 'timestamp',
           orderDirection: 'asc',
         },
