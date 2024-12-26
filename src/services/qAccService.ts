@@ -1,4 +1,4 @@
-import { FindOneOptions } from 'typeorm';
+import { Brackets, FindOneOptions } from 'typeorm';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { ProjectUserRecord } from '../entities/projectUserRecord';
@@ -276,38 +276,37 @@ const getQAccStat = async (): Promise<{
   qfTotalCollected: number;
   totalContributors: number;
 }> => {
-  const [qfTotalCollected, totalCollected, totalContributors] =
-    await Promise.all([
-      Donation.createQueryBuilder('donation')
-        .select('COALESCE(sum(donation.amount), 0)', 'total_qf_collected')
-        .where('donation.status = :status', {
-          status: DONATION_STATUS.VERIFIED,
-        })
-        .andWhere('donation."qfRoundId" IS NOT NULL')
-        .cache('qf_total_collected_donation', 1000)
-        .getRawOne(),
+  const [qfTotalCollected, totalCollected] = await Promise.all([
+    Donation.createQueryBuilder('donation')
+      .select('COALESCE(sum(donation.amount), 0)', 'total_qf_collected')
+      .where('donation.status = :status', {
+        status: DONATION_STATUS.VERIFIED,
+      })
+      .andWhere('donation."qfRoundId" IS NOT NULL')
+      .cache('qf_total_collected_donation', 1000)
+      .getRawOne(),
 
-      Donation.createQueryBuilder('donation')
-        .select('COALESCE(sum(donation.amount), 0)', 'total_collected')
-        .where('donation.status = :status', {
-          status: DONATION_STATUS.VERIFIED,
-        })
-        .cache('total_collected_donation', 1000)
-        .getRawOne(),
-
-      Donation.createQueryBuilder('donation')
-        .select('count(distinct donation."userId")', 'total_contributors')
-        .where('donation.status = :status', {
-          status: DONATION_STATUS.VERIFIED,
-        })
-        .cache('total_contributors', 1000)
-        .getRawOne(),
-    ]);
+    Donation.createQueryBuilder('donation')
+      .select('COALESCE(sum(donation.amount), 0)', 'total_collected')
+      .addSelect('count(distinct donation."userId")', 'total_contributors')
+      .where('donation.status = :status', {
+        status: DONATION_STATUS.VERIFIED,
+      })
+      .andWhere(
+        new Brackets(qb => {
+          qb.orWhere('donation."qfRoundId" IS NOT NULL').orWhere(
+            'donation."earlyAccessRoundId" IS NOT NULL',
+          );
+        }),
+      )
+      .cache('total_collected_donation', 1000)
+      .getRawOne(),
+  ]);
 
   return {
     totalCollected: totalCollected.total_collected,
     qfTotalCollected: qfTotalCollected.total_qf_collected,
-    totalContributors: totalContributors.total_contributors,
+    totalContributors: totalCollected.total_contributors,
   };
 };
 
