@@ -520,11 +520,13 @@ function qAccStatTestCases() {
       tokenPrice: 0.5,
     }).save();
     earlyAccessRound = await EarlyAccessRound.create({
-      roundNumber: Math.floor(Math.random() * 10000),
-      startDate: moment().subtract(3, 'days').toDate(),
-      endDate: moment().add(10, 'days').toDate(),
-      tokenPrice: undefined,
-    });
+      roundNumber: generateEARoundNumber(),
+      startDate: new Date('2000-01-14'),
+      endDate: new Date('2000-01-16'),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+      tokenPrice: 0.1,
+    }).save();
     sinon.useFakeTimers({
       now: new Date('2001-01-15').getTime(),
     });
@@ -534,6 +536,7 @@ function qAccStatTestCases() {
     await ProjectRoundRecord.delete({});
     await Donation.delete({ projectId: project.id });
     await QfRound.delete(qfRound.id);
+    await EarlyAccessRound.delete(earlyAccessRound.id);
 
     sinon.restore();
   });
