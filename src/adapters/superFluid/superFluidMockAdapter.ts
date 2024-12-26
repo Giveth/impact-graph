@@ -85,6 +85,7 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
     sender: string;
     flowRate: string;
     timestamp_gt: number;
+    networkId: number;
   }): Promise<FlowUpdatedEvent | undefined> {
     return Promise.resolve(undefined);
   }
@@ -94,6 +95,7 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
     sender: string;
     flowRate: string;
     transactionHash: string;
+    networkId: number;
   }): Promise<FlowUpdatedEvent | undefined> {
     const { receiver, sender, flowRate, transactionHash } = params;
     return Promise.resolve({
