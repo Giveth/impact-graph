@@ -2072,6 +2072,24 @@ export const removeSocialProfileMutation = `
           }
         `;
 
+export const recurringDonationEligibleProjectsQuery = `
+  query (
+    networkId: Int
+    page: Int
+    limit: Int
+  ) {
+    recurringDonationEligibleProjects {
+      id
+      slug
+      title
+      anchorContracts {
+        address
+        networkId
+      }
+    }
+  }
+`;
+
 export const getAllowedCountries = `
     query {
         getAllowedCountries {
