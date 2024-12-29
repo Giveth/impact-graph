@@ -3,6 +3,7 @@ import axios, { AxiosResponse } from 'axios';
 import sinon from 'sinon';
 import { ExecutionResult } from 'graphql';
 import { assert } from 'chai';
+import { Brackets } from 'typeorm';
 import {
   createDonationData,
   createProjectData,
@@ -499,11 +500,12 @@ function userCapsTestCases() {
 function qAccStatTestCases() {
   let project;
   let user;
-  let qfRound1: QfRound;
+  let qfRound: QfRound;
+  let earlyAccessRound: EarlyAccessRound;
   beforeEach(async () => {
     project = await saveProjectDirectlyToDb(createProjectData());
     user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    qfRound1 = await QfRound.create({
+    qfRound = await QfRound.create({
       roundNumber: 1,
       isActive: true,
       name: new Date().toString() + ' - 1',
@@ -517,6 +519,14 @@ function qAccStatTestCases() {
       roundUSDCapPerUserPerProjectWithGitcoinScoreOnly: 1000,
       tokenPrice: 0.5,
     }).save();
+    earlyAccessRound = await EarlyAccessRound.create({
+      roundNumber: generateEARoundNumber(),
+      startDate: new Date('2000-01-14'),
+      endDate: new Date('2000-01-16'),
+      roundUSDCapPerProject: 1000000,
+      roundUSDCapPerUserPerProject: 50000,
+      tokenPrice: 0.1,
+    }).save();
     sinon.useFakeTimers({
       now: new Date('2001-01-15').getTime(),
     });
@@ -525,7 +535,8 @@ function qAccStatTestCases() {
     // Clean up the database after each test
     await ProjectRoundRecord.delete({});
     await Donation.delete({ projectId: project.id });
-    await QfRound.delete(qfRound1.id);
+    await QfRound.delete(qfRound.id);
+    await EarlyAccessRound.delete(earlyAccessRound.id);
 
     sinon.restore();
   });
@@ -538,6 +549,7 @@ function qAccStatTestCases() {
         ...createDonationData(),
         amount: nonQfDonationAmount,
         status: DONATION_STATUS.VERIFIED,
+        earlyAccessRoundId: earlyAccessRound.id,
       },
       user.id,
       project.id,
@@ -547,7 +559,7 @@ function qAccStatTestCases() {
         ...createDonationData(),
         amount: qfDonationAmount,
         status: DONATION_STATUS.VERIFIED,
-        qfRoundId: qfRound1.id,
+        qfRoundId: qfRound.id,
       },
       user.id,
       project.id,
@@ -568,10 +580,15 @@ function qAccStatTestCases() {
 
     const dataSource = AppDataSource.getDataSource();
     const totalDonations = await dataSource.query(`
-      SELECT COALESCE(SUM(amount), 0) as totalCollected from donation where status = '${DONATION_STATUS.VERIFIED}'
+      SELECT COALESCE(SUM(amount), 0) as totalCollected 
+        from donation 
+        where status = '${DONATION_STATUS.VERIFIED}'
+        AND ( "qfRoundId" IS NOT NULL OR "earlyAccessRoundId" IS NOT NULL)
       `);
     const qfTotalDonations = await dataSource.query(`
-      SELECT COALESCE(SUM(amount), 0) as qfTotalCollected from donation where status = '${DONATION_STATUS.VERIFIED}' AND "qfRoundId" IS NOT NULL
+      SELECT COALESCE(SUM(amount), 0) as qfTotalCollected 
+        from donation 
+        where status = '${DONATION_STATUS.VERIFIED}' AND "qfRoundId" IS NOT NULL
       `);
     // count unique contributors
     const contributorsCount = await Donation.createQueryBuilder('donation')
@@ -579,6 +596,13 @@ function qAccStatTestCases() {
       .where('donation.status = :status', {
         status: DONATION_STATUS.VERIFIED,
       })
+      .andWhere(
+        new Brackets(qb => {
+          qb.orWhere('donation."qfRoundId" IS NOT NULL').orWhere(
+            'donation."earlyAccessRoundId" IS NOT NULL',
+          );
+        }),
+      )
       .getRawOne();
 
     assert.deepEqual(result.data.data?.qAccStat, {
