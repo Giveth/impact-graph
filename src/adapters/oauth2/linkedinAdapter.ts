@@ -19,7 +19,7 @@ export class LinkedinAdapter implements SocialNetworkOauth2AdapterInterface {
      */
 
     // https://docs.microsoft.com/en-us/linkedin/shared/authentication/getting-access?context=linkedin%2Fcontext#open-permissions-consumer
-    const scope = 'r_liteprofile';
+    const scope = 'profile';
     return `https://www.linkedin.com/oauth/v2/authorization?client_id=${clientId}&redirect_uri=${redirectUrl}&response_type=code&scope=${scope}&state=${trackId}`;
   }
 
