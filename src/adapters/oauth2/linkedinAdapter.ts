@@ -19,7 +19,7 @@ export class LinkedinAdapter implements SocialNetworkOauth2AdapterInterface {
      */
 
     // https://docs.microsoft.com/en-us/linkedin/shared/authentication/getting-access?context=linkedin%2Fcontext#open-permissions-consumer
-    const scope = 'profile';
+    const scope = 'openid profile email';
     return `https://www.linkedin.com/oauth/v2/authorization?client_id=${clientId}&redirect_uri=${redirectUrl}&response_type=code&scope=${scope}&state=${trackId}`;
   }
 
@@ -57,50 +57,32 @@ export class LinkedinAdapter implements SocialNetworkOauth2AdapterInterface {
       const accessToken = result.data.access_token;
 
       /**
-       * @see {@link https://docs.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin?context=linkedin%2Fconsumer%2Fcontext#api-request}
-       */
-      const meResult = await axios.get('https://api.linkedin.com/v2/me', {
+      @see {@link https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2?context=linkedin%2Fconsumer%2Fcontext#api-request-to-retreive-member-details}
+      */
+      const meResult = await axios.get('https://api.linkedin.com/v2/userinfo', {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+
       /**
-       * sample response
-           {
-               "id":"REDACTED",
-               "firstName":{
-                  "localized":{
-                     "en_US":"Tina"
-                  },
-                  "preferredLocale":{
-                     "country":"US",
-                     "language":"en"
-                  }
-               },
-               "lastName":{
-                  "localized":{
-                     "en_US":"Belcher"
-                  },
-                  "preferredLocale":{
-                     "country":"US",
-                     "language":"en"
-                  }
-               },
-                "profilePicture": {
-                    "displayImage": "urn:li:digitalmediaAsset:B54328XZFfe2134zTyq"
-                }
-           }
+       * New Sample response
+       * {
+       *   "sub": "782bbtaQ",
+       *   "name": "John Doe",
+       *   "given_name": "John",
+       *   "family_name": "Doe",
+       *   "picture": "https://media.licdn-ei.com/dms/image/C5F03AQHqK8v7tB1HCQ/profile-displayphoto-shrink_100_100/0/",
+       *   "locale": "en-US",
+       *   "email": "doe@email.com",
+       *   "email_verified": true
+       * }
        */
-      const username = meResult.data.id;
-      let name = username;
-      if (
-        meResult.data?.firstName?.localized?.en_US ||
-        meResult.data?.lastName?.localized?.en_US
-      ) {
-        name = `${meResult.data?.firstName?.localized?.en_US || ''} ${
-          meResult.data?.lastName?.localized?.en_US || ''
-        }`.trim();
-      }
+      const username = meResult.data.sub;
+
+      const name =
+        meResult.data.name ||
+        `${meResult.data.given_name || ''} ${meResult.data.family_name || ''}`.trim();
       return {
         username,
         name,
