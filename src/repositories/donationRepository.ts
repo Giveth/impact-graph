@@ -10,6 +10,28 @@ import { ORGANIZATION_LABELS } from '../entities/organization';
 import { AppDataSource } from '../orm';
 import { getPowerRound } from './powerRoundRepository';
 
+export const exportClusterMatchingDonationsFormat = async (
+  qfRoundId: number,
+) => {
+  return await Donation.query(
+    `
+    SELECT 
+      d."fromWalletAddress" AS voter,
+      d."toWalletAddress" AS "payoutAddress",
+      d."valueUsd" AS "amountUSD",
+      p."title" AS "project_name",
+      d."qfRoundUserScore" AS score
+    FROM 
+      donation d
+    INNER JOIN 
+      project p ON d."projectId" = p."id"
+    WHERE 
+      d."qfRoundId" = $1
+  `,
+    [qfRoundId],
+  );
+};
+
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`
     UPDATE donation

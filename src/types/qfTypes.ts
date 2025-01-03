@@ -10,4 +10,7 @@ export class EstimatedMatching {
 
   @Field(_type => Float, { nullable: true })
   matchingPool?: number;
+
+  @Field(_type => Float, { nullable: true })
+  matching?: number;
 }
