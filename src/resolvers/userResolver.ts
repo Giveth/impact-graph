@@ -2,6 +2,7 @@ import {
   Arg,
   Ctx,
   Field,
+  Int,
   Mutation,
   ObjectType,
   Query,
@@ -9,7 +10,7 @@ import {
 } from 'type-graphql';
 import { Repository } from 'typeorm';
 
-import { User } from '../entities/user';
+import { User, UserPublicData } from '../entities/user';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -41,6 +42,15 @@ class UserRelatedAddressResponse {
 
   @Field(_type => Boolean, { nullable: false })
   hasDonated: boolean;
+}
+
+@ObjectType()
+class AllUsersPublicData {
+  @Field(_type => [UserPublicData])
+  users: UserPublicData[];
+
+  @Field(_type => Number)
+  totalCount: number;
 }
 
 @Resolver(_of => User)
@@ -421,5 +431,30 @@ export class UserResolver {
     await user.save();
 
     return 'VERIFICATION_SUCCESS';
+  }
+
+  @Query(_returns => AllUsersPublicData)
+  async allUsersBasicData(
+    @Arg('limit', _type => Int, { nullable: true }) limit: number = 50,
+    @Arg('skip', _type => Int, { nullable: true }) skip: number = 0,
+  ): Promise<AllUsersPublicData> {
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .select([
+        'user.firstName',
+        'user.lastName',
+        'user.name',
+        'user.walletAddress',
+      ])
+      .skip(skip)
+      .take(limit);
+
+    // Execute the query and fetch results
+    const [users, totalCount] = await query.getManyAndCount();
+
+    return {
+      users,
+      totalCount,
+    };
   }
 }

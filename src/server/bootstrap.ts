@@ -70,6 +70,7 @@ import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/s
 import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
 import { addClient } from '../services/sse/sse';
 import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncUsersModelScore';
+import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
 
 Resource.validate = validate;
 
@@ -420,6 +421,9 @@ export async function bootstrap() {
     if (process.env.ENABLE_UPDATE_RECURRING_DONATION_STREAM === 'true') {
       runUpdateRecurringDonationStream();
       runCheckUserSuperTokenBalancesJob();
+    }
+    if (process.env.SITEMAP_CRON_SECRET !== '') {
+      runGenerateSitemapOnFrontend();
     }
     logger.debug(
       'initializeCronJobs() before runCheckActiveStatusOfQfRounds() ',
