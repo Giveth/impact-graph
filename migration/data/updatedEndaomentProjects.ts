@@ -2991,7 +2991,7 @@ export const endaomentProjects: EndaomentProject[] = [
     endaomentID: '563691c2-2441-46de-8182-0e1b510388bd',
     name: 'San Francisco Sailing Science Center',
     description:
-      'The Sailing Science Center’s mission is to inspire a passion for sailing and science by delighting people through discovery and play.  The Sailing Science Center engages a diverse community through interactive learning exhibits which attract “kids” 5 to 95 with the lure, fun, excitement, adventure, and curiosity of sailing.  We aim to create exhibits with strong STEAM (i.e., science, technology, engineering, art, and math) education underpinnings and operate the exhibits at community events and a future permanent interactive science museum framed around sailing.',
+      "The Sailing Science Center's mission is to inspire a passion for sailing and science by delighting people through discovery and play.  The Sailing Science Center engages a diverse community through interactive learning exhibits which attract “kids” 5 to 95 with the lure, fun, excitement, adventure, and curiosity of sailing.  We aim to create exhibits with strong STEAM (i.e., science, technology, engineering, art, and math) education underpinnings and operate the exhibits at community events and a future permanent interactive science museum framed around sailing.",
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2F97cf9db3-4d59-4497-a644-ea328c1b6a05.jpg',
     nteeCode: 'A56',
@@ -3069,7 +3069,7 @@ export const endaomentProjects: EndaomentProject[] = [
     endaomentID: '662e106e-0a7b-4504-bd11-59f723bd3e69',
     name: 'ROMANIAN LEAGUE IN DEFENSE OF ANIMALS',
     description:
-      'To assist, encourage, support and promote animal protection. We rescue animals that are abused, abandoned or injured. Our goal is to find permanent, loving homes for as many of our rescued animals as possible. Humane education activities, sterilization programs and finding long term solutions to the problem of animal overpopulation are another important component of what we do. We are investing in social programs to support seniors and people with low income who care about their pets.\nWe are proud that our shelters have consistently been recognized as some of the best. We seek to increase public awareness in Romania and around the world, as to the plight of animal suffering in our communities. We actively encourage anyone from anywhere, to join us as a volunteer at our center in Galati.',
+      'To assist, encourage, support and promote animal protection. We rescue animals that are abused, abandoned or injured. Our goal is to find permanent, loving homes for as many of our rescued animals as possible. Humane education activities, sterilization programs and finding long term solutions to the problem of animal overpopulation are another important component of what we do. We are investing in social programs to support seniors and people with low income who care about their pets.\nWe are proud that our shelters have consistently been recognized as some of the best. We seek to increase public awareness in Romania and around the world, as to the plight of animal suffering in our communities. We actively encourage anyone from anywhere, to join us as a volunteer at our center in Galati.',
     logoUrl:
       'https://www.guidestar.org/ViewEdoc.aspx?eDocId=9396865&approved=True',
     nteeCode: 'D20',
@@ -3506,7 +3506,7 @@ export const endaomentProjects: EndaomentProject[] = [
     endaomentID: '8dd5ec1f-28b2-443c-a13a-1016456460dd',
     name: 'GRACE Gorillas',
     description:
-      "GRACE's mission is to provide excellent care for rescued Grauer’s gorillas and work alongside Congolese communities to promote the conservation of wild gorillas and their habitat.",
+      "GRACE's mission is to provide excellent care for rescued Grauer's gorillas and work alongside Congolese communities to promote the conservation of wild gorillas and their habitat.",
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2F58d26c0f-cd13-4de5-a0b5-071ba2634909.jpg',
     nteeCode: 'D31',
@@ -3545,7 +3545,7 @@ export const endaomentProjects: EndaomentProject[] = [
     endaomentID: '3fc53dc9-0303-48db-9004-c2f3005179f5',
     name: 'Red Tent Womens Initiative',
     description:
-      'The mission of the Red Tent Women’s Initiative is providing incarcerated and at-risk of incarceration women skills to heal and improve their lives through trauma informed programs.',
+      "The mission of the Red Tent Women's Initiative is providing incarcerated and at-risk of incarceration women skills to heal and improve their lives through trauma informed programs.",
     logoUrl:
       'https://www.guidestar.org/ViewEdoc.aspx?eDocId=10018017&approved=True',
     nteeCode: 'P99',
@@ -3699,9 +3699,9 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '46ea27b7-601c-46c6-935d-eb5880adb513',
-    name: 1517,
+    name: '1517',
     description:
-      '1517 is a nonprofit organization focused on assuring all people that the work of salvation is finished in Jesus Christ. Our mission is to help you hear that you are forgiven and free on account of Christ alone.',
+      '1517 is a nonprofi organization focused on assuring all people that the work of salvation is finished in Jesus Christ. Our mission is to help you hear that you are forgiven and free on account of Christ alone.',
     logoUrl: 'https://static.tgbwidget.com/1517.jpg',
     nteeCode: 'X20',
     nteeDescription: 'Christian',
@@ -45281,5 +45281,91 @@ export const endaomentProjects: EndaomentProject[] = [
     mainnetAddress: '0x4bc40a3d97d9b12017c28a716d4153a1e3119687',
     opAddress: '0x4bc40a3d97d9b12017c28a716d4153a1e3119687',
     baseAddress: '0xe79ecab15ceb9876867d0c599be5abbda5ab312c',
+  },
+  {
+    endaomentID: '0ede481a-c59c-4201-8b0c-69e375cdd7ea',
+    name: 'Ukraine America Initiative',
+    description:
+      'We focus on providing humanitarian support at a grassroots level to Ukrainians in need and specifically those displaced by war. We fund daycare centers for Ukrainian children, orphanages, language schools, housing projects, and refugee centers in Ukraine and Poland, and mental and physical wellness projects.',
+    logoUrl:
+      'https://www.guidestar.org/ViewEdoc.aspx?eDocId=9057032&approved=True',
+    nteeCode: 'M20',
+    nteeDescription: 'Disaster Preparedness and Relief Services',
+    mainnetAddress: '0x6Cf59E010CD784a6dD20126B0f9b2f7bCA83c28c',
+    opAddress: '0x6Cf59E010CD784a6dD20126B0f9b2f7bCA83c28c',
+    baseAddress: '0x6Cf59E010CD784a6dD20126B0f9b2f7bCA83c28c',
+  },
+  {
+    endaomentID: '2627e4ee-f713-4298-84d2-9fbad53d9ed9',
+    name: 'Reef Guardians Hawaii',
+    description:
+      'The Reef Guardians mission is to protect the reefs and to inform, educate and create action. Working with local communities, universities, business groups and government we continue to study the rapid changes to our coral reefs and near-shore habitats. \n\nOur goal is to develop Reef Guardians of all ages who are truly connected to the ocean. These are the marine crusaders who will commit themselves to the endgame of creating solutions that guard the welfare of Hawaii coral reefs and coral reefs worldwide.',
+    logoUrl:
+      'https://www.guidestar.org/ViewEdoc.aspx?eDocId=10046702&approved=True',
+    nteeCode: 'C32',
+    nteeDescription: 'Water Resource, Wetlands Conservation and Management',
+    mainnetAddress: '0x7e5eebba97abea67edd63f44ecd3a2250ab4d23b',
+    opAddress: '0x7e5eebba97abea67edd63f44ecd3a2250ab4d23b',
+    baseAddress: '0x7e5eebba97abea67edd63f44ecd3a2250ab4d23b',
+  },
+  {
+    endaomentID: '2d257c44-c39e-4f41-b4b4-24dd732f545d',
+    name: 'Mindfulness Through Play',
+    description: '',
+    logoUrl: '',
+    nteeCode: 'B80',
+    nteeDescription: 'Student Services and Organizations',
+    mainnetAddress: '0xe72f2425e0cafe1073c2842a3697834f7b451fed',
+    opAddress: '0xe72f2425e0cafe1073c2842a3697834f7b451fed',
+    baseAddress: '0xe72f2425e0cafe1073c2842a3697834f7b451fed',
+  },
+  {
+    endaomentID: 'a60836a2-f06e-4b5b-9354-584a4ca5b4b0',
+    name: 'SOLUTIONS PROJECT INC',
+    description:
+      'Founded in 2013, The Solutions Project (TSP) was created in pursuit of a regenerative and just economy. We fund and amplify grassroots climate justice solutions created by Black, Indigenous, immigrant, women, and other People of Color-led organizations across the United States. To date, we have deployed over $50M to more than 300 grassroots groups, primarily organizations led by women of color and operating on less than $500,000 annual budgets, through direct grantmaking, movement-accountable ecosystem funds, communications capacity building, and technical support.',
+    logoUrl:
+      'https://www.guidestar.org/ViewEdoc.aspx?eDocId=10466615&approved=True',
+    nteeCode: 'C35',
+    nteeDescription: 'Energy Resources Conservation and Development',
+    mainnetAddress: '0xf51c09b94852c9071e6c163ce1faaf269730a8c1',
+    opAddress: '0xf51c09b94852c9071e6c163ce1faaf269730a8c1',
+    baseAddress: '0xf51c09b94852c9071e6c163ce1faaf269730a8c1',
+  },
+  {
+    endaomentID: '25b2e4a9-20de-4564-be24-fc523a22d65c',
+    name: 'Peace Winds America',
+    description:
+      'TO PROVIDE EMERGENCY RELIEF TO DISASTER SURVIVORS, HUMANITARIAN ASSISTANCE FOR REFUGEES AND DISPLACED PEOPLE, AND OTHER SUPPORT FOR COMMUNITIES AROUND THE WORLD AFFECTED BY DISASTERS, CONFLICT, AND OTHER CRISES.',
+    logoUrl: '',
+    nteeCode: 'M20',
+    nteeDescription: 'Disaster Preparedness and Relief Services',
+    mainnetAddress: '0x85787d8c819555c0d7b982ea1b0fb6a98c40ff2e',
+    opAddress: '0x85787d8c819555c0d7b982ea1b0fb6a98c40ff2e',
+    baseAddress: '0x85787d8c819555c0d7b982ea1b0fb6a98c40ff2e',
+  },
+  {
+    endaomentID: 'c8101dbe-f308-425c-a0a5-39a98316c02f',
+    name: 'Love Justice International',
+    description:
+      'We proclaim the love of Jesus Christ by fighting the greatest injustices in the world and working toward bringing relief to those living under their oppression--especially orphans, street children, and victims of human trafficking.',
+    logoUrl:
+      'https://www.guidestar.org/ViewEdoc.aspx?eDocId=7315705&approved=True',
+    nteeCode: 'P62',
+    nteeDescription: "Victims' Services",
+    mainnetAddress: '0x802fde62544a1ad4304d1d190a75e1143a39322b',
+    opAddress: '0x802fde62544a1ad4304d1d190a75e1143a39322b',
+    baseAddress: '0x802fde62544a1ad4304d1d190a75e1143a39322b',
+  },
+  {
+    endaomentID: 'd94cdffb-50cc-4127-806d-051b26f5ce00',
+    name: 'Metagovernance Project Inc',
+    description: 'Scientific Research',
+    logoUrl: '',
+    nteeCode: 'U41',
+    nteeDescription: 'Computer Science',
+    mainnetAddress: '0xb144d27992adb5c38f54a814293165ab9dae90a4',
+    opAddress: '0xb144d27992adb5c38f54a814293165ab9dae90a4',
+    baseAddress: '0xb144d27992adb5c38f54a814293165ab9dae90a4',
   },
 ];
