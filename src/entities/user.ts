@@ -263,3 +263,18 @@ export class User extends BaseEntity {
     return `givethId-${this.id}`;
   }
 }
+
+@ObjectType()
+export class UserPublicData extends BaseEntity {
+  @Field(_type => String, { nullable: true })
+  firstName?: string;
+
+  @Field(_type => String, { nullable: true })
+  lastName?: string;
+
+  @Field(_type => String, { nullable: true })
+  name?: string;
+
+  @Field(_type => String, { nullable: true })
+  walletAddress?: string;
+}

@@ -2072,6 +2072,24 @@ export const removeSocialProfileMutation = `
           }
         `;
 
+export const recurringDonationEligibleProjectsQuery = `
+  query (
+    networkId: Int
+    page: Int
+    limit: Int
+  ) {
+    recurringDonationEligibleProjects {
+      id
+      slug
+      title
+      anchorContracts {
+        address
+        networkId
+      }
+    }
+  }
+`;
+
 export const getAllowedCountries = `
     query {
         getAllowedCountries {
@@ -2604,6 +2622,21 @@ export const fetchRecurringDonationsByDateQuery = `
           email
         }
         createdAt
+      }
+      totalCount
+    }
+  }
+`;
+
+// GraphQL query for fetching all users' basic data
+export const allUsersBasicDataQuery = `
+  query ($limit: Int, $skip: Int) {
+    allUsersBasicData(limit: $limit, skip: $skip) {
+      users {
+        firstName
+        lastName
+        name
+        walletAddress
       }
       totalCount
     }
