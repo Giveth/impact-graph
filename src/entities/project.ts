@@ -40,7 +40,11 @@ import { Category } from './category';
 import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
-import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import {
+  findActiveQfRound,
+  getProjectDonationsSqrtRootSum,
+  getQfRoundTotalSqrtRootSumSquared,
+} from '../repositories/qfRoundRepository';
 import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
@@ -502,20 +506,36 @@ export class Project extends BaseEntity {
     }
     const matchingPool = activeQfRound.allocatedFund;
 
+    const projectDonationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
+      this.id,
+      activeQfRound.id,
+    );
+
+    const allProjectsSum = await getQfRoundTotalSqrtRootSumSquared(
+      activeQfRound.id,
+    );
+
     const estimatedClusterMatching =
       await EstimatedClusterMatching.createQueryBuilder('matching')
         .where('matching."projectId" = :projectId', { projectId: this.id })
+        .andWhere('matching."qfRoundId" = :qfRoundId', {
+          qfRoundId: activeQfRound.id,
+        })
         .getOne();
 
     let matching: number;
     if (!estimatedClusterMatching) matching = 0;
 
-    matching = estimatedClusterMatching!.matching;
+    if (!estimatedClusterMatching) {
+      matching = 0;
+    } else {
+      matching = estimatedClusterMatching.matching;
+    }
 
     // Facilitate migration in frontend return empty values for now
     return {
-      projectDonationsSqrtRootSum: 0,
-      allProjectsSum: 0,
+      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum,
+      allProjectsSum: allProjectsSum,
       matchingPool,
       matching,
     };
