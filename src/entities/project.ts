@@ -287,7 +287,7 @@ export class Project extends BaseEntity {
 
   @Field(_type => [ProjectSocialMedia], { nullable: true })
   @OneToMany(_type => ProjectSocialMedia, socialMedia => socialMedia.project, {
-    eager: true,
+    eager: false,
   })
   socialMedia?: ProjectSocialMedia[];
 

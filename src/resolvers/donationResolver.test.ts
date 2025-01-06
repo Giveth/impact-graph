@@ -715,7 +715,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
     await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
-        createdAt: moment().add(50, 'days').toDate(),
+        createdAt: moment().add(8, 'days').toDate(),
         valueUsd: 20,
         qfRoundId: qfRound.id,
       }),

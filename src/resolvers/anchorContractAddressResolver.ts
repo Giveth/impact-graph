@@ -14,6 +14,9 @@ import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
 import { getProvider } from '../provider';
 import { logger } from '../utils/logger';
+import { ChainType } from '../types/network';
+import { addBulkNewProjectAddress } from '../repositories/projectAddressRepository';
+import { validateProjectRelatedAddresses } from '../utils/validators/projectValidator';
 
 @Resolver(_of => AnchorContractAddress)
 export class AnchorContractAddressResolver {
@@ -24,6 +27,7 @@ export class AnchorContractAddressResolver {
     @Arg('networkId', () => Int) networkId: number,
     @Arg('address', () => String) address: string,
     @Arg('txHash', () => String) txHash: string,
+    @Arg('recipientAddress', { nullable: true }) recipientAddress?: string,
   ): Promise<AnchorContractAddress> {
     const userId = ctx?.req?.user?.userId;
     const creatorUser = await findUserById(userId);
@@ -53,11 +57,29 @@ export class AnchorContractAddressResolver {
           projectAddress.isRecipient === true,
       )
     ) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK,
-        ),
-      );
+      if (recipientAddress) {
+        const recipientAddressInput = {
+          project,
+          user: creatorUser,
+          address: recipientAddress!,
+          chainType: ChainType.EVM,
+          networkId: networkId,
+          isRecipient: true,
+        };
+
+        await validateProjectRelatedAddresses(
+          [recipientAddressInput],
+          projectId,
+        );
+
+        await addBulkNewProjectAddress([recipientAddressInput]);
+      } else {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK,
+          ),
+        );
+      }
     }
 
     const web3Provider = getProvider(networkId);
@@ -81,14 +103,6 @@ export class AnchorContractAddressResolver {
 
     const iface = new ethers.utils.Interface(abi);
     const decodedData = iface.parseTransaction({ data: networkData.data });
-    const txProjectId = decodedData.args[1];
-    if (Number(txProjectId) !== projectId) {
-      logger.debug('txProjectId odoes not match the project id', {
-        txProjectId,
-        projectId,
-      });
-      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_ID));
-    }
     const profileOwnerWalletAddress = decodedData.args[3];
     if (
       profileOwnerWalletAddress.toLowerCase() !==

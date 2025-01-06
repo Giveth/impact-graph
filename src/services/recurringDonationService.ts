@@ -33,7 +33,6 @@ import {
 } from './donationService';
 import { calculateGivbackFactor } from './givbackService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
-import config from '../config';
 import { User } from '../entities/user';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
@@ -122,18 +121,17 @@ export const createRelatedDonationsToStream = async (
       });
     }
   }
+  let networkId: number = recurringDonation.networkId;
+
+  if (networkId === NETWORK_IDS.BASE_SEPOLIA) {
+    networkId = NETWORK_IDS.BASE_MAINNET;
+  }
+
   // create donation if any virtual period is missing
   if (uniquePeriods.length === 0) return;
 
   for (const streamPeriod of uniquePeriods) {
     try {
-      const environment = config.get('ENVIRONMENT') as string;
-
-      const networkId: number =
-        environment !== 'production'
-          ? NETWORK_IDS.OPTIMISM_SEPOLIA
-          : NETWORK_IDS.OPTIMISTIC;
-
       const symbolCurrency = recurringDonation.currency.includes('x')
         ? superTokensToToken[recurringDonation.currency]
         : recurringDonation.currency;
@@ -395,6 +393,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
       flowRate: recurringDonation.flowRate,
       sender: recurringDonation?.donor?.walletAddress?.toLowerCase() as string,
       transactionHash: recurringDonation.txHash,
+      networkId: recurringDonation.networkId,
     });
     if (!txData) {
       throw new Error(
@@ -427,19 +426,20 @@ export const recurringDonationsCountPerDateRange = async (
   onlyVerified?: boolean,
 ): Promise<number> => {
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
-    .select('COALESCE(COUNT(recurringDonation.id), 0)', 'count')
-    .where('recurringDonation.status = :status', {
-      status: RECURRING_DONATION_STATUS.ACTIVE,
+    .select('COALESCE(COUNT(DISTINCT recurringDonation.id), 0)', 'count')
+    .innerJoin('recurringDonation.donations', 'donations')
+    .where('recurringDonation.status != :status', {
+      status: RECURRING_DONATION_STATUS.FAILED,
     });
 
   if (fromDate) {
-    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+    query.andWhere('donations.createdAt >= :fromDate', {
       fromDate: new Date(fromDate),
     });
   }
 
   if (toDate) {
-    query.andWhere('recurringDonation.createdAt <= :toDate', {
+    query.andWhere('donations.createdAt <= :toDate', {
       toDate: new Date(toDate),
     });
   }
@@ -475,20 +475,21 @@ export const recurringDonationsCountPerDateRangePerMonth = async (
   onlyVerified?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
-    .select('COUNT(recurringDonation.id)', 'total')
+    .select('COUNT(DISTINCT recurringDonation.id)', 'total')
     .addSelect("TO_CHAR(recurringDonation.createdAt, 'YYYY/MM')", 'date')
-    .where('recurringDonation.status = :status', {
-      status: RECURRING_DONATION_STATUS.ACTIVE,
+    .innerJoin('recurringDonation.donations', 'donations')
+    .where('recurringDonation.status != :status', {
+      status: RECURRING_DONATION_STATUS.FAILED,
     });
 
   if (fromDate) {
-    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+    query.andWhere('donations.createdAt >= :fromDate', {
       fromDate: new Date(fromDate),
     });
   }
 
   if (toDate) {
-    query.andWhere('recurringDonation.createdAt <= :toDate', {
+    query.andWhere('donations.createdAt <= :toDate', {
       toDate: new Date(toDate),
     });
   }
@@ -524,24 +525,24 @@ export const recurringDonationsStreamedCUsdTotal = async (
   networkId?: number,
   onlyVerified?: boolean,
 ): Promise<number> => {
-  const query = RecurringDonation.createQueryBuilder(
-    'recurringDonation',
-  ).select('COALESCE(SUM(recurringDonation.totalUsdStreamed), 0)', 'total');
+  const query = RecurringDonation.createQueryBuilder('recurringDonation')
+    .select('COALESCE(SUM(donations.valueUsd), 0)', 'total')
+    .innerJoin('recurringDonation.donations', 'donations');
 
   if (fromDate) {
-    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+    query.andWhere('donations.createdAt >= :fromDate', {
       fromDate: new Date(fromDate),
     });
   }
 
   if (toDate) {
-    query.andWhere('recurringDonation.createdAt <= :toDate', {
+    query.andWhere('donations.createdAt <= :toDate', {
       toDate: new Date(toDate),
     });
   }
 
   if (networkId) {
-    query.andWhere('recurringDonation.networkId = :networkId', {
+    query.andWhere('donations.transactionNetworkId = :networkId', {
       networkId,
     });
   }
@@ -571,23 +572,24 @@ export const recurringDonationsStreamedCUsdTotalPerMonth = async (
   onlyVerified?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
-    .select('SUM(recurringDonation.totalUsdStreamed)', 'total')
-    .addSelect("TO_CHAR(recurringDonation.createdAt, 'YYYY/MM')", 'date');
+    .select('SUM(donations.valueUsd)', 'total')
+    .addSelect("TO_CHAR(donations.createdAt, 'YYYY/MM')", 'date')
+    .innerJoin('recurringDonation.donations', 'donations');
 
   if (fromDate) {
-    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+    query.andWhere('donations.createdAt >= :fromDate', {
       fromDate: new Date(fromDate),
     });
   }
 
   if (toDate) {
-    query.andWhere('recurringDonation.createdAt <= :toDate', {
+    query.andWhere('donations.createdAt <= :toDate', {
       toDate: new Date(toDate),
     });
   }
 
   if (networkId) {
-    query.andWhere('recurringDonation.networkId = :networkId', {
+    query.andWhere('donations.transactionNetworkId = :networkId', {
       networkId,
     });
   }
@@ -621,25 +623,26 @@ export const recurringDonationsTotalPerToken = async (params: {
 }): Promise<{ token: string; total: number }[]> => {
   const { fromDate, toDate, networkId, onlyVerified } = params;
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
-    .select('recurringDonation.currency', 'token')
-    .addSelect('COALESCE(SUM(recurringDonation.totalUsdStreamed), 0)', 'total')
-    .groupBy('recurringDonation.currency')
-    .having('SUM(recurringDonation.totalUsdStreamed) > 0');
+    .select('donations.currency', 'token')
+    .addSelect('COALESCE(SUM(donations.valueUsd), 0)', 'total')
+    .innerJoin('recurringDonation.donations', 'donations')
+    .groupBy('donations.currency')
+    .having('SUM(donations.valueUsd) > 0');
 
   if (fromDate) {
-    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+    query.andWhere('donations.createdAt >= :fromDate', {
       fromDate: new Date(fromDate),
     });
   }
 
   if (toDate) {
-    query.andWhere('recurringDonation.createdAt <= :toDate', {
+    query.andWhere('donations.createdAt <= :toDate', {
       toDate: new Date(toDate),
     });
   }
 
   if (networkId) {
-    query.andWhere('recurringDonation.networkId = :networkId', {
+    query.andWhere('donations.transactionNetworkId = :networkId', {
       networkId,
     });
   }
@@ -670,22 +673,23 @@ export const recurringDonationsCountPerToken = async (params: {
 }): Promise<{ token: string; total: number }[]> => {
   const { fromDate, toDate, networkId, onlyVerified } = params;
   const query = RecurringDonation.createQueryBuilder('recurringDonation')
-    .select('recurringDonation.currency', 'token')
-    .addSelect('COALESCE(COUNT(recurringDonation.id), 0)', 'total')
-    .where('recurringDonation.status = :status', {
-      status: RECURRING_DONATION_STATUS.ACTIVE,
+    .select('donations.currency', 'token')
+    .addSelect('COALESCE(COUNT(DISTINCT recurringDonation.id), 0)', 'total')
+    .innerJoin('recurringDonation.donations', 'donations')
+    .where('recurringDonation.status != :status', {
+      status: RECURRING_DONATION_STATUS.FAILED,
     })
-    .groupBy('recurringDonation.currency')
+    .groupBy('donations.currency')
     .having('COUNT(recurringDonation.id) > 0');
 
   if (fromDate) {
-    query.andWhere('recurringDonation.createdAt >= :fromDate', {
+    query.andWhere('donations.createdAt >= :fromDate', {
       fromDate: new Date(fromDate),
     });
   }
 
   if (toDate) {
-    query.andWhere('recurringDonation.createdAt <= :toDate', {
+    query.andWhere('donations.createdAt <= :toDate', {
       toDate: new Date(toDate),
     });
   }

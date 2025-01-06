@@ -1695,6 +1695,16 @@ const seedTokens: ITokenData[] = [
     coingeckoId: 'degen-base',
     isGivbackEligible: false,
   },
+  // cbBTC - https://basescan.org/token/0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf
+  {
+    name: 'Coinbase Wrapped BTC',
+    symbol: 'cbBTC',
+    address: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+    decimals: 8,
+    networkId: NETWORK_IDS.BASE_MAINNET,
+    coingeckoId: 'coinbase-wrapped-btc',
+    isGivbackEligible: false,
+  },
   // Osaka Protocol - https://basescan.org/token/0xbFd5206962267c7b4b4A8B3D76AC2E1b2A5c4d5e
   {
     name: 'Osaka Protocol',

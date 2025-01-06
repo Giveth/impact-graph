@@ -83,6 +83,7 @@ export type FilterProjectQueryInputParams = {
   qfRoundId?: number;
   activeQfRoundId?: number;
   qfRoundSlug?: string;
+  includeUnlisted?: boolean;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -97,6 +98,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     qfRoundId,
     qfRoundSlug,
     activeQfRoundId,
+    includeUnlisted,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -122,11 +124,16 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'projectPower.totalPower',
       'projectPower.powerRank',
       'projectPower.round',
-    ])
-    .where(
+    ]);
+
+  if (includeUnlisted) {
+    query = query.where(`project.statusId = ${ProjStatus.active}`);
+  } else {
+    query = query.where(
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
+  }
 
   const isFilterByQF =
     !!filters?.find(f => f === FilterField.ActiveQfRound) && activeQfRoundId;
@@ -209,13 +216,14 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.InstantBoosting: // This is our default sorting
       query
-        .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
-        .addOrderBy('project.verified', 'DESC') // Secondary sorting condition
         .addOrderBy(
           'projectInstantPower.totalPower',
           OrderDirection.DESC,
           'NULLS LAST',
-        );
+        )
+        .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
+        .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
+
       if (isFilterByQF) {
         query.addOrderBy(
           'project.sumDonationValueUsdForActiveQfRound',
@@ -254,7 +262,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     case SortingField.BestMatch:
       break;
-
     default:
       query
         .addOrderBy('projectInstantPower.totalPower', OrderDirection.DESC)
@@ -279,7 +286,7 @@ export const projectsWithoutUpdateAfterTimeFrame = async (
       'project.title',
     ])
     .where('project.isImported = false')
-    .andWhere('project.verified = true')
+    .andWhere('project.isGivbackEligible = true')
     .andWhere(
       '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
       {

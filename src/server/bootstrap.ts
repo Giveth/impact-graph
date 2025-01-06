@@ -70,6 +70,7 @@ import { addClient } from '../services/sse/sse';
 import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncUsersModelScore';
 import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
+import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
 
 Resource.validate = validate;
 
@@ -419,6 +420,9 @@ export async function bootstrap() {
     if (process.env.ENABLE_UPDATE_RECURRING_DONATION_STREAM === 'true') {
       runUpdateRecurringDonationStream();
       runCheckUserSuperTokenBalancesJob();
+    }
+    if (process.env.SITEMAP_CRON_SECRET !== '') {
+      runGenerateSitemapOnFrontend();
     }
     logger.debug(
       'initializeCronJobs() before runCheckActiveStatusOfQfRounds() ',

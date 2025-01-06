@@ -29,7 +29,6 @@ import {
   refreshProjectPowerView,
 } from '../../../repositories/projectPowerViewRepository';
 import { logger } from '../../../utils/logger';
-import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
 import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
 import {
   AdminJsContextInterface,
@@ -56,6 +55,7 @@ import { refreshProjectEstimatedMatchingView } from '../../../services/projectVi
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 import { Category } from '../../../entities/category';
+import { getRedirectUrl } from '../adminJsUtils';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -184,29 +184,85 @@ export const addFeaturedProjectUpdate = async (
   };
 };
 
+export const revokeGivbacksEligibility = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+) => {
+  const { records, currentAdmin } = context;
+  try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const updateParams = { isGivbackEligible: false };
+    const projects = await Project.createQueryBuilder('project')
+      .update<Project>(Project, updateParams)
+      .where('project.id IN (:...ids)')
+      .setParameter('ids', projectIds)
+      .returning('*')
+      .updateEntity(true)
+      .execute();
+
+    for (const project of projects.raw) {
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+      projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
+      await projectWithAdmin.save();
+      await getNotificationAdapter().projectBadgeRevoked({
+        project: projectWithAdmin,
+      });
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (verificationForm) {
+        await makeFormDraft({
+          formId: verificationForm.id,
+          adminId: currentAdmin.id,
+        });
+      }
+    }
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
+  } catch (error) {
+    logger.error('revokeGivbacksEligibility() error', error);
+    throw error;
+  }
+  return {
+    redirectUrl: '/admin/resources/Project',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message: 'Project(s) successfully revoked from Givbacks eligibility',
+      type: 'success',
+    },
+  };
+};
+
 export const verifyProjects = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
-  verified: boolean = true,
-  revokeBadge: boolean = false,
+  vouchedStatus: boolean = true,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { records, currentAdmin } = context;
-  // prioritize revokeBadge
-  const verificationStatus = revokeBadge ? false : verified;
   try {
     const projectIds = request?.query?.recordIds
       ?.split(',')
       ?.map(strId => Number(strId)) as number[];
     const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
-    const updateParams = { verified: verificationStatus };
 
-    if (verificationStatus) {
-      await Project.query(`
-        UPDATE project
-        SET "verificationStatus" = NULL
-        WHERE id IN (${request?.query?.recordIds})
-      `);
+    // Check if any project is Givback eligible and vouchedStatus is false\
+    if (!vouchedStatus) {
+      for (const project of projectsBeforeUpdating) {
+        if (project.isGivbackEligible) {
+          throw new Error(
+            `The project with ID ${project.id} is Givback-eligible, so the Vouched badge cannot be revoked.`,
+          );
+        }
+      }
     }
+
+    const updateParams = { verified: vouchedStatus };
 
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, updateParams)
@@ -219,11 +275,11 @@ export const verifyProjects = async (
     for (const project of projects.raw) {
       if (
         projectsBeforeUpdating.find(p => p.id === project.id)?.verified ===
-        verificationStatus
+        vouchedStatus
       ) {
         logger.debug('verifying/unVerifying project but no changes happened', {
           projectId: project.id,
-          verificationStatus,
+          verificationStatus: vouchedStatus,
         });
         // if project.verified have not changed, so we should not execute rest of the codes
         continue;
@@ -232,41 +288,18 @@ export const verifyProjects = async (
         project,
         status: project.status,
         userId: currentAdmin.id,
-        description: verified
+        description: vouchedStatus
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
-      const projectWithAdmin = (await findProjectById(project.id)) as Project;
-
-      if (revokeBadge) {
-        projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
-        await projectWithAdmin.save();
-        await getNotificationAdapter().projectBadgeRevoked({
-          project: projectWithAdmin,
-        });
-      } else if (verificationStatus) {
+      if (vouchedStatus) {
         await getNotificationAdapter().projectVerified({
-          project: projectWithAdmin,
+          project: project,
         });
       } else {
         await getNotificationAdapter().projectUnVerified({
-          project: projectWithAdmin,
+          project: project,
         });
-      }
-
-      const verificationForm = await getVerificationFormByProjectId(project.id);
-      if (verificationForm) {
-        if (verificationStatus) {
-          await makeFormVerified({
-            formId: verificationForm.id,
-            adminId: currentAdmin.id,
-          });
-        } else {
-          await makeFormDraft({
-            formId: verificationForm.id,
-            adminId: currentAdmin.id,
-          });
-        }
       }
     }
 
@@ -275,22 +308,27 @@ export const verifyProjects = async (
       refreshProjectPowerView(),
       refreshProjectFuturePowerView(),
     ]);
+    return {
+      redirectUrl: redirectUrl,
+      records: records.map(record => record.toJSON(context.currentAdmin)),
+      notice: {
+        message: `Project(s) successfully ${
+          vouchedStatus ? 'vouched' : 'unvouched'
+        }`,
+        type: 'success',
+      },
+    };
   } catch (error) {
     logger.error('verifyProjects() error', error);
-    throw error;
+    return {
+      redirectUrl: redirectUrl,
+      records: records.map(record => record.toJSON(context.currentAdmin)),
+      notice: {
+        message: error.message,
+        type: 'error',
+      },
+    };
   }
-  return {
-    redirectUrl: '/admin/resources/Project',
-    records: records.map(record => {
-      record.toJSON(context.currentAdmin);
-    }),
-    notice: {
-      message: `Project(s) successfully ${
-        verificationStatus ? 'verified' : 'unverified'
-      }`,
-      type: 'success',
-    },
-  };
 };
 
 export const updateStatusOfProjects = async (
@@ -298,6 +336,7 @@ export const updateStatusOfProjects = async (
   request: AdminJsRequestInterface,
   status,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { records, currentAdmin } = context;
   const projectIds = request?.query?.recordIds
     ?.split(',')
@@ -363,7 +402,7 @@ export const updateStatusOfProjects = async (
     ]);
   }
   return {
-    redirectUrl: '/admin/resources/Project',
+    redirectUrl: redirectUrl,
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -459,6 +498,7 @@ export const addSingleProjectToQfRound = async (
   request: AdminJsRequestInterface,
   add: boolean = true,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { record, currentAdmin } = context;
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
   const projectId = Number(request?.params?.recordId);
@@ -475,6 +515,7 @@ export const addSingleProjectToQfRound = async (
     message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
   }
   return {
+    redirectUrl: redirectUrl,
     record: record.toJSON(currentAdmin),
     notice: {
       message,
@@ -490,7 +531,6 @@ export const fillSocialProfileAndQfRounds: After<
   // both cases for projectVerificationForms and projects' ids
   const projectId = record.params.projectId || record.params.id;
 
-  const socials = await findSocialProfilesByProjectId({ projectId });
   const projectUpdates = await findProjectUpdatesByProjectId(projectId);
   const project = await findProjectById(projectId);
   const adminJsBaseUrl = process.env.SERVER_URL;
@@ -509,7 +549,6 @@ export const fillSocialProfileAndQfRounds: After<
       projectUrl: `${process.env.GIVETH_IO_DAPP_BASE_URL}/project/${
         project!.slug
       }`,
-      socials,
       qfRounds: project?.qfRounds,
       projectUpdates,
       adminJsBaseUrl,
@@ -567,6 +606,7 @@ export const listDelist = async (
   request,
   reviewStatus: ReviewStatus = ReviewStatus.Listed,
 ) => {
+  const redirectUrl = getRedirectUrl(request, 'Project');
   const { records, currentAdmin } = context;
   let listed;
   switch (reviewStatus) {
@@ -630,7 +670,7 @@ export const listDelist = async (
     throw error;
   }
   return {
-    redirectUrl: '/admin/resources/Project',
+    redirectUrl: redirectUrl,
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -711,19 +751,6 @@ export const projectsTab = {
       },
       statusId: {
         isVisible: { list: true, filter: true, show: true, edit: true },
-      },
-      socials: {
-        type: 'mixed',
-        isVisible: {
-          list: false,
-          filter: false,
-          show: true,
-          edit: false,
-          new: false,
-        },
-        components: {
-          show: adminJs.bundle('./components/VerificationFormSocials'),
-        },
       },
       adminUserId: {
         type: 'Number',
@@ -845,6 +872,17 @@ export const projectsTab = {
         isVisible: false,
       },
       stripeAccountId: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+        },
+      },
+      socialMedia: {
+        type: 'reference',
+        isArray: true,
+        reference: 'ProjectSocialMedia',
         isVisible: {
           list: false,
           filter: false,
@@ -1273,7 +1311,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      verify: {
+      approveVouched: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1286,7 +1324,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      reject: {
+      removeVouched: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1296,20 +1334,6 @@ export const projectsTab = {
           ),
         handler: async (request, response, context) => {
           return verifyProjects(context, request, false);
-        },
-        component: false,
-      },
-      // the difference is that it sends another segment event
-      revokeBadge: {
-        actionType: 'bulk',
-        isVisible: true,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessProjectAction(
-            { currentAdmin },
-            ResourceActions.REVOKE_BADGE,
-          ),
-        handler: async (request, response, context) => {
-          return verifyProjects(context, request, false, true);
         },
         component: false,
       },

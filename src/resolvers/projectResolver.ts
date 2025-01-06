@@ -268,6 +268,9 @@ class GetProjectsArgs {
 
   @Field(_type => String, { nullable: true })
   qfRoundSlug?: string;
+
+  @Field({ nullable: true })
+  includeUnlisted?: boolean;
 }
 
 @ObjectType()
@@ -740,6 +743,7 @@ export class ProjectResolver {
       campaignSlug,
       qfRoundId,
       qfRoundSlug,
+      includeUnlisted,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
@@ -766,6 +770,7 @@ export class ProjectResolver {
       qfRoundId,
       qfRoundSlug,
       activeQfRoundId,
+      includeUnlisted,
     };
     let campaign;
     if (campaignSlug) {
@@ -1079,6 +1084,14 @@ export class ProjectResolver {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
+
+    const dbUser = await findUserById(user.userId);
+
+    // Check if user email is verified
+    if (!dbUser || !dbUser.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
+
     const { image } = newProjectData;
 
     // const project = await Project.findOne({ id: projectId });
@@ -1362,6 +1375,13 @@ export class ProjectResolver {
     const user = await getLoggedInUser(ctx);
     const { image, description } = projectInput;
 
+    const dbUser = await findUserById(user.id);
+
+    // Check if user email is verified
+    if (!dbUser || !dbUser.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
+
     const qualityScore = getQualityScore(description, Boolean(image), 0);
 
     if (!projectInput.categories) {
@@ -1561,6 +1581,11 @@ export class ProjectResolver {
     if (!owner)
       throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
 
+    // Check if user email is verified
+    if (owner && !owner.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
+
     const project = await findProjectById(projectId);
 
     if (!project)
@@ -1616,6 +1641,16 @@ export class ProjectResolver {
       );
     }
 
+    const owner = await findUserById(user.userId);
+
+    if (!owner)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+
+    // Check if user email is verified
+    if (owner && !owner.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
+
     const update = await ProjectUpdate.findOne({ where: { id: updateId } });
     if (!update)
       throw new Error(
@@ -1647,6 +1682,16 @@ export class ProjectResolver {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
+
+    const owner = await findUserById(user.userId);
+
+    if (!owner)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+
+    // Check if user email is verified
+    if (owner && !owner.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
 
     const update = await ProjectUpdate.findOne({ where: { id: updateId } });
     if (!update)

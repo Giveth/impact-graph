@@ -27,6 +27,10 @@ export const createProjectVerificationForm = async (params: {
   return ProjectVerificationForm.create({
     project,
     user,
+    // This has been added becasue we are now doing verification of the email on user profile and not on project verification form
+    email: user?.email ?? '',
+    emailConfirmed: true,
+    emailConfirmedAt: new Date(),
   } as ProjectVerificationForm).save();
 };
 
@@ -200,8 +204,9 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
 export const updateProjectRegistryOfProjectVerification = async (params: {
   projectVerificationId: number;
   projectRegistry: ProjectRegistry;
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { projectRegistry, projectVerificationId } = params;
+  const { projectRegistry, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -212,6 +217,9 @@ export const updateProjectRegistryOfProjectVerification = async (params: {
   }
   await ProjectVerificationForm.update(projectVerificationId, {
     projectRegistry,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email,
   });
   projectVerificationForm.projectRegistry = projectRegistry;
   return projectVerificationForm;
@@ -260,8 +268,9 @@ export const updateProjectVerificationLastStep = async (params: {
 export const updateProjectContactsOfProjectVerification = async (params: {
   projectVerificationId: number;
   projectContacts: ProjectContacts[];
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { projectContacts, projectVerificationId } = params;
+  const { projectContacts, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -274,6 +283,9 @@ export const updateProjectContactsOfProjectVerification = async (params: {
   // projectContacts2.linkedin = projectContacts.linkedin
   await ProjectVerificationForm.update(projectVerificationId, {
     projectContacts,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email,
   });
   projectVerificationForm.projectContacts = projectContacts;
   return projectVerificationForm;
@@ -281,8 +293,9 @@ export const updateProjectContactsOfProjectVerification = async (params: {
 export const updateMilestonesOfProjectVerification = async (params: {
   projectVerificationId: number;
   milestones: Milestones;
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { milestones, projectVerificationId } = params;
+  const { milestones, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -293,6 +306,9 @@ export const updateMilestonesOfProjectVerification = async (params: {
   }
   await ProjectVerificationForm.update(projectVerificationId, {
     milestones,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email: email,
   });
   projectVerificationForm.milestones = milestones;
   return projectVerificationForm;
@@ -300,8 +316,9 @@ export const updateMilestonesOfProjectVerification = async (params: {
 export const updateTermsAndConditionsOfProjectVerification = async (params: {
   projectVerificationId: number;
   isTermAndConditionsAccepted: boolean;
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { isTermAndConditionsAccepted, projectVerificationId } = params;
+  const { isTermAndConditionsAccepted, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -314,6 +331,9 @@ export const updateTermsAndConditionsOfProjectVerification = async (params: {
     isTermAndConditionsAccepted;
   await ProjectVerificationForm.update(projectVerificationId, {
     isTermAndConditionsAccepted,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email,
   });
   return projectVerificationForm;
 };
@@ -321,8 +341,9 @@ export const updateTermsAndConditionsOfProjectVerification = async (params: {
 export const updateManagingFundsOfProjectVerification = async (params: {
   projectVerificationId: number;
   managingFunds: ManagingFunds;
+  email?: string;
 }): Promise<ProjectVerificationForm> => {
-  const { managingFunds, projectVerificationId } = params;
+  const { managingFunds, projectVerificationId, email } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -346,6 +367,9 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   projectVerificationForm.managingFunds = managingFunds;
   await ProjectVerificationForm.update(projectVerificationId, {
     managingFunds,
+    emailConfirmedAt: new Date(),
+    emailConfirmed: true,
+    email,
   });
   return projectVerificationForm;
 };
@@ -393,24 +417,20 @@ export const approveProject = async (params: {
   return project.save();
 };
 
-export const approveMultipleProjects = async (params: {
+export const approveMultipleProjects = async ({
+  approved,
+  projectsIds,
+}: {
   approved: boolean;
   projectsIds: string[] | number[];
 }): Promise<UpdateResult> => {
-  if (params.approved) {
-    await Project.query(`
-      UPDATE project
-      SET "verificationStatus" = NULL
-      WHERE id IN (${params.projectsIds?.join(',')})
-    `);
-  }
-
   return Project.createQueryBuilder('project')
-    .update<Project>(Project, {
-      isGivbackEligible: params.approved,
+    .update<Project>(Project)
+    .set({
+      isGivbackEligible: approved,
+      ...(approved && { verificationStatus: null, verified: true }),
     })
-    .where('project.id IN (:...ids)')
-    .setParameter('ids', params.projectsIds)
+    .where('project.id IN (:...ids)', { ids: projectsIds })
     .returning('*')
     .updateEntity(true)
     .execute();

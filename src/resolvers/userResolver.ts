@@ -2,6 +2,7 @@ import {
   Arg,
   Ctx,
   Field,
+  Int,
   Mutation,
   ObjectType,
   Query,
@@ -9,7 +10,7 @@ import {
 } from 'type-graphql';
 import { Repository } from 'typeorm';
 
-import { User } from '../entities/user';
+import { User, UserPublicData } from '../entities/user';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -30,6 +31,9 @@ import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepos
 import { addressHasDonated } from '../repositories/donationRepository';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
+import { getLoggedInUser } from '../services/authorizationServices';
+import { generateRandomNumericCode } from '../utils/utils';
+import { isSolanaAddress } from '../utils/networks';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -38,6 +42,15 @@ class UserRelatedAddressResponse {
 
   @Field(_type => Boolean, { nullable: false })
   hasDonated: boolean;
+}
+
+@ObjectType()
+class AllUsersPublicData {
+  @Field(_type => [UserPublicData])
+  users: UserPublicData[];
+
+  @Field(_type => Number)
+  totalCount: number;
 }
 
 @Resolver(_of => User)
@@ -141,6 +154,7 @@ export class UserResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
     const dbUser = await findUserById(user.userId);
+
     if (!dbUser) {
       return false;
     }
@@ -169,6 +183,14 @@ export class UserResolver {
     }
     if (location !== undefined) {
       dbUser.location = location;
+    }
+    // Check if user email is verified
+    if (!dbUser.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
+    // Check if old email is verified and user entered new one
+    if (dbUser.isEmailVerified && email !== dbUser.email) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
     if (email !== undefined) {
       // User can unset his email by putting empty string
@@ -229,5 +251,210 @@ export class UserResolver {
     await createNewAccountVerification(associatedVerifications);
 
     return true;
+  }
+
+  /**
+   * Mutation to handle the process of sending a user email confirmation code.
+   *
+   * This function performs the following steps:
+   * 1. **Retrieve Logged-In User**: Fetches the currently logged-in user using the context (`ctx`).
+   * 2. **Check Email Verification Status**:
+   *    - If the user's email is already verified, it throws an error with an appropriate message.
+   * 3. **Check for Email Usage**:
+   *    - Verifies if the provided email is already in use by another user in the database.
+   *    - If the email exists and belongs to a different user, it returns `'EMAIL_EXIST'`.
+   * 4. **Generate Verification Code**:
+   *    - Creates a random 5-digit numeric code for email verification.
+   *    - Updates the logged-in user's email verification code and email in the database.
+   * 5. **Send Verification Code**:
+   *    - Uses the notification adapter to send the generated verification code to the provided email.
+   * 6. **Save User Record**:
+   *    - Saves the updated user information (email and verification code) to the database.
+   * 7. **Return Status**:
+   *    - If the verification code is successfully sent, it returns `'VERIFICATION_SENT'`.
+   *
+   * @param {string} email - The email address to verify.
+   * @param {ApolloContext} ctx - The GraphQL context containing user and other relevant information.
+   * @returns {Promise<string>} - A status string indicating the result of the operation:
+   *    - `'EMAIL_EXIST'`: The email is already used by another user.
+   *    - `'VERIFICATION_SENT'`: The verification code has been sent successfully.
+   * @throws {Error} - If the user's email is already verified.
+   */
+  @Mutation(_returns => String)
+  async sendUserEmailConfirmationCodeFlow(
+    @Arg('email') email: string,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<string> {
+    const user = await getLoggedInUser(ctx);
+
+    // Check is mail valid
+    if (!validateEmail(email)) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
+    }
+
+    // Check if email aready verified
+    if (user.isEmailVerified && user.email === email) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.USER_EMAIL_ALREADY_VERIFIED),
+      );
+    }
+
+    // Check do we have an email already in the database and is it verified
+    // We need here to check if user wallet solana address or not
+    // User can have sam email for solana end ethereum wallet
+    const isSolanaAddressCheck = user?.walletAddress
+      ? isSolanaAddress(user.walletAddress)
+      : false;
+    let isEmailAlreadyUsed;
+    if (isSolanaAddressCheck) {
+      const rawQuery = `
+        SELECT *
+        FROM public."user"
+        WHERE "email" = $1
+          AND "isEmailVerified" = true
+          AND (
+            "walletAddress" = LEFT("walletAddress", 43) OR
+            "walletAddress" = LEFT("walletAddress", 44)
+          )
+          AND "walletAddress" ~ '^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$'
+        LIMIT 1
+      `;
+
+      isEmailAlreadyUsed = await User.query(rawQuery, [email]);
+    } else {
+      const rawQuery = `
+        SELECT *
+        FROM public."user"
+        WHERE "email" = $1
+          AND "isEmailVerified" = true
+          AND "walletAddress" = LEFT("walletAddress", 42)
+          AND "walletAddress" ~ '^0x[0-9a-fA-F]{40}$'
+        LIMIT 1
+      `;
+
+      isEmailAlreadyUsed = await User.query(rawQuery, [email]);
+    }
+
+    if (
+      isEmailAlreadyUsed &&
+      isEmailAlreadyUsed.length > 0 &&
+      isEmailAlreadyUsed.id !== user.id
+    ) {
+      return 'EMAIL_EXIST';
+    }
+
+    // Send verification code
+    const code = generateRandomNumericCode(5).toString();
+
+    user.emailVerificationCode = code;
+
+    await getNotificationAdapter().sendUserEmailConfirmationCodeFlow({
+      email: email,
+      user: user,
+    });
+
+    await user.save();
+
+    return 'VERIFICATION_SENT';
+  }
+
+  /**
+   * Mutation to handle the user confirmation code verification process.
+   *
+   * This function performs the following steps:
+   * 1. **Retrieve Logged-In User**: Fetches the currently logged-in user using the provided context (`ctx`).
+   * 2. **Check Email Verification Status**:
+   *    - If the user's email is already verified, an error is thrown with an appropriate message.
+   * 3. **Verify Email Verification Code Presence**:
+   *    - Checks if the user has a stored email verification code in the database.
+   *    - If no code exists, an error is thrown indicating that the code was not found.
+   * 4. **Validate the Verification Code**:
+   *    - Compares the provided `verifyCode` with the user's stored email verification code.
+   *    - If the codes do not match, an error is thrown indicating the mismatch.
+   * 5. **Mark Email as Verified**:
+   *    - If the verification code matches, the user's `emailVerificationCode` is cleared (set to `null`),
+   *      and the `isEmailVerified` flag is set to `true`.
+   * 6. **Save Updated User Data**:
+   *    - The updated user record (email verified status) is saved to the database.
+   * 7. **Return Status**:
+   *    - Returns `'VERIFICATION_SUCCESS'` to indicate the email verification was completed successfully.
+   *
+   * @param {string} email - The email address associated with the user's account.
+   * @param {string} verifyCode - The verification code submitted by the user for validation.
+   * @param {ApolloContext} ctx - The GraphQL context containing the logged-in user's information.
+   * @returns {Promise<string>} - A status string indicating the result of the verification process:
+   *    - `'VERIFICATION_SUCCESS'`: The email has been successfully verified.
+   * @throws {Error} - If:
+   *    - The user's email is already verified.
+   *    - No verification code is found in the database for the user.
+   *    - The provided verification code does not match the stored code.
+   */
+  @Mutation(_returns => String)
+  async sendUserConfirmationCodeFlow(
+    @Arg('email') email: string,
+    @Arg('verifyCode') verifyCode: string,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<string> {
+    const user = await getLoggedInUser(ctx);
+
+    // Check is mail valid
+    if (!validateEmail(email)) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
+    }
+
+    // Check if email aready verified
+    if (user.isEmailVerified && user.email === email) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.USER_EMAIL_ALREADY_VERIFIED),
+      );
+    }
+
+    // Check do we have an email verification code inside database
+    if (!user.emailVerificationCode) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.USER_EMAIL_CODE_NOT_FOUND),
+      );
+    }
+
+    // Check if code matches
+    if (verifyCode !== user.emailVerificationCode) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.USER_EMAIL_CODE_NOT_MATCH),
+      );
+    }
+
+    // Save Updated User Data
+    user.emailVerificationCode = null;
+    user.isEmailVerified = true;
+    user.email = email;
+
+    await user.save();
+
+    return 'VERIFICATION_SUCCESS';
+  }
+
+  @Query(_returns => AllUsersPublicData)
+  async allUsersBasicData(
+    @Arg('limit', _type => Int, { nullable: true }) limit: number = 50,
+    @Arg('skip', _type => Int, { nullable: true }) skip: number = 0,
+  ): Promise<AllUsersPublicData> {
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .select([
+        'user.firstName',
+        'user.lastName',
+        'user.name',
+        'user.walletAddress',
+      ])
+      .skip(skip)
+      .take(limit);
+
+    // Execute the query and fetch results
+    const [users, totalCount] = await query.getManyAndCount();
+
+    return {
+      users,
+      totalCount,
+    };
   }
 }

@@ -42,7 +42,75 @@ export const superTokensToToken = {
   DAIx: 'DAI',
   OPx: 'OP',
   GIVx: 'GIV',
+  DEGENx: 'DEGEN',
+  cbBTCx: 'cbBTC',
 };
+
+export const superTokensBase = [
+  {
+    underlyingToken: {
+      decimals: 6,
+      id: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      coingeckoId: 'usd-coin',
+    },
+    decimals: 18,
+    id: '0xD04383398dD2426297da660F9CCA3d439AF9ce1b',
+    name: 'Super USD Coin',
+    symbol: 'USDCx',
+    isSuperToken: true,
+    coingeckoId: 'usd-coin',
+  },
+  {
+    underlyingToken: {
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      id: '0x0000000000000000000000000000000000000000',
+    },
+    decimals: 18,
+    id: '0x46fd5cfB4c12D87acD3a13e92BAa53240C661D93',
+    name: 'Super ETH',
+    symbol: 'ETHx',
+  },
+  {
+    underlyingToken: {
+      decimals: 8,
+      id: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+      name: 'Coinbase Wrapped BTC',
+      symbol: 'cbBTC',
+    },
+    decimals: 18,
+    id: '0xDFd428908909CB5E24F5e79E6aD6BDE10bdf2327',
+    name: 'Super Coinbase Wrapped BTC',
+    symbol: 'cbBTCx',
+  },
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+      name: 'DAI Stablecoin',
+      symbol: 'DAI',
+    },
+    decimals: 18,
+    id: '0x708169c8C87563Ce904E0a7F3BFC1F3b0b767f41',
+    name: 'Super DAI Stablecoin',
+    symbol: 'DAIx',
+  },
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed',
+      name: 'Degen',
+      symbol: 'DEGEN',
+    },
+    decimals: 18,
+    id: '0x1efF3Dd78F4A14aBfa9Fa66579bD3Ce9E1B30529',
+    name: 'Super Degen',
+    symbol: 'DEGENx',
+  },
+];
 
 export const superTokens = [
   {
@@ -121,13 +189,46 @@ export const superTokens = [
     underlyingToken: {
       decimals: 6,
       id: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
-      name: 'USD Coin',
-      symbol: 'USDC',
+      name: 'Bridged USD Coin',
+      symbol: 'USDC.e',
+      coingeckoId: 'usd-coin',
     },
     decimals: 18,
     id: '0x8430f084b939208e2eded1584889c9a66b90562f',
+    name: 'Super Bridged USD Coin',
+    symbol: 'USDC.ex',
+    isSuperToken: true,
+    coingeckoId: 'usd-coin',
+  },
+  {
+    underlyingToken: {
+      decimals: 6,
+      id: '0x0b2c639c533813f4aa9d7837caf62653d097ff85',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      coingeckoId: 'usd-coin',
+    },
+    decimals: 18,
+    id: '0x35Adeb0638EB192755B6E52544650603Fe65A006',
     name: 'Super USD Coin',
     symbol: 'USDCx',
+    isSuperToken: true,
+    coingeckoId: 'usd-coin',
+  },
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0x4F604735c1cF31399C6E711D5962b2B3E0225AD3',
+      name: 'Glo Dollar',
+      symbol: 'USDGLO',
+      coingeckoId: 'glo-dollar',
+    },
+    decimals: 18,
+    id: '0x9F41d0AA24E599fd8D0c180Ee3C0F609dc41c622',
+    name: 'Super Glo Dollar',
+    symbol: 'USDGLOx',
+    isSuperToken: true,
+    coingeckoId: 'glo-dollar',
   },
 ];
 

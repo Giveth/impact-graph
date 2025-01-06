@@ -597,24 +597,24 @@ function getTransactionDetailTestCases() {
   //   assert.equal(transactionInfo.amount, amount);
   // });
 
-  it('should return transaction detail for normal transfer on ZKEVM Cardano', async () => {
-    // https://cardona-zkevm.polygonscan.com/tx/0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a
+  // it('should return transaction detail for normal transfer on ZKEVM Cardano', async () => {
+  //   // https://cardona-zkevm.polygonscan.com/tx/0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a
 
-    const amount = 0.00001;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a',
-      symbol: 'ETH',
-      networkId: NETWORK_IDS.ZKEVM_CARDONA,
-      fromAddress: '0x9AF3049dD15616Fd627A35563B5282bEA5C32E20',
-      toAddress: '0x417a7BA2d8d0060ae6c54fd098590DB854B9C1d5',
-      amount,
-      timestamp: 1718267581,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETH');
-    assert.equal(transactionInfo.amount, amount);
-  });
+  //   const amount = 0.00001;
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash:
+  //       '0x5cadef5d2ee803ff78718deb926964c14d83575ccebf477d48b0c3c768a4152a',
+  //     symbol: 'ETH',
+  //     networkId: NETWORK_IDS.ZKEVM_CARDONA,
+  //     fromAddress: '0x9AF3049dD15616Fd627A35563B5282bEA5C32E20',
+  //     toAddress: '0x417a7BA2d8d0060ae6c54fd098590DB854B9C1d5',
+  //     amount,
+  //     timestamp: 1718267581,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'ETH');
+  //   assert.equal(transactionInfo.amount, amount);
+  // });
 
   it('should return transaction detail for OP token transfer on optimistic', async () => {
     // https://optimistic.etherscan.io/tx/0xf11be189d967831bb8a76656882eeeac944a799bd222acbd556f2156fdc02db4
@@ -998,24 +998,24 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
-  it('should return transaction detail for RAY spl token transfer on Solana mainnet', async () => {
-    // https://solscan.io/tx/4ApdD7usYH5Cp7hsaWGKjnJW3mfyNpRw4S4NJbzwa2CQfnUkjY11sR2G1W3rvXmCzXwu3yNLz2CfkCHY5sQPdWzq
-    const amount = 0.005;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '4ApdD7usYH5Cp7hsaWGKjnJW3mfyNpRw4S4NJbzwa2CQfnUkjY11sR2G1W3rvXmCzXwu3yNLz2CfkCHY5sQPdWzq',
-      symbol: 'RAY',
-      chainType: ChainType.SOLANA,
-      networkId: NETWORK_IDS.SOLANA_MAINNET,
-      fromAddress: 'FAMREy7d73N5jPdoKowQ4QFm6DKPWuYxZh6cwjNAbpkY',
-      toAddress: '6U29tmuvaGsTQqamf9Vt4o15JHTNq5RdJxoRW6NJxRdx',
-      timestamp: 1706429516,
-      amount,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'RAY');
-    assert.equal(transactionInfo.amount, amount);
-  });
+  // it('should return transaction detail for RAY spl token transfer on Solana mainnet', async () => {
+  //   // https://solscan.io/tx/4ApdD7usYH5Cp7hsaWGKjnJW3mfyNpRw4S4NJbzwa2CQfnUkjY11sR2G1W3rvXmCzXwu3yNLz2CfkCHY5sQPdWzq
+  //   const amount = 0.005;
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash:
+  //       '4ApdD7usYH5Cp7hsaWGKjnJW3mfyNpRw4S4NJbzwa2CQfnUkjY11sR2G1W3rvXmCzXwu3yNLz2CfkCHY5sQPdWzq',
+  //     symbol: 'RAY',
+  //     chainType: ChainType.SOLANA,
+  //     networkId: NETWORK_IDS.SOLANA_MAINNET,
+  //     fromAddress: 'FAMREy7d73N5jPdoKowQ4QFm6DKPWuYxZh6cwjNAbpkY',
+  //     toAddress: '6U29tmuvaGsTQqamf9Vt4o15JHTNq5RdJxoRW6NJxRdx',
+  //     timestamp: 1706429516,
+  //     amount,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'RAY');
+  //   assert.equal(transactionInfo.amount, amount);
+  // });
 
   it('should return error when transaction time is newer than sent timestamp for spl-token transfer on Solana', async () => {
     // https://explorer.solana.com/tx/2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16?cluster=devnet

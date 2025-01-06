@@ -94,6 +94,28 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
+  async sendUserEmailConfirmationCodeFlow(params: {
+    email: string;
+    user: User;
+  }): Promise<void> {
+    const { email, user } = params;
+    try {
+      await callSendNotification({
+        eventName:
+          NOTIFICATIONS_EVENT_NAMES.SEND_USER_EMAIL_CONFIRMATION_CODE_FLOW,
+        segment: {
+          payload: {
+            email,
+            verificationCode: user.emailVerificationCode,
+            userId: user.id,
+          },
+        },
+      });
+    } catch (e) {
+      logger.error('sendUserEmailConfirmationCodeFlow >> error', e);
+    }
+  }
+
   async userSuperTokensCritical(params: {
     user: User;
     eventName: UserStreamBalanceWarning;
