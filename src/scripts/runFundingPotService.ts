@@ -126,7 +126,7 @@ async function fillProjectsData() {
         SAFE: project.abc.projectAddress || '',
         ORCHESTRATOR: project.abc.orchestratorAddress || '',
         NFT: project.abc.nftContractAddress || '',
-        MATCHING_FUNDS: project.matchingFunds || '',
+        MATCHING_FUNDS: project.matchingFunds?.toString() || '',
       };
     } else {
       console.warn(
