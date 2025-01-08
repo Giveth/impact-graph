@@ -24,7 +24,7 @@ export const runSyncEstimatedClusterMatchingCronjob = () => {
 
 export const fetchAndUpdateClusterEstimatedMatching = async () => {
   const matchingWorker = await spawn(
-    new Worker('../../workers/cocm/estimatedClusterMtchingWorker'),
+    new Worker('../../workers/cocm/estimatedClusterMatchingWorker'),
   );
 
   const activeQfRound = await findActiveQfRound();

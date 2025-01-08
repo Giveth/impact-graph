@@ -21,15 +21,16 @@ const worker: EstimatedClusterMatchingWorker = {
 
   async updateEstimatedClusterMatching(qfRoundId: number, matchingData: any) {
     try {
-      // Prepare values for bulk insert
+      const params: any[] = [];
       const values = matchingData
-        .map(
-          data => `(
-        (SELECT id FROM project WHERE title = '${data.project_name}'), 
-        ${qfRoundId}, 
-        ${data.matching_amount}
-      )`,
-        )
+        .map((data, index) => {
+          params.push(data.project_name, qfRoundId, data.matching_amount);
+          return `(
+            (SELECT id FROM project WHERE title = $${index * 3 + 1}),
+            $${index * 3 + 2},
+            $${index * 3 + 3}
+          )`;
+        })
         .join(',');
 
       const query = `
@@ -40,7 +41,7 @@ const worker: EstimatedClusterMatchingWorker = {
         RETURNING "projectId", "qfRoundId", matching;
       `;
 
-      const result = await EstimatedClusterMatching.query(query);
+      const result = await EstimatedClusterMatching.query(query, params);
       if (result.length === 0) {
         throw new Error('No records were inserted or updated.');
       }
