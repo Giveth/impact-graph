@@ -57,6 +57,8 @@ export const fetchAndUpdateClusterEstimatedMatching = async () => {
     );
   } catch (e) {
     logger.error('fetchAndUpdateClusterEstimatedMatching error', e);
+  } finally {
+    await Thread.terminate(matchingWorker);
   }
 
   await Thread.terminate(matchingWorker);
