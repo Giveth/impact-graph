@@ -48,7 +48,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0c568d26-41a5-9a67-d97e-e00aef88eac3',
-    name: "M'Lop Tapang",
+    name: 'MLop Tapang',
     description:
       "M'Lop Tapang, a local non-profit organization registered with the Royal Government of Cambodia, has been working with vulnerable of Sihanoukville since 2003.                                                           M'Lop Tapang envisions an environment where all children are allowed to grow up in their families feeling safe, healthy and happy; a society where all children are respected and treated equally; a community where all children are given choices about their future. <br><br>M'Lop Tapang strives to provide a safe haven for vulnerable children of Sihanoukville, offering care and support to any child at risk. We offer access to education, reintegration with families, life-skills training and creative and recreational activities, while ensuring protection from all forms of abuse. Our efforts allow underprivileged children to embrace their childhood so they can become responsible adults and positive, independent members of society.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/18182/orglogo.jpg',
@@ -147,7 +147,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ace29b68-42b8-8a80-dd13-e63b3ce90744',
-    name: 'Krebsforschung Schweiz / Swiss Cancer Research',
+    name: 'Krebsforschung Schweiz  Swiss Cancer Research',
     description:
       "In existence since 1990, the Swiss Cancer Research foundation, with the help of donations, provides funding for all areas of cancer research: basic, clinical, epidemiologic, and psychosocial research. A special focus is the funding of patient-centred research projects that result as far as possible in direct patient benefit. The SCR foundation board is responsible for distributing the funds to researchers. The board's funding decisions are based on the recommendations made by the Scientific Committee, which reviews the grant applications according to clearly defined criteria. The SCR also supports the development and implementation of measures to fight cancer in Switzerland.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/31743/orglogo.jpg',
@@ -185,7 +185,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '83289fb3-4f91-ab68-cf3f-cb93bf3902f8',
-    name: 'Disable Development & Educational Foundation (DDEF)',
+    name: 'Disable Development  Educational Foundation (DDEF)',
     description:
       'To develop the under privileged poor vulnerable persons with the disabilities specially autistic, vulnerable women and distresses children in grass root level in Bangladesh. <br>> To change the social and economical situation of underserved and unserved people in the country creating and sound and peaceful development environment. <br>> To provide necessary moral and material support to the poor and needy and building their capacity to live with dignity of Allah. <br> To reduce poverty among the community people under taking felt need based and right programs having direct participation of related stakeholders and rehabilitation of person with disabilities.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/43821/orglogo.png',
@@ -197,7 +197,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ca748290-4515-a143-e1d1-3d1b7d7dc322',
-    name: 'APC/CZA',
+    name: 'APCCZA',
     description:
       'ASYLUM PROTECTION CENTER (APC) was founded in 2007 and from the very beginning of the asylum system in Serbia (2008) has been providing legal, psychosocial and interaction/integration aid to exiles, asylum seekers and persons who have been granted asylum or other protection in the Republic of Serbia (with special focus to children and youth- providing legal, psychosocial, interaction/integration aid to minors, unaccompanied minors and youth). Activities of the APC as grass root organization are reflected through our strong presence and engagement at local levels in local communities, in order to establish a dialogue and interaction between asylum seekers/refugees/exiles and local citizens; primarily through the organization of public local events, exhibitions, fairs, asylum corners, interaction/integration, creative and other workshops, round tables, work of APC local networks of volunteers and APC interns, cultural mediators support and other events and activities in local communities, as well as through numerous collaborations with local governments, organizations, institutions, schools, local cultural and youth centers. APC political scientists and researchers actively work in the field of research and advocacy, using extensive APC experience and field data, in order to get to the root of issues and problems of the migration, asylum system and refugees, strengthening and spreading information to the wider general and local public and experts, advocating and fighting to reduce prejudice and xenophobia in local and general public thus building more tolerant and inclusive society in Serbia. Since its founding, lawyers, psychologists, pedagogues, social workers and translators that make up the APC/CZA team have worked first hand with the refugees and migrants in the first asylum centers. Since the opening of the Balkan route, our team can be found  across all reception and transit centers, parks, buses, railways stations, at improvised shelters in open air surroundings by the border, in suburbs, on the streets, in forests and in institutions for youth. We have reunified families, discovered smuggling routes and found children who had been lost. Our team continues to protect persons from discrimination and violence, while simultaneously reporting abuse that are endured by vulnerable groups of migrants and refugees. With the help of Social work centers we have placed children in foster families, enabled the healthy births of children, provided birth certificates for refugee babies born in Serbia and reunified children with their families we have ultimately helped wherever we could. APC/CZA has established one of the first mobile applications in Europe - "Asylum in Serbia", providing not only all necessary basic information, placing mechanism tools for reporting abuse in the hands of migrants and refugees, that are necessary in their journey\'s through the country, or their long term stays in Serbia. With tireless legal assistance and interpretation of regulations, we managed to provide health care (primary, secondary and tertiary protection) to asylum seekers who should receive care equal to the rights of Serbian citizens. In cooperation with local communities in Bogovadja and Lajkovac, the APC/CZA team, as early as 2012 began enrolling the children of asylum seekers into the Serbian educational system, in both elementary and secondary education institutions. We currently continue with this practice and as a result of our engagement with children who attend elementary school in Belgrade, Krnjaca, Sjenica and Tutin, they are able to receive full-time education, have become excellent and thoroughly satisfied students.<br><br>We are the first in Serbia to have begun the integration process of refugees and asylum seekers in the country- by assisting them to find work, accommodation, the obtaining of documents, ease in overcoming psychological problems and adaptation problems that may have resulted due to their new environment surroundings, regulations, mentality and the culture in Serbia.<br><br>We have managed to validate and recognize the first pages of diplomas for those who received asylum in Serbia.<br><br>We provided the first work permits for more than 40 asylum seekers and those who received asylum and established a legal practice enabling and ensuring them with the right to work. Furthermore, APC/CZA also led disputes before the European Court of Human Rights in Strasbourg in order to protect people from illegal deportations from Hungary and Serbia and managed to ensure fair and equitable proceedings before the competent institutions.<br><br>Over the past ten years, we have legally informed more than 220,000 migrants, asylum seekers and refugees, about their rights and obligations in the country in which they are located. We lawfully advised more than 23,600 asylum seekers and represented them in asylum and other proceedings, as well as before Misdemeanor, Administrative, Constitutional Courts and other instances.<br><br>Our psychologists advised and empowered more than 7,000 asylum-seekers and refugees who needed help - through social assistance, and workshops, we advised more than 3900 asylum seekers.<br><br>We have held over 937 different workshops (cultural, creative, empowering, health, language, school preparatory, and integration, psychological) with more than 4000 asylum seekers taking part in our activities.<br><br>We have crossed over 400,000 kilometers with our mobile teams across Serbia.<br><br>Our web pages were visited by more than 180,000 different people this year alone. During the 2015 refugee crisis, the Center had legally advised more than 110 000 refugees, more than 31 000 children and more than 30 000 women. APC / CZA has trained and taught practices of how to work with children and vulnerable groups, to more than 100 interns and young professionals from the country and abroad.<br><br>APC / CZA has the first and only accredited training programs for social workers in the social welfare system as well as an accredited training program for professional staff in the education system in the field of migrant / asylum / refugee work with a special emphasis on minors.<br><br>We have built a volunteer network with over 170 volunteers.<br><br>Today in Serbia there is no other organization working with refugees where one of its employees has not undergone training, professional development or had a job at with Asylum Protection Center.<br><br>We are particularly proud of our work related to informing the local community about refugees and migrants - people who have fled from war, persecution, poverty, who have come from various cultures, while at the same time informing the migrants about Serbian culture, customs and the rules of their new environment surroundings.<br><br>With all of what we have done and of course what has been done by the state and its institutions, who have a primary duty to manage and care about migration, enough has yet to be done to confidently say that the situation with refugees in Serbia is at a good place.<br><br>Currently there are far more than 5000 migrants in Serbia, of which up to 4000 are housed in reception centers, while others are in the open, in forests, in suburbs, abandoned buildings or in alternative accommodation. The Balkan route is formally closed, but dozens of people continue to enter the country from Bulgaria and Macedonia every day, while in Vojvodina the largest number has accumulated near the borders of Croatia, Hungary and Romania.<br><br>Illegal deportation of people from Croatia, Hungary and Romania to Serbia is a continuous and illegal practice, and people have been illegally pushed back to Serbia, even in instances when they had not previously travelled through the country.<br><br>This brings Serbia into the position of becoming a buffer zone for migration and as a new hotspot on the migration route, which ultimately leads to extensive and far-reaching consequences for the future.<br><br>The longer retention of these people in Serbia and their increasingly difficult transition into EU countries, if that is their goal, requires a change in approaching this problem.<br><br>Migrants currently have difficulty accessing accommodation and asylum procedures, and registration. They are violated of their fundamental rights as asylum seekers in fair and fast procedures, free legal aid, freedom of movement. This places a vulnerable group of people who are often exposed to abuse and violence more and more, in situations of prejudice and prevents integration and interaction with the local environment, and community while promoting the use of smuggling and crime.<br><br>These circumstances require a greater engagement by our organization in informing migrants and providing legal protection to asylum seekers and refugees in proceedings before all institutions, bodies and courts of the Republic, as well as monitoring the application of regulations and behavior on the ground through the process\' of border monitoring and abuse.<br><br>It is very important that our organization keeps its independence, professional and objective approach to problems, while continuing to cooperate with the media to objectively inform citizens and the public while continuing our fight against prejudice and disinformation.<br><br>APC / CZA will continue to train and provide professional practices for young professionals with its accredited training programs for civil servants while working intensively with local communities.<br><br>APC / CZA will furthermore continue its engagement in the integration of those who have received asylum in Serbia, as well as in supporting the system itself and pushing for the improvement of existing practices, and cooperation in the region. As well, our team will work with secular organizations at the European level who will also be a priority in the fight against prejudices, and in raising public awareness of these problems, in building solidarity and permanent networks of cross-border cooperation between organizations in Europe.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/64631/orglogo.png',
@@ -294,7 +294,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2a612809-99e6-40df-bf66-2b5aad3bf151',
-    name: 'Founders Pledge, Inc.',
+    name: 'Founders Pledge, Inc',
     description: 'Our mission is to empower entrepreneurs to do immense good.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/76c2fcfb-afff-4567-8ae0-c5a6517f7f2e.jpg',
@@ -318,7 +318,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4b1f6150-7bd5-442c-ba8e-aa6ab0c8f2ea',
-    name: 'Zao Church Inc.',
+    name: 'Zao Church Inc',
     description:
       'Zao Church exists to point souls to Christ through life-giving community.',
     logoUrl:
@@ -331,7 +331,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'df6b7b45-4007-a439-fc7b-5008cb2850dc',
-    name: 'Soup and Socks e.V.',
+    name: 'Soup and Socks eV',
     description:
       "The goal of Soup and Socks e.V. is to stand in solidarity with refugees by supporting and empowering them. We aim to create dignified responses to people's needs after they fled their countries to foster self-determination. Our vision is a world in which every person has equal access to society and equal opportunities to realise their potential. <br><br>Our mission is to provide platforms for people who fled their countries to get active; spaces where they can get rid of labels that stigmatise them, where they themselves can create solutions that immediately improve their living conditions, where they transform from the excluded into the experts of tomorrow, where they make first steps of integration.<br><br>In order to live this mission, the organisation set up the intercultural maker space Habibi.Works in the North of Greece in August 2016. Habibi.Works is a platform for education, empowerment and encounters for refugees from nearby camps and for Greek locals. The 11 workshop areas (Community Kitchen, Wood Workshop, Metal Workshop, Barber Shop, Bike Repair Station, Sewing Atelier, Creative Atelier, Media Lab with 3D printers, laser cutter and VR, Gym, Library and Community Garden) are run by an international team of experts and allow the users to get active and creative, to share skills and experience, to prove their talents and unfold their potential.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/58764/orglogo.jpg',
@@ -508,7 +508,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f6e03aa4-933f-43aa-a8a4-657115cadeb1',
-    name: "A Child's Hope Int'l",
+    name: 'A Childs Hope Intl',
     description:
       'As advocates for orphans and vulnerable children, we reach thousands of children daily with critically needed supplies that nourish the body and the soul. Our mission is to motivate and mobilize the church and the community to care for orphans and vulnerable children in their distress.',
     logoUrl:
@@ -651,7 +651,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8e8c8aca-bb00-4467-8502-b78f6884b5e4',
-    name: 'American Journalism Project, Inc.',
+    name: 'American Journalism Project, Inc',
     description:
       'The American Journalism Project is a venture philanthropy dedicated to local news. We are working to ensure that every community has a local journalism that represents, informs and engages the diverse public it serves. We believe civic journalism is a public good and are reimagining its future by building a model to finance and sustain the local news our democracy requires.<br><br>We take an entrepreneurial approach to our work; adopting a venture capital model to jumpstart the success of nonprofit news organizations at every stage, pairing our financial investment with coaching, strategic support and peer learning. Learn more about what we do and how we use this unique approach at https://www.theajp.org/what-we-do',
     logoUrl:
@@ -703,7 +703,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ee323e63-fda3-42e3-b97f-b718309184c6',
-    name: 'Florence Immigrant & Refugee Rights Project',
+    name: 'Florence Immigrant  Refugee Rights Project',
     description:
       'The mission of the Florence Project is to provide free legal and social services to detained adults and unaccompanied children facing immigration removal proceedings in Arizona.',
     logoUrl:
@@ -792,7 +792,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e0aadbfc-2d05-4c75-a803-51de1ab8d690',
-    name: 'Palm Beach County Food Bank, Inc.',
+    name: 'Palm Beach County Food Bank, Inc',
     description:
       'The mission of the Palm Beach County Food Bank is to alleviate hunger in Palm Beach County.',
     logoUrl:
@@ -805,7 +805,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cf30d7ad-a6e8-490a-93a3-4042074f636c',
-    name: 'Baitulmaal, Inc.',
+    name: 'Baitulmaal, Inc',
     description:
       'Baitulmaal provides life-saving, life-sustaining and life-enriching humanitarian aid to under-served populations around the world regardless of faith or nationality.',
     logoUrl:
@@ -818,7 +818,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '33581e3b-fa49-481c-acff-b6c37b1dcd5b',
-    name: 'Catholic Charities Community Services, Inc.',
+    name: 'Catholic Charities Community Services, Inc',
     description:
       "Helping our community's most vulnerable with solutions that permanently improve lives.",
     logoUrl:
@@ -831,7 +831,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '892d675b-000f-4525-b09f-bf5ab4874cbd',
-    name: "National Children's Advocacy Center, Inc",
+    name: 'National Childrens Advocacy Center, Inc',
     description:
       'The NCAC models, promotes, and delivers excellence in child abuse response and prevention through service, education, and leadership.',
     logoUrl:
@@ -923,7 +923,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2e7503f9-8f8e-4a1f-a9c4-d58755c4e35d',
-    name: 'Housing Families, Inc.',
+    name: 'Housing Families, Inc',
     description:
       'At Housing Families, we are working to achieve housing equity and well-being for all. As a nonprofit organization, we partner with communities, families, and individuals to ensure housing stability by offering personalized services including temporary and permanent housing, food assistance, individual counseling and group therapy, legal assistance, and youth programs.',
     logoUrl:
@@ -962,7 +962,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8c168432-4bf6-88c3-c291-b6efb4b24e93',
-    name: "Sott' e' ncoppa",
+    name: 'Sott e ncoppa',
     description:
       "Sott'e'ncoppa is a voluntary association which manages, together with other four non-profit organizations, a real estate asset confiscated from criminal organizations, that is the Masseria Antonio Esposito Ferraioli. So, the Masseria is committed to bring back to citizens a real estate asset confiscated from criminal organizations, with the aim of creating a community network of families who raise sustainable, healthy, organic vegetables and fruits in social gardens, and of raising awareness of issues such as organized crime, sustainable economy and discrimination (epecially gender-based discriminations).",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/99839/orglogo.jpg',
@@ -1024,7 +1024,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0005a068-19d0-4b97-a1b5-6c1c615496f4',
-    name: "Nicklaus Children's Hospital Foundation",
+    name: 'Nicklaus Childrens Hospital Foundation',
     description:
       'To inspire hope and promote lifelong health by providing the best care to every child.',
     logoUrl:
@@ -1152,7 +1152,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3d42cea5-58d0-4bf9-adab-50bf76e72ba7',
-    name: 'AdoptAClassroom.org',
+    name: 'AdoptAClassroomorg',
     description:
       'AdoptAClassroom.org believes every child deserves the tools and materials they need to learn and succeed in school. The national, tech-based nonprofit connects donors and sponsors with PreK-12 teachers and schools to help equip more classrooms and students with school supplies. Since 1998, AdoptAClassroom.org has raised $57 million and supported more than 5.8 million students across the U.S. The 501(c)(3) holds the highest 4-star rating from Charity Navigator and the highest transparency rating offered by GuideStar.',
     logoUrl:
@@ -1190,7 +1190,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ed1e1158-d241-4ace-8816-6d848a14b347',
-    name: 'HOPE Foundation for Women & Children of Bangladesh, Inc.',
+    name: 'HOPE Foundation for Women  Children of Bangladesh, Inc',
     description:
       'HOPE Foundation for Women and Children of Bangladesh aims to give access to healthcare for poverty stricken and destitute women and children of Bangladesh by establishing hospitals, medical clinics, providing preventative health education to the general population and implement rehabilitative services for the disabled and injured. HOPE focuses on maternal health and boasts projects in: obstetric fistula, safe delivery, midwifery training, community health worker training, research, and more.',
     logoUrl: '',
@@ -1228,7 +1228,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b3ea4a75-97e1-4dc4-8198-f18378a99731',
-    name: 'H.O.P.E., Inc.',
+    name: 'HOPE, Inc',
     description:
       'Empower, encourage, and equip low-income single parents to obtain a college degree, develop essential life skills, and ultimately become self-sufficient. We do this by providing our single parent students with: 1. Financial assistance for housing and childcare 2. A facilitator to connect our students to community resources 3. Financial literacy and a game plan for financial independence 4. Counseling resources and success coaching',
     logoUrl:
@@ -1267,7 +1267,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4bd83581-4d1f-4cbd-8277-6ab5d0f016cd',
-    name: "Gabrielle's Angel Foundation for Cancer Research",
+    name: 'Gabrielles Angel Foundation for Cancer Research',
     description:
       "Gabrielle's Angel Foundation funds the best and brightest early career scientists who are researching better treatments, preventions and cures for leukemia, lymphoma and other blood related cancers.",
     logoUrl: "https://static.tgbwidget.com/Gabrielle'sAngelFoundation.jpg",
@@ -1292,7 +1292,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ab4c3775-3107-4940-83a8-ef77ce709e98',
-    name: 'The Victor Pineda Foundation / World Enabled',
+    name: 'The Victor Pineda Foundation  World Enabled',
     description:
       'Our mission is to help organizations and communities create and sustain a radically inclusive, accessible, and resilient future for all.',
     logoUrl:
@@ -1358,7 +1358,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'adb8ec5c-481c-408b-8047-6b679612e844',
-    name: 'Prospect Park Alliance, Inc.',
+    name: 'Prospect Park Alliance, Inc',
     description:
       'Prospect Park Alliance is the non-profit organization that sustains "Brooklyn\'s Backyard," working in partnership with the City of New York. The Alliance was founded in 1987 to help restore the Park after a long period of deterioration and decline. Today, the Alliance provides critical staff and resources that keep the Park green and vibrant for the diverse communities that call Brooklyn home. The Alliance cares for the woodlands and natural areas, restores the Park\'s buildings and landscapes, creates innovative Park destinations, and provides free or low-cost volunteer, education and recreation programs.',
     logoUrl:
@@ -1461,7 +1461,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'eb7aece3-c3c7-446b-afd4-c5fa9b5ccda5',
-    name: 'Boys & Girls Clubs of Broward County (BGCBC)',
+    name: 'Boys  Girls Clubs of Broward County (BGCBC)',
     description:
       'To enable all young people, especially those who need us most, to reach their full potential as productive, caring, responsible citizens.',
     logoUrl:
@@ -1474,7 +1474,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'dd449b09-a701-4ea0-ad85-0507fec71b08',
-    name: 'Ronald McDonald House Charities of Arkansas, Inc.',
+    name: 'Ronald McDonald House Charities of Arkansas, Inc',
     description:
       'To provide a home away from home for families of children being treated at local hospitals and support programs serving children.. Donors who support our mission are individuals, local businesses, corporations, community groups, and foundations with a focus on children and families, access to healthcare, and human services. Our donors are located in the US.',
     logoUrl:
@@ -1560,7 +1560,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f2a938ca-519d-4143-8979-a063b53c6e1b',
-    name: 'Harness All Possibilities Inc.',
+    name: 'Harness All Possibilities Inc',
     description:
       'HAP is focused on providing programs, mainly "Blockchain Business School" and events that reskill persons from underprivileged and underrepresented communities whose skills have been or will be displaced in the labor market due to the fast pace of digital transformation, beyond their pace to adapt. <br><br>We employ a full-cycle approach that provides an integrated education model that inspires our beneficiaries to learn, that engages professionals and community stakeholders to absorb and teach new skills, and that provides an inclusive and accessible digital space for both communities to exchange and interact - so that all HAP-supported participants build the capacity and knowledge to thrive in an increasingly digitized world and be motivated to innovate and fuel impact initiatives in respective communities so no one is left behind. Our main focus areas are blockchain, crypto, digital assets and Web3..',
     logoUrl:
@@ -1737,7 +1737,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b4370354-cae2-4e40-9df2-dcfa44cc2afc',
-    name: 'Radiant Church KC, Inc.',
+    name: 'Radiant Church KC, Inc',
     description: 'Know God, Find Freedom, Discover Purpose, Make a Difference.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/1872bc61-de07-445d-a37a-80c7f5707d79.jpg',
@@ -1801,7 +1801,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e1f11003-98df-4fbb-927e-23ed00c7f5be',
-    name: 'Refuge for Women, Inc.',
+    name: 'Refuge for Women, Inc',
     description:
       'The Refuge for Women mission is to empower sexually exploited women to live a life of freedom through faith-based, residential healing programs. The hope is that every women who is sexually exploited would have the hope, support, and tools needed to pursue her dreams and live a life of freedom.',
     logoUrl:
@@ -1814,7 +1814,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e60ee841-74bd-4ff3-b8a3-27a6af79927b',
-    name: "Thrive Women's Clinic",
+    name: 'Thrive Womens Clinic',
     description:
       'THRIVE WOMEN’S CLINIC PROVIDES CUTTING-EDGE SOLUTIONS: Our life-affirming work includes outreach to women and their partners experiencing unplanned pregnancy. We operate four (4) pregnancy clinics in Dallas County with professional medical care, provide mentoring, host education programs in local schools, and more. All programs are provided at NO COST to the client.<br><br>OUR APPROACH: Babies>Families>Communities. Our clinic counselors and medical teams celebrate when a mother chooses life for her baby in our clinic, but our services have evolved into a holistic program to ensure these children are born into strong families and into a community that understands life begins at conception.',
     logoUrl:
@@ -1827,7 +1827,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ddc9fd75-2d45-4c8b-8b64-2bb9b5466060',
-    name: "St. Joseph's Hospitals Foundation",
+    name: 'St Josephs Hospitals Foundation',
     description:
       "St. Joseph’s Hospitals Foundation inspires the community to engage in philanthropic opportunities to invest in the unique brand of care found at St. Joseph’s Hospital, St. Joseph's Children's Hospital, St. Joseph's Women's Hospital, St. Joseph's Hospital-North and St. Joseph's Hospital-South. Community support for St. Joseph’s reflects the trust and reliance generations of patients have had with us, preserving our rich tradition of compassionate care while fueling innovation and medical excellence.",
     logoUrl:
@@ -1903,7 +1903,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd2972122-4b77-412d-981b-b1a13800be97',
-    name: 'Wisconsin Equal Justice Fund, Inc.',
+    name: 'Wisconsin Equal Justice Fund, Inc',
     description:
       "WI Equal Justice Fund (WEJF) was founded in 1996 in response to the critical drop in federal funding for civil legal services for low-income individuals and families.  WEJF now facilitates an annual appeal and on-going educational efforts on the civil legal services needs of Wisconsin's poor.  WEJF is committed to raising money and awareness of civil legal services as a social issue.",
     logoUrl:
@@ -1955,7 +1955,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4dbb2b7d-c5f2-4a5b-81f5-7b65be068a27',
-    name: "Guatemalan Relief Assistance for Children's Educational Services",
+    name: 'Guatemalan Relief Assistance for Childrens Educational Services',
     description:
       'To provide holistic education opportunities through physical, emotional and spiritual support for children living in extreme poverty in Guatemala.',
     logoUrl:
@@ -2095,7 +2095,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '591267e2-013b-4774-8c4f-bd7d138375b0',
-    name: 'Books For Africa, Inc.',
+    name: 'Books For Africa, Inc',
     description:
       "Books For Africa's mission is to end the book famine in Africa.  BFA collects, sorts and ships donated textbooks, reference and general reading books, as well as computers and e-readers, throughout Africa.  BFA has delivered over 56 million books, serving all 55 African countries since 1988.",
     logoUrl:
@@ -2108,7 +2108,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4ab94d11-c1a7-4454-84ba-931360c6519d',
-    name: 'Prairie View A&M Foundation',
+    name: 'Prairie View AM Foundation',
     description:
       'THE PVAM Foundation, founded in 2008, is a nonprofit organization dedicated to advancing PVAMU through philanthropy. <br>Our mission is to maximize the effectiveness of contributions to support excellence in education, research, service and athletics at Prairie View A&M University.',
     logoUrl:
@@ -2238,7 +2238,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd5a684ab-4f61-451e-a480-fb0976ef948a',
-    name: 'VOW for Girls, Inc.',
+    name: 'VOW for Girls, Inc',
     description:
       'VOW for Girls’ mission is to end child marriage by building a connected groundswell of love and support for every girl whose right to own her future is at risk.',
     logoUrl:
@@ -2352,7 +2352,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9ff3a723-435e-47c5-8324-d877fe18b389',
-    name: 'The Andrew McDonough B+ Foundation',
+    name: 'The Andrew McDonough B Foundation',
     description:
       'The Andrew McDonough B+ (Be Positive) Foundation honors the life of Andrew McDonough. Andrew battled leukemia, septic shock and complications of childhood cancer for 167 days before passing away on July 14, 2007, at the age of 14. Andrew’s B+ blood type became his family’s and friends’ motto throughout his fight against childhood cancer – to “Be Positive”.  The B+ Foundation is about Kids Helping Kids Fight Cancer.  With the support of many, we are the largest provider of financial assistance to families of kids with cancer in the United States. We are also a lead funder in global childhood cancer research.',
     logoUrl:
@@ -2365,7 +2365,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4bb955be-29de-421d-a06e-121da172c847',
-    name: 'School on Wheels, Inc.',
+    name: 'School on Wheels, Inc',
     description:
       'Since 1993, the mission of School on Wheels has never wavered: to enhance educational opportunities for children who are experiencing homelessness from kindergarten through twelfth grade. Our goal is to shrink the gaps in their learning and provide them with the highest level of education possible. Our program serves as a consistent support system for our students during a time of great stress and fear. <br><br>School on Wheels volunteers provide free tutoring and mentoring to children from kindergarten through twelfth grade living in shelters, motels, vehicles, group foster homes, and the streets of Southern California.<br>We train and match volunteers with our students and provide:<br><br>One-on-one weekly tutoring<br>School supplies<br>Assistance in entering school<br>Scholarships<br>Parental support<br>A learning center on Skid Row',
     logoUrl:
@@ -2391,7 +2391,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '933b0894-4b5d-82cf-c305-13c6e2b6622f',
-    name: 'Chimpanzee Sanctuary & Wildlife Conservation Trust',
+    name: 'Chimpanzee Sanctuary  Wildlife Conservation Trust',
     description:
       'To sustainably conserve chimpanzees in their natural habitats and provide optimum captive care to those that can not survive in the wild',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/73352/orglogo.jpg',
@@ -2656,7 +2656,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e2b65da2-71d2-45f8-bcde-8bfce7601f26',
-    name: "A-T Children's Project",
+    name: 'A-T Childrens Project',
     description:
       'Ataxia-telangiectasia (A-T) is a genetic disease that causes loss of muscle control and balance, cancer, lung disease and immune system problems in children and young adults, shortening their lives. The A-T Children’s Project partners with academic and industry investigators worldwide – organizing and supporting innovative research, conferences, clinical teams, data platforms and biomarkers – to optimize disease management strategies, develop new treatments and find a cure.',
     logoUrl:
@@ -2695,7 +2695,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '87d2292b-0109-4a2a-8efc-abb4d4d28326',
-    name: 'Rx ART, Inc.',
+    name: 'Rx ART, Inc',
     description:
       'The Mission of RxART is to help children heal through the extraordinary power of visual art. RxART commissions established contemporary artists to transform children’s hospital settings into engaging and uplifting healing environments at no cost to the hospitals. Each commissioned artist is provided with an honorarium, the opportunity to create a public installation with purpose, and the chance to transform the lives of children as they heal.',
     logoUrl:
@@ -2772,7 +2772,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4f6a4466-acc5-426b-9911-6ba3ab3e9655',
-    name: 'White Stork - United States, Ltd.',
+    name: 'White Stork - United States, Ltd',
     description:
       'White Stork is a veteran-led, rapid response, humanitarian organization that takes its name from the national bird of Ukraine. We are propelled by our strategic formal relationships with Ukrzaliznytsia (Ukrainian Railways), Ukrposhta (Ukrainian Post Office), and the Ukrainian Congress Committee of America (UCCA).',
     logoUrl:
@@ -2785,7 +2785,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a0c547de-6add-47ab-9e6e-6cb18ba3408e',
-    name: 'Baker Industries, Inc.',
+    name: 'Baker Industries, Inc',
     description:
       'We provide hope!  Each year, adults with significant barriers to employment such as parole/probation, substance use disorder, disability and homelessness find paid work, training and caring support at Baker Industries. Through steady work and expert guidance, we help vulnerable adults reach their potential in good jobs with good companies – changing their lives and strengthening families and communities.',
     logoUrl:
@@ -2862,7 +2862,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3b8328ae-bfa6-40b5-94d1-2d5e2f9696ac',
-    name: 'The Chick Mission, Inc.',
+    name: 'The Chick Mission, Inc',
     description:
       'Our mission is to ensure every young woman newly diagnosed with cancer has the option to preserve fertility through direct financial support, educational programs, and advocacy for legislative change.',
     logoUrl:
@@ -3002,7 +3002,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9dcdd1dc-c7d0-46ad-8b11-6a8a05ce05c6',
-    name: "Denver Children's Home",
+    name: 'Denver Childrens Home',
     description:
       "Denver Children's Home restores hope and health to traumatized children and families through a comprehensive array of therapeutic, educational and community-based services.",
     logoUrl:
@@ -3016,7 +3016,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0f1c13e6-8fc8-4cee-9536-42e751899ed8',
-    name: "Children's Hospital Colorado Foundation",
+    name: 'Childrens Hospital Colorado Foundation',
     description:
       "Children's Hospital Colorado Foundation is 501(c)(3) organization established in 1978 dedicated solely to advancing the mission of Children's Hospital Colorado, one of the top children's hospitals in the country as ranked by U.S. News & World Report.\nChildren's Colorado Foundation has three purposes:\n1. To educate and engage with the community on the hospital's behalf\n2. To fundraise for the hospital\n3. To steward funds raised for children and families who need Children's Colorado\nWe believe all children should have the chance for a healthy future. We are committed to community engagement and facilitating philanthropic support on behalf of the children and families Children's Colorado serves across the Rocky Mountain region and throughout the world.",
     logoUrl:
@@ -3120,7 +3120,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '163340d4-8779-451e-abbc-425e74bd1cf0',
-    name: "Children's Minnesota Foundation",
+    name: 'Childrens Minnesota Foundation',
     description:
       'We champion the health needs of children and families. We are committed to improving children’s health by providing the highest-quality, family-centered care, advanced through research and education.',
     logoUrl:
@@ -3296,7 +3296,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '10c03f51-0127-4c0f-9203-dae4f29c1981',
-    name: 'Gay Mens Health Crisis Inc.',
+    name: 'Gay Mens Health Crisis Inc',
     description:
       'GMHC fights to end the AIDS epidemic and uplift the lives of all affected.',
     logoUrl:
@@ -3322,7 +3322,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '50461519-4b51-4934-b211-74245ab0613a',
-    name: 'Decentralized Pictures Foundation, Inc.',
+    name: 'Decentralized Pictures Foundation, Inc',
     description:
       'Decentralized Pictures (DCP) is a 501c(3) nonprofit organization seeking to discover new and innovative filmmaking talent. A decentralized and democratic film fund that allows a community of creatives, film fans, and industry professionals to decide who is most deserving of support. Submit your film idea, and if the world loves it, we’ll help you make it.<br><br>We love to discover new film talent, and hope you do too!',
     logoUrl:
@@ -3348,7 +3348,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '37561ff0-1ffe-4744-9430-136333242ccd',
-    name: 'The Exodus Road, Inc.',
+    name: 'The Exodus Road, Inc',
     description:
       'We disrupt the darkness of modern-day slavery by partnering with law enforcement to fight human trafficking crime, equipping communities to protect the vulnerable, and empowering survivors as they walk into freedom.',
     logoUrl:
@@ -3374,7 +3374,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '69d449dc-c403-454a-9de2-e8cfb0a05892',
-    name: 'Lighthouse Youth & Family Services',
+    name: 'Lighthouse Youth  Family Services',
     description:
       'The mission of Lighthouse Youth & Family Services is to empower young people and families to succeed through a continuum of care that promotes healing and growth. Lighthouse offers an integrated, trauma-informed system of care for ages 0-24. This includes mental health services, emergency shelter, youth housing, community juvenile justice services, residential treatment, and foster care and adoption.',
     logoUrl:
@@ -3413,7 +3413,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd34758bd-dde4-4963-a591-866fe9c9e1d1',
-    name: 'Renaissance Charitable Foundation Inc.',
+    name: 'Renaissance Charitable Foundation Inc',
     description:
       'RCF established in 2000, RCF provides a custom donor-advised solution utilizing the philanthropic software platform DFX with complete administration including charity vetting and grant distribution. RCF supports more than $2 billion in donor-advised fund assets for financial firms and nonprofit organizations throughout the United States.',
     logoUrl:
@@ -3439,7 +3439,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b7869ae3-d770-411e-9191-ffef77ede517',
-    name: "Soldiers' Angels",
+    name: 'Soldiers Angels',
     description:
       'The mission of Soldiers’ Angels is to provide aid, comfort, and resources to the military, veterans, and their families.',
     logoUrl:
@@ -3711,7 +3711,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2390ee51-8a7d-4610-8468-c58f7e9c8316',
-    name: 'Foundation for Intentional Community, Inc.',
+    name: 'Foundation for Intentional Community, Inc',
     description:
       'To support and promote the development of intentional communities and the evolution of cooperative culture. \nTO FACILITATE EXCHANGE of information, skills, and economic support among individuals, existing intentional communities, cooperative groups, and newly forming communities; TO SUPPORT EDUCATION, RESEARCH, ARCHIVES, AND PUBLISHING about contemporary and historic intentional communities; TO DEMONSTRATE PRACTICAL APPLICATIONS of communities, cooperatives, and their products and services -- through seminars, catalogs, demonstration projects, gatherings, and direct sales; TO INCREASE GLOBAL AWARENESS that intentional communities are pioneers in sustainable living, personal and community transformation, and peaceful social evolution.',
     logoUrl:
@@ -3724,7 +3724,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '585e8792-2352-4d7b-bc6c-826ad8f6b661',
-    name: 'Presence Point, Inc.',
+    name: 'Presence Point, Inc',
     description:
       'Presence Point equips leaders all over the world to intentionally live into their calling as shepherds in the lives of those they lead, and partners with multipliers to do the same within their sphere of influence.',
     logoUrl: 'https://static.tgbwidget.com/PresencePoint.jpg',
@@ -3827,7 +3827,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '74ec2117-d75c-4a2e-8891-d6084282e957',
-    name: 'Faith Family Church of Baytown, Inc.',
+    name: 'Faith Family Church of Baytown, Inc',
     description:
       'Faith Family is an inviting, fun, and Christ-centered place where everyone is welcome. You will be guided in the parking lot, warmly greeted at the door, and ushered to your seat by one of our amazing Dream Team members. Don’t forget to grab a freshly-brewed cup of coffee on your way in!',
     logoUrl:
@@ -3928,7 +3928,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd017ba8f-0e4f-4bd6-8bf0-6c12005aae12',
-    name: 'Heal + Thrive Global',
+    name: 'Heal  Thrive Global',
     description:
       'Heal and Thrive Global exists to promote justice and champion value for survivors of injustice and those that serve them around the world. We do this through partnerships in Uganda where we serve 1,400+ vulnerable women & children, in Belize where we serve foster children & provide jobs and throughout the world where we serve leaders through providing a safe community to heal & grow in leadership.',
     logoUrl:
@@ -3989,7 +3989,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '063b6b04-4ab5-97b9-eb9c-5c3d1de021bb',
-    name: 'As community/As kommune',
+    name: 'As communityAs kommune',
     description: '',
     logoUrl: '',
     nteeCode: 'T00',
@@ -4217,7 +4217,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ee27d8f8-41fd-9762-c723-8ca5bd24028e',
-    name: 'Vida y Familia de Guadalajara, A.C.',
+    name: 'Vida y Familia de Guadalajara, AC',
     description:
       'Attend and empower vulnerable women during pregnancy, offering alternatives for their proper development.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/91184/orglogo.jpg',
@@ -4253,7 +4253,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ac60167c-6d9a-452f-acf6-18f3d2fb41bf',
-    name: 'A Moment of Magic Inc.',
+    name: 'A Moment of Magic Inc',
     description:
       'A Moment of Magic Foundation is a national 501(c)(3) nonprofit organization with a mission to improve the quality of life of vulnerable and underserved children and inspire them to be brave, strong, and fearless through fun and engaging social wellness activities.',
     logoUrl:
@@ -4316,7 +4316,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5d5792fd-d89d-49c5-a9c7-d5da4a5f6337',
-    name: 'Boys & Girls Club of Greater Lowell',
+    name: 'Boys  Girls Club of Greater Lowell',
     description:
       'Our mission is to inspire and enable young people, especially those who need us most, to realize their full potential as productive, responsible and caring citizens. Our vision is to end generational poverty in Lowell.',
     logoUrl:
@@ -4329,7 +4329,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8734efe7-28f8-4906-ae2d-4c3a48d02fb8',
-    name: 'Boys & Girls Club of Worcester',
+    name: 'Boys  Girls Club of Worcester',
     description:
       'Our Mission is to help youth, especially those who need us most, develop the qualities needed to become responsible citizens and community leaders, through caring professional staff who forge relationships with our youth members and influence their ability to succeed in life.',
     logoUrl:
@@ -4353,7 +4353,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd10302cb-8c60-4d5c-9995-0d501cbd8e61',
-    name: 'Black LGBTQ+ Liberation, Inc. (BLINC)',
+    name: 'Black LGBTQ Liberation, Inc (BLINC)',
     description:
       'Black LGBTQ+ Liberation, Inc. (BLINC ) is a global organization focused on achieving positive outcomes for BIPOC LGBTQ+ people. Our mission is to provide programming and services to eradicate homophobia, transphobia and achieve positive outcomes in the lives of marginalized LGBTQ+ people.',
     logoUrl:
@@ -4377,7 +4377,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '33024df2-c2ae-471d-9be0-e66f2daa3aae',
-    name: 'United Way of Wayne and Holmes Counties, Inc.',
+    name: 'United Way of Wayne and Holmes Counties, Inc',
     description:
       'Mobilize community resources to help people measurably improve their lives. We have a pretty diverse portfolio of donors.',
     logoUrl:
@@ -4581,7 +4581,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4bec3a18-551d-4cb7-a6c3-2d8b8ad6773c',
-    name: 'Cathedral Church of St. John the Divine',
+    name: 'Cathedral Church of St John the Divine',
     description:
       'The Cathedral Church of Saint John the Divine, the mother church of the Episcopal Diocese of New York and the Seat of its Bishop, is chartered as a house of prayer for all people and a unifying center of intellectual light and leadership. It serves the many diverse people of our Diocese, City, Nation and World through an array of liturgical, cultural and civic events; pastoral, educational and community outreach activities; and maintains the preservation of the great architectural and historic site that is its legacy.<br><br>People from many faiths and communities worship together in services held more than 30 times a week; the soup kitchen serves roughly 25,000 meals annually; social service outreach has an increasingly varied roster of programs; the distinguished Cathedral School prepares young students to be future leaders; Advancing the Community of Tomorrow, the renowned preschool, afterschool and summer program, offers diverse educational and nurturing experiences; the outstanding Textile Conservation Lab preserves world treasures; concerts, exhibitions, performances and civic gatherings allow conversation, celebration, reflection and remembrance—such is the joyfully busy life of this beloved and venerated Cathedral.',
     logoUrl:
@@ -4594,7 +4594,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd2dee18c-3466-4743-9bb6-f79b6e300a15',
-    name: 'National Brain Tumor Society, Inc.',
+    name: 'National Brain Tumor Society, Inc',
     description:
       'National Brain Tumor Society unrelentingly invests in, mobilizes, and unites our community to discover a cure, deliver effective treatments, and advocate for patients and care partners.',
     logoUrl:
@@ -4719,7 +4719,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '81d19c00-a7d7-460e-89fe-8cc786852829',
-    name: 'MissionSAFE A New Beginning, Inc.',
+    name: 'MissionSAFE A New Beginning, Inc',
     description:
       'MissionSAFE is a youth development organization committed to reducing violence and ending generational poverty among young people in Boston. We work comprehensively with Boston’s youth to provide education support, horizon-broadening activities, sports and teamwork development, internships and job training, leadership skills, and encouragement to achieve their goals and dreams.',
     logoUrl:
@@ -4781,7 +4781,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '440a00fc-4811-b987-cc28-947ca85524a4',
-    name: 'Child Rights & You UK',
+    name: 'Child Rights  You UK',
     description:
       "CRY UK aims to amplify the voices of India's children, and their struggle for survival. Through our efforts (and through our partner CRY India), we aim to effect change that will ultimately stop this vicious circle of poverty, hunger, discrimination and the lack of access to healthcare and education. In short, we aim to bring about a change to ensure that every child in India, regardless of race, religion or background, has a fulfilling and enriching childhood, guaranteed to them as citizens of India.",
     logoUrl: '',
@@ -4805,7 +4805,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '79b29c51-9dda-41d8-ba8e-558ad704878a',
-    name: 'First Care Family Resources, Inc.',
+    name: 'First Care Family Resources, Inc',
     description:
       "First Care Women's Clinic empowers women facing crisis pregnancies to choose life for their unborn children while sharing the love and good news of Jesus Christ.",
     logoUrl:
@@ -4927,7 +4927,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e3786717-4cb2-b21f-fad3-2c1b8bc83962',
-    name: 'BLIND EDUCATION AND REHABILITATION   DEVELOPMENT ORGANISATION (BERDO).',
+    name: 'BLIND EDUCATION AND REHABILITATION   DEVELOPMENT ORGANISATION (BERDO)',
     description:
       'The Mission Statement Of Blind Education And Rehabilitation Development Organization (BERDO) Is to rehabilitate the people with disabilities In The community by income generation, education, training and treatment facilities beside the normal people to relate with the social main stream.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/28864/orglogo.jpg',
@@ -5013,7 +5013,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '56bbc723-2a46-4aaa-9f96-b8d95043b371',
-    name: 'World Wildlife Fund, Inc.',
+    name: 'World Wildlife Fund, Inc',
     description:
       "The world's leading conservation organization, WWF works in 100 countries and is supported by 1.2 million members in the United States and millions globally. WWF's unique way of working combines global reach with a foundation in science, involves action at every level from local to global, and ensures the delivery of innovative solutions that meet the needs of both people and nature.\nWWF works to conserve the world's most important forests to sustain nature's diversity, benefit our climate, and support human well-being \nSafeguard healthy oceans and marine livelihoods\nSecure water for people and nature\nProtect the worlds most important species\nDrive sustainable food systems to conserve nature and feed humanity\nCreate a climate-resilient and zero-carbon world, powered by renewable energy",
     logoUrl:
@@ -5074,7 +5074,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cc412f14-b518-4f4c-a630-9396d364f8dc',
-    name: 'Pencils of Promise, Inc.',
+    name: 'Pencils of Promise, Inc',
     description:
       'Pencils of Promise (“PoP") is a 501(c)(3) nonprofit organization that believes every child deserves access to quality education.  We create schools, programs and global communities around the common goal of education for all.',
     logoUrl:
@@ -5123,7 +5123,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd27e45fd-36c6-4b6a-a4cc-d461487a0140',
-    name: 'Joyce Meyer Ministries, Inc.',
+    name: 'Joyce Meyer Ministries, Inc',
     description:
       'Joyce Meyer Ministries is called to share the Gospel and extend the love of Christ. Through media we teach people how to apply biblical truth to every aspect of their lives and encourage God’s people to serve the world around them. Through our missions arm, Hand of Hope, we provide global humanitarian aid, feed the hungry, clothe the poor, minister to the elderly, widows and orphans, visit prisoners and reach out to people of all ages and in all walks of life. Joyce Meyer Ministries is built on a foundation of faith, integrity and dedicated supporters who share this call.',
     logoUrl:
@@ -5186,7 +5186,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5aefa58d-995a-45be-a08b-bc6bce806110',
-    name: "First Responders Children's Foundation",
+    name: 'First Responders Childrens Foundation',
     description:
       'First Responders Children’s Foundation provides financial support to children who have lost a parent in the line of duty and families enduring significant financial hardship due to tragic circumstances. The Foundation also supports educational activities and programs created and operated by first responder organizations whose purpose is to benefit children or the communities in which they live.',
     logoUrl: 'https://static.tgbwidget.com/FirstRespondersChildrens.jpeg',
@@ -5308,7 +5308,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5a179dc0-47ae-ac61-e0fd-a0942b2d4727',
-    name: 'Programa de Educacion Comunal de Entrega y Servicio, Inc.',
+    name: 'Programa de Educacion Comunal de Entrega y Servicio, Inc',
     description:
       'The mission of Project P.E.C.E.S., Inc. is to promote the educational, economic, and social development of southeastern Puerto Rico. The mission of the organization is directed to four programmatic areas: education, youth intervention and health, economic development, and community development with a special focus on youth development. Each goal seeks to strengthen the capacity of the southeastern communities- especially their youth - to resolve their own community problems. <br>The Program for Community Education through Commitment and Service, Inc. (P.E.C.E.S., Inc.) is a non-profit community organization incorporated in the State Department of Puerto Rico, with federal tax exemption (501-C-3) and state tax exemption (101-6). The goals of Project P.E.C.E.S., Inc. are directed to four programmatic areas: education, youth intervention, economic development and community development. The objectives of P.E.C.E.S., Inc. are: <br>To contribute to the economic development of southeastern Puerto Rico. <br>To form leaders that participate in the social development of their communities. <br>To improve the educational opportunities of southeastern Puerto Rico.<br>To strengthen families and communities through programs directed to impact high risk behaviors. <br>To prevent child abuse and neglect, high risk behaviors, and negative conduct through an integral program of prevention, counseling, orientation and social work. <br>To reduce and prevent the abuse of drugs, alcohol, tobacco, AIDS, violence, and juvenile delinquency. <br>To provide youth with positive alternatives, service opportunities, and leadership formation. <br>Project P.E.C.E.S., Inc. is very proud of our following accomplishments: <br>Operating the first licensed and accredited high school created especially for school drop outs. <br>Preparing more than 600 community youth leaders throughout our 25 years of service in southeastern Puerto Rico. <br>Administering the Natural Reserve of Humacao, based upon a contract of 15 years with the Natural Department of Resources, as an initiative to create employment and community economic development, as an ecological tourism business and as an environmental protection project. <br>Project P.E.C.E.S. Inc. has established a Youth Development Center<br>Winning the prestigious Tina Hills Award in 2003 for excellence as a non-profit organization',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/45213/orglogo.jpg',
@@ -5356,7 +5356,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1fcf1f04-43b8-9199-d7cc-41dc694d4cbb',
-    name: 'JUNTOS UNA EXPERIENCIA COMPARTIDA A.C.',
+    name: 'JUNTOS UNA EXPERIENCIA COMPARTIDA AC',
     description:
       'Juntos, una experiencia compartida is a non-governmental organization that seeks social and work inclusion for people with disabilities with empowerment and training programs in San Luis Potosi Mexico.',
     logoUrl: '',
@@ -5584,7 +5584,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ab88e6a7-504a-469a-8432-d114bdc1ab17',
-    name: '#MEAction',
+    name: 'MEAction',
     description:
       '#MEAction is an international network of patients fighting for health equality for Myalgic Encephalomyelitis and Chronic Fatigue Syndrome (ME/CFS). We build community and mobilize patients, family, and allies to make ME/CFS front and center. We were founded with the belief that while we may find it difficult to advocate for ourselves in the physical world, by making our activism accessible, we can be an unstoppable force. Our Mission is to build a global movement of patients, families, and allies that leverages the power of technology and community to fight for research funding, medical education, and public awareness for ME/CFS.',
     logoUrl: 'https://static.tgbwidget.com/MEAction.jpg',
@@ -5683,7 +5683,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '643cfcea-cd45-40d7-a962-bf8872d554d9',
-    name: 'Hope Unlimited for Children Inc.',
+    name: 'Hope Unlimited for Children Inc',
     description:
       "Transforming the lives of children at mortal risk, providing them and their future generations a productive future and Eternal hope.<br><br>The problem is millions of homeless children on Brazil's city streets - a killing field where a nation's youth survive as commodities for drugs, sex, and violent crime.  In the late '80s, when Philip Smith and his father, Jack, first heard about the plight of Brazil's street children, off-duty police were becoming after-dark death squads, systematically exterminating thousands of the \"public nuisances\" for local business owners.  Fortunately, the government was able get a handle on the situation.  But for a child on the streets, the children's life expectancy still amounts to three to five years.<br><br>An estimated 7 to 8 million Brazilian children are on the streets - living, breathing refuse of desperately poor homes, where parents have turned to drugs, alcohol, and crime.  And this is the world of Hope Unlimited - organized in 1991 to reclaim and parents the lost children of Brazil.<br><br>Over the past 30 years, reaching deeply into one life at a time, Hope Unlimited has directly touched the lives of over 24,000 children - including their next generations.  Operating in Campinas, São Paulo (the City of Youth), founded in 1991 and, in Vitoria, Espírito Santo (Hope Mountain) founded in 1999.  Each location has a residential programs for homeless youth as well as certified job training in a dozen different marketable skills.  Over 600 kids are also bussed in everyday from the surrounding slums to participate in our Vocational Training program.  When Hope succeeds, the cycle is broken: a child grows up to become a productive and contributing member of society.  Even more importantly, they have become loving and Godly parents.  Fully 92% of the boys and girls who completed the residential program at Hope Unlimited are employed today.",
     logoUrl:
@@ -5853,7 +5853,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4ff63e4b-fad2-444c-a1b6-a64772b17584',
-    name: 'Zeal Church, Inc.',
+    name: 'Zeal Church, Inc',
     description:
       'The Bible is God’s Word to all people. It was written by human authors under the supernatural guidance of the Holy Spirit. Because it was inspired by God, the Bible is truth without any mixture of error and is completely relevant to our daily lives. It alone is the final authority in determining all doctrinal truths.',
     logoUrl:
@@ -5879,7 +5879,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'aa74a06d-6bae-479b-87f1-a625dd5c74ea',
-    name: 'City Hope Family, Inc.',
+    name: 'City Hope Family, Inc',
     description: 'Love God. Love People. Give Hope.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/00dc42af-0b8d-448a-917c-7cad53d4d396.jpg',
@@ -5964,7 +5964,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd82ee866-45b4-845d-c4cc-b3a1c190376f',
-    name: "Public Organization 'Sadoqat'",
+    name: 'Public Organization Sadoqat',
     description:
       'The mission of Public Organization Sadoqat is to promote welfare of rural people in Tajikistan through implementation of various development programs on education, healthcare, protection of women, girls and children, prevention of violence, support of vulnerable groups such as persons with disabilities, infrastructure, quality drinking water supply, sanitation and hygiene, empowerment of youth, support to young talents, creative thinking, environmental protection and sustainability, and other relevant areas not prohibited by the Tajik and international legislation.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/66447/orglogo.png',
@@ -6041,7 +6041,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'dbc96b3e-41aa-4da7-bc94-75877d821e72',
-    name: 'Parity.org',
+    name: 'Parityorg',
     description:
       'Our mission is to close the gender and racial gaps at the highest levels of business, where the gap is widest. To date, more than 1 million employees on six continents work for a company that have participated in our work.<br><br>The World Economic Forum predicts that gender and racial parity will be fully achieved within companies in about 150 years, and Parity.org is solving this problem within 3-5 years.',
     logoUrl:
@@ -6292,7 +6292,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e351e5d4-cc15-47e1-83ed-bb2a465e1c62',
-    name: 'Other Ones Foundation, Inc.',
+    name: 'Other Ones Foundation, Inc',
     description:
       'The Other Ones Foundation is a nonprofit that offers extremely low-barrier work opportunities, case management, and humanitarian aid to people experiencing homelessness in Austin, TX.',
     logoUrl:
@@ -6419,7 +6419,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5481f991-18a0-4a05-950d-5b71c0d8e95d',
-    name: 'East Stroudsburg University Foundation, Inc.',
+    name: 'East Stroudsburg University Foundation, Inc',
     description:
       "East Stroudsburg University Foundation fosters lifelong relationships with alumni and friends of East Stroudsburg University, securing philanthropic support to advance the University's mission and to enhance every student's University experience.",
     logoUrl:
@@ -6432,7 +6432,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'aca7e121-5ea9-4e63-bad3-4779e7f9c47c',
-    name: 'Roadrunner Food Bank, Inc.',
+    name: 'Roadrunner Food Bank, Inc',
     description:
       "Roadrunner Food Bank's mission is to feed every hungry person today, seed partnerships that build self-sufficiency for tomorrow, and lead to achieve our vision of permanently ending hunger in New Mexico. For over 40 years, Roadrunner has distributed millions of pounds of food through a statewide network that includes four smaller food banks; over 450 partner organizations such as food pantries, schools, senior centers, healthcare clinics, and direct service programing. The entire state is served by Roadrunner and its hunger relief network, and the state is one of the neediest in the country.",
     logoUrl:
@@ -6875,7 +6875,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ce9f6d20-c0e6-4ce6-8a63-97369c4b6d08',
-    name: 'Maryknoll Sisters of St. Dominic, Inc.',
+    name: 'Maryknoll Sisters of St Dominic, Inc',
     description:
       'The Maryknoll Sisters believe that we are all part of “One Earth Community”… that all of us—regardless of race, nationality, gender, background or personal identity—are all connected as a human family, with each other and with all creation. As Pope Francis has said, “God created the world and entrusted it to us as a gift. Now we have the responsibility to care for and protect it and all people, who are part of creation. Protecting human dignity is strongly linked to care for creation.”<br><br> Maryknoll Sisters give witness to God’s love and devote our lives in service overseas. As nurses, doctors, teachers, theologians, social workers, environmentalists and more, we serve the needs of the people – the poor, the ailing and the marginalized – where we are missioned. Our mission began in 1912, when we became the first group of Catholic Sisters in the United States founded for overseas mission.<br><br> Today we have approximately 306 Sisters serving in 18 places around the world.',
     logoUrl:
@@ -6914,7 +6914,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'db55307c-2f93-46df-bf55-97c265573646',
-    name: 'The Doe Fund, Inc.',
+    name: 'The Doe Fund, Inc',
     description:
       'The Doe Fund helps break devastating cycles of addiction, poverty, homelessness, and<br>recidivism. By investing in human capital, we transform oppressive systems while providing direct service to those impacted by them.',
     logoUrl:
@@ -6951,7 +6951,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '186f128c-a938-4679-94ee-37f0c95c408e',
-    name: 'Change Now Inc.',
+    name: 'Change Now Inc',
     description:
       'Our Mission is simple: Help Others! <br> <br>Change Now is dedicated to our community at large to ensure that much needed tools, services, and resources are provided to those in need.  <br> <br>Our goal is to help members of our community find viable and much needed resources to combat homelessness, unemployment, and any obstacles preventing them from contributing proactively and positively to their community. <br> <br>We will continue to support and uplift all residents who call the Lehigh Valley home, regardless of race, color, national origin, religion, sex, age, disability, genetic information, marital status, political affiliation, and any and all distinctions not mentioned above.',
     logoUrl:
@@ -6977,7 +6977,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8aca6c89-3e54-4a03-a60a-92141dbcda98',
-    name: 'Amref Health Africa, Inc.',
+    name: 'Amref Health Africa, Inc',
     description:
       'With headquarters in Nairobi, Kenya, Amref Health Africa is the largest Africa-based healthcare nonprofit, serving millions of people every year across 35 countries in sub-Saharan Africa. Amref Health Africa began on the continent as the Flying Doctors, bringing surgical services to remote communities using light aircraft. Our priorities have since expanded to strengthen health systems and train African health workers to respond to the continent’s most critical health challenges. Our approach is community-based and makes the people we reach partners, rather than just beneficiaries. Over 97% of our global staff are Africans, so that we are always tackling African challenges with African expertise.',
     logoUrl: 'https://static.tgbwidget.com/AmrefHealthAfrica.jpg',
@@ -7078,7 +7078,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ba5896f4-46c5-9726-dbf0-146602ed7b7d',
-    name: 'PROTECHOS INC.',
+    name: 'PROTECHOS INC',
     description:
       'Our Mission: To provide roof reconstruction and related vocational training to residents of under-served communities throughout Puerto Rico.<br><br>PRoTechos is a 501(c)(3) and Puerto Rico 1101.01 non-profit  founded with the dual mission of rebuilding damaged roofs in under-served communities throughout the island while providing residents with basic carpentry training, addressing both housing needs and the shortage of skilled construction workers in Puerto Rico. <br><br>Starting with the most urgent cases, PRoTECHOS rebuilds roofs with the help of volunteers, skilled carpenters and trainees, drawn from community residents who are willing and able to work in residential construction. We provide hands-on carpentry training in a "learn and earn" program where trainees receive a stipend based upon the number of hours of training completed.  They are expected to teach others and continue building in their community once their own training has been completed.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/74193/orglogo.png',
@@ -7115,7 +7115,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b6222441-45e2-9a18-ebb5-e520d364cbcf',
-    name: 'Asociacion de Comunidades Unidas Tomando Accion Solidaria Inc.',
+    name: 'Asociacion de Comunidades Unidas Tomando Accion Solidaria Inc',
     description:
       'Offer in the communities tools to create a self-sustaining and self-sufficient system with the ability to lift the economy both personally and collectively. Through solidarity action, emphasizing the less fortunate and most vulnerable. Offering tools to forge teamwork, unity and citizen participation.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/73279/orglogo.png',
@@ -7152,7 +7152,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'bc11df1d-420b-4b37-ab78-288e4caf368c',
-    name: 'Amnesty International of the U.S.A., Inc.',
+    name: 'Amnesty International of the USA, Inc',
     description:
       'Amnesty International is a global movement of millions of people demanding human rights for all people – no matter who they are or where they are. We are the world’s largest grassroots human rights organization.',
     logoUrl:
@@ -7178,7 +7178,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7ac3d3b3-2c6a-4f68-9148-b91857fd977b',
-    name: 'Turks & Caicos Reef Fund, Inc',
+    name: 'Turks  Caicos Reef Fund, Inc',
     description:
       'The Turks and Caicos Reef Fund (a 501c3 organization) was established to help preserve and protect the environment of the "Beautiful by Nature" Turks and Caicos Islands, an environment that draws so many visitors to these islands and is critical to our economic and physical survival.',
     logoUrl:
@@ -7279,7 +7279,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8ad172e1-20b3-4b31-abd4-22606bde21af',
-    name: 'Church of the Pines, Inc.',
+    name: 'Church of the Pines, Inc',
     description:
       'We exist to lead people in a relationship with Christ that is full and vibrant in every season. #evergreenlife.',
     logoUrl:
@@ -7319,7 +7319,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '97c3dbc9-dde7-4898-b74c-fb6d6f539809',
-    name: 'Conservation Earth / Wildmind',
+    name: 'Conservation Earth  Wildmind',
     description:
       'Mission - We provide lifelong, quality care for un-releasable wild animals and work with them to be teachers of innovative programs that engage, enrich, inspire and empower young and old alike to become conservation stewards and leaders<br><br>Vision - Ensure a healthy and diverse planet by connecting people to the natural world and strengthening their respect for all living things',
     logoUrl:
@@ -7371,7 +7371,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '23105e7e-9c53-4df7-90d1-7a21e8057417',
-    name: 'Broadway Cares/Equity Fights AIDS',
+    name: 'Broadway CaresEquity Fights AIDS',
     description:
       'Broadway Cares/Equity Fights AIDS is the philanthropic heart of Broadway, helping people across the country and across the street receive lifesaving medications, health care, nutritious meals, counseling and emergency financial assistance.',
     logoUrl:
@@ -7408,7 +7408,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ae04a251-0a4c-4710-9a0b-8344600c4d02',
-    name: 'Smile Train, Inc.',
+    name: 'Smile Train, Inc',
     description:
       'Smile Train is the world’s largest cleft-focused organization, with a sustainable and local model of supporting surgery and other forms of essential care. Since 1999, we have supported safe and quality cleft care for 1.5+ million children and will continue to do so until every child in need with a cleft has access to the care they deserve. Smile Train supports local medical professionals and local hospitals -- it’s how we build up healthcare infrastructure around the world while providing care 365 days a year.<br><br>Beyond surgery, our local partners also provide speech therapy, psychological support, nutritional services, orthodontics, and other essential forms of care to ensure that children with clefts have everything they need to not just live, but thrive.. Smile Train is proud to have dedicated individual supporters around the world, and also partners with businesses in various industries who share our commitment to building sustainable healthcare systems the world over.',
     logoUrl:
@@ -7421,7 +7421,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4e6a6d48-4a73-85cc-fbf3-3b59913f1854',
-    name: 'Tahanan Sta. Luisa, Inc.',
+    name: 'Tahanan Sta Luisa, Inc',
     description:
       'Tahanan Sta. Luisa (TSL) is a crisis intervention and recovery center whose mission is to provide rehabilitation for physically/sexually abused and  prostituted  street girls, between the ages of 11-15 years old upon admission.<br><br>Tahanan is a non-government organization (NGO) and one of only three residential centers within Metro Manila which focuses specifically on the admission of pre-adolescent/adolescent street girls - one of the most vulnerable and marginalized demographic groups in the Philippines.  Tahanan provides residential care for street girls for these formative years, assisting the girls in their journey through their social, physical and emotional development and growth, while also supporting them to overcome the traumatic negative experiences of their past. <br><br>Tahanan Sta. Luisa can accommodate up to 23 girls at a time and since it was founded in 1997, it has supported 560 street girls.  <br><br>The ultimate goal for Tahanan is to support the girls in their healing and recovery, and prepare them to be productive and independent members of society in the future.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/13043/orglogo.jpg',
@@ -7433,7 +7433,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd67b4d9a-23a1-465a-969e-f0c87f578395',
-    name: 'FARE - Food Allergy Research & Education',
+    name: 'FARE - Food Allergy Research  Education',
     description:
       'FARE’s mission is to improve the quality of life and the health of individuals with food allergies, and to provide them hope through the promise of new treatments.',
     logoUrl:
@@ -7460,7 +7460,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8be505ad-bbc3-45bb-9c8b-95ad9a3b310c',
-    name: 'Restore Children & Family Services',
+    name: 'Restore Children  Family Services',
     description:
       'We exist to be a channel of hope and radical restoration to transform the mind, heart and spirit through advocacy, partnerships and high-quality services for those (ages 2 to 21) suffering from trauma caused by human trafficking, sexual assault, violence, and all forms of abuse.',
     logoUrl:
@@ -7525,7 +7525,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd129f9fe-b022-4e05-b849-0a84e26ae2c9',
-    name: 'Community of Unity, Inc.',
+    name: 'Community of Unity, Inc',
     description:
       'Community of Unity CONNECTS with youth, EMPOWERS them to make choices that lead to growth, and INSPIRES their pursuit of a personally satisfying future. We cultivate transformative relationships with young people living in adverse circumstances and provide the consistent social-emotional support they need in order to successfully transition from adolescence to early adulthood.<br><br>Through our programs, young people strengthen their social-emotional skills, enabling them to face challenges and maintain the meaningful and supportive social relationships vital to a productive adult life.<br><br>Participants design their future to include benchmark achievements: high school graduation, successful completion of college or other post-secondary training, employment stability, and meaningful social engagement with their community.',
     logoUrl:
@@ -7551,7 +7551,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a2df42c2-9b62-4453-8892-c519fc7c4586',
-    name: 'Lincoln Center for the Performing Arts, Inc.',
+    name: 'Lincoln Center for the Performing Arts, Inc',
     description:
       'Lincoln Center for the Performing Arts serves three primary roles: to be the world’s leading performing arts presenter; to serve as an international leader in arts and education and community relations; and to extend the range of performing arts presented at Lincoln Center, complementing the extraordinary offerings of the ten other Lincoln Center Resident Organizations, all of which are flagship institutions in the world of the arts.',
     logoUrl:
@@ -7681,7 +7681,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fb1f71cb-abf4-4ed4-8800-c47871541ac0',
-    name: 'XPRIZE Foundation Inc.',
+    name: 'XPRIZE Foundation Inc',
     description:
       'XPRIZE is a global future-positive movement of over 1M people and rising. By delivering truly radical breakthroughs for the benefit of humanity, XPRIZE solves some of the world’s greatest challenges. Every one of us has the power to make a difference, whether it’s lending a hand, a dollar, or an idea, you can join XPRIZE to help create a better future for everyone, everywhere. Visit xprize.org to learn more.',
     logoUrl:
@@ -7694,7 +7694,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cbbc5fa9-b443-4d3e-9300-93b1b7071904',
-    name: "Kennedy Children's Center",
+    name: 'Kennedy Childrens Center',
     description:
       'Our mission is to provide high quality education services to young children with developmental delays, in partnership with families and communities. Our child-centered, evidence-based instruction prepares each student to enter the New York City public school system in the least restrictive environment possible. <br><br>We support families with training, guidance, and advocacy, and strengthen our school community through professional development and collaborations with local human service organizations. KCC is also committed to empowering a new generation of early childhood educators through our Grow Your Own Teacher Assistant and Teacher Training Program (GYO).',
     logoUrl:
@@ -7720,7 +7720,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b7914f5f-4208-a001-d843-def958660bfb',
-    name: "Blind People's Association (India)",
+    name: 'Blind Peoples Association (India)',
     description:
       'Promoting comprehensive rehabilitation of persons with all categories of disabilities through education, training, employment, community based rehabilitation, integrated education, research, publications, human resource development and other innovative means.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/2847/orglogo.jpg',
@@ -7756,7 +7756,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b523ebc8-4174-a3c8-c0bd-d72ef3e278c7',
-    name: "Karama Organisation for Women and Children's Development",
+    name: 'Karama Organisation for Women and Childrens Development',
     description:
       'Karama (Arabic for Dignity) strives to empower Palestinian women, children and adolescents and develop the local community by providing a safe haven for learning, cultural awareness and recreation away from the violent streets.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/7220/orglogo.jpg',
@@ -7768,7 +7768,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fe80bf39-49a5-8f1a-d45f-b6bec3715268',
-    name: "Malaika Children's Friends onlus",
+    name: 'Malaika Childrens Friends onlus',
     description:
       'Creating all over the world, but with particular reference to Tanzania, child care institutions that provide a secure and stable environment for children whose families cannot care for them or whose parents have died, or for children who have been abandoned, creating for them an atmosphere similar to a family, with constant attention and providing for their sustenance, for medical care  and education. <br>If possible, reintroducing the children  in the extended family but continuing to help with school fees or healthcare when needed.<br>The child care institution sustained and directly managed by Malaika Children Friends (MCF -www.malaika-childrenfriends.org) )  is at the moment exclusively Malaika Children Home  (MCH - www.malaikachildren.org). <br>BEING MCF NOW EXCLUSIVELY AT THE SERVICE OF MCH,  WE PROVIDE FOR A BETTER UNDERSTANDING OF THE ACIVITIES: FUNDING DOCUMENTS OF BOTH ORGANIZATIONS; FINANCIAL STATEMENTS OF BOTH ORGANIZATIONS; CURRENT OPERATING BUDGETS OF MCH.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/45106/orglogo.jpg',
@@ -7780,7 +7780,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a1fb3a38-4f96-a462-d075-13bdeca25d1d',
-    name: "Thabang Children's Home Trust",
+    name: 'Thabang Childrens Home Trust',
     description:
       'To provide centres for the reception, care and development for orphans, vulnerable children and youth;  To empower the children in our care by providing educational opportunities and skills development. To empower family structures through developmental and therapeutic services, advocacy to families and communities, through partnership with other stake holders.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/30185/orglogo.jpg',
@@ -7816,7 +7816,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7d207f10-0681-4b8d-9056-79dbb55a424c',
-    name: 'Classically Connected, Inc.',
+    name: 'Classically Connected, Inc',
     description: 'Inspiring a Global Community with Classical Music.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2Fafe2296a-d871-4dba-bc3a-aa11111ffcac.jpeg',
@@ -7912,7 +7912,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5d152fb3-44b2-be65-c970-ea030d13772f',
-    name: 'Sri Sathya Sai Health & Education Trust',
+    name: 'Sri Sathya Sai Health  Education Trust',
     description:
       '1. To endeavour to serve in greater measure the national burden of child ill health, Totally Free of Cost and to become institutions of Pediatric Cardiac Excellence for India and several developing countries<br>2.To develop skilled and compassionate medical, nursing and allied health care providers trained to collectively address the burden of congenital heart disease.<br>3. To advocate the Right to Healthy Childhood by bringing sharper focus in the area of child heart care, enabled by research and technology solutions that inform all stakeholders in the health care spectrum of preventive curative,educative care.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/61413/orglogo.png',
@@ -7948,7 +7948,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0bc51c10-4830-ae24-f14d-b88514cbadd8',
-    name: 'Ponce Neighborhood Housing Services, Inc.',
+    name: 'Ponce Neighborhood Housing Services, Inc',
     description:
       'The general mission of Ponce NHS is to enrich the quality of life in Puerto Rico through housing and community development, also, financial and social education. During the past 25 years, the services have been aimed at promoting in individuals and families a healthy credit, budget management and the opportunity to acquire safety housing. Ponce NHS has a Community Development Department with services aimed at creating community boards, environment talks, home renovation, educational and projects that will be promoting economic initiatives for underserved and low-income communities.',
     logoUrl: '',
@@ -8024,7 +8024,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3aee11b0-f902-4997-902d-8e158d6cd1c2',
-    name: 'United States of America Rugby Football Union, Ltd.',
+    name: 'United States of America Rugby Football Union, Ltd',
     description:
       'UNITE an inclusive, passionate rugby community IGNITE sustainable development, and GROW opportunities nationwide.',
     logoUrl:
@@ -8126,7 +8126,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '99857914-8627-44e7-a659-b9476b68bb08',
-    name: 'Ronald McDonald House Charities of Idaho, Inc.',
+    name: 'Ronald McDonald House Charities of Idaho, Inc',
     description:
       'Ronald McDonald House Charities of Idaho supports families of ill or injured children by keeping them together in times of medical need. At Ronald McDonald House Charities of Idaho, we are helping families face the burden of their child’s illness together. They have enough worries attending to the complicated medical needs of their child, maintaining their jobs, caring for other children or family members and keeping up with medical and out-of-pocket expenses – at RMHC of Idaho, we care for the family so they can focus on their sick child.',
     logoUrl:
@@ -8163,7 +8163,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c17b1ef6-75f6-4e9f-a78b-26b9981428e3',
-    name: 'St. Baldrick’s Foundation',
+    name: 'St Baldricks Foundation',
     description:
       'Every 2 minutes, a child somewhere in the world is diagnosed with cancer and in the U.S., 1 in 5 will not survive. These are devastating statistics, but you can be the HERO to help change the outcomes for children affected by cancer. <br>The St. Baldrick’s Foundation, the largest charitable funder of childhood cancer research grants, is on a mission to Conquer Kids’ Cancer by supporting the best childhood cancer research aimed at finding not only cures, but less toxic treatments so that survivors can live long and healthy lives. <br>Because of generous donors like you, St. Baldrick’s has been able to award 1,701 grants to virtually every institution treating childhood cancer, totaling more than $324 million since 2005. <br>Your donation has the power to create a ripple effect that will help children now and in the future.',
     logoUrl:
@@ -8189,7 +8189,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ed13e92d-1d02-4172-8540-aee6e20c9b57',
-    name: 'Police Athletic League of St. Petersburg, Inc.',
+    name: 'Police Athletic League of St Petersburg, Inc',
     description:
       "The Police Athletic League of St. Petersburg's mission is to transform the lives of young people in our community through education, healthy living and mentoring.",
     logoUrl:
@@ -8254,7 +8254,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6c0c3579-ec9b-43bc-9be1-6c424df84e6f',
-    name: 'Clinics Can Help, Inc.',
+    name: 'Clinics Can Help, Inc',
     description:
       'We focus on improving mobility, independence and dignity, by providing access to life-saving and "quality of life"-enhancing durable medical equipment and supplies to every Palm Beach County resident in need of these critical links to recovery and support. At Clinics Can Help, we assist clients of all ages from young children to adults in their 90\'s and nobody is ever turned away because of their ability to pay.',
     logoUrl:
@@ -8280,7 +8280,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cee5a631-6812-43ce-9284-c0cd795396ca',
-    name: 'Solve ME/CFS Initiative',
+    name: 'Solve MECFS Initiative',
     description:
       'The Solve ME/CFS Initiative (Solve M.E.)  serves as a catalyst for critical research into diagnostics, treatments, and cures for myalgic encephalomyelitis/chronic fatigue syndrome (ME/CFS), Long Covid and other post-infection diseases. Our work with the scientific, medical, and pharmaceutical communities, advocacy with government agencies, and alliances with patient groups around the world is laying the foundation for breakthroughs that can improve the lives of millions who suffer from various “long haul” diseases.',
     logoUrl:
@@ -8357,7 +8357,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f60102fe-0216-459f-9608-c1fc45100221',
-    name: 'Fractured Atlas, Inc.',
+    name: 'Fractured Atlas, Inc',
     description:
       "Fractured Atlas's mission is to make the journey from inspiration to living practice more accessible and equitable for artists and creatives.",
     logoUrl:
@@ -8370,7 +8370,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6064f45d-9ebf-4621-a5e5-64b0532b3fc1',
-    name: "Alex's Lemonade Stand Foundation",
+    name: 'Alexs Lemonade Stand Foundation',
     description:
       "To change the lives of children with cancer through funding impactful research, raising awareness, supporting families, and empowering everyone to help cure childhood cancer. Alex's Lemonade Stand Foundation (ALSF) funds childhood cancer research and provides travel assistance to families with a child undergoing cancer treatment. Additionally, ALSF does in-house research through its Childhood Cancer Data Lab, which builds AI tools for cancer researchers to use.",
     logoUrl: 'https://static.tgbwidget.com/AlexsLemonadeStand.jpg',
@@ -8497,7 +8497,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7dd4076c-8cde-4e9a-a75c-7db7af86c006',
-    name: "Nicklaus Children's Health Care Foundation",
+    name: 'Nicklaus Childrens Health Care Foundation',
     description:
       'To help advance and enhance health care for children locally and globally.',
     logoUrl:
@@ -8678,7 +8678,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '576e8c04-9829-4ccb-8607-946b381822d1',
-    name: "Maya Health Alliance - Wuqu' Kawoq Guatemala",
+    name: 'Maya Health Alliance - Wuqu Kawoq Guatemala',
     description:
       'Led by indigenous health workers, we provide comprehensive health care in Mayan languages to 20,000 patients a year in rural communities in Guatemala’s Central Highlands. We believe that high-quality care, health, and wellbeing should be within reach for everyone, no matter where they were born or what language they speak. Our program areas include women’s health, early childhood care and nutrition, maternal health, and chronic disease care.',
     logoUrl:
@@ -8911,7 +8911,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a6f52cbd-db40-4831-b927-0ae69286318f',
-    name: "Children's Advocacy Alliance",
+    name: 'Childrens Advocacy Alliance',
     description:
       'Children’s Advocacy Alliance is a community-based nonprofit organization that mobilizes people, resources, and reason to ensure every child has a chance to thrive and to make Nevada a better place to live and raise a family.  We are independent voice for Nevada’s children improving conditions in the areas of children’s school readiness, safety, health, and economic well-being.. Any individual or organization that want to help kids succeed and be protected.',
     logoUrl:
@@ -8937,7 +8937,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e28defa0-5263-44c6-b261-d89f77043d4a',
-    name: 'Habitat for Humanity NYC & Westchester',
+    name: 'Habitat for Humanity NYC  Westchester',
     description:
       'Habitat NYC and Westchester transforms lives and communities by building and preserving affordable homes with families in need, and by uniting all New Yorkers around the cause of affordable housing.',
     logoUrl:
@@ -9028,7 +9028,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9b7318f6-c4d1-4889-8097-f58ae45082fa',
-    name: 'Outreach with Lacrosse & Schools (OWLS)',
+    name: 'Outreach with Lacrosse  Schools (OWLS)',
     description:
       'At OWLS, we engage, enrich, and inspire Chicago kids and communities through the power of lacrosse.<br><br>Together with our donors, community partners, schools, coaches, tutors, and, of course, our student-athletes, we are bridging the achievement gap for Chicago’s underserved neighborhoods through mentorship, academic support, enrichment experiences, and one of the greatest games on the planet.',
     logoUrl:
@@ -9054,7 +9054,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5488e977-0b0f-41f0-a603-b87995efa52c',
-    name: 'Global Disaster Relief Team Inc.',
+    name: 'Global Disaster Relief Team Inc',
     description:
       'Global Disaster Relief Team (GDRT) is a bridge between medical services and humanitarian aid and those affected by the war in Ukraine that need it most. We work with local and contextually aware resources to identify, vet, and fulfill the needs of people and areas that fall under the radar in this crisis. We connect volunteers, medical professionals, and donated supplies to communities in Ukraine and the people that need them. We find the places who are overburdened and have insufficient resources and who haven’t seen enough help, and using our network of skilled volunteers and service workers, we bridge that gap.',
     logoUrl:
@@ -9130,7 +9130,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a149e5c7-47df-9598-cd9b-7d2a50c26809',
-    name: 'Hinsehen und Helfen e.V.',
+    name: 'Hinsehen und Helfen eV',
     description:
       'Hinsehen und Helfen e.V. is a non-profit organization that has made it its mission to improve the lives of people in poor regions of the world, especially in Eastern Europe, through various aid projects.<br><br>Help which is directly arrived and very important. Therefore all members of "Hinsehen und Helfen e.V." Completely voluntary and every support comes 100% where it is needed. No administrative apparatus that needs to be financed or otherwise costs, not bureaucracy, but simply looking and acting!',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/30292/orglogo.jpg',
@@ -9178,7 +9178,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd16e53d8-9a57-4c58-986e-514e17c3a11c',
-    name: 'Boys & Girls Clubs of Martin County',
+    name: 'Boys  Girls Clubs of Martin County',
     description:
       'To enable all young people, especially those who need us most, to reach their full potential as productive, caring, responsible citizens.',
     logoUrl:
@@ -9204,7 +9204,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7f0adea3-d106-48c3-8024-c965a0f2a900',
-    name: 'Danbury Hospital & New Milford Hospital Foundation',
+    name: 'Danbury Hospital  New Milford Hospital Foundation',
     description:
       'Philanthropy supports healthcare excellence at Nuvance Health, enabling us to enhance programs and priorities that improve patient care, research and medical education.',
     logoUrl:
@@ -9217,7 +9217,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '72834b7f-42a4-8ce5-fe5c-e7ead72e80b6',
-    name: 'Toulcuv dvur, z.s.',
+    name: 'Toulcuv dvur, zs',
     description: '',
     logoUrl: '',
     nteeCode: 'K00',
@@ -9254,7 +9254,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '48af0b93-c6eb-435f-b5d2-6d9443391d19',
-    name: 'She’s the First',
+    name: 'Shes the First',
     description:
       'At She’s the First, we believe every girl should be educated, respected, and heard. Each year, we reach more than 147K girls across 42 countries. We provide flexible and equitable funding, training on girl-centered design, learning and teaching resources,  and professional development for young women beginning their own non-profit work in communities around the world. We believe that through mentorship, education and community support, all girls can become extraordinary women, and choose their own future.',
     logoUrl:
@@ -9374,7 +9374,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '213d11b1-4e3c-934b-fe1e-4ecdae3554f8',
-    name: 'HOGAR DEL NINO A. C.',
+    name: 'HOGAR DEL NINO A C',
     description:
       'Brindar apoyo integral a ninos en situaciones de abandono, maltrato, abuso, orfandad o riesgo, ayudandoles a sanar y restaurar areas de sus vidas en las que hayan sido danados, brindandoles un hogar donde se respeten la dignidad de la ninez y sus derechos, cultivando la confianza en si mismos, dando proteccion, educacion, formacion integral, carino y comprension para formar jovenes academicamente preparados y productivos, teniendo como fundamento los valores eticos, morales, espirituales, culturales y deportivos, a fin de incrementar sus posibilidades de exito para tener mejores condiciones de vida.',
     logoUrl: '',
@@ -9386,7 +9386,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '88b8bab2-4c22-b1c6-d5da-1961c5f82973',
-    name: 'Project Orbis International, Inc. (Hong Kong)',
+    name: 'Project Orbis International, Inc (Hong Kong)',
     description:
       'Orbis is an international nonprofit that has been transforming lives through the prevention and treatment of avoidable blindness for nearly four decades. With our network of partners, we mentor, train and inspire entire local eye care teams - from health workers in rural clinics to eye surgeons in urban centers - so they can work together to save and restore vision, ensuring no one must face a life of avoidable blindness. Working in collaboration with local partners, including hospitals, universities, government agencies and ministries of health, Orbis provides hands-on ophthalmology training, strengthens healthcare infrastructure and advocates for the prioritization of eye health on public health agendas.<br><br>• Our Vision: To transform lives through the prevention and treatment of blindness.<br>• Our Mission: With our partners, we mentor, train and inspire local teams so they can save sight in their communities',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/31342/orglogo.png',
@@ -9483,7 +9483,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b2ee06a2-44e5-a46a-ea44-75e131522e7c',
-    name: 'ASOCIACION FILANTROPICA CUMMINS A. C.',
+    name: 'ASOCIACION FILANTROPICA CUMMINS A C',
     description: '',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/13392/orglogo.jpg',
     nteeCode: 'Q00',
@@ -9519,7 +9519,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'aaaea74b-4843-a239-e184-ab29831ef4be',
-    name: 'Alternative Indigenous Development Foundation, Inc.',
+    name: 'Alternative Indigenous Development Foundation, Inc',
     description:
       'AIDFI is:<br><br>- Dedicated to excellence in the development and for promotion of appropriate technology and social enterprises for sustainability development;<br>- Committed to effectiveness and efficiency in development management;<br>- Committed to help facilitating empower communities, gender equity and cultural diversity.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/96442/orglogo.png',
@@ -9543,7 +9543,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '92e3c3ee-40a6-9323-c961-434e9b42a4e9',
-    name: 'Kusala Projects Inc.',
+    name: 'Kusala Projects Inc',
     description:
       "1. To establish a set of activities for the ongoing support of community projects targeted to the poor and disadvantaged of all castes and creeds in the Bodhgaya region of Bihar, India. <br>2. These projects should include:<br>(a) Supporting the education of children in need<br>(b) Establishment of educational institutions for children in need <br>(c) Establishment of vocational learning centres <br>(d) Establishment of self help groups for individuals to develop their own businesses, with particular focus on women<br>(e) To encourage seminars for women's development and self empowerment<br> (f) To raise the self-esteem and self-reliance of the communities involved.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/40597/orglogo.jpg',
@@ -9579,7 +9579,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3eb4a039-46d6-babd-d102-10e352e62997',
-    name: 'Foundation for National Parks & Wildlife',
+    name: 'Foundation for National Parks  Wildlife',
     description:
       'The Foundation for National Parks & Wildlife (FNPW) aims to safeguard our ecosystems, wilderness, and flora and fauna now and for future generations.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/30843/orglogo.png',
@@ -9591,7 +9591,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6fae3931-4d87-8b22-c242-f829c024efc9',
-    name: "In the Lord's Hands",
+    name: 'In the Lords Hands',
     description:
       "THE LORD'S HANDS<br>Our basic mission:<br>We desire to be \"the Lord's Hands\" in helping the poor and the needy.<br><br>The following materials are from In the Lord's Hands website   Photos are on the website.<br><br>The Lord's Hands NGO<br>WHO ARE WE?<br>________________________________________<br>The Lord's Hands is a charitable and humanitarian NGO founded on human and Christian values centered on the true love of neighbor.<br>It has been said: 'Too often we notice the needs around us, hoping that someone from far away will magically appear to meet those needs. Perhaps we wait for experts with specialized knowledge to solve specific problems. When we do this, we deprive our neighbor of the service we could render, and we deprive ourselves of the opportunity to serve. While there is nothing wrong with experts, let us face it: there will never be enough of them to solve all the problems.'<br>We are not experts, nor rich or famous, but we have a reverence for life and a desire to be 'the Lord's Hands' in helping the poor and the needy. Please add greater meaning to your life today and join us in creating a better tomorrow!<br>Our resources consist of financial contributions from active members, donations and volunteer's hours of service.<br><br><br>PROJECTS IN PROGRESS<br> Food Security<br> Education<br> Communiity Projects<br><br>Food Security<br>________________________________________<br><br>No Food, no hope. No hope, no dream for a better life.<br>Join us to fight Famine<br>Mission<br>Famine is one of the most common evils in our communities because of natural disasters, conflicts, unstable economic situations, and the lack of fundamentals in management and self-reliance principles. The goal is to support communities by training them on small projects in the processing, production, and conservation of food products.<br>Strategies<br>Food for All Program<br><br>Based on local realities, we identify communities of different strata of our populations in the grip of hunger, living in rural areas and some in urban areas and help them to take charge of themselves by efficiently exploiting natural resources at their disposal. With our partners who are experts in the field, we provide basic training, provide production tools such as watering cans, seeds, etc. Beneficiaries commit to perpetuate this culture in their families and commit to contributing with resources such as land for gardening, time, and availability to learn and share knowledge on agricultural techniques they receive from our program.<br><br>Education<br>________________________________________<br><br>Mission<br>We help people from disadvantaged social strata to acquire basic and practical trainings for their personal, collective development, and Self-reliance.<br><br>Strategies<br> Professional Training:<br>In partnership with Local professional training centers, we provide short-terms practical trainings in the following areas:<br>- Sewing Skills<br>- Masonry & Construction Skills<br>- Plumbing Skills<br>- Cooking Skills<br>- Agriculture & Farming Skills<br>- Welding Skills<br> Literacy:<br>With proven technicians and partners working in the field of education, we organize French literacy classes for women and children first. Adults in need are also considered.<br> Scholarship:<br>In partnership with local orphan's supporting structures, we help pay school fees for orphans and other children in real need.<br> 'Computer for BYU Pathway Connect'<br>With the support of our donors, we are providing Laptops to purposeful BYU Pathway Connect students who meet qualifying criteria and demonstrate a real need.<br>Are you a BYU Pathway Connect student?<br>Are you in a real need of computer? Check your eligibility by submitting your application.<br>Check your eligibility and submit your application<br>Submit your application<br><br><br><br><br>Community Projects<br>________________________________________<br><br>Make your community benefit from your precious time by participating in community projects. Understanding that we are the main responsible for the environment in which we live. The Lord's Hands NGO with its vast network of volunteers recognize the impact that each community participant can make in improving conditions and environment of their community. The Lord's Hands NGO initiates projects and partners with institutions or groups working in community & environmental improvement. Without any form of race, color, ethnicity, or religious discrimination we participate in a various range of Community projects including:<br>Strategies<br>- Food delivery to the elderly people and orphans.<br>- Orphanage, Elderly Houses or a public hospital Cleaning or Rehabilitation.<br>- Game activities for disadvantaged children.<br>- Collect baby clothes and supplies to donate to new parents.<br>- Free Art Courses, (Music & Dance).<br>- Cleaning or unblocking of road of general interest.<br>- Participating in a tree planting and awareness campaign on environment protection.<br>Projects will be made public on The Lord's Hands NGO website, www.thelordshands.org and on its social media pages.<br><br><br>PROJECTS IN DEVELOPMENT<br> Emergency Responses<br>NGO Partnerships<br><br>Emergency Responses<br><br><br>Becoming inevitable, natural disasters are more and more frequent in our communities, creating enormous damage. Our mission is that whenever one occurs within our reach, that we provide assistance and relief to the victims.<br>It has been reported that on average, humanitarian crises are more complex than at any time in the last 15 years, and last nearly three years longer than they used to. Conflict, migration, climate change and now the unexpected pandemic (COVID-19) are the key trends driving these crises.<br><br>Critical Emergency Responses to Address:<br>- Providing the basics (Soap, Sanitizers, masks etc.)<br>- Reinforce Sanitation to minimize infection<br>As they arise in our area of activities, Emergency responses will be posted and best approaches shared on our website and social media pages<br>Strategies<br>In partnership with local institutions, we identify and quantify needs to find a more effective approach to addressing the emergency. We mobilize volunteers, collect donations in kind and in cash depending on the type of disaster and work closely with the competent structures to relieve the affected communities.<br><br><br><br><br>NGO Partnerships<br><br>Recognizing the contribution that other charitable structures and institutions make to our communities, it will always be an honor for us to partner with NGO's and other charitable structures operating in the Humanitarian and environmental sector. We also recognize the challenge being faced by International organizations in implementing projects in our region. We are committed to engaging with them in an ethical and professional way to carry and assist with projects implementation and impact evaluation.<br><br>Are you a humanitarian organization or institution working in environment protection or community development? Tell us about your plans and Projects for a possible partnership with The Lords Hands NGO.<br><br><br>Clean Water<br>In development",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/90808/orglogo.png',
@@ -9723,7 +9723,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0b4c4823-49b7-8a94-f7be-50299b94fca8',
-    name: 'Grupo Ecologico Sierra Gorda I.A.P',
+    name: 'Grupo Ecologico Sierra Gorda IAP',
     description:
       "The mission of the Sierra Gorda is to guide and coordinate the activities of its member organizations responsible for the conservation, restoration and sustainable development of the Sierra Gorda region and the Sierra Gorda Biosphere Reserve. Grupo Ecologico Sierra Gorda, the founding member organization of the Alliance, guides the work of the Alliance's partner organizations in: a) educating for a sustainable future; b) organizing community action and cross-sector cooperation; c) adopting holistic land management; d) promoting management of solid waste and recyclables; e) raising awareness and civic participation; f) bundling and communicating best practices; and g) generating a significant social return on investment.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/270/orglogo.jpg',
@@ -9747,7 +9747,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'eecc3f16-44cd-a87d-d751-650bb2120ee4',
-    name: 'Baark!',
+    name: 'Baark',
     description:
       'BAARK! For a Humane Bahamas. BAARK! stands for Bahamas Alliance for Animal Rights and Kindness. We are a new organization formed by the members of the Facebook Group: For a more humane Bahamas Government Dog Pound.<br>Mission<br>BAARK! has two main objectives:<br>1) Immediately improve conditions and treatment of animals at the pound and rescue all potentially adoptable animals.<br>2) Dramatically increase public awareness and funding for spay & neuter programs in order to reduce the numbers of stray and unwanted animals in The Bahamas.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/14176/orglogo.jpg',
@@ -9797,7 +9797,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e18ae9c2-867a-4646-b020-7d8900410295',
-    name: 'Community Animal Medicine Project, Inc.',
+    name: 'Community Animal Medicine Project, Inc',
     description:
       "CAMP is an organization dedicated to providing affordable spay/neuter, vaccine and wellness care services to low income communities in Los Angeles. We believe that veterinary care should be affordable and accessible. We believe that no animal should be surrendered to a shelter to be euthanized because their owner can't afford needed veterinary care. The Community Animal Medicine Project -- CAMP (formerly called Spay Neuter Project of Los Angeles, SNP LA) is Southern California’s largest non-profit veterinary organization providing indispensable pet care services throughout Los Angeles’ most underserved communities.We operate four low cost, high volume spay/neuter and community animal medicine clinics in South Los Angeles, San Pedro and Mission Hills and run mobile clinics that travel throughout Los Angeles County bringing care directly to the communities that need it. We also operate CAMP’s Veterinary Training Project, training veterinary professionals in the desperately needed skills of high volume, high quality spay/neuter surgical skills and techniques. This scholarship supported program was established to provide solutions to the overburdened shelter system and to meet the veterinary shortage head on. Since we opened our doors in 2007, the CAMP veterinarian staff have performed over 300,000 spay/neuter surgeries - preventing the birth of millions of puppies and kittens into homelessness. Our community animal medicine veterinary programs reach over 80,000 pets annually providing affordable spay/neuter, vaccine and wellness care services to historically excluded communities in Los Angeles. CAMP is about community!",
     logoUrl:
@@ -9850,7 +9850,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '36c30731-abe3-4f95-a1ac-f43de1a7d155',
-    name: 'Every.org',
+    name: 'Everyorg',
     description:
       'We help nonprofits raise more money and strengthen their relationships with donors in order to create lasting change. Our aim is a more generous and joyful world.',
     logoUrl:
@@ -9926,7 +9926,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6099b68b-a876-4220-8900-f253ab1b31ef',
-    name: 'Habitat for Humanity of Cape Cod, Inc.',
+    name: 'Habitat for Humanity of Cape Cod, Inc',
     description:
       'Habitat for Humanity of Cape Cod partners with families in need of an affordable home to build one of their own; fostering stability, self-reliance and a strong sense of community.',
     logoUrl:
@@ -10204,7 +10204,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '60180a41-4095-8001-fcc4-16f42432f59e',
-    name: 'Asociacion Mexicana contra el Cancer de Mama A.C',
+    name: 'Asociacion Mexicana contra el Cancer de Mama AC',
     description:
       'Fundacion CIMA (as we are better known) is a non governmental / non profit organisation created in 2002 to disseminate updated information to educate and inform the Mexican people on:  early detection, the risk factors and the access to timely treatment in regards to breast cancer. As well to build a community to offer and strengthen the emotional support of patients and their families and care givers.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/91572/orglogo.png',
@@ -10228,7 +10228,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '61aec260-4731-97b8-f896-62cc8a739a60',
-    name: 'Rising Sun Education & Welfare Society',
+    name: 'Rising Sun Education  Welfare Society',
     description:
       '"To provide special children with education & training facilities to enhance their capabilities and rehabilitate them in the society"<br> To provide medical, psycho-educational, speech & language assessment and therapy services to  CWDs  (Children with Disabilities) enrolled at Rising Sun Institute or referred by different specialists & professionals<br> Human Resource Development for teaching and training of Rising Sun and other similar institutions<br> To promote Inclusive Education by orientation of regular school teachers about special needs and inclusive education so that more and more special children are given education along with their peers in their own environment<br> To create community awareness about needs of Inclusive Education for CWDs and role of community & to prepare literature for the parents of CWDs and to train them to look after their children',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/14496/orglogo.gif',
@@ -10240,7 +10240,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fdf2c747-96a3-485a-958f-0cd1f5fec08d',
-    name: 'Habitat for Humanity Greater Orlando and Osceola County, Inc.',
+    name: 'Habitat for Humanity Greater Orlando and Osceola County, Inc',
     description:
       "We're a nonprofit, affordable-housing organization driven by a vision that everyone deserves a safe and affordable place to live. Part of a global nonprofit, Habitat Orlando & Osceola was founded in 1986 and has built, rehabbed, or repaired nearly 800 homes throughout Central Florida.",
     logoUrl:
@@ -10279,7 +10279,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'aecab22c-93f8-4754-89e5-adc22d6943e7',
-    name: 'Move for Hunger, Inc.',
+    name: 'Move for Hunger, Inc',
     description:
       'Move For Hunger is a national non-profit organization that has created a sustainable way to reduce food waste and fight hunger. We have mobilized the leaders of moving, relocation, and multi-family industries to provide their customers, clients, and residents with the opportunity to donate their food when they move. Members of Move For Hunger also organize community food drives, participate in awareness campaigns, and create employee engagement programs.',
     logoUrl:
@@ -10358,7 +10358,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cb9f43b6-bde4-4e43-82f9-15025959a8c3',
-    name: 'Junior Achievement Of Northern California, Inc.',
+    name: 'Junior Achievement Of Northern California, Inc',
     description:
       'Junior Achievement’s mission is to inspire and prepare young people to succeed in a global economy. Anchored in our three pillars of financial literacy, workforce readiness, and entrepreneurship, we provide K-12 programming that is designed to help students connect their education to their future careers, planting seeds of what they can be, and instilling in them the skills and confidence they need to be successful.',
     logoUrl:
@@ -10433,7 +10433,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4b1debd6-1a74-4820-b3eb-929ff02c49aa',
-    name: 'LAVA, Inc.',
+    name: 'LAVA, Inc',
     description:
       'LAVA, Inc. is a strong defender of women, children, minorities, seniors, the homeless, and the most vulnerable among us. LAVA, Inc. is committed to providing more opportunities to those in need.',
     logoUrl:
@@ -10446,7 +10446,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '590f68f0-06f5-4098-a01b-8be2d134a40b',
-    name: 'Vermont Studio Center Inc.',
+    name: 'Vermont Studio Center Inc',
     description:
       "The Vermont Studio Center's mission is to support artists and writers by providing studio residencies in an inclusive, international community, honoring creative work as the communication of spirit through form.",
     logoUrl:
@@ -10550,7 +10550,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f82ad521-4c03-a1dc-e38e-2d03e59b9041',
-    name: "Women's Action Against Climate Change Association",
+    name: 'Womens Action Against Climate Change Association',
     description:
       "1.  To empower women and their families by the pursuit of local social development initiatives and rural improvement.<br><br>2.  To provide social services to the members and their families in the areas of livelihood development, processing and marketing of farm products, community savings, home economics and sustainable agriculture.<br><br>3.  To advocate for the promotion of women's rights and women empowerment.<br><br>4. To link with other organizations, networks and entities with similar goals and objectives with the organization.",
     logoUrl: '',
@@ -10600,7 +10600,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3a5b3081-ed3f-4f23-bf4b-3b3b0be89749',
-    name: 'Active Minds, Inc.',
+    name: 'Active Minds, Inc',
     description:
       'Active Minds (activeminds.org) is the nation’s leading nonprofit organization promoting mental health awareness and education for young adults. Through award-winning programs and services, Active Minds is empowering a new generation to speak openly, act courageously, and change the conversation about mental health for everyone.',
     logoUrl:
@@ -10698,7 +10698,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b24af96b-76c5-4325-b449-a0db0e804be3',
-    name: 'The Teen Project, Inc.',
+    name: 'The Teen Project, Inc',
     description:
       'The mission of the Teen Project is to provide healing and hope to young women who have survived human trafficking and homelessness, many from foster care, by innovating programs focused on drug treatment, psychotherapy, life skills, higher education and mentoring all with a trauma-informed lens.',
     logoUrl:
@@ -10724,7 +10724,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd32a43b9-31d9-4a31-8f3d-70c2732b3d51',
-    name: "Great River Children's Museum",
+    name: 'Great River Childrens Museum',
     description:
       'GRCM shines a bright light on the power of play to spark children’s learning,<br>strengthen families, and build community connections. Its dynamic,<br>interactive environments and experiences are a gateway to the world and its<br>people for children and families of all backgrounds.',
     logoUrl:
@@ -10749,7 +10749,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '395a42aa-9c70-4f23-b91f-5dbccb91c5e7',
-    name: 'National Breast Cancer Foundation, Inc.',
+    name: 'National Breast Cancer Foundation, Inc',
     description:
       'We provide help and inspire hope to those affected by breast cancer through early detection, education, and support services.',
     logoUrl:
@@ -10802,7 +10802,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1b7cf866-46fa-a4fd-c6d7-e6094f8632e9',
-    name: 'Hoedspruit Elephant Rehabilitation & Development',
+    name: 'Hoedspruit Elephant Rehabilitation  Development',
     description:
       "The HERD (Hoedspruit Elephant Rehabilitation and Development) TRUST was established in 2021 following a 24-year journey in caring for elephants that have been displaced or orphaned due to human-elephant conflict.<br><br>With the growing numbers of orphans and displaced elephant calves in recent years, due to rampant poaching of elephant mothers as well as human-elephant conflict, Adine Roode, HERD Founder, took the step to build an elephant orphanage in South Africa, to provide an adoptive family structure for calves in need.<br>The HERD Orphanage was built in 2019 in response to a growing number of young orphaned elephant calves that need a place of rehabilitation and more importantly, an existing herd that will accept them unconditionally.<br><br>The Jabulani Herd is now a family of 16 elephants, of which 11 are orphans and five that were born to the herd over 10 years ago. In 2004 the lodge, Jabulani, was built to sustain the herd, with proceeds from tourism assisting with the care and management of the rescued herd.<br>In 2021 a decision was made to move the Jabulani herd and the HERD Homestead operations (formally known as the Jabulani stables) together with the HERD Orphanage, under the umbrella of the HERD Trust which is a registered PBO Number 930072153. This allows for public funding to ensure the well-being of all the elephants.<br><br>The HERD Trust also commits to being active within our local communities through education and awareness, as well as our online communities, bringing a global audience together to educate a larger audience about the elephant species and the essential conservation efforts undertaken by various organisations around the world.<br><br>It is our mission through HERD (Hoedspruit Elephant Rehabilitation and Development), South Africa's first and only dedicated elephant orphanage, to rehabilitate orphaned elephants from the traumatic or near-fatal challenges that have caused them to be abandoned. It is our mission to give them a second chance of life with a herd, as the social and complex nature of the species requires that they live within a herd for their own wellbeing. <br><br>Our objectives are to provide a safe rehabilitation alternative for elephant orphans that prioritises the long-term well-being of the elephants. To establish a strategy and long-term plan for elephant rehabilitation through rewilding that includes ways to mitigate the long-term chronic stress of releasing elephants directly into the wild when, as orphans, they don't have a proper social structure. The focus is on building the orphans' ability to deal with a wild system independently, in such a way that allows them to develop that capacity at a reasonable pace, and within a stable and nurturing system. Thus, the rewilding of captive elephants that takes elephant biology and local context into account. <br><br>Our principals underpinning the approach:<br>a. Emphasis and focus on the rehabilitation and rewilding as both short and long-term objectives, that considers the social and sentient nature of elephants, their longevity, and the need for their learning and social development to take place in a protective, nurturing, and safe context and environment. <br>b. Take into account the importance of social learning, bonding, and role building for orphans by creating a novel system of responsibly wilding or reintegrating elephants.<br>c. It is unethical to simply release orphans into the wild without the opportunity for them to develop a robust social decision-making and behavioural system, within a structured support system, that people can, and have the obligation to, provide.<br>d. Creating sustainable wellbeing for orphan elephants, responsible and transparent mechanisms to support direct costs attached to handraising and caring of elephants, and the herd into which they will be introduced, and which is engaged with broader society.<br>e. Run an ethical, accredited, and credible operation, with a fully constituted ethics committee, and with an advisory committee with the appropriate expertise. <br>f. Recognize the existence value of elephants for broader society, and to take on the custodianship role (all animals are under the custodianship of all people), on behalf of broader society, so that people know that animals are being protected and supported in an ethical way that gives people a sense of humaneness and humanity - this is one of our global values. <br>g. Based on a long-term strategy for rewilding of orphan elephants that enhances wellbeing, and takes into consideration their longevity, and the long-term responsibility that we collectively have as a society to caring for orphaned elephants through their entire lifetime. <br>h. Enhance and expand the contribution of elephants to human social and economic development, and human livelihoods and wellbeing, especially in the local region. <br>i. Not causing unnecessary suffering or harm; <br>j. There is no breeding of captive elephants. <br>k. New orphans increase the wellbeing of the Jabulani elephant herd by improving the social structure of the herd, and providing the conditions for natural social interactions and processes. <br>l. Introduction of calves can play a positive role in the emotional wellbeing and behaviour of the Jabulani herd, and the herd provides the most humane mechanism to reintegrate orphans into elephant society that is available.<br>m. There is no promoting the removal of any babies from the wild. <br>n. It is not the first choice to have captive elephants, and we understand the risks posed by the complex social nature of elephants.<br>o. There are clear specific criteria for taking orphans for rehabilitation, such as when orphans are the direct consequence of human interference and human created problems, such as poaching. <br>p. Elephants are only accepted as a results of confiscation, donation, or rescue and approved by, official government agencies. All orphans accepted are properly permitted. <br>q. We do not promote, base, or drive the operation on creating a market for orphans. Orphans are accepted in the interests of the orphans, as such, and not to have any resale value. <br>r. The Jabulani herd was rescued from a perilous situation, and are being provided with a protected and comfortable environment, that meets their biological and social requirements within the limitations of a previously tamed herd. <br>s. The commitment to the Jabulani herd is to ensure their wellbeing for their natural lives.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97925/orglogo.png',
@@ -10827,7 +10827,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '009b390e-4c1d-a7bd-f838-f8486982b3f1',
-    name: 'Proeducacion I.A.P.',
+    name: 'Proeducacion IAP',
     description:
       'Our mission is to improve the quality of education that children recieve in public elementary schools in Mexico through the integral development of the school community.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/100220/orglogo.jpg',
@@ -10864,7 +10864,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '00fa8147-4477-85fa-d445-77a74079088a',
-    name: 'Fundacion ProEmpleo Productivo A.C.',
+    name: 'Fundacion ProEmpleo Productivo AC',
     description:
       'To sponsor and encourage people willing to have a better personal and productive life by reinforcing job creation, self-employment, and enterprise creation and development, through training and consulting efforts.',
     logoUrl: '',
@@ -10901,7 +10901,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9af93cf9-1e72-4325-a294-c5cb22a70805',
-    name: 'The Dream Institute, Inc.',
+    name: 'The Dream Institute, Inc',
     description:
       'The Dream City Foundation exists to help people reach their dreams through outreach, the arts, and education.',
     logoUrl:
@@ -10928,7 +10928,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '20ccd465-bead-4b08-a812-1ce24449b6df',
-    name: 'Easter Seals, Inc.',
+    name: 'Easter Seals, Inc',
     description:
       'Easterseals is leading the way to full equity, inclusion, and access through life-changing disability and community services.<br><br>For more than 100 years, we have worked tirelessly with our partners to enhance quality of life and expand local access to healthcare, education, and employment opportunities. And we won’t rest until every one of us is valued, respected, and accepted.<br><br>Through our national network of affiliates, Easterseals provides essential services and on-the-ground supports to more than 1.5 million people each year — from early childhood programs for the critical first five years, to autism services, to medical rehabilitation and employment programs, to veterans’ services, and more. Our public education, policy, and advocacy initiatives positively shape perceptions and address the urgent and evolving needs of the one in four Americans living with disabilities today.<br><br>Together, we’re empowering people with disabilities, families and communities to be full and equal participants in society.',
     logoUrl:
@@ -10965,7 +10965,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a4f0040d-bd28-4755-91ce-e1997879f758',
-    name: 'Institute of Contemporary Art, Miami, Inc.',
+    name: 'Institute of Contemporary Art, Miami, Inc',
     description:
       'The Institute of Contemporary Art, Miami (ICA Miami), is dedicated to<br>promoting the work of contemporary artists, and to the exchange of art<br>and ideas throughout the Miami region and internationally. Through an<br>energetic calendar of exhibitions and programs, and its collections, ICA<br>Miami provides an international platform for the work of established and<br>emerging artists, and advances the public appreciation and understanding<br>of the most innovative and experimental art of our time.',
     logoUrl:
@@ -11041,7 +11041,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '68a8098b-4046-b59f-d066-af8989babc85',
-    name: "St Mungo's",
+    name: 'St Mungos',
     description:
       'Our vision is that everyone has a place to call home and can fulfil their hopes and ambitions.<br><br>Our ambition is to end rough sleeping by 2026.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/10375/orglogo.gif',
@@ -11053,7 +11053,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9ae5cb6b-397e-4405-ab66-bbcf730d3189',
-    name: 'Project Hawai’i',
+    name: 'Project Hawaii',
     description:
       'Our mission is to help enhance the lives of homeless children and help them succeed. Providing interactive solutions that help these precious children gain the life skills and self esteem they need to escape their cycle of poverty.',
     logoUrl:
@@ -11192,7 +11192,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ee3ceb6f-7672-4098-ad8e-fd4f9ee6f119',
-    name: 'Youth ALIVE!',
+    name: 'Youth ALIVE',
     description:
       'To break the cycle of violence and uplift a thriving community of leaders rooted in Oakland and beyond through prevention, intervention,<br>healing and advocacy.',
     logoUrl:
@@ -11268,7 +11268,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6e21342f-b49e-4df7-9ad1-afc39940d79f',
-    name: 'Animal Shelter, Inc.',
+    name: 'Animal Shelter, Inc',
     description:
       'The mission of Animal Shelter Inc. is to operate a no-kill animal shelter with no time or age restrictions. The shelter provides humane sheltering and high quality medical care for stray, unwanted, abused and neglected animals.  These animals are sheltered in our facilities and foster homes until they find loving, lifelong homes.',
     logoUrl:
@@ -11333,7 +11333,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd1baaed1-af53-44d0-86d9-a8417599eae3',
-    name: "SeriousFun Children's Network",
+    name: 'SeriousFun Childrens Network',
     description:
       'Our mission is to create opportunities for children and their families to reach beyond serious illness and discover joy, confidence and a new world of possibilities, always free of charge.',
     logoUrl:
@@ -11359,7 +11359,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5270e305-434d-4865-8d7b-30ea43ef9341',
-    name: 'Mattie N. Dixon Community Cupboard, Inc.',
+    name: 'Mattie N Dixon Community Cupboard, Inc',
     description:
       'Our mission is to promote the concept of “neighbors helping neighbors”.  We achieve this by coordinating the collection of food, groceries, clothing and money for distribution among people in need in our community.<br><br>We strive to strengthen families under stress by providing them with goods and services so they can become more self-sufficient over time.',
     logoUrl:
@@ -11397,7 +11397,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '213d2a83-0f7c-4633-a525-9fa2be9c62eb',
-    name: 'Saint Joseph Parenting Center, Inc.',
+    name: 'Saint Joseph Parenting Center, Inc',
     description:
       'Saint Joseph Parenting Center (SJPC) is a nonsectarian, 501c-3 registered nonprofit working since 2010 to provide vulnerable families with resources they need to care for their children and provide a safe environment for them to thrive. SJPC has a vision of a world free from child abuse and we advance our mission through a community-based education program focused on needs of parents. Built on a belief that supporting parents is key to protecting children, SJPC provides parent education classes in English and Spanish, relationship skills and employee readiness training, case management and community resource support to help parents change unhealthy parenting patterns and decrease child abuse and neglect.',
     logoUrl:
@@ -11460,7 +11460,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6215cf0a-633b-44fd-a2b6-da5ef5907f53',
-    name: 'The Source LGBT+ Center',
+    name: 'The Source LGBT Center',
     description:
       'Our mission is to provide spaces within our communities for the LGBTQ+ population to Learn, Grow, Belong, Transform, Question + Support. We cultivate new resources through advocacy, partnerships and fundraising to unite and advance the LGBTQ+ community.',
     logoUrl:
@@ -11473,7 +11473,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5797db6b-2d2e-4fe7-8ac6-5baa2fb5e9a3',
-    name: 'Global Ahead, Inc.',
+    name: 'Global Ahead, Inc',
     description:
       'Our mission is to bring hope to people, either by providing the immediate resources they lack or by implementing tools to permanently develop the community in which we are located.',
     logoUrl:
@@ -11701,7 +11701,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2ab2c569-891a-4fe8-a4fa-55ba479b45f6',
-    name: 'Boys & Girls Club of Meriden',
+    name: 'Boys  Girls Club of Meriden',
     description:
       'The Mission of the Boys & Girls Club of Meriden is to enable all young people, especially those who need us most, to reach their full potential as productive, caring, responsible citizens.',
     logoUrl:
@@ -12137,7 +12137,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c7bbe229-ca57-4cff-a86f-125a5c086875',
-    name: "The Children's Foundation",
+    name: 'The Childrens Foundation',
     description:
       'The Children’s Foundation supports pediatric research, education, community benefit programs, and other initiatives that improve the health of children in Michigan.',
     logoUrl:
@@ -12163,7 +12163,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cb6d75ff-34ea-4942-918f-abd533656d49',
-    name: 'Oceana, Inc.',
+    name: 'Oceana, Inc',
     description:
       "We can save the oceans and feed the world. \r\nOceana is the largest international advocacy organization focused solely on ocean conservation. We run science-based campaigns and seek to win policy victories that can restore ocean biodiversity and ensure that the oceans are abundant and can feed hundreds of millions of people. Oceana victories have already helped to create policies that could increase fish populations in its countries by as much as 40 percent and that have protected more than 1 million square miles of ocean. We have campaign offices in the countries that control close to 25 percent of the world's wild fish catch, including in North, South and Central America, Asia, and Europe.",
     logoUrl:
@@ -12253,7 +12253,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '357b4bcc-e665-4739-beb9-689f36da88fc',
-    name: "Siskin Children's Institute",
+    name: 'Siskin Childrens Institute',
     description:
       "Siskin Children's Institute improves the quality of life for children with special needs and their families. Siskin Children's Institute is the only comprehensive program in the Southeast area offering home and center based early intervention. Our services include diagnosis and treatment in the centers for developmental pediatrics, therapy services including ABA therapy for children with autism, occupational, physical, feeding, and speech therapies, and family resources. Our Chattanooga location includes and integrative early learning center.",
     logoUrl:
@@ -12470,7 +12470,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd3ad950e-9a0f-41fe-8a6d-6885e77be0ad',
-    name: 'Saint Paul & Minnesota Foundation',
+    name: 'Saint Paul  Minnesota Foundation',
     description:
       'We inspire generosity, advocate for equity, and invest in community-led solutions.',
     logoUrl:
@@ -12517,7 +12517,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '76682520-ba82-497f-954d-6bd9fb295a32',
-    name: 'Hope and Comfort, Inc.',
+    name: 'Hope and Comfort, Inc',
     description:
       'Hope & Comfort collects and distributes the most basic hygiene products such as soap and toothpaste to support the health and confidence of children, families and adults within Massachusetts.  In 2021 alone, Hope and Comfort distributed roughly 2,000,000 basic hygiene items including more than 1,250,000 bars of soap to more than 250 leading small and large non-profit and community partners such as schools, Boys and Girls Clubs, the YMCA, food pantries, homeless and domestic violence shelters and many more to keep tens of thousands of children, families and adults clean, healthy and confident.',
     logoUrl:
@@ -12859,7 +12859,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7509c1d0-3421-42f0-9bfe-e821793189e9',
-    name: 'The Palmas Academy, Inc.',
+    name: 'The Palmas Academy, Inc',
     description:
       'To provide an excellent education in a safe, positive, and supportive<br>environment that will foster scholarship, creativity, self-discipline,<br>independent thinking and leadership and will promote values for living<br>in a culturally diverse world.',
     logoUrl:
@@ -12947,7 +12947,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f999ca49-a836-4cf0-b1af-bd9ccca8772d',
-    name: 'Seven Hills Church, Inc.',
+    name: 'Seven Hills Church, Inc',
     description:
       'Learn the core values that keep the vision of 7 Hills Church clear. These values reflect our priority to reach people with the Gospel.',
     logoUrl:
@@ -13034,7 +13034,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c751b489-21be-45f9-96de-73f20b5bdc9e',
-    name: 'Providence Health & Services Foundation',
+    name: 'Providence Health  Services Foundation',
     description:
       "As expressions of God's healing love, witnessed through the ministry of Jesus, we are steadfast in serving all, especially those who are poor and vulnerable.",
     logoUrl:
@@ -13071,7 +13071,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b3c4e7e3-4d3b-9e90-dffd-d9d42587546a',
-    name: 'Association of Locally Empowered Youth in Mindanao (ALEY-M) Inc.',
+    name: 'Association of Locally Empowered Youth in Mindanao (ALEY-M) Inc',
     description:
       'The main goal of ALEY-NM is to empower the local youths in Mindanao, give them hope and roots in the barrios where they are living by making the barrios productive, vibrant and a repository of local knowledge at the same time improving the local biodiversity by nurturing the land in a low-external input system (as opposed to high-chemical agriculture) and incorporating crop-trees-animals in a nutrient-cycle, sustainable manner.  The organization promotes ecological sanitation and the use of human waste (urine and feces) as fertilizer for the plants realizing that chemical fertilizer harms the environment and knowing that human waste contains valuable nutrients such as nitrogen and phosphate ideal for food security. The ALEY-NM is a winner of the 2010 Ten Accomplished Youth Organization in the Philippines and an awardee of the "Saka" (agriculture) award by the Department of Agriculture. It is the production and marketer of SaniFert (short for sanitation-fertilizer) which is a combination of biochar, feces, effective micro-organisms urine and animal waste.',
     logoUrl: '',
@@ -13120,7 +13120,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6b0a89d5-3ab8-4a3e-8a49-6bf684d0ebb5',
-    name: 'The Abundant Living Faith Center Church Inc.',
+    name: 'The Abundant Living Faith Center Church Inc',
     description:
       'Through the highs and lows of your life,the Abundant Community is there for you.',
     logoUrl:
@@ -13158,7 +13158,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7bd233f4-2f88-4735-961f-c2e2d2889aa2',
-    name: 'National Park Trust, Inc.',
+    name: 'National Park Trust, Inc',
     description:
       'We preserve parks today and create park stewards for tomorrow. We acquire the missing pieces of our national parks, the privately owned land located within and adjacent to our national parks’ boundaries. We also bring thousands of kids from under-served communities to our parks; they are our future caretakers of these priceless resources.',
     logoUrl:
@@ -13296,7 +13296,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '50bf8161-10bc-4fcd-bc48-6693a4fc770c',
-    name: 'Drugs & Diagnostics for Tropical Diseases',
+    name: 'Drugs  Diagnostics for Tropical Diseases',
     description:
       'Drugs & Diagnostics for Tropical Diseases (DDTD) is a unique non-profit  (501c3) venture based in San Diego, CA, with a mission “to discover new treatments and develop diagnostics for neglected tropical diseases and other diseases that affect impoverished populations”. These diseases have been typically neglected from research and development efforts due to the perceived lack of profitability.',
     logoUrl:
@@ -13409,7 +13409,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c65fedf2-4ab9-b3f7-e854-38e7d6fb5170',
-    name: "Ladies' Turn",
+    name: 'Ladies Turn',
     description:
       "Ladies' Turn is working at the grassroots level, organizing football matches in the hearts of Senegalese neighborhoods, to give Senegalese girls and women their turn to play.  While football is extremely popular in Senegal, it is considered a men's sport, meaning that most girls do not have an opportunity to play.  Girls also face disparities in the educational system: while primary education for girls in Senegal has made significant gains, most girls never complete secondary school.  <br><br>To change this reality, Ladies' Turn aims to: <br>i.) Expand opportunities for girls to play soccer. <br>ii.) Promote girl's education and personal development.<br>iii.) Promote gender equality through soccer.                                                                                   <br><br>By expanding opportunities for girls to play soccer, Ladies' Turn also seeks to promote gender equality and women's empowerment.  By presenting women in roles as athletes, Ladies' Turn works to challenge traditional gender roles.  Soccer also presents a unique opportunity to contribute positively to girls' self confidence and personal development.  The players who participate in Ladies' Turn activities make lasting friendships and cultivate relationships with significant mentor figures such as coaches.  In addition to soccer matches, Ladies' Turn is piloting activities to encourage girls to stay in school and promote sports and education.  Ladies' Turn believes that soccer is a powerful tool for development.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/12540/orglogo.jpg',
@@ -13446,7 +13446,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7270c026-4d2f-4f5e-b546-561d6416c033',
-    name: 'Blockfrens, Inc.',
+    name: 'Blockfrens, Inc',
     description:
       'At Blockfrens, our mission is to empower and uplift marginalized and underserved communities by bridging the gap between technology, art, and education. We strive to provide access to essential resources, foster financial literacy, and cultivate creative expression, ultimately driving lasting change and breaking the cycle of intergenerational inequity.',
     logoUrl:
@@ -13620,7 +13620,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b9b9e910-6ee3-4309-916e-c199f72ef3b9',
-    name: 'Chattanooga Area Food Bank, Inc.',
+    name: 'Chattanooga Area Food Bank, Inc',
     description:
       "The Chattanooga Area Food Bank's mission is to lead a network of partners in eliminating hunger and promoting better nutrition in our region.",
     logoUrl:
@@ -13760,7 +13760,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cfef749a-09ef-4404-92c5-2a3362261ff9',
-    name: 'Foundation for the Tri-State Community, Inc.',
+    name: 'Foundation for the Tri-State Community, Inc',
     description:
       'The Foundation for the Tri-State Community engages donors to build community wealth for a stronger region.',
     logoUrl:
@@ -13823,7 +13823,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e29fd2a9-4536-9e20-fd75-bb38674a615d',
-    name: 'Hande fur Kinder e. V.',
+    name: 'Hande fur Kinder e V',
     description:
       'Helping families who take care of a disabled child day by day by giving them the opportunity for a break/ a vacation in order to strengthen the whole family.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/28585/orglogo.png',
@@ -13861,7 +13861,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9f978e65-4922-9cf3-d9eb-c511c2e811c6',
-    name: 'Give...A Few Words CIC',
+    name: 'GiveA Few Words CIC',
     description: '',
     logoUrl: '',
     nteeCode: 'Z00',
@@ -13946,7 +13946,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '598584f7-97a8-4922-9a16-09bc6a8ee928',
-    name: 'Family and Youth Initiative Inc.',
+    name: 'Family and Youth Initiative Inc',
     description:
       'Family & Youth Initiative creates a supportive community and lasting relationships for teens and young adults who are in or have aged out of foster care.',
     logoUrl:
@@ -13972,7 +13972,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b9fe5755-4ff7-ba9d-c6ce-eee94f405474',
-    name: 'SOS-Kinderdorf e.V.',
+    name: 'SOS-Kinderdorf eV',
     description:
       "SOS-Kinderdorf e.V. is committed to improving the living conditions of socially disadvantaged children, young people and their families - as a youth welfare organisation and aid agency in Germany and worldwide.<br>We support young people and families at over 230 locations in Germany through a wide range of services.<br><br>Our motto: Giving children hope and a future<br><br>Giving children a safe home - that is our mission. As a politically and denominationally independent social organization, we have the opportunity to make the world a little better. SOS-Kinderdorf e.V. is one of the major sponsoring associations in the globally active umbrella organization SOS Children's Villages International.<br><br>SOS-Kinderdorf e.V. is a renowned aid organization and a nationwide youth welfare provider - with clearly defined statutes, a forward-looking mission statement and a well-founded strategy.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/12478/orglogo.png',
@@ -13984,7 +13984,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '56e97b29-40e3-a6a2-d169-4f83a37ce9a1',
-    name: 'MFI POLYTECHNIC INSTITUTE INC.',
+    name: 'MFI POLYTECHNIC INSTITUTE INC',
     description:
       'We commit in partnership with  industry and other stake holders  to the growth of enterprises and  prosperity of communities.<br>We commit to provide holistic  technical education and train  individuals to become competent  industry professionals.<br>We commit to develop our MFI  team to be efficient, highly  motivated and guided by positive  work values.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/99661/orglogo.png',
@@ -14010,7 +14010,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e6c9fd05-4be3-4a64-835d-c3d33510d268',
-    name: 'Catholic Medical Mission Board, Inc. (CMMB)',
+    name: 'Catholic Medical Mission Board, Inc (CMMB)',
     description:
       'Our vision is a world in which every human life is valued, and health and human dignity are shared by all. Inspired by the example of Jesus, CMMB works in partnership globally to deliver locally sustainable, quality health solutions to women, children, and their communities..',
     logoUrl:
@@ -14036,7 +14036,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ee559110-4a65-9125-ce92-599e86362ac9',
-    name: 'Lebenshilfe Main Spessart e.V.-Wohnstatte Lohr-Steinbach',
+    name: 'Lebenshilfe Main Spessart eV-Wohnstatte Lohr-Steinbach',
     description: '',
     logoUrl: '',
     nteeCode: 'G00',
@@ -14147,7 +14147,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '49252080-41e9-a86e-fd1a-63151fb1a2fa',
-    name: 'Green Releaf Initiative, Inc.',
+    name: 'Green Releaf Initiative, Inc',
     description:
       'We envision thriving community ecosystems practicing and showcasing regenerative solutions in the face of climate change and other radical transitions. <br><br>Through regenerative design and solutions, we inspire, empower, and model the many benefits of whole systems to support resilience and regeneration in communities.  <br><br>We aim to to activate, demonstrate, and catalyze regenerative practices and model communities through <br><br><br>1)     Education<br>We work with inclusive and community - led place based learning through the development of demonstration sites for regenerative solutions. <br> <br>2)     Empowerment<br>Developing community -led leadership from within through life skills and the enhancement of capacities to lead in times of complexity after radical changes. <br> <br>3)     Earth Care <br>Through ecosystems based adaptation and practices that heal our connection to the earth, we hope to restore and regenerate natural and human habitats to benefit both people and the planet for generations to come.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/60439/orglogo.jpg',
@@ -14159,7 +14159,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f37fbecb-4d55-a13b-ef65-b715d880a90b',
-    name: 'Taller Salud, Inc.',
+    name: 'Taller Salud, Inc',
     description:
       'Taller Salud, Inc. is a feminist grassroots organization that works towards the health and well-being of girls, young women and adult women, primarily targeting low-income communities.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/47473/orglogo.png',
@@ -14284,7 +14284,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b2f11545-5ff7-4b95-896c-5fa32569c494',
-    name: 'National Network of Abortion Funds',
+    name: 'National Network of Abortion Funds 2',
     description:
       'Texas Equal Access Fund helps low-income people in northern Texas who want an abortion and cannot afford it.',
     logoUrl: '',
@@ -14309,7 +14309,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a379638e-4436-bef8-cdf8-d9cdd080f0e2',
-    name: 'Deutscher Kinderschutzbund OV Koeln e.V.',
+    name: 'Deutscher Kinderschutzbund OV Koeln eV',
     description:
       '(Taken from the statute)<br>2 Purpose<br>(1) the Kinderschutzbund Cologne stands up for:<br>- the realisation of childrens rights based on the german constitution and the implementation of the UN-convention on the rights of children<br>- the realisation of a child-friendly society<br>- the promotion and conservation of a child-friendly environment<br>- the promotion of the mental, social and physical development of children, while especially taking into account the different situations of girls and boys<br>- the protection of children from exclusion, discrimination and violence in every form<br>- social justice for all children<br>- for the appropriate participation of children, related to their age, in all decisions, planing and matters that concern them<br>- child-friendly behaviour/acting of all individuals and of all societal groups<br>- the promotion of youth aid',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97934/orglogo.jpg',
@@ -14321,7 +14321,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '08e0ea49-43c5-a5fb-ebcc-e4fa5287c731',
-    name: 'AIFO - Ass. Italiana Amici di Raoul Follereau',
+    name: 'AIFO - Ass Italiana Amici di Raoul Follereau',
     description:
       'AIFO is an international NGO, with the headquarters in Bologna-Italy, carrying out social and health international cooperation initiatives.<br><br>AIFO was founded in 1961, inspired by the thought of the French journalist Raoul Follereau. AIFO has a capillary network of official groups of volunteers all over the Italian country.<br><br>AIFO\'s vision and mission stem from the precepts of Raul Follereau:<br><br> The vision is to develop actions that contribute spreading and building a "civilization of love".<br><br> The mission is to promote cooperation policies aimed at the self-development of peoples, while implementing specific social and health intervention programs.<br><br>Our work is endorsed by the Italian Ministry of Foreign Affairs, the European Commission, the Swedish International Development Cooperation Agency and UN Agencies, among others. We are an official partner of the WHO, the International Federation of Anti-Leprosy Associations (ILEP), the International Disability and Development Consortium (IDDC) and the Italian Network Disability and Development (RIDS).<br><br>AIFO promotes initiatives through the establishment of Country-Programs, each with its strategy and action plans. In Liberia, Mozambique, Guinea Bissau, Mongolia and Brazil we have a National Coordination Office. In Brazil, Mongolia and India, we facilitated the establishment of local "sister organizations" closely linked to AIFO: BRASA (Brasil Saude e Acao) in Brazil, Teghs Niigem in Mongolia and Amici Trust in India.<br><br>AIFO activities can be divided into two main groups:<br><br>1) International Health Co-operation:<br><br>- Primary health care, with a special focus to leprosy and other Neglected Tropical Diseases<br><br>- Community-based Inclusive Development (CBID) programmes open to all the different groups of persons with disabilities, including persons with disabilities due to leprosy and persons with mental illness.<br><br>2) Global Citizenship Education in Italy, including training courses, refresher courses, meetings, seminars, conferences and workshops. The awareness actions in Italy are carried out by AIFO groups of volunteers, who are very effective for public mobilisation and advocacy actions.<br><br>In 2021 we have active projects in Brazil, Tunisia, Guinea Bissau, Liberia, Mozambique, India, China and Mongolia.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/98376/orglogo.png',
@@ -14393,7 +14393,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1c06b78f-4a16-80f9-d890-226c502041fe',
-    name: "Dzherelo Children's Rehabilitation Centre",
+    name: 'Dzherelo Childrens Rehabilitation Centre',
     description:
       "The Dzherelo Children's Rehabilitation Centre provides a comprehensive program of educational and rehabilitation services to children and youth with Cerebral Palsy, Down Syndrome, Autism, as well as other developmental disorders.  Dzherelo was created as an alternative to the state-run institutions and operates as a non-profit organization. Dzherelo Centre works towards an inclusive society that welcomes people with special needs and provides them opportunities to develop their full potential. To date, Dzherelo Centre has served over 5000 youth since 1993. We assist up to 170 youth on a daily basis, provide round-trip transportation, and meals.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/45169/orglogo.jpg',
@@ -14405,7 +14405,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7ef81809-44e9-84a8-db68-518f60b48470',
-    name: 'Aktion Deutschland Hilft e.V.',
+    name: 'Aktion Deutschland Hilft eV',
     description:
       "Aktion Deutschland Hilft, Germany's Relief Coalition is a union of German relief organisations that can provide rapid and effective aid in the case of large catastrophes and emergency situations abroad.  To further optimise their previously successful work, the participating organisations bring together their many years of experience in humanitarian aid abroad.  In exceptional cases, Aktion Deutschland Hilft is also active at home. The idea of integrating their respective knowledge and specific abilities, and through mutual extension to efficiently bundle measures for aid, unites the continued independent initiators of this mutual campaign. Overlapping and gaps in provision can already be avoided in the forefront of aid campaigns in this way.  During the acute phase of a catastrophe abroad, Aktion Deutschland Hilft turns to the public with a mutual appeal for funds. Germany's Relief Coalition appeals for funds appear under the account number 102030 at the Bank fur Sozialwirtschaft. The existing administrative structures and capacities of the member organisations help to lower costs and to use directly the highest possible share of the collected donations for aid.  Distribution of the donation monies takes place via a key that takes into account the capacity and capacity profile of the respective participating relief organisations.  Successful examples for this system that is to be implemented by Germany's Relief Coalition exist in Great Britain and Switzerland. The Disaster Emergency Committee and the Swiss Gluckskette verify that a united approach when confronting large catastrophes eases the work of the helpers.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/31029/orglogo.jpg',
@@ -14591,7 +14591,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c2d6b84f-4cb0-bcf6-f778-81b8245190fe',
-    name: 'Centre for Disaster Preparedness Foundation, Inc.',
+    name: 'Centre for Disaster Preparedness Foundation, Inc',
     description:
       'CDP is committed to:<br>Strengthen the capacities of vulnerable groups in community-based, development-oriented disaster risk reduction management to uphold their rights and reduce their vulnerabilities.<br>CDP influences duty-bearers and service providers towards this end',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97197/orglogo.jpg',
@@ -14667,7 +14667,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '486316b5-462e-95a4-e9ad-b4250cbf43a4',
-    name: 'E.A.S.E. Foundation',
+    name: 'EASE Foundation',
     description:
       'Creating productive, stimulating lives for people with disabilities through Education, Advocacy, Support, and Empowerment',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/44062/orglogo.jpg',
@@ -14679,7 +14679,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ba4a21ed-a056-4e4a-a46b-5cbe82b3b310',
-    name: 'HomeStart, Inc.',
+    name: 'HomeStart, Inc',
     description:
       'HomeStart is committed to ending and preventing homelessness. We help families and individuals find, secure and maintain their own homes.',
     logoUrl:
@@ -14766,7 +14766,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6931ed9b-081f-4048-af50-785aa42e02eb',
-    name: "Tuesday's Children",
+    name: 'Tuesdays Children',
     description:
       'Tuesday’s Children provides a lifetime of healing for families who have been forever changed by terrorism, military conflict or mass violence.',
     logoUrl:
@@ -14843,7 +14843,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c181e711-4163-b12a-e6ad-b122886150e2',
-    name: 'The East West Foundation Of Australia Inc.',
+    name: 'The East West Foundation Of Australia Inc',
     description:
       "The East West Foundation is a charitable and educational foundation committed to working towards the development and empowerment of socially and economically marginalised communities in rural India.<br><br><br><br>The Foundation achieves this through a range of healthcare, education, children's rights and relief, community development, and environmental projects. We leverage resources, skills and expertise from around the world to promote best practice in the area of rural development and community empowerment.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/91761/orglogo.png',
@@ -15045,7 +15045,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fdd45b1f-bd79-4229-9600-b8c5e5903594',
-    name: 'Atlantic Council of the United States, Inc.',
+    name: 'Atlantic Council of the United States, Inc',
     description:
       'Driven by our mission of “shaping the global future together,” the Atlantic Council is a nonpartisan organization that galvanizes US leadership and engagement in the world, in partnership with allies and partners, to shape solutions to global challenges.. We have individual, corporate, foundation, and government donors from throughout the world. We are based in Washington, DC with staff in 15+ countries globally.',
     logoUrl:
@@ -15210,7 +15210,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fc0c779d-42fc-9061-c70f-22ccad74b213',
-    name: "Kharkiv rehabilitation centre 'Pravo vibora'",
+    name: 'Kharkiv rehabilitation centre Pravo vibora',
     description:
       'The mission of organization is to improve the quality of life and integration in society of children and youth with disabilities by their integrated rehabilitation. .<br><br>Goals:<br> Creation of necessary conditions for rehabilitation of youth and children; <br> Stakeholders and social institutes (academic, specialized general secondary and higher educational establishments, charitable foundations and community organizations) Involvement in disabled youth problem solving;<br> Promotion of necessary informational, methodological  and academic materials;<br> overcoming negative disabled people stereotypes in society;<br> promoting disabled youth employment and supporting them socially during employment process;<br> training of graduates and students with disabilities for future careers and independent living (self-service in everyday life, environment orientation, communication basics, human rights acknowledgement, introduction to computer technologies), building skills for social relations,  social environment adaptation;<br> Psychological assistance for individuals with psychophysical disabilities and members of their families, assistance in case of force majeure situations;<br> Optimal conditions creation for communication, work with creative youth, cooperation with the state youth services; <br> Cooperation with domestic and international organizations that address the complex problems of disabled people rehabilitation.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/13229/orglogo.jpg',
@@ -15416,7 +15416,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f78ccca1-469f-4ca5-841e-825c92caa5a1',
-    name: 'Family & Community Services of Somerset County',
+    name: 'Family  Community Services of Somerset County',
     description:
       'The mission of FCSSC is to "provide affordable and effective mental health and substance use disorder services". FCSSC does this by offering affordable rates based on a sliding scale and FCSSC accepts most major insurance.',
     logoUrl:
@@ -15527,7 +15527,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '95c1e4fb-487a-8089-c02c-f6f94026343d',
-    name: 'The Bicycle Scouts Project Inc.',
+    name: 'The Bicycle Scouts Project Inc',
     description:
       "Bike Scouts aims to be the world's social platform for doing good. We provide a way for people and communities to serve as the network of support that's essential in times of need and disasters through social teamwork.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97658/orglogo.jpg',
@@ -15565,7 +15565,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '176e0439-4e02-4c48-9e75-d8a6db26ec49',
-    name: 'The Tor Project Inc.',
+    name: 'The Tor Project Inc',
     description:
       'We believe everyone should be able to explore the internet with privacy. We are the Tor Project, a 501(c)3 US nonprofit. We advance human rights and defend your privacy online through free software and open networks.\nSince 2006, we have successfully helped global populations burdened by online surveillance and censorship access Internet resources more securely and safely with two gold-standard tools: Tor Browser and the underlying Tor network. \nJournalists, activists, whistleblowers, human rights defenders, LGBTQ+ and feminist groups, and average people concerned about their privacy use Tor to protect themselves from pervasive surveillance and safely route around censorship.',
     logoUrl:
@@ -15640,7 +15640,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4bd9236b-146b-4ad9-a96f-89b8741256d1',
-    name: 'Multiple Myeloma Research Foundation, Inc.',
+    name: 'Multiple Myeloma Research Foundation, Inc',
     description:
       'The Multiple Myeloma Research Foundation is the largest nonprofit in the world solely focused on accelerating a cure for each and every multiple myeloma patient. We drive the development and delivery of next-generation therapies, leverage data to identify optimal and more personalized treatment approaches, and empower patients and the broader community with information and resources to extend their lives. Central to our mission is our commitment to advancing health equity so that all myeloma patients can benefit from the scientific and clinical advances we pursue. Since our inception, the MMRF has committed over $600 million for research, opened nearly 100 clinical trials, and helped bring 15+ FDA-approved therapies to market, which have tripled the life expectancy of myeloma patients.',
     logoUrl:
@@ -15726,7 +15726,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '84cf2ca8-850f-4cdb-b073-3ca65b50dc21',
-    name: 'Hearts & Homes for Refugees',
+    name: 'Hearts  Homes for Refugees',
     description:
       'Hearts & Homes for Refugees is a volunteer-driven nonprofit organization that resettles refugees in our communities and inspires, educates and equips others to do the same. We harness the power of volunteers and mobilize groups to support holistic refugee resettlement. Community Sponsors improve the long-term outcomes for refugees and change the lives of our new neighbors as well as the lives of volunteers and community partners who offer their time and resources.<br><br>Since 2016, we have been building a growing network of neighbors, community organizations, and faith, student and civic groups to offer safe and inclusive communities to our refugee neighbors and empower them to rebuild their lives with hope and dignity.',
     logoUrl:
@@ -15775,7 +15775,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd409ec57-4aae-94e7-d199-dd028640dba8',
-    name: "Kidzcan Children's Cancer Relief",
+    name: 'Kidzcan Childrens Cancer Relief',
     description:
       'KidzCan Vision: A compassionate world where children with cancer are given the chance to lead healthy and fulfilling lives. <br>Kidzcan Mission:  KidzCan is dedicated to increasing the survival rate and ensuring the utmost quality of life of children with cancer in a loving and caring environment.<br><br>Strategic Objectives:<br>- Increasing the survival rate and ensuring the utmost quality of life of children with cancer in a loving and caring environment<br>- To ensure continuous and secure funding for paediatric cancer clinical care and support services.<br>- To ensure integrated programmes and processes that foster availability, accessibility and affordability of paediatric cancer services in Zimbabwe.<br>- To advocate for participatory, coordinated and standardised cancer management guidelines and protocols.<br>- To empower and inspire volunteers as an integral component of the organisation.<br>- To develop and strengthen stakeholder relationships.<br>- To ensure KidzCan has appropriate systems and equipped with adequate personnel to deliver the vision.<br>- To ensure good financial probity and corporate governance.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/11900/orglogo.gif',
@@ -15825,7 +15825,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fcba1b23-4440-4b7a-a9b9-3e9c131bd824',
-    name: 'Puppy Kitty NY City. Inc',
+    name: 'Puppy Kitty NY City Inc',
     description:
       'Our goal is to never say no to an animal in need. We are on a mission to save sick, dying, and homeless animals from the streets of NYC. . The majority of our funding goes directly to veterinary care. We take on complex medical cases and provide quality veterinary care for all our rescued animals.',
     logoUrl:
@@ -15986,7 +15986,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '83eb3bf6-0e77-449b-a6c4-434e7345e5ba',
-    name: 'Fedcap Rehabilitation Services, Inc.',
+    name: 'Fedcap Rehabilitation Services, Inc',
     description:
       'To create opportunities for people with barriers to economic well-being.',
     logoUrl:
@@ -16071,7 +16071,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b3caba15-4be5-8364-ff59-c6b02f44750c',
-    name: 'Yayasan Bumi Sehat, Ds. PKR Nyuh Kuning',
+    name: 'Yayasan Bumi Sehat, Ds PKR Nyuh Kuning',
     description:
       "We operate four Community Health and Education and Childbirth Centers within Indonesia, and one in the Philippines, as well as mobile Disaster Relief Birth and Health Services.<br><br>At our clinics, we offer a comprehensive range of allopathic and holistic medical care, including pre and post-natal care, breastfeeding support, infant, child and family health services, nutritional education, pre-natal yoga and gentle, loving natural birth services.<br><br>Each baby's capacity to love and trust is built at birth and in the first two hours of life. By protecting pregnancy, birth, postpartum and breastfeeding, we are advocating for optimal humanity, health, intelligence and consciousness. <br><br>We believe that each individual is an essential societal component of peace. By caring for the smallest citizens of Earth - babies at birth - we are building peace: one mother, one child, one family at a time. Our mission is to improve the quality of life and encourage peace. <br><br>We also offer a scholarship program each year for nursing and midwifery students from poor families who cannot afford training. In addition, we have a Youth Center where local teenagers study permaculture, English and computing skills to help them improve their job prospects.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/81399/orglogo.jpg',
@@ -16280,7 +16280,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '24eaa8fb-45e0-9bd1-e0c9-1395afb6d3b0',
-    name: 'ArbeiterKind.de',
+    name: 'ArbeiterKindde',
     description:
       'ArbeiterKind.de is Germany\'s largest community of first-generation students and a multi-award winning<br>social enterprise, from Ashoka Fellowship to the Federal Cross of Merit. Our mission is to change the image<br>of first-generation students, support them in accessing higher education and succeeding in their academic<br>pathways.<br><br>ArbeiterKind.de started as a website in 2008 and was registered in 2009 as a non-profit organization. The<br>charitable purpose is the promotion of university education for students of parents without university<br>degrees. <br><br>The success of ArbeiterKind.de is based on a countrywide network of about 6.000 volunteer<br>mentors in 80 nationwide 80 groups who are usually first-generation university students themselves. They<br>encourage others and fulfill a role model function through their own educational story, offering local and<br>accessible support for high school students and parents. <br><br>Since 2008 Arbeiterkind.de has support several<br>hundreds of thousands of first generation students.<br>ArbeiterKind.de makes its services available without a lot of bureaucracy, with a low threshold and locally<br>relevant for all students throughout Germany interested in going to university. It enables people with different<br>biographical, religious/cultural backgrounds and worldviews whose futures are connected to educational<br>advancement to find mutual support and give each other strength. ArbeiterKind.de can reach its target group<br>because the volunteers from ArbeiterKind.de usually belong to the target group.<br><br>Arbeiterkind.de helps develop a positive identity among its target group by emphasizing strengths rather<br>than highlighting stigma as "kids whose parents never went to university." <br>There is little culture of celebrating<br>the pioneer in Germany. There is no favorable German translation for "first-generation Student" (the most<br>common translation would be the "Nichtakademikerkind / Child of Non-Academics"). You rarely see<br>someone mentioning being a first-generation student in a CV or a public speech. It is something people tend<br>to hide, there is very little pride. It is therefore essential to change the image of first-generation students in<br>Germany and highlight their strengths and unique skills set.<br><br>Young people from families whose parents did not go to college who overcome the hurdles they face and<br>master the transition to the next higher educational stage demonstrate courage, perseverance and strength.<br>That kind of potential is essential for the economy and society.<br><br>Why ArbeiterKind.de?<br>The problem<br><br>The number of those studying in Germany has been rising continuously for years to its current level of nearly<br>2.9 million. Family background continues to be the decisive factor in a young person\'s decision of whether to<br>go on to college. <br>In a study on university attendance in Germany, the German Center for Higher Education<br>Research and Science Studies (DZHW) found the following: of every 100 children from families with parents<br>who went to college, 79 started college, while out of every 100 children from families with parents who did<br>not go to college, only 27 decided to go to college.<br><br>The social selection continues at the universities as well: 63 students from families with parents who went to<br>college achieved bachelor\'s degrees, 45 master\'s degrees, and 10 attained a doctorate. But only 15<br>students from families with parents who did not go to college attained a bachelor\'s degree, 8 a master\'s, and<br>only one person attained a doctorate. (source: University Education Report 2020, a study of the association<br>in cooperation with McKinsey, 2017)<br><br>Parents with no university experience tend to prefer vocational training and fast financial independence for<br>their child. The longer and more expensive path of college is frequently not an option, and the question of<br>finances plays a decisive role. In the case of many families, the child is not encouraged to take out loans<br>within the context of the German Federal Training Assistance Act (BAfoG). Scholarships as a means of<br>financing are not well known, and applying for one would only carry a small chance of success. <br>In addition,<br>the performance requirements for a college degree are often unclear or assumed to be too high. Those who<br>still dare to take the next step and get into a university often need more time and energy to acclimate. The<br>social setting at a university is very complex, the academic habits, the academic way of behaving and the<br>use of language can be foreign. <br>All of these factors can lead to insecurity from the start, which carries through everyday student life until they finish.<br><br>The Solution<br><br>The success of ArbeiterKind.de is based on a countrywide network of volunteer mentors who are generally<br>first generation college students themselves. Through their own educational stories, they encourage others<br>and fulfill a role model function, offering local needs-oriented and easily accessible support for high school<br>students and parents.<br><br>ArbeiterKind.de makes its services available without a lot of bureaucracy, with a low threshold and right<br>there locally for all students throughout Germany who are interested in going to college. It enables people<br>with different biographical, religious/cultural backgrounds and different world views whose future plans are<br>connected to educational advancement to find mutual support and give each other strength. ArbeiterKind.de<br>is able to reach its target group because the volunteers from ArbeiterKind.de usually belong to the target<br>group.<br><br>What does ArbeiterKind.de achieve?<br><br>Throughout Germany, there are 80 local volunteer groups with approximately 6,000 ArbeiterKind.de<br>volunteers. A bi-annual activity survey allows to measure the nationwide impact of the local volunteer<br>engagement. <br>From 2008 to 2019, Arbeiterkind.de has support several hundreds of thousands of first<br>generation students:<br> 8260 students seeking advice attended the regular group meetings and service hours<br> 2890 informational events at schools<br> 144,550 students supported at school events<br> 7,829 calls to the ArbeiterKind.de hotline<br> 2,710 ArbeiterKind.de information booths at education fairs<br> 170,900 students supported at the informational booths<br> 4,733,000 website visits at www.arbeiterkind.de<br> 444 trainings for volunteers<br> 6,141 training attendees<br> online support through ArbeiterKind.de communities on Facebook, Instagram, LinkedIn, Xing and<br>Twitter',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/92944/orglogo.gif',
@@ -16522,7 +16522,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3c0b881c-4762-a9b3-c0b6-0f699faf7966',
-    name: 'ALBERGUE INFANTIL DE IRAPUATO A.C.',
+    name: 'ALBERGUE INFANTIL DE IRAPUATO AC',
     description:
       'IMPACTAR LA VIDA DE LOS NINOS Y ADOLESCENTES EN SITUACION DE VULNERABILIDAD, BRINDANDOLES LAS HERRAMIENTAS NECESARIAS PARA DESARROLLARSE DE MANERA INTEGRAL.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/71963/orglogo.jpg',
@@ -16534,7 +16534,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '838eee42-4a2a-a5b7-d608-eb7711ff4afc',
-    name: 'Asociacion de Profesionistas  Especializados en Atencion al Adulto Mayor  A.C',
+    name: 'Asociacion de Profesionistas  Especializados en Atencion al Adulto Mayor  AC',
     description: '',
     logoUrl: '',
     nteeCode: 'P00',
@@ -16699,7 +16699,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f09ab38b-9689-4762-b1d7-3bc7005ff47f',
-    name: 'Boys & Girls Clubs of Northwest Georgia',
+    name: 'Boys  Girls Clubs of Northwest Georgia',
     description:
       'The mission of the Boys & Girls Clubs of Northwest Georgia is to enable all young people, especially those who need us most to reach their full potential as productive, caring, responsible citizens.',
     logoUrl:
@@ -16809,7 +16809,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b25fcbf9-4a13-bf69-f82f-77cb9b0689b6',
-    name: 'Basmeh & Zeitooneh - Lebanese Association',
+    name: 'Basmeh  Zeitooneh - Lebanese Association',
     description:
       'A non-governmental organisation that works amongst the most  vulnerable and marginalised groups to fill the gaps in assistance, and to respond to the most urgent relief and developmental needs, with the goal of empowering individuals so that they may contribute to the advancement of society.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/28962/orglogo.jpg',
@@ -16857,7 +16857,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6eb73263-446e-8adc-d0ee-5089b21ecdcd',
-    name: "St Gregory's Foundation",
+    name: 'St Gregorys Foundation',
     description:
       "St Gregory's Foundation works in Eastern Europe to tackle the social problems facing children, teenagers, parents and carers.  Our projects address the root causes of disadvantage by putting families before institutions, strengthening a sense of responsibility in young and old alike and providing opportunities for vulnerable people to fulfill their potential.  Our work makes our beneficiaries active participants in improving their own lives and encourages a more charitable society.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/4427/orglogo.jpg',
@@ -16917,7 +16917,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ce4f7364-148d-4aa2-a0df-78c19993bd3b',
-    name: 'Avenues Early Childhood Services, Inc.',
+    name: 'Avenues Early Childhood Services, Inc',
     description:
       'We believe that all children deserve to be raised in a thriving environment that encourages health, happiness, and success.',
     logoUrl:
@@ -16954,7 +16954,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a734897f-412a-b052-f99d-7d177f363256',
-    name: 'Angel House Orphanage Foundation, Inc.',
+    name: 'Angel House Orphanage Foundation, Inc',
     description:
       'The mission statement for Angel House is very simple:  LOVE : The most important right of every child is to receive love and to be accepted as a member of a family.  CARE: This includes caring for their physical, mental, emotional and spiritual needs.  PROTECTION: Our aim is to protect these children from further exploitation, neglect or abuse.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/17371/orglogo.jpg',
@@ -17024,7 +17024,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'df53480b-291d-4e5a-89f5-ea371315444d',
-    name: 'The Healing Place, Inc.',
+    name: 'The Healing Place, Inc',
     description:
       'The mission of The Healing Place is to reach individuals suffering from drug and alcohol addiction, provide the tools for recovery, and restore meaningful and productive lives.',
     logoUrl:
@@ -17169,7 +17169,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a160e7e6-44c9-8813-e73a-f7f8e30612e1',
-    name: "Darjeeling Children's Trust",
+    name: 'Darjeeling Childrens Trust',
     description:
       "Darjeeling Children's Trust (DCT) helps children and young people by providing education, healthcare and vocational training. We improve living conditions so that children and young people can study more effectively and achieve their potential.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/81390/orglogo.png',
@@ -17326,7 +17326,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8be0ebd1-a9bc-43d6-b651-c2b6d3d66626',
-    name: 'Amigos of Costa Rica, Inc.',
+    name: 'Amigos of Costa Rica, Inc',
     description: 'Connect Global Resources to Costa Rican Organizations',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/3f6bd5bd-66ca-49b9-a8ce-2db57a29e275.jpg',
@@ -17482,7 +17482,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '75f06866-4e7b-954d-cdae-7f26e2ff8d4f',
-    name: "Friends of St Brigid's Hospice & Homecare Services",
+    name: 'Friends of St Brigids Hospice  Homecare Services',
     description:
       "The Friends of St. Brigid's Hospice and Homecare Services is a voluntary organisation with charitable status and is a limited company. Our principal objective is to benefit the community of Co. Kildare and West Wicklow, by assisting, promoting and supporting the aspirations and needs of St. Brigid's Hospice. This is achieved through financial assistance towards Hospice, Specialist Palliative care and Homecare for patients with incurable life threatening illness and their families.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/31281/orglogo.gif',
@@ -17517,7 +17517,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd95fcb69-4e8c-bd44-e9a6-8ae8fb35e486',
-    name: 'Erzbischoefliches Kinder- und Jugendheim St. Kilian',
+    name: 'Erzbischoefliches Kinder- und Jugendheim St Kilian',
     description: '',
     logoUrl: '',
     nteeCode: 'O00',
@@ -17578,7 +17578,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b2f07297-4219-a5af-e3fb-7e2d9cb5a1da',
-    name: 'Josefsverein e.V.',
+    name: 'Josefsverein eV',
     description: '',
     logoUrl: '',
     nteeCode: 'F00',
@@ -17697,7 +17697,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '892f0719-07d1-4028-8919-5a08b6777171',
-    name: 'The Podium Society, Inc.',
+    name: 'The Podium Society, Inc',
     description:
       'The Podium Society is a 501(c)(3) non-profit organization dedicated to helping mindful philanthropists, brands and studios fund social impact sports media in order to educate, inspire, and create change.',
     logoUrl:
@@ -17914,7 +17914,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7fc661e1-68f1-4af9-97c6-cd4ccb5b97ed',
-    name: 'WomensTrust, Inc.',
+    name: 'WomensTrust, Inc',
     description:
       'Empower women and girls in Ghana through education, healthcare and economic development.',
     logoUrl:
@@ -17973,7 +17973,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '04435ab6-4c71-892f-c1ee-5cfa19df4fa5',
-    name: 'Kanan Kab Proteccion del Mundo A.C',
+    name: 'Kanan Kab Proteccion del Mundo AC',
     description:
       'Contribute to improve the life quality of the actual and future generations in the city of Merida and its metropolitan area,reforesting the city and promoting an environmental awareness through the education and the design and implementation of urban reforestation integral projects',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/87872/orglogo.png',
@@ -17997,7 +17997,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0077f4a7-42fe-ae78-fb41-72a93a5c0ef7',
-    name: 'Foundation for Agrarian Reform Cooperatives, Inc.',
+    name: 'Foundation for Agrarian Reform Cooperatives, Inc',
     description:
       'VISION  -  Sustainable communities of happy farmers. It commits to deliver reliable and highly effective organic agroindustrial technology and allied services to stakeholders. ItsCORE VALUES are: Honesty and Integrity, Social and Economic Justice, Competence and Professionalism, Teamwork and Participatory Process, Quality Products and Services, Cooperative Ideology and Practices, and Gender Equality.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/15616/orglogo.gif',
@@ -18021,7 +18021,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c68c2d16-45a0-8aca-e686-0bca6c2b6aa1',
-    name: "Fr. Al's Children Foundation Inc.",
+    name: 'Fr Als Children Foundation Inc',
     description: '',
     logoUrl: '',
     nteeCode: 'B00',
@@ -18102,7 +18102,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '63868d01-d061-4e36-a086-7d656feed238',
-    name: 'Boys & Girls Clubs of Greater Tarrant County, Inc.',
+    name: 'Boys  Girls Clubs of Greater Tarrant County, Inc',
     description:
       'The mission of Boys & Girls Clubs of Greater Tarrant County is to enable all young people, especially those who need us most, to reach their full potential as productive, caring, responsible citizens.',
     logoUrl:
@@ -18261,7 +18261,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '38971871-5f0d-42bc-932a-a58892076259',
-    name: 'Church of the King Baton Rouge, Inc.',
+    name: 'Church of the King Baton Rouge, Inc',
     description:
       'Church of the King has six core values that guide us in all we do. These values keep us aligned with God’s plan and purpose, and the mission He gave us of Reaching People and Building Lives.',
     logoUrl:
@@ -18360,7 +18360,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '79bff90f-4e31-93ff-fbc3-e3007ee1ded0',
-    name: "Children's Cancer Centre of Lebanon (UK) Limited",
+    name: 'Childrens Cancer Centre of Lebanon (UK) Limited',
     description:
       'The mission of CCCL UK Limited is to support the CCCL to realize its mission through:<br>- Securing funds to ensure access to the latest treatment for children suffering from cancer & treated at CCCL<br>- Building a community of supporters to the CCCL mission in UK',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/39030/orglogo.png',
@@ -18384,7 +18384,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'dc00c518-4d8e-8d2e-f4f5-b609ed23ef98',
-    name: 'Crucian Heritage and Nature Tourism, Inc.',
+    name: 'Crucian Heritage and Nature Tourism, Inc',
     description:
       "Mission Statement <br>CHANT will spark a sustainable tourism renaissance on St. Croix by establishing this island community as one of the leading Heritage and Nature Tourism destinations in the world.<br>Purpose<br>Crucian Heritage and Nature Tourism, Inc. (CHANT) is organized exclusively for charitable, educational and community development related purposes.  These purposes include but are not limited to:<br><br> The development of local nature and heritage tourism product providers,<br> The creation and promotion of nature and heritage provider resources using the most recent technologies that will market and reserve the services of local tour providers,<br> The creation of educational outreach programs for schools and the public on Crucian Cultural and Heritage History and the island's environmental systems,<br> The creation and maintenance of a Crucian Cultural Center,<br> To buy, lease, sell, mortgage or otherwise encumber, hold or dispose of both real and personal property of the Corporation,<br> To further all of its work,<br> For such other purposes as may be permitted by the statutes of the Virgin Islands or other laws and statutes of the United States which are not inconsistent with the Articles of Incorporation.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/60990/orglogo.png',
@@ -18593,7 +18593,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c816a1f3-5fb0-4522-811e-608ff042856c',
-    name: "Erika's Lighthouse: A Beacon of Hope for Adolescent Depression",
+    name: 'Erikas Lighthouse: A Beacon of Hope for Adolescent Depression',
     description:
       'Erika’s Lighthouse is a not-for-profit dedicated to educating and raising awareness about adolescent depression, encouraging good mental health and breaking down the stigma surrounding mental health issues. We work to promote inclusive school cultures around mental health by empowering educators, students and families through our Classroom Education, Teen Empowerment, Family Engagement and School Policy & Staff Development. Our vision is to make sure no young person feels alone in their depression, and that everyone in the school community has the knowledge and support they need to create lasting, positive culture change.',
     logoUrl:
@@ -18688,7 +18688,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b33df629-4766-bb00-e393-dfaafad7e435',
-    name: "Harry's Pals",
+    name: 'Harrys Pals',
     description: '',
     logoUrl: '',
     nteeCode: 'Z00',
@@ -18747,7 +18747,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '41e0b093-4bdd-8d7c-e678-2283a4ff904a',
-    name: 'Melanom Info Deutschland - MID e.V.',
+    name: 'Melanom Info Deutschland - MID eV',
     description:
       'Our mission is to help people with skin cancer live as long and as well as possible. To this end, we unite online in a self-help group and become active in our non-profit association Melanom Info Deutschland e.V.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97572/orglogo.jpg',
@@ -18759,7 +18759,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6223d0d0-46a5-9e3f-e941-2297b649993b',
-    name: "CITIZENS' DISASTER RESPONSE CENTER FOUNDATION, INC.",
+    name: 'CITIZENS DISASTER RESPONSE CENTER FOUNDATION, INC',
     description:
       'CDRC aims to build capacities of the most vulnerable sectors comprising the poor majority to comprehensively prepare for and respond to potential disaster situations while addressing the root causes of their vulnerabilities through community-based disaster management, people-managed programs and services, and working with social movements that address poverty, social inequalities, and extractive, environmentally-destructive practices, policies and systems. <br> <br>CDRC regards the most vulnerable sectors as those whose socio-economic conditions make them highly vulnerable to hazards and disasters and yet comprise the majority of society, such as the workers, peasants, indigenous peoples, and other low income groups. CDRC gives special attention to those who have added vulnerabilities such as children, women, the frail, the elderly and people living with disabilities.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/68214/orglogo.jpg',
@@ -19074,7 +19074,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '41a58158-48b8-88cd-cf44-c858dc59a3a7',
-    name: 'Los Patojos, Dreams & Ideas in Action',
+    name: 'Los Patojos, Dreams  Ideas in Action',
     description:
       'Los Patojos was created to give hope and dignity to the children and youth of Jocotenango. Our purpose is to prevent our children and youth from falling into lives of despair, poverty and violence. We are working toward this objective by being agents of change, using dialogue to resolve problems, rather than violence. We address the various issues these children face by engaging them in fine arts, journalism, ballet, break dancing, photography and music lessons.  Through these activities their self-confidence, their pride and their hope for a better future grows incredibly.  They learn valuable life skills, such as perseverance, team co-operation and dignity. They know they can aspire to achieve more than the lives they see around them. We are also now an approved school offering free education from Pre-Primary to Grade 7, with Grade 8 being added in 2017 and Grade 9 in 2018, Grade 10 in 2019 and Grade 11 in 2020.',
     logoUrl: '',
@@ -19086,7 +19086,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e2ed4f46-9147-4f35-811a-bfd609c48c81',
-    name: 'Little Sisters of the Poor Baltimore, Inc.',
+    name: 'Little Sisters of the Poor Baltimore, Inc',
     description:
       'Continuing the work of St. Jeanne Jugan, our mission is to offer the neediest elderly of every race and religion a home where they will be welcomed as Christ, cared for as family, and accompanied with dignity until God calls them to himself.',
     logoUrl:
@@ -19148,7 +19148,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b6442c92-dacc-46d5-b139-72377505e22e',
-    name: 'The Bronx High School of Science Alumni Foundation, Inc.',
+    name: 'The Bronx High School of Science Alumni Foundation, Inc',
     description:
       'The Bronx Science Alumni Foundation is organized for charitable and educational purposes, including, without limitation, to preserve the mission and excellence of The Bronx High School of Science. The Bronx Science Alumni Foundation exists to build and maintain relationships among its alumni and friends, to raise funds for both the School and Foundation activities and to serve as an effective model of a successful public school-private Foundation partnership.<br><br>Providing financial resources and strategic guidance, the Foundation will work to ensure the highest quality education for students currently attending The Bronx High School of Science, while fostering lifelong social and professional relationships amongst the alumni.',
     logoUrl:
@@ -19245,7 +19245,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1fa8c929-4fc2-ae19-dd37-af8fdaf22713',
-    name: "Mothers' Union",
+    name: 'Mothers Union',
     description:
       "Mothers' Union takes care of every Lithuanian child touched by the cancer. Our goal is to help children with the cancer and their families to deal with the psychological, medical, rehabilitation and financial problems.<br><br>We strive to:<br><br>*Supply children with necessary medications that are not compensated by the Healthcare system, most of which are too expensive for majority of sick children's families<br>*Support lack of most important medical equipment in the Children's Hospital in Vilnius (Santariskes) and Kaunas Pediatric Clinic where children with cancer from Lithuania and abroad get their treatment;<br>*Cover treatment, nursing and travel abroad expenses to those children and their families who could not be treated in Lithuania;<br>*Fulfill ill children's dreams which sometimes, unfortunately, appear to be the last ones",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/24238/orglogo.jpg',
@@ -19403,7 +19403,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b36b2bdf-e7e3-4610-b267-eaf9ac1d9b8a',
-    name: "Yad Ezra V'Shulamit",
+    name: 'Yad Ezra VShulamit',
     description:
       'Yad Ezra V’Shulamit feeds hungry children and families in Israel. Our goal is to make sure children and families have enough to eat and have their basic needs met so they can fulfill their potential.',
     logoUrl:
@@ -19476,7 +19476,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '50757104-4dad-9c14-d9f8-335bc99ea883',
-    name: 'Promocion Social Integral, A.C.',
+    name: 'Promocion Social Integral, AC',
     description: 'na',
     logoUrl: '',
     nteeCode: 'O00',
@@ -19487,7 +19487,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3d2ea13d-4ead-aa8c-e17f-06e1c0dd3858',
-    name: 'Pronatura Mexico, A.C.',
+    name: 'Pronatura Mexico, AC',
     description:
       'We are an organization of civil society, Mexican, dedicated to the conservation and resilience of biodiversity and environmental services that contribute to the construction of a fair and equitable society in harmony with nature. <br><br>We have more than 37 years of technical experience and work hand in hand with local communities, public and private sectors to promote integral solutions under a governance environment for the conservation of nature in the Center-West of Mexico.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/54927/orglogo.jpg',
@@ -19563,7 +19563,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '74ab6c4a-4b88-9410-d940-3ac613169642',
-    name: "Prisoners' Assistance Mission (PAM)",
+    name: 'Prisoners Assistance Mission (PAM)',
     description: '',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/37113/orglogo.png',
     nteeCode: 'A00',
@@ -19622,7 +19622,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3b689f2b-46c6-a74a-f366-5cee495bf6e9',
-    name: "Engozi Za Mukama  (God's Love Home)",
+    name: 'Engozi Za Mukama  (Gods Love Home)',
     description:
       "STATEMENT OF PROBLEMS/BACKGROUND INFORMATION:<br><br>The negative hindrance to development and economical growth in Uganda include:-<br>Unemployment, high population growth rate, low income, subsistence agricultural dependence, low literacy levels, hunger and poverty, disease especially HIV/AIDS and domestic violence.  All these culminate in chronic poverty, low income earnings and poor standards of living.<br>The above problems have not excluded the individuals in Kibwa Zone kampala, with a majority of children orphaned, and youth drop-outs unemployed so they are unable to meet the basic necessities of life, poor shelter, shortage of land and unable to access development information about the available social services. They have no minimum capital essentially for raising incomes and improving the quality of life.  So, these have over the years resorted to very low earning income/ economic activities, engaging in multiple relationships, others stay in redundancy resulting to idleness.<br>All these have led into disease spreading, family conflicts, drug abuse and many other associated problems.  Although there is some help from the Government and Non-governmental organizations and other development agencies, the result has remained. <br> PROJECT GOALS:<br> This is  a non governmental organisation established with aim of helping Vulnerable children, improving their economic and social welfare especially orphans and Aids Infected children to attain minimum basic necessities of life and standards of living.<br> To improve social welfare and economy of individuals within our organization especially single  orphans and youth <br>    Caring and supporting  children infected/affected by <br>  HIV/AIDS, war and domestic violence.<br><br> OBJECTIVES:<br>  Sensitizing the community towards an HIV free generation through <br>prevention of mother to child transmission.<br><br> People living with HIV/AIDS to adhering to drugs through timely taking, nutritional support and sanitation.<br><br> Starting up an orphanage centre for caring and supporting orphans/children who were infected and affected by HIV/AIDS, war and domestic violence because many of them are discriminated from families, schools and in their communities as well. <br><br> Providing holistic care and support to children until they grow to a level of basic sustainability.<br><br> Provide members with basic necessities such as food, clothing and shelter, and to sustain their house hold income.<br><br><br> Setting up a Kindergarten/Primary school for orphans.<br><br> Acquiring land and putting up permanent structures<br><br> To provide an option of better economic activities such as the idea of good farming and poultry.<br> To sensitize and mobilize over 300 orphans and disadvantaged children  in other income generating activities e.g. poultry, farming and other disadvantaged individuals to join the profit in caravan of and other profiting economic activities so that they can abandon the non-profiting businesses.<br>FINANCIAL SUPPORT:<br>Most of our members have got the ability run the project activities but they lack capital and bank loans would be an appropriate source of capital to finance our projects but they carry huge interest rates.  <br>We have also tried a hand of other several projects i.e. poultry, farming which we feel if expanded, could be a good source of income to our families and hence become self reliant<br> TARGET GROUPS:<br>The target groups e.g. Orphans   and disadvantaged children<br>      250                       50<br> METHODS/IMPLEMENTATION STRATEGIES:<br><br> The primary method is that we have to put in place a workshop/seminar/meeting where our members will attend to sensitize people about our objectives.<br><br> That we have put in place an office to extend our services and get in touch easily to the communities.<br><br> We are also having a long run project of opening up a Nursery /primary  School and a large orphanage centre  for orphans, and school dropouts using the obtained funds.  This will help us to enhance the sustainability of the project without more external help or funding.<br><br> Meetings, workshops or seminars will be held annually to check the development and weaknesses of the organization.<br><br> The plan will be put in place for members to generate systematic collection of information about the operations of the project and provide a basic for sharing information with other similar projects.<br><br> Commitment and complete involvement of all members in case of any new ideas or trainings in more skills.<br><br> EVALUATION:<br><br> Performance indicators will be designed to determine whether the set targets are being achieved.<br><br> STAFF AND ADMINISTRATION:<br>This organization will operate with five (5) members selected due to one's skills.  These will include; Chairperson, Vice-chairperson, Secretary, Treasurer/Finance, and Publicity Secretary<br><br>Chairperson/Vice Chairperson:<br> Both the Chairperson and Vice Chairperson will be responsible for planning and organizing, overseeing the project development and operation, establishing and maintaining links to community, NGOs, CBOs and scheduling of centre programs and activities.<br><br> They will also be responsible for developing working valuation man ship with formal and informal community leaders.<br><br> The Vice Chairperson will be carrying out the above duties in the absence of the Chairperson. <br>Secretary<br>The Secretary will be handling all general secretarial function for the organization; e.g. typing, printing, arranging for meetings, preparing reports and record keeping.<br>The Secretary will be responsible for maintaining the structure and appearance of the association, routing correspondence and other forms of communication with women orphans, school drop-outs and other disadvantaged people in the community.   <br>Treasurer/Finance:<br>The Treasurer will be responsible for the finances of the organization and; <br> Shall solicit for funds for the Association with the help of other members.<br> Shall receive and bank funds of the organization<br> Shall keep books of accounts and be accountable for organization's financial report and hence come up with an annual audited balance sheet.<br> Any other duties as required by the Committee.<br><br>Publicity Secretary<br> Shall be responsible for publicizing any matter in regard with the organization.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/16818/orglogo.jpg',
@@ -19817,7 +19817,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fd7350c3-4825-9f60-d39d-dd5db73c501a',
-    name: "AMBAS (Women's Association of Barra de Santiago)",
+    name: 'AMBAS (Womens Association of Barra de Santiago)',
     description:
       "Using community-based interventions, AMBAS empowers women to participate in sea turtle conservation, mangrove restoration, sustainable agriculture and environmental education. AMBAS, the Women's Association of Barra de Santiago, is a Salvadoran non-profit based in Barra de Santiago with two full-time staff, a dozen part-time staff, and a large number of community volunteers.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/92293/orglogo.png',
@@ -19889,7 +19889,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1cc4f039-d5d8-4a38-8d79-3b505c913166',
-    name: 'Mobile Loaves & Fishes Inc',
+    name: 'Mobile Loaves  Fishes Inc',
     description:
       'We provide food and clothing, cultivate community and promote dignity to our homeless brothers and sisters in need.',
     logoUrl:
@@ -19902,7 +19902,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ab0fc5c7-4123-a38d-c20e-f35d7ed3c071',
-    name: "Children's Helpers Worldwide",
+    name: 'Childrens Helpers Worldwide',
     description:
       "CHW SUPPORTS CHILDREN AND TEENAGERS IN LESS DEVELOPED PARTS OF THE WORLD, THROUGH GIVING GRANTS TO LOCAL ORGANISATIONS, WHICH WORK WITH CHILDREN AND YOUNG PEOPLE EVERYDAY.  GRANTS ARE GIVEN TO PROJECTS WHICH RELIEVE POVERTY, ADVANCE EDUCATION, RELIEVE SICKNESS AND PROMOTE GOOD HEALTH AND OFFER RECREATIONAL ACTIVITIES WHICH DEVELOP THE CHILDREN'S AND TEENAGERS' SKILLS AND CAPABILITIES.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/28878/orglogo.jpg',
@@ -19963,7 +19963,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c443ad72-46be-b6b8-e695-a0444db0ca0e',
-    name: 'The Fred Hollows Foundation',
+    name: 'The Fred Hollows Foundation 2',
     description:
       "The Fred Hollows Foundation is a international development organisation working to restore sight to people who are blind or vision impaired. Globally there are 1.1 billion people who are blind or vision impaired. 90% of these cases are preventable or avoidable. You can help restore sight for as little as $25 and change someone's life forever.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/99197/orglogo.png',
@@ -20035,7 +20035,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1597eaaf-42a9-a25c-d7a4-a1c1a55a49e5',
-    name: "Blue Dragon Children's Foundation",
+    name: 'Blue Dragon Childrens Foundation',
     description:
       "Blue Dragon's mission is to provide exceptional care to Vietnamese children and families in crisis while creating long-term change for a better world. <br><br>Blue Dragon works according to the following values: <br>- Respect, not pity: The children we work with are treated with at least the same respect that we would treat our own sons and daughters, brothers and sisters.<br>- Development, not charity: Our work is to help children develop fully as they grow, through providing a broad range of experiences and opportunities. Rather than simply provide a handout, we provide a hand up for those who choose to better their circumstances and themselves. <br>- Empowerment, not dependency: Our role is to provide opportunities for children to pursue as individuals, rather than to force our views or values on to the children.<br>- Collaboration, not control: Our staff work alongside the children and their families, so that the beneficiaries are involved in all stages of our programs, rather than simply being recipients of charity. <br>- Massive interventions, not quick-fix solutions: We tackle the problem of poverty from every angle, rather than focusing on one obvious cause or effect. Our interventions may take years, as we persist until we are successful.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/12366/orglogo.png',
@@ -20118,7 +20118,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a2ff68cc-47d5-a009-ca83-25a9557ca6e4',
-    name: 'Northampton Town F.C. Community Trust',
+    name: 'Northampton Town FC Community Trust',
     description:
       'During the year a number of tournaments were held, as well as courses and regular coaching days, including coaching for children with special needs and courses for adults with disabilities.',
     logoUrl: '',
@@ -20154,7 +20154,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ffda487d-45e6-b34c-db59-40d981d2b13c',
-    name: "Associacio Protectora d'animals d'Ordal (APAO)",
+    name: 'Associacio Protectora danimals dOrdal (APAO)',
     description:
       'Apao Sanctuary provides a welcoming home for cats that have nowhere else to turn. We believe all cats have the right to live, whether they are old, disabled, unsociable or positive to leukemia or immunodeficiency virus. We strive to provide a loving home where our feline friends can live out the rest of their lives in comfort.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/33480/orglogo.jpg',
@@ -20249,7 +20249,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '133af83b-47c9-8c2e-d6f5-fb349321f762',
-    name: 'Teach For Bulgaria/Zaedno v chas',
+    name: 'Teach For BulgariaZaedno v chas',
     description:
       'Teach For Bulgaria is part of the international Teach For All network, consisting of 43 non-profit organisations with a shared vision of expanding educational opportunity in their countries. The mission of Teach For Bulgaria is to encourage and prepare capable and ambitious young people to become inspiring teachers and leaders in order to facilitate the access to quality education for every child in Bulgaria. Our goal is for every child in Bulgaria to receive a quality education, regardless of region, type of school, or socio-economic situation. Every child in the country should learn from teachers who support their students and help them unleash their full potential. So far since its establishment Teach For Bulgaria has placed more than 160 teachers, reaching more than 10000 students. Currently, 165 motivating teachers are working with 8000 students in 10 regions in Bulgaria.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/18707/orglogo.jpg',
@@ -20261,7 +20261,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '96ca0434-4d05-af78-c9aa-b626925460c5',
-    name: 'Centro de Compartimiento, A.C.',
+    name: 'Centro de Compartimiento, AC',
     description:
       'Our mission is to foster the growth of women as leaders with strong sense of self and a will to serve others, whose presence in the community will be an example of virtue, values, ethics and spirituality.  Our founding principles are based on the belief that communities need all citizens to be active and have a voice.  Equality and equity across gender is important and lacking in many communities across Mexico, especially in rural areas.  Leaders in communities need to have service to that community as a priority. We believe that everyone should have access to higher levels education despite barriers of poverty and location.  We believe that a nurturing, protective and faith-filled environment helps people grow and we encourage women to participate in the faith organization of their choice finding common ground between faith groups.   Our goal is to have more women to take on leadership roles in their communities and support them in fostering personal and economic development in their communities.  There are many government programs for marginalized communities here in Mexico, but the communities are not well enough organized to take advantage of these opportunities and community leaders more often than not use these opportunities to their own advantage either to political or personal.   If communities are better organized they can make better decisions for themselves.  The base of this organization is personal development for the community members.  Meeting the basic needs of community members is also vital to community growth, it is difficult to grow when all energy is focused on meeting basic needs of families.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/24487/orglogo.jpg',
@@ -20298,7 +20298,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e64e171c-4244-ae2e-cd5e-a8faaf148729',
-    name: 'Patient Assist VI, Inc.',
+    name: 'Patient Assist VI, Inc',
     description:
       'Patient Assist VI, Inc. (PAVI) is a registered 501(c)(3) nonprofit organization (Tax ID 66-0793071) whose mission is to help patients attain prescription drug medications that would otherwise be unattainable due to income limitations.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/60535/orglogo.jpg',
@@ -20346,7 +20346,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7341b82b-4b36-b93d-ce04-0186cb26f5c0',
-    name: 'Psicologia y Derechos Humanos PSYDEH A.C.',
+    name: 'Psicologia y Derechos Humanos PSYDEH AC',
     description:
       'Ground up, experiential education - that is equity-centered, human rights-based, process-oriented, and relationship-driven - leads to empowered women and communities organizing to sustainably develop the areas in which they live.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/35403/orglogo.png',
@@ -20358,7 +20358,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8692868f-f57a-4da3-a318-485ce8106c9d',
-    name: 'T.D. Jakes Foundation',
+    name: 'TD Jakes Foundation',
     description:
       'To be the BRIDGE connecting underrepresented and underserved communities to life-changing opportunities.',
     logoUrl:
@@ -20371,7 +20371,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '95409c56-68c4-4163-a3e2-34d4db412959',
-    name: 'The Community Foundation for Greater Atlanta, Inc.',
+    name: 'The Community Foundation for Greater Atlanta, Inc',
     description:
       'The mission of the Community Foundation for Greater Atlanta is to inspire and lead our region toward equity and shared prosperity for all.',
     logoUrl:
@@ -20527,7 +20527,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '77bdfc5a-4d76-a5bd-dbad-99c87339bfaa',
-    name: 'German Red Cross / Deutsches Rotes Kreuz',
+    name: 'German Red Cross  Deutsches Rotes Kreuz',
     description:
       "The humanitarian aid of the German Red Cross knows no boundaries. No matter where our help is needed: Whether there are floods, earthquakes, famines, epidemics or armed conflicts - we will help those in need. Thanks to your support we can help immediately when the need arises - in Germany and in the whole world.<br><br>When hurricane Idai hit Mozambique in March 2019, when the explosion occured in Beirut's harbour in August 2020 or when floods hit Germany in Summer 2021, leaving thousands or millions of people homeless, we started our emergency relief operation within 24 hours. We provide fast emergency assistance by supplying water filters, hygiene kits, medicine, tools, food or cash grants. But we also support people in the long term with health, shelter, reconstruction projects and preparation trainings.<br><br>Besides emergency relief, it is our objective to sustainably strengthen people and structures so that they are better prepared for crises. Disaster preparedness exercises, an early warning system, a functioning rescue service  all these factors can save lives when, for example, the next flood or a cyclone approaches. In long term development cooperation, disaster preparedness, health, nutrition, water, hygiene and securing livelihoods are paramount.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/34254/orglogo.jpg',
@@ -20575,7 +20575,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4d645dc4-40ca-8a44-dcf3-f52a5be3889d',
-    name: "Charity Foundation 'Change One Life Ukraine'",
+    name: 'Charity Foundation Change One Life Ukraine',
     description:
       'The mission of our Charity Foundation is to help the Ukrainian orphans be ensured with happy families through creating video profiles of orphans, using them on TV and its website. Also, the Fund conducts training webinars for adoptive parents, online psychological counseling, courses for adoptive parents, writes articles on adoption and education of children with orphanages.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/33993/orglogo.jpg',
@@ -20624,7 +20624,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'bc8c274f-7464-4490-92d5-d66543251a88',
-    name: 'Church of the King, Inc.',
+    name: 'Church of the King, Inc',
     description:
       'Church of the King has six core values that guide us in all we do. These values keep us aligned with God’s plan and purpose, and the mission He gave us of Reaching People and Building Lives.',
     logoUrl:
@@ -20649,7 +20649,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6c23a3b0-6bdd-4d32-927d-00298daf8996',
-    name: 'Animal Rescue Corps, Inc.',
+    name: 'Animal Rescue Corps, Inc',
     description:
       'Animal Rescue Corps’ mission is to end animal suffering through direct and compassionate action and to inspire the highest ethical standards of humanity towards animals. <br><br>Animal Rescue Corps (ARC) is a national nonprofit animal protection organization that takes direct action in three ways: 1) we conduct large-scale emergency rescues of animals who fall victim to cruelty, abuse, neglect, and disaster, 2) we offer interventions to move high-risk and at-need animals from low-adoption shelters into high-adoption regions, and 3) we raise public awareness of animal suffering through education and offer training.',
     logoUrl:
@@ -20676,7 +20676,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '24c9f13d-4bba-b2e0-cd38-c5cf6190968a',
-    name: 'Segel-Club Breitbrunn-Chiemsee (SCBC) e.V.',
+    name: 'Segel-Club Breitbrunn-Chiemsee (SCBC) eV',
     description:
       'Since 1978 the sailing club Breitbrunn-Chiemsee (SCBC) e.V. has been an association for sailing enthusiasts or those who want to become one. With our award-winning youth work, we try to introduce young people to sailing and then promote them as best we can. We also organize regattas on a regular basis, which are not only fun, but also help sailors get ahead in terms of sport. We also offer our adult members the opportunity to learn to sail in special courses up to the point of acquiring a sports boat license.<br><br>In terms of sport, the SCBC club life has always been characterized by a high level. The lively and successful participation of his sailors in countless races on the home territory, as well as in well-known regattas at home and abroad, are the reasons for this. Today the sailing club Breitbrunn-Chiemsee (SCBC) e.V. has 340 members, including numerous children and youth members.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97410/orglogo.png',
@@ -20688,7 +20688,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c8a96ca3-0d2b-492f-9c8d-2ece28bf513b',
-    name: 'Village Enterprise Fund Inc.',
+    name: 'Village Enterprise Fund Inc',
     description:
       "Village Enterprise's mission is to end extreme poverty in rural Africa through entrepreneurship and innovation.",
     logoUrl:
@@ -20809,7 +20809,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6acbfcc4-4047-994d-e534-27f8e0e4cb39',
-    name: 'INTERNATIONAL CHARITY FUND UKRAINE! I AM FOR YOU!',
+    name: 'INTERNATIONAL CHARITY FUND UKRAINE I AM FOR YOU',
     description:
       'Our mission: <br><br>We are active citizens of Ukraine that promote socially responsible society, realizing charitable and social projects. The main goal of the Foundation is selfless charity work in the public interest or certain categories of citizens, which is aimed at providing moral, material and financial assistance to the beneficiaries according to defined areas of activity.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/39795/orglogo.jpg',
@@ -21074,7 +21074,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '34f101c1-4ff1-b65a-ff92-29197b10febf',
-    name: "St. Brigid's Infant National School",
+    name: 'St Brigids Infant National School',
     description: '',
     logoUrl: '',
     nteeCode: 'B00',
@@ -21134,7 +21134,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '48eb605f-475c-b49a-cb90-78a693997826',
-    name: 'Climate Change Network for Community-Based Initiatives, Inc.',
+    name: 'Climate Change Network for Community-Based Initiatives, Inc',
     description:
       'CCNCI aims to contribute to the empowerment of vulnerable sectors and communities in facing the impacts of climate change and asserting climate justice in order to attain a prosperous, equitable, sustainable, and resilient society.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/70069/orglogo.jpg',
@@ -21171,7 +21171,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '597f11e8-4830-af66-f7bf-d7ba35ff5f42',
-    name: 'Sai Educational Rural & Urban Development Society (SERUDS)',
+    name: 'Sai Educational Rural  Urban Development Society (SERUDS)',
     description:
       'The Mission of SERUDS is to promote socio, economic, health, education and culture through participatory approach focusing children, adolescents and women, who are being deprived and oppressed in the society.<br>VIsion:<br>The vision of SERUDS is to mitigate the sufferings, turmoil, trails & tribulations of deprived and downtrodden sections of the society to ensure equity, empowerment and justice.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/3960/orglogo.jpg',
@@ -21183,7 +21183,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b0da6a8d-429b-ad8b-f855-093d8862e737',
-    name: "Women's Technology Empowerment Centre (W.TEC)",
+    name: 'Womens Technology Empowerment Centre (WTEC)',
     description:
       'To educate, connect and empower Nigerian women through active engagement with information and communication technology via training, mentoring and research.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/35152/orglogo.jpg',
@@ -21231,7 +21231,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f21904f1-4658-96be-c0e5-42b43f347d27',
-    name: "SOS Children's Villages Bulgaria Association",
+    name: 'SOS Childrens Villages Bulgaria Association',
     description:
       'We build families for children in need. We prevent families from falling apart. We help children shape their own futures and we share in the development of their communities.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/56692/orglogo.png',
@@ -21317,7 +21317,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6f5d3635-4669-ba6f-e5ba-68ac2369fd89',
-    name: 'Tlalij, Yolojtli uan Nemililistlij A.C.',
+    name: 'Tlalij, Yolojtli uan Nemililistlij AC',
     description: '',
     logoUrl: '',
     nteeCode: 'Z00',
@@ -21379,7 +21379,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f95892ec-d57f-482d-abd6-1ac53d299b31',
-    name: 'okTurtles Foundation, Inc.',
+    name: 'okTurtles Foundation, Inc',
     description:
       'Supporting beneficial decentralization technologies through education, research, and development.',
     logoUrl:
@@ -21417,7 +21417,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '15f3753e-4ebe-907e-f24d-a08d164027c3',
-    name: 'St. Croix Foundation for Community Development',
+    name: 'St Croix Foundation for Community Development',
     description:
       'To encourage greater philanthropic activity, to marshal resources and act as a catalyst for the benefit of the people of the Virgin Islands',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/44466/orglogo.jpg',
@@ -21441,7 +21441,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6c3db0d9-4d19-b977-c014-6b87ed3ee2ac',
-    name: 'Fundacion Musica para la Vida, A.C.',
+    name: 'Fundacion Musica para la Vida, AC',
     description:
       'Somos una iniciativa social dedicada a impulsar el desarrollo cultural, educativo y ocupacional de ninos y jovenes que viven en situacion de vulnerabilidad en areas marginadas del estado de San Luis Potosi, promoviendo asi una transformacion social, mediante el aprendizaje y aplicacion colectiva de la musica sinfonica y coral.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/32614/orglogo.jpg',
@@ -21465,7 +21465,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fa3c2282-4e59-b5a2-eedc-97c723d6ad67',
-    name: 'FUNDACION APA A.C',
+    name: 'FUNDACION APA AC',
     description:
       'Sensitize the young population about social problems through community and educational programs that positively impact vulnerable sectors of our society.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/96598/orglogo.png',
@@ -21669,7 +21669,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '02a332f9-4bcc-a33a-c96b-c8f5d4952b98',
-    name: "SOS Children's  Villages, Inc.",
+    name: 'SOS Childrens  Villages, Inc',
     description:
       'We build families for children in need, we help them shape their own futures, and we share in the development of their communities.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/90455/orglogo.png',
@@ -21753,7 +21753,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f3afc087-4d67-afb3-cf42-555b8292fe4d',
-    name: 'The Society of Majid Bin Abdulaziz for Development and Social Services.',
+    name: 'The Society of Majid Bin Abdulaziz for Development and Social Services',
     description:
       'Contributing in sustainability development through empowering individual.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/89447/orglogo.png',
@@ -21765,7 +21765,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a9bf5fca-4906-bffc-d0ff-215b54385e87',
-    name: "THE UNITED NATIONS CHILDREN'S FUND, UNICEF",
+    name: 'THE UNITED NATIONS CHILDRENS FUND, UNICEF',
     description:
       'UNICEF is mandated by the United Nations General Assembly to advocate for the protection of children\'s rights, to help meet their basic needs and to expand their opportunities to reach their full potential.<br><br>UNICEF is guided by the Convention on the Rights of the Child and strives to establish children\'s rights as enduring ethical principles and international standards of behaviour towards children.<br><br>UNICEF insists that the survival, protection and development of children are universal development imperatives that are integral to human progress.<br><br>UNICEF mobilizes political will and material resources to help countries, particularly developing countries, ensure a "first call for children" and to build their capacity to form appropriate policies and deliver services for children and their families.<br><br>UNICEF is committed to ensuring special protection for the most disadvantaged children - victims of war, disasters, extreme poverty, all forms of violence and exploitation, and those with disabilities.<br><br>UNICEF responds in emergencies to protect the rights of children. In coordination with United Nations partners and humanitarian agencies, UNICEF makes its unique facilities for rapid response available to its partners to relieve the suffering of children and those who provide their care.<br><br>UNICEF is non-partisan and its cooperation is free of discrimination. In everything it does, the most disadvantaged children and the countries in greatest need have priority.<br><br>UNICEF aims, through its country programmes, to promote the equal rights of women and girls and to support their full participation in the political, social and economic development of their communities.<br><br>UNICEF works with all its partners towards the attainment of the sustainable human development goals adopted by the world community and the realization of the vision of peace and social progress enshrined in the Charter of the United Nations.',
     logoUrl: '',
@@ -21839,7 +21839,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f61110c2-435a-8e0c-e126-120bddb2030f',
-    name: 'Verein fuer krebskranke Kinder Harz e.V.',
+    name: 'Verein fuer krebskranke Kinder Harz eV',
     description:
       'The "Verein fur krebskranke Kinderharz" (Association for children with cancer) is to become a central point of contact for affected parents or relatives of children with cancer in Germany.<br><br>When a child is diagnosed with a cancer, the diagnosis is probably the worst bad news that can be given to parents and relatives. The following time to live is hardly conceivable, the diagnosis of cancer is a task that seems hardly solvable. Life, as it was yesterday, is no more, it changes so much, seemingly almost everything! Many people are concerned only with the disease, which has been around for many centuries.<br><br>We, as an association, want to make this time a little easier until the children are rehabilitated, support the affected persons in administrative matters, provide advice in matters of schools, hospitals, clinics and self-help. In addition, we want to focus more on the issue of cancer in children, to help educate and support the research.<br><br>We want to help the children with donations, help them to make cancer research, promote typing measures, and support the children\'s clinics in our region, in order to participate in the small cancer patients there too, because the large centers in Halle, Braunschweig, Magdeburg, Gottingen and Hannover are already a bit away and some "small" examination or medication can then also be done on site and the way home is then more tolerable and for everybody more comfortable.<br>This great organization supports families with children with cancer. The latest project gives these families the opportunity to recharge their batteries.Located on a wonderful lake, this organization has restored vacation apartments. These apartments can then be used by families with special needs. Now additional land has to be bought to build more vacation homes on it. The price for this property is  25,000. Nearby there are also suitable medical facilities, which make a longer stay possible.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/38165/orglogo.jpg',
@@ -21876,7 +21876,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '68fc1b5c-43af-a099-f38c-8b85fcbfc28c',
-    name: "SOS Children's Villages Association of South Africa",
+    name: 'SOS Childrens Villages Association of South Africa',
     description:
       "Our Vision: To see that every child belongs to a family and grows with love, respect and security.<br><br>Our Mission: <br>We build families for children in need- Children that have already lost the care of their parents find a new SOS Family in an SOS Village; and we support and strengthen families, with children facing a significant risk of losing the care of their parents, to prevent family disintegration.<br><br>We help them shape their own futures - We enable children to live according to their own culture and religion, and to be active members of the community. We help children to recognize and express their individual abilities, interests and talents. We ensure that children receive the education and skills training that they need to be successful and contributing members of society.<br><br>We share in the development of their communities - We share in community life and respond to the social development needs of society's most vulnerable children and young people. We establish facilities and programmes that aim to strengthen families and prevent the abandonment of children. We join hands with community members to provide education and health care, and respond to emergencies.<br><br>Our core values/ What keeps us strong<br><br>  Courage<br>  Commitment<br>  Trust<br>  Accountability",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/62953/orglogo.jpg',
@@ -21912,7 +21912,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '913feb72-4964-a4d4-e38f-dde8e23ba182',
-    name: "Association Ron'Rhone",
+    name: 'Association RonRhone',
     description: 'Protection de la faune.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/98899/orglogo.jpg',
     nteeCode: 'D00',
@@ -21936,7 +21936,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2106cb0c-46c9-a9f0-ca3d-e02c19a962b9',
-    name: 'Sanando Heridas, A.C.',
+    name: 'Sanando Heridas, AC',
     description:
       'Improve the quality of life of the disadvantaged inhabitants and communities of the Highlands of Chiapas region*, through medical care and health education programs, from a rights perspective and an intercultural perspective.<br><br>*Chiapas with a very high lag index, grade 3 (Access to Education, health services, quality of housing, basic services, Social Lag Index, Coneval 2015)<br><br><br><br>Sanando Heridas, A.C .: Non-profit organization founded in 2008. Authorized grantee',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/90573/orglogo.png',
@@ -21960,7 +21960,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '49f17f39-4704-9825-ef14-8e18e9983b54',
-    name: "smartAID in Hebrew is 'Ezra Chachama Laolam'",
+    name: 'smartAID in Hebrew is Ezra Chachama Laolam',
     description:
       'We work responsibly and effectively to harness the power of innovation and technology to save lives, alleviate suffering and empower communities to live the kind of life they value.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/98927/orglogo.png',
@@ -21972,7 +21972,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0df8f6ca-4501-a994-e46e-340aa780b486',
-    name: 'Zespol Szkol Nr 1 im. Stanislawa Staszica w Bochni',
+    name: 'Zespol Szkol Nr 1 im Stanislawa Staszica w Bochni',
     description: '',
     logoUrl: '',
     nteeCode: 'Q00',
@@ -22055,7 +22055,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3fd065ba-4f90-99c7-c30f-e92c02afc3b2',
-    name: 'National Disability & Development Forum (NDF)',
+    name: 'National Disability  Development Forum (NDF)',
     description:
       'MISSION<br>"Empowerment of people with/without disabilities through awareness, skill development, access to health, education, livelihood & recreational services and enhancing the life standard in qualitative and quantitative terms."',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/49512/orglogo.jpg',
@@ -22188,7 +22188,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4de6b7da-4e78-ad2f-d07d-fb62653eb952',
-    name: "Tap Elderly Women's Wisdom for Youth",
+    name: 'Tap Elderly Womens Wisdom for Youth',
     description:
       "TEWWY's mission is to bridge the intergenerational and mental health treatment gaps.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/70703/orglogo.png',
@@ -22248,7 +22248,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7c90650c-ec16-4847-9d29-a1a9b474a5e1',
-    name: 'Cancer Research Institute, Inc.',
+    name: 'Cancer Research Institute, Inc',
     description:
       'Save more lives by fueling the discovery and development of powerful immunotherapies for all types of cancer.',
     logoUrl:
@@ -22345,7 +22345,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ad1f0cd1-4584-b7f5-ceca-9be3812ca8de',
-    name: 'The Hub Collective Inc.',
+    name: 'The Hub Collective Inc',
     description:
       "Mission: The Hub Collective Inc. is a safe and inclusive arts non-profit organization with a passion to build creative confidence and intergenerational exchange across Bequia's communities. Our pillars address the need for holistic community engagement and inclusivity through Music, Arts, Culture and Heritage, Healing and the Environment. <br><br>We exist to provision the information and the vision to empower youth and all people of Bequia, reinvigorating the spirit of positive transformation and creativity across our communities.<br> <br>Vision: The Hub Collective envisions a Bequia in which all of its people will have the power, nourishment and support to lift themselves out of creative scarcity mindset and to birth vitality and healthy intergenerational communities rich with excellence, self-esteem and passion now and for the future.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/89043/orglogo.png',
@@ -22393,7 +22393,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a23cb00f-4250-866e-e815-a16c40c7a71f',
-    name: "Snehalaya 'Home of Love'",
+    name: 'Snehalaya Home of Love',
     description:
       '"Every child & woman has the right to lead a life, free from discrimination, inequality and exploitation.  This is the key to our nation building" Dr Girish Kulkarni founder of Snehalaya.  Snehalaya means \'Home of Love\' and its just that for many marginalised women and children in Maharashtra, India, who have no one else to turn to.  <br><br>The goal is simple to combat poverty and exploitation of all people adversely affected by the commercial sex industry in India.  To strive for the basic human rights of its clients through offering pathfinding and practical support methods.  To continue to provide rescue, shelter and care for their vulnerable clients to find their way to a better empowered life.  Snehalaya also is dedicated to giving support and operating without any religious or political agenda.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/17235/orglogo.jpg',
@@ -22417,7 +22417,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4803512c-4151-47e7-8554-97bc443c0793',
-    name: 'Southwest Autism Research & Resource Center',
+    name: 'Southwest Autism Research  Resource Center',
     description:
       'To advance research and provide a lifetime of support for individuals with autism and their families.',
     logoUrl:
@@ -22597,7 +22597,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b79803cc-48ee-a30b-f86e-b8751db45f2c',
-    name: "Women's Aid CLG",
+    name: 'Womens Aid CLG',
     description:
       "Women's Aid is the leading national organisation that has been working in Ireland to stop domestic violence against <br>women and children since 1974.  We work to make women and children safe from domestic violence by offering support to women and their families and friends, providing hope to those affected by abuse and working towards justice and social change.   <br><br>We operate the 24hr National Freephone Helpline and a number of Dublin based One to One and Court Support Services.  We also provide specialist training, conduct research, raise public awareness and lobby for positive government action.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/84672/orglogo.png',
@@ -22814,7 +22814,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4259b40d-49be-adf9-c129-08aa507d9139',
-    name: 'South African Arts & Culture Youth Forum',
+    name: 'South African Arts  Culture Youth Forum',
     description:
       'The South Africa Arts & Culture Youth Forum otherwise known as "SAACYF is a Non-Profit Organization established and registered to champion, promote and profile the rich diversity of arts, culture & heritage of our people. The forum is involved in the issues that affect youth development; the empowerment of artists; community development; and other issues on daily basis. The Forum is a National Organization that has its presence in all the 9 Provinces through its members.<br><br>The Mission of the South African Arts & Culture Youth Forum are as follows:<br><br>- To promotes the preservation and development of arts, culture and heritage in order to empower communities to help themselves and enable artists to showcase their work internationally. <br>-To develop arts, culture and promote heritage preservation of South African culture and diverse traditions nationally and internationally.<br>- To revive community arts centres to enable people across the country to enjoy a range of arts activities <br>- To promote partnership between Arts organizations, government and private sectors. <br>- To provide Consistent training of artists on the ground about the business of arts. <br>-To Create networking environment between South African Artists and the international Markets <br>-To create Job opportunities for Arts educators and administrators.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97585/orglogo.png',
@@ -22982,7 +22982,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '31fd3c8e-4de7-afb4-ed73-3dd13c13b1c5',
-    name: 'Fundacja im. Doktora Piotra Janaszka PODAJ DALEJ/ Doctor Piotr Janaszek PAY IT FORWARD Foundation',
+    name: 'Fundacja im Doktora Piotra Janaszka PODAJ DALEJ Doctor Piotr Janaszek PAY IT FORWARD Foundation',
     description:
       'Imagine a world in which people with disabilities do not feel like an obstacle, they work, have their passions, decide about themselves and are happy. Doctor Piotr Janaszek Pay It Forward Foundation helps to build such a world. <br>From 2004 we have provided rehabilitation and other forms of assistance to people with disabilities. Every year we offer aid to over 200 people who want to learn independence despite disability. They want their dreams to come true and have a happy life.<br><br>In special training apartments, people after accidents learn how to live in wheelchairs. During sport activities, they improve fitness and motivation. They prepare for work during trainings because they do not want to live on public assistance. They develop artistic talents and even started their own theater. Assistants help children to do homework, and with adults they do shopping, cook together, learn to move around the city. Disabled children from all over Poland come to our Little Explorers Camp to learn independence.<br><br>We are happy to share our knowledge with other organizations. Specialists from all over Poland come to the Foundation to learn modern methods of therapy through art. We give parents of disabled children training in coping with the hardships of everyday life and help them to organize better, so they have also time for themselves. We meet with children and young people in schools to inform them about disabilities and teach them how to avoid accidents. Teachers from all over Poland use our lesson plans. We prepare volunteers to work with the disabled. We train officials and professional drivers, including those in public transport in Konin. Thanks to our audits more and more buildings are accessible to people with disabilities.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/72590/orglogo.png',
@@ -23094,7 +23094,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3385c5e4-45e1-8ed2-cf8e-bdf0b2d218f6',
-    name: 'Promocion y Accion Comunitaria, I.A.P.',
+    name: 'Promocion y Accion Comunitaria, IAP',
     description:
       'Help people in vulnerable situations through community services for children, youth, adults and seniors in Mexico city and other states of the country, providing food, education, health, housing and clothing, through our social programs, so that the community can have a better life.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/63046/orglogo.png',
@@ -23262,7 +23262,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fed3732e-dd3c-4d15-b5de-fcf7911a3811',
-    name: 'hack+',
+    name: 'hack',
     description:
       'Hack+ is a full-spectrum platform that enables students to launch and pursue startups, nonprofits, and events, with no fees attached. Through our programs, students gain access to valuable resources, organization management software, equipment, and a supportive community, all fusing together to create a cohesive platform for creating scalable impacts.',
     logoUrl:
@@ -23336,7 +23336,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '753779af-4284-809d-d9a0-5b2085f51e17',
-    name: "Refugee Women's Centre",
+    name: 'Refugee Womens Centre',
     description:
       'To provide holistic support for migrant women and families living without shelter in informal outdoor settlements, or in surrounding accommodation centres across northern France. We are committed to creating safer spaces for women and children; to providing them with the means to live with dignity, and to advocating for access to shelter and for other human rights to be met.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97882/orglogo.jpg',
@@ -23396,7 +23396,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '27d0328f-499a-bd07-e42b-9ec697dea333',
-    name: 'BarbudanGO Inc.',
+    name: 'BarbudanGO Inc',
     description:
       "barbudanGO's mission is to give opportunity to sustain the pillars of community - alternative education, preservation of the environment, disaster mitigation measures, history and culture.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/80921/orglogo.png',
@@ -23515,7 +23515,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c7be5127-4195-bc93-d378-e58fcec172d1',
-    name: "Observatoire Ivoirien des Droits de l'Homme (OIDH)",
+    name: 'Observatoire Ivoirien des Droits de lHomme (OIDH)',
     description:
       "To Promote, Protect and Defend Human Rights in Cote d'Ivoire and beyond.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97698/orglogo.jpg',
@@ -23527,7 +23527,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1ac23a1e-4d5b-9546-f783-287915c60d1b',
-    name: 'Ba Futuru / For the Future',
+    name: 'Ba Futuru  For the Future',
     description:
       "Ba Futuru is a leading not-for-profit organization that uses innovative approaches to inspire young learners, protect children, empower women and reduce violence in post-conflict Timor-Leste. Ba Futuru's vision is a Timor-Leste free of violence, where all citizens, especially women, children and young people, can engage meaningfully in the country's development in a peaceful, positive and productive way.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/10868/orglogo.jpg',
@@ -23551,7 +23551,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd0820469-47a8-bb11-f547-5978c790a00b',
-    name: "Citizens' Alliance for North Korean Human Rights",
+    name: 'Citizens Alliance for North Korean Human Rights',
     description:
       'Our mission is to protect lives and human rights of North Korean people. We strive to achieve our goal through assistance to North Korean refugees hiding in third countries and continue to assist them with their re-settlement and education in South Korea. Our ultimate goal is to support a development of a generation of successful young North Koreans who will drive toward peaceful re-unification of the two countries and will become a bridge between North and South, if the two countries unify. In supporting human rights improvements in the country, we focus on providing information about the situation inside and encouraging international community to raise their voice against the abuses.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/15378/orglogo.jpg',
@@ -23575,7 +23575,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7de7d437-1eb3-4cb8-bc6b-8bf019ae3ec1',
-    name: 'Prison Dharma Network, Inc.',
+    name: 'Prison Dharma Network, Inc',
     description:
       "PDN's mission is to provide prisoners, and those who work with them, with the most effective, trauma-informed, mindfulness-based interventions for self-transformation and rehabilitation. \nWe support prisoners in the practice of contemplative disciplines, with an emphasis on mindfulness meditation.\nWe support corrections professionals, law enforcement, and other public safety professionals and first responders with mindfulness-based wellness & resiliency (MBWR) programs to lower occupational risk and support staff health and safety. \nWe believe in the power of the various mindfulness-awareness practices and body-mind disciplines of the world's contemplative traditions to change behaviors, transform lives,  reduce recidivism, prevent crime, and enhance community safety and well-being.",
     logoUrl:
@@ -23600,7 +23600,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '93fb309c-48dd-886a-e4ef-601d75e99ce3',
-    name: 'African Mums in Deutschland e.v',
+    name: 'African Mums in Deutschland ev',
     description:
       'African Mums in Deutschland began as a Facebook group in August 2018 and has now expanded to over 5100 members. The aim of African Mums in Deutschland is to encourage and equip women of African heritage and their families with the information and resources that can enable them to successfully integrate and thrive in Germany as well as  achieve whatever socio-economic goals they set for themselves. <br>We use our platforms to provide accurate and clear information in a safe none judgmental environment about life, opportunities  and avenues for development in Germany <br>We recognise that our target group is a very vulnerable population and run several that can assist such as our helpline, our online German language course, translation services,support committees,and networking events.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97636/orglogo.jpg',
@@ -23636,7 +23636,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3aaa2dfa-13cd-4446-ad4f-c0c49b40d51d',
-    name: "Seattle Children's Hospital Foundation",
+    name: 'Seattle Childrens Hospital Foundation',
     description:
       'We provide hope, care and cures to help every child live the healthiest and most fulfilling life possible.',
     logoUrl:
@@ -23672,7 +23672,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4fcbe6ef-0a7a-446c-981a-541db4ce78f8',
-    name: 'Veterans Community Project, Inc.',
+    name: 'Veterans Community Project, Inc',
     description:
       'Veterans housing veterans, armed with the strength and support of the community.. Veterans Community Project is a 501(c)(3) nonprofit corporation founded by a group of combat Veterans in Kansas City, Missouri who resolved to stand in the gaps of a broken system that left too many of their brothers and sisters behind. By providing critical support services and an innovative transitional housing model, VCP has served thousands of at-risk and homeless Veterans since 2016. Using Kansas City as a blueprint, VCP is expanding its program to Longmont, CO; St. Louis, MO; Sioux Falls, SD; and Oklahoma City, <br><br>VCP’s long-term goal: ending veteran homelessness nationwide. For more information, visit www.vcp.org.',
     logoUrl:
@@ -23697,7 +23697,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fdb047dd-421a-ae1a-f43c-bb8566e85af4',
-    name: "Dispositif d'Initiatives pour les Metiers de l'Artisanat",
+    name: 'Dispositif dInitiatives pour les Metiers de lArtisanat',
     description:
       'Our mission is to give young people the skills to earn their living as artisans,  to increase the incomes of practicing artisans, and  to preserve traditional arts in Niger. We do this by providing training, equipment, and access to markets.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/76101/orglogo.jpg',
@@ -23709,7 +23709,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a071b27e-062b-410d-a545-1d8708be3cb0',
-    name: 'Boys and Girls Club of Vista Inc.',
+    name: 'Boys and Girls Club of Vista Inc',
     description:
       'The mission of the Boys & Girls Club of Vista (BGCV) is to empower every Club member, through safe and impactful experiences to: graduate high school with a plan for college or a career, contribute to their community, and live a healthy life.',
     logoUrl:
@@ -23893,7 +23893,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4a2cc5b8-4267-8132-fa9c-7b8b1fe5beac',
-    name: 'NSW Wildlife Information Rescue & Education Service (WIRES)',
+    name: 'NSW Wildlife Information Rescue  Education Service (WIRES)',
     description:
       'Our mission is to actively rehabilitate and preserve Australian wildlife and inspire others to do the same.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/51624/orglogo.png',
@@ -23953,7 +23953,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '94835323-41b8-4022-9611-92987ef6f1dc',
-    name: 'Messenger International, Inc.',
+    name: 'Messenger International, Inc',
     description:
       "Messenger International exists to help individuals, families, churches, and nations\r\nrealize and experience the transforming power of God's Word. This realization\r\nwill result in lives empowered, communities transformed, and a dynamic response\r\nto the injustices plaguing our world.",
     logoUrl:
@@ -23990,7 +23990,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a0aeb642-4fad-8f35-fd56-2d150bfb6b42',
-    name: "Women's Resource Center",
+    name: 'Womens Resource Center',
     description:
       "Women's Resource Center provides women and girls in Cambodia with emotional support, referral services, and informal education so they can be empowered to make informed decisions about their lives.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/11272/orglogo.jpg',
@@ -24173,7 +24173,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7857518b-4139-af09-eb31-36c1f8762275',
-    name: 'Berzin Archives e.V.',
+    name: 'Berzin Archives eV',
     description:
       'Berzin Archives e.V., as a free information provider, is dedicated to the preservation and dissemination of academic teaching and reference material, in written, audio and video formats, to preserve the cultural and religious traditions of Tibetan Buddhism.',
     logoUrl: '',
@@ -24209,7 +24209,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '01d6265d-4ba0-8f32-d1e2-e47adf9545f3',
-    name: 'Leben und Lernen in Kenia e.V.',
+    name: 'Leben und Lernen in Kenia eV',
     description:
       "(LLK) Leben und Lernen in Kenya e.V. (also registered in Kenya as Live and Learn in Kenya Int'l as our daughter organization) provides funds to send needy children to school with everything necessary.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/26973/orglogo.jpg',
@@ -24270,7 +24270,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '29e42a67-4d17-9acb-f685-db77328057e1',
-    name: 'Arunachala Animal Sanctuary & Rescue Shelter',
+    name: 'Arunachala Animal Sanctuary  Rescue Shelter',
     description:
       'Our mission is to lift suffering from the Animal Realm. The core of our work is demonstrative love. Stroking, hugging, kissing, reassuring. Our belief is that deep healing will only take place if an animal feels secure, cared for, and loved. We will treat any animal in need. Large. Small. Wild. Domestic. (including birds and reptiles)........To accomplish that mission we have a staff of eighteen, including two full time veterinary doctors.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/26920/orglogo.jpg',
@@ -24343,7 +24343,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6a358e41-4cb3-ad4c-f560-d3f06b8166f4',
-    name: "Yayasan Rumah Rachel ('Rachel House')",
+    name: 'Yayasan Rumah Rachel (Rachel House)',
     description:
       "Rachel House was registered in November 2006 as a charitable organization under the name of Yayasan Rumah Rachel in Indonesia with the purpose of providing palliative care to children from poor and needy families living with life-threatening diseases, such as cancer and HIV. <br><br>It is the first pediatric palliative care service in Indonesia, providing pain and symptom management for children in the final stages of their illness at free of charge. Without the service, many of these children from poor families would spend their last days in horrific pain without medical assistance.<br><br>Rachel House was founded in the hope that no child would ever have to die in pain, without love and care. It is built on the principle that \"we are not here to add days to the children's lives, but to add life to their remaining days\". <br><br>Its mission is to provide palliative care for children with life-threatening conditions allowing them to live their remaining days with joy and dignity in a non-discriminatory, safe and loving environment.<br><br>Rachel House's goals are:<br><br> To advocate and raise awareness of the need for palliative care in Indonesia<br> To assemble and train multi-disciplinary staff in pediatric palliative care<br> To train and develop home care teams to provide support and education to families to allow children with life-threatening conditions to be cared for at home<br> To reinforce local community's capacity to care for children in need through education<br> To partner other organisations that add value to our mission<br> To secure long-term financial sustainability <br><br>Being the first pediatric palliative care service in Indonesia where palliative care is not taught in medical schools, Rachel House's pioneering team of nurses were trained by palliative care professionals from neighboring countries such as Singapore, Australia and New Zealand. In every training opportunity, Rachel House has ensured the participation of medical professionals (doctors, nurses & pharmacists) from the large government-owned hospitals and public clinics, nursing schools and health volunteers and social workers in the hope of building the capacity in palliative care. <br><br>A significant outcome of this targeted training has been the establishment of the first pediatric palliative care unit in Indonesia at the Dharmais Cancer Hospital in late 2010. <br><br>In the 3 years since the first patient was admitted to Rachel House in December 2008, the service has reached more than 150 children in the final stages of cancer and HIV, providing them with pain and symptom management and empowered their caregivers with the essential education.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/11294/orglogo.png',
@@ -24381,7 +24381,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd7f94b70-48a3-8b78-dbf0-453fd251364c',
-    name: 'Yayasan Usaha Mulia / Foundation for Noble Work',
+    name: 'Yayasan Usaha Mulia  Foundation for Noble Work',
     description:
       "VISION: To improve the quality of life for Indonesia's poor.<br>MISSION: To work with the communities in providing holistic and sustainable support in the areas of health, education and community development.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/6557/orglogo.jpg',
@@ -24430,7 +24430,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '742726c4-4d03-9df8-f173-388e0859b57d',
-    name: "Association For Women's Awareness and Rural Development",
+    name: 'Association For Womens Awareness and Rural Development',
     description:
       'To empower the women through education, awareness raising, skills enhancement and income generation for better standards of life".',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/28342/orglogo.jpg',
@@ -24502,7 +24502,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2921d184-48c2-b04e-c5ae-cc5c0b34b72d',
-    name: 'Laboratorio de Imaginacion y Accion Social A.C.',
+    name: 'Laboratorio de Imaginacion y Accion Social AC',
     description:
       'We help children, teenagers and youth of Malinalco to choose and live a life they value, through a model of personalized, integral and continuous accompaniment, which promotes their rights to protection from violence, promotion of development and participation.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/53559/orglogo.png',
@@ -24734,7 +24734,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5f517ff6-c2b3-4514-af8b-d431a1e2eeb2',
-    name: "Riley Children's Endowment",
+    name: 'Riley Childrens Endowment',
     description:
       'To inspire people to invest in pediatric research, care, and programs that support the physical and mental health of kids.',
     logoUrl:
@@ -24783,7 +24783,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '47338293-4b32-a268-c5ac-5e6c4b4739e0',
-    name: 'Pallottine Missionary Foundation Salvatti.pl',
+    name: 'Pallottine Missionary Foundation Salvattipl',
     description:
       "Pallottine Missionary Foundation Salvatti.pl (Pallotynska Fundacja Misyjna Salvatti.pl) is an NGO, based in Poland. We support social work of missionaries: kindergartens, schools,  health centres, hospitals, nutritional centres, we also fund scholarships for Africans, who study in their own countries. We also organize a course for missionary volunteers, who go to the countries of Global South to help and share their experience. We help in Africa: Rwanda, D.R. Congo, Cameroon, Ivory Coast, Rwanda, Uganda, Senegal, Tanzania, Ethiopia, Zanzibar; Asia: India, Syria, Lebanon, Sri Lanca; South America: Colombia, Cuba, Uruguay, Venezuela, Argentina. The Foundation was founded in 2008. We have a long story of support different projects like building maternity in Kigali, building schools in Bivouvue, Esse in Cameroon, supporting kindergartens in Rwanda and D.R. Congo, building schools in Brobo and Ahouaukro in Ivory Coast. We organize debates on hot international social topics with famous experts like Carl Wilkens for the USA, the only American who stayed in Rwanda during the genocide, Nagy el-Khouri from Lebanon,  Juan Grabois from Papal Counsel Justicia et Pax and many more. We cooperate with business to help to develop entrepreneurship among Africans. What we take care most is the education of children as we know that is an effective way to help children.<br>In the process of helping the faith doesn't matter - we help all the people in need, regardless their faith. In Africa and India we help in education of children of all faiths. We do not ask for it. Some years ago we helped muslim village in Bosnia which suffered during the big flood. So we don't divide people according to their faith.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/79908/orglogo.jpg',
@@ -24808,7 +24808,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '710c8343-4f69-ac1b-c165-faecc6eb5b6b',
-    name: "Diani Children's Village",
+    name: 'Diani Childrens Village',
     description:
       'Our Mission Providing orphans, neglected and abused children a home and basic needs to be able to lead an as normal life as possible  Our Vision  Creating an environment where children learn to be  confident and well balanced youngsters ready to life an independent life when they leave the Home   Core Values Compassion Integrity  Respect Knowledge Diversity Commitment',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/30473/orglogo.jpg',
@@ -24880,7 +24880,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '98ae8385-485a-ab13-ed37-05fb48a2988a',
-    name: "Mother's Heart",
+    name: 'Mothers Heart',
     description:
       "Overall women in Cambodia undergo a high number of abortions, and unplanned pregnancies are frequent. Many women die from unsafe abortions and those that continue with their pregnancy are often ostracised from their families and communities, and live in poverty. There are no social services existing within Cambodia to help these women. Many women in Cambodia come from extremely vulnerable situations, being that trafficking, sexual abuse, HIV and poverty are real issues today.<br><br>Mother's Heart vision is to provide unconditional love to women facing crisis pregnancies and to see women empowered with choices, so that they can make the best decision for their future and the future of their babies.<br><br>Vision and Mission<br><br>The vision & mission of Mother's Heart is quite simple but it drives the work that we do every day. Our aim is to:<br><br><br> Provide crisis pregnancy counseling in Cambodia<br><br> Empower women with choices<br><br> Support for every woman facing an unplanned or unwanted pregnancy<br><br><br>What Makes Mother's Heart Special?<br><br><br> We are the first crisis pregnancy counselling service in Cambodia <br><br> We love unconditionally and respect each person we serve <br><br> We respect and support a person's individual choice through giving them relevant, timely information <br><br> We don't discriminate or judge but serve all in need<br><br> We support (walk with) women and their families who face crisis pregnancies. <br><br>The Start<br><br>Mothers Heart was founded in 2010 by Katrina Gliddon and a small-dedicated team to respond to the lack of choice for women in Cambodia facing unplanned pregnancies. Research showed that abortion was a main form of contraception, sometimes resulting in maternal death. Cambodia did not have crisis pregnancy consulting services and there was no existing services providing women with viable alternatives to abortion.<br><br>Built on a solid foundation of 25 years of Mother's Choice in Hong Kong, Mother's Heart was born, adapted to the unique Cambodian challenges and culture. <br><br>What We Do<br><br>Pregnant Woman's Services<br><br>Mother's Heart believes that every young woman who faces crisis pregnancy has a right to know the options available to her. We offer non-judgmental support from social workers throughout the decision making process. We provide holistic and loving support for young pregnant women through their challenging decision, so they can make the best decision for their future and the future of their baby.<br>Counselling<br><br>Counselling is available for single pregnant girls and women, their boyfriends and families. Our on site counselling service includes guidance and support on making a plan for the baby, parenting and post abortion help. We support single girls and women when facing a crisis pregnancy, not only do we give them access to counselling; we also aim at helping them understand the choices ahead and the respective consequences. This process will enable them make critical decisions for themselves and their baby. Every single girl or woman in our program has a social worker and midwife assigned to their case, so they have on-going support every step of their journey.<br>Accomodation<br><br>Many women in our program are from poor and vulnerable backgrounds and require safe temporary housing during their pregnancies and postnatal period. We believe the best place for them is within their local community where their support networks have already been established. If they already have a small room we provide them with rental assistance and food allowance each month. Otherwise we provide them with a room, sometimes sharing with other young pregnant women within the local community. This helps women stay independent and to have some responsibility for their everyday living.<br><br>With special cases (teenage pregnancies, rape etc.) that require a safe secure place to stay, we have referral agencies that partner with us to provide temporary Hostel accommodation until a permanency plan has been establish for the client. <br>Health Care<br><br>Mother's Heart finances antenatal, delivery, postnatal, all medical needs of the client and baby. The staff accompanies each women to their appointments and advocate for the best possible care. We use already existing government health care centre. We firmly believe in capacity building by utilizing local existing government and community healthcare services already available here in Cambodia. Therefore, women will learn how to access health care for themselves and their babies in the future. Ongoing referrals.<br><br>Women also have access to health care for sexually transmitted diseases, HIV care for mother and baby, and contraception counselling and distribution. As part of our health care, all women have access to multivitamins during pregnancy and lactation, as over 75% of Cambodia population are micro nutrient deficient because of their diets. <br>Preparing for Birth<br><br>We offer antenatal training to the women we work with to help them prepare for the birth and the early days of parenthood. We also have on-going positive parenting training and child development training, so women can share their experiences and learn together. <br><br>Longer Term<br><br>Following the birth of a child it is important that foundations are established so that the women and their families can support the child in the future. Mother's Heart works with partners to support women to access appropriate vocational training and job opportunities. <br>Fostering & Adoption<br><br>We realise that for some girls and women keeping their child after the pregnancy is not an option. Every child deserves a family. According to the Government policies, Kinship care should be the first option then local adoption, permanent fostering, overseas adoption and the last resource being temporary orphanage placement until a family can be found. Mother's Heart works with specialist partner organisations and government services to provide foster care and adoption within the local community.<br>Advocating<br><br>Many of the girls and women that we work with have lost their voice with regard to what they deserve or how they should be treated. We advocate on their behalf for community care and better family support for every child. Very often the girls and women in our program need support and specialist care. We are able to work with many specialist partners that help the women access other services (legal, counselling for trafficking, rape, HIV, mental health). We have many wonderful partner agencies that work together with us to bring wholeness to each girl and woman in our program.<br>Education<br><br>We understand that unplanned pregnancies will always be a part of the world we live in, so we want to be more than just the solution to the problem. Mother's Heart seeks to educate communities around the issues of unplanned pregnancy.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/13745/orglogo.jpg',
@@ -24953,7 +24953,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'dfdaf558-45e4-b466-e135-f2051e8c3d31',
-    name: 'Campana Global por la Libertad de Expresion A19, A.C.',
+    name: 'Campana Global por la Libertad de Expresion A19, AC',
     description:
       'ARTICLE 19 Mexico and Central America is an independent and nonpartisan organization that promotes and defends the progressive advancement of the rights of freedom of expression and access to information for all people, in accordance with the highest international standards of human rights, thus contributing to the strengthening of democracy.<br><br>To fulfill its mission, ARTICLE 19 Mexico and Central America has as its main task:<br><br>    The defense of the right to disseminate information and opinions in all media,<br>    the investigation of threats and trends, the documentation of violations of the rights to freedom of expression, the accompaniment of people whose rights have been violated; and the participation in the design of public policies on these themes. <br><br>In this sense, ARTICLE 19 Mexico and Central America visualizes a region where all people can express themselves in an environment of freedom, security and equality, and exercise their right to access information; facilitating the incorporation of society in informed decision-making about themselves and their environment, for the full realization of other individual rights.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/55258/orglogo.png',
@@ -24989,7 +24989,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c3dfcd12-4ff1-a8b5-efcd-b21507fbf60f',
-    name: 'Enactus / Sife Mexico A.C.',
+    name: 'Enactus  Sife Mexico AC',
     description:
       "Enactus México's mission is to scale entrepreneurship to create and strengthen businesses that activate the economy in a sustainable and inclusive way.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/26006/orglogo.png',
@@ -25013,7 +25013,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '78ccc448-437c-a0af-e08d-c5ae54cd3986',
-    name: 'Tafel Deutschland e.V.',
+    name: 'Tafel Deutschland eV',
     description:
       'There is plenty of food for everyone in Germany, yet many people live in deprivation. The Tafel strive for a fairer balance, engaging volunteers for disadvantaged people in their area. The national association of food banks and pantries in Germany, Tafel Deutschland e.V., supports and represents more than 960 local Tafel initiatives in Germany. <br>These initiatives collect quality surplus food and distribute it free of charge or for a symbolic amount to socially and economically disadvantaged individuals. The Tafel are one of the largest social movements in Germany. <br><br>The main tasks of Tafel Deutschland include: Securing nationally operating partners and sponsors for the local Tafel initiatives; Representing the political, economic and social interests of the local Tafel initiatives; Communicating the Tafel initiatives to the media as well as to the public; Sharing best practices, communicating with and advising the local initiatives; Supporting the founding of new local Tafel initiatives. <br><br>Especially the current crisis, rising prices have resulted in fewer food donations and more people in need turning to the Tafel for support.<br><br>Increasing numbers of patrons means more work and the need for more space and commitment. <br>Your donation helps us not to have to turn away people in acute need and also build our capacity to accept more donations. Donations make projects possible that go above and beyond the distribution of food: cooking courses, community cafes, clothing donations, anti-racism projects and collection points for household goods or bicycles.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/31879/orglogo.png',
@@ -25062,7 +25062,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cd0ad91d-4701-a06e-e346-aad22afa10e7',
-    name: "Romi's Way",
+    name: 'Romis Way',
     description:
       "Romi's Way is a concept to restore balance between people, animals and environment.<br><br>Romi's Way mission is to promote actions with triangulated benefits directed towards humans', animals' and environment's wellbeing altogether.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/67883/orglogo.jpg',
@@ -25135,7 +25135,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c52113b0-49d7-bf22-d8f6-f07ae0dd03cb',
-    name: 'Y No Habia Luz, Inc.',
+    name: 'Y No Habia Luz, Inc',
     description:
       'Provide interdisciplinary artistic experiences that awaken in people sensitivity, beauty, creativity, freedom of thought and spirit, conscience, solidarity and social justice in Puerto Rico and the world.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/76308/orglogo.jpg',
@@ -25147,7 +25147,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f417f792-3dd2-403c-8b90-b9b7e9806b51',
-    name: 'Lemons of Love, Inc.',
+    name: 'Lemons of Love, Inc',
     description:
       "Lemons of Love's mission is to share love with those impacted by cancer through personalized care packages, free programs and ongoing support.",
     logoUrl:
@@ -25232,7 +25232,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ee6535c6-4734-98a3-fee8-d8dbc2d9e99b',
-    name: 'DAKTARI Bush School & Wildlife Orphanage',
+    name: 'DAKTARI Bush School  Wildlife Orphanage',
     description:
       'The mission of DAKTARI is to inspire, motivate, and educate underprivileged children to care for their environment through the medium of a wildlife orphanage.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/992/orglogo.jpg',
@@ -25302,7 +25302,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9ec88272-4620-4256-8aaf-7bab0389181e',
-    name: "Juliana's Animal Sanctuary",
+    name: 'Julianas Animal Sanctuary',
     description:
       'Juliana’s Animal Sanctuary is the first sanctuary in Colombia for animals that are considered food.<br><br>We are also the first farm animal sanctuary fully certified by the Global Federation of Farm Sanctuaries in South America.<br><br>Additionally, we have established strong educational programs, including vegan cooking workshops, vegan comics, vegan food relief, and strong social media activism.',
     logoUrl:
@@ -25472,7 +25472,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'dc80cb4d-4acf-a874-f996-f6316e29ca61',
-    name: 'Barking & Dagenham Youth Zone',
+    name: 'Barking  Dagenham Youth Zone',
     description:
       'Barking & Dagenham Youth Zone, named Future by young people, gives young people in Barking and Dagenham somewhere to go, something to do, and someone to talk to. We are open 7 days a week, whenever schools are closed, offering 20+ activities every session, including sports and arts. Most importantly all our activities are delivered by trained youth workers who provide positive role models.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/79780/orglogo.png',
@@ -25484,7 +25484,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ff41a994-47b6-8b6d-f265-f88a9a50da89',
-    name: 'Banco de Alimentos de Hermosillo I.A.P.',
+    name: 'Banco de Alimentos de Hermosillo IAP',
     description:
       'Ser la institucion que por excelencia, lleva de manera eficaz, desde el rescate hasta la entrega de alimento a quienes mas lo necesitan, y ser lider en combatir el hambre en la ciudad de Hermosillo, el estado de Sonora y el pais, por medio de alianzas con la sociedad civil, el empresariado y la academia, y, el apoyo de las personas de buena fe.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/35192/orglogo.jpg',
@@ -25496,7 +25496,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9019afd7-4c08-93b6-f653-6d3c4e4842e9',
-    name: 'Atzin Mexico / Atzin Desarrollo Comunitario AC',
+    name: 'Atzin Mexico  Atzin Desarrollo Comunitario AC',
     description:
       'ATZIN DESARROLLO COMUNITARIO<br>Tlamacazapa, Mexico<br>www.atzin.org<br><br>MISSION: Atzin is a non-profit humanitarian organization registered in Mexico, with a charitable sister association in Canada. Atzin assists rural people, particularly indigenous women, to attain better life opportunities, stronger cultural wellbeing, and greater self-sufficiency with more peaceful governance. <br><br>In 1997, Atzin was formed to counter this cycle of poverty and violence in Tlamacazapa. Atzin means "sacred water" in the local language, Nahuatl. Its humanitarian development programs emerged gradually in response to community needs and now focus on four integrated sectors: health and healing, income generation, education, and environment, water and sanitation.<br>PROGRAMS<br> Health and Healing Programs include a special needs program, a dental and oral health program, and supports local midwives in safe motherhood services. <br> Income Generation Programs provide technical support for small business development, such as a weavers\' cooperative, a sewing workshop, and a small store run by local women. <br> Community Education and Literacy Program integrates local responsibility with continuous learning. The programs include intensive training schools for young women, an open-air education program for out-of-school children; tutoring for those in school who require assistance; literacy classes for women and youth, and an early childhood stimulation program for children aged 1-5 years old.<br> Environment, Water and Sanitation Program introduces an ecological rocket stoves to families. For more than a decade constructed household dry toilets and rainwater harvest tanks, monitored water quality and investigated toxicity from multiple sources and its effects on people.<br>MISSION AND PHILOSOPHY<br> Through these programs, Atzin provides an external presence that is stimulating personal and social change in rhythm with the people of Tlamacazapa. Its goal is to assist villagers to reclaim their cultural identity and strength of personal worth. Working in Tlamacazapa over the past years, the Atzin team gradually pieced together a big puzzle of a complicated village situation. At the beginning, it was easy to see the living conditions of severe economic poverty. It took time, listening, many questions and a digging for data, to realize the critical environmental problems and importantly, the suffering caused by a collective poverty of spirit. A poverty of spirit means that people can\'t imagine that tomorrow will be any different than today or yesterday. The Nahuatl word, Tlamacazapa, translates as "people who are fearful" and is a cultural reflection of their history. The original inhabitants ran to escape the Spanish invaders more than 500 years ago, settling on a rocky, infertile mountain slope where they found water. An attitude of fearfulness has continued over the centuries, and now is coupled with other negative feelings of insecurity, victimization and rigidity. People tend to be distrustful, jealous of their neighbours and are not able to work together as a community. Hopelessness often prevails, with most impoverished families having little vision for a better future.<br> Bring enough resources to bear on a situation and environmental degradation and economic poverty can be solved if people can work together with a common purpose. But a poverty of spirit crushes this possibility from the start. That\'s why Atzin focuses on bringing people together to support one another. Whether it\'s a group of women sewing quilts, preparing food for the school breakfast program, or discussing problems faced by young families, Atzin\'s approach is people-centered. The task is to create opportunities on many fronts. Individuals learn to trust over time as they share and discuss, help each other, and seek solutions step by step together. Our annual ten day training retreat for young village women is a dramatic example of community building. The training is highly participatory as well as challenging, allowing the women to form friendships, greater insights and a sense of common-unity. This is vital foundational "glue." These women all carry program responsibilities as "promoters" and in turn, influence others in a positive rippling effect. <br> Let us consider the heart of the puzzle: a sense of empowerment always starts with a spark of possibility and grows from within. No one can actually empower someone else or hand them a richer spirit or life. The nurturing of that inner spark is the real work of development. Atzin is about people everywhere working together, patiently, energetically and lovingly, to re-humanize our world. It\'s about committed individuals making a world of difference.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/40334/orglogo.jpg',
@@ -25531,7 +25531,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '95e077d4-4b86-9dfb-ea1f-9cf27a5f9cae',
-    name: 'Hagamos Mas por Santa Rosalia, A.C.',
+    name: 'Hagamos Mas por Santa Rosalia, AC',
     description:
       'Encourage sustainable development for Santa Rosalia through the promotion and support of productive options that represent a benefit for the community in order to create new sources of employment, as well as the development of community projects.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/45914/orglogo.jpg',
@@ -25579,7 +25579,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2384e06b-437e-80a0-cc14-2b69eee27e79',
-    name: 'Wombat Support and Rescue NSW/ACT Incorporated',
+    name: 'Wombat Support and Rescue NSWACT Incorporated',
     description:
       'Doing rescue of wombats when hit by cars or shot and left to die by farmers.<br>Implementing large scale treatment programs to eradicate sarcoptic mange in wombats<br>Create awareness and provide training/presentations to educate the public and politicians in the plight of wombats',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/80487/orglogo.png',
@@ -25591,7 +25591,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '37502497-43a8-aba0-fbc1-066425594ffb',
-    name: 'Broken Ballerina Inc.',
+    name: 'Broken Ballerina Inc',
     description: '',
     logoUrl: '',
     nteeCode: 'W00',
@@ -25637,7 +25637,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f6b84dc6-aec2-4f2c-ab92-ae1f574b8fb7',
-    name: 'Beats Rhymes and Life Inc.',
+    name: 'Beats Rhymes and Life Inc',
     description:
       'We exist to cultivate dynamic culturally-congruent services, through the therapeutic power of Hip Hop, that inspires youth to recognize their own capacity for healing.',
     logoUrl:
@@ -26059,7 +26059,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '73cbc7f8-452c-958b-f0c6-dda11607bfc7',
-    name: 'Horses of Hope/Caballos de Esperanza Inc.',
+    name: 'Horses of HopeCaballos de Esperanza Inc',
     description:
       'Our mission is to engage the therapeutic power of our horses to nurture the special abilities of children and adults with disabilities, help heal those suffering from trauma or other special challenges, and empower our clients to improve their lives, the lives of their families, and their community.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/85326/orglogo.jpg',
@@ -26169,7 +26169,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '882bd9c5-45f9-81ce-f931-bfeaa9813034',
-    name: "Another Hope Children's Ministries",
+    name: 'Another Hope Childrens Ministries',
     description:
       'AHCM is committed to meeting the spiritual and physical needs of vulnerable children in Uganda, through strategic partnership, ministering and undertaking specialized and sustainable child focused initiatives.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/32089/orglogo.jpg',
@@ -26217,7 +26217,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c9b9c724-4a69-8fbb-e1b7-88bcf0c34d6c',
-    name: "RJDH(Reseau des Journalistes pour les Droits de l'Homme",
+    name: 'RJDH(Reseau des Journalistes pour les Droits de lHomme',
     description:
       "Selon les Statuts et le reglement interieur du RJDH de 2017 <br>Article 3 : DE LA VISION ET MISSION <br><br>Le RJDH/RCA uvre pour un veritable Etat de Droit en vue d'une societe juste fondee sur des valeurs et respect des droits de l'homme, de la democratie et de la bonne gouvernance en bannissant toutes formes d'alienation, afin de permettre a tout citoyen de parvenir a la connaissance de ses droits et devoirs, de s'epanouir et de jouir de ses droits et libertes. <br>Article 4 : DE LA MISSION<br>Le RJDH/RCA a pour mission d'assurer la promotion des Droits de l'Homme par l'information et la communication. <br>Article 5 : DES OBJECTIFS GENERAUX <br>Par l'information et la communication, le RJDH/RCA s'emploie a :<br>- Initier et mettre en uvre des actions de nature a promouvoir les droits de l'Homme;  <br>- Accompagner et soutenir les structures de defense et de protection des droits l'Homme.  <br>Article 6 : DES OBJECTIFS SPECIFIQUES<br>Par l'information et la communication, le RJDH/RCA s'emploie a :<br>- Collecter, traiter et diffuser des informations relatives aux droits de l'Homme, a travers des moyens innovants et adaptes en matiere de l'information et de la communication ; <br>- Mettre des informations a la disposition des structures de defense et protection des droits humains; <br>- Contribuer a promouvoir la communication des structures de defense et protection des droits humains.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/97504/orglogo.png',
@@ -26302,7 +26302,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '80d6c007-858c-402a-a10e-f72828967542',
-    name: 'Kids’ Food Basket',
+    name: 'Kids Food Basket',
     description:
       'Kids’ Food Basket nourishes children to reach their full potential.',
     logoUrl:
@@ -26315,7 +26315,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f1868478-480d-8978-eb6b-29bf7777d728',
-    name: 'Hungarian Helsinki Committee / Magyar Helsinki Bizottsag',
+    name: 'Hungarian Helsinki Committee  Magyar Helsinki Bizottsag',
     description:
       'The Hungarian Helsinki Committee (HHC) is a leading human rights watchdog based in Budapest, Hungary, founded in 1989. We believe in a fair and just world, where equality is not a theory for a few, but a lived experience for all. In our theory of change we focus our efforts to defend (1) the right to asylum and international protection; (2) democratic values, the rule of law and a strong civil society; and (3) the rights of detainees and the fairness of the criminal justice system. We reach our achievements through combining a range of different tools and activities from free legal assistance and representation, through advocacy and communication, to research, empowerment and training activities. Most issues we work on are not addressed by any similar organisation in Hungary. Our high-quality work has been recognised by several prestigious human rights awards since 2017, including being a shortlisted nominee for the Council of Europe Parliamentary Assembly Vaclav Havel Prize in 2018 and the Nobel Peace Prize in 2021.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/99242/orglogo.png',
@@ -26376,7 +26376,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c348ade7-412d-a02c-ce48-8c9bcaa4ad2f',
-    name: 'Cruz Roja Mexicana I.A.P. - Nuevo León',
+    name: 'Cruz Roja Mexicana IAP - Nuevo León',
     description:
       'We are a humanitarian institution, dedicated to prevent and alleviate human suffering in order to improve the living conditions of the people and communities, promoting a self-protecting culture through voluntary action.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/72274/orglogo.png',
@@ -26512,7 +26512,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8a2ee10e-429d-9922-d265-d6bda51df77e',
-    name: 'SPARK/The Umkhumbane Schools Project',
+    name: 'SPARKThe Umkhumbane Schools Project',
     description:
       'The Umkhumbane Schools Project seeks to develop a new kind of non-profit corporate entity that can make a transformative difference in advancing education equity.  Through the strength of this model, we implement programs that empower learners, strengthen schools, and open doors to higher education. <br>Drawing on the experience and insight gained through our work, we seek to provide thought leadership within the interconnected fields of education, sustainability, and social transformation.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/30617/orglogo.jpg',
@@ -26537,7 +26537,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'acc8ee7c-4a94-b912-e4a2-d53b080be801',
-    name: 'Concern Organization for Women & Children',
+    name: 'Concern Organization for Women  Children',
     description:
       "Concern Organization for women and children (CWC) is an independent non- profit organization working to support women and children through empowering  them economically and giving them a better chance to health , nutrition and education services <br>Concern aims to develop and uphold standards and create an environment in which every woman and child can exercise their human rights and live up to their full potential. It aims to raise the women level and development expertise to enable them to fully and effectively participate in the cultural, economic and social life in order to achieve progress.<br>Concern is guided by the Convention on the Rights of the Child and strives to establish children's rights as enduring ethical principles and international standards of behaviour towards children and insists that the survival, protection and development of children are universal <br> development imperatives that are integral to human progress.<br><br>Concern works on development and organization of the women energies and coordinate their efforts within the organized collective action in order to remove social and legal barriers that prevent their development and prevent them from  full and effective participation in the community building through supporting institutional capacity for women and train them on modern skills and work to encourage women to use the technology and get along with continuous variables to achieve women economic empowerment through the following:<br>1- Economic empowerment and facilitating access to soft loans<br>2- Encourage productive family's projects in coordination with donors<br>3- Contribute to the reduction of illiteracy<br>4- Achieving gender equality<br>5- protect women and children from violence through psychosocial support programs for marginalized groups in Yemen.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/76614/orglogo.jpg',
@@ -26610,7 +26610,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '080f25a8-a0af-400e-977a-debffc2abfed',
-    name: 'Free Arts for Abused Children of New York City, Inc.',
+    name: 'Free Arts for Abused Children of New York City, Inc',
     description:
       'Free Arts NYC empowers youth from underserved communities through art and mentoring programs to develop their creativity, confidence, and skills to succeed.',
     logoUrl:
@@ -26623,7 +26623,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2674cf7f-41b2-b24d-c671-665824e2369c',
-    name: 'REMAR OCCIDENTE A.C.',
+    name: 'REMAR OCCIDENTE AC',
     description:
       'REMAR tiene como mision mejorar las condiciones de vida de los ninos y ninas, las familias y comunidades en situaciones vulnerables o de pobreza, a traves de proyectos auto sostenibles de desarrollo integral y actividades de sensibilizacion, con la finalidad ultima de propiciar cambios estructurales que contribuyan a la erradicacion de la pobreza , la ignorancia, los prejuicios, la insolidaridad la indiferencia y la crisis de valores humanos y cristianos.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/77538/orglogo.png',
@@ -26712,7 +26712,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c53992e3-54f0-4021-8320-22077efede9f',
-    name: 'Sleep in Heavenly Peace, Inc.',
+    name: 'Sleep in Heavenly Peace, Inc',
     description: 'No Kid Sleeps on the Floor in Our Town.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/6c74d7ee-5f04-43a3-b2b9-63fa66459b17.jpg',
@@ -27131,7 +27131,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '28326325-5d40-48e5-b55b-7a6edc66d993',
-    name: 'The E3 Ranch Foundation, Inc.',
+    name: 'The E3 Ranch Foundation, Inc',
     description: 'To help those in need.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/3983dab2-3214-451e-8117-4ab601fbd7f6.jpg',
@@ -27157,7 +27157,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '28fb343f-4e90-adec-d470-23dda9d913f2',
-    name: 'Tribes and Natures Defenders Inc.',
+    name: 'Tribes and Natures Defenders Inc',
     description:
       'Empower the children, women and men of the Indigenous Peoples Communities of  Philippines and other countries where the needs are found through the start -up capital to tribal farmers, tribal women, youth and support for tribal education, health, environmental protection and  sustainable community development  that changes lives ; rehabilitate and protect the environment; promote their rights to self determination, intercultural appreciation and respect; ensure the self governance, and ownership of the  Indigenous peoples Ancestral Domain lands; respect their culture and tradition; ensure equal treatment of the community and participation on the involvement of men and women in implementing sustainable integrated area development and ensure equal access to and control of its corresponding resources and activities.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/25487/orglogo.png',
@@ -27182,7 +27182,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f63b847b-9e63-4dca-b639-acd92d8356dd',
-    name: 'Asia Harvest, Inc.',
+    name: 'Asia Harvest, Inc',
     description:
       'Asia Harvest has worked in over 20 counties of Asia for the last three decades, helping the downtrodden and bringing light and relief to struggling communities.',
     logoUrl:
@@ -27207,7 +27207,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '383b3cb4-49d0-8028-dfb4-bea186bd0782',
-    name: 'Sibol ng Agham at Teknolohiya (SIBAT), Inc.',
+    name: 'Sibol ng Agham at Teknolohiya (SIBAT), Inc',
     description:
       "Since our establishment in 1984, SIBAT envisions a just and sovereign society that upholds genuine development through people-based science & technology.  <br><br>SIBAT commits to develop, promote and popularize the application of appropriate technologies towards attaining village-level sustainable development in poor communities.<br> <br>As such, SIBAT have gained significant breakthroughs in sustainable agriculture, renewable energy, genetic conservation and water systems development.<br><br>By the end of 2022, SIBAT's goals are:<br>1.  Self-reliant and resilient communities that have adopted appropriate technologies and can adapt to the effects of climate change.<br>2.  Institutionalized structures and mechanisms that support the appropriate technology (AT) efforts of SIBAT and partner poor communities.<br><br>CORE VALUES AND GUIDING PRINCIPLES:<br><br>Uphold social justice and national sovereignty.  SIBAT helps enhance the poor people's opportunities to enjoy, and capabilities to assert and demand for, their basic rights.  SIBAT unites with the people's effort to chart their own course towards national sovereignty and economic independence.<br><br>Equity and bias for the poorest and disadvantaged.  SIBAT assures everyone in the community equal opportunities from and access to appropriate technology, resources and benefits with particular attention given to the poor farmers, women and indigenous peoples.<br><br>Peoples' participation and ownership in development.  SIBAT upholds the people's right to determine, participate in, and have control over their own appropriate technology development.<br><br>Holistic.  SIBAT addresses community problems, through appropriate technology interventions, that are determined from a comprehensive and integrated perspective.<br><br>Technological innovation and competence.  SIBAT enhances the practice of innovation, development of knowledge and mastery of skills.  SIBAT upholds quality standards in the application of science and technology for the people.<br><br>Care for health and environment.  SIBAT works for the conservation and management of the environment and gives due attention to the promotion of good health and well-being of the people.<br><br>Gender consciousness.  SIBAT integrates and promotes gender equality in its programs and projects, and in each individual's work, actions and language.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/5186/orglogo.gif',
@@ -27267,7 +27267,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '89346c3f-4719-91ec-cfa0-ee42ca2d904a',
-    name: 'S.M.I.L.E-ING BOYS CIC',
+    name: 'SMILE-ING BOYS CIC',
     description:
       'The S.M.I.L.E-ing Boys CIC aims to address the mental health needs of black boys while challenging the negative portrayal of this demographic in the media through creative arts workshops using photography, poetry, film and discussions in a co-creative collaborative process within schools in deprived boroughs of London.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/98725/orglogo.jpg',
@@ -27353,7 +27353,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd1a1ca83-48fc-9c11-c37f-1ae567d94043',
-    name: "Smith's Wood Primary Academy",
+    name: 'Smiths Wood Primary Academy',
     description: '',
     logoUrl: '',
     nteeCode: 'B00',
@@ -27416,7 +27416,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0e0e66e9-ac3a-453f-91b7-17c67c59c462',
-    name: 'Crisis Text Line, Inc.',
+    name: 'Crisis Text Line, Inc',
     description: 'Building an empathetic world where nobody feels alone.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2Fa2e5651c-422a-4adf-9d5b-21a1f0cb0bb8.jpeg',
@@ -27440,7 +27440,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '83739087-4bf5-aff5-f641-ad889115e354',
-    name: 'UNO DE SIETE MIGRANDO A.C.',
+    name: 'UNO DE SIETE MIGRANDO AC',
     description: '',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/42173/orglogo.png',
     nteeCode: 'Z00',
@@ -27463,7 +27463,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '306231dc-470e-874d-c2c1-19324dad7f96',
-    name: 'Fundacion Bepensa A. C.',
+    name: 'Fundacion Bepensa A C',
     description: 'Mission statement.',
     logoUrl: '',
     nteeCode: 'W00',
@@ -27509,7 +27509,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9c3cf9b5-7c64-4cee-a2c7-7969d83fa3d6',
-    name: 'PS1 Contemporary Art Center Inc.',
+    name: 'PS1 Contemporary Art Center Inc',
     description:
       'MoMA PS1 is devoted to the production, presentation, interpretation, and dissemination of the work of innovative artists in all mediums, fostering creativity and uninhibited artistic exploration. Its programs reflect the complex nature of international artistic practice, serve a broad and diverse audience, and stimulate discourse on the art of our time. MoMA PS1’s exhibitions, presentations, educational activities, residency programs, and publications investigate the dynamic and provocative nature of art. Its focus includes recognizing the work of emerging artists, placing disparate media into meaningful contemporary contexts, and defining alternative movements and endeavors.',
     logoUrl:
@@ -27658,7 +27658,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '598a24a2-9967-4f35-89ac-decc61941cce',
-    name: 'Maui Food Bank, Inc.',
+    name: 'Maui Food Bank, Inc',
     description:
       "Maui Food Bank's mission is to help the hungry in Maui County by collecting and distributing food through community partnerships.",
     logoUrl:
@@ -27927,7 +27927,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd4d91b1a-4573-949f-f9b5-9d062ab12a3a',
-    name: "Abraham's Oasis",
+    name: 'Abrahams Oasis',
     description:
       'Creating an enabeling environment whereby social and cultural integration of marginalized and vulnerable children and women will occur, strengthening them through childcare, protection, skills training, health awareness, schooling and family re-unification resulting in dignity and independence of the individual and the community.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/32719/orglogo.jpg',
@@ -27999,7 +27999,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7cd2f34d-b32b-49c5-8984-5de25fd0246f',
-    name: "Feeding America's Hungry Children",
+    name: 'Feeding Americas Hungry Children',
     description:
       'Mission is to help prevent malnourishment in those at risk and help provide medical care to those suffering the effects of malnourishment.',
     logoUrl:
@@ -28036,7 +28036,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '88529153-4dc2-99dd-d10f-88c1c3776684',
-    name: 'DIE CLOWN DOKTOREN E.V.',
+    name: 'DIE CLOWN DOKTOREN EV',
     description:
       'About the Clown Doktors<br><br>They are called Dr. Stracciatella, Dr. Furioso or Dr. Raclette and are experts in intensive laughing medicine. Together with their 33 other colleagues from DIE CLOWN DOKTOREN E.V., they bring joy and variety into everyday clinical life to sick children. By including the little patients in their jokes, they promote the healthy, playful side of the children, strengthen their self-healing powers and thus support medical therapy through the power of humor.<br><br>The special thing about it: The clown doctors are all freelance artists who have undergone special, long-term training for their sensitive task. Their humor visits, which are only financed through donations, always take place in close coordination with the medical nursing staff on site. True to the motto "Laughing helps heal", the clown doctors give their little patients a laugh test, transplant clown noses, prescribe soap bubble treatments or chocolate ice cream pizza. By including the little patients in their jokes, they support and promote the healthy, playful side of the children, strengthen their self-healing powers and thus support medical therapy through the power of humor.<br><br>In addition to the beneficial effects of laughter and humor, the regularity of the clown doctor visits is particularly important for sick and seriously ill children. Many children eagerly await "their" clown doctors. But they are not the only ones: The humor visits are also an important change for the parents during their stay in the children\'s clinic, which is often very worrisome.<br><br>Since 2009, the beneficial effects of laughter and humor have also benefited older people: the visits by the clown doctors have been extended to facilities for the elderly.<br>The warm welcome is always very touching. Singing, dancing, joking together or simply exchanging ideas about previous experiences repeatedly create indescribable moments for the residents - but also for the staff and the clown doctors themselves.<br><br>The association DIE CLOWN DOKTOREN E.V. has been organizing humorous visits to meanwhile 13 children\'s clinics, two intensive care facilities, twelve senior facilities, two geriatric wards and a children\'s hospice in the Rhine-Main area, in Central Hesse and in Rhineland-Palatinate since 1994. With more than 2,000 visits, the 33 clown doctors reach over 60,000 sick children and hundreds of seniors every year.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/98256/orglogo.jpg',
@@ -28059,7 +28059,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ce61c878-4e4f-8bd6-ee02-8405a370d8f9',
-    name: "Naisten Linja Suomessa - Women's Line in Finland",
+    name: 'Naisten Linja Suomessa - Womens Line in Finland',
     description:
       "Naisten Linja Suomessa ry (Women's Line in Finland) is an association registered in 1999, the purpose of which is to oppose attitudes and structures that perpetuate violence against women in society, to eliminate such violence at the social and individual level, and to help women and other participants in violence. In addition, the association strives to promote women's equality and rights in society.<br><br>Naisten Linja fulfills its purpose by supporting women and girls and their loved ones who have experienced and fear violence. The Women's Line helpline, chat service, online mail service, and peer support groups help anyone who defines themselves as a woman who wants to discuss a concern about violence. The contact person does not need to define herself in advance as an victim of violence, nor does she need to know about the different forms of violence. Mere worry is enough.<br><br>In addition to organizing services, Naisten Linja acts as a social influencer. The association makes statements, produces and disseminates information on violence against women, participates in public debate and cooperates with national and international actors in the field. Naisten Linja also provides support services for women who have experienced digital violence, organizes training on digital violence for various target groups, and carries out advocacy and research cooperation in the field of digital violence and online harrasment. <br><br>The main sponsor of Naisten Linja is the Finnish Funding Centre for Social Welfare and Health Organisations (STEA). In addition, Naisten Linja raises its own funds and organizes peer group activities supported by the City of Helsinki.<br><br>Naisten Linja is founded by those who have experienced violence. Peer support and the voice of the victim of violence remain at the heart of our work. The association exists because an early, low-threshold service package prevents and empowers women and girls who have experienced violence. Support for those experiencing violence as early as possible is vital, literally.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/99932/orglogo.png',
@@ -28120,7 +28120,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '661db2c4-1af1-4dde-903d-d55e71e2a439',
-    name: 'Jewish Federation of Northern New Jersey, Inc.',
+    name: 'Jewish Federation of Northern New Jersey, Inc',
     description:
       'Federation works to build a vibrant Jewish community and a bright Jewish future. Our resources give us access and opportunity to secure and support our community and provide relief in times of crisis. We are the only organization in northern New Jersey that focuses on the needs and issues of the entire Jewish community.',
     logoUrl:
@@ -28133,7 +28133,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '08ab7073-2a35-4913-9d18-49114ed4fa07',
-    name: "St. Louis Children's Hospital Foundation",
+    name: 'St Louis Childrens Hospital Foundation',
     description:
       'St. Louis Children’s Hospital will do what is right for children.',
     logoUrl:
@@ -28209,7 +28209,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '51742c48-05a7-49b3-8f83-397dfb8b9737',
-    name: 'Stone Soup Cafe, Inc.',
+    name: 'Stone Soup Cafe, Inc',
     description:
       'Our mission is to create a community space where people from all walks of life come together to share nourishment, connection, and learning for body, mind, and spirit.',
     logoUrl:
@@ -28308,7 +28308,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4789d6f4-3eaf-4bab-a2d7-8da268cdac00',
-    name: 'Transformation Church, Inc.',
+    name: 'Transformation Church, Inc',
     description:
       '“Leading people into a TRANSFORMING relationship with Jesus.”. Our donors are primarily individuals both here in the US and around the world.',
     logoUrl:
@@ -28394,7 +28394,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fca59007-d261-4a7b-820d-2e984596384c',
-    name: "The Father's House",
+    name: 'The Fathers House',
     description:
       "At The Father's House, it is our mission to care for people in every stage of faith. Empowering and equipping Christ-followers to know Him more and to make Him known throughout all of the world.",
     logoUrl:
@@ -28469,7 +28469,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0184cb91-4065-9be1-d995-2d6f7645cecc',
-    name: 'Essex & Herts Air Ambulance Trust',
+    name: 'Essex  Herts Air Ambulance Trust',
     description:
       'Our aim is to save lives, reduce or prevent disability, or suffering from critical illness and injury, by delivering a first class pre-hospital emergency medical service to the people of Essex, Hertfordshire and surrounding areas.',
     logoUrl: '',
@@ -28542,7 +28542,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8651e5b1-4adf-a718-f46d-7b9b7a99580f',
-    name: 'Have Hammer Will Travel  A. C.',
+    name: 'Have Hammer Will Travel  A C',
     description:
       'Teaching Mexican Youth boys and girls valuable life skills through woodworking , carpentry and CAD design.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/86361/orglogo.jpg',
@@ -28554,7 +28554,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd8ab335f-b92e-458b-b119-38fc4b7820b5',
-    name: 'Project Camp, Inc.',
+    name: 'Project Camp, Inc',
     description:
       'Instilling inspiration and empowerment while enhancing the lives of children with serious illnesses.',
     logoUrl:
@@ -28690,7 +28690,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cec69026-bbfc-4c59-857a-28ec43e89b1d',
-    name: 'St. Mary Medical Center Foundation',
+    name: 'St Mary Medical Center Foundation',
     description:
       'As a member of CommonSpirit Health, we make the healing presence of God known in our world by improving the health of the people we serve, especially those who are vulnerable, while we advance social justice for all.',
     logoUrl:
@@ -28716,7 +28716,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c3b744e1-446d-a90e-c67d-77196484cacd',
-    name: "Non-governmental organization Women's Federation for World Peace",
+    name: 'Non-governmental organization Womens Federation for World Peace',
     description:
       'International non-governmental organization "Women\'s Federation for World Peace" is committed to establish lasting peace through  uniting  women of Ukraine and other countries in educational and charity activities, national and international conferences, benefits and service projects.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/31531/orglogo.jpg',
@@ -28740,7 +28740,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e3594d67-4f5c-a4ce-c658-4eb0237dd3ce',
-    name: 'Traditions & People',
+    name: 'Traditions  People',
     description:
       "Traditions & People is a social enterprise that launched the first farmers' market of Lebanon in 2004 (called \"Souk el Tayeb\"), the farmers' market has evolved since 2004 from an experimental project promoting small-scale farmers and producers, to an innovative social enterprise working on both national and international projects to develop and preserve culinary traditions, rural heritage and the natural environment. This has been achieved through the launch of a series of farmer's kitchens (6 Tawlet restaurants) and bed & breakfasts (5 Beits) across the country, as well as creating a catering unit and a grocery line (Dekenet). Thanks to this network, over 1,000 people found jobs in their local community from small-scale farmers and producers, to women/housewives/cooks, especially from the underprivileged communities and youth.<br>In addition, through its Capacity Building Program, Traditions & People trained hundreds of women and youth from underprivileged communities, working in partnership with international organizations and donors.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/99294/orglogo.png',
@@ -28933,7 +28933,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a93b3b82-4d39-9618-db50-64a7c1e9a6a0',
-    name: "Women's Aid Organisation (WAO)",
+    name: 'Womens Aid Organisation (WAO)',
     description:
       "WAO opened Malaysia's first Refuge for battered women and their children in 1982. WAO Vision is to create a society that is free of violence against women. The WAO mission is to promote and create respect, protection and fulfillment of equal rights for women and to work towards the elimination of discrimination against women and to bring about equality between women and men.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/7165/orglogo.jpg',
@@ -29006,7 +29006,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '164b87a1-4fa4-a07c-f9a2-329be8b1200e',
-    name: "Afghanistan Women's Trade Caravan (AWTC)",
+    name: 'Afghanistan Womens Trade Caravan (AWTC)',
     description:
       'Vision: Afghan Women have become global exporters. <br>Mission: AWTC works to meaningfully support Afghan become traders, exporting Afghan women made products all over the world',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/71049/orglogo.jpg',
@@ -29315,7 +29315,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c5bb7fde-4037-b7b6-dd5d-1aa9d00637ba',
-    name: 'Enlace Distrofia Muscular Duchenne Backer A.C.',
+    name: 'Enlace Distrofia Muscular Duchenne Backer AC',
     description:
       'Our mission is to provide comprehensive health care, as well as emotional and spiritual support for patients with Duchenne or Becker muscular dystrophy and their families, improving their quality of life; involving parents, doctors, volunteers and society in our organization. <br><br>Enlace Distrofia Muscular Duchenne Becker is a legally incorporated, non-profit organization serving the state of Chihuahua in Mexico. We are the only organization providing optimal medical care as well as emotional and spiritual support for Duchenne/Becker muscular dystrophy patients and their families. For the last 21 years, our organization has been developing and improving a unique model to serve Duchenne/Becker muscular dystrophy patients. During that time, we have served approximately 155 boys and young men affected by Duchenne/Becker muscular dystrophy and their families. No private of public hospital in Northern Mexico provides the specialized care needed by our patients, this is why our services include access to healthcare professionals and specialized medical care (Neurology, Cardiology, Pulmonary, Orthopedics, Physical Therapy, Endocrinology, Nutrition and Physiology); medications, X-Rays, laboratory work, surgeries, genetic testing and diagnosis. We also provide our patients and their families with psychological and end-of life counseling services, and medical equipment such as electric wheelchairs, respiratory ventilators, pacemakers, and transportation in a wheelchair accessible vehicle to and from doctors and medical appointments.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/96528/orglogo.png',
@@ -29353,7 +29353,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8fc6f30f-424e-4f6f-be30-ca9a146613f2',
-    name: 'The Shelter for Abused Women & Children',
+    name: 'The Shelter for Abused Women  Children',
     description:
       'Leading and collaborating with the community to Prevent, Protect and Prevail over domestic violence and human trafficking.',
     logoUrl:
@@ -29366,7 +29366,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '10ebf708-4e2f-9cc6-d338-15ab7b923275',
-    name: 'Fundacion JUCONI Mexico, A.C.',
+    name: 'Fundacion JUCONI Mexico, AC',
     description:
       'The JUCONI Foundation mission is developing, implementing and sharing effective solutions for socially excluded children, young people and families affected by violence.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/31913/orglogo.jpg',
@@ -29415,7 +29415,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '43876512-20b5-4264-ac51-4c9a995b626d',
-    name: "Scottsdale Artist's School",
+    name: 'Scottsdale Artists School',
     description:
       'Scottsdale Artists’ School is dedicated to the artistic enrichment of the community and to developing the capabilities of artists and aspiring artists of all ages by teaching the applied fundamentals of fine art.',
     logoUrl:
@@ -29479,7 +29479,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0821cc37-9c75-469f-9076-0202a2e6b00b',
-    name: 'Women in Distress of Broward County, Inc.',
+    name: 'Women in Distress of Broward County, Inc',
     description:
       'Our mission is to stop domestic violence abuse for everyone through intervention, education and advocacy.',
     logoUrl:
@@ -29541,7 +29541,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5588e4a9-4926-b7dc-e29c-c8af6b934f49',
-    name: 'Lilipad e.V.',
+    name: 'Lilipad eV',
     description:
       'We empower children in vulnerable communities by fostering education. To accomplish this, we build long-lasting partnerships with local institutions and organisations, and provide them with books, educational materials, and support.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/79019/orglogo.png',
@@ -29576,7 +29576,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '206e4d5d-42da-8d3e-d01e-6cac58d56a50',
-    name: 'Cooperación Comunitaria A.C.',
+    name: 'Cooperación Comunitaria AC',
     description:
       'We seek to improve the habitability conditions as well as promote resilience of indigenous, rural communities  in Mexico by facilitating a sustainable self-management of the social, economic and environmental factors for rural development. We employ holistic approaches that recover traditional knowledge and improve the relationship between society and nature.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/33810/orglogo.jpg',
@@ -29649,7 +29649,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a90496e9-4310-b8d8-d8cc-1c4709fb297b',
-    name: "Friends Women's Association",
+    name: 'Friends Womens Association',
     description:
       "Friends Women's Association, FWA, is a grass-roots organization in Burundi, addresses the needs of women in conflict, poverty, HIV/AIDS, and sexual violence. The FWA health care clinic focuses on treating both physical and  psycho-social needs. FWA provides a comprehensive health care to women and their families, to promote women's leadership and autonomy and to strengthen peace and solidarity in Kamenge, a slum in Bujumbura and in other communities of Burundi.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/46930/orglogo.jpg',
@@ -29673,7 +29673,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '956c539b-e1cf-4574-93db-f4caff18ebe0',
-    name: 'Lowell Parks and Conservation Trust, Inc.',
+    name: 'Lowell Parks and Conservation Trust, Inc',
     description:
       'To improve the quality of life for the people of Lowell through education and through the creation, conservation, and preservation of parks, open spaces, and special places.',
     logoUrl:
@@ -29795,7 +29795,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ca4830c8-f0e5-4f8c-b666-7923e0d2054d',
-    name: 'International Consortium of Investigative Journalists, Inc.',
+    name: 'International Consortium of Investigative Journalists, Inc',
     description:
       'To show people how the world really works through stories that rock the world; forcing positive change.',
     logoUrl:
@@ -29880,7 +29880,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '44d83009-4f1b-82b2-e6ff-2aba9de6fd16',
-    name: 'rubicon e. V.',
+    name: 'rubicon e V',
     description:
       'Concisely, rubicon e. V. aims to address both the individual and social challenges faced by the marginalized lesbian, gay, bisexual, trans*, intersex* and queer identifying persons and to demand, promote and facilitate interactions with heteronormative structures and stakeholders, in order to defend human rights and to reduce violence and discrimination. rubicon works towards a just society where gender and sexual diverse people live self-confidently and love freely.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/99141/orglogo.png',
@@ -29942,7 +29942,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8de22015-4e20-4120-a00f-864c9a141e56',
-    name: 'B2Theworld, Inc.',
+    name: 'B2Theworld, Inc',
     description:
       'B2THEWORLD is a global partnership of Christians that foster transformative education in countries recovering from war. Our vision is fullness of life for the future of every child impacted by war.<br>By leveraging the power of education, we combat the generational impacts of war.',
     logoUrl:
@@ -30115,7 +30115,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1ced2ba9-4f5f-8c50-db10-141c98c31a46',
-    name: "Khoj-Society for People's Education",
+    name: 'Khoj-Society for Peoples Education',
     description:
       'Our mission is to work with the underserved communities, with a special focus on women and children, achieve major improvements in their lives. To this end, Khoj will work using innovative methodologies direct with the communities, and with local and international partners who share our vision, to create just and peaceful societies where the disadvantaged people, especially women and children, can exercise their fundamental rights',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/38753/orglogo.png',
@@ -30200,7 +30200,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1a36253f-f4aa-4b58-892e-c5e6a0421cb2',
-    name: 'KidsTLC, Inc.',
+    name: 'KidsTLC, Inc',
     description:
       'KidsTLC exists to transform the lives of children and families experiencing mental and behavioral health challenges, developmental trauma and autism.',
     logoUrl:
@@ -30225,7 +30225,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b96b50f3-43c7-9256-fe86-5dd37e77084a',
-    name: "NIGERIAN ASSOCIATION FOR WOMEN'S ADVANCEMENT",
+    name: 'NIGERIAN ASSOCIATION FOR WOMENS ADVANCEMENT',
     description:
       "Nigerian Association For Women's Advancement Mission is to empower women through education, to recognize her role as backbone of the family, to make free and responsible  choices and to be an agent  of change by upholding ethical and moral  values in all her activities.",
     logoUrl: 'https://www.globalgiving.org/pfil/organ/96785/orglogo.jpg',
@@ -30249,7 +30249,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd11c55ee-4b25-9fc1-fc1b-ece5b440ee6c',
-    name: "Irida Women's Center",
+    name: 'Irida Womens Center',
     description:
       'Irida Women\'s Center is a nonprofit organization that empowers economically and socially vulnerable women to become active members in society and to fulfil their goals and aspirations. In our women led community center, women can find the support they need to address challenges, find solutions and achieve positive change. Through counseling, legal and psychosocial support, and employability services, women are inspired to share and learn, make responsible decisions for their lives and pursue opportunities for personal and professional development.<br><br>Mission: "To ensure that all women are supported and empowered to pursue opportunities for personal and professional development and determine the course of their lives".',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/80071/orglogo.png',
@@ -30298,7 +30298,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd4d4bcc4-4b57-a7bf-cce6-5c55aacddf3e',
-    name: 'Favela Inc.',
+    name: 'Favela Inc',
     description:
       'Our mission is to cultivate and incubate sustainable favela-based impact ecosystems that facilitate innovation and access to education, infrastructure, and investment for favela-centric startups, non-profits, and institutions. We seek to fortify favela communities and their citizens in the long-term, by providing them with access to knowledge, networks, infrastructure, and partners that will allow them to be the protagonists of the socioeconomic development of their community. We help remove the inherent limitations caused by widespread economic exclusion and institutional racism by giving the power of economic autonomy and sustainability back to favela.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/84753/orglogo.png',
@@ -30334,7 +30334,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5770f204-6b40-45be-8013-236add283827',
-    name: 'Good+Foundation',
+    name: 'GoodFoundation',
     description:
       'Founded in 2001, Good+Foundation is a leading national nonprofit that works to dismantle multi-generational poverty by pairing tangible goods with innovative services for low-income fathers, mothers and caregivers, creating an upward trajectory for the whole family.',
     logoUrl: 'https://static.tgbwidget.com/GoodPlus.jpg',
@@ -30474,7 +30474,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '85711f17-26bb-4bda-9cd0-d9aa03e4885f',
-    name: 'World Jewish Congress (American Section), Inc.',
+    name: 'World Jewish Congress (American Section), Inc',
     description:
       'The World Jewish Congress is the internationally recognized representative body of Jewish communities in more than 100 countries across six continents, working on their behalf with foreign governments, international organizations, law enforcement agencies, and at the grassroots level to: combat antisemitism, bigotry, xenophobia, and extremism; support Israel and advance Middle East peace; safeguard Jewish security; advocate on issues of international human rights; preserve and perpetuate the memory of the Holocaust; promote and enhance Jewish unity and interfaith relations; and nurture future generations of Jewish leadership.',
     logoUrl:
@@ -30630,7 +30630,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'af39a20a-2d2a-4add-83ef-89327c589796',
-    name: 'Impact Church',
+    name: 'Impact Church 2',
     description:
       'Impact Church is dedicated to rebuilding the spirit of the community with Jesus Christ as its cornerstone.',
     logoUrl:
@@ -30873,7 +30873,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b7bcb296-6091-41c4-9490-3c4491f62c1c',
-    name: 'Haiti Health Promise / CRUDEM Fnd',
+    name: 'Haiti Health Promise  CRUDEM Fnd',
     description:
       'For over 60 years, our sole focus is providing the northern region of Haiti with quality healthcare, the opportunity for a stable community life, and avenues for economic growth.  Our centerpiece project is the 200-bed Hôpital Sacré Coeur, the largest non-government hospital and public health provider for the 250,000 people living in the Milot region of Northern Haiti and the official government reference hospital that serves the 3.4 million plus population of the Northern districts of Haiti.  <br>Hôpital Sacré Coeur has engaged in more than 5 million patient interactions in the last ten years alone, including hospital admissions, surgical procedures, outpatient clinics, diagnostic tests, laboratory tests, and prescription medicines.  Preventative healthcare outreach efforts include pre-natal, vaccine, HIV-Aids, pediatric diabetes and other onsite medical assistance, education, and screening.  <br>With a staff of over 350 Haitians, Hôpital Sacré Coeur is the region’s major employer and economic driver.',
     logoUrl:
@@ -30886,7 +30886,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cd4a6b46-1397-43d3-864e-09b64b0f9397',
-    name: 'Notes for Notes, Inc.',
+    name: 'Notes for Notes, Inc',
     description:
       'NOTES FOR NOTES® provides youth with FREE access to music instruments, instruction and recording studio environments in person and digitally so that music may become a profoundly positive influence in their lives.',
     logoUrl: 'https://static.tgbwidget.com/NotesforNotes4.jpg',
@@ -31014,7 +31014,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '83c0fe99-20b6-4c7e-acce-b13cd198b363',
-    name: 'Boys & Girls Clubs of South Central Texas',
+    name: 'Boys  Girls Clubs of South Central Texas',
     description:
       'Our mission is to enable all young people, especially those who need us the most, to reach their full potential as productive, caring, responsible citizens.',
     logoUrl:
@@ -31040,7 +31040,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0d7db2da-1d84-44a2-a129-347b65210827',
-    name: 'Support and Feed, Inc.',
+    name: 'Support and Feed, Inc',
     description:
       'SUPPORT + FEED is an intersectional 501(c)(3) organization dedicated to taking action for a global shift to an equitable, plant-based food system to combat food insecurity and the climate crisis.',
     logoUrl:
@@ -31184,7 +31184,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ab0ad086-175d-4405-bd4a-248babf8c357',
-    name: 'Christopher & Dana Reeve Foundation',
+    name: 'Christopher  Dana Reeve Foundation',
     description:
       'We are dedicated to curing spinal cord injury by advancing innovative research and improving the quality of life for individuals and families impacted by paralysis.',
     logoUrl:
@@ -31209,7 +31209,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b1434289-6944-418d-9ada-18b1b6995809',
-    name: 'Girls Who Code Inc.',
+    name: 'Girls Who Code Inc',
     description:
       'Girls Who Code programs work to inspire, educate, and equip girls with the computing skills to pursue 21 St century opportunities.',
     logoUrl:
@@ -31469,7 +31469,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '710b7976-e5b8-4fde-932f-0b0deff71631',
-    name: "America's Charities",
+    name: 'Americas Charities',
     description:
       "America's Charities inspires employees and organizations to support the causes they care about. We help nonprofits fundraise unrestricted, sustainable dollars, and we help people achieve their giving, engagement, and social impact goals. We do this to bring more resources to the nonprofits that are changing our world.",
     logoUrl:
@@ -31547,7 +31547,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0fceaac7-1706-4a36-ac88-6dd75ed50cfe',
-    name: 'Society of St. Andrew',
+    name: 'Society of St Andrew',
     description:
       'The Society of St. Andrew brings people together to harvest and share healthy food, reduce food waste, and build caring communities by offering nourishment to hungry neighbors.',
     logoUrl:
@@ -31612,7 +31612,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'bda6d11c-02d2-4b25-9e26-81822e9f985e',
-    name: "Harper's Playground",
+    name: 'Harpers Playground',
     description:
       'Harper’s Playground inspires vital communities by creating inviting playgrounds for people of all abilities.',
     logoUrl:
@@ -31638,7 +31638,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9cce6973-80c9-4377-abaf-81a44695acc4',
-    name: "Children's Tumor Foundation",
+    name: 'Childrens Tumor Foundation',
     description:
       'Neurofibromatosis (NF) causes tumors to grow on nerves throughout the body, and affects 1 in every 3,000 people of every population. \r\nOur Mission:  Drive research, expand knowledge, and advance care for the NF community.\r\nOur Vision:  End NF.',
     logoUrl:
@@ -31651,7 +31651,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b0925262-92bd-4476-8292-5b49227a7b5b',
-    name: 'Pursuit Transformation Company, Inc.',
+    name: 'Pursuit Transformation Company, Inc',
     description:
       'Based in the New York metro area, Pursuit is an innovative social impact organization whose mission is to close the prosperity gap in America. Each year, our work builds pathways to lucrative, long-term tech careers for hundreds of diverse, low-income, high-potential adults.',
     logoUrl:
@@ -31704,7 +31704,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '07c6c0e6-1d17-4d16-abad-c3dd15b7983f',
-    name: 'Hamilton Community Foundation, Inc.',
+    name: 'Hamilton Community Foundation, Inc',
     description:
       'Building a better community through creative philanthropy, vision and leadership.',
     logoUrl:
@@ -31743,7 +31743,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4d889d13-9a3e-426c-b191-7a26d15eadb2',
-    name: 'Foundation for Economic Education, Inc.',
+    name: 'Foundation for Economic Education, Inc',
     description:
       'FEE strives to bring about a world in which the economic, legal, and ethical principles of a free society are familiar, credible, and compelling to the rising generation. \nThese principles include individual liberty, free-market economics, entrepreneurship, private property, and strong personal character.',
     logoUrl:
@@ -31756,7 +31756,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd93f2b09-b2bb-46d3-b0f7-a49703141564',
-    name: 'Watchtower Bible and Tract Society of New York, Inc.',
+    name: 'Watchtower Bible and Tract Society of New York, Inc',
     description:
       "Watchtower Bible and Tract Society of New York, Inc., is a religious organization organized to support the activities of Jehovah's Witnesses in the United States, such as the preaching and teaching of God's Word, the Bible.  In an effort to teach as many people as possible, the organization records, produces, prints, and distributes Bibles and Bible-based literature, music, art, and other intellectual property of a religious or educational nature in any medium in over 1,000 languages.  Watchtower Bible and Tract Society of New York, Inc., also uses voluntary contributions to provide facilities for the administration of Jehovah's Witnesses' activities and to provide humanitarian assistance to individuals who have suffered from natural or man-made disasters.",
     logoUrl: '',
@@ -31768,7 +31768,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '82884e3e-da83-4f71-9831-ef6d83a1c2ff',
-    name: 'John P. McGovern Museum of Health & Medical Science',
+    name: 'John P McGovern Museum of Health  Medical Science',
     description:
       "The Health Museum's mission is to foster wonder and curiosity about health, medical science and the human body.",
     logoUrl:
@@ -31807,7 +31807,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b4c1f7df-0227-4e92-9a3b-f7a57d92f72d',
-    name: 'Chinese Culture and Community Service Center, Inc.',
+    name: 'Chinese Culture and Community Service Center, Inc',
     description:
       '(1) To unite and to strengthen the bonds of the Chinese American community and to encourage the cooperation among Chinese American organizations.\\n(2) to provide services to the Chinese and local communities.\\n(3) to promote mutual understanding and appreciation of Chinese and American culture and heritage.\\n(4) to enhance the positive image and to protect the interests of Chinese Americans.',
     logoUrl:
@@ -31833,7 +31833,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6583a0ae-5ca6-4162-a4f7-023adae01f66',
-    name: 'Asian, Inc.',
+    name: 'Asian, Inc',
     description:
       'ASIAN, Inc. empowers economic equity by creating opportunities in business development, housing and financial education for Asian Americans and other socioeconomically disadvantaged populations.',
     logoUrl:
@@ -31949,7 +31949,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7a504475-9b28-47d1-8fff-0b66dcf5567d',
-    name: 'Wayuu Taya Foundation Inc.',
+    name: 'Wayuu Taya Foundation Inc',
     description:
       'To improve the living conditions of Latin American indigenous people while maintaining and respecting their traditions, culture and beliefs',
     logoUrl:
@@ -31975,7 +31975,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '41f2d3f6-7a3d-4601-bd3a-a0534728e9be',
-    name: 'Ronald McDonald House Charities® of Chicagoland & Northwest Indiana',
+    name: 'Ronald McDonald House Charities® of Chicagoland  Northwest Indiana',
     description: 'We exist so families can get better together.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/1ccf8410-d7c4-4542-a7cb-cf7ffb8a8809.jpg',
@@ -31987,7 +31987,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd9fc9d0a-c8f5-4cba-8faa-7a80db8abc7e',
-    name: 'Trinity Christian School Sharpsburg, Inc.',
+    name: 'Trinity Christian School Sharpsburg, Inc',
     description:
       "Our mission is to prepare today’s student to impact tomorrow's world: by educating minds for cultural engagement, equipping hearts for character development, and empowering hands for compassionate service.",
     logoUrl:
@@ -32013,7 +32013,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0a5c87c5-aa11-4009-80b8-839df40ae750',
-    name: 'Coalition for the Homeless of Houston/Harris County',
+    name: 'Coalition for the Homeless of HoustonHarris County',
     description:
       'The Coalition for the Homeless of Houston/Harris County acts as a catalyst, uniting partners and maximizing resources to move people experiencing homelessness into permanent housing with supportive services.',
     logoUrl:
@@ -32026,7 +32026,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f097924c-45b1-4c29-becf-e68748b41291',
-    name: 'West Harlem Environmental Action, Inc. (WE ACT for Environmental Justice)',
+    name: 'West Harlem Environmental Action, Inc (WE ACT for Environmental Justice)',
     description:
       'West Harlem Environmental Action, Inc. (WE ACT for Environmental Justice)  is a Northern Manhattan community-based organization whose mission is to build healthy communities by assuring that people of color and/or low-income participate meaningfully in the creation of sound and fair environmental health and protection policies and practices. As a result of our ongoing work to educate and mobilize the more than 630,000 residents of Northern Manhattan on environmental issues affecting their quality of life, WE ACT has become a leader in the nationwide movement for environmental justice, influencing the creation of federal, state  and local policies affecting the environment.',
     logoUrl:
@@ -32088,7 +32088,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0a536b5d-d5aa-4c1c-8f72-7e3c1de152a3',
-    name: "Starlight Children's Foundation",
+    name: 'Starlight Childrens Foundation',
     description:
       'Starlight Children’s Foundation is a 501(c)3 organization that delivers happiness to seriously ill children and their families. Since 1982, Starlight’s ground-breaking and innovative programs, like Starlight Virtual Reality, Starlight Hospital Wear, and Starlight Gaming, have impacted 17 million kids at more than 800 children’s hospitals across the U.S. To learn more and to help Starlight deliver happiness to seriously ill kids this year, visit www.starlight.org.',
     logoUrl: "https://static.tgbwidget.com/StarlightChildren'sFoundation.jpg",
@@ -32100,7 +32100,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '18521705-d484-4dc4-aee6-323076234134',
-    name: '4Mycity Inc.',
+    name: '4Mycity Inc',
     description:
       'At 4MyCiTy, our focus is on the Importance of environmental sustainability. Primarily the sustainable management of food in relation to reducing organic waste. Our program limits the harmful effects caused by organic waste on our environment while improving food security for families within our communities.',
     logoUrl: 'https://static.tgbwidget.com/4myCity.jpg',
@@ -32256,7 +32256,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0d32a68a-e8f6-4720-98fc-c24f88308393',
-    name: 'Esperança, Inc.',
+    name: 'Esperança, Inc',
     description:
       'We build optimal social, mental, and physical health in under-resourced communities across the globe.',
     logoUrl:
@@ -32319,7 +32319,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '56b19331-a08e-4ddc-bf51-f118821cacad',
-    name: 'Prison Entrepreneurship Program, Inc.',
+    name: 'Prison Entrepreneurship Program, Inc',
     description:
       'Our mission is to unite executives and inmates through entrepreneurial passion and servant leadership to transform lives, restore families and rebuild communities.',
     logoUrl:
@@ -32564,7 +32564,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ec0dc3e1-6891-4a3b-9c32-607fd42b621f',
-    name: 'Hispanic Unity of Florida, Inc.',
+    name: 'Hispanic Unity of Florida, Inc',
     description:
       'Empowering immigrants and others to become self-sufficient, productive and civically engaged.',
     logoUrl:
@@ -32773,7 +32773,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '411fe74e-46f4-425b-94b1-35df5ab3b62e',
-    name: 'NextStep Fitness, Inc.',
+    name: 'NextStep Fitness, Inc',
     description:
       'NextStep is an internationally recognized non-profit that makes life-changing rehab and fitness accessible and affordable to individuals living with paralysis. Today, most of these individuals are deprived of the resources they desperately need to live long, healthy and happy lives. NextStep’s goal is to open NextStep paralysis recovery centers across the country to ensure an improved quality-of-life and a continuum of care for this underserved population. By offering standardized activity-based therapy programs and interventions, based on research our centers provide the best chance for recovery, independence, and health.',
     logoUrl: 'https://static.tgbwidget.com/NextStepFitness.jpg',
@@ -32838,7 +32838,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c4f9fb39-d891-4938-b409-fd009e8cf870',
-    name: 'MAUI UNITED WAY, INC.',
+    name: 'MAUI UNITED WAY, INC',
     description:
       "Our mission is to bridge resources that enrich and empower our County of Maui's Community.",
     logoUrl:
@@ -33185,7 +33185,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f89c5df2-d512-48c9-99ff-cdd04655f289',
-    name: 'Asian immigrant Women Advocates, Inc.',
+    name: 'Asian immigrant Women Advocates, Inc',
     description:
       'Asian Immigrant Women Advocates (AIWA) works toward empowerment of low-income Asian immigrant women and youth to bring about positive changes in their communities.',
     logoUrl:
@@ -33302,7 +33302,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '855e0ba0-6895-4c19-81fb-a6c88d238c5d',
-    name: 'Arteeast, Inc.',
+    name: 'Arteeast, Inc',
     description:
       'Founded in 2003, ArteEast is a leading New York-based non-profit organization dedicated to engaging a growing global audience with the contemporary arts of the Middle East and North Africa (MENA).\r\nThrough public programming, strategic partnerships, and dynamic online publications, ArteEast is a forum for critical dialogue and exchange aimed at supporting the development of a sustainable MENA art sector.',
     logoUrl:
@@ -33379,7 +33379,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1e741522-ee3b-49aa-a2be-d945176462c0',
-    name: 'Tmma Farms & Sanctuary Inc',
+    name: 'Tmma Farms  Sanctuary Inc',
     description:
       'We are a full working farm and sanctuary.  Rescuing livestock for more than 20 years, we now specialize in special needs alpacas and llamas and occasionally bring in other livestock.   We do offer tours to our farm to teach people about raising livestock properly and what happens when humans don’t take care of their livestock.    We also educate the public about alpaca and llama fleece and it’s useable fiber.   There are so many wonderful pet rescues but we have learned there are not enough livestock rescues and even less special needs livestock rescues.  We feel with our knowledge of livestock, a super vet and our farm, we can offer guidance, support and forever homes for our special needs cases.',
     logoUrl:
@@ -33493,7 +33493,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1a5af87c-6d26-41e2-9120-2c60ebc8029d',
-    name: 'Water.org',
+    name: 'Waterorg',
     description:
       "Water.org is an international nonprofit organization that has positively transformed millions of lives around the world with access to safe water and sanitation through affordable financing. Founded by Gary White and Matt Damon, Water.org pioneers market-driven financial solutions to the global water crisis. For 30 years, we've been providing women hope, children health, and families a future.",
     logoUrl:
@@ -33597,7 +33597,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ba457724-4601-4b2b-9494-9dc6d3721421',
-    name: 'Transformation Church Inc',
+    name: 'Transformation Church Inc 2',
     description:
       'We exist to Re-Present God to the lost and found for transformation in Christ. We are a multi-church. Meaning we are a multi-generational, multi-ethnic, multi-plying, and multi-campus.',
     logoUrl:
@@ -33610,7 +33610,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f522ef7b-14a5-4b1b-9b81-eba6d92294d6',
-    name: 'CASA of Northwest Arkansas, Inc.',
+    name: 'CASA of Northwest Arkansas, Inc',
     description:
       'Court Appointed Special Advocates (CASA) of Northwest Arkansas provides compassionate volunteers who advocate for abused and neglected children. We are committed to ensuring a consistent voice, safe home, and promising future for children in foster care.',
     logoUrl:
@@ -33648,7 +33648,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '42cb2667-b108-473d-810b-5fca09bc6ce4',
-    name: 'Pride Northwest, Inc.',
+    name: 'Pride Northwest, Inc',
     description:
       'The mission of Pride Northwest, Inc. is to encourage and celebrate the positive diversity of the lesbian, gay, bisexual, and trans communities, and to assist in the education of all people through the development of activities that showcase the history, accomplishments, and talents of these communities.',
     logoUrl:
@@ -33661,7 +33661,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3e603af1-9b10-46b5-88a5-3e8efc865e20',
-    name: "Fisherman's Mark",
+    name: 'Fishermans Mark',
     description:
       'The mission of Fisherman’s Mark is to strengthen our community.\nWith responsive programs and services that promote stability, health and education, Fisherman’s Mark is an advocate for positive change in the lives of our neighbors and their families.',
     logoUrl:
@@ -33674,7 +33674,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7ac12525-3de1-4914-94a9-d2b31d885607',
-    name: 'Nuclear Threat Initiative Inc.',
+    name: 'Nuclear Threat Initiative Inc',
     description:
       'The Nuclear Threat Initiative (NTI) is a nonprofit, nonpartisan global security organization focused on reducing nuclear and biological threats imperiling humanity.  Founded in 2001 by former U.S. Senator Sam Nunn and philanthropist Ted Turner who continue to serve as co-chairs, NTI is guided by a prestigious, international board of directors. Ernest J. Moniz serves as chief executive officer and co-chair; Des Browne is vice chair; and Joan Rohlfing serves as president.',
     logoUrl:
@@ -34024,7 +34024,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7165dfdb-f1ac-4f34-b71a-7584e812f185',
-    name: 'Houston Arboretum & Nature Center',
+    name: 'Houston Arboretum  Nature Center',
     description:
       'The mission of the Houston Arboretum & Nature Center is to provide education about the natural environment to people of all ages, and to protect and enhance the Arboretum as a haven and sanctuary for native plants and animals.',
     logoUrl:
@@ -34138,7 +34138,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'abdaeb49-49da-998d-f912-ae2b276e77ba',
-    name: 'Las Pinas Persons with Disability Federation Inc.',
+    name: 'Las Pinas Persons with Disability Federation Inc',
     description:
       'To Unite Persons with Disabilities in Las Pinas Cuty<br>To be a Model Federation empowering persons with disabilities to become self reliant and productive members of the society',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/96124/orglogo.jpg',
@@ -34163,7 +34163,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ba6d4890-e644-4b35-b8b6-4b3f64dd1cfb',
-    name: 'Jewish Community Federation Of San Francisco, The Peninsula , Marin & Sonoma Counties',
+    name: 'Jewish Community Federation Of San Francisco, The Peninsula , Marin  Sonoma Counties',
     description:
       'Our vision is a vibrant, caring, and enduring Jewish community that is a force for good locally, in Israel, and around the world.<br><br>Our Mission is to be a philanthropic catalyst, connecting Bay Area Jews - of all ages, backgrounds, and perspectives - to the power we have as a community to improve the world. We partner with donors, organizations, and foundations to address the pressing issues facing our community, and develop innovative strategies that result in deep and lasting impact.',
     logoUrl:
@@ -34230,7 +34230,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cbf5f3a4-6fba-4b75-83f5-8480f55fe990',
-    name: 'Trees for the Future, Inc.',
+    name: 'Trees for the Future, Inc',
     description:
       'We train farmers in sustainable land use so that they can build vibrant regional economies, thriving food systems, and a healthier planet.',
     logoUrl:
@@ -34369,7 +34369,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9e154439-4407-4395-9908-4799113e4e85',
-    name: 'Hope Medical Clinic, Inc.',
+    name: 'Hope Medical Clinic, Inc',
     description:
       "We partner with you to make lives better serving the whole person providing free medical, dental, food, and behavioral health care; in Jesus' name.",
     logoUrl:
@@ -34408,7 +34408,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd793f90e-9103-4b24-9786-99db9f9a4344',
-    name: 'Rett Syndrome Research Trust, Inc.',
+    name: 'Rett Syndrome Research Trust, Inc',
     description:
       "RSRT's mission is to spur and support research that is leading to a cure for Rett Syndrome and related MECP2 disorders.  Rett is a devastating disorder that afflicts 350,000 children and adults around the world. It robs its victims of speech, movement, and hand use and often causes seizures, breathing abnormalities, extreme anxiety, digestive and cardiac problems.  Rett is caused by a random mutation on the X chromosome and it afflicts mostly girls and women. \nIn 2020 RSRT launched a new phase of its research called CURE 360. The name reflects the fact that RSRT has Rett surrounded with the most promising approaches that attack the disorder at its genetic core. CURE 360 also ensures that the research incubated at RSRT moves into biopharma, a critical step for advancing to clinical trials.",
     logoUrl:
@@ -34434,7 +34434,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fc48bed1-0e22-4fed-b514-e1cd0bc8ea2e',
-    name: 'American Jewish World Service, Inc.',
+    name: 'American Jewish World Service, Inc',
     description:
       'Inspired by the Jewish commitment to justice, American Jewish World Service (AJWS) works to realize human rights and end poverty in the developing world.',
     logoUrl:
@@ -34537,7 +34537,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7a27fb4f-d085-4d7b-bf73-1cdbf56f1698',
-    name: 'The Humane Society of Boulder Valley, Inc.',
+    name: 'The Humane Society of Boulder Valley, Inc',
     description:
       'It is the mission of the Humane Society of Boulder Valley to protect and enhance the lives of companion animals by promoting healthy relationships between pets and people.  \r\nSince our founding in 1902, the Humane Society of Boulder Valley facility has assisted tens of thousands of homeless and neglected animals. Over the last 100 years, we have developed a local and national reputation as a leader in animal care and humane education. Our approach to animal welfare has created an extremely high rate live-release rate - in 2012 over 93% of the animals we received were adopted out or returned to their guardians. In comparison, the national average of live-release cases is only 47%.  We are proud that we do not euthanize animals due to lack of kennel space or their length of stay.\r\nWe staff a nationally recognized behavior team treating animals through our behavior modification programs. From our success, the Humane Society of Boulder Valley has earned a reputation for forward looking leadership and frequently works with other companion animal care facilities through mentoring and animal relocation.',
     logoUrl:
@@ -34589,7 +34589,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '863cc675-62c8-41bb-8b17-5222cd185cc6',
-    name: '4KIDS, Inc.',
+    name: '4KIDS, Inc',
     description:
       '4KIDS exists to bring hope, homes, and healing to kids and families in crisis across South Florida and the Treasure Coast. In partnership with local churches, businesses, and government agencies, 4KIDS is committed to redefining foster care in our community, one child at a time.',
     logoUrl:
@@ -34641,7 +34641,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '562e27a9-44b6-4ccf-a166-f826bccdafb8',
-    name: 'The Leukemia & Lymphoma Society',
+    name: 'The Leukemia  Lymphoma Society',
     description:
       "The Leukemia & Lymphoma Society® (LLS) is a global leader in the fight against cancer. The LLS mission: Cure leukemia, lymphoma, Hodgkin's disease and myeloma, and improve the quality of life of patients and their families. LLS funds lifesaving blood cancer research around the world, provides free information and support services, and is the voice for all blood cancer patients seeking access to quality, affordable, coordinated care.",
     logoUrl: 'https://static.tgbwidget.com/LLS.jpg',
@@ -34679,7 +34679,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1123188c-cf41-4653-bcc2-2e8a64c905b1',
-    name: 'Go Conscious Earth, Inc.',
+    name: 'Go Conscious Earth, Inc',
     description:
       'Go Conscious Earth (GCE) partners with forest-dependent communities to protect the Congo Basin Rainforest, improve the livelihoods of the people, conserve endangered species, and support global climate stability.<br><br>GCE is an amazing grass roots organization founded by a Congolese man who was to slated become village chief and had a vision of protecting nature in and around his home village and region by empowering and supporting local forest-dependent people who have always been and still are the true stewards of the forest. GCE supports local people by helping them develop sustainable livelihoods and activities as they manage their own community forests and in so doing improve their lives.  <br><br>Since its founding in 2012, GCE has helped conserve 1.2 million acres of forest in Équateur Province in the Democratic Republic of Congo and has installed 17 wells that serve 34,000 people. This work is incredibly important not only to the people living there but to all of us globally, because we depend on the Congo Basin rainforest (the Earth’s 2nd largest) in the face of climate change.  This area is also home to the only surviving bonobos and other endangered species, including forest elephants.<br><br>GCE’s small team does a great deal with very few resources and is trusted by the people they serve in the DRC. They work in concert with a new legal framework of community forest management set forth by the DRC government and have put 202,206 acres of sacred, ancestral land back into the hands of the forest-dwelling people, in perpetuity. GCE works at the nexus of sustainable conservation and community development with local people very much at the center of the work.. Our donors are comprised of individuals in the US and abroad, as well as US-based and international NGOs and corporations. Some of our larger individual donors give via cryptocurrencies.',
     logoUrl:
@@ -34718,7 +34718,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '06617c9f-863e-4435-bf29-6fed1b08cdf9',
-    name: 'United Way of Northeast Mississippi, Inc.',
+    name: 'United Way of Northeast Mississippi, Inc',
     description:
       'To create opportunities to improve people’s lives in the communities we serve.',
     logoUrl:
@@ -34744,7 +34744,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '109d8c22-195c-4c25-98e5-79b33a6f5c90',
-    name: 'The Renaissance Collaborative, Inc.',
+    name: 'The Renaissance Collaborative, Inc',
     description:
       'The mission of Renaissance Collaborative, Inc. (TRC) is to promote self-sufficiency through an innovative and comprehensive network of supportive housing, employment, and educational services.. TRC donors are individuals, corporations, and private foundations.',
     logoUrl:
@@ -34795,7 +34795,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a313a453-4c58-4d05-87be-f8ec21f3ec6f',
-    name: 'Humane Society of Charlotte Inc.',
+    name: 'Humane Society of Charlotte Inc',
     description:
       'Humane Society of Charlotte Mission <br> <br>\nOur mission is to champion the wellbeing of companion animals and strengthen their bond with the people who know, love, and need them. <br> <br>\nCharlotte Community Vision <br> <br>\nWe envision a future when all companion animals have the support, care, and human connections needed to lead healthy, rewarding lives.',
     logoUrl:
@@ -34822,7 +34822,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f870a98e-7dac-413f-abfb-f7bb00aa3797',
-    name: 'Puerto Rico Community & Education Service Corps - Island Corps',
+    name: 'Puerto Rico Community  Education Service Corps - Island Corps',
     description:
       'We are a volunteer corps of educators and first responders on a mission to transform hearts, expand minds, and empower a friendlier, equitable, gentle world through sustainable education. Why? Because we believe conscious, healthy learning, and awareness of our role as humans on this planet is the future of education, reimagined. \nWe marshal education and design sustainable human impact initiatives to strengthen the future of children and ignite personal growth and opportunities for youth, families, and communities across Puerto Rico and the Caribbean. Through our public school adoption, our K-12 education programs cultivate a love for nature, personal care, good hygiene, wellness, mental health, fitness, clean nutrition, positive values, and ethical conduct.',
     logoUrl:
@@ -34887,7 +34887,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3fd6e791-d3b1-4b78-bc8c-84636724e62b',
-    name: 'Coalition for the Homeless, Inc.',
+    name: 'Coalition for the Homeless, Inc',
     description:
       'The Coalition for the Homeless is the nation’s oldest advocacy and direct service organization helping homeless individuals and families. We believe that affordable housing, sufficient food and the chance to work for a living wage are fundamental rights in a civilized society. Since our inception in 1981, the Coalition has worked through litigation, public education and direct services to ensure that these goals are realized.',
     logoUrl:
@@ -34900,7 +34900,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c1ba1c83-a705-45bc-8cb9-e16cb54da7b5',
-    name: 'American Rivers, Inc.',
+    name: 'American Rivers, Inc',
     description:
       'American Rivers protects wild rivers, restores damaged rivers, and conserves clean water for people and nature.',
     logoUrl:
@@ -34926,7 +34926,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ae39b661-b8fe-4ce1-815f-c7bcaf3f403b',
-    name: "SOS Children's Villages USA, Inc.",
+    name: 'SOS Childrens Villages USA, Inc',
     description:
       'We build families for children in need, help them shape their futures and share in the development of their communities.',
     logoUrl:
@@ -34978,7 +34978,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1b357bac-514d-4907-924b-18a3658f125d',
-    name: "Women's Entrepreneurship Day Organization Celebration",
+    name: 'Womens Entrepreneurship Day Organization Celebration',
     description:
       'Women’s Entrepreneurship Day Organization (WEDO)/#ChooseWOMEN is a non-governmental, philanthropic volunteer organization with chapters in 144 countries and 112 Universities/Colleges. We are on a global mission to economically empower WOMEN to alleviate poverty. Women perform 66% of the world’s work, yet earn 10% of the world’s income, account for 85% of consumer purchases & control $20 trillion in worldwide spending. WEDO ignites women leaders, innovators, and entrepreneurs to initiate startups, drive economic expansion, and advance communities.Our mission is to empower the 4 billion women across the globe to be catalysts of change and uplift the 250 million girls living in poverty.',
     logoUrl:
@@ -35055,7 +35055,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b782c900-d9a2-4bc7-945b-7ef03830c772',
-    name: "Miriam's Kitchen",
+    name: 'Miriams Kitchen',
     description:
       "Miriam's Kitchen first began in 1983 serving meals to the hungry and unhoused. Over the years, it has evolved its mission from serving those experiencing homelessness to ending chronic and veteran homelessness in Washington DC.",
     logoUrl:
@@ -35233,7 +35233,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1c848fb5-3b92-4895-8a46-e5e4aad136b9',
-    name: 'Centros Sor Isolina Ferré, Inc.',
+    name: 'Centros Sor Isolina Ferré, Inc',
     description:
       'Promote the integral development of the person with justice, dignity, respect and love, acknowledging that we are children of God and siblings of each other. Serve a generational range with multiple social, educational, economic, and spiritual needs. Use intercession, educational and technological training and community self-management as institutional strategies.',
     logoUrl:
@@ -35470,7 +35470,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '45d02107-4228-b622-e9a1-3aaea8f6b7f2',
-    name: 'SANTI (Social Association for Nourishment, Training & Improvement )',
+    name: 'SANTI (Social Association for Nourishment, Training  Improvement )',
     description:
       'SANTI is a result oriented charity organization based in rural setting of Ranibandh, Rajgangpur, Odisha, India. SANTI was established in 1995 and is very active in local area. Children education is the flagship program for the organization including vocational training for women, small business training for women, eliminating child labor, training for sanitation etc.<br><br>Provide education to needy and poor children. <br>Provide support to Women to generate their own income.',
     logoUrl: '',
@@ -35542,7 +35542,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c1cf2243-4b53-8a80-d658-fc76bee5f4ec',
-    name: 'Arzte ohne Grenzen e.V.',
+    name: 'Arzte ohne Grenzen eV',
     description:
       'Medicins sans frontieres is an international humanitarian aid organisation. We offer medical assistance to population in distress, to victims of natural or man-made disasters and to victims of armed conflicts, without discrimination and irrespective of race, religion or political affiliation.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/55276/orglogo.jpg',
@@ -35554,7 +35554,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '30368af7-d7f8-4cc7-ae41-b28b10c56f50',
-    name: 'Humanity Rising, Inc.',
+    name: 'Humanity Rising, Inc',
     description: 'Build the Next Generation of Leaders and Social Innovators',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo/e65ef6cf-e723-44f3-8f93-966ab9ea0fe7.jpg',
@@ -35698,7 +35698,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7cb2da23-426e-43e6-bc27-ab3c89b68530',
-    name: 'The AbleGamers Foundation Inc.',
+    name: 'The AbleGamers Foundation Inc',
     description:
       'Create opportunities that enable play in order to combat social isolation, foster inclusive communities, and improve the quality of life for people with disabilities.',
     logoUrl:
@@ -35724,7 +35724,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c7aa3439-42d5-8e0a-e41a-663bc9564da0',
-    name: 'Reach Out and Feed Philippines Inc.',
+    name: 'Reach Out and Feed Philippines Inc',
     description:
       'OUR MISSION Feed, Nourish, Empower! Our mission is to be a part of the solution to the national crisis of hunger and malnutrition in the Philippines, through school & community feeding and nourishment programs.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/28567/orglogo.jpg',
@@ -35844,7 +35844,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6cae4004-4210-89bd-dd25-3a1255ad97f7',
-    name: 'Kinder - und Jugendfarm Darmstadt e.V.',
+    name: 'Kinder - und Jugendfarm Darmstadt eV',
     description:
       'working with children and young people in addition with a lots of animals<br>giving them a place to have fun and get a lot of experience for further life',
     logoUrl: '',
@@ -35976,7 +35976,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '64490563-4f14-8d21-ff23-f53947951579',
-    name: 'Ojala Ninos A.C.',
+    name: 'Ojala Ninos AC',
     description:
       'To be a model for extra-curricular education to indigenous communities in Mexico for children of all ages, using art, music and literacy in a space for learning that inspires creativity and develops critical thinking skills and self-confidence.  Enabling children and their families to expand these activities into cooperative businesses for sustainability. Encouraging them to have the vision to create projects that will offer solutions to environmental, health and social justice issues in their own communities. Ojala provides a safe haven where children can gather and be guided without judgment; where their curiosity and creativity can have no limits.  This kind of environment stimulates thought, imagination and the potential to find liberation from poverty, ignorance and oppression, which leads to personal pride, strength of character and the desire to build a cooperative community.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/42062/orglogo.jpg',
@@ -36072,7 +36072,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '00d78690-4643-ae01-ca83-0e75e6e4700c',
-    name: 'Clean Air Initiative for Asian Cities (CAI-Asia) Center, Inc.',
+    name: 'Clean Air Initiative for Asian Cities (CAI-Asia) Center, Inc',
     description:
       'Our mission is to reduce air pollution and greenhouse gas emissions in Asia and contribute to a more livable and healthy Asia for everyone, both now and in the future. Working in partnership with stakeholders from throughout the world to reduce air pollution and greenhouse gas emissions, Clean Air Asia is having, and will continue to have, a major impact by being a platform for change.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/70262/orglogo.jpg',
@@ -36145,7 +36145,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fbbea5c0-d3f5-485e-8f94-c38199a0b2f4',
-    name: 'Kids in Tech, Inc.',
+    name: 'Kids in Tech, Inc',
     description:
       'Kids in Tech strives to excite, educate, and empower children to acquire skills and confidence in technology through interactive afterschool programs. Our programs focus on helping kids develop the necessary tech skills and aptitudes to participate in and be future leaders of the 21st- century innovation economy and beyond.',
     logoUrl:
@@ -36171,7 +36171,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '243a1a77-4c17-4e52-9eb8-6fd208c2dc25',
-    name: 'Big Cat Rescue Corp.',
+    name: 'Big Cat Rescue Corp',
     description:
       'To provide the best home we can for the cats in our care, end abuse of big cats in captivity and prevent extinction of big cats in the wild.',
     logoUrl:
@@ -36198,7 +36198,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '70096b46-468e-4ae2-945f-d23783bc46b5',
-    name: 'National Association Of Free & Charitable Clinics Inc',
+    name: 'National Association Of Free  Charitable Clinics Inc',
     description:
       'Mission<br>Building healthy communities for all through quality, equitable, accessible healthcare.<br><br>Vision<br>A just society that ensures a healthy life and wellbeing for all.',
     logoUrl:
@@ -36299,7 +36299,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '024cd4b7-1464-42a7-bb2d-2bf087302697',
-    name: "Nadia's Initiative",
+    name: 'Nadias Initiative',
     description:
       'Nadia’s Initiative is dedicated to rebuilding communities in crisis and advocating globally for survivors of sexual violence. Nadia’s Initiative’s current work is focused on the sustainable re-development of the Yazidi homeland in Sinjar, Iraq. When ISIS launched their genocidal campaign, they not only killed and kidnapped Yazidis, but also destroyed the Yazidi homeland to ensure the community could never return.<br><br>Nadia’s Initiative partners with local communities and local and international organizations to design, support, and implement projects that promote the restoration of education, healthcare, livelihoods, WASH (water, sanitation, and hygiene), culture, and women’s empowerment in the region. All Nadia’s Initiative programs are community-driven, survivor-centric, and designed to promote long-term peacebuilding. Nadia’s Initiative advocates governments and international organizations to support efforts to rebuild Sinjar, seek justice for Yazidis, improve security in the region, and support survivors of sexual violence worldwide.',
     logoUrl:
@@ -36312,7 +36312,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '12196769-78fd-449c-a676-0066c606fadf',
-    name: 'National MPS Society, Inc.',
+    name: 'National MPS Society, Inc',
     description:
       'The National MPS Society exists to cure, support, and advocate for MPS and ML.',
     logoUrl:
@@ -36325,7 +36325,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3925773f-9b5c-4f03-a96a-4f2ba5f6120f',
-    name: "St. Benedict's Episcopal School",
+    name: 'St Benedicts Episcopal School',
     description:
       'St. Benedict’s Episcopal School is a school of choice for Preschool through 8th-grade families focused on inspiring learning, nurturing growth, and embracing the values of Episcopal education.',
     logoUrl:
@@ -36364,7 +36364,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '421982a4-3b50-4b4a-a1bb-e2f807ce5c2b',
-    name: 'Restore Native Plants, Wildlife and Landmark Structures Inc.',
+    name: 'Restore Native Plants, Wildlife and Landmark Structures Inc',
     description:
       'Our mission is to protect, enhance, and restore native plants, wildlife, ecosystems, natural resources, and historic landmarks for the benefit of all. Our innovative team provides unique programs for the advancement of society so that others may learn about the importance of such conservation and preservation.',
     logoUrl:
@@ -36403,7 +36403,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '95a2f5d1-ca66-4c53-8c90-6ae1c8d70a84',
-    name: "Honey's Mini Therapy Adventures",
+    name: 'Honeys Mini Therapy Adventures',
     description:
       'Our purpose is to use miniature horses to enhance the quality of life of those we serve. Individuals of all ages and limitations with physical, cognitive, emotional and behavioral disabilities find comfort, empowerment, self-esteem, unconditional love, strength, therapeutic interaction & value while working with the miniature horses. Also, to train and provide mini horses as service animals to persons with above stated disabilities. Finally to educate the general public on the mental health benefits of visiting miniature horse pet therapy.',
     logoUrl:
@@ -36544,7 +36544,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '89efa3d2-2e63-4725-987e-d5a9e195c4b5',
-    name: 'Planned Parenthood Gulf Coast, Inc.',
+    name: 'Planned Parenthood Gulf Coast, Inc',
     description:
       'OUR MISSION:  The mission of Planned Parenthood Gulf Coast, Inc. is to ensure the right and ability of all individuals to manage their sexual and reproductive health by providing health services, education, and advocacy.    \nOUR VISION:  Planned Parenthood seeks a world in which all children are wanted and cared for, all individuals have equal rights and dignity, sexuality is expressed with honesty, equality, and responsibility, and the decision to bear children is private and voluntary.   \nOUR COMMITMENT: Care.  No Matter What.',
     logoUrl:
@@ -36622,7 +36622,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '02790c54-a5aa-4bdf-863e-7c51a6e19c92',
-    name: 'American Friends of the Hebrew University, Inc.',
+    name: 'American Friends of the Hebrew University, Inc',
     description:
       'The American Friends of the Hebrew University’s (AFHU) primary exempt purpose is to promote, encourage, aid, and advance higher and secondary education, research, and training in all branches of knowledge in Israel and elsewhere. To aid in the maintenance and development of the Hebrew University of Jerusalem in the state of Israel (The Hebrew University). Grants awarded to Hebrew University include but are not limited to, those for scholarships and fellowships, research capital projects faculty recruitment, and equipment.',
     logoUrl:
@@ -36686,7 +36686,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '175db395-1f5f-44f0-a539-aa7435651463',
-    name: 'Hope for Haiti Inc.',
+    name: 'Hope for Haiti Inc',
     description:
       "Hope for Haiti's mission is to improve the quality of life for the Haitian people, particularly women and children.",
     logoUrl:
@@ -36738,7 +36738,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '404a29da-c1f0-4f9d-b003-66d095f53488',
-    name: 'The Stanley M. Marks Blood Cancer Research Fund',
+    name: 'The Stanley M Marks Blood Cancer Research Fund',
     description:
       'The Stanley M. Marks, M.D. Endowed Research Fund supports the discovery of new and effective advances in cancer by investing in innovative and novel research at UPMC Hillman Cancer Center to improve the lives of cancer patients worldwide.',
     logoUrl:
@@ -36764,7 +36764,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3eb95fc5-150d-401d-afa4-4ce5bad51d56',
-    name: 'Clean International, Inc.',
+    name: 'Clean International, Inc',
     description:
       'By 2050 it is estimated that over half of the world’s population will live in a water-stressed region. At the same time, around the world, 1 in 9 people currently lack access to clean water and 1 in 3 do not have a toilet. Because of these numbers, over 2,000 people die every day due to sicknesses from unclean water and lack of sanitation. CLEAN International works to not only protect groundwater but to provide sustainable, convenient and affordable access to water, sanitation and hygiene.',
     logoUrl:
@@ -36828,7 +36828,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1228545c-b253-49e7-aff8-40ab31b4a04d',
-    name: 'Grace City, Inc.',
+    name: 'Grace City, Inc',
     description:
       'Leading people into a relationship with Jesus so they can live life to the fullest.',
     logoUrl:
@@ -36918,7 +36918,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd4b595a4-d114-463f-bb25-e39e1cb83951',
-    name: 'Children’s Cancer Cause',
+    name: 'Childrens Cancer Cause',
     description: 'A long, healthy life for every child with cancer.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2F97f5832c-e291-431f-867b-95eca0063e64.jpg',
@@ -36982,7 +36982,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '36c71593-b359-4840-b06e-991479b068ef',
-    name: "Children's Hospital Los Angeles",
+    name: 'Childrens Hospital Los Angeles',
     description:
       'WE CREATE HOPE AND BULD HEALTHIER FUTURES.\nAs a leader in pediatric academic medicine, we fulfill our mission by:  \n* Caring for children, teens, young adults and families\n* Making discoveries and advances that enhance health and save lives\n* Training those who will be the future of child health\n* Supporting our communities, especially underserved populations',
     logoUrl:
@@ -37163,7 +37163,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cfeb9bb3-3238-4555-bdc2-d5c088766e52',
-    name: 'Ronald McDonald House Charities, Inc.',
+    name: 'Ronald McDonald House Charities, Inc',
     description:
       'RMHC provides essential services that remove barriers, strengthen families and promote healing when children need healthcare.',
     logoUrl:
@@ -37202,7 +37202,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3264858c-0451-4022-b0d7-8424d7088ce1',
-    name: "Family and Children's Association",
+    name: 'Family and Childrens Association',
     description:
       "FCA's mission is to protect and strengthen Long Island’s most vulnerable children, families, seniors, and communities.",
     logoUrl:
@@ -37345,7 +37345,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '01dad8e3-8529-49ed-bdf8-44f217272225',
-    name: 'Roots & Wings',
+    name: 'Roots  Wings',
     description:
       'Provide childcare and educational support for children and families in an impoverished landfill community in Mazatlan, Mexico. Reduce child abandonment by providing a safe place for children while parents work to provide for their household. Break the cycle of poverty through educational, emotional and spiritual support.',
     logoUrl:
@@ -37474,7 +37474,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd4d8e0d3-e72c-4208-82b5-35a332c49d4e',
-    name: 'New York Cares, Inc.',
+    name: 'New York Cares, Inc',
     description:
       "New York Cares' mission is to meet pressing community needs by mobilizing caring New Yorkers in volunteer service.",
     logoUrl:
@@ -37513,7 +37513,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '009f408e-b790-47d6-9d2a-f15e6b7923be',
-    name: 'Armenia Artsakh Fund Inc.',
+    name: 'Armenia Artsakh Fund Inc',
     description:
       'To provide millions of dollars worth of free medicines to the people of Armenia.',
     logoUrl: '',
@@ -37538,7 +37538,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3176cb7b-526e-44cc-aba3-3cbb262b040a',
-    name: 'Servicios Creativos Inc.',
+    name: 'Servicios Creativos Inc',
     description:
       'The purpose for which the corporation is organized is to facilitate technical and logistical support for charitable, social, cultural, educational, and scientific purposes, within the meaning of Section 501(c)(3) of the Internal Revenue Code, or the corresponding section of any future federal tax code. In furtherance of its corporate purposes, the Corporation shall have all the general and specific powers and rights granted to and conferred to a Not for Profit Corporation by Chapter 617, Florida Statutes. This corporation is not organized for the private gain of any person.',
     logoUrl:
@@ -37551,7 +37551,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2ecc90f7-986d-4bd7-aae6-5ba345e65da6',
-    name: 'Lutheran Immigration and Refugee Service II, Inc.',
+    name: 'Lutheran Immigration and Refugee Service II, Inc',
     description:
       'As a witness to God’s love for all people, we stand with and advocate for migrants and refugees, transforming communities through ministries of service and justice.',
     logoUrl:
@@ -37654,7 +37654,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5bea07d3-40b1-452f-bad7-5f8591aff5eb',
-    name: "Ukraine Children's Aid Fund Inc",
+    name: 'Ukraine Childrens Aid Fund Inc',
     description:
       "The Ukraine Children's Aid Fund (UCAF) is registered in the USA as a 501(c)3 non-profit humanitarian organization of compassionate people who invest their time, talents, and treasures to ensure that suffering children in Ukraine experience life transformation as a result of channeling help, offering hope, and bringing healing to children who live there. We accomplish this by securely channeling financial aid from faithful donors through trustworthy Ukrainian partners to children in need of so much.",
     logoUrl:
@@ -37758,7 +37758,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '684ab9b0-1ab6-4e05-9098-6832940b4342',
-    name: 'We Ride Together, Inc.',
+    name: 'We Ride Together, Inc',
     description:
       'We Ride Together, Inc. (#WeRideTogether) is a nonprofit organization created to shine a light on the endemic issue of sexual abuse in youth and amateur sports. Our mission is to make the youth and amateur sport environment safer for all athletes. We believe sport should be the safest and healthiest place for children and young adults to grow and flourish, and that every individual has the right to learn, play, and compete without fear of sexual abuse. We are committed to creating the radical change needed to fulfill that vision by addressing education and awareness, creating a safe place for survivors to find resources and share their voices, and eliminating the stigma around these necessary conversations.',
     logoUrl:
@@ -37835,7 +37835,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'fa9eea8c-91bc-4c1c-bd85-aea232bae2ff',
-    name: 'Heifer Project International, Inc.',
+    name: 'Heifer Project International, Inc',
     description:
       "We work to end hunger and poverty in partnership with local communities. Our programs support entrepreneurs around the world, creating lasting change from the ground up.\nIt begins with a seed investment of livestock or agriculture, followed by mentorship to help project participants build a business, and ultimately to gain access to supply chains and markets.\nThese families are able to earn a living income and continuously lift up their communities as they train the next generation of leaders.\nBy supporting and training the world's farmers, ranchers, and female business owners, we're investing in a new breed of success.",
     logoUrl:
@@ -37901,7 +37901,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '08091fba-df49-4d04-b09e-d3907c70d654',
-    name: 'Twenty-First Century African Youth Movement, Inc.',
+    name: 'Twenty-First Century African Youth Movement, Inc',
     description:
       'The mission of AYM is to educate and employ youth in agribusiness, ecotourism, technology, and the creative arts.\r\nSixty (60) percent of young women and men within the ages of 14 to 35 are unemployed, which is among the highest in West Africa. Sierra Leone’s youth are living on less than US $2 per day.\r\nEducating, mobilizing and providing employment for Africa’s unemployed and underemployed youth is the key to the continent’s economic growth and stability.',
     logoUrl:
@@ -38029,7 +38029,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '35c60d5d-9607-4d9f-87a8-4a44a417709f',
-    name: 'Georgia-Alabama Land Trust, Inc.',
+    name: 'Georgia-Alabama Land Trust, Inc',
     description:
       'The Georgia-Alabama Land Trust protects land for present and future generation, shaping the future through conservation. Acre by acre, landowner by landowner, community by community. We are the largest land trust in the Southeast, protecting and stewarding nearly 1,100 properties totaling over 400,000 acres —and we are currently working to preserve additional critical wildlife habitat, prime soils, and other important lands which make the Southeast a special place. We steward greenspace and create nature preserves, providing the public with areas to hike, bike, recreate, and otherwise experience nature. We see a future where the wild and working forests, the rivers and coastline – the globally unique habitats and the rich farming culture that define the extraordinary landscape of the Southeast—are preserved forever cared for, cherished, and sustainably managed by generations to come.',
     logoUrl:
@@ -38081,7 +38081,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2e493d42-b824-42cb-9ae5-d98e09416c55',
-    name: "Tony's Place",
+    name: 'Tonys Place',
     description:
       '*Mission: Support and empower LGBTQ+ youth.\n*Vision: We see a society in which all LGBTQ+ youth are universally welcomed, safe, and thriving.\nTonys Place provides a diverse set of services to meet the needs of LGBTQ+ youth age 14 to 25, including Basic Needs Services, Case Management, Support Services, Community Engagement and Advocacy. \nYou can read more about our work here: https://tonysplace.org/history',
     logoUrl:
@@ -38261,7 +38261,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '12aa5f2c-a38a-4467-bf5d-8ebfb3203261',
-    name: 'Teachrock.org / Rock and Soul Forever Foundation',
+    name: 'Teachrockorg  Rock and Soul Forever Foundation',
     description:
       'TeachRock empowers teachers and engages students by using popular music to create interdisciplinary, culturally responsive education materials for all 21st century classrooms.\nLaunched by Stevie Van Zandt and the Founders Board of Bono, Jackson Browne, Martin Scorsese, and Bruce Springsteen, TeachRock.org provides free, standards-aligned resources that use music to help K-12 students succeed in disciplines like science, math, social studies, language arts, and more.',
     logoUrl:
@@ -38313,7 +38313,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '41a3d733-91a0-4ad0-9f48-0a36450b913b',
-    name: 'United Pentecostal Church of Cooper City, Inc.',
+    name: 'United Pentecostal Church of Cooper City, Inc',
     description:
       'We believe that salvation is by grace through faith in Jesus Christ, not by works. Faith in Jesus is the means by which a person is justified. At the same time, a sinner must believe the gospel; he is commanded to repent of his sinful life, to be baptized in water in the name of Jesus Christ, and to receive the gift of the Holy Spirit.',
     logoUrl:
@@ -38326,7 +38326,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'af40692a-1f2a-46f7-b959-c33a989766ea',
-    name: 'Caring For Cats Inc.',
+    name: 'Caring For Cats Inc',
     description:
       'Caring for Cats, Inc. is an all-volunteer organization dedicated to maintaining and improving the lives of cats and kittens.',
     logoUrl:
@@ -38480,7 +38480,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '51bad699-34ff-44f0-bba9-10c1dec79859',
-    name: 'WorldofMoney.org',
+    name: 'WorldofMoneyorg',
     description:
       "WorldofMoney.org's mission is to give young people, ages 7 -18, empowering financial education to survive economic roller-coasters by using their innate intelligence and creativity to expand their access to the free enterprise system beyond that of consumerism, but to disciplined saving, and the understanding of investing in capital markets.",
     logoUrl:
@@ -38585,7 +38585,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8b32e67a-6f3b-45ee-bf98-0a6c7268f24a',
-    name: 'Gray Area Foundation for the Arts, Inc.',
+    name: 'Gray Area Foundation for the Arts, Inc',
     description:
       'Gray Area is a San Francisco-based nonprofit cultural incubator. Our mission is to cultivate, sustain, and apply antidisciplinary collaboration — integrating art, technology, science, and the humanities — towards a more equitable and regenerative future. Since our inception in 2008, Gray Area has established itself as a singular hub for critically engaging with technology and culture in the Bay Area, while also reaching a global audience. Through our platform of public events, education, and research programs we empower a diverse community of creative practitioners with the agency to create meaningful social impact through category-defying work.',
     logoUrl:
@@ -38624,7 +38624,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f732f509-7e78-4887-9078-07d6378a1ee3',
-    name: 'BAYADA Home Health Care, Inc.',
+    name: 'BAYADA Home Health Care, Inc',
     description:
       'BAYADA Home Health Care has a special purpose—to help people have a safe home life with comfort, independence, and dignity. BAYADA Home Health Care provides nursing, rehabilitative, therapeutic, hospice, and assistive care services to children, adults, and seniors worldwide. We care for our clients 24 hours a day, 7 days a week. Families coping with significant illness or disability need help and support while caring for a family member. Our goal at BAYADA is to provide the highest quality home health care services available. We believe our clients and their families deserve home health care delivered with compassion, excellence, and reliability, our BAYADA core values.',
     logoUrl:
@@ -38650,7 +38650,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '817258ad-32c2-41ce-bf37-bc34577575c0',
-    name: 'Water for South Sudan, Inc.',
+    name: 'Water for South Sudan, Inc',
     description:
       'Water for South Sudan delivers sustainable quality-of-life services to and with the people of South Sudan by efficiently providing access to clean, safe water, and improving hygiene and sanitation practices in areas of great need.',
     logoUrl:
@@ -38689,7 +38689,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2efdca01-280f-48cd-9ad9-aef3dfd55352',
-    name: 'Little Smiles, Inc.',
+    name: 'Little Smiles, Inc',
     description: 'Helping kids be kids during difficult times.',
     logoUrl:
       'https://static.tgbwidget.com/organization_logo%2F1b5f2c39-2595-45e5-8e32-9a487d6151ed.jpeg',
@@ -38741,7 +38741,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '798e870e-10fc-40a2-b402-4b553c8adb89',
-    name: 'South Florida Wildlands Association Inc.',
+    name: 'South Florida Wildlands Association Inc',
     description:
       "South Florida Wildlands Association works to protect wildlife and wildlife habitat in the Greater Everglades.  On public lands, we seek management plans which put the protection of wildlife and natural resources ahead of recreational and other considerations.  On private lands, South Florida Wildlands works to ensure that Florida's rapid pace of development does not destroy, degrade, and fragment rare wildlife species, wetlands, and other critical features of the natural environment in the process.",
     logoUrl:
@@ -38754,7 +38754,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '567c9231-a39c-4575-889f-61ec568ffc7b',
-    name: "Crohn's & Colitis Foundation Inc.",
+    name: 'Crohns  Colitis Foundation Inc',
     description:
       "To find a cure for Crohn's disease and ulcerative colitis and to improve the quality of life of children and adults affected by these diseases. Crohn's disease and ulcerative colitis are collectively known as inflammatory bowel diseases (IBD).",
     logoUrl:
@@ -38780,7 +38780,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '26574b82-7f12-4e9f-9bc4-e4470f087f02',
-    name: 'Unique Care Connect, Inc.',
+    name: 'Unique Care Connect, Inc',
     description:
       'The mission of Unique Care Connect is to build the first unified virtual platform for the Special Needs Community. Using this platform to bring modern day solutions to the respite care crisis and promote modern day research.',
     logoUrl:
@@ -38793,7 +38793,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1cf7cf40-b157-4722-ba4b-3586ecbe8ff3',
-    name: "Dolly Parton's Imagination Library",
+    name: 'Dolly Partons Imagination Library',
     description:
       "We aspire to firmly establish Dolly Parton's Imagination Library as the highest quality, most effective, instantly recognized, global book gifting resource to help inspire a love of reading and learning in children from birth until age five, no matter their family's income.",
     logoUrl:
@@ -38819,7 +38819,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '56fa0c63-cea0-42a3-aead-f99097667d36',
-    name: 'National Public Radio, Inc.',
+    name: 'National Public Radio, Inc',
     description:
       "NPR's mission is to work in partnership with member stations to create a more informed public - one challenged and invigorated by a deeper understanding and appreciation of events, ideas and cultures. To accomplish our mission, NPR produces, acquires and distributes programming that meets the highest standards of public service in journalism and cultural expression. Our vision is to serve the public as the leading provider of high quality news, information and cultural programming worldwide.",
     logoUrl:
@@ -38947,7 +38947,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '896d626b-05f9-445a-8093-aff0420e5376',
-    name: 'Trees, Water & People',
+    name: 'Trees, Water  People',
     description:
       'At Trees, Water & People, our mission is to improve lives by helping communities to protect, conserve, and manage their natural resources.',
     logoUrl:
@@ -38960,7 +38960,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9e9232a3-bf43-445e-9146-e998c3cb91db',
-    name: 'National Audubon Society, Inc.',
+    name: 'National Audubon Society, Inc',
     description:
       'The National Audubon Society \nprotects birds and the places they \nneed, today and tomorrow.',
     logoUrl:
@@ -39037,7 +39037,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8c7488fb-44a8-41ae-b1c5-97c3c3fd72ef',
-    name: 'Children of Peru Foundation, Inc.',
+    name: 'Children of Peru Foundation, Inc',
     description:
       'The "Children of Peru Foundation" is dedicated to building a better future for poor children in Peru. We raise funds to make grants to a select group of non-governmental organizations working in Peru to provide better healthcare & education for poor children.',
     logoUrl:
@@ -39050,7 +39050,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '630a6901-c29f-4336-af22-ab9517db60c3',
-    name: 'Effective Ventures Foundation USA Inc.',
+    name: 'Effective Ventures Foundation USA Inc',
     description:
       'Effective altruism is a growing social movement founded on the desire to make the world as good a place as it can be, the use of evidence and reason to find out how to do so, and the audacity to actually try.',
     logoUrl:
@@ -39076,7 +39076,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1adee9d8-8f00-4211-9e3a-cb6607e430fe',
-    name: 'Louis August Jonas Foundation / Camp Rising Sun',
+    name: 'Louis August Jonas Foundation  Camp Rising Sun',
     description:
       'For 90 years, LAJF has been committed to helping young people grow intellectually, ethically, and globally.  We do this by operating our Rising Sun programs. Camp Rising Sun is our full-scholarship, summer leadership program for teenagers from more than 30 different countries and 10 U.S. states.  Each summer, 60 young men and 60 young women practice leadership skills in a supportive community of peers and counselors.<br><br>The mission of the Louis August Jonas Foundation is to develop in promising young people from around the world a lifelong commitment to compassionate and responsible leadership for the betterment of their communities and the world.<br><br>We seek to:<br><br>Foster an appreciation of both diversity and our common humanity<br><br>Expand intellectual horizons and heighten artistic sensibilities<br><br>Develop leadership abilities and self-reliance in a safe environment<br><br>Offer and demonstrate a philosophy of living to serve society through the pursuit of humanitarian goals',
     logoUrl:
@@ -39141,7 +39141,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1ba51bdc-bca6-42d7-a594-b744483ec180',
-    name: "Semper Fi & America's Fund",
+    name: 'Semper Fi  Americas Fund',
     description:
       'Semper Fi & America’s Fund cares for our nation’s critically wounded, ill, and injured service members, veterans, and military families. Supporting all branches of the U.S. Armed Forces, we provide one-on-one case management, connection, and lifetime support. Today. Tomorrow. Together.',
     logoUrl:
@@ -39194,7 +39194,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '138bca9e-1239-4965-bc16-a6368ca30aef',
-    name: 'Generation You Employed, Inc.',
+    name: 'Generation You Employed, Inc',
     description:
       'Transforming education to employment systems to prepare, place, and support people into life-changing careers that would otherwise be inaccessible.',
     logoUrl:
@@ -39259,7 +39259,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1d237a54-c202-4852-b494-63dbba1b1fca',
-    name: 'Choose Love',
+    name: 'Choose Love 2',
     description:
       'We are pioneering a new movement in humanitarian aid: fast, flexible, transparent and accountable.<br><br>We are a lean, passionate team driving a fast-paced global movement across 15 countries.<br><br>We have raised millions to support refugees and created a movement of people putting love into action around the world.',
     logoUrl:
@@ -39299,7 +39299,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '385d3458-2ce3-48a4-8cc7-3cc9f42e61a7',
-    name: 'Food Bank of Central & Eastern North Carolina, Inc.',
+    name: 'Food Bank of Central  Eastern North Carolina, Inc',
     description: 'Nourish people. Build solutions. Empower communities.',
     logoUrl:
       'https://www.guidestar.org/ViewEdoc.aspx?eDocId=9635476&approved=True',
@@ -39311,7 +39311,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1cd51d94-fc58-4251-aa96-7a5fec3ed78e',
-    name: "Martha's Kitchen",
+    name: 'Marthas Kitchen',
     description:
       "Our mission is to “feed the hungry with dignity, no questions asked.” This past year we provided nearly 1,000,000 meals and distributed 3,500,000 pounds of groceries to those in need. We provide food to over 75 other organizations across nine counties. At Martha's Kitchen we believe that full plates help fuel hearts.",
     logoUrl:
@@ -39350,7 +39350,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3370efa0-f592-40a4-b52a-17cb61b70efa',
-    name: 'St. Labre Indian School',
+    name: 'St Labre Indian School',
     description:
       'To proclaim the Gospel of Jesus Christ according to Catholic Tradition by providing quality education which celebrates our Catholic faith and embraces Native American cultures, primarily the Northern Cheyenne and Crow Tribes, so that Native American individuals and communities of Southeastern Montana are empowered to attain self-sufficiency.',
     logoUrl:
@@ -39454,7 +39454,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '247ffb08-ff0f-4142-acbb-3736ad3f23d7',
-    name: 'British Schools and Universities Foundation, Inc.',
+    name: 'British Schools and Universities Foundation, Inc',
     description:
       'To be a catalyst enabling U.S. alumni and friends to make tax-deductible contributions with the option of nominating any approved institution for a grant.  Also, to encourage British schools, universities and other educational institutions to reach out to their US constituencies in their fund-raising efforts.',
     logoUrl:
@@ -39493,7 +39493,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '91643f26-a830-4b1e-a620-d10368f4315d',
-    name: 'The Nonhuman Rights Project Inc.',
+    name: 'The Nonhuman Rights Project Inc',
     description:
       'The Nonhuman Rights Project is focused on establishing legal personhood and fundamental rights for nonhuman animals through three key pillars: litigation, legislation, and education. Through them we aim to create a robust framework for the recognition and protection of fundamental nonhuman animal rights grounded in longstanding values of principles of justice. The first stage of this work is a legal fight for great apes, elephants, dolphins, and whales’ fundamental right to bodily liberty.',
     logoUrl:
@@ -39507,7 +39507,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9aaea668-35f9-45db-a450-b5dcbbd47c56',
-    name: 'Red Hook Art Project, Inc.',
+    name: 'Red Hook Art Project, Inc',
     description:
       'RHAP’s mission is rooted in the conviction that creative self-expression is a transformative experience that enriches individuals and communities.As an organization, we work to provide a space where young people feel safe and supported as they develop their voices through artistic projects and activities. We cultivate an environment of playfulness and experimentation, while challenging our older students to help each other strengthen their individual voices through supportive criticism. The experiences of creative problem solving and self-expression that underlie our program generate self-confidence and a sense of agency in our students.We believe that these qualities meaningfully contribute to the well-being of our students, their communities, and ultimately encourage engaged citizenship.',
     logoUrl:
@@ -39637,7 +39637,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5924d229-2e62-4831-ba6d-1918bc732446',
-    name: 'Denver Zoological Foundation, Inc.',
+    name: 'Denver Zoological Foundation, Inc',
     description:
       'Denver Zoological Foundation is a zoo-based wildlife conservation organization seeking to create authentic connections to welcome and engage diverse communities to our 84 acre campus located in Denver, Colorado. We unite communities and partners with the goal of extending our impact both locally and globally to save wildlife for future generations.',
     logoUrl:
@@ -39650,7 +39650,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '062957c6-1c50-4ef2-b08d-a55b028eb263',
-    name: 'Self-Care Lab Boxing & Fitness Club',
+    name: 'Self-Care Lab Boxing  Fitness Club',
     description:
       'The Self-Care Lab Boxing & Fitness Club’s mission is to increase mental health awareness and resources within the community and amongst athletes, through exercise.',
     logoUrl:
@@ -39729,7 +39729,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '32dfe1de-c0bf-4c95-a9ee-202278e798c1',
-    name: "Women's Earth Alliance",
+    name: 'Womens Earth Alliance',
     description:
       "Women's Earth Alliance (WEA) is a 16-year global organization on a mission to protect our environment, end the climate crisis and ensure a just, thriving world by empowering women's leadership. When Women Thrive, the Earth Thrives.",
     logoUrl:
@@ -39782,7 +39782,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '87f2c681-8260-47e9-921f-ae7115eb87bf',
-    name: 'Citizens Climate Education Corp.',
+    name: 'Citizens Climate Education Corp',
     description:
       'Citizens’ Climate Education (CCE) is a nonpartisan grassroots advocacy organization that empowers everyday people to build political will for effective climate solutions.',
     logoUrl:
@@ -39808,7 +39808,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6dbae0d1-ef05-495a-a5a3-201aa7c7d8d7',
-    name: 'Brain & Behavior Research Foundation',
+    name: 'Brain  Behavior Research Foundation',
     description:
       'The Brain & Behavior Research Foundation is a global nonprofit organization focused on improving the understanding, prevention and treatment of psychiatric and mental illnesses.',
     logoUrl: 'https://static.tgbwidget.com/BrainandBehavior.jpg',
@@ -39820,7 +39820,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b9a24045-759d-416e-a8ce-9ebe3617e366',
-    name: "Young Men's Christian Association of Greater St. Petersburg Inc.",
+    name: 'Young Mens Christian Association of Greater St Petersburg Inc',
     description:
       'To put Judeo Christian principles into practice through programs that build healthy spirit, mind and body for all.',
     logoUrl:
@@ -39846,7 +39846,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '08593a8e-7793-4a71-a927-8715fd5ae92e',
-    name: 'Boys & Girls Club of Greenwich',
+    name: 'Boys  Girls Club of Greenwich',
     description:
       'To prepare young people, through enrichment opportunities and supportive relationships, to be responsible, caring and productive community members.',
     logoUrl:
@@ -39859,7 +39859,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e0c28d4e-def1-4ad3-b569-9f5f3f61db44',
-    name: 'African Road, Inc.',
+    name: 'African Road, Inc',
     description:
       'African Road builds long term relationships with local Changemakers, for the life, health and growth of communities in East Africa.',
     logoUrl:
@@ -39923,7 +39923,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '26f090da-2864-41b8-874f-55f3c6e58681',
-    name: 'Maya’s Hope Foundation, Inc',
+    name: 'Mayas Hope Foundation, Inc',
     description:
       'Maya’s Hope works to improve the quality of life of orphaned, impoverished, and special-needs children on a global scale. Whether providing funding for loving caregivers, vitamin-rich formula, or access to quality medical care, Maya’s Hope improves lives, one child at a time!',
     logoUrl:
@@ -40026,7 +40026,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ba988cb4-a6ea-4b9d-b08a-ab099c5cb46c',
-    name: "Children's Museum, Inc.",
+    name: 'Childrens Museum, Inc',
     description:
       'Our mission is to transform communities through innovative, child-centered learning that improves the trajectories of all children in Greater Houston. Goals aligned with this mission include: 1) providing child-centered learning experiences that are valued by families; 2) supporting parents’ confidence and skills as children’s first teachers; 3) advancing children’s learning to further grade-level readiness; 4) building partnerships to increase educational equity and reduce opportunity gaps; 5) furthering trust across communities through diversity, equity, inclusion and access; and 6) engaging with children to broaden their future career interests and options.',
     logoUrl:
@@ -40077,7 +40077,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '39e8d9aa-cee4-4a40-8f8e-e899df8771bd',
-    name: 'Planned Parenthood of Greater New York, Inc.',
+    name: 'Planned Parenthood of Greater New York, Inc',
     description:
       'A leading provider of sexual and reproductive health services and information, a fierce advocate, and a committed partner to advance equity and improve health outcomes for all.',
     logoUrl:
@@ -40155,7 +40155,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'aa9c40b1-0fd1-4361-98df-1ffdc5d922fa',
-    name: 'Human Rights Foundation Inc.',
+    name: 'Human Rights Foundation Inc',
     description:
       'Our mission is to ensure that freedom is both preserved and promoted around the world. We focus our work on the founding ideals of the human rights movement, those most purely represented in the 1976 International Covenant on Civil and Political Rights (ICCPR).\nWe believe that all human beings are entitled to:\nFreedom of self-determination\nFreedom of speech and expression and association\nThe right to worship in the manner of their choice\nThe right to acquire and dispose of property\nThe right to leave and enter their countries\nThe right to equal treatment and due process under law\nThe right to be able to participate in the government of their countries\nFreedom from arbitrary detainment or exile\nFreedom from slavery and torture\nFreedom from interference and coercion in matters of conscience',
     logoUrl:
@@ -40181,7 +40181,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd71ceac7-f575-49fa-beec-a897d11944ab',
-    name: 'Homeless Prenatal Program, Inc.',
+    name: 'Homeless Prenatal Program, Inc',
     description:
       'In partnership with our families, break the cycle of childhood poverty',
     logoUrl:
@@ -40232,7 +40232,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b9a1fb5d-ca64-4d09-9edd-10494661e27e',
-    name: 'Waggle Foundation, Inc.',
+    name: 'Waggle Foundation, Inc',
     description:
       'Waggle seeks to safeguard pets, ensuring their lives are not cut short because a pet parent lacks the funds to pay for vital medical treatment. We work in concert with veterinary practices, animal welfare organizations, media, like-minded corporations, and the public, to raise both awarenessand the critical fundingto be the hoped-for safety net for desperate pet guardians.',
     logoUrl:
@@ -40245,7 +40245,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4087d381-72b8-49af-8c94-f3b8bd4c4706',
-    name: 'Family Touch Inc.',
+    name: 'Family Touch Inc',
     description:
       'Family Touch, Inc. is a 501(c)(3) nonprofit organization whose mission is to strengthen immigrant families and low-income individuals through counseling services and educational programming. For the past 15 years, Family Touch has provided services to over 20,000 community members.',
     logoUrl:
@@ -40338,7 +40338,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9c48cfb2-25e0-4599-bbf9-565c97bfdce6',
-    name: 'The Kind Mouse Productions, Inc.',
+    name: 'The Kind Mouse Productions, Inc',
     description:
       'To assist families in transition and their chronically hungry children while developing the next generation of volunteers to carry on the mission of The Kind Mouse. No hardworking individual and their family should ever go hungry.',
     logoUrl:
@@ -40388,7 +40388,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2eaf03e6-3a82-4412-b07d-9a0a5ed57409',
-    name: 'Aspen Adult Services, Inc.',
+    name: 'Aspen Adult Services, Inc',
     description:
       'Aspen Adult Services creates the best lives for our clients and the people who serve them. Community excellence and integration is our goal. Our business began with the idea that a company only gives excellent service when they have a great workplace. Our mission is to offer proactive and effective services to Montanans with disabilities. Our professional and supportive staff have generous pay, benefits, and experience. This experience combines into comprehensive training with compassionate care. Your success is our mission!',
     logoUrl:
@@ -40414,7 +40414,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3960e574-5ef3-49c5-9580-e1b0ab584483',
-    name: 'Southern Paws Inc.',
+    name: 'Southern Paws Inc',
     description:
       'Southern Paws inc. Is a 501c3 non-profit dog rescue operating out of New Jersey. We work with fellow rescues in the Southern United States to place dogs who would otherwise be euthanized due to overpopulation. We also provide financial support to these organizations in order to help them aid them in their rescue efforts. Over the past five years we have saved the lives of over 4,500 dogs. It is our goal to be a voice for the voiceless and hope for the hopeless..',
     logoUrl:
@@ -40441,7 +40441,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3d3ad6bb-4fc7-4224-85f1-034350647afb',
-    name: 'S.T.A.R.T. Rescue',
+    name: 'START Rescue',
     description:
       'Addressing the issues of overpopulation of companion animals by offering no/low-cost Spay & Neuter services to underserved communities, providing local adoptions to qualified people and Transporting/Relocating at-risk shelter animals from high intake shelters in Southern/Central California to fully vetted/contracted Rescue Partners in the Pacific',
     logoUrl:
@@ -40571,7 +40571,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c6a85793-896d-47a3-9516-480462ea4c9c',
-    name: 'U.S.-Ukraine Foundation',
+    name: 'US-Ukraine Foundation',
     description:
       'The Foundation supports democracy, a free market, and human rights in Ukraine. The Foundation is dedicated to strengthening U.S.-Ukraine relations by advancing the mutual objectives of both nations, in advancing Ukraine as a cornerstone of regional stability and as a full partner in the community of nations.',
     logoUrl:
@@ -40597,7 +40597,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '865999da-3e12-43e5-8ce1-d579c84fe62b',
-    name: 'Hanns R. Neumann Stiftung North America (HRNS NA)',
+    name: 'Hanns R Neumann Stiftung North America (HRNS NA)',
     description:
       'Hanns R. Neumann Stiftung (HRNS) thrives to improve the social situation of people in tropical countries, the welfare and education of youth, and the protection of nature and the environment. The beneficiaries of our work are vulnerable smallholder families in coffee producing rural areas.<br><br>Hanns R. Neumann Stiftung North America (HRNS NA) is our strategic outreach office as part of the global HRNS network and thrives to involve public and private partners in the US and Canada.',
     logoUrl:
@@ -40610,7 +40610,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '69e2b6db-da57-4ff2-b5a2-104e2fdb7a96',
-    name: 'W. Haywood Burns Institute',
+    name: 'W Haywood Burns Institute',
     description:
       'The W. Haywood Burns Institute (BI) is a black-led national, non-profit with a diverse team of bold visionaries, working to transform the administration of justice. Always challenging racial hierarchy and the social control of communities of color by the justice sector and other public systems, BI employs strategies and tactics to establish a community centered approach of justice administration that is anchored in structural well-being.',
     logoUrl: 'https://static.tgbwidget.com/WHaywardBurnsInsititute.jpg',
@@ -40674,7 +40674,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c9548d2c-48e3-b872-e683-1561bb953af0',
-    name: 'Ecosystems Work for Essential Benefits, Inc. (ECOWEB)',
+    name: 'Ecosystems Work for Essential Benefits, Inc (ECOWEB)',
     description:
       'ECOWEB envisions "a peaceful and progressive society living in a safe environment" and aims to progress towards its realization by fulfilling its Mission: "Mobilizing Resources, Building Partnerships, and Empowering Communities" and by working to achieve the five (5) major goals:<br><br>(1) Inclusive Governance<br>(2) Sustainable Local Institutions<br>(3) Improved Social Relations<br>(4) Sustainable Livelihoods of Communities and Social Enterprise<br>(5) Safe Environment and Resilient Communities',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/18641/orglogo.png',
@@ -40686,7 +40686,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b3e20a16-4261-a7e7-ed57-abef409b9b26',
-    name: 'American Chamber (AMCHAM) Foundation Philippines, Inc.',
+    name: 'American Chamber (AMCHAM) Foundation Philippines, Inc',
     description:
       'The AmCham Foundation serves as the socio-civic arm of the American Chamber of Commerce of the Philippines member companies.<br><br>The AmCham Foundation serves as a catalyst in encouraging American Chamber of Commerce of the Philippines, Inc. member companies to institutionalize their Corporate Social Responsibility activities and/or to use their CSR activities to support their corporate strategies.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/16093/orglogo.jpg',
@@ -40746,7 +40746,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6f73f9df-4958-8c8e-eccb-d169371d6bc8',
-    name: 'Asociacion Juvenil de Ayuda al Nino y al Discapacitado A.C. -  IPACIDEVI',
+    name: 'Asociacion Juvenil de Ayuda al Nino y al Discapacitado AC -  IPACIDEVI',
     description: '',
     logoUrl: '',
     nteeCode: 'G00',
@@ -40769,7 +40769,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e78ec8b9-4860-9d07-e4e5-dab72c942c81',
-    name: 'Dividendo Voluntario para la Comunidad / United Way Venezuela',
+    name: 'Dividendo Voluntario para la Comunidad  United Way Venezuela',
     description:
       'Integrate efforts of the private initiative and add value to the processes of social responsibility of companies, in alliance with social development organizations, authorities and communities, in order to promote actions that improve the quality of life of people in Venezuela.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/98833/orglogo.png',
@@ -40841,7 +40841,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3a430e13-43e8-a624-d968-3266285c520b',
-    name: "Fundacio d'Oncologia Infantil Enriqueta Villavecchia",
+    name: 'Fundacio dOncologia Infantil Enriqueta Villavecchia',
     description:
       'The Enriqueta Villavecchia Private Foundation for Child Oncology, constituted in Barcelona in 1989, is a non-profit organization with charitable and welfare aims. Our goal is to provide integral care for children and youngsters with cancer or other serious diseases, and give support to their families.<br>The purpose of the Foundation is to provide integral care to children and youngsters suffering from cancer or other life limiting diseases, to ensure the support to their families, and to drive progress in aid, research and training in the field of Oncology, Hematology, Palliative Care and the attention to complex chronicity at pediatrics.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/98742/orglogo.jpg',
@@ -40900,7 +40900,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'bd0a1a1f-6dbc-4046-a078-22a71e1a1f42',
-    name: 'Feed The Children, Inc.',
+    name: 'Feed The Children, Inc',
     description:
       "Providing hope and resources for those without life's essentials",
     logoUrl:
@@ -40913,7 +40913,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '54747b72-4bbe-bd7d-e63d-410448855a23',
-    name: 'Cabral Obregon, A. C.',
+    name: 'Cabral Obregon, A C',
     description:
       'To integrate women from San Luis Potosi, who are over 65 years old and find themselves in a vulnerable situation, into an environment of love, patience and respect.  To offer a home with the appropriate facilities to serve them in a comprehensive manner, with the necessary physical rehabilitation, proper nutrition and nourishing their spirits so they might have the opportunity to regain their happiness and the tranquility of their families.',
     logoUrl: 'https://www.globalgiving.org/pfil/organ/72056/orglogo.png',
@@ -41082,7 +41082,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '747e6e0c-48e0-b34a-e0dd-1c95ada5b2c1',
-    name: 'Jeunesse en Reconstruction du Monde en Destruction (JRMD/YRWD)',
+    name: 'Jeunesse en Reconstruction du Monde en Destruction (JRMDYRWD)',
     description:
       'JRMD MISSION<br><br>Our mission and objective is to restore hope to a hopeless community and nation by teaching them a new way of living, behaving and acting for peace and reconciliation through sharing Love and Compassion in Action; a new way which reduces violence and conflict; a new way which promotes justice and respect of human rights; a new way which rebuilds a broken relationship between man, his neighbor and God; a new way to resolve conflict and create an environment which fights poverty and division between the community and tribes.',
     logoUrl: '',
@@ -41234,7 +41234,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3521820f-cf0d-409b-b0db-2f35cc609bdb',
-    name: 'American Civil Liberties Union Foundation, Inc.',
+    name: 'American Civil Liberties Union Foundation, Inc',
     description:
       "Founded in 1920, the American Civil Liberties Union (ACLU) is a nonprofit, nonpartisan, multi-issue, 1.4 million member public interest organization devoted to protecting the civil liberties of all people in the United States. Recognized as the nation's premier public interest law firm, the ACLU works daily in courts, legislatures, and communities to defend and preserve the freedoms guaranteed by the U.S. Constitution and the Bill of Rights. The ACLU dares to create a more perfect union beyond one person, party, or side; our mission is to realize the promise of the United States Constitution for all and expand the reach of its guarantees. \nThe ACLU Foundation is the 501 (c)(3) arm of the organization.",
     logoUrl:
@@ -41260,7 +41260,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'bca071cf-939d-4728-b109-090cc2e0f9e4',
-    name: 'Planned Parenthood Federation of America, Inc.',
+    name: 'Planned Parenthood Federation of America, Inc',
     description:
       "Planned Parenthood believes in the fundamental right of each individual, throughout the world, to manage his or her fertility, regardless of the individual's income, marital status, race, ethnicity, sexual orientation, age, national origin, or residence. We believe that respect and value for diversity in all aspects of our organization are essential to our well-being. We believe that reproductive self-determination must be voluntary and preserve the individual's right to privacy. We further believe that such self-determination will contribute to an enhancement of the quality of life, strong family relationships, and population stability.\r\nBased on these beliefs, and reflecting the diverse communities within which we operate, the mission of Planned Parenthood is:\r\nto provide comprehensive reproductive and complementary health care services in settings which preserve and protect the essential privacy and rights of each individual; to advocate public policies which guarantee these rights and ensure access to such services; to provide educational programs which enhance understanding of individual and societal implications of human sexuality; to promote research and the advancement of technology in reproductive health care and encourage understanding of their inherent bioethical, behavioral, and social implications.",
     logoUrl:
@@ -41325,7 +41325,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '594a8368-aa4c-40ba-a113-8b180f0e4f1d',
-    name: 'Dana-Farber Cancer Institute, Inc.',
+    name: 'Dana-Farber Cancer Institute, Inc',
     description:
       "Founded in 1947, Dana-Farber Cancer Institute's mission is to provide expert, compassionate care to children and adults with cancer while advancing the understanding, diagnosis, treatment, cure and prevention of cancer and related diseases. As an affiliate of Harvard Medical School and a Comprehensive Cancer Center designated by the National Cancer Institute, the Institute also provides training for new generations of physicians and scientists, designs programs that promote public health particularly among high-risk and underserved populations and disseminates innovative patient therapies and scientific discoveries in Boston, across the United States and throughout the world.",
     logoUrl:
@@ -41456,7 +41456,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6ae48e83-3058-44bc-ae1b-18aedb2c29d8',
-    name: 'Association for Autism and Neurodiversity, Inc.',
+    name: 'Association for Autism and Neurodiversity, Inc',
     description:
       'AANE helps Autistic and similarly Neurodivergent people build meaningful, connected lives. We provide individuals, families, and professionals with education, community, and support, in an inclusive atmosphere of validation and respect.',
     logoUrl:
@@ -41469,7 +41469,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '412be406-89ee-4dd2-ab7a-1fcf1a9c13ec',
-    name: 'Code/Art',
+    name: 'CodeArt',
     description:
       'Our mission is to increase the number of girls studying computer science by delighting and inspiring them with the creative possibilities of computer programming. We strive to put young women, particularly young women from underrepresented racial and ethnic groups, on track for future tech careers by providing welcoming early coding programs that focus on art, creativity and social good.',
     logoUrl:
@@ -41495,7 +41495,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5f3530db-16c7-4306-8fc3-866a0e5b0bfd',
-    name: 'Innocence Project, Inc.',
+    name: 'Innocence Project, Inc',
     description:
       "The Innocence Project's mission is to free the staggering numbers of innocent people who remain incarcerated and to bring substantive reform to the system responsible for their unjust imprisonment.\nThe Innocence Project is a national litigation and public policy organization dedicated to exonerating innocent\npeople who are wrongfully convicted — primarily through DNA testing — and reforming the criminal legal system\nto prevent future injustice. First launched as a legal clinic in 1992 by co-founders Barry Scheck and Peter\nNeufeld at the Benjamin N. Cardozo School of Law at Yeshiva University, the Innocence Project became an independent nonprofit in 2004 and maintains an affiliation with Cardozo today.",
     logoUrl:
@@ -41548,7 +41548,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'c7d68bd2-10c1-4064-b4d5-e6d7b45d6b62',
-    name: 'Save the Children Federation, Inc.',
+    name: 'Save the Children Federation, Inc',
     description:
       "Save the Children believes every child deserves a future. In the United States and around the world, we do whatever it takes  every day and in times of crisis  so children can fulfill their rights to a healthy start in life, the opportunity to learn and protection from harm. Our experts go to the hardest-to-reach places where its toughest to be a child. We ensure childrens unique needs are met and their voices are heard. Together with children, families and communities, as well as supporters the world over, we achieve lasting results for millions of children. \nWith over 100 years of expertise, we are the worlds first and leading independent children's organization transforming lives and the future we share.",
     logoUrl:
@@ -41652,7 +41652,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '845f1ca9-4dad-422e-8465-88e51c992617',
-    name: 'CREATE IN CHINATOWN INC (DBA Think!Chinatown)',
+    name: 'CREATE IN CHINATOWN INC (DBA ThinkChinatown)',
     description:
       'THINK!CHINATOWN (T!C) is an intergenerational non-profit working from within Manhattan’s Chinatown. Our mission is to foster community through neighborhood engagement, storytelling & the arts. We believe the process of listening and reflecting develops the community cohesion and trust necessary to take on larger neighborhood issues and keep each other safe. Celebrating our histories is key to creating a safe space for our AAPI community to heal and grow collectively. We’ve built T!C to push from within our neighborhood to shape better policies and programs that define our public spaces, ensure equal access to public resources, honor our cultural heritage, and to innovate how our collective memories are represented.',
     logoUrl:
@@ -41703,7 +41703,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4cb832e8-0c21-437b-bbeb-4c85c4101bc6',
-    name: 'Clean Air Task Force Inc.',
+    name: 'Clean Air Task Force Inc',
     description:
       'Clean Air Task Force is a nonprofit environmental organization that works to help safeguard against the worst impacts of climate change by catalyzing the rapid global development and deployment of low carbon energy and other climate-protecting technologies through research and analysis, public advocacy leadership, and partnership with the private sector.',
     logoUrl:
@@ -41717,7 +41717,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'b38b4f09-5953-457e-87aa-bed8d5fb6541',
-    name: 'WALK Church of Las Vegas NV, Inc.',
+    name: 'WALK Church of Las Vegas NV, Inc',
     description:
       'WALK Church is a family of diverse individuals pursuing a relationship with Jesus and living out their faith in community. We want as many people as possible to experience the freedom we have found in Christ and it’s our joy to point people to Him. As you get to know us, it’s our prayer that you get to know Him. Let’s walk this journey together!',
     logoUrl:
@@ -41770,7 +41770,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '90dfa972-f57e-425d-b816-d76e9e4fcc94',
-    name: 'Rainbow Railroad USA, Inc.',
+    name: 'Rainbow Railroad USA, Inc',
     description:
       'We help LGBTQI people around the world who are facing extreme violence and state-sponsored persecution, find a path to freedom. Our ultimate goal is a world free of persecution, and we stand in solidarity with activists and organizations working towards that goal. However, until that day comes, we need to be able to provide solutions for individuals facing imminent danger.',
     logoUrl:
@@ -41783,7 +41783,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd8bff036-4875-440a-95c2-4cb079ee5826',
-    name: 'Environmental Defense Fund Inc.',
+    name: 'Environmental Defense Fund Inc',
     description:
       "Environmental Defense Fund's mission is to build a vital Earth. For everyone.\nBy leveraging our deep expertise in science and economics, EDF delivers bold, game-changing solutions to address the biggest challenge of our time — climate change.\nWe work to stabilize the climate, strengthen the ability of people and nature to thrive and support people's health. Working in more than 30 countries, we focus on the areas where we can make the biggest impact. From slashing pollution from transportation around the world, to slowing the warming we're experiencing now by cutting methane pollution, to bolstering nature's own capacity to stabilize the climate.",
     logoUrl:
@@ -41796,7 +41796,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '80b9845e-3922-4e3f-9c16-001396b2501e',
-    name: 'ArtServe, Inc.',
+    name: 'ArtServe, Inc',
     description:
       'Empowering artists and supporting creative programs that operate at the intersection of art and social impact. <br><br>Our work includes: <br>• Support and resources for artists to incubate and implement working business models that contribute to the area’s economic and cultural vitality <br>• Arts education, integration and outreach initiatives that respond to opportunity gaps in academic, economic and socio-emotional arenas <br>• The presentation of all art forms to enhance community appreciation for diversity and inclusion <br>• Arts advocacy and data sharing that continually informs the community-at-large about the function of the arts as a valid catalyst for social change',
     logoUrl:
@@ -41848,7 +41848,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '89335d17-6ff4-4f57-a095-e9c30e16ba31',
-    name: 'The Committee to Protect Journalists, Inc.',
+    name: 'The Committee to Protect Journalists, Inc',
     description:
       "The Committee to Protect Journalists (CPJ) promotes press freedom worldwide and defends the right of journalists to report the news safely and without fear of reprisal. \nWhy do we protect journalists? Journalism plays a vital role in the balance of power between a government and its people. When a country's journalists are silenced, its people are silenced. By protecting journalists, CPJ protects freedom of expression and democracy.\nWhen journalists can't speak, we speak up.",
     logoUrl:
@@ -41861,7 +41861,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a883cce5-8cce-4c02-9ec8-c538472cf995',
-    name: 'KABOOM!',
+    name: 'KABOOM',
     description:
       'We unite with communities to build kid-designed playspaces that can spark joy and foster a sense of belonging for the kids who are often denied opportunities to thrive. Our mission is to end playspace inequity for good.',
     logoUrl:
@@ -41900,7 +41900,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1068aed3-7018-45cc-9dbc-6683c075a00b',
-    name: "St. Jude Children's Research Hospital",
+    name: 'St Jude Childrens Research Hospital',
     description:
       "The mission of St. Jude Children’s Research Hospital is to advance cures, and means of prevention, for pediatric catastrophic diseases through research and treatment. Consistent with the vision of our founder Danny Thomas, no child is denied treatment based on race, religion or a family's ability to pay. Families never receive a bill from St. Jude for treatment, travel, housing or food – so they can focus on helping their child live.",
     logoUrl:
@@ -41966,7 +41966,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4e7b2eb6-82cd-4275-aa6c-4f8035cd372d',
-    name: 'Union of Concerned Scientists, Inc.',
+    name: 'Union of Concerned Scientists, Inc',
     description:
       'The Union of Concerned Scientists puts rigorous, independent science into action, developing solutions and advocating for a healthy, safe, and just future.',
     logoUrl:
@@ -42018,7 +42018,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd56fbbe6-a6f6-436c-8f95-f0351f07ebd6',
-    name: "St. Jude Children's Research Hospital",
+    name: 'St Jude Childrens Research Hospital 2',
     description:
       'St. Jude Children’s Research Hospital is leading the way the world understands, treats and defeats childhood cancer and other life-threatening diseases. Our purpose is clear: Finding cures. Saving children.®<br><br>We are the only National Cancer Institute-designated Comprehensive Cancer Center devoted solely to children. Treatments invented at St. Jude have helped push the overall childhood cancer survival rate from 20 percent to more than 80 percent since we opened more than 50 years ago. And we won’t stop until no child dies from cancer.<br><br>Families never receive a bill from St. Jude for treatment, travel, housing or food – because all a family should worry about is helping their child live.',
     logoUrl:
@@ -42057,7 +42057,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'abe77769-7b76-4c95-9d35-0aa169c9b541',
-    name: 'Coral Restoration Foundation Inc.',
+    name: 'Coral Restoration Foundation Inc',
     description:
       "Coral Restoration Foundation™ (CRF) is the world’s largest non-profit marine conservation organization dedicated to restoring coral reefs to a healthy state, in Florida as well as globally. \nHeadquartered in the Florida Keys, CRF was incorporated in 2007 in response to the widespread loss of the dominant coral species on the Florida's Coral Reef, the third largest barrier reef in the world. CRF’s core mission is to restore coral reefs, to educate others on the importance of our oceans, and to use science to further coral research and coral reef monitoring techniques.  \nLarge-scale and massive action is required to save our reefs. After more than a decade of successful outplanting throughout the Florida Keys, CRF has proven that this is possible.",
     logoUrl:
@@ -42109,7 +42109,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1adfbdde-9c42-4020-9813-4ee2ba990743',
-    name: 'Jewish Fertility Foundation Inc.',
+    name: 'Jewish Fertility Foundation Inc',
     description:
       'VISION: All who aspire to build a family can realize their dream.\nMISSION: The Jewish Fertility Foundation (JFF) engages hopeful parents by providing financial assistance, emotional support, and infertility education to those struggling to build their families.',
     logoUrl:
@@ -42122,7 +42122,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3196ae11-0603-41dd-a468-6c8ec5f531a0',
-    name: 'The GroundTruth Project, Inc.',
+    name: 'The GroundTruth Project, Inc',
     description:
       'THE GROUNDTRUTH PROJECT is an award-winning, independent, nonpartisan, nonprofit news organization dedicated to supporting the next generation of journalists in the U.S. and around the world.\nOur mission is to serve under-covered communities by supporting the next generation of journalists to do on-the-ground reporting and to advance sustainability, innovation and equity in journalism worldwide.\nIn 2017, GroundTruth launched Report for America, a national service program that places talented emerging journalists in local newsrooms to report on under-covered issues and communities. And in 2021, we launched Report for the World.',
     logoUrl:
@@ -42135,7 +42135,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'cf7c8de2-13a7-4b85-ace9-480997fb0a2e',
-    name: 'Apex for Youth Inc.',
+    name: 'Apex for Youth Inc',
     description:
       'Apex for Youth empowers underserved Asian and immigrant youth from low-income families in NYC to help them unlock their potential and a world of possibility. Our volunteers support and mentor youth, building the next generation of tomorrow’s change makers. We are in active pursuit of a more equitable future.',
     logoUrl:
@@ -42254,7 +42254,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e6af21a3-1161-491c-9c55-c1523f5285fc',
-    name: 'Jewish Graduate Student Initiative Inc.',
+    name: 'Jewish Graduate Student Initiative Inc',
     description:
       'Our mission is to support Jewish life on graduate school campuses and to connect Jewish graduate students, alumni, and young professionals to their heritage and the greater Jewish community. Our dynamic, multidisciplinary programs are designed to instill the Jewish values of ethical leadership, lifelong learning, and communal responsibility in an atmosphere of open inquiry and mutual respect, in order to shape the next generation of Jewish and professional community leaders.',
     logoUrl:
@@ -42281,7 +42281,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '154e4820-0ef3-4533-b0c5-e05a83beb7a1',
-    name: "The Young Men's Christian Association of the Triangle Area, Inc.",
+    name: 'The Young Mens Christian Association of the Triangle Area, Inc',
     description:
       "For over 165 years, the YMCA of the Triangle has strengthened the very foundations of the community we serve. We’re proud of our diverse community and are passionate about being a positive force for good. <br> <br>\r\nWe serve people from all walks of life in the Triangle area through YMCA memberships and programs.\r\nThe YMCA of the Triangle is a 501(c)3 nonprofit governed by a local board of volunteer directors.\r\n<br> <br> \r\nOUR PURPOSE <br> <br>\r\nWe're committed to nurturing the potential of children through Youth Development, improving the nation’s health and well-being by promoting Healthy Living, and fostering a sense of Social Responsibility by providing opportunities to give back and support neighbors.\r\n<br> <br>\r\nOUR MISSION\r\n<br> <br>\r\nOur Mission is to put Christian principles into practice through programs that build healthy spirit, mind and body for all.\r\n<br> <br>\r\nOur Mission compels us to embrace, reflect and celebrate the richness of diversity within each other and the many communities we serve. In that Christian principles are caring and inclusive, we are respectful of various expressions of faith and serve families and individuals from all traditions, backgrounds and perspectives. Together, we work to ensure that everyone, has the opportunity to reach their full potential with dignity at our YMCA.",
     logoUrl: '',
@@ -42345,7 +42345,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'bf48e592-ad47-43ff-9a97-0bcca22c9ed3',
-    name: 'World Central Kitchen, Inc.',
+    name: 'World Central Kitchen, Inc',
     description:
       'Founded in 2010 by Chef José Andrés, World Central Kitchen (WCK) is first to the frontlines providing fresh meals in response to crises. Applying our model of quick action, leveraging local resources, and adapting in real time, WCK has served hundreds of millions nourishing meals around the world.\nWhen disaster strikes, WCK’s Relief Team mobilizes with the urgency of now to start cooking meals for people in need. WCK serves comforting meals to survivors of disasters quickly by partnering with organizations on the ground and activating a network of local restaurants, food trucks, or kitchens. To support regional economies, WCK prioritizes purchasing local ingredients to cook with or distribute. Food provides not only nourishment, but also comfort and hope, especially in times of crisis.',
     logoUrl:
@@ -42397,7 +42397,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f56889d1-a4a5-4d27-998a-a1208c27d4ef',
-    name: 'WhyHunger Inc.',
+    name: 'WhyHunger Inc',
     description:
       'WhyHunger believes a world without hunger is possible. We provide critical resources to support grassroots movements and fuel community solutions rooted in social, environmental, racial and economic justice. We are working to end hunger and advance the human right to nutritious food in the U.S. and around the world.',
     logoUrl:
@@ -42463,7 +42463,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4459bfd0-85b4-47f3-ba10-72a6b20750f0',
-    name: 'Project South the Institution for the Elimination Poverty & Genocide',
+    name: 'Project South the Institution for the Elimination Poverty  Genocide',
     description:
       'Project South was founded as the Institute to Eliminate Poverty & Genocide in 1986. Our work is rooted in the legacy of the Southern Freedom Movement, and our mission of cultivating strong social movements in the South powerful enough to contend with some of the most pressing and complicated social, economic, and political problems we face today.\nThree Strategic Directions guide Project South’s work:\n1. Neighborhood Organizing to Grow Community Power\n2. Movement Organizing to Grow Regional Power             \n3. Movement Support to Grow Grassroots Leadership',
     logoUrl:
@@ -42476,7 +42476,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '4c91ac42-962d-459d-892a-f37decb8f6ad',
-    name: 'Jane Goodall Institute for Wildlife Research Education & Conservation',
+    name: 'Jane Goodall Institute for Wildlife Research Education  Conservation',
     description:
       "The Jane Goodall Institute (JGI) is a global nonprofit focused on inspiring individual action to improve the understanding, welfare and conservation of great apes and to safeguard the planet we all share. Our mission is based in Dr. Jane Goodall's belief that the well-being of our world relies on people taking an active interest in all living things.",
     logoUrl: '',
@@ -42514,7 +42514,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a41543b4-142b-40dd-8d39-3395acb4482c',
-    name: 'Good Hope Equestrian & Regenerative Farm, Inc.',
+    name: 'Good Hope Equestrian  Regenerative Farm, Inc',
     description:
       'The mission of Good Hope is to provide quality equine assisted, regenerative farming practices, and organically grown food distribution to children, youth, and adults with and without disabilities to enhance their independence, personal potential, and quality of life. Using the horse as its tool and its 270-acre facility as its classroom, GHERF is committed to developing quality equine and regenerative farming program services to meet the educational, vocational, recreational, and rehabilitative needs of the community. The goal of each program is to build upon the unique gifts of each individual, enabling them to successfully improve their body, mind, and spirit through the healing powers of the horse and the knowledge and application of healthy living through regenerative farming practices.',
     logoUrl:
@@ -42566,7 +42566,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '00bbd9db-c550-4f7f-bbd7-9e244d7e2e9c',
-    name: 'URGE Unite for Reproductive & Gender Equity',
+    name: 'URGE Unite for Reproductive  Gender Equity',
     description:
       'URGE envisions a liberated world where we can live with justice, love freely, express our gender and sexuality, and define and create families of our choosing. To achieve our vision of liberation, URGE builds power and sustains a young people’s movement for reproductive justice by centering the leadership of young people of color who are women, queer, trans, nonbinary, and people of low-income.As a state-driven national organization, URGE organizes our communities, provides a political home for young people, advocates for meaningful policy change, and shifts culture, working in states where the challenges and opportunities are greatest.',
     logoUrl:
@@ -42605,7 +42605,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8609873b-87a2-4210-8c5d-e17f191323a6',
-    name: 'GiveInternet .Org Inc',
+    name: 'GiveInternet Org Inc',
     description:
       '1.1 billion students can’t afford internet access. 67% are girls. We exist to make it simple and transparent for anyone to sponsor internet access and laptops for students in need, allowing them to access global knowledge and equal opportunities.',
     logoUrl:
@@ -42695,7 +42695,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '925268bd-e912-4b2c-9015-91b7009e1b24',
-    name: 'The Fedcap Group, Inc.',
+    name: 'The Fedcap Group, Inc',
     description:
       'The Fedcap Group is committed to creating opportunities and improving the lives of people with barriers to economic well-being.',
     logoUrl:
@@ -42941,7 +42941,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'e2552a3f-eaf5-4fbc-ad86-1f8a12984a5c',
-    name: 'The Water Project, Inc.',
+    name: 'The Water Project, Inc',
     description:
       'The Water Project  unlocks human potential by building and connecting global networks of local leaders, communities of generous supporters, and an informed public to provide sustainable water and sanitation programs to needlessly suffering communities in developing countries.',
     logoUrl:
@@ -43006,7 +43006,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6d2dd2a2-d11d-4252-91ea-bb665a40ee6c',
-    name: 'Develop Africa, Inc.',
+    name: 'Develop Africa, Inc',
     description:
       'Develop Africa strategically empowers lives in Africa by providing educational opportunities and strengthening self-reliance so that individuals, families, and communities can create positive change in their own lives.  We provide school supplies, scholarships, solar lights (so kids can study at night), mosquito nets (to keep children safe from malaria), computer/vocational training, etc. We additionally provide microfinance loans, orphan care, and disaster relief. This helps them become self-sufficient and rise above the poverty line. When individuals and families are strengthened, they can contribute towards community, national, and international progress.',
     logoUrl:
@@ -43149,7 +43149,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'd909aad3-05f2-4e24-83c1-c869ff65c485',
-    name: 'Lambda Legal Defense and Education Fund, Inc.',
+    name: 'Lambda Legal Defense and Education Fund, Inc',
     description:
       'Founded in 1973, Lambda Legal is a national organization committed to achieving the full recognition of the civil rights of LGBTQ people, and all persons living with HIV through impact litigation, public education, and policy work. We successfully use strategic and collaborative advocacy to press for passage of laws that prohibit discrimination based on sexual orientation, gender identity or HIV status and to defeat efforts to repeal or weaken such civil rights protections.',
     logoUrl:
@@ -43201,7 +43201,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'eeb6332a-9231-4d7a-9265-9b263db6be96',
-    name: 'Lodi Boys & Girls Club',
+    name: 'Lodi Boys  Girls Club',
     description:
       'The mission of Boys & Girls Clubs of America is to inspire and enable all young people, especially those from disadvantaged circumstances, to realize their full potential as productive, responsible citizens.',
     logoUrl:
@@ -43214,7 +43214,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5c5b05ec-1a61-4669-8387-31835ce5cbcb',
-    name: 'Abortion Rights Fund of Western Massachusetts Inc.',
+    name: 'Abortion Rights Fund of Western Massachusetts Inc',
     description:
       'ARFWM is a community-based, all volunteer organization dedicated to helping people overcome economic barriers to abortion healthcare.\nARFWM provides direct financial assistance to all people seeking abortions who cannot afford them, including women, youth, transgender, and gender nonconforming-identified people. While our primary commitment is to those from the four counties of Western Massachusetts, we also respond to the needs of those elsewhere in the state, region, and country.\nOther priorities include raising public awareness of the injustice of legal and economic restrictions on abortion; working to demystify and de-stigmatize abortion; and advocating for legislation and policy supporting reproductive health, rights, and justice.',
     logoUrl:
@@ -43316,7 +43316,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2c4ae79b-3d1a-48bb-bf82-5a22bd1d0e0c',
-    name: 'Boston Chinatown Neighborhood Center, Inc.',
+    name: 'Boston Chinatown Neighborhood Center, Inc',
     description:
       'The mission of BCNC is to ensure that the children, youth, and families we serve have the resources and supports they need to achieve greater economic success and social well-being.',
     logoUrl:
@@ -43381,7 +43381,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '7c474f10-1d6d-4696-9575-1a2cf5d87474',
-    name: 'Dream.org',
+    name: 'Dreamorg',
     description:
       'At Dream.org we close prison doors and open doors of opportunity. We bring people together across racial, social, and partisan lines to create a future with freedom, dignity, and opportunity for all.',
     logoUrl:
@@ -43434,7 +43434,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '01531c59-a7b5-4344-b202-058d98a1dca1',
-    name: 'TWLOHA, Inc.',
+    name: 'TWLOHA, Inc',
     description:
       'TWLOHA is a non-profit movement dedicated to presenting hope and finding help for people struggling with depression, addiction, self-injury, and suicide. TWLOHA exists to encourage, inform, inspire, and also invest directly in treatment and recovery.',
     logoUrl: 'https://static.tgbwidget.com/TWLOHA.jpg',
@@ -43446,7 +43446,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0940e4bd-f767-4563-9fdf-235d9762291a',
-    name: 'Genesis Womens Shelter & Support',
+    name: 'Genesis Womens Shelter  Support',
     description:
       'To provide safety, shelter and support for women and children who have experienced domestic violence, and to raise awareness regarding its cause, prevalence and impact.',
     logoUrl:
@@ -43562,7 +43562,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '28f43116-1f1d-41d5-a9bb-b31796b9efc1',
-    name: "Women's Sports Foundation",
+    name: 'Womens Sports Foundation',
     description:
       "Founded by sports icon and social justice activist Billie Jean King, the Women's Sports Foundation is the ally, advocate, and catalyst for tomorrow’s leaders. We exist to enable girls and women to reach their potential in sport and life.",
     logoUrl:
@@ -43627,7 +43627,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '642552e6-6d82-40ff-b75f-6e4eb8208ce2',
-    name: 'Kindness.org',
+    name: 'Kindnessorg',
     description:
       'Our mission is to educate and inspire people to choose kindness. We do this work by leveraging science and research to inform our products and programs for a kinder world.  Our flagship program is Learn Kind, an evidence-based SEL curriculum serving K-8 students.',
     logoUrl:
@@ -43785,7 +43785,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '29b25210-fe22-4002-954e-339257b731a3',
-    name: 'Save the Chimps, Inc.',
+    name: 'Save the Chimps, Inc',
     description:
       'Save the Chimps is one of the largest chimpanzee sanctuaries in the world whose mission is to provide refuge and exemplary care to chimpanzees in need. Save the Chimps offers a permanent sanctuary for the lifelong care of chimpanzees rescued from the US Air Force, research laboratories, the pet trade, and entertainment industry.',
     logoUrl:
@@ -43811,7 +43811,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '10b6c970-dcf3-4527-95f4-dbe25aae1a43',
-    name: 'Wikimedia Foundation, Inc.',
+    name: 'Wikimedia Foundation, Inc',
     description:
       'Through Wikipedia and our sister projects, the Wikimedia Foundation is empowering people around the world to collect and develop knowledge under a free license, and to disseminate that knowledge effectively and globally. In collaboration with a network of Wikimedia affiliates the Foundation provides the essential infrastructure and an organizational framework for the support and development of projects and initiatives that serve this mission.',
     logoUrl:
@@ -43877,7 +43877,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '26fb059e-b0b4-42dd-939b-8d1e234fe6a7',
-    name: 'Franklin County Humane Society,Inc/ Planned Pethood Clinic & Adoption Center',
+    name: 'Franklin County Humane Society,Inc Planned Pethood Clinic  Adoption Center',
     description:
       'Our mission is to create a community where all dogs and cats get a chance for a healthy and happy life in a loving home by promoting rescue, adoption and spay/neuter.',
     logoUrl:
@@ -44046,7 +44046,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '09d6cc1d-d077-4f1b-aa56-42722b8bc067',
-    name: 'Houston Zoo, Inc.',
+    name: 'Houston Zoo, Inc',
     description:
       'Our mission is to connect communities with animals, inspiring action to save wildlife. With this vision, we hope to be a leader in the global movement to save wildlife.',
     logoUrl:
@@ -44059,7 +44059,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1652f435-2122-4743-9af9-49016ffb5fbc',
-    name: 'Boys & Girls Clubs of Greater Houston',
+    name: 'Boys  Girls Clubs of Greater Houston',
     description:
       'To inspire and enable all youth, especially those who need us most, to realize their full potential as productive, responsible and caring citizens.',
     logoUrl:
@@ -44190,7 +44190,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1cbe7039-c3c1-45c2-8c97-888181e87d47',
-    name: 'WholeSchool Mindfulness, Inc.',
+    name: 'WholeSchool Mindfulness, Inc',
     description:
       'Co-creating an education system that advances wellbeing, community, and justice through the transformative power of mindfulness.<br><br>We are working to establish and support the position of a “Mindfulness Director” in schools. A Mindfulness Director is a school or district staff member whose role is to integrate mindfulness practices within their community.<br><br>We envision a mindful education system in which every school has access to a culturally responsive Mindfulness Director.<br><br>We envision compassionate, resilient schools that support all community members to meet personal, relational, and global challenges with increased clarity and an unwavering commitment to justice.<br><br>We envision future generations of healthy, connected individuals whose mindfulness practice has supported them to see clearly and act wisely in service of imagining and creating a more aware and just world.',
     logoUrl:
@@ -44203,7 +44203,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '2933313d-f32a-4301-b6eb-59081808fbab',
-    name: 'The Center for Empowerment and Education, Inc.',
+    name: 'The Center for Empowerment and Education, Inc',
     description:
       'Our mission is to serve the needs of individuals, families and the community with prevention, crisis intervention and support services with regard to domestic violence, sexual assault and other major life crises.<br><br>We achieve this mission through our strongly committed team of dedicated staff, direct service and board of director volunteers, and with the help of our many partners, from individuals and governments to local nonprofits and corporations. Together, they help us to sustain the provision of high quality, professional services for all who turn to us for help, 24 hours per day, 7 days per week.',
     logoUrl:
@@ -44242,7 +44242,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '3c8b3e12-8d1c-4e9b-baca-ad04d1f6eba0',
-    name: "St Anthony's Health Care Foundation, Inc",
+    name: 'St Anthonys Health Care Foundation, Inc',
     description:
       "The mission of St. Anthony's Hospital Foundation is to advocate, educate and communicate the value of the hospital to our community.",
     logoUrl:
@@ -44268,7 +44268,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '87eb680f-d0de-4742-b98c-40cee3f8e23a',
-    name: 'Rhizome Communications Inc.',
+    name: 'Rhizome Communications Inc',
     description:
       'Rhizome champions born-digital art and culture through commissions, exhibitions, scholarship, and digital preservation.',
     logoUrl: '',
@@ -44280,7 +44280,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '0e2fd3d6-89ab-432d-8cc9-74d01b43996f',
-    name: "Alzheimer's Disease and Related Disorders Association, Inc.",
+    name: 'Alzheimers Disease and Related Disorders Association, Inc',
     description:
       "The Alzheimer's Association leads the way to end Alzheimer's and all other dementia — by accelerating global research, driving risk reduction and early detection, and maximizing quality care and support. A world without Alzheimer's and all other dementia.™",
     logoUrl:
@@ -44293,7 +44293,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '1902c355-593e-405f-af06-7fb0e6194630',
-    name: 'Mercy Home for Boys & Girls',
+    name: 'Mercy Home for Boys  Girls',
     description:
       'Since 1887, Mercy Home for Boys & Girls has provided children and families with healing and tools to build brighter futures. It gives children who’ve experienced abuse, neglect, or violence a safe home, educational support, and career guidance.',
     logoUrl: 'https://static.tgbwidget.com/MercyHome.jpg',
@@ -44398,7 +44398,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'f43f63bf-54e8-4cf7-9b28-bb1d1559fd48',
-    name: 'Happy Compromise Farm + Sanctuary',
+    name: 'Happy Compromise Farm  Sanctuary',
     description:
       "Happy Compromise Farm + Sanctuary (HCF+S) works to create connection between animals, humans, and the planet. HCF+S rescues and provides forever homes for both farmed and companion animals; grows food for the community through veganic, regenerative/conservation agriculture; and advocates for humans to make sustainable and eco-friendly lifestyle decisions. HCF+S invites visitors to the farm to connect with exploited animals on an individual level while also getting back to nature. The organization's overarching goal is to create a fair and safe world for all marginalized beings. As an LGBTQ-founded and -led nonprofit, HCF+S also works to eradicate systems of oppression and ensure the sanctuary is a safe space for all marginalized beings.",
     logoUrl:
@@ -44609,7 +44609,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '5a4f9aba-de97-4eb3-a89a-1ce1fc9ed078',
-    name: "Kids' Reading Room",
+    name: 'Kids Reading Room',
     description:
       'Our mission is to promote literacy and instill the LOVE of reading in elementary children living in underserved apartment communities in the Houston, TX area! We create vibrant and engaging libraries where  students are surrounded by 1000s of books within their own apartment community.\nWe have over 20 volunteers who read with our children, build positive relationships and spearhead crafts and storytime.',
     logoUrl:
@@ -44673,7 +44673,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'ac4b3129-787f-41d7-a121-9b34b2307662',
-    name: 'Association for Gifted & Talented Students of LA',
+    name: 'Association for Gifted  Talented Students of LA',
     description:
       'AGTS Louisiana is designed to serve as a resource for families, communities, and educational professionals who advocate for and support gifted and talented individuals and their education throughout Louisiana.',
     logoUrl:
@@ -44686,7 +44686,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8bc8a48f-3eb3-4811-bc32-dc4765d75610',
-    name: 'Multiple Sclerosis Education Foundation Inc.',
+    name: 'Multiple Sclerosis Education Foundation Inc',
     description:
       'The Multiple Sclerosis Education Foundation helps people with Multiple Sclerosis improve and enhance their quality of life by providing information and services to help make a difference.\r\nAlso to educate the general public so they can understand how Multiple Sclerosis affects individuals and their families. \r\nThis information should help remove or eliminate prejudice and discrimination associated with Multiple Sclerosis.',
     logoUrl:
@@ -44738,7 +44738,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '6a1a8410-26ee-483f-a199-c8d1e706309d',
-    name: 'Junior Achievement of Southern California, Inc.',
+    name: 'Junior Achievement of Southern California, Inc',
     description:
       'JA SoCal inspires and prepares young people to succeed in a global economy.  Volunteers from the professional sector help youth explore the business of life through hands-on dynamic programs that teach skills related to managing money, starting a business and entering the work-world.',
     logoUrl:
@@ -44751,7 +44751,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '9b71e854-2bf5-448a-863e-285863ffa064',
-    name: 'Center for Asian Americans United for Self-Empowerment, Inc.',
+    name: 'Center for Asian Americans United for Self-Empowerment, Inc',
     description:
       'Center for Asian Americans United for Self Empowerment (CAUSE) is a 501(c)(3) nonprofit, nonpartisan, community-based organization with a mission to advance the  political empowerment of the Asian Pacific American (APA) community through nonpartisan voter registration and education, community outreach, and leadership development.',
     logoUrl:
@@ -44802,7 +44802,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8b4b7091-918a-404a-b1d2-992a25238dc1',
-    name: "Cure Alzheimer's Fund",
+    name: 'Cure Alzheimers Fund',
     description:
       'Our mission is to fund research with the highest probability of preventing, slowing or reversing Alzheimer’s Disease through venture based philanthropy.   All organizational expenses are paid for by the Founders and Board, allowing all other contributions to be applied directly to Alzheimer’s Disease research.',
     logoUrl:
@@ -44854,7 +44854,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'a061496c-7241-48ce-af83-0e29b034b57a',
-    name: 'Ronald McDonald House Charities of San Diego, Inc.',
+    name: 'Ronald McDonald House Charities of San Diego, Inc',
     description:
       'Ronald McDonald House Charities of San Diego provides a “home-away-from-home” for families with children being treated for serious, often life-threatening conditions at local hospitals.',
     logoUrl:
@@ -44959,7 +44959,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: 'deb77da9-c4b4-4c24-889a-40d78e983fdc',
-    name: 'Wave Farm, Inc.',
+    name: 'Wave Farm, Inc',
     description:
       "Wave Farm is a non-profit arts organization driven by experimentation with broadcast media and the airwaves. Our programs—Transmission Arts, WGXC-FM, and Media Arts Grants—provide access to transmission technologies and support artists and organizations that engage with media as an art form.\r\nTransmission Arts programs support artists who engage the transmission spectrum, on the airwaves and through public events. The Wave Farm Artist Residency Program is an international visiting artist program. The Transmission Arts Archive presents a living genealogy of artists' experiments with broadcast media and the airwaves. Wave Farm Radio is a continuous online radio feed and site-specific broadcast on 1620-AM. \r\nWGXC 90.7-FM is a creative community radio station based in New York's Greene and Columbia counties. Hands-on access and participation activate WGXC as a public platform for information, experimentation, and engagement. \r\nMedia Arts Grants programs include the New York Media Arts Map and the Media Arts Assistance Fund (MAAF), which support electronic media and film organizations, as well as individual artists, in all regions of New York State through a Regrant Partnership with NYSCA, Electronic Media and Film, as well as fiscal sponsorship.",
     logoUrl:
@@ -45025,7 +45025,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '8f9e0d54-33cd-40fb-a7b8-e5b72735da4b',
-    name: "Norton Children's Hospital Foundation",
+    name: 'Norton Childrens Hospital Foundation',
     description:
       'The Norton Children’s Hospital Foundation is the philanthropic arm for Norton Children’s pediatric facilities and services. The foundation raises funds exclusively for Norton Children’s Hospital, Kentucky’s only full-service, free-standing hospital created “Just for Kids”; Norton Children’s Medical Center; and pediatric services at Norton Women’s & Children’s Hospital to support programs, equipment, new technologies, clinical research, child advocacy and health education for patients, families, medical staff and the community.<br><br>Norton Children’s Hospital serves all families regardless of their ability to pay. As part of a not-for-profit organization, Norton Children’s facilities rely on the generosity of the community to help fulfill our mission to provide for the physical and emotional health of children, from birth to adulthood. It takes the generosity of everyone in the community to enable Norton Children’s to be here for all children when they need us.. Our donors are individuals, corporations, and foundations.',
     logoUrl:
@@ -45090,7 +45090,7 @@ export const endaomentProjects: EndaomentProject[] = [
   },
   {
     endaomentID: '71053e0d-3a84-44bc-8905-5c69c4710b38',
-    name: 'Joseph & Co',
+    name: 'Joseph  Co',
     description:
       'Who we are, in summation - For the last 15+ years we have been a supplier to the less fortunate. Over the last 4+ years alone, we have moved over 5 million pounds of support product. This would be non-exclusively to; orphans, widows, the poor and oppressed, homeless, single moms, the food insecure and those which have no defender. We also reach out to first responders, on many levels, and additionally provide disaster response, relief, and recovery support services. What we do/offer, is considered to be a part of the Critical Sector Essential Workforce. We are a NorCal VOAD (Voluntary Organizations Active in Disaster) member and are in relationship with many national product donors/sponsors. *Note: This is NOT some sort of ministry, hobby or pastime; this is a. Way of Life for us.',
     logoUrl:
