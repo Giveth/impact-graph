@@ -39,12 +39,13 @@ import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
 import { updateInstantBoosting } from '../services/instantBoostingServices';
 import { QfRound } from '../entities/qfRound';
-import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
+// import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
 import { ORGANIZATION_LABELS } from '../entities/organization';
+import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
 
 // search and filters
 describe('all projects test cases --->', allProjectsTestCases);
@@ -2215,6 +2216,7 @@ function allProjectsTestCases() {
       p => Number(p.id) === project2.id,
     );
 
+    // New estimated matching wont calculate it here
     const project1EstimatedMatching =
       await calculateEstimatedMatchingWithParams({
         matchingPool: firstProject.estimatedMatching.matchingPool,
