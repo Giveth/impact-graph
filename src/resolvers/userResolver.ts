@@ -189,7 +189,11 @@ export class UserResolver {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
     // Check if old email is verified and user entered new one
-    if (dbUser.isEmailVerified && email !== dbUser.email) {
+    if (
+      dbUser.isEmailVerified &&
+      email !== undefined &&
+      email !== dbUser.email
+    ) {
       throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
     }
     if (email !== undefined) {
