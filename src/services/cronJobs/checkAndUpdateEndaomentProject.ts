@@ -1,9 +1,14 @@
 import axios from 'axios';
 import { schedule } from 'node-cron';
+import config from '../../config';
 import { Project, ProjStatus } from '../../entities/project';
 import { logger } from '../../utils/logger';
 
-const cronJobTime = '0 0 1 * *'; // Runs once a month
+// Runs once a month
+const cronJobTime =
+  (config.get(
+    'CHECK_AND_UPDATE_ENDAOMENT_PROJECTS_CRONJOB_EXPRESSION',
+  ) as string) || '0 0 1 * *';
 
 export const runCheckAndUpdateEndaomentProject = async () => {
   logger.debug(

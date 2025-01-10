@@ -37,11 +37,12 @@ export class InsertEndaomentProjectsIds1735909243926
         singleProject.length > 0 &&
         singleProject[0].id > 0
       ) {
-        await queryRunner.query(`
-          UPDATE "project"
-          SET "endaomentId" = '${project.endaomentID}'
-          WHERE "id" = '${singleProject[0].id}';
-        `);
+        await queryRunner.query(
+          `UPDATE "project"  
+           SET "endaomentId" = $1  
+           WHERE "id" = $2;`,
+          [project.endaomentID, singleProject[0].id],
+        );
       }
     }
   }

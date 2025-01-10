@@ -449,7 +449,7 @@ export class Project extends BaseEntity {
   campaigns: Campaign[];
 
   @Column('uuid', { nullable: true, unique: true })
-  endaomentId: string;
+  endaomentId?: string;
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
@@ -703,7 +703,7 @@ export class ProjectUpdate extends BaseEntity {
   managingFundDescription: string;
 
   @Column('uuid', { nullable: true, unique: true })
-  endaomentId: string;
+  endaomentId?: string;
 
   @Field(_type => FeaturedUpdate, { nullable: true })
   @OneToOne(
