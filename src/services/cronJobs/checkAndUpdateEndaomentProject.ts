@@ -48,7 +48,7 @@ export const runCheckAndUpdateEndaomentProject = async () => {
   });
 };
 
-const API_URL = process.env.ENDAOMENT_API_URL || '';
+const API_URL = (config.get('ENDAOMENT_API_URL') as string) || '';
 
 export class EndaomentService {
   static async fetchOrgDetails(orgId: string): Promise<any> {
