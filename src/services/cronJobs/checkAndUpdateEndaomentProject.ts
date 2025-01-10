@@ -25,12 +25,18 @@ export const runCheckAndUpdateEndaomentProject = async () => {
       for (const project of projects) {
         try {
           // Fetch details from Endaoment API
-          const orgData = await EndaomentService.fetchOrgDetails(
-            project.endaomentId,
-          );
+          if (project.endaomentId) {
+            const orgData = await EndaomentService.fetchOrgDetails(
+              project.endaomentId,
+            );
 
-          // Update project details or mark as cancelled
-          await EndaomentService.updateProjectDetails(project, orgData);
+            // Update project details or mark as cancelled
+            await EndaomentService.updateProjectDetails(project, orgData);
+          } else {
+            logger.warn(
+              `Project ID ${project.id} does not have an endaomentId.`,
+            );
+          }
         } catch (error) {
           logger.error(`Failed to update project ID ${project.id}`, error);
         }
@@ -68,14 +74,12 @@ export class EndaomentService {
       // Mark the project as cancelled if offboarded
       project.statusId = ProjStatus.cancelled;
       project.updatedAt = new Date();
-      await project.save();
       logger.info(`Project ID ${project.id} marked as cancelled (offboarded).`);
     } else {
       // Update project fields with the fetched data
       project.title = orgData.name || project.title;
       project.description = orgData.description || project.description;
       project.updatedAt = new Date();
-      await project.save();
       logger.info(`Project ID ${project.id} updated successfully.`);
     }
 
