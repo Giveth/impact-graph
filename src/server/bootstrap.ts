@@ -71,6 +71,7 @@ import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncU
 import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { runSyncEstimatedClusterMatchingCronjob } from '../services/cronJobs/syncEstimatedClusterMatchingJob';
+import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
 
 Resource.validate = validate;
 
@@ -362,6 +363,7 @@ export async function bootstrap() {
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
+    runCheckAndUpdateEndaomentProject();
 
     if (process.env.ENABLE_CLUSTER_MATCHING === 'true') {
       runSyncEstimatedClusterMatchingCronjob();
