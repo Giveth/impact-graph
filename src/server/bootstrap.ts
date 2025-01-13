@@ -71,6 +71,8 @@ import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncU
 import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { runSyncEstimatedClusterMatchingCronjob } from '../services/cronJobs/syncEstimatedClusterMatchingJob';
+import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
+import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
 
 Resource.validate = validate;
 
@@ -362,6 +364,7 @@ export async function bootstrap() {
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
+    runCheckAndUpdateEndaomentProject();
 
     if (process.env.ENABLE_CLUSTER_MATCHING === 'true') {
       runSyncEstimatedClusterMatchingCronjob();
@@ -374,6 +377,10 @@ export async function bootstrap() {
     // If we need to deactivate the process use the env var NO MORE
     if (process.env.SYNC_USERS_MBD_SCORE_ACTIVE === 'true') {
       runCheckPendingUserModelScoreCronjob();
+    }
+
+    if (process.env.SITEMAP_CRON_SECRET !== '') {
+      runGenerateSitemapOnFrontend();
     }
 
     // If we need to deactivate the process use the env var NO MORE
