@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { schedule } from 'node-cron';
+import { Not } from 'typeorm';
 import config from '../../config';
 import { Project, ProjStatus } from '../../entities/project';
 import { logger } from '../../utils/logger';
@@ -20,7 +21,9 @@ export const runCheckAndUpdateEndaomentProject = async () => {
     logger.debug('runCheckAndUpdateEndaomentProject() has been started');
     try {
       // Fetch all projects with organizationId = 5
-      const projects = await Project.find({ where: { organizationId: 5 } });
+      const projects = await Project.find({
+        where: { organizationId: 5, statusId: Not(ProjStatus.cancelled) },
+      });
 
       for (const project of projects) {
         try {
