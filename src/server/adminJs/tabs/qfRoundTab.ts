@@ -311,6 +311,15 @@ export const qfRoundTab = {
           show: adminJs.bundle('./components/ProjectsInQfRound'),
         },
       },
+      qfStrategy: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: true,
+          new: true,
+          edit: true,
+        },
+      },
       bannerBgImage: {
         isVisible: {
           filter: false,
