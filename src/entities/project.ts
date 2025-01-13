@@ -702,9 +702,6 @@ export class ProjectUpdate extends BaseEntity {
   @Column('text', { nullable: true })
   managingFundDescription: string;
 
-  @Column('uuid', { nullable: true, unique: true })
-  endaomentId?: string;
-
   @Field(_type => FeaturedUpdate, { nullable: true })
   @OneToOne(
     _type => FeaturedUpdate,
