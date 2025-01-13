@@ -9,9 +9,12 @@
  */
 import { schedule } from 'node-cron';
 import axios from 'axios';
+import config from '../../config';
 import { logger } from '../../utils/logger';
 
-const cronJobTime = '0 0 * * 0'; // Every Sunday at 00:00
+// Every Sunday at 00:00
+const cronJobTime =
+  (config.get('GENERATE_SITEMAP_CRONJOB_EXPRESSION') as string) || '0 0 * * 0';
 
 export const runGenerateSitemapOnFrontend = () => {
   logger.debug(
