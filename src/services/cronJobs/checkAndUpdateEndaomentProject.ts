@@ -26,11 +26,7 @@ export const runCheckAndUpdateEndaomentProject = async () => {
         where: { organizationId: 5, statusId: Not(ProjStatus.cancelled) },
       });
 
-      logger.debug('Projects fetched:', {
-        count: projects.length,
-        projectIds: projects.map(p => p.id),
-        endaomentIds: projects.map(p => p.endaomentId).filter(Boolean),
-      });
+      logger.debug('Projects fetched:', projects.length);
 
       for (const project of projects) {
         try {
