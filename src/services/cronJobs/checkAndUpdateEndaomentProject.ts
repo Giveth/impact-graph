@@ -19,10 +19,17 @@ export const runCheckAndUpdateEndaomentProject = async () => {
 
   schedule(cronJobTime, async () => {
     logger.debug('runCheckAndUpdateEndaomentProject() has been started');
+    logger.debug('ProjStatus.cancelled value:', ProjStatus.cancelled);
     try {
       // Fetch all projects with organizationId = 5
       const projects = await Project.find({
         where: { organizationId: 5, statusId: Not(ProjStatus.cancelled) },
+      });
+
+      logger.debug('Projects fetched:', {
+        count: projects.length,
+        projectIds: projects.map(p => p.id),
+        endaomentIds: projects.map(p => p.endaomentId).filter(Boolean),
       });
 
       for (const project of projects) {
