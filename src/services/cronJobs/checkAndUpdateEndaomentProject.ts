@@ -3,6 +3,7 @@ import { schedule } from 'node-cron';
 import { Not } from 'typeorm';
 import config from '../../config';
 import { Project, ProjStatus } from '../../entities/project';
+import { Organization } from '../../entities/organization';
 import { logger } from '../../utils/logger';
 
 // Runs once a month
@@ -19,14 +20,23 @@ export const runCheckAndUpdateEndaomentProject = async () => {
 
   schedule(cronJobTime, async () => {
     logger.debug('runCheckAndUpdateEndaomentProject() has been started');
-    logger.debug('ProjStatus.cancelled value:', ProjStatus.cancelled);
     try {
-      // Fetch all projects with organizationId = 5
-      const projects = await Project.find({
-        where: { organizationId: 5, statusId: Not(ProjStatus.cancelled) },
+      const endaomentOrganization = await Organization.findOne({
+        where: { label: 'endaoment' },
       });
 
-      logger.debug('Projects fetched:', projects.length);
+      if (!endaomentOrganization) {
+        logger.error('Endaoment organization not found.');
+        return;
+      }
+
+      // Fetch all Endaoment projects
+      const projects = await Project.find({
+        where: {
+          organizationId: endaomentOrganization?.id,
+          statusId: Not(ProjStatus.cancelled),
+        },
+      });
 
       for (const project of projects) {
         try {
