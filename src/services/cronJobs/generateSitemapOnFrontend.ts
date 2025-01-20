@@ -26,10 +26,10 @@ export const runGenerateSitemapOnFrontend = () => {
     logger.debug('runGenerateSitemapOnFrontend() job has started');
     try {
       const response = await axios.get(
-        `{process.env.FRONTEND_URL}/api/generate-sitemap`,
+        `${process.env.FRONTEND_URL}/api/generate-sitemap`,
         {
           headers: {
-            Authorization: `Bearer {process.env.SITEMAP_CRON_SECRET}`,
+            Authorization: `Bearer ${process.env.SITEMAP_CRON_SECRET}`,
           },
         },
       );
