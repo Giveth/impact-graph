@@ -1,7 +1,7 @@
 /**
  * This cron job is responsible for generating sitemap on frontend.
  *
- * It sends a request to frontend to generate sitemap.
+ * It sends a request to frontend to generate sitemap with all projects, users and qfRounds.
  *
  * It is scheduled to run every Sunday at 00:00.
  *
@@ -11,10 +11,15 @@ import { schedule } from 'node-cron';
 import axios from 'axios';
 import config from '../../config';
 import { logger } from '../../utils/logger';
+import { Project, ProjStatus } from '../../entities/project';
+import { User } from '../../entities/user';
+import { QfRound } from '../../entities/qfRound';
 
 // Every Sunday at 00:00
 const cronJobTime =
   (config.get('GENERATE_SITEMAP_CRONJOB_EXPRESSION') as string) || '0 0 * * 0';
+
+const FRONTEND_URL = process.env.FRONTEND_URL || '';
 
 export const runGenerateSitemapOnFrontend = () => {
   logger.debug(
@@ -24,9 +29,29 @@ export const runGenerateSitemapOnFrontend = () => {
 
   schedule(cronJobTime, async () => {
     logger.debug('runGenerateSitemapOnFrontend() job has started');
+    logger.debug('FRONTEND_URL:', process.env.FRONTEND_URL);
     try {
-      const response = await axios.get(
-        `https://${process.env.FRONTEND_URL}/api/generate-sitemap`,
+      const projects = await fetchProjects();
+      const users = await fetchUsers();
+      const qfRounds = await fetchQFRounds();
+
+      if (!process.env.FRONTEND_URL) {
+        logger.error(
+          'FRONTEND_URL is not defined in the environment variables',
+        );
+      }
+
+      const frontendUrl = FRONTEND_URL.startsWith('http')
+        ? FRONTEND_URL.trim()
+        : `https://${FRONTEND_URL.trim()}`;
+
+      const response = await axios.post(
+        `${frontendUrl}/api/generate-sitemap`,
+        {
+          projects,
+          users,
+          qfRounds,
+        },
         {
           headers: {
             Authorization: `Bearer ${process.env.SITEMAP_CRON_SECRET}`,
@@ -39,4 +64,44 @@ export const runGenerateSitemapOnFrontend = () => {
     }
     logger.debug('runGenerateSitemapOnFrontend() job has finished');
   });
+};
+
+const fetchProjects = async () => {
+  try {
+    const projects = await Project.createQueryBuilder('project')
+      .select(['project.title', 'project.slug', 'project.descriptionSummary'])
+      .where('project.statusId= :statusId', { statusId: ProjStatus.active })
+      .getMany();
+
+    return projects;
+  } catch (error) {
+    logger.error('Error fetching projects:', error.message);
+    return [];
+  }
+};
+
+const fetchUsers = async () => {
+  try {
+    const users = await User.createQueryBuilder('user')
+      .select(['user.firstName', 'user.lastName', 'user.walletAddress'])
+      .getMany();
+
+    return users;
+  } catch (error) {
+    logger.error('Error fetching users:', error.message);
+    return [];
+  }
+};
+
+const fetchQFRounds = async () => {
+  try {
+    const qfRounds = await QfRound.createQueryBuilder('qf_round')
+      .select(['qf_round.slug', 'qf_round.name', 'qf_round.description'])
+      .getMany();
+
+    return qfRounds;
+  } catch (error) {
+    logger.error('Error fetching qfRounds:', error.message);
+    return [];
+  }
 };
