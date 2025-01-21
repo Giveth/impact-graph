@@ -31,15 +31,16 @@ export const runGenerateSitemapOnFrontend = () => {
     logger.debug('runGenerateSitemapOnFrontend() job has started');
     logger.debug('FRONTEND_URL:', process.env.FRONTEND_URL);
     try {
-      const projects = await fetchProjects();
-      const users = await fetchUsers();
-      const qfRounds = await fetchQFRounds();
-
-      if (!process.env.FRONTEND_URL) {
+      if (!FRONTEND_URL || FRONTEND_URL.trim() === '') {
         logger.error(
           'FRONTEND_URL is not defined in the environment variables',
         );
+        return;
       }
+
+      const projects = await fetchProjects();
+      const users = await fetchUsers();
+      const qfRounds = await fetchQFRounds();
 
       const frontendUrl = FRONTEND_URL.startsWith('http')
         ? FRONTEND_URL.trim()
