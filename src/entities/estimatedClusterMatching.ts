@@ -7,6 +7,7 @@ import {
   Entity,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { Project } from './project';
 
@@ -15,6 +16,7 @@ import { Project } from './project';
   'projectId',
   'qfRoundId',
 ])
+@Unique('unique_projectId_qfRoundId', ['projectId', 'qfRoundId'])
 @Index('estimated_cluster_matching_matching', ['matching'])
 @ObjectType()
 export class EstimatedClusterMatching extends BaseEntity {
