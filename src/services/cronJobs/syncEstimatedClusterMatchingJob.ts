@@ -56,6 +56,10 @@ export const fetchAndUpdateClusterEstimatedMatching = async () => {
       activeQfRound.id,
       matchingData,
     );
+
+    // Update latest job ran succesfully
+    activeQfRound.clusterMatchingSyncAt = new Date();
+    await activeQfRound.save();
   } catch (e) {
     logger.error('fetchAndUpdateClusterEstimatedMatching error', e);
   } finally {
