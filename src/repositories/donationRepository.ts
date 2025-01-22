@@ -20,11 +20,16 @@ export const exportClusterMatchingDonationsFormat = async (
       d."toWalletAddress" AS "payoutAddress",
       d."valueUsd" AS "amountUSD",
       p."title" AS "project_name",
-      d."qfRoundUserScore" AS score
-    FROM 
+      CASE 
+        WHEN d."qfRoundUserScore" IS NOT NULL THEN d."qfRoundUserScore"
+        ELSE u."passportScore"
+      END AS score
+    FROM
       donation d
     INNER JOIN 
       project p ON d."projectId" = p."id"
+    INNER JOIN 
+      "user" u ON d."userId" = u."id"
     WHERE 
       d."qfRoundId" = $1
   `,
