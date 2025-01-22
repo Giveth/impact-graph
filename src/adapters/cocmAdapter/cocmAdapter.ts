@@ -29,7 +29,7 @@ export class CocmAdapter implements CocmAdapterInterface {
           },
         },
       );
-      if (result?.data?.error !== null) {
+      if (result?.data?.error) {
         logger.error('clusterMatchingApi error', result.data.error);
         throw new Error(
           i18n.__(translationErrorMessagesKeys.CLUSTER_MATCHING_API_ERROR),
