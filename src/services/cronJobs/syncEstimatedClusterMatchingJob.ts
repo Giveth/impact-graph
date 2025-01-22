@@ -40,7 +40,7 @@ export const fetchAndUpdateClusterEstimatedMatching = async () => {
     votes_data: clusterMatchingDonations,
     strategy: defaultMatchingStrategy,
     min_donation_threshold_amount: activeQfRound.minimumValidUsdValue,
-    matching_cap_amount: activeQfRound.maximumReward,
+    matching_cap_amount: activeQfRound.allocatedFundUSD * activeQfRound.maximumReward,
     matching_amount: activeQfRound.allocatedFundUSD,
     passport_threshold: activeQfRound.minimumPassportScore,
   };
