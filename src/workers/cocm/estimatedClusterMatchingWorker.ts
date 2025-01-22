@@ -24,11 +24,12 @@ const worker: EstimatedClusterMatchingWorker = {
       const params: any[] = [];
       const values = matchingData
         .map((data, index) => {
+          const baseIndex = index * 3;
           params.push(data.project_name, qfRoundId, data.matching_amount);
           return `(
-            (SELECT id FROM project WHERE title = $${index * 3 + 1}),
-            $${index * 3 + 2},
-            $${index * 3 + 3}
+            (SELECT id FROM project WHERE title = $${baseIndex + 1}),
+            $${baseIndex + 2},
+            $${baseIndex + 3}
           )`;
         })
         .join(',');
