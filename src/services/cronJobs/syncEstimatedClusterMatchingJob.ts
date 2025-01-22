@@ -4,6 +4,7 @@ import config from '../../config';
 import { logger } from '../../utils/logger';
 import { findActiveQfRound } from '../../repositories/qfRoundRepository';
 import { exportClusterMatchingDonationsFormat } from '../../repositories/donationRepository';
+import { EstimatedClusterMatching } from '../../entities/estimatedClusterMatching';
 
 const cronJobTime =
   (config.get(
@@ -20,6 +21,44 @@ export const runSyncEstimatedClusterMatchingCronjob = () => {
   schedule(cronJobTime, async () => {
     await fetchAndUpdateClusterEstimatedMatching();
   });
+};
+
+const updateEstimatedClusterMatching = async (
+  qfRoundId: number,
+  matchingData: any,
+) => {
+  logger.debug('updateEstimatedClusterMatching() has been called');
+  try {
+    const params: any[] = [];
+    const values = matchingData
+      .map((data, index) => {
+        const baseIndex = index * 3;
+        params.push(data.project_name, qfRoundId, data.matching_amount);
+        return `(
+            (SELECT id FROM project WHERE title = $${baseIndex + 1}),
+            $${baseIndex + 2},
+            $${baseIndex + 3}
+          )`;
+      })
+      .join(',');
+
+    const query = `
+        INSERT INTO "estimated_cluster_matching" ("projectId", "qfRoundId", matching)
+        VALUES ${values}
+        ON CONFLICT ("projectId", "qfRoundId")
+        DO UPDATE SET matching = EXCLUDED.matching
+        RETURNING "projectId", "qfRoundId", matching;
+      `;
+
+    const result = await EstimatedClusterMatching.query(query, params);
+    if (result.length === 0) {
+      throw new Error('No records were inserted or updated.');
+    }
+
+    logger.debug('Matching data processed successfully with raw SQL.');
+  } catch (error) {
+    logger.debug('Error processing matching data:', error.message);
+  }
 };
 
 export const fetchAndUpdateClusterEstimatedMatching = async () => {
@@ -52,10 +91,7 @@ export const fetchAndUpdateClusterEstimatedMatching = async () => {
       await matchingWorker.fetchEstimatedClusterMatching(matchingDataInput);
 
     // Insert the data
-    await matchingWorker.updateEstimatedClusterMatching(
-      activeQfRound.id,
-      matchingData,
-    );
+    await updateEstimatedClusterMatching(activeQfRound.id, matchingData);
 
     // Update latest job ran succesfully
     activeQfRound.clusterMatchingSyncAt = new Date();

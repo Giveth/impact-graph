@@ -43,7 +43,7 @@ const worker: EstimatedClusterMatchingWorker = {
         .join(',');
 
       const query = `
-        INSERT INTO estimated_cluster_matching ("projectId", "qfRoundId", matching)
+        INSERT INTO "estimated_cluster_matching" ("projectId", "qfRoundId", matching)
         VALUES ${values}
         ON CONFLICT ("projectId", "qfRoundId")
         DO UPDATE SET matching = EXCLUDED.matching
