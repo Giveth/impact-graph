@@ -14,12 +14,20 @@ export type EstimatedClusterMatchingWorker =
 
 const worker: EstimatedClusterMatchingWorker = {
   async fetchEstimatedClusterMatching(matchingDataInput: any) {
-    return await getClusterMatchingAdapter().fetchEstimatedClusterMatchings(
-      matchingDataInput,
+    logger.debug('fetchEstimatedClusterMatching() has been called');
+    const matchingData =
+      await getClusterMatchingAdapter().fetchEstimatedClusterMatchings(
+        matchingDataInput,
+      );
+    logger.debug(
+      'fetchEstimatedClusterMatching() has worked with params',
+      String(matchingData),
     );
+    return matchingData;
   },
 
   async updateEstimatedClusterMatching(qfRoundId: number, matchingData: any) {
+    logger.debug('updateEstimatedClusterMatching() has been called');
     try {
       const params: any[] = [];
       const values = matchingData

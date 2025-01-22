@@ -126,6 +126,10 @@ export class QfRound extends BaseEntity {
   @Column({ default: false })
   isDataAnalysisDone: boolean;
 
+  @Field(_type => Date, { nullable: true })
+  @Column({ nullable: true })
+  clusterMatchingSyncAt?: Date;
+
   @UpdateDateColumn()
   updatedAt: Date;
 
