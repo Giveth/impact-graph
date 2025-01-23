@@ -78,7 +78,21 @@ const fetchUpdatedInstantPowerBalances = async (
     const boosterUsers = await getBoosterUsersByWalletAddresses(
       balances.map(b => b.address.toLowerCase()),
     );
-    const instances = boosterUsers.map(user => {
+
+    const filteredboosterUsers = boosterUsers.filter(item => {
+      if (!item?.walletAddress) return false;
+
+      const balanceData = addressBalanceMap[item.walletAddress];
+      if (!balanceData) {
+        logger.warn(
+          `No balance data found for walletAddress: ${item.walletAddress}. Skipping update for user.`,
+        );
+        return false;
+      }
+      return true;
+    });
+
+    const instances = filteredboosterUsers.map(user => {
       const walletAddress = user.walletAddress!.toLowerCase();
       const { balance, updatedAt } = addressBalanceMap[walletAddress];
       logger.debug(
@@ -160,7 +174,20 @@ const fillMissingInstantPowerBalances = async (
       addressBalanceMap[b.address.toLowerCase()] = b;
     });
 
-    const instances: Partial<InstantPowerBalance>[] = chunk.map<
+    const filteredChunk = chunk.filter(item => {
+      if (!item?.walletAddress) return false;
+
+      const balanceData = addressBalanceMap[item.walletAddress];
+      if (!balanceData) {
+        logger.warn(
+          `No balance data found for walletAddress: ${item.walletAddress}. Skipping update for user.`,
+        );
+        return false;
+      }
+      return true;
+    });
+
+    const instances: Partial<InstantPowerBalance>[] = filteredChunk.map<
       Partial<InstantPowerBalance>
     >((item): Partial<InstantPowerBalance> => {
       const { balance, updatedAt } = addressBalanceMap[item.walletAddress];
