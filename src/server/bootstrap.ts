@@ -54,10 +54,7 @@ import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 import { AppDataSource, CronDataSource } from '../orm';
 import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
-
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
-import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { corsOptions } from './cors';
@@ -70,6 +67,9 @@ import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/s
 import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
 import { addClient } from '../services/sse/sse';
 import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncUsersModelScore';
+import { isTestEnv } from '../utils/utils';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
+import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
 
 Resource.validate = validate;
 
@@ -339,7 +339,6 @@ export async function bootstrap() {
         logger.error('Enabling power boosting snapshot ', e);
       }
     }
-
     if (!isTestEnv) {
       // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
       // relation "project_estimated_matching_view" does not exist
@@ -362,6 +361,11 @@ export async function bootstrap() {
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
+    runCheckAndUpdateEndaomentProject();
+
+    // if (process.env.ENABLE_CLUSTER_MATCHING === 'true') {
+    //   runSyncEstimatedClusterMatchingCronjob();
+    // }
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
@@ -371,6 +375,10 @@ export async function bootstrap() {
     if (process.env.SYNC_USERS_MBD_SCORE_ACTIVE === 'true') {
       runCheckPendingUserModelScoreCronjob();
     }
+
+    // if (process.env.SITEMAP_CRON_SECRET !== '') {
+    //   runGenerateSitemapOnFrontend();
+    // }
 
     // If we need to deactivate the process use the env var NO MORE
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {

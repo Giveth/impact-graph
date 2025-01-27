@@ -1,4 +1,11 @@
-import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
+import {
+  Field,
+  ID,
+  ObjectType,
+  Int,
+  Float,
+  registerEnumType,
+} from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -12,6 +19,15 @@ import {
 } from 'typeorm';
 import { Project } from './project';
 import { Donation } from './donation';
+
+export enum QfStrategyEnum {
+  Cocm = 'cocm',
+  Regular = 'regular',
+}
+
+registerEnumType(QfStrategyEnum, {
+  name: 'QfStrategyEnum', // Name to expose in GraphQL schema
+});
 
 @Entity()
 @ObjectType()
@@ -89,6 +105,15 @@ export class QfRound extends BaseEntity {
   @Column()
   endDate: Date;
 
+  @Field(_type => QfStrategyEnum, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: QfStrategyEnum,
+    default: QfStrategyEnum.Regular,
+    nullable: true,
+  })
+  qfStrategy?: QfStrategyEnum;
+
   @Field(_type => String, { nullable: true })
   @Column('text', { nullable: true })
   bannerBgImage: string;
@@ -100,6 +125,10 @@ export class QfRound extends BaseEntity {
   @Field(_type => Boolean)
   @Column({ default: false })
   isDataAnalysisDone: boolean;
+
+  @Field(_type => Date, { nullable: true })
+  @Column({ nullable: true })
+  clusterMatchingSyncAt?: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;

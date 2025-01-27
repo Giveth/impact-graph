@@ -41,15 +41,16 @@ import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
 import {
-  getQfRoundTotalSqrtRootSumSquared,
-  getProjectDonationsSqrtRootSum,
   findActiveQfRound,
+  getProjectDonationsSqrtRootSum,
+  getQfRoundTotalSqrtRootSumSquared,
 } from '../repositories/qfRoundRepository';
 import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
+import { EstimatedClusterMatching } from './estimatedClusterMatching';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -447,6 +448,9 @@ export class Project extends BaseEntity {
   @Field(_type => [Campaign], { nullable: true })
   campaigns: Campaign[];
 
+  @Column('uuid', { nullable: true, unique: true })
+  endaomentId?: string;
+
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
     const maxDaysForListing = moment()
@@ -501,9 +505,10 @@ export class Project extends BaseEntity {
   async estimatedMatching(): Promise<EstimatedMatching | null> {
     const activeQfRound = await findActiveQfRound();
     if (!activeQfRound) {
-      // TODO should move it to materialized view
       return null;
     }
+    const matchingPool = activeQfRound.allocatedFund;
+
     const projectDonationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
       this.id,
       activeQfRound.id,
@@ -513,12 +518,33 @@ export class Project extends BaseEntity {
       activeQfRound.id,
     );
 
-    const matchingPool = activeQfRound.allocatedFund;
+    const estimatedClusterMatching =
+      await EstimatedClusterMatching.createQueryBuilder(
+        'estimated_cluster_matching',
+      )
+        .where('estimated_cluster_matching."projectId" = :projectId', {
+          projectId: this.id,
+        })
+        .andWhere('estimated_cluster_matching."qfRoundId" = :qfRoundId', {
+          qfRoundId: activeQfRound.id,
+        })
+        .getOne();
 
+    let matching: number;
+    if (!estimatedClusterMatching) matching = 0;
+
+    if (!estimatedClusterMatching) {
+      matching = 0;
+    } else {
+      matching = estimatedClusterMatching.matching;
+    }
+
+    // Facilitate migration in frontend return empty values for now
     return {
-      projectDonationsSqrtRootSum,
-      allProjectsSum,
+      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum,
+      allProjectsSum: allProjectsSum,
       matchingPool,
+      matching,
     };
   }
 
