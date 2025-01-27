@@ -66,26 +66,26 @@ export const fetchAndUpdateClusterEstimatedMatching = async () => {
     new Worker('../../workers/cocm/estimatedClusterMatchingWorker'),
   );
 
-  const activeQfRound = await findActiveQfRound();
-  if (!activeQfRound?.id) return;
-
-  const clusterMatchingDonations = await exportClusterMatchingDonationsFormat(
-    activeQfRound?.id,
-  );
-  if (!clusterMatchingDonations || clusterMatchingDonations?.length === 0)
-    return;
-
-  const matchingDataInput = {
-    votes_data: clusterMatchingDonations,
-    strategy: defaultMatchingStrategy,
-    min_donation_threshold_amount: activeQfRound.minimumValidUsdValue,
-    matching_cap_amount:
-      activeQfRound.allocatedFundUSD * activeQfRound.maximumReward,
-    matching_amount: activeQfRound.allocatedFundUSD,
-    passport_threshold: activeQfRound.minimumPassportScore,
-  };
-
   try {
+    const activeQfRound = await findActiveQfRound();
+    if (!activeQfRound?.id) return;
+
+    const clusterMatchingDonations = await exportClusterMatchingDonationsFormat(
+      activeQfRound?.id,
+    );
+    if (!clusterMatchingDonations || clusterMatchingDonations?.length === 0)
+      return;
+
+    const matchingDataInput = {
+      votes_data: clusterMatchingDonations,
+      strategy: defaultMatchingStrategy,
+      min_donation_threshold_amount: activeQfRound.minimumValidUsdValue,
+      matching_cap_amount:
+        activeQfRound.allocatedFundUSD * activeQfRound.maximumReward,
+      matching_amount: activeQfRound.allocatedFundUSD,
+      passport_threshold: activeQfRound.minimumPassportScore,
+    };
+
     // Fetch from python api cluster matching
     const matchingData =
       await matchingWorker.fetchEstimatedClusterMatching(matchingDataInput);
