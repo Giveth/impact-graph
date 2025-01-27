@@ -16,20 +16,17 @@ const worker: EstimatedClusterMatchingWorker = {
   async fetchEstimatedClusterMatching(matchingDataInput: any) {
     logger.debug('fetchEstimatedClusterMatching() has been called');
     try {
-    const matchingData =
-      await getClusterMatchingAdapter().fetchEstimatedClusterMatchings(
-        matchingDataInput,
+      const matchingData =
+        await getClusterMatchingAdapter().fetchEstimatedClusterMatchings(
+          matchingDataInput,
+        );
+      logger.debug(
+        'fetchEstimatedClusterMatching() has worked with params',
+        String(matchingData),
       );
-    logger.debug(
-      'fetchEstimatedClusterMatching() has worked with params',
-      String(matchingData),
-    );
-    return matchingData;
+      return matchingData;
     } catch (e) {
-      logger.error(
-        'fetchEstimatedClusterMatching() did not work. Error: ',
-        e
-      );
+      logger.error('fetchEstimatedClusterMatching() did not work. Error: ', e);
       return;
     }
   },
