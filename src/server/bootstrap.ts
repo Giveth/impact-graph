@@ -54,7 +54,6 @@ import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 import { AppDataSource, CronDataSource } from '../orm';
 import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
-
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
@@ -70,9 +69,7 @@ import { addClient } from '../services/sse/sse';
 import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncUsersModelScore';
 import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
-import { runSyncEstimatedClusterMatchingCronjob } from '../services/cronJobs/syncEstimatedClusterMatchingJob';
 import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
-import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
 
 Resource.validate = validate;
 
@@ -366,9 +363,9 @@ export async function bootstrap() {
     runCheckPendingProjectListingCronJob();
     runCheckAndUpdateEndaomentProject();
 
-    if (process.env.ENABLE_CLUSTER_MATCHING === 'true') {
-      runSyncEstimatedClusterMatchingCronjob();
-    }
+    // if (process.env.ENABLE_CLUSTER_MATCHING === 'true') {
+    //   runSyncEstimatedClusterMatchingCronjob();
+    // }
 
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
@@ -379,9 +376,9 @@ export async function bootstrap() {
       runCheckPendingUserModelScoreCronjob();
     }
 
-    if (process.env.SITEMAP_CRON_SECRET !== '') {
-      runGenerateSitemapOnFrontend();
-    }
+    // if (process.env.SITEMAP_CRON_SECRET !== '') {
+    //   runGenerateSitemapOnFrontend();
+    // }
 
     // If we need to deactivate the process use the env var NO MORE
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
