@@ -35,7 +35,7 @@
     "csvtojson": "^2.0.10",
     "dotenv": "^8.2.0",
     "ethers": "^5.7.2",
-    "express": "^4.19.2",
+    "express": "^4.21.0",
     "express-formidable": "^1.2.0",
     "express-rate-limit": "^7.1.5",
     "express-session": "^1.17.3",
