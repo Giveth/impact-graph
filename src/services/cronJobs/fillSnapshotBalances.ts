@@ -103,6 +103,8 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
     };
     fillSnapshotBalanceQueue.add(jobData, {
       jobId: `${FILL_SNAPSHOT_BALANCE_QUEUE_NAME}-${key}`,
+      removeOnComplete: true,
+      removeOnFail: true,
     });
   }
 }
