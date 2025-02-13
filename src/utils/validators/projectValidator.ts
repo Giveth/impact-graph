@@ -177,11 +177,12 @@ export const canUserVisitProject = (
   if (!project) {
     throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
   }
+
+  // If project is draft or cancelled, just owner can view it
   if (
     (project.status.id === ProjStatus.drafted ||
       project.status.id === ProjStatus.cancelled) &&
-    // If project is draft or cancelled, just owner can view it
-    project.adminUserId !== userId
+    project.adminUser.id !== userId
   ) {
     throw new Error(
       i18n.__(
