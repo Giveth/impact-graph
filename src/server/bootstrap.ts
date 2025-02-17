@@ -372,9 +372,9 @@ export async function bootstrap() {
     }
 
     // If we need to deactivate the process use the env var NO MORE
-    if (process.env.SYNC_USERS_MBD_SCORE_ACTIVE === 'true') {
-      runCheckPendingUserModelScoreCronjob();
-    }
+    // if (process.env.SYNC_USERS_MBD_SCORE_ACTIVE === 'true') {
+    runCheckPendingUserModelScoreCronjob();
+    // }
 
     // if (process.env.SITEMAP_CRON_SECRET !== '') {
     //   runGenerateSitemapOnFrontend();
