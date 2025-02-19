@@ -46,6 +46,8 @@ export const runGenerateSitemapOnFrontend = () => {
         ? FRONTEND_URL.trim()
         : `https://${FRONTEND_URL.trim()}`;
 
+      logger.debug('FRONTEND_URL being used:', frontendUrl);
+
       const response = await axios.post(
         `${frontendUrl}/api/generate-sitemap`,
         {
