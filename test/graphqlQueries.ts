@@ -144,6 +144,7 @@ export const createProjectQuery = `
           chainId
         }
         tributeClaimModuleAddress
+        tributeRecipienteAddress
       }
   }
   `;
@@ -199,6 +200,7 @@ export const updateProjectQuery = `
         projectAddress
       }
       tributeClaimModuleAddress
+      tributeRecipienteAddress
     }
   }
  `;
@@ -1016,6 +1018,7 @@ export const fetchProjectBySlugQuery = `
         chainId
       }
       tributeClaimModuleAddress
+      tributeRecipienteAddress
     }
   }
 `;
@@ -1536,6 +1539,7 @@ export const projectByIdQuery = `
         chainId
       }
       tributeClaimModuleAddress
+      tributeRecipienteAddress
     }
   }
 `;

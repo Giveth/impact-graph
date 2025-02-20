@@ -263,6 +263,10 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   tributeClaimModuleAddress: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  tributeRecipienteAddress: string;
+
   @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field({ nullable: true })
   @Column({ nullable: true })
