@@ -27,7 +27,7 @@ const abi = [
 export class InverterAdapter {
   private graphqlUrl: string =
     (config.get('INVERTER_GRAPHQL_ENDPOINT') as string) ||
-    'https://indexer.bigdevenergy.link/a414bf3/v1/graphql';
+    'https://dev.indexer.inverter.network/v1/graphql';
 
   private provider: providers.Provider;
 
@@ -39,13 +39,14 @@ export class InverterAdapter {
     orchestratorAddress: string,
   ): Promise<any> {
     try {
+      const checkSumAddress = ethers.utils.getAddress(orchestratorAddress);
       const result = await axios.post(this.graphqlUrl, {
         query: getTokenTotalSupplyByAddress,
         variables: {
-          orchestratorAddress,
+          orchestratorAddress: checkSumAddress,
         },
       });
-      return result.data.data.BondingCurve[0]?.virtualIssuance;
+      return result.data.data.BondingCurve[0]?.issuanceToken?.totalSupply;
     } catch (error) {
       logger.error('Error fetching token total supply:', error);
       throw error;

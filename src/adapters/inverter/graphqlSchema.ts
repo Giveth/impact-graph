@@ -47,12 +47,13 @@ export const getBondingCurveByIDQuery = `query GetBondingCurveByID($id: String!)
 }`;
 
 export const getTokenTotalSupplyByAddress = `
-    query GetTokenTotalSupplyByAddress($orchestratorAddress: String!) {
-      BondingCurve(where: {workflow_id: {_ilike: $orchestratorAddress}}){
-        virtualIssuance
-        id
-      }
+  query getTokenSupply($orchestratorAddress: String!) {
+  BondingCurve(where: {workflow: {address: {_eq: $orchestratorAddress}}}) {
+    issuanceToken {
+      totalSupply
     }
+  }
+}
 `;
 
 export const getWorkFlowByAddress = `
