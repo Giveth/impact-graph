@@ -7,13 +7,13 @@ export class AddProjectTributeRecipientAddress1740064832187
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "project" ADD "tributeRecipienteAddress" character varying`,
+      `ALTER TABLE "project" ADD "tributeRecipientAddress" character varying`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "project" DROP COLUMN "tributeRecipienteAddress"`,
+      `ALTER TABLE "project" DROP COLUMN "tributeRecipientAddress"`,
     );
   }
 }

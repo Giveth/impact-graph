@@ -265,7 +265,7 @@ export class Project extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  tributeRecipienteAddress: string;
+  tributeRecipientAddress: string;
 
   @Index('trgm_idx_project_impact_location', { synchronize: false })
   @Field({ nullable: true })
