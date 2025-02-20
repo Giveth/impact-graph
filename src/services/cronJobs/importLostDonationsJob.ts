@@ -24,6 +24,7 @@ import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
 import { updateProjectStatistics } from '../projectService';
+import { GIVBACKS_ELIGIBLE_MIN_DONATION_USD } from '../../constants/validators';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ethers = require('ethers');
@@ -250,6 +251,9 @@ export const importLostDonations = async () => {
 
         const donationStats = await getUserDonationStats(dbUser.id);
 
+        const isGivbacksEligible =
+          dbDonation.valueUsd >= GIVBACKS_ELIGIBLE_MIN_DONATION_USD;
+
         const orttoPerson = getOrttoPersonAttributes({
           userId: dbUser.id.toString(),
           firstName: dbUser?.firstName,
@@ -258,7 +262,9 @@ export const importLostDonations = async () => {
           totalDonated: donationStats?.totalDonated,
           donationsCount: donationStats?.donationsCount,
           lastDonationDate: donationStats?.lastDonationDate,
-          GIVbacksRound: dbDonation.powerRound,
+          GIVbacksRound: isGivbacksEligible
+            ? dbDonation.powerRound + 1
+            : undefined, // powerRound is 1 behind givbacks round
           QFDonor: dbDonation.qfRound?.name,
           donationChain: NETWORKS_IDS_TO_NAME[dbDonation.transactionNetworkId],
         });
