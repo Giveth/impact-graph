@@ -107,10 +107,6 @@ export class QfRound extends BaseEntity {
   @Column({ default: false })
   isDataAnalysisDone: boolean;
 
-  @Field({ nullable: true })
-  @Column({ type: 'float', nullable: true })
-  tokenPrice?: number;
-
   @UpdateDateColumn()
   updatedAt: Date;
 
@@ -122,6 +118,30 @@ export class QfRound extends BaseEntity {
 
   @OneToMany(_type => Donation, donation => donation.qfRound)
   donations: Donation[];
+
+  @Field(() => Float, { nullable: true })
+  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  roundPOLCapPerProject: number;
+
+  @Field(() => Float, { nullable: true })
+  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  roundPOLCloseCapPerProject: number;
+
+  @Field(() => Float, { nullable: true })
+  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  roundPOLCapPerUserPerProject: number;
+
+  @Field(() => Float, { nullable: true })
+  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  roundPOLCapPerUserPerProjectWithGitcoinScoreOnly: number;
+
+  @Field(() => Float, { nullable: true })
+  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  cumulativePOLCapPerProject: number;
+
+  @Field(() => Float, { nullable: true })
+  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  cumulativePOLCapPerUserPerProject: number;
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
@@ -143,13 +163,6 @@ export class QfRound extends BaseEntity {
   @Column({ default: false })
   isBatchMintingExecuted: boolean;
 
-  // Virtual fields for cumulative caps
-  @Field(() => Float, { nullable: true })
-  cumulativeUSDCapPerProject?: number;
-
-  @Field(() => Float, { nullable: true })
-  cumulativeUSDCapPerUserPerProject?: number;
-
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {
     // when not specified, all are valid
@@ -161,12 +174,12 @@ export class QfRound extends BaseEntity {
   @AfterLoad()
   async calculateCumulativeCaps() {
     if (this.roundNumber === 1) {
-      this.cumulativeUSDCapPerProject = this.roundUSDCapPerProject || 0;
-      this.cumulativeUSDCapPerUserPerProject =
-        this.roundUSDCapPerUserPerProject || 0;
+      this.cumulativePOLCapPerProject = this.roundPOLCapPerProject || 0;
+      this.cumulativePOLCapPerUserPerProject =
+        this.roundPOLCapPerUserPerProject || 0;
     } else {
-      this.cumulativeUSDCapPerProject = 0;
-      this.cumulativeUSDCapPerUserPerProject = 0;
+      this.cumulativePOLCapPerProject = 0;
+      this.cumulativePOLCapPerUserPerProject = 0;
     }
   }
 }

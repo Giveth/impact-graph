@@ -155,42 +155,36 @@ function projectUserDonationCapTestCases() {
     user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     accessToken = await generateTestAccessToken(user.id);
 
-    earlyAccessRounds = await EarlyAccessRound.save(
-      EarlyAccessRound.create([
-        {
-          roundNumber: generateEARoundNumber(),
-          startDate: new Date('2000-01-01'),
-          endDate: new Date('2000-01-03'),
-          roundUSDCapPerProject: 1000,
-          roundUSDCapPerUserPerProject: 100,
-          tokenPrice: 0.1,
-        },
-        {
-          roundNumber: generateEARoundNumber(),
-          startDate: new Date('2000-01-04'),
-          endDate: new Date('2000-01-06'),
-          roundUSDCapPerProject: 1000,
-          roundUSDCapPerUserPerProject: 100,
-          tokenPrice: 0.2,
-        },
-        {
-          roundNumber: generateEARoundNumber(),
-          startDate: new Date('2000-01-07'),
-          endDate: new Date('2000-01-09'),
-          roundUSDCapPerProject: 1000,
-          roundUSDCapPerUserPerProject: 100,
-          tokenPrice: 0.3,
-        },
-        {
-          roundNumber: generateEARoundNumber(),
-          startDate: new Date('2000-01-10'),
-          endDate: new Date('2000-01-12'),
-          roundUSDCapPerProject: 2000,
-          roundUSDCapPerUserPerProject: 200,
-          tokenPrice: 0.4,
-        },
-      ]),
-    );
+    earlyAccessRounds = await EarlyAccessRound.save([
+      EarlyAccessRound.create({
+        roundNumber: generateEARoundNumber(),
+        startDate: new Date('2000-01-01'),
+        endDate: new Date('2000-01-03'),
+        roundPOLCapPerProject: 10000,
+        roundPOLCapPerUserPerProject: 1000,
+      }),
+      EarlyAccessRound.create({
+        roundNumber: generateEARoundNumber(),
+        startDate: new Date('2000-01-04'),
+        endDate: new Date('2000-01-06'),
+        roundPOLCapPerProject: 10000,
+        roundPOLCapPerUserPerProject: 1000,
+      }),
+      EarlyAccessRound.create({
+        roundNumber: generateEARoundNumber(),
+        startDate: new Date('2000-01-07'),
+        endDate: new Date('2000-01-09'),
+        roundPOLCapPerProject: 10000,
+        roundPOLCapPerUserPerProject: 1000,
+      }),
+      EarlyAccessRound.create({
+        roundNumber: generateEARoundNumber(),
+        startDate: new Date('2000-01-10'),
+        endDate: new Date('2000-01-12'),
+        roundPOLCapPerProject: 20000,
+        roundPOLCapPerUserPerProject: 2000,
+      }),
+    ]);
 
     qfRound1 = await QfRound.create({
       roundNumber: 1,
@@ -201,9 +195,12 @@ function projectUserDonationCapTestCases() {
       slug: new Date().getTime().toString() + ' - 1',
       beginDate: new Date('2001-01-14'),
       endDate: new Date('2001-01-16'),
-      roundUSDCapPerProject: 10000,
-      roundUSDCapPerUserPerProject: 2500,
-      tokenPrice: 0.5,
+      roundPOLCapPerProject: 20000,
+      roundPOLCapPerUserPerProject: 5000,
+      roundPOLCapPerUserPerProjectWithGitcoinScoreOnly: 2000,
+      roundPOLCloseCapPerProject: 25000,
+      cumulativePOLCapPerProject: 20000,
+      cumulativePOLCapPerUserPerProject: 5000,
     }).save();
   });
   afterEach(async () => {
@@ -221,11 +218,7 @@ function projectUserDonationCapTestCases() {
       now: earlyAccessRounds[0].startDate.getTime(),
     });
 
-    const result: AxiosResponse<
-      ExecutionResult<{
-        projectUserDonationCap: number;
-      }>
-    > = await axios.post(
+    const result = await axios.post(
       graphqlUrl,
       {
         query: projectUserDonationCap,
@@ -240,12 +233,11 @@ function projectUserDonationCapTestCases() {
       },
     );
 
-    const firstEarlyAccessRound = earlyAccessRounds[0] as EarlyAccessRound;
+    const firstEarlyAccessRound = earlyAccessRounds[0];
     assert.isOk(result.data);
     assert.equal(
       result.data.data?.projectUserDonationCap,
-      firstEarlyAccessRound.roundUSDCapPerUserPerProject! /
-        firstEarlyAccessRound.tokenPrice!,
+      firstEarlyAccessRound.roundPOLCapPerUserPerProject,
     );
   });
 }
@@ -270,10 +262,12 @@ function userCapsTestCases() {
       slug: new Date().getTime().toString() + ' - 1',
       beginDate: new Date('2001-01-14'),
       endDate: new Date('2001-01-16'),
-      roundUSDCapPerProject: 10000,
-      roundUSDCapPerUserPerProject: 2500,
-      roundUSDCapPerUserPerProjectWithGitcoinScoreOnly: 1000,
-      tokenPrice: 0.5,
+      roundPOLCapPerProject: 20000,
+      roundPOLCapPerUserPerProject: 5000,
+      roundPOLCapPerUserPerProjectWithGitcoinScoreOnly: 2000,
+      roundPOLCloseCapPerProject: 25000,
+      cumulativePOLCapPerProject: 20000,
+      cumulativePOLCapPerUserPerProject: 5000,
     }).save();
     sinon.useFakeTimers({
       now: new Date('2001-01-15').getTime(),
@@ -334,14 +328,11 @@ function userCapsTestCases() {
 
     assert.equal(
       response.data?.data.userCaps?.qAccCap,
-      Number(qfRound1.roundUSDCapPerUserPerProject) /
-        Number(qfRound1.tokenPrice) -
-        donationAmount,
+      qfRound1.roundPOLCapPerUserPerProject - donationAmount,
     );
     assert.equal(
       response.data?.data.userCaps?.gitcoinPassport?.unusedCap,
-      Number(qfRound1.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly) /
-        Number(qfRound1.tokenPrice) -
+      qfRound1.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly -
         donationAmount,
     );
     assert.isNull(response.data?.data.userCaps?.zkId);
@@ -394,14 +385,11 @@ function userCapsTestCases() {
 
     assert.equal(
       response.data?.data.userCaps?.qAccCap,
-      Number(qfRound1.roundUSDCapPerUserPerProject) /
-        Number(qfRound1.tokenPrice) -
-        donationAmount,
+      qfRound1.roundPOLCapPerUserPerProject - donationAmount,
     );
     assert.equal(
       response.data?.data.userCaps?.gitcoinPassport?.unusedCap,
-      Number(qfRound1.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly) /
-        Number(qfRound1.tokenPrice) -
+      qfRound1.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly -
         donationAmount,
     );
     assert.isNull(response.data?.data.userCaps?.zkId);
@@ -452,15 +440,11 @@ function userCapsTestCases() {
     // Assert: Verify the response matches expected values
     assert.equal(
       response.data?.data.userCaps?.qAccCap,
-      Number(qfRound1.roundUSDCapPerUserPerProject) /
-        Number(qfRound1.tokenPrice) -
-        donationAmount,
+      qfRound1.roundPOLCapPerUserPerProject - donationAmount,
     );
     assert.equal(
       response.data?.data.userCaps?.zkId?.unusedCap,
-      Number(qfRound1.roundUSDCapPerUserPerProject) /
-        Number(qfRound1.tokenPrice) -
-        donationAmount,
+      qfRound1.roundPOLCapPerUserPerProject - donationAmount,
     );
     assert.isNull(response.data?.data.userCaps?.gitcoinPassport);
   });
@@ -514,18 +498,16 @@ function qAccStatTestCases() {
       slug: new Date().getTime().toString() + ' - 1',
       beginDate: new Date('2001-01-14'),
       endDate: new Date('2001-01-16'),
-      roundUSDCapPerProject: 10000,
-      roundUSDCapPerUserPerProject: 2500,
-      roundUSDCapPerUserPerProjectWithGitcoinScoreOnly: 1000,
-      tokenPrice: 0.5,
+      roundPOLCapPerProject: 20000,
+      roundPOLCapPerUserPerProject: 5000,
+      roundPOLCapPerUserPerProjectWithGitcoinScoreOnly: 2000,
     }).save();
     earlyAccessRound = await EarlyAccessRound.create({
       roundNumber: generateEARoundNumber(),
       startDate: new Date('2000-01-14'),
       endDate: new Date('2000-01-16'),
-      roundUSDCapPerProject: 1000000,
-      roundUSDCapPerUserPerProject: 50000,
-      tokenPrice: 0.1,
+      roundPOLCapPerProject: 10000,
+      roundPOLCapPerUserPerProject: 1000,
     }).save();
     sinon.useFakeTimers({
       now: new Date('2001-01-15').getTime(),
