@@ -328,11 +328,11 @@ function userCapsTestCases() {
 
     assert.equal(
       response.data?.data.userCaps?.qAccCap,
-      qfRound1.roundPOLCapPerUserPerProject - donationAmount,
+      qfRound1.roundPOLCapPerUserPerProject! - donationAmount,
     );
     assert.equal(
       response.data?.data.userCaps?.gitcoinPassport?.unusedCap,
-      qfRound1.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly -
+      qfRound1.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly! -
         donationAmount,
     );
     assert.isNull(response.data?.data.userCaps?.zkId);
@@ -385,11 +385,11 @@ function userCapsTestCases() {
 
     assert.equal(
       response.data?.data.userCaps?.qAccCap,
-      qfRound1.roundPOLCapPerUserPerProject - donationAmount,
+      qfRound1.roundPOLCapPerUserPerProject! - donationAmount,
     );
     assert.equal(
       response.data?.data.userCaps?.gitcoinPassport?.unusedCap,
-      qfRound1.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly -
+      qfRound1.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly! -
         donationAmount,
     );
     assert.isNull(response.data?.data.userCaps?.zkId);
@@ -440,11 +440,11 @@ function userCapsTestCases() {
     // Assert: Verify the response matches expected values
     assert.equal(
       response.data?.data.userCaps?.qAccCap,
-      qfRound1.roundPOLCapPerUserPerProject - donationAmount,
+      qfRound1.roundPOLCapPerUserPerProject! - donationAmount,
     );
     assert.equal(
       response.data?.data.userCaps?.zkId?.unusedCap,
-      qfRound1.roundPOLCapPerUserPerProject - donationAmount,
+      qfRound1.roundPOLCapPerUserPerProject! - donationAmount,
     );
     assert.isNull(response.data?.data.userCaps?.gitcoinPassport);
   });
