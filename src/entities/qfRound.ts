@@ -121,19 +121,19 @@ export class QfRound extends BaseEntity {
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
-  roundPOLCapPerProject: number;
+  roundPOLCapPerProject?: number;
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
-  roundPOLCloseCapPerProject: number;
+  roundPOLCloseCapPerProject?: number;
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
-  roundPOLCapPerUserPerProject: number;
+  roundPOLCapPerUserPerProject?: number;
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
-  roundPOLCapPerUserPerProjectWithGitcoinScoreOnly: number;
+  roundPOLCapPerUserPerProjectWithGitcoinScoreOnly?: number;
 
   @Field(_type => Boolean)
   @Column({ default: false })
@@ -141,10 +141,10 @@ export class QfRound extends BaseEntity {
 
   // virtual fields
   @Field(() => Int, { nullable: true })
-  cumulativePOLCapPerProject: number;
+  cumulativePOLCapPerProject?: number;
 
   @Field(() => Int, { nullable: true })
-  cumulativePOLCapPerUserPerProject: number;
+  cumulativePOLCapPerUserPerProject?: number;
 
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {

@@ -52,10 +52,10 @@ export class EarlyAccessRound extends BaseEntity {
 
   // virtual fields
   @Field(() => Float, { nullable: true })
-  cumulativePOLCapPerProject: number;
+  cumulativePOLCapPerProject?: number;
 
   @Field(() => Float, { nullable: true })
-  cumulativePOLCapPerUserPerProject: number;
+  cumulativePOLCapPerUserPerProject?: number;
 
   @AfterLoad()
   async calculateCumulativeCaps(): Promise<void> {
