@@ -42,6 +42,7 @@ import { getOrttoPersonAttributes } from '../adapters/notifications/Notification
 import { CustomToken, getTokenPrice } from './priceService';
 import { updateProjectStatistics } from './projectService';
 import { findDraftDonationByMatchedDonationId } from '../repositories/draftDonationRepository';
+import { GIVBACKS_ELIGIBLE_MIN_DONATION_USD } from '../constants/validators';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -292,6 +293,9 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     const donationStats = await getUserDonationStats(donation.userId);
     const donor = await findUserById(donation.userId);
 
+    const isGivbacksEligible =
+      donation.valueUsd >= GIVBACKS_ELIGIBLE_MIN_DONATION_USD;
+
     const orttoPerson = getOrttoPersonAttributes({
       userId: donation.userId.toString(),
       firstName: donor?.firstName,
@@ -300,7 +304,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       totalDonated: donationStats?.totalDonated,
       donationsCount: donationStats?.donationsCount,
       lastDonationDate: donationStats?.lastDonationDate,
-      GIVbacksRound: donation.powerRound + 1, // powerRound is 1 behind givbacks round
+      GIVbacksRound: isGivbacksEligible ? donation.powerRound + 1 : undefined, // powerRound is 1 behind givbacks round
       QFDonor: donation.qfRound?.name,
       donationChain: NETWORKS_IDS_TO_NAME[donation.transactionNetworkId],
     });
