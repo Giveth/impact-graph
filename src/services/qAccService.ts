@@ -134,10 +134,8 @@ const getQAccDonationCap = async ({
     return 0;
   }
 
-  const cumulativePOLCapPerProject =
-    activeRound.cumulativePOLCapPerProject || 0;
-  const cumulativePOLCapPerUserPerProject =
-    activeRound.cumulativePOLCapPerUserPerProject || 0;
+  const projectPolRoundCap = activeRound.cumulativePOLCapPerProject || 0;
+  const userPolRoundCap = activeRound.cumulativePOLCapPerUserPerProject || 0;
 
   if (isEarlyAccess) {
     const projectRecord = await getEaProjectRoundRecord({
@@ -145,7 +143,7 @@ const getQAccDonationCap = async ({
       eaRoundId: activeRound.id,
     });
 
-    if (projectRecord.totalDonationAmount > cumulativePOLCapPerProject) {
+    if (projectRecord.totalDonationAmount > projectPolRoundCap) {
       // Project has reached its cap
       return 0;
     }
@@ -158,10 +156,10 @@ const getQAccDonationCap = async ({
     return Math.max(
       0,
       Math.min(
-        cumulativePOLCapPerProject -
+        projectPolRoundCap -
           projectRecord.totalDonationAmount -
           (projectRecord.cumulativePastRoundsDonationAmounts || 0), // project unused cap
-        cumulativePOLCapPerUserPerProject - userRecord.totalDonationAmount, // user unused cap
+        userPolRoundCap - userRecord.totalDonationAmount, // user unused cap
       ),
     );
   } else {
@@ -184,7 +182,7 @@ const getQAccDonationCap = async ({
 
     const projectCap = Math.max(
       // Capacity to fill qf round cap
-      cumulativePOLCapPerProject - totalCollected,
+      projectPolRoundCap - totalCollected,
       // Capacity over the qf round cap per project
       Math.min(
         250, // 250 POL between qf round cap and qf round close
@@ -192,7 +190,7 @@ const getQAccDonationCap = async ({
       ),
     );
 
-    const anyUserCap = Math.min(projectCap, cumulativePOLCapPerUserPerProject);
+    const anyUserCap = Math.min(projectCap, userPolRoundCap);
 
     return Math.max(0, anyUserCap - userRecord.qfTotalDonationAmount);
   }
