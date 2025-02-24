@@ -30,14 +30,6 @@ export class EarlyAccessRound extends BaseEntity {
   @Column()
   endDate: Date;
 
-  @Field(() => Int, { nullable: true })
-  @Column({ nullable: true })
-  roundUSDCapPerProject?: number;
-
-  @Field(() => Int, { nullable: true })
-  @Column({ nullable: true })
-  roundUSDCapPerUserPerProject?: number;
-
   @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
@@ -46,33 +38,36 @@ export class EarlyAccessRound extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field(() => Float, { nullable: true })
-  @Column({ type: 'float', nullable: true })
-  tokenPrice?: number;
-
   @Field(_type => Boolean)
   @Column({ default: false })
   isBatchMintingExecuted: boolean;
 
-  // Virtual Field to calculate cumulative cap per project
-  @Field(() => Float, { nullable: true })
-  cumulativeUSDCapPerProject?: number;
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundPOLCapPerProject?: number;
 
-  // Virtual Field to calculate cumulative cap per user per project
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  roundPOLCapPerUserPerProject?: number;
+
+  // virtual fields
   @Field(() => Float, { nullable: true })
-  cumulativeUSDCapPerUserPerProject?: number;
+  cumulativePOLCapPerProject?: number;
+
+  @Field(() => Float, { nullable: true })
+  cumulativePOLCapPerUserPerProject?: number;
 
   @AfterLoad()
   async calculateCumulativeCaps(): Promise<void> {
-    const { cumulativeUSDCapPerProject, cumulativeUSDCapPerUserPerProject } =
+    const { cumulativePOLCapPerProject, cumulativePOLCapPerUserPerProject } =
       await EarlyAccessRound.createQueryBuilder('eaRound')
         .select(
-          'sum(eaRound.roundUSDCapPerProject)',
-          'cumulativeUSDCapPerProject',
+          'sum(eaRound.roundPOLCapPerProject)',
+          'cumulativePOLCapPerProject',
         )
         .addSelect(
-          'sum(eaRound.roundUSDCapPerUserPerProject)',
-          'cumulativeUSDCapPerUserPerProject',
+          'sum(eaRound.roundPOLCapPerUserPerProject)',
+          'cumulativePOLCapPerUserPerProject',
         )
         .where('eaRound.roundNumber <= :roundNumber', {
           roundNumber: this.roundNumber,
@@ -80,11 +75,11 @@ export class EarlyAccessRound extends BaseEntity {
         .cache('cumulativeCapEarlyAccessRound-' + this.roundNumber, 300000)
         .getRawOne();
 
-    this.cumulativeUSDCapPerProject = parseFloat(
-      cumulativeUSDCapPerProject || 0,
+    this.cumulativePOLCapPerProject = parseFloat(
+      cumulativePOLCapPerProject || '0',
     );
-    this.cumulativeUSDCapPerUserPerProject = parseFloat(
-      cumulativeUSDCapPerUserPerProject || 0,
+    this.cumulativePOLCapPerUserPerProject = parseFloat(
+      cumulativePOLCapPerUserPerProject || '0',
     );
   }
 }

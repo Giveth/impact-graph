@@ -134,14 +134,8 @@ const getQAccDonationCap = async ({
     return 0;
   }
 
-  const cumulativeUSDCapPerProject =
-    activeRound.cumulativeUSDCapPerProject || 0;
-  const cumulativeUSDCapPerUserPerProject =
-    activeRound.cumulativeUSDCapPerUserPerProject || 0;
-  const tokenPrice = activeRound.tokenPrice || Number.MAX_SAFE_INTEGER;
-
-  const projectPolRoundCap = cumulativeUSDCapPerProject / tokenPrice;
-  const userPolRoundCap = cumulativeUSDCapPerUserPerProject / tokenPrice;
+  const projectPolRoundCap = activeRound.cumulativePOLCapPerProject || 0;
+  const userPolRoundCap = activeRound.cumulativePOLCapPerUserPerProject || 0;
 
   if (isEarlyAccess) {
     const projectRecord = await getEaProjectRoundRecord({
@@ -180,8 +174,7 @@ const getQAccDonationCap = async ({
       userId,
     });
 
-    const projectCloseCap =
-      (activeQfRound?.roundUSDCloseCapPerProject || 0) / tokenPrice;
+    const projectCloseCap = activeQfRound?.roundPOLCloseCapPerProject || 0;
 
     const totalCollected =
       (projectRecord?.totalDonationAmount || 0) +
@@ -190,16 +183,16 @@ const getQAccDonationCap = async ({
     const projectCap = Math.max(
       // Capacity to fill qf round cap
       projectPolRoundCap - totalCollected,
-      // Capacity over the qr found cap per project
+      // Capacity over the qf round cap per project
       Math.min(
-        250 / tokenPrice, // 250 USD between qf round cap and qf round close
+        250, // 250 POL between qf round cap and qf round close
         projectCloseCap - totalCollected, // project close cap
       ),
     );
 
-    const anyUserCall = Math.min(projectCap, userPolRoundCap);
+    const anyUserCap = Math.min(projectCap, userPolRoundCap);
 
-    return Math.max(0, anyUserCall - userRecord.qfTotalDonationAmount);
+    return Math.max(0, anyUserCap - userRecord.qfTotalDonationAmount);
   }
 };
 
@@ -234,17 +227,13 @@ const getUserRemainedCapBasedOnGitcoinScore = async ({
   });
   const activeQfRound = await findActiveQfRound();
   const qfTotalDonationAmount = userRecord.qfTotalDonationAmount;
-  if (!activeQfRound?.tokenPrice) {
-    throw new Error('active qf round does not have token price!');
-  }
-  if (!activeQfRound?.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly) {
+  if (!activeQfRound?.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly) {
     throw new Error(
-      'active qf round does not have round USDCapPerUserPerProjectWithGitcoinScoreOnly!',
+      'active qf round does not have round POLCapPerUserPerProjectWithGitcoinScoreOnly!',
     );
   }
   return (
-    activeQfRound.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly /
-      activeQfRound.tokenPrice -
+    activeQfRound.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly -
     qfTotalDonationAmount
   );
 };

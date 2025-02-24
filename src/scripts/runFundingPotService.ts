@@ -74,7 +74,7 @@ async function generateBatchFile(batchNumber: number, dryRun: boolean) {
         : (round.roundUSDCloseCapPerProject || '1050000').toString(), // Only required for QACC rounds
     },
     IS_EARLY_ACCESS: isEarlyAccess, // Set based on the round type
-    PRICE: (round.tokenPrice || '0.1').toString(), // Default price to "0.1" if not provided
+    PRICE: '1',
     ONLY_REPORT: dryRun, // If we set this flag, only report will be generated and no transactions propose to the safes
   };
 

@@ -65,7 +65,6 @@ import { QACC_DONATION_TOKEN_SYMBOL } from '../constants/qacc';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { ProjectUserRecord } from '../entities/projectUserRecord';
-import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -846,9 +845,8 @@ function createDonationTestCases() {
       roundNumber: generateEARoundNumber(),
       startDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(3, 'days').toDate(),
-      roundUSDCapPerProject: 1000000,
-      roundUSDCapPerUserPerProject: 50000,
-      tokenPrice: 0.1,
+      roundPOLCapPerProject: 1000000,
+      roundPOLCapPerUserPerProject: 50000,
     }).save();
     sinon
       .stub(qAccService, 'getQAccDonationCap')
@@ -2841,9 +2839,8 @@ function donationsByProjectIdTestCases() {
       roundNumber: generateEARoundNumber(),
       startDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(3, 'days').toDate(),
-      roundUSDCapPerProject: 1000000,
-      roundUSDCapPerUserPerProject: 50000,
-      tokenPrice: 0.1,
+      roundPOLCapPerProject: 1000000,
+      roundPOLCapPerUserPerProject: 50000,
     }).save();
 
     sinon
@@ -4905,9 +4902,8 @@ function qAccLimitTestCases() {
       roundNumber: generateEARoundNumber(),
       startDate: new Date(),
       endDate: moment().add(3, 'days').toDate(),
-      roundUSDCapPerProject: 1000000,
-      roundUSDCapPerUserPerProject: 50000,
-      tokenPrice: 0.1,
+      roundPOLCapPerProject: 1000000,
+      roundPOLCapPerUserPerProject: 50000,
     }).save();
 
     // send create donation request
@@ -4943,18 +4939,16 @@ function qAccLimitTestCases() {
   });
 
   it('should not associate to round when user limit exceed in an active early access round', async () => {
-    const tokenPrice = 0.1;
-    const roundUSDCapPerUserPerProject = 50000;
+    const roundPOLCapPerUserPerProject = 50000;
     earlyAccessRound1 = await EarlyAccessRound.create({
       roundNumber: generateEARoundNumber(),
       startDate: new Date(),
       endDate: moment().add(3, 'days').toDate(),
-      roundUSDCapPerProject: 1000000,
-      roundUSDCapPerUserPerProject,
-      tokenPrice,
+      roundPOLCapPerProject: 1000000,
+      roundPOLCapPerUserPerProject,
     }).save();
 
-    const amount = roundUSDCapPerUserPerProject / tokenPrice + 1;
+    const amount = roundPOLCapPerUserPerProject + 1;
     // send create donation request
     const result: AxiosResponse<ExecutionResult<{ createDonation: number }>> =
       await axios.post(
@@ -4995,22 +4989,17 @@ function qAccLimitTestCases() {
 
 function qAccCapChangeTestCases() {
   let ea;
-  const tokenPrice = 0.1;
   beforeEach(async () => {
     ea = await EarlyAccessRound.create({
       roundNumber: generateEARoundNumber(),
       startDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(3, 'days').toDate(),
-      roundUSDCapPerProject: 1000000,
-      roundUSDCapPerUserPerProject: 50000,
-      tokenPrice,
+      roundPOLCapPerProject: 1000000,
+      roundPOLCapPerUserPerProject: 50000,
     }).save();
     sinon
       .stub(qAccService, 'getQAccDonationCap')
       .resolves(Number.MAX_SAFE_INTEGER);
-    sinon
-      .stub(CoingeckoPriceAdapter.prototype, 'getTokenPrice')
-      .resolves(tokenPrice);
   });
 
   afterEach(async () => {
@@ -5029,8 +5018,7 @@ function qAccCapChangeTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
 
-    const usdAmount = 100;
-    const donationAmount = usdAmount / ea.tokenPrice;
+    const donationAmount = 100;
 
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -5076,6 +5064,5 @@ function qAccCapChangeTestCases() {
 
     assert.isOk(projectRoundRecord);
     assert.equal(projectRoundRecord?.totalDonationAmount, donationAmount);
-    assert.equal(projectRoundRecord?.totalDonationUsdAmount, usdAmount);
   });
 }

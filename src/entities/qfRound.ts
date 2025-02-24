@@ -107,10 +107,6 @@ export class QfRound extends BaseEntity {
   @Column({ default: false })
   isDataAnalysisDone: boolean;
 
-  @Field({ nullable: true })
-  @Column({ type: 'float', nullable: true })
-  tokenPrice?: number;
-
   @UpdateDateColumn()
   updatedAt: Date;
 
@@ -125,30 +121,30 @@ export class QfRound extends BaseEntity {
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
-  roundUSDCapPerProject?: number;
+  roundPOLCapPerProject?: number;
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
-  roundUSDCloseCapPerProject?: number;
+  roundPOLCloseCapPerProject?: number;
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
-  roundUSDCapPerUserPerProject?: number;
+  roundPOLCapPerUserPerProject?: number;
 
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
-  roundUSDCapPerUserPerProjectWithGitcoinScoreOnly?: number;
+  roundPOLCapPerUserPerProjectWithGitcoinScoreOnly?: number;
 
   @Field(_type => Boolean)
   @Column({ default: false })
   isBatchMintingExecuted: boolean;
 
-  // Virtual fields for cumulative caps
+  // virtual fields
   @Field(() => Float, { nullable: true })
-  cumulativeUSDCapPerProject?: number;
+  cumulativePOLCapPerProject?: number;
 
   @Field(() => Float, { nullable: true })
-  cumulativeUSDCapPerUserPerProject?: number;
+  cumulativePOLCapPerUserPerProject?: number;
 
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {
@@ -161,12 +157,12 @@ export class QfRound extends BaseEntity {
   @AfterLoad()
   async calculateCumulativeCaps() {
     if (this.roundNumber === 1) {
-      this.cumulativeUSDCapPerProject = this.roundUSDCapPerProject || 0;
-      this.cumulativeUSDCapPerUserPerProject =
-        this.roundUSDCapPerUserPerProject || 0;
+      this.cumulativePOLCapPerProject = this.roundPOLCapPerProject || 0;
+      this.cumulativePOLCapPerUserPerProject =
+        this.roundPOLCapPerUserPerProject || 0;
     } else {
-      this.cumulativeUSDCapPerProject = 0;
-      this.cumulativeUSDCapPerUserPerProject = 0;
+      this.cumulativePOLCapPerProject = 0;
+      this.cumulativePOLCapPerUserPerProject = 0;
     }
   }
 }

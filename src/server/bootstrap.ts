@@ -64,7 +64,6 @@ import {
 import { QACC_NETWORK_ID } from '../provider';
 import { Token } from '../entities/token';
 import { ChainType } from '../types/network';
-import { runFetchRoundTokenPrice } from '../services/cronJobs/fetchRoundTokenPrice';
 import { runSyncDataWithInverter } from '../services/cronJobs/syncDataWithInverter';
 import { runSyncWithAnkrTransfers } from '../services/cronJobs/syncWithAnkrTransfers';
 
@@ -189,16 +188,6 @@ export async function bootstrap() {
     await runUpdateProjectCampaignsCacheJob();
     logger.debug(
       'initializeCronJobs() after runUpdateProjectCampaignsCacheJob() ',
-      new Date(),
-    );
-
-    logger.debug(
-      'initializeCronJobs() before runFetchRoundTokenPrice() ',
-      new Date(),
-    );
-    await runFetchRoundTokenPrice();
-    logger.debug(
-      'initializeCronJobs() after runFetchRoundTokenPrice() ',
       new Date(),
     );
 
