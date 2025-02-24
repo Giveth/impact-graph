@@ -199,8 +199,6 @@ function projectUserDonationCapTestCases() {
       roundPOLCapPerUserPerProject: 5000,
       roundPOLCapPerUserPerProjectWithGitcoinScoreOnly: 2000,
       roundPOLCloseCapPerProject: 25000,
-      cumulativePOLCapPerProject: 20000,
-      cumulativePOLCapPerUserPerProject: 5000,
     }).save();
   });
   afterEach(async () => {
@@ -266,8 +264,6 @@ function userCapsTestCases() {
       roundPOLCapPerUserPerProject: 5000,
       roundPOLCapPerUserPerProjectWithGitcoinScoreOnly: 2000,
       roundPOLCloseCapPerProject: 25000,
-      cumulativePOLCapPerProject: 20000,
-      cumulativePOLCapPerUserPerProject: 5000,
     }).save();
     sinon.useFakeTimers({
       now: new Date('2001-01-15').getTime(),
