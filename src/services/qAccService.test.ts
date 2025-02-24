@@ -61,33 +61,29 @@ describe('qAccService', () => {
           roundNumber: generateEARoundNumber(),
           startDate: new Date('2000-01-01'),
           endDate: new Date('2000-01-03'),
-          roundUSDCapPerProject: 1_000,
-          roundUSDCapPerUserPerProject: 100,
-          tokenPrice: 0.1,
+          roundPOLCapPerProject: 1_000,
+          roundPOLCapPerUserPerProject: 100,
         },
         {
           roundNumber: generateEARoundNumber(),
           startDate: new Date('2000-01-04'),
           endDate: new Date('2000-01-06'),
-          roundUSDCapPerProject: 1_000,
-          roundUSDCapPerUserPerProject: 100,
-          tokenPrice: 0.2,
+          roundPOLCapPerProject: 1_000,
+          roundPOLCapPerUserPerProject: 100,
         },
         {
           roundNumber: generateEARoundNumber(),
           startDate: new Date('2000-01-07'),
           endDate: new Date('2000-01-09'),
-          roundUSDCapPerProject: 1_000,
-          roundUSDCapPerUserPerProject: 100,
-          tokenPrice: 0.3,
+          roundPOLCapPerProject: 1_000,
+          roundPOLCapPerUserPerProject: 100,
         },
         {
           roundNumber: generateEARoundNumber(),
           startDate: new Date('2000-01-10'),
           endDate: new Date('2000-01-12'),
-          roundUSDCapPerProject: 2_000,
-          roundUSDCapPerUserPerProject: 200,
-          tokenPrice: 0.4,
+          roundPOLCapPerProject: 2_000,
+          roundPOLCapPerUserPerProject: 200,
         },
       ]),
     );
@@ -101,10 +97,9 @@ describe('qAccService', () => {
       slug: new Date().getTime().toString() + ' - 1',
       beginDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(1, 'days').toDate(),
-      roundUSDCapPerProject: 10_000,
-      roundUSDCloseCapPerProject: 10_500,
-      roundUSDCapPerUserPerProject: 2_500,
-      tokenPrice: 0.5,
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 2_500,
     }).save();
   });
   afterEach(async () => {
@@ -123,11 +118,7 @@ describe('qAccService', () => {
     });
 
     const firstEarlyAccessRound = earlyAccessRounds[0] as EarlyAccessRound;
-    assert.equal(
-      result,
-      firstEarlyAccessRound.roundUSDCapPerUserPerProject! /
-        firstEarlyAccessRound.tokenPrice!,
-    );
+    assert.equal(result, firstEarlyAccessRound.roundPOLCapPerUserPerProject!);
   });
 
   it('should return correct value for single donation in early access round', async () => {
@@ -144,9 +135,7 @@ describe('qAccService', () => {
     const firstEarlyAccessRound = earlyAccessRounds[0] as EarlyAccessRound;
     assert.equal(
       result,
-      firstEarlyAccessRound.roundUSDCapPerUserPerProject! /
-        firstEarlyAccessRound.tokenPrice! -
-        donation.amount,
+      firstEarlyAccessRound.roundPOLCapPerUserPerProject! - donation.amount,
     );
   });
 
@@ -177,8 +166,7 @@ describe('qAccService', () => {
     })) as EarlyAccessRound;
     assert.equal(
       result,
-      lastRound!.cumulativeUSDCapPerUserPerProject! / lastRound!.tokenPrice! -
-        donationSum,
+      lastRound!.cumulativePOLCapPerUserPerProject! - donationSum,
     );
   });
 
@@ -188,9 +176,7 @@ describe('qAccService', () => {
     })) as EarlyAccessRound;
     await insertDonation({
       earlyAccessRoundId: lastRound.id,
-      amount:
-        lastRound.cumulativeUSDCapPerUserPerProject! / lastRound.tokenPrice! -
-        100,
+      amount: lastRound.cumulativePOLCapPerUserPerProject! - 100,
     });
 
     const result = await qAccService.getQAccDonationCap({
@@ -209,10 +195,7 @@ describe('qAccService', () => {
       donateTime: qfRound1.beginDate,
     });
 
-    assert.equal(
-      result,
-      qfRound1.roundUSDCapPerUserPerProject! / qfRound1.tokenPrice!,
-    );
+    assert.equal(result, qfRound1.roundPOLCapPerUserPerProject!);
   });
   it('should return correct value for qf round, when user has donated in ea', async () => {
     await insertDonation({
@@ -225,10 +208,7 @@ describe('qAccService', () => {
       donateTime: qfRound1.beginDate,
     });
 
-    assert.equal(
-      result,
-      qfRound1.roundUSDCapPerUserPerProject! / qfRound1.tokenPrice!,
-    );
+    assert.equal(result, qfRound1.roundPOLCapPerUserPerProject!);
   });
 
   it('should return correct value for single donation in qf round', async () => {
@@ -243,17 +223,14 @@ describe('qAccService', () => {
       donateTime: qfRound1.beginDate,
     });
 
-    assert.equal(
-      result,
-      qfRound1.roundUSDCapPerUserPerProject! / qfRound1.tokenPrice! - 5,
-    );
+    assert.equal(result, qfRound1.roundPOLCapPerUserPerProject! - 5);
   });
 
-  it('should allow 250$ donation if qf round cap is filled for new donors', async () => {
+  it('should allow 250 POL donation if qf round cap is filled for new donors', async () => {
     await qfRound1.reload();
     await insertDonation({
       qfRoundId: qfRound1.id,
-      amount: qfRound1.roundUSDCapPerProject! / qfRound1.tokenPrice!,
+      amount: qfRound1.roundPOLCapPerProject!,
     });
 
     const newUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -264,15 +241,15 @@ describe('qAccService', () => {
       donateTime: qfRound1.beginDate,
     });
 
-    assert.equal(250 / qfRound1.tokenPrice!, result);
+    assert.equal(250, result);
   });
 
   it('should return correct value for users has donated close to cap if qf round', async () => {
-    const amountUsd = qfRound1.roundUSDCapPerProject!;
+    const amountPOL = qfRound1.roundPOLCapPerProject!;
 
     await insertDonation({
       qfRoundId: qfRound1.id,
-      amount: amountUsd / qfRound1.tokenPrice!,
+      amount: amountPOL,
     });
 
     const newUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -282,7 +259,7 @@ describe('qAccService', () => {
         ...createDonationData(),
         status: DONATION_STATUS.VERIFIED,
         qfRoundId: qfRound1.id,
-        amount: 100 / qfRound1.tokenPrice!,
+        amount: 100,
       },
       newUser.id,
       project.id,
@@ -294,7 +271,7 @@ describe('qAccService', () => {
       donateTime: qfRound1.beginDate,
     });
 
-    assert.equal(150 / qfRound1.tokenPrice!, result);
+    assert.equal(150, result);
   });
 
   it('should return correct value for ea donors if the qf round cap is filled', async () => {
@@ -311,7 +288,7 @@ describe('qAccService', () => {
       generateRandomEtheriumAddress(),
     );
 
-    const totalUsdCap = qfRound1.roundUSDCapPerProject!;
+    const totalPOLCap = qfRound1.roundPOLCapPerProject!;
 
     await insertDonation(
       {
@@ -332,7 +309,7 @@ describe('qAccService', () => {
     await insertDonation(
       {
         qfRoundId: qfRound1.id,
-        amount: totalUsdCap / qfRound1.tokenPrice!,
+        amount: totalPOLCap,
       },
       newUser1.id,
     );
@@ -352,15 +329,12 @@ describe('qAccService', () => {
       userId: eaDonor1.id,
       donateTime: qfRound1.beginDate,
     });
-    assert.equal(
-      250 / qfRound1.tokenPrice! - eaDonor1QfDonationAmount,
-      eaDonor1Result,
-    );
+    assert.equal(250 - eaDonor1QfDonationAmount, eaDonor1Result);
     const eaDonor2Result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: eaDonor2.id,
     });
-    assert.equal(250 / qfRound1.tokenPrice!, eaDonor2Result);
+    assert.equal(250, eaDonor2Result);
 
     const newUser1Result = await qAccService.getQAccDonationCap({
       projectId: project.id,
@@ -374,7 +348,7 @@ describe('qAccService', () => {
       userId: newUser2.id,
       donateTime: qfRound1.beginDate,
     });
-    assert.equal(250 / qfRound1.tokenPrice!, newUser2Result);
+    assert.equal(250, newUser2Result);
   });
 
   it('should return correct value if project has collected close enough in previous rounds', async () => {
@@ -387,9 +361,9 @@ describe('qAccService', () => {
 
     const qfDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const totalUsdCap = qfRound1.roundUSDCapPerProject!;
+    const totalPOLCap = qfRound1.roundPOLCapPerProject!;
 
-    const qfRoundCap = totalUsdCap / qfRound1.tokenPrice!;
+    const qfRoundCap = totalPOLCap;
 
     await insertDonation(
       {
@@ -409,7 +383,7 @@ describe('qAccService', () => {
 
     const qf = await findQfRoundById(qfRound1.id);
 
-    assert.equal(qf?.cumulativeUSDCapPerProject, totalUsdCap);
+    assert.equal(qf?.cumulativePOLCapPerProject, totalPOLCap);
 
     await updateOrCreateProjectRoundRecord(project.id, qfRound1.id);
     const qfProjectRoundRecord = await getProjectRoundRecord(
@@ -430,19 +404,19 @@ describe('qAccService', () => {
       donateTime: qfRound1.beginDate,
     });
 
-    assert.equal(250 / qfRound1.tokenPrice!, userCap);
+    assert.equal(250, userCap);
   });
 
   it('should return 0 after qf round close cap is reached', async () => {
     const eaDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const qfDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const totalUsdCap = qfRound1.roundUSDCloseCapPerProject!;
+    const totalPOLCap = qfRound1.roundPOLCloseCapPerProject!;
 
     await insertDonation(
       {
         earlyAccessRoundId: earlyAccessRounds[0].id,
-        amount: totalUsdCap / qfRound1.tokenPrice!,
+        amount: totalPOLCap,
       },
       eaDonor.id,
     );
@@ -460,13 +434,13 @@ describe('qAccService', () => {
     const eaDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const qfDonor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const totalUsdCap = qfRound1.roundUSDCloseCapPerProject!;
+    const totalPOLCap = qfRound1.roundPOLCloseCapPerProject!;
     const remainingCap = 30;
 
     await insertDonation(
       {
         earlyAccessRoundId: earlyAccessRounds[0].id,
-        amount: totalUsdCap / qfRound1.tokenPrice! - remainingCap,
+        amount: totalPOLCap - remainingCap,
       },
       eaDonor.id,
     );

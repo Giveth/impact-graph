@@ -169,9 +169,8 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       roundNumber: generateEARoundNumber(),
       startDate: moment(timestamp).subtract(1, 'days').toDate(),
       endDate: moment(timestamp).add(3, 'days').toDate(),
-      roundUSDCapPerProject: 1000000,
-      roundUSDCapPerUserPerProject: 50000,
-      tokenPrice: 0.1,
+      roundPOLCapPerProject: 1000000,
+      roundPOLCapPerUserPerProject: 50000,
     }).save();
     // update donation timestamp to after the early access round end date
     await Donation.update(
@@ -199,10 +198,9 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 12,
       slug: new Date().getTime().toString() + ' - 1',
-      roundUSDCapPerProject: 10_000,
-      roundUSDCloseCapPerProject: 10_500,
-      roundUSDCapPerUserPerProject: 2_500,
-      tokenPrice: 0.5,
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 2_500,
 
       beginDate: moment(timestamp).subtract(1, 'second'),
       endDate: moment(timestamp).add(2, 'day'),
@@ -768,7 +766,7 @@ function syncByAnkrTestCases() {
   };
   let user: User;
   let project: Project;
-  let donation: Donation;
+  let donation: Donation | undefined;
   let ea: EarlyAccessRound | undefined;
   let qf: QfRound | undefined;
 

@@ -143,22 +143,6 @@ export class QfRound extends BaseEntity {
   @Column('decimal', { precision: 18, scale: 8, nullable: true })
   cumulativePOLCapPerUserPerProject: number;
 
-  @Field(() => Int, { nullable: true })
-  @Column({ nullable: true })
-  roundUSDCapPerProject?: number;
-
-  @Field(() => Int, { nullable: true })
-  @Column({ nullable: true })
-  roundUSDCloseCapPerProject?: number;
-
-  @Field(() => Int, { nullable: true })
-  @Column({ nullable: true })
-  roundUSDCapPerUserPerProject?: number;
-
-  @Field(() => Int, { nullable: true })
-  @Column({ nullable: true })
-  roundUSDCapPerUserPerProjectWithGitcoinScoreOnly?: number;
-
   @Field(_type => Boolean)
   @Column({ default: false })
   isBatchMintingExecuted: boolean;

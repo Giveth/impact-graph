@@ -187,7 +187,7 @@ const getQAccDonationCap = async ({
       cumulativePOLCapPerProject - totalCollected,
       // Capacity over the qf round cap per project
       Math.min(
-        0.25, // 0.25 POL between qf round cap and qf round close
+        250, // 250 POL between qf round cap and qf round close
         projectCloseCap - totalCollected, // project close cap
       ),
     );

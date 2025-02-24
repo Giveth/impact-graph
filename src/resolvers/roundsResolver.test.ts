@@ -59,18 +59,16 @@ function fetchAllRoundsTestCases() {
       roundNumber: generateEARoundNumber(),
       startDate: new Date(),
       endDate: moment().add(3, 'days').toDate(),
-      roundUSDCapPerProject: 1_000_000,
-      roundUSDCapPerUserPerProject: 50_000,
-      tokenPrice: 0.12345678,
+      roundPOLCapPerProject: 1_000_000,
+      roundPOLCapPerUserPerProject: 50_000,
     }).save();
 
     const earlyAccessRound2 = await EarlyAccessRound.create({
       roundNumber: generateEARoundNumber(),
       startDate: moment().add(4, 'days').toDate(),
       endDate: moment().add(7, 'days').toDate(),
-      roundUSDCapPerProject: 2_000_000,
-      roundUSDCapPerUserPerProject: 100_000,
-      tokenPrice: 0.23456789,
+      roundPOLCapPerProject: 2_000_000,
+      roundPOLCapPerUserPerProject: 100_000,
     }).save();
 
     // Create QF Rounds
@@ -82,9 +80,8 @@ function fetchAllRoundsTestCases() {
       minimumPassportScore: 8,
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
-      roundUSDCapPerProject: 500_000, // Nullable field
-      roundUSDCapPerUserPerProject: 25_000, // Nullable field
-      tokenPrice: 0.12345678, // Nullable field
+      roundPOLCapPerProject: 500_000, // Nullable field
+      roundPOLCapPerUserPerProject: 25_000, // Nullable field
     }).save();
 
     const qfRound2 = await QfRound.create({
@@ -208,9 +205,8 @@ function fetchActiveRoundTestCases() {
       roundNumber: generateEARoundNumber(),
       startDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(2, 'days').toDate(),
-      roundUSDCapPerProject: 500000,
-      roundUSDCapPerUserPerProject: 25000,
-      tokenPrice: 0.12345678,
+      roundPOLCapPerProject: 500000,
+      roundPOLCapPerUserPerProject: 25000,
     }).save();
 
     // Create a non-active QF round
@@ -223,9 +219,8 @@ function fetchActiveRoundTestCases() {
       beginDate: moment().add(10, 'days').toDate(),
       endDate: moment().add(20, 'days').toDate(),
       isActive: false,
-      roundUSDCapPerProject: 100000,
-      roundUSDCapPerUserPerProject: 5000,
-      tokenPrice: 0.54321,
+      roundPOLCapPerProject: 100000,
+      roundPOLCapPerUserPerProject: 5000,
     }).save();
 
     // Query for the active round
@@ -266,9 +261,8 @@ function fetchActiveRoundTestCases() {
       beginDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(5, 'days').toDate(),
       isActive: true,
-      roundUSDCapPerProject: 500000,
-      roundUSDCapPerUserPerProject: 25000,
-      tokenPrice: 0.12345678,
+      roundPOLCapPerProject: 500000,
+      roundPOLCapPerUserPerProject: 25000,
     }).save();
 
     // Query for the active round
@@ -281,11 +275,10 @@ function fetchActiveRoundTestCases() {
     // Assert the active QF round is returned
     assert.isOk(response.activeRound);
     assert.equal(response.activeRound.name, activeQfRound.name);
-    assert.equal(response.activeRound.roundUSDCapPerProject, 500000);
-    assert.equal(response.activeRound.roundUSDCapPerUserPerProject, 25000);
-    assert.equal(response.activeRound.tokenPrice, 0.12345678);
-    assert.equal(response.activeRound.cumulativeUSDCapPerProject, 500000);
-    assert.equal(response.activeRound.cumulativeUSDCapPerUserPerProject, 25000);
+    assert.equal(response.activeRound.roundPOLCapPerProject, 500000);
+    assert.equal(response.activeRound.roundPOLCapPerUserPerProject, 25000);
+    assert.equal(response.activeRound.cumulativePOLCapPerProject, 500000);
+    assert.equal(response.activeRound.cumulativePOLCapPerUserPerProject, 25000);
   });
 
   it('should not return any round when qf round isActive is true but beginDate is in the future', async () => {
@@ -299,9 +292,8 @@ function fetchActiveRoundTestCases() {
       beginDate: moment().add(1, 'days').toDate(),
       endDate: moment().add(5, 'days').toDate(),
       isActive: true,
-      roundUSDCapPerProject: 500000,
-      roundUSDCapPerUserPerProject: 25000,
-      tokenPrice: 0.12345678,
+      roundPOLCapPerProject: 500000,
+      roundPOLCapPerUserPerProject: 25000,
     }).save();
 
     // Query for the active round
@@ -326,9 +318,8 @@ function fetchActiveRoundTestCases() {
       beginDate: moment().subtract(5, 'days').toDate(),
       endDate: moment().subtract(1, 'days').toDate(),
       isActive: true,
-      roundUSDCapPerProject: 500000,
-      roundUSDCapPerUserPerProject: 25000,
-      tokenPrice: 0.12345678,
+      roundPOLCapPerProject: 500000,
+      roundPOLCapPerUserPerProject: 25000,
     }).save();
 
     // Query for the active round
