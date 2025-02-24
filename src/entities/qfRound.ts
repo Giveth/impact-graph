@@ -140,10 +140,10 @@ export class QfRound extends BaseEntity {
   isBatchMintingExecuted: boolean;
 
   // virtual fields
-  @Field(() => Int, { nullable: true })
+  @Field(() => Float, { nullable: true })
   cumulativePOLCapPerProject?: number;
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Float, { nullable: true })
   cumulativePOLCapPerUserPerProject?: number;
 
   // only projects with status active can be listed automatically
