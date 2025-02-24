@@ -5018,8 +5018,7 @@ function qAccCapChangeTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
 
-    const usdAmount = 100;
-    const donationAmount = usdAmount / ea.tokenPrice;
+    const donationAmount = 100;
 
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -5065,6 +5064,5 @@ function qAccCapChangeTestCases() {
 
     assert.isOk(projectRoundRecord);
     assert.equal(projectRoundRecord?.totalDonationAmount, donationAmount);
-    assert.equal(projectRoundRecord?.totalDonationUsdAmount, usdAmount);
   });
 }
