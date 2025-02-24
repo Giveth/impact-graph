@@ -5,25 +5,13 @@ export class RenameUSDCapsToPOLCaps1740272296645 implements MigrationInterface {
     // Early Access Round table updates
     await queryRunner.renameColumn(
       'early_access_round',
-      'cumulativeUSDCapPerProject',
-      'cumulativePOLCapPerProject',
+      'roundUSDCapPerProject',
+      'roundPOLCapPerProject',
     );
     await queryRunner.renameColumn(
       'early_access_round',
-      'cumulativeUSDCapPerUserPerProject',
-      'cumulativePOLCapPerUserPerProject',
-    );
-
-    // QF Round table updates
-    await queryRunner.renameColumn(
-      'qf_round',
-      'cumulativeUSDCapPerProject',
-      'cumulativePOLCapPerProject',
-    );
-    await queryRunner.renameColumn(
-      'qf_round',
-      'cumulativeUSDCapPerUserPerProject',
-      'cumulativePOLCapPerUserPerProject',
+      'roundUSDCapPerUserPerProject',
+      'roundPOLCapPerUserPerProject',
     );
     await queryRunner.renameColumn(
       'qf_round',
@@ -35,21 +23,15 @@ export class RenameUSDCapsToPOLCaps1740272296645 implements MigrationInterface {
       'roundUSDCapPerUserPerProjectWithGitcoinScoreOnly',
       'roundPOLCapPerUserPerProjectWithGitcoinScoreOnly',
     );
-
-    // First drop the old columns
-    await queryRunner.dropColumn('qf_round', 'roundUSDCapPerProject');
-    await queryRunner.dropColumn('qf_round', 'roundUSDCloseCapPerProject');
-
-    // Add new columns with correct type
-    await queryRunner.addColumn(
+    await queryRunner.renameColumn(
       'qf_round',
-      new TableColumn({
-        name: 'roundPOLCapPerProject',
-        type: 'decimal',
-        precision: 18,
-        scale: 8,
-        isNullable: true,
-      }),
+      'roundUSDCapPerProject',
+      'roundPOLCapPerProject',
+    );
+    await queryRunner.renameColumn(
+      'qf_round',
+      'roundUSDCapPerUserPerProject',
+      'roundPOLCapPerUserPerProject',
     );
 
     // Drop tokenPrice columns
@@ -61,25 +43,13 @@ export class RenameUSDCapsToPOLCaps1740272296645 implements MigrationInterface {
     // Early Access Round table rollback
     await queryRunner.renameColumn(
       'early_access_round',
-      'cumulativePOLCapPerProject',
-      'cumulativeUSDCapPerProject',
+      'roundPOLCapPerProject',
+      'roundUSDCapPerProject',
     );
     await queryRunner.renameColumn(
       'early_access_round',
-      'cumulativePOLCapPerUserPerProject',
-      'cumulativeUSDCapPerUserPerProject',
-    );
-
-    // QF Round table rollback
-    await queryRunner.renameColumn(
-      'qf_round',
-      'cumulativePOLCapPerProject',
-      'cumulativeUSDCapPerProject',
-    );
-    await queryRunner.renameColumn(
-      'qf_round',
-      'cumulativePOLCapPerUserPerProject',
-      'cumulativeUSDCapPerUserPerProject',
+      'roundPOLCapPerUserPerProject',
+      'roundUSDCapPerUserPerProject',
     );
     await queryRunner.renameColumn(
       'qf_round',
@@ -91,8 +61,18 @@ export class RenameUSDCapsToPOLCaps1740272296645 implements MigrationInterface {
       'roundPOLCapPerUserPerProjectWithGitcoinScoreOnly',
       'roundUSDCapPerUserPerProjectWithGitcoinScoreOnly',
     );
+    await queryRunner.renameColumn(
+      'qf_round',
+      'roundPOLCapPerProject',
+      'roundUSDCapPerProject',
+    );
+    await queryRunner.renameColumn(
+      'qf_round',
+      'roundPOLCapPerUserPerProject',
+      'roundUSDCapPerUserPerProject',
+    );
 
-    // Add back tokenPrice column
+    // Add tokenPrice columns
     await queryRunner.addColumn(
       'early_access_round',
       new TableColumn({
