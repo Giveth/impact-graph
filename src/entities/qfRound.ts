@@ -119,33 +119,32 @@ export class QfRound extends BaseEntity {
   @OneToMany(_type => Donation, donation => donation.qfRound)
   donations: Donation[];
 
-  @Field(() => Float, { nullable: true })
-  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
   roundPOLCapPerProject: number;
 
-  @Field(() => Float, { nullable: true })
-  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
   roundPOLCloseCapPerProject: number;
 
-  @Field(() => Float, { nullable: true })
-  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
   roundPOLCapPerUserPerProject: number;
 
-  @Field(() => Float, { nullable: true })
-  @Column('decimal', { precision: 18, scale: 8, nullable: true })
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
   roundPOLCapPerUserPerProjectWithGitcoinScoreOnly: number;
-
-  @Field(() => Float, { nullable: true })
-  @Column('decimal', { precision: 18, scale: 8, nullable: true })
-  cumulativePOLCapPerProject: number;
-
-  @Field(() => Float, { nullable: true })
-  @Column('decimal', { precision: 18, scale: 8, nullable: true })
-  cumulativePOLCapPerUserPerProject: number;
 
   @Field(_type => Boolean)
   @Column({ default: false })
   isBatchMintingExecuted: boolean;
+
+  // virtual fields
+  @Field(() => Int, { nullable: true })
+  cumulativePOLCapPerProject: number;
+
+  @Field(() => Int, { nullable: true })
+  cumulativePOLCapPerUserPerProject: number;
 
   // only projects with status active can be listed automatically
   isEligibleNetwork(donationNetworkId: number): boolean {

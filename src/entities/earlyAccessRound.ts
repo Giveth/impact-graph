@@ -38,14 +38,6 @@ export class EarlyAccessRound extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field(() => Float, { nullable: true })
-  @Column('decimal', { precision: 18, scale: 8, nullable: true })
-  cumulativePOLCapPerProject: number;
-
-  @Field(() => Float, { nullable: true })
-  @Column('decimal', { precision: 18, scale: 8, nullable: true })
-  cumulativePOLCapPerUserPerProject: number;
-
   @Field(_type => Boolean)
   @Column({ default: false })
   isBatchMintingExecuted: boolean;
@@ -57,6 +49,13 @@ export class EarlyAccessRound extends BaseEntity {
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
   roundPOLCapPerUserPerProject?: number;
+
+  // virtual fields
+  @Field(() => Float, { nullable: true })
+  cumulativePOLCapPerProject: number;
+
+  @Field(() => Float, { nullable: true })
+  cumulativePOLCapPerUserPerProject: number;
 
   @AfterLoad()
   async calculateCumulativeCaps(): Promise<void> {
