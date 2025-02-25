@@ -1,7 +1,7 @@
 /**
  * This cron job is responsible for generating sitemaps that FE will use for SEO.
  *
- * It is scheduled to run every Sunday at 00:00.
+ * It is scheduled to run every Sunday at 00:17.
  */
 import fs from 'fs';
 import { schedule } from 'node-cron';
