@@ -2642,16 +2642,3 @@ export const allUsersBasicDataQuery = `
     }
   }
 `;
-
-export const getLastSitemapUrlQuery = `
-  query {
-    getLastSitemap {
-      id
-      sitemap_urls {
-        sitemapProjectsURL
-        sitemapUsersURL
-        sitemapQFRoundsURL
-      }
-    }
-  }
-`;
