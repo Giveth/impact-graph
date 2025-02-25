@@ -25,6 +25,10 @@ const runCheckUserSuperTokenBalancesQueue = new Bull(
   'user-token-balances-stream-queue',
   {
     redis: redisConfig,
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: true,
+    },
   },
 );
 
