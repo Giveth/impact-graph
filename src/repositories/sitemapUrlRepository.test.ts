@@ -8,7 +8,6 @@ describe('sitemapUrlRepository testCases', () => {
     const sitemapUrlRepository =
       AppDataSource.getDataSource().getRepository(SitemapUrl);
 
-    // ✅ Ensure the table is completely cleared before each test
     await sitemapUrlRepository.query(`DELETE FROM sitemap_url`);
   });
 
