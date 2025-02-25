@@ -27,6 +27,10 @@ export class QfRound extends BaseEntity {
   roundNumber?: number;
 
   @Field({ nullable: true })
+  @Column('integer', { nullable: true })
+  seasonNumber?: number;
+
+  @Field({ nullable: true })
   @Column('text', { nullable: true })
   name: string;
 
@@ -83,7 +87,7 @@ export class QfRound extends BaseEntity {
   @Column('real', { default: 1 })
   minimumValidUsdValue: number;
 
-  @Field(_type => [Int], { nullable: true }) // Define the new field as an array of integers
+  @Field(_type => [Int], { nullable: true })
   @Column('integer', { array: true, default: [] })
   eligibleNetworks: number[];
 
@@ -156,13 +160,9 @@ export class QfRound extends BaseEntity {
 
   @AfterLoad()
   async calculateCumulativeCaps() {
-    if (this.roundNumber === 1) {
-      this.cumulativePOLCapPerProject = this.roundPOLCapPerProject || 0;
-      this.cumulativePOLCapPerUserPerProject =
-        this.roundPOLCapPerUserPerProject || 0;
-    } else {
-      this.cumulativePOLCapPerProject = 0;
-      this.cumulativePOLCapPerUserPerProject = 0;
-    }
+    // Each round has its own caps, independent of seasons
+    this.cumulativePOLCapPerProject = this.roundPOLCapPerProject || 0;
+    this.cumulativePOLCapPerUserPerProject =
+      this.roundPOLCapPerUserPerProject || 0;
   }
 }
