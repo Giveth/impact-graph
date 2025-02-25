@@ -130,6 +130,7 @@
     "test:campaignRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/campaignRepository.test.ts",
     "test:socialProfileRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/socialProfileRepository.test.ts",
     "test:projectVerificationRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/projectVerificationRepository.test.ts",
+    "test:qfRoundEntity": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/entities/qfRound.test.ts",
     "test:qfRoundRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/qfRoundRepository.test.ts",
     "test:qfRoundHistoryRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/qfRoundHistoryRepository.test.ts",
     "test:qfRoundService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/qfRoundService.test.ts",
