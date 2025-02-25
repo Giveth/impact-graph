@@ -53,7 +53,6 @@ import { DraftRecurringDonation } from './draftRecurringDonation';
 import { UserQfRoundModelScore } from './userQfRoundModelScore';
 import { ProjectGivbackRankView } from './ProjectGivbackRankView';
 import { EstimatedClusterMatching } from './estimatedClusterMatching';
-import { SitemapUrl } from './sitemapUrl';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -124,7 +123,5 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     DraftRecurringDonation,
 
     ProjectGivbackRankView,
-
-    SitemapUrl,
   ];
 };
