@@ -453,4 +453,224 @@ describe('qAccService', () => {
 
     assert.equal(remainingCap, result);
   });
+
+  it('should return correct value for qf round, when user has donated in previous qf round', async () => {
+    // Create a previous QF round
+    const previousQfRound = await QfRound.create({
+      roundNumber: 0,
+      isActive: false,
+      name: new Date().toString() + ' - 0',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 0',
+      beginDate: moment().subtract(3, 'days').toDate(),
+      endDate: moment().subtract(2, 'days').toDate(),
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 2_500,
+    }).save();
+
+    // Add donation in previous round
+    await insertDonation({
+      qfRoundId: previousQfRound.id,
+      amount: 2000,
+    });
+
+    // Check cap for current round
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    // User cap should be full in new round regardless of previous round donations
+    assert.equal(result, qfRound1.roundPOLCapPerUserPerProject!);
+  });
+
+  it('should track project total caps across rounds', async () => {
+    // Create a previous QF round
+    const previousQfRound = await QfRound.create({
+      roundNumber: 0,
+      isActive: false,
+      name: new Date().toString() + ' - 0',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 0',
+      beginDate: moment().subtract(3, 'days').toDate(),
+      endDate: moment().subtract(2, 'days').toDate(),
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 2_500,
+    }).save();
+
+    // Add donation in previous round that reaches project cap
+    await insertDonation({
+      qfRoundId: previousQfRound.id,
+      amount: previousQfRound.roundPOLCapPerProject!,
+    });
+
+    // Check cap for current round
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    // Should return 0 since project has reached total cap across rounds
+    assert.equal(result, 0);
+  });
+
+  it('should consider cumulative donations across all rounds when checking project cap', async () => {
+    // Create a previous QF round
+    const previousQfRound = await QfRound.create({
+      roundNumber: 0,
+      isActive: false,
+      name: new Date().toString() + ' - 0',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 0',
+      beginDate: moment().subtract(3, 'days').toDate(),
+      endDate: moment().subtract(2, 'days').toDate(),
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 10_000,
+    }).save();
+
+    // Add donation in previous round that uses half of the total cap
+    await insertDonation({
+      qfRoundId: previousQfRound.id,
+      amount: 5_000, // Half of the cap
+    });
+
+    // Check cap for current round
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    // Should only allow up to the remaining cap (considering previous round donations)
+    assert.equal(
+      result,
+      Math.min(
+        qfRound1.roundPOLCapPerUserPerProject!,
+        qfRound1.roundPOLCapPerProject! - 5_000,
+      ),
+    );
+  });
+
+  it('should return 0 when project has reached total cap across all rounds', async () => {
+    // Create a previous QF round
+    const previousQfRound = await QfRound.create({
+      roundNumber: 0,
+      isActive: false,
+      name: new Date().toString() + ' - 0',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 0',
+      beginDate: moment().subtract(3, 'days').toDate(),
+      endDate: moment().subtract(2, 'days').toDate(),
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 10_000,
+    }).save();
+
+    // Add donation in previous round that reaches total cap
+    await insertDonation({
+      qfRoundId: previousQfRound.id,
+      amount: 10_000, // Full cap
+    });
+
+    // Check cap for current round
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    // Should return 0 since project has reached total cap
+    assert.equal(result, 0);
+  });
+
+  it('should consider EA round donations in total project cap calculation', async () => {
+    // Add EA round donation
+    await insertDonation({
+      earlyAccessRoundId: earlyAccessRounds[0].id,
+      amount: 5_000, // Half of QF round cap
+    });
+
+    // Check cap for QF round
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    // Should only allow up to the remaining cap (considering EA round donations)
+    assert.equal(
+      result,
+      Math.min(
+        qfRound1.roundPOLCapPerUserPerProject!,
+        qfRound1.roundPOLCapPerProject! - 5_000,
+      ),
+    );
+  });
+
+  it('should handle multiple rounds with cumulative project cap', async () => {
+    // Create two previous QF rounds
+    const previousQfRound1 = await QfRound.create({
+      roundNumber: 0,
+      isActive: false,
+      name: new Date().toString() + ' - 0',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 0',
+      beginDate: moment().subtract(5, 'days').toDate(),
+      endDate: moment().subtract(4, 'days').toDate(),
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 10_000,
+    }).save();
+
+    const previousQfRound2 = await QfRound.create({
+      roundNumber: 1,
+      isActive: false,
+      name: new Date().toString() + ' - 1',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 1',
+      beginDate: moment().subtract(3, 'days').toDate(),
+      endDate: moment().subtract(2, 'days').toDate(),
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 10_000,
+    }).save();
+
+    // Add donations in previous rounds
+    await insertDonation({
+      qfRoundId: previousQfRound1.id,
+      amount: 3_000,
+    });
+
+    await insertDonation({
+      qfRoundId: previousQfRound2.id,
+      amount: 4_000,
+    });
+
+    // Check cap for current round
+    const result = await qAccService.getQAccDonationCap({
+      projectId: project.id,
+      userId: user.id,
+      donateTime: qfRound1.beginDate,
+    });
+
+    // Should only allow up to the remaining cap (considering all previous round donations)
+    assert.equal(
+      result,
+      Math.min(
+        qfRound1.roundPOLCapPerUserPerProject!,
+        qfRound1.roundPOLCapPerProject! - 7_000, // 3000 + 4000 from previous rounds
+      ),
+    );
+  });
 });
