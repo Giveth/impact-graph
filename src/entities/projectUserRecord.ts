@@ -7,13 +7,15 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   RelationId,
+  JoinColumn,
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
+import { QfRound } from './qfRound';
 
 @Entity()
 @ObjectType()
-@Index(['projectId', 'userId'], {
+@Index(['projectId', 'userId', 'qfRoundId'], {
   unique: true,
 })
 export class ProjectUserRecord extends BaseEntity {
@@ -35,8 +37,13 @@ export class ProjectUserRecord extends BaseEntity {
   @Column({ type: 'float', default: 0 })
   qfTotalDonationAmount: number;
 
-  // @Field(_type => Project)
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  qfRoundId?: number;
+
+  @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: false })
+  @JoinColumn({ name: 'projectId' })
   project: Project;
 
   @Column({ nullable: false })
@@ -46,9 +53,14 @@ export class ProjectUserRecord extends BaseEntity {
 
   @Field(_type => User)
   @ManyToOne(_type => User, { eager: true })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column({ nullable: false })
   @RelationId((ps: ProjectUserRecord) => ps.user)
   userId: number;
+
+  @ManyToOne(_type => QfRound)
+  @JoinColumn({ name: 'qfRoundId' })
+  qfRound?: QfRound;
 }
