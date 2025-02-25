@@ -79,6 +79,7 @@ const getUserProjectRecord = async ({
     where: {
       projectId,
       userId,
+      qfRoundId: 0, // 0 means no qf round (ea round)
     },
     select: [
       'id',
@@ -91,11 +92,44 @@ const getUserProjectRecord = async ({
   let projectUserRecord = await ProjectUserRecord.findOne(findCondition);
 
   if (!projectUserRecord) {
-    await updateOrCreateProjectUserRecord({ projectId, userId });
+    await updateOrCreateProjectUserRecord({ projectId, userId, qfRoundId: 0 }); // 0 means no qf round (ea round)
     projectUserRecord = await ProjectUserRecord.findOne(findCondition);
   }
 
   return projectUserRecord!;
+};
+
+const getUserProjectRoundRecord = async ({
+  projectId,
+  userId,
+  qfRoundId,
+}: {
+  projectId: number;
+  userId: number;
+  qfRoundId: number;
+}): Promise<ProjectUserRecord | null> => {
+  const findCondition: FindOneOptions<ProjectUserRecord> = {
+    where: {
+      projectId,
+      userId,
+      qfRoundId: qfRoundId,
+    },
+    select: [
+      'id',
+      'totalDonationAmount',
+      'eaTotalDonationAmount',
+      'qfTotalDonationAmount',
+    ],
+    loadEagerRelations: false,
+  };
+  let projectUserRecord = await ProjectUserRecord.findOne(findCondition);
+
+  if (!projectUserRecord) {
+    await updateOrCreateProjectUserRecord({ projectId, userId, qfRoundId });
+    projectUserRecord = await ProjectUserRecord.findOne(findCondition);
+  }
+
+  return projectUserRecord;
 };
 
 const getQAccDonationCap = async ({
@@ -169,30 +203,41 @@ const getQAccDonationCap = async ({
       qfRoundId: activeRound.id,
     });
 
-    const userRecord = await getUserProjectRecord({
+    // Get user's donations only for this specific round
+    const userRecord = await getUserProjectRoundRecord({
       projectId,
       userId,
+      qfRoundId: activeRound.id,
     });
 
     const projectCloseCap = activeQfRound?.roundPOLCloseCapPerProject || 0;
 
+    // Calculate total collected across all rounds
     const totalCollected =
       (projectRecord?.totalDonationAmount || 0) +
       (projectRecord?.cumulativePastRoundsDonationAmounts || 0);
 
-    const projectCap = Math.max(
-      // Capacity to fill qf round cap
-      projectPolRoundCap - totalCollected,
-      // Capacity over the qf round cap per project
+    // If project has reached total cap across all rounds, return 0
+    if (totalCollected >= projectCloseCap) {
+      return 0;
+    }
+
+    // Calculate remaining project cap considering all rounds
+    const remainingProjectCap = projectPolRoundCap - totalCollected;
+
+    // Calculate project cap considering close cap
+    const projectCap = Math.min(
+      remainingProjectCap,
       Math.min(
         250, // 250 POL between qf round cap and qf round close
         projectCloseCap - totalCollected, // project close cap
       ),
     );
 
+    // User cap resets for each round, so we only check against this round's donations
     const anyUserCap = Math.min(projectCap, userPolRoundCap);
 
-    return Math.max(0, anyUserCap - userRecord.qfTotalDonationAmount);
+    return Math.max(0, anyUserCap - (userRecord?.totalDonationAmount || 0));
   }
 };
 
@@ -221,12 +266,17 @@ const getUserRemainedCapBasedOnGitcoinScore = async ({
        and passport score is less than ${GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE}`,
     );
   }
-  const userRecord = await getUserProjectRecord({
+  const activeQfRound = await findActiveQfRound();
+  if (!activeQfRound) {
+    return 0;
+  }
+  const userProjectRoundRecord = await getUserProjectRoundRecord({
     projectId,
     userId: user.id,
+    qfRoundId: activeQfRound.id,
   });
-  const activeQfRound = await findActiveQfRound();
-  const qfTotalDonationAmount = userRecord.qfTotalDonationAmount;
+  const qfTotalDonationAmount =
+    userProjectRoundRecord?.qfTotalDonationAmount || 0;
   if (!activeQfRound?.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly) {
     throw new Error(
       'active qf round does not have round POLCapPerUserPerProjectWithGitcoinScoreOnly!',
