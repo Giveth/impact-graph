@@ -377,7 +377,7 @@ export async function bootstrap() {
       runCheckPendingUserModelScoreCronjob();
     }
 
-    if (process.env.SITEMAP_CRON_SECRET !== '') {
+    if (process.env.GENERATE_SITEMAP_CRONJOB_EXPRESSION !== '') {
       runGenerateSitemapOnFrontend();
     }
 
