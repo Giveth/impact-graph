@@ -21,7 +21,7 @@ import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
 import { RecurringDonationResolver } from './recurringDonationResolver';
 import { DraftDonationResolver } from './draftDonationResolver';
 import { OnboardingFormResolver } from './onboardingFormResolver';
-
+import { SitemapUrlResolver } from './sitemapUrlResolver';
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getResolvers = (): Function[] => {
   return [
@@ -51,5 +51,7 @@ export const getResolvers = (): Function[] => {
     AnchorContractAddressResolver,
     RecurringDonationResolver,
     OnboardingFormResolver,
+
+    SitemapUrlResolver,
   ];
 };
