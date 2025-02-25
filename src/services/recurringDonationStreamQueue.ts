@@ -13,6 +13,10 @@ const updateRecurringDonationsStreamQueue = new Bull(
   'update-recurring-donations-stream-queue',
   {
     redis: redisConfig,
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: true,
+    },
   },
 );
 const TWO_MINUTES = 1000 * 60 * 2;
