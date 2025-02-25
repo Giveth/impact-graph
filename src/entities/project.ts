@@ -492,6 +492,10 @@ export class Project extends BaseEntity {
   @Column({ type: 'int', nullable: true })
   matchingFunds?: number;
 
+  @Field(_type => Boolean)
+  @Column({ type: 'boolean', default: false })
+  hasEARound: boolean;
+
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
     const maxDaysForListing = moment()
