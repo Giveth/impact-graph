@@ -7,8 +7,10 @@ import {
   UpdateDateColumn,
   Index,
   AfterLoad,
+  ManyToMany,
 } from 'typeorm';
 import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
+import { Project } from './project';
 
 @Entity()
 @ObjectType()
@@ -49,6 +51,10 @@ export class EarlyAccessRound extends BaseEntity {
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
   roundPOLCapPerUserPerProject?: number;
+
+  @Field(_type => [Project], { nullable: true })
+  @ManyToMany(_type => Project, project => project.earlyAccessRounds)
+  projects: Project[];
 
   // virtual fields
   @Field(() => Float, { nullable: true })

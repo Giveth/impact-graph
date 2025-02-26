@@ -46,6 +46,7 @@ import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { ProjectSocialMedia } from './projectSocialMedia';
+import { EarlyAccessRound } from './earlyAccessRound';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
@@ -290,6 +291,17 @@ export class Project extends BaseEntity {
   @JoinTable()
   qfRounds: QfRound[];
 
+  @Field(_type => [EarlyAccessRound], { nullable: true })
+  @ManyToMany(
+    _type => EarlyAccessRound,
+    earlyAccessRound => earlyAccessRound.projects,
+    {
+      nullable: true,
+    },
+  )
+  @JoinTable()
+  earlyAccessRounds: EarlyAccessRound[];
+
   @Field(_type => Float, { nullable: true })
   @Column('float', { nullable: true })
   balance: number = 0;
@@ -483,6 +495,10 @@ export class Project extends BaseEntity {
   @Field(_type => Int, { nullable: true })
   @Column({ type: 'int', nullable: true })
   matchingFunds?: number;
+
+  @Field(_type => Boolean)
+  @Column({ type: 'boolean', default: false })
+  hasEARound: boolean;
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {

@@ -15,6 +15,7 @@ import {
   GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
 } from '../constants/gitcoin';
 import { Donation, DONATION_STATUS } from '../entities/donation';
+// import { Project } from '../entities/project';
 
 const getEaProjectRoundRecord = async ({
   projectId,
@@ -150,6 +151,17 @@ const getQAccDonationCap = async ({
 
   if (isEarlyAccess) {
     activeRound = activeEarlyAccessRound;
+    // todo: if we need to having some project in early access round, we need to check this
+    // Check if project is in the active early access round
+    // const project = await Project.findOne({
+    //   where: { id: projectId },
+    //   relations: ['earlyAccessRounds'],
+    // });
+    // if (
+    //   !project?.earlyAccessRounds?.some(round => round.id === activeRound?.id)
+    // ) {
+    //   return 0; // Project is not in this early access round
+    // }
   } else {
     activeQfRound = await findActiveQfRound({
       date: donateTime,
@@ -161,6 +173,15 @@ const getQAccDonationCap = async ({
       donateTime <= activeQfRound.endDate
     ) {
       activeRound = activeQfRound;
+      // todo: if we need to having some project in qf round, we need to check this
+      // Check if project is in the active QF round
+      // const project = await Project.findOne({
+      //   where: { id: projectId },
+      //   relations: ['qfRounds'],
+      // });
+      // if (!project?.qfRounds?.some(round => round.id === activeRound?.id)) {
+      //   return 0; // Project is not in this QF round
+      // }
     }
   }
 
