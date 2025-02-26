@@ -316,6 +316,14 @@ async function cleanupOldPins() {
 
     if (lastEntry) {
       await deleteOldPinataFiles(lastEntry.sitemap_urls);
+
+      // Delete all older entries, except the latest one
+      await sitemapRepo
+        .createQueryBuilder()
+        .delete()
+        .from(SitemapUrl)
+        .where('id != :latestId', { latestId: lastEntry.id })
+        .execute();
     }
 
     logger.debug('Old sitemap versions cleaned up.');
