@@ -186,8 +186,10 @@ function generateProjectsSiteMap(
 const getFrontEndFullUrl = () => {
   let URL = process.env.FRONTEND_URL || 'https://giveth.io';
 
-  if (!URL.startsWith('https://')) {
-    URL = URL.replace(/^http:/, 'https:');
+  if (!URL.startsWith('http://') && !URL.startsWith('https://')) {
+    URL = `https://${URL}`;
+  } else if (URL.startsWith('http://')) {
+    URL = URL.replace(/^http:\/\//, 'https://');
   }
 
   return URL;
