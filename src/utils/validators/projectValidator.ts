@@ -178,11 +178,19 @@ export const canUserVisitProject = (
     throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
   }
 
+  // Get admin user id from project or admin user
+  const adminUserId =
+    project.adminUserId && project.adminUserId > 0
+      ? project.adminUserId
+      : project.adminUser.id && project.adminUser.id > 0
+        ? project.adminUser.id
+        : null;
+
   // If project is draft or cancelled, just owner can view it
   if (
     (project.status.id === ProjStatus.drafted ||
       project.status.id === ProjStatus.cancelled) &&
-    project.adminUser.id !== userId
+    adminUserId !== userId
   ) {
     throw new Error(
       i18n.__(
