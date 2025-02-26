@@ -332,19 +332,8 @@ export const updateSitemapInDB = async (
   const sitemapRepo = AppDataSource.getDataSource().getRepository(SitemapUrl);
 
   try {
-    // Fetch the last entry
-    const lastEntry = await sitemapRepo
-      .createQueryBuilder('sitemap_url')
-      .orderBy('sitemap_url.created_at', 'DESC')
-      .getOne();
-
-    // Delete old Pinata files before updating
-    if (lastEntry) {
-      await deleteOldPinataFiles(lastEntry.sitemap_urls);
-    }
-
     // Create or update the latest entry
-    const newEntry = lastEntry ? lastEntry : new SitemapUrl();
+    const newEntry = new SitemapUrl();
     newEntry.sitemap_urls = {
       sitemapProjectsURL,
       sitemapUsersURL,
