@@ -20,7 +20,13 @@ const DEFAULT_CONCURRENT_JOB_COUNT = 1;
 // Queue for filling snapshot balances
 const fillSnapshotBalanceQueue = new Bull<FillSnapShotBalanceData>(
   FILL_SNAPSHOT_BALANCE_QUEUE_NAME,
-  { redis: redisConfig },
+  {
+    redis: redisConfig,
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: true,
+    },
+  },
 );
 
 // Periodically log the queue count
@@ -103,6 +109,8 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
     };
     fillSnapshotBalanceQueue.add(jobData, {
       jobId: `${FILL_SNAPSHOT_BALANCE_QUEUE_NAME}-${key}`,
+      removeOnComplete: true,
+      removeOnFail: true,
     });
   }
 }

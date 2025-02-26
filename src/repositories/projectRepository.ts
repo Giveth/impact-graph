@@ -23,6 +23,7 @@ import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { Reaction } from '../entities/reaction';
 import { SocialProfile } from '../entities/socialProfile';
 import { PreviousRoundRank } from '../entities/previousRoundRank';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -196,7 +197,11 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       query.orderBy('project.creationDate', OrderDirection.DESC);
       break;
     case SortingField.RecentlyUpdated:
-      query.orderBy('project.updatedAt', OrderDirection.DESC);
+      query
+        .orderBy('project.updatedAt', OrderDirection.DESC)
+        .andWhere('organization.label != :label', {
+          label: ORGANIZATION_LABELS.ENDAOMENT,
+        });
       break;
     case SortingField.Oldest:
       query.orderBy('project.creationDate', OrderDirection.ASC);

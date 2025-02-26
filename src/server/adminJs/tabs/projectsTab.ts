@@ -264,15 +264,20 @@ export const verifyProjects = async (
 
     const updateParams = { verified: vouchedStatus };
 
-    const projects = await Project.createQueryBuilder('project')
+    // Perform the update
+    await Project.createQueryBuilder('project')
       .update<Project>(Project, updateParams)
       .where('project.id IN (:...ids)')
       .setParameter('ids', projectIds)
-      .returning('*')
-      .updateEntity(true)
       .execute();
 
-    for (const project of projects.raw) {
+    // Fetch the updated projects with adminUser included
+    const projects = await Project.createQueryBuilder('project')
+      .leftJoinAndSelect('project.adminUser', 'adminUser')
+      .where('project.id IN (:...ids)', { ids: projectIds })
+      .getMany();
+
+    for (const project of projects) {
       if (
         projectsBeforeUpdating.find(p => p.id === project.id)?.verified ===
         vouchedStatus
@@ -284,6 +289,7 @@ export const verifyProjects = async (
         // if project.verified have not changed, so we should not execute rest of the codes
         continue;
       }
+
       await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,

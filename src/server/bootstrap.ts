@@ -70,6 +70,7 @@ import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncU
 import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
+import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
 
 Resource.validate = validate;
 
@@ -379,6 +380,10 @@ export async function bootstrap() {
     // if (process.env.SITEMAP_CRON_SECRET !== '') {
     //   runGenerateSitemapOnFrontend();
     // }
+
+    if (process.env.GENERATE_SITEMAP_CRONJOB_EXPRESSION !== '') {
+      runGenerateSitemapOnFrontend();
+    }
 
     // If we need to deactivate the process use the env var NO MORE
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {

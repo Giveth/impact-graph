@@ -43,6 +43,10 @@ const sendBroadcastNotificationsQueue = new Bull<BroadcastNotificationsQueue>(
   'send-broadcast-notifications',
   {
     redis: redisConfig,
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: true,
+    },
   },
 );
 
@@ -1286,6 +1290,10 @@ const sendProjectRelatedNotificationsQueue =
     'send-project-related-notifications',
     {
       redis: redisConfig,
+      defaultJobOptions: {
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
     },
   );
 let isProcessingQueueEventsEnabled = false;
