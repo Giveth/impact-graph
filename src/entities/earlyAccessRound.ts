@@ -24,6 +24,10 @@ export class EarlyAccessRound extends BaseEntity {
   @Index({ unique: true })
   roundNumber: number;
 
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  seasonNumber?: number;
+
   @Field(() => Date)
   @Column()
   startDate: Date;

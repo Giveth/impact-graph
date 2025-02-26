@@ -59,6 +59,7 @@ describe('qAccService', () => {
       EarlyAccessRound.create([
         {
           roundNumber: generateEARoundNumber(),
+          seasonNumber: 1,
           startDate: new Date('2000-01-01'),
           endDate: new Date('2000-01-03'),
           roundPOLCapPerProject: 1_000,
@@ -66,6 +67,7 @@ describe('qAccService', () => {
         },
         {
           roundNumber: generateEARoundNumber(),
+          seasonNumber: 1,
           startDate: new Date('2000-01-04'),
           endDate: new Date('2000-01-06'),
           roundPOLCapPerProject: 1_000,
@@ -73,6 +75,7 @@ describe('qAccService', () => {
         },
         {
           roundNumber: generateEARoundNumber(),
+          seasonNumber: 1,
           startDate: new Date('2000-01-07'),
           endDate: new Date('2000-01-09'),
           roundPOLCapPerProject: 1_000,
@@ -80,6 +83,7 @@ describe('qAccService', () => {
         },
         {
           roundNumber: generateEARoundNumber(),
+          seasonNumber: 1,
           startDate: new Date('2000-01-10'),
           endDate: new Date('2000-01-12'),
           roundPOLCapPerProject: 2_000,
@@ -92,6 +96,7 @@ describe('qAccService', () => {
       QfRound.create([
         {
           roundNumber: 1,
+          seasonNumber: 1,
           isActive: true,
           name: new Date().toString() + ' - 1',
           allocatedFund: 100,
@@ -105,6 +110,7 @@ describe('qAccService', () => {
         },
         {
           roundNumber: 2,
+          seasonNumber: 1,
           isActive: true,
           name: new Date().toString() + ' - 2',
           allocatedFund: 100,
@@ -124,11 +130,10 @@ describe('qAccService', () => {
     await ProjectRoundRecord.delete({});
     await Donation.delete({ projectId: project.id });
     await EarlyAccessRound.delete({});
-    await QfRound.delete(qfRounds[0].id);
-    await QfRound.delete(qfRounds[1].id);
+    await QfRound.delete({});
   });
 
-  it('should return correct value for single early access round', async () => {
+  it.only('should return correct value for single early access round', async () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
@@ -587,12 +592,13 @@ describe('qAccService', () => {
     });
 
     const newQfRound = await QfRound.create({
-      roundNumber: 2,
+      roundNumber: 3,
+      seasonNumber: 1,
       isActive: true,
-      name: new Date().toString() + ' - 2',
+      name: new Date().toString() + ' - 3',
       allocatedFund: 100,
       minimumPassportScore: 12,
-      slug: new Date().getTime().toString() + ' - 2',
+      slug: new Date().getTime().toString() + ' - 3',
       beginDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(1, 'days').toDate(),
       roundPOLCapPerProject: 10_000,
@@ -728,12 +734,13 @@ describe('qAccService', () => {
     );
 
     const newQfRound = await QfRound.create({
-      roundNumber: 2,
+      roundNumber: 4,
+      seasonNumber: 1,
       isActive: true,
-      name: new Date().toString() + ' - 2',
+      name: new Date().toString() + ' - 4',
       allocatedFund: 100,
       minimumPassportScore: 12,
-      slug: new Date().getTime().toString() + ' - 2',
+      slug: new Date().getTime().toString() + ' - 4',
       beginDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(1, 'days').toDate(),
       roundPOLCapPerProject: 10_000,

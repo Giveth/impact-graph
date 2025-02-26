@@ -6,7 +6,7 @@ export class AddQfRoundIdToProjectUserRecord1740426502676
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Drop existing index
     await queryRunner.query(
-      `DROP INDEX "IDX_project_user_record_project_user"`,
+      `DROP INDEX IF EXISTS "IDX_project_user_record_project_user"`,
     );
 
     // Add qfRoundId column
@@ -28,7 +28,7 @@ export class AddQfRoundIdToProjectUserRecord1740426502676
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop new index
     await queryRunner.query(
-      `DROP INDEX "IDX_project_user_record_project_user_round"`,
+      `DROP INDEX IF EXISTS "IDX_project_user_record_project_user_round"`,
     );
 
     // Drop foreign key constraint
