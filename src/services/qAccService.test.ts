@@ -133,7 +133,7 @@ describe('qAccService', () => {
     await QfRound.delete({});
   });
 
-  it.only('should return correct value for single early access round', async () => {
+  it('should return correct value for single early access round', async () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
