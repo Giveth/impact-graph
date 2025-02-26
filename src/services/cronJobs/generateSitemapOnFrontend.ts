@@ -14,9 +14,11 @@ import { SitemapUrl } from '../../entities/sitemapUrl';
 import { pinFile, getPinata } from '../../middleware/pinataUtils';
 import { AppDataSource } from '../../orm';
 
-const TEMP_PROJECT_FILE_NAME = 'sitemap-projects.xml';
-const TEMP_USERS_FILE_PATH = 'sitemap-users.xml';
-const TEMP_QFRONDS_FILE_PATH = 'sitemap-qfronds.xml';
+const timestamp = Date.now();
+
+const TEMP_PROJECT_FILE_NAME = `sitemap-projects-${timestamp}.xml`;
+const TEMP_USERS_FILE_PATH = `sitemap-users-${timestamp}.xml`;
+const TEMP_QFRONDS_FILE_PATH = `sitemap-qfronds-${timestamp}.xml`;
 
 // Every Sunday at 00:00
 const cronJobTime =
@@ -39,6 +41,9 @@ export const runGenerateSitemapOnFrontend = () => {
         );
         return;
       }
+
+      // Cleanup old pins
+      await cleanupOldPins();
 
       // Create and save projects sitemap
       const projects = await fetchProjects();
@@ -163,6 +168,7 @@ function generateProjectsSiteMap(
 
   return `<?xml version="1.0" encoding="UTF-8"?>
   <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+    <timestamp>${timestamp}</timestamp>
     ${projects
       .map(({ slug, title = '', descriptionSummary = '' }) => {
         return `
@@ -209,6 +215,7 @@ function generateUsersSiteMap(users: User[]) {
 
   return `<?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+      <timestamp>${timestamp}</timestamp>
       ${users
         .filter(({ walletAddress }) => walletAddress !== null)
         .map(({ name = '', walletAddress = '' }) => {
@@ -233,6 +240,7 @@ function generateQFRoundsSiteMap(rounds: QfRound[]) {
 
   return `<?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+      <timestamp>${timestamp}</timestamp>
       ${rounds
         .map(
           ({
@@ -283,7 +291,7 @@ async function uploadSitemapToPinata(fileName: string) {
 
     const newCID = response.IpfsHash;
 
-    await cleanupOldPins(fileName);
+    // await cleanupOldPins(fileName, newCID);
 
     const sitemapURL = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${newCID}`;
 
@@ -297,19 +305,17 @@ async function uploadSitemapToPinata(fileName: string) {
 /**
  * Remove old versions of `sitemap.xml` from Pinata
  */
-async function cleanupOldPins(fileName: string) {
+async function cleanupOldPins() {
   try {
-    const pinata = getPinata();
-    const pinnedFiles = await pinata.pinList({
-      status: 'pinned',
-      metadata: {
-        name: fileName,
-        keyvalues: {},
-      },
-    });
+    const sitemapRepo = AppDataSource.getDataSource().getRepository(SitemapUrl);
 
-    for (const file of pinnedFiles.rows) {
-      await pinata.unpin(file.ipfs_pin_hash);
+    const lastEntry = await sitemapRepo
+      .createQueryBuilder('sitemap_url')
+      .orderBy('sitemap_url.created_at', 'DESC') // Order by latest
+      .getOne();
+
+    if (lastEntry) {
+      await deleteOldPinataFiles(lastEntry.sitemap_urls);
     }
 
     logger.debug('Old sitemap versions cleaned up.');
