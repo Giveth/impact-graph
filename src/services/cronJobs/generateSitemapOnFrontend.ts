@@ -186,8 +186,10 @@ function generateProjectsSiteMap(
 const getFrontEndFullUrl = () => {
   let URL = process.env.FRONTEND_URL || 'https://giveth.io';
 
-  if (!URL.startsWith('https://')) {
-    URL = URL.replace(/^http:/, 'https:');
+  if (!URL.startsWith('http://') && !URL.startsWith('https://')) {
+    URL = `https://${URL}`;
+  } else if (URL.startsWith('http://')) {
+    URL = URL.replace(/^http:\/\//, 'https://');
   }
 
   return URL;
@@ -316,6 +318,14 @@ async function cleanupOldPins() {
 
     if (lastEntry) {
       await deleteOldPinataFiles(lastEntry.sitemap_urls);
+
+      // Delete all older entries, except the latest one
+      await sitemapRepo
+        .createQueryBuilder()
+        .delete()
+        .from(SitemapUrl)
+        .where('id != :latestId', { latestId: lastEntry.id })
+        .execute();
     }
 
     logger.debug('Old sitemap versions cleaned up.');
@@ -341,7 +351,7 @@ export const updateSitemapInDB = async (
     };
     newEntry.created_at = new Date();
 
-    await sitemapRepo.save(newEntry);
+    await sitemapRepo.insert(newEntry);
   } catch (error) {
     logger.error('Error updating sitemap in DB:', error.message);
   }
