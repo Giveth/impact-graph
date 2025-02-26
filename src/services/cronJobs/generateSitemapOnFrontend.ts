@@ -341,7 +341,7 @@ export const updateSitemapInDB = async (
     };
     newEntry.created_at = new Date();
 
-    await sitemapRepo.save(newEntry);
+    await sitemapRepo.insert(newEntry);
   } catch (error) {
     logger.error('Error updating sitemap in DB:', error.message);
   }
