@@ -4900,7 +4900,8 @@ function qAccLimitTestCases() {
   it('should create donation in an active early access round', async () => {
     earlyAccessRound1 = await EarlyAccessRound.create({
       roundNumber: generateEARoundNumber(),
-      startDate: new Date(),
+      seasonNumber: 1,
+      startDate: moment().subtract(1, 'days').toDate(),
       endDate: moment().add(3, 'days').toDate(),
       roundPOLCapPerProject: 1000000,
       roundPOLCapPerUserPerProject: 50000,
