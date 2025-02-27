@@ -551,7 +551,7 @@ function findQfRoundCumulativeCapsTestCases() {
     expect(roundFromDB?.cumulativePOLCapPerUserPerProject).to.equal(50000);
   });
 
-  it.only('should calculate cumulative cap across multiple rounds', async () => {
+  it('should calculate cumulative cap across multiple rounds', async () => {
     // Save multiple rounds
     await QfRound.create({
       roundNumber: 1,
