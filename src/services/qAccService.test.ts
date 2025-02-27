@@ -485,10 +485,13 @@ describe('qAccService', () => {
 
   it('should return correct value for qf round, when user has donated in previous qf round', async () => {
     // Add donation in previous round
-    await insertDonation({
-      qfRoundId: qfRounds[0].id,
-      amount: 2000,
-    });
+    await insertDonation(
+      {
+        qfRoundId: qfRounds[0].id,
+        amount: 2000,
+      },
+      user.id,
+    );
 
     // Check cap for current round
     const result = await qAccService.getQAccDonationCap({
@@ -497,8 +500,10 @@ describe('qAccService', () => {
       donateTime: moment(qfRounds[1].beginDate).add(1, 'days').toDate(),
     });
 
+    await qfRounds[1].reload();
+
     // User cap should be including previous round donations
-    assert.equal(result, qfRounds[1].roundPOLCapPerUserPerProject! - 2000);
+    assert.equal(result, qfRounds[1].cumulativePOLCapPerUserPerProject! - 2000);
   });
 
   it('should track project total caps across rounds', async () => {
@@ -548,15 +553,18 @@ describe('qAccService', () => {
       donateTime: moment(newQfRound.beginDate).add(1, 'days').toDate(),
     });
 
+    await newQfRound.reload();
+
     // Should only allow up to the remaining cap (considering previous round donations)
     assert.equal(
       result,
       Math.min(
-        newQfRound.roundPOLCapPerUserPerProject!,
-        newQfRound.roundPOLCapPerProject! - 5_000,
+        newQfRound.cumulativePOLCapPerUserPerProject!,
+        newQfRound.cumulativePOLCapPerProject! - 5_000,
       ),
     );
 
+    await ProjectRoundRecord.delete({});
     await QfRound.delete(newQfRound.id);
   });
 
@@ -645,6 +653,7 @@ describe('qAccService', () => {
       ),
     );
 
+    await ProjectRoundRecord.delete({});
     await QfRound.delete(newQfRound.id);
   });
 
@@ -700,6 +709,7 @@ describe('qAccService', () => {
       Math.min(newQfRound.roundPOLCapPerUserPerProject!, 2_000),
     );
 
+    await ProjectRoundRecord.delete({});
     await QfRound.delete(newQfRound.id);
   });
 
@@ -818,6 +828,7 @@ describe('qAccService', () => {
       Math.min(newQfRound.roundPOLCapPerUserPerProject!, 3_000),
     );
 
+    await ProjectRoundRecord.delete({});
     await QfRound.delete(newQfRound.id);
   });
 });

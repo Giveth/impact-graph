@@ -218,7 +218,7 @@ function projectUserDonationCapTestCases() {
 
   it('should return correct value for single early access round', async () => {
     sinon.useFakeTimers({
-      now: earlyAccessRounds[0].startDate.getTime(),
+      now: moment(earlyAccessRounds[0].startDate).add(1, 'days').toDate(),
     });
 
     const result = await axios.post(
