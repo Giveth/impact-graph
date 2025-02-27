@@ -162,24 +162,31 @@ export class QfRound extends BaseEntity {
   async calculateCumulativeCaps() {
     // Get all QF rounds in the same season ordered by roundNumber
     if (this.seasonNumber) {
-      const roundsInSeason = await QfRound.find({
-        where: { seasonNumber: this.seasonNumber },
-        order: { roundNumber: 'ASC' },
-      });
+      const { cumulativePOLCapPerProject, cumulativePOLCapPerUserPerProject } =
+        await QfRound.createQueryBuilder('qfRound')
+          .select(
+            'sum(qfRound.roundPOLCapPerProject)',
+            'cumulativePOLCapPerProject',
+          )
+          .addSelect(
+            'sum(qfRound.roundPOLCapPerUserPerProject)',
+            'cumulativePOLCapPerUserPerProject',
+          )
+          .where('qfRound.roundNumber <= :roundNumber', {
+            roundNumber: this.roundNumber,
+          })
+          .andWhere('qfRound.seasonNumber = :seasonNumber', {
+            seasonNumber: this.seasonNumber,
+          })
+          .cache('cumulativeCapQfRound-' + this.roundNumber, 300000)
+          .getRawOne();
 
-      // Calculate cumulative caps by summing up all previous rounds in the season
-      let cumulativeProjectCap = 0;
-      let cumulativeUserCap = 0;
-
-      for (const round of roundsInSeason) {
-        if (round.roundNumber! <= this.roundNumber!) {
-          cumulativeProjectCap += round.roundPOLCapPerProject || 0;
-          cumulativeUserCap += round.roundPOLCapPerUserPerProject || 0;
-        }
-      }
-
-      this.cumulativePOLCapPerProject = cumulativeProjectCap;
-      this.cumulativePOLCapPerUserPerProject = cumulativeUserCap;
+      this.cumulativePOLCapPerProject = parseFloat(
+        cumulativePOLCapPerProject || '0',
+      );
+      this.cumulativePOLCapPerUserPerProject = parseFloat(
+        cumulativePOLCapPerUserPerProject || '0',
+      );
     } else {
       // If no season number, just use the round's own caps
       this.cumulativePOLCapPerProject = this.roundPOLCapPerProject || 0;
