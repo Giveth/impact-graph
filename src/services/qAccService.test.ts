@@ -102,8 +102,8 @@ describe('qAccService', () => {
           allocatedFund: 100,
           minimumPassportScore: 12,
           slug: new Date().getTime().toString() + ' - 1',
-          beginDate: moment().subtract(1, 'days').toDate(),
-          endDate: moment().add(1, 'days').toDate(),
+          beginDate: moment().subtract(10, 'days').toDate(),
+          endDate: moment().subtract(8, 'days').toDate(),
           roundPOLCapPerProject: 10_000,
           roundPOLCloseCapPerProject: 10_500,
           roundPOLCapPerUserPerProject: 2_500,
@@ -116,8 +116,8 @@ describe('qAccService', () => {
           allocatedFund: 100,
           minimumPassportScore: 12,
           slug: new Date().getTime().toString() + ' - 2',
-          beginDate: moment().subtract(1, 'days').toDate(),
-          endDate: moment().add(1, 'days').toDate(),
+          beginDate: moment().subtract(8, 'days').toDate(),
+          endDate: moment().subtract(6, 'days').toDate(),
           roundPOLCapPerProject: 10_000,
           roundPOLCloseCapPerProject: 10_500,
           roundPOLCapPerUserPerProject: 2_500,
@@ -137,7 +137,9 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: earlyAccessRounds[0].startDate,
+      donateTime: moment(earlyAccessRounds[0].startDate)
+        .add(1, 'days')
+        .toDate(),
     });
 
     const firstEarlyAccessRound = earlyAccessRounds[0] as EarlyAccessRound;
@@ -152,7 +154,9 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: earlyAccessRounds[0].startDate,
+      donateTime: moment(earlyAccessRounds[0].startDate)
+        .add(1, 'days')
+        .toDate(),
     });
 
     const firstEarlyAccessRound = earlyAccessRounds[0] as EarlyAccessRound;
@@ -175,7 +179,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: lastRound.startDate,
+      donateTime: moment(lastRound.startDate).add(1, 'days').toDate(),
     });
 
     let donationSum = 0;
@@ -205,7 +209,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: lastRound.startDate,
+      donateTime: moment(lastRound.startDate).add(1, 'days').toDate(),
     });
 
     assert.equal(100, result);
@@ -215,12 +219,12 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     assert.equal(result, qfRounds[0].roundPOLCapPerUserPerProject!);
   });
-  it('should return correct value for qf round, when user has donated in ea', async () => {
+  it('should return correct value for qf round, when user has donated in ea round', async () => {
     await insertDonation({
       earlyAccessRoundId: earlyAccessRounds[0].id,
       amount: 5,
@@ -228,7 +232,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     assert.equal(result, qfRounds[0].roundPOLCapPerUserPerProject!);
@@ -243,7 +247,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     assert.equal(result, qfRounds[0].roundPOLCapPerUserPerProject! - 5);
@@ -261,7 +265,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: newUser.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     assert.equal(250, result);
@@ -291,7 +295,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: newUser.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     assert.equal(150, result);
@@ -350,26 +354,27 @@ describe('qAccService', () => {
     const eaDonor1Result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: eaDonor1.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
     assert.equal(250 - eaDonor1QfDonationAmount, eaDonor1Result);
     const eaDonor2Result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: eaDonor2.id,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
     assert.equal(250, eaDonor2Result);
 
     const newUser1Result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: newUser1.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
     assert.equal(0, newUser1Result);
 
     const newUser2Result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: newUser2.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
     assert.equal(250, newUser2Result);
   });
@@ -424,7 +429,7 @@ describe('qAccService', () => {
     const userCap = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: qfDonor.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     assert.equal(250, userCap);
@@ -447,7 +452,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: qfDonor.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     assert.equal(0, result);
@@ -471,7 +476,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: qfDonor.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     assert.equal(remainingCap, result);
@@ -488,11 +493,11 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[1].beginDate).add(1, 'days').toDate(),
     });
 
-    // User cap should be full in new round regardless of previous round donations
-    assert.equal(result, qfRounds[0].roundPOLCapPerUserPerProject!);
+    // User cap should be including previous round donations
+    assert.equal(result, qfRounds[1].roundPOLCapPerUserPerProject! - 2000);
   });
 
   it('should track project total caps across rounds', async () => {
@@ -506,7 +511,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     // Should return 0 since project has reached total cap across rounds
@@ -520,19 +525,34 @@ describe('qAccService', () => {
       amount: 5_000, // Half of the cap
     });
 
+    const newQfRound = await QfRound.create({
+      roundNumber: 4,
+      seasonNumber: 2,
+      isActive: true,
+      name: new Date().toString() + ' - 4',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 4',
+      beginDate: moment().subtract(1, 'days').toDate(),
+      endDate: moment().add(1, 'days').toDate(),
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 2_500,
+    }).save();
+
     // Check cap for current round
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(newQfRound.beginDate).add(1, 'days').toDate(),
     });
 
     // Should only allow up to the remaining cap (considering previous round donations)
     assert.equal(
       result,
       Math.min(
-        qfRounds[0].roundPOLCapPerUserPerProject!,
-        qfRounds[0].roundPOLCapPerProject! - 5_000,
+        newQfRound.roundPOLCapPerUserPerProject!,
+        newQfRound.roundPOLCapPerProject! - 5_000,
       ),
     );
   });
@@ -548,7 +568,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     // Should return 0 since project has reached total cap
@@ -566,7 +586,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     // Should only allow up to the remaining cap (considering EA round donations)
@@ -593,7 +613,7 @@ describe('qAccService', () => {
 
     const newQfRound = await QfRound.create({
       roundNumber: 3,
-      seasonNumber: 1,
+      seasonNumber: 2,
       isActive: true,
       name: new Date().toString() + ' - 3',
       allocatedFund: 100,
@@ -610,7 +630,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: newQfRound.beginDate,
+      donateTime: moment(newQfRound.beginDate).add(1, 'days').toDate(),
     });
 
     // Should only allow up to the remaining cap (considering all previous round donations)
@@ -633,31 +653,46 @@ describe('qAccService', () => {
     // Create a second user
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
+    const newQfRound = await QfRound.create({
+      roundNumber: 4,
+      seasonNumber: 2,
+      isActive: true,
+      name: new Date().toString() + ' - 4',
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      slug: new Date().getTime().toString() + ' - 4',
+      beginDate: moment().subtract(1, 'days').toDate(),
+      endDate: moment().add(1, 'days').toDate(),
+      roundPOLCapPerProject: 10_000,
+      roundPOLCloseCapPerProject: 10_500,
+      roundPOLCapPerUserPerProject: 2_500,
+    }).save();
+
     // Check caps for both users in current round
     const result1 = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(newQfRound.beginDate).add(1, 'days').toDate(),
     });
 
     const result2 = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user2.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(newQfRound.beginDate).add(1, 'days').toDate(),
     });
 
     // First user should get their full user cap for the new round
     // But limited by remaining project cap (10000 - 8000 = 2000)
     assert.equal(
       result1,
-      Math.min(qfRounds[0].roundPOLCapPerUserPerProject!, 2_000),
+      Math.min(newQfRound.roundPOLCapPerUserPerProject!, 2_000),
     );
 
     // Second user should also get their full user cap
     // But limited by the same remaining project cap
     assert.equal(
       result2,
-      Math.min(qfRounds[0].roundPOLCapPerUserPerProject!, 2_000),
+      Math.min(newQfRound.roundPOLCapPerUserPerProject!, 2_000),
     );
   });
 
@@ -672,7 +707,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     // Should return 0 since project has reached close cap across rounds
@@ -700,7 +735,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: qfRounds[0].beginDate,
+      donateTime: moment(qfRounds[0].beginDate).add(1, 'days').toDate(),
     });
 
     // Should get full user cap but limited by remaining project cap
@@ -735,7 +770,7 @@ describe('qAccService', () => {
 
     const newQfRound = await QfRound.create({
       roundNumber: 4,
-      seasonNumber: 1,
+      seasonNumber: 2,
       isActive: true,
       name: new Date().toString() + ' - 4',
       allocatedFund: 100,
@@ -752,7 +787,7 @@ describe('qAccService', () => {
     const result = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user.id,
-      donateTime: newQfRound.beginDate,
+      donateTime: moment(newQfRound.beginDate).add(1, 'days').toDate(),
     });
 
     // Should get full user cap but limited by remaining project cap
@@ -767,7 +802,7 @@ describe('qAccService', () => {
     const result2 = await qAccService.getQAccDonationCap({
       projectId: project.id,
       userId: user2.id,
-      donateTime: newQfRound.beginDate,
+      donateTime: moment(newQfRound.beginDate).add(1, 'days').toDate(),
     });
 
     // User2 should also get full user cap but limited by same remaining project cap
