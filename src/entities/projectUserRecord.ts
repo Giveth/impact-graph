@@ -13,7 +13,7 @@ import { User } from './user';
 
 @Entity()
 @ObjectType()
-@Index(['projectId', 'userId'], {
+@Index(['projectId', 'userId', 'seasonNumber'], {
   unique: true,
 })
 export class ProjectUserRecord extends BaseEntity {
@@ -35,7 +35,11 @@ export class ProjectUserRecord extends BaseEntity {
   @Column({ type: 'float', default: 0 })
   qfTotalDonationAmount: number;
 
-  // @Field(_type => Project)
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  seasonNumber?: number;
+
+  @Field(_type => Project)
   @ManyToOne(_type => Project, { eager: false })
   project: Project;
 

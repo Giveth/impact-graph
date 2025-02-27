@@ -940,6 +940,9 @@ export class DonationResolver {
         updateOrCreateProjectUserRecord({
           projectId: donation.projectId,
           userId: donation.userId,
+          seasonNumber:
+            donation.qfRound?.seasonNumber ||
+            donation.earlyAccessRound?.seasonNumber,
         }),
         markDraftDonationStatusMatched({
           matchedDonationId: donation.id,

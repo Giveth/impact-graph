@@ -555,6 +555,7 @@ function findQfRoundCumulativeCapsTestCases() {
     // Save multiple rounds
     await QfRound.create({
       roundNumber: 1,
+      seasonNumber: 1,
       name: 'Test Round 1',
       allocatedFund: 1000000,
       minimumPassportScore: 8,
@@ -567,6 +568,7 @@ function findQfRoundCumulativeCapsTestCases() {
 
     await QfRound.create({
       roundNumber: 2,
+      seasonNumber: 1,
       name: 'Test Round 2',
       allocatedFund: 2000000,
       minimumPassportScore: 8,
@@ -579,6 +581,7 @@ function findQfRoundCumulativeCapsTestCases() {
 
     const latestRound = await QfRound.create({
       roundNumber: 3,
+      seasonNumber: 1,
       name: 'Test Round 3',
       allocatedFund: 1500000,
       minimumPassportScore: 8,
@@ -591,16 +594,20 @@ function findQfRoundCumulativeCapsTestCases() {
 
     const roundFromDB = await findQfRoundById(latestRound.id);
 
-    // The cumulative cap should be the sum of caps from all previous rounds
-    // Only first round matters
-    expect(roundFromDB?.cumulativePOLCapPerProject).to.equal(0);
-    expect(roundFromDB?.cumulativePOLCapPerUserPerProject).to.equal(0);
+    // cumulative cap should be the sum of caps from all previous rounds
+    expect(roundFromDB?.cumulativePOLCapPerProject).to.equal(
+      1000000 + 2000000 + 1500000,
+    );
+    expect(roundFromDB?.cumulativePOLCapPerUserPerProject).to.equal(
+      50000 + 100000 + 75000,
+    );
   });
 
-  it('should only return cumulutive capsfor the first round', async () => {
+  it('should only return cumulutive caps for the first round', async () => {
     // Save multiple rounds where one round is missing caps
     const firstRound = await QfRound.create({
       roundNumber: 1,
+      seasonNumber: 1,
       name: 'Test Round 1',
       allocatedFund: 1000000,
       minimumPassportScore: 8,
@@ -613,6 +620,7 @@ function findQfRoundCumulativeCapsTestCases() {
 
     await QfRound.create({
       roundNumber: 2,
+      seasonNumber: 1,
       name: 'Test Round 2',
       allocatedFund: 2000000,
       minimumPassportScore: 8,
@@ -622,8 +630,9 @@ function findQfRoundCumulativeCapsTestCases() {
       // missing caps
     }).save();
 
-    await QfRound.create({
+    const latestRound = await QfRound.create({
       roundNumber: 3,
+      seasonNumber: 1,
       name: 'Test Round 3',
       allocatedFund: 1500000,
       minimumPassportScore: 8,
@@ -634,10 +643,20 @@ function findQfRoundCumulativeCapsTestCases() {
       roundPOLCapPerUserPerProject: 75000,
     }).save();
 
-    const roundFromDB = await findQfRoundById(firstRound.id);
+    const firstRoundFromDB = await findQfRoundById(firstRound.id);
 
-    // The cumulative cap should skip round 2 and only sum rounds 1 and 3
-    expect(roundFromDB?.cumulativePOLCapPerProject).to.equal(1000000); // 1000000 + 1500000
-    expect(roundFromDB?.cumulativePOLCapPerUserPerProject).to.equal(50000); // 50000 + 75000
+    // the cumulative cap should be the first round's cap, because we call the first round's cap
+    expect(firstRoundFromDB?.cumulativePOLCapPerProject).to.equal(1000000);
+    expect(firstRoundFromDB?.cumulativePOLCapPerUserPerProject).to.equal(50000);
+
+    const latestRoundFromDB = await findQfRoundById(latestRound.id);
+
+    // the cumulative cap should be the sum of all rounds' caps
+    expect(latestRoundFromDB?.cumulativePOLCapPerProject).to.equal(
+      1000000 + 1500000,
+    );
+    expect(latestRoundFromDB?.cumulativePOLCapPerUserPerProject).to.equal(
+      50000 + 75000,
+    );
   });
 }

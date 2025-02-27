@@ -158,6 +158,7 @@ function projectUserDonationCapTestCases() {
     earlyAccessRounds = await EarlyAccessRound.save([
       EarlyAccessRound.create({
         roundNumber: generateEARoundNumber(),
+        seasonNumber: 1,
         startDate: new Date('2000-01-01'),
         endDate: new Date('2000-01-03'),
         roundPOLCapPerProject: 10000,
@@ -165,6 +166,7 @@ function projectUserDonationCapTestCases() {
       }),
       EarlyAccessRound.create({
         roundNumber: generateEARoundNumber(),
+        seasonNumber: 1,
         startDate: new Date('2000-01-04'),
         endDate: new Date('2000-01-06'),
         roundPOLCapPerProject: 10000,
@@ -172,6 +174,7 @@ function projectUserDonationCapTestCases() {
       }),
       EarlyAccessRound.create({
         roundNumber: generateEARoundNumber(),
+        seasonNumber: 1,
         startDate: new Date('2000-01-07'),
         endDate: new Date('2000-01-09'),
         roundPOLCapPerProject: 10000,
@@ -179,6 +182,7 @@ function projectUserDonationCapTestCases() {
       }),
       EarlyAccessRound.create({
         roundNumber: generateEARoundNumber(),
+        seasonNumber: 1,
         startDate: new Date('2000-01-10'),
         endDate: new Date('2000-01-12'),
         roundPOLCapPerProject: 20000,
@@ -188,6 +192,7 @@ function projectUserDonationCapTestCases() {
 
     qfRound1 = await QfRound.create({
       roundNumber: 1,
+      seasonNumber: 1,
       isActive: true,
       name: new Date().toString() + ' - 1',
       allocatedFund: 100,
@@ -213,7 +218,7 @@ function projectUserDonationCapTestCases() {
 
   it('should return correct value for single early access round', async () => {
     sinon.useFakeTimers({
-      now: earlyAccessRounds[0].startDate.getTime(),
+      now: moment(earlyAccessRounds[0].startDate).add(1, 'days').toDate(),
     });
 
     const result = await axios.post(

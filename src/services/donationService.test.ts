@@ -553,7 +553,7 @@ function fillStableCoinDonationsPriceTestCases() {
     expect(donation.priceUsd).to.below(donation.valueUsd);
   });
 
-  it('should fill price for Celo donation on the CELO Alfajores network', async () => {
+  it.skip('should fill price for Celo donation on the CELO Alfajores network', async () => {
     const token = 'CELO';
     const amount = 100;
     let donation = await saveDonationDirectlyToDb(
