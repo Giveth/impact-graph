@@ -35,6 +35,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
   it('should save a new Early Access Round directly to the database', async () => {
     const roundData = {
       roundNumber: generateEARoundNumber(),
+      seasonNumber: 1,
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
       roundPOLCapPerProject: 1000000,
@@ -45,6 +46,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
     expect(savedRound).to.be.an.instanceof(EarlyAccessRound);
     expect(savedRound.roundNumber).to.equal(roundData.roundNumber);
+    expect(savedRound.seasonNumber).to.equal(roundData.seasonNumber);
     expect(savedRound.startDate.toISOString()).to.equal(
       roundData.startDate.toISOString(),
     );
@@ -63,6 +65,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     // Save a couple of rounds first
     await saveEARoundDirectlyToDb({
       roundNumber: generateEARoundNumber(),
+      seasonNumber: 1,
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
       roundPOLCapPerProject: 1000000,
@@ -70,6 +73,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
     });
     await saveEARoundDirectlyToDb({
       roundNumber: generateEARoundNumber(),
+      seasonNumber: 1,
       startDate: new Date('2024-09-06'),
       endDate: new Date('2024-09-10'),
       roundPOLCapPerProject: 2000000,
@@ -88,6 +92,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
   it('should find the active Early Access Round', async () => {
     const activeRoundData = {
       roundNumber: generateEARoundNumber(),
+      seasonNumber: 1,
       startDate: new Date(new Date().setDate(new Date().getDate() - 1)), // yesterday
       endDate: new Date(new Date().setDate(new Date().getDate() + 1)), // tomorrow
       roundPOLCapPerProject: 500000,
@@ -96,6 +101,7 @@ describe('EarlyAccessRound Repository Test Cases', () => {
 
     const inactiveRoundData = {
       roundNumber: generateEARoundNumber(),
+      seasonNumber: 1,
       startDate: new Date(new Date().getDate() + 1),
       endDate: new Date(new Date().getDate() + 2),
       roundPOLCapPerProject: 1000000,
@@ -144,6 +150,7 @@ describe('EarlyAccessRound Cumulative Cap Test Cases', () => {
   it('should return the cap itself as the cumulative cap for the first round', async () => {
     const roundData = {
       roundNumber: 1,
+      seasonNumber: 1,
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
       roundPOLCapPerProject: 1000000,
@@ -168,6 +175,7 @@ describe('EarlyAccessRound Cumulative Cap Test Cases', () => {
     // Save multiple rounds
     await saveEARoundDirectlyToDb({
       roundNumber: 1,
+      seasonNumber: 1,
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
       roundPOLCapPerProject: 1000000,
@@ -175,6 +183,7 @@ describe('EarlyAccessRound Cumulative Cap Test Cases', () => {
     });
     await saveEARoundDirectlyToDb({
       roundNumber: 2,
+      seasonNumber: 1,
       startDate: new Date('2024-09-06'),
       endDate: new Date('2024-09-10'),
       roundPOLCapPerProject: 2000000,
@@ -182,6 +191,7 @@ describe('EarlyAccessRound Cumulative Cap Test Cases', () => {
     });
     const latestRound = await saveEARoundDirectlyToDb({
       roundNumber: 3,
+      seasonNumber: 1,
       startDate: new Date('2024-09-11'),
       endDate: new Date('2024-09-15'),
       roundPOLCapPerProject: 1500000,
@@ -205,6 +215,7 @@ describe('EarlyAccessRound Cumulative Cap Test Cases', () => {
     // Save multiple rounds where one round is missing caps
     await saveEARoundDirectlyToDb({
       roundNumber: 1,
+      seasonNumber: 1,
       startDate: new Date('2024-09-01'),
       endDate: new Date('2024-09-05'),
       roundPOLCapPerProject: 1000000,
@@ -212,12 +223,14 @@ describe('EarlyAccessRound Cumulative Cap Test Cases', () => {
     });
     await saveEARoundDirectlyToDb({
       roundNumber: 2,
+      seasonNumber: 1,
       startDate: new Date('2024-09-06'),
       endDate: new Date('2024-09-10'),
       // missing caps
     });
     const latestRound = await saveEARoundDirectlyToDb({
       roundNumber: 3,
+      seasonNumber: 1,
       startDate: new Date('2024-09-11'),
       endDate: new Date('2024-09-15'),
       roundPOLCapPerProject: 1500000,

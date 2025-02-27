@@ -130,7 +130,8 @@ describe('qAccService', () => {
     await ProjectRoundRecord.delete({});
     await Donation.delete({ projectId: project.id });
     await EarlyAccessRound.delete({});
-    await QfRound.delete({});
+    await QfRound.delete(qfRounds[0].id);
+    await QfRound.delete(qfRounds[1].id);
   });
 
   it('should return correct value for single early access round', async () => {
@@ -555,6 +556,8 @@ describe('qAccService', () => {
         newQfRound.roundPOLCapPerProject! - 5_000,
       ),
     );
+
+    await QfRound.delete(newQfRound.id);
   });
 
   it('should return 0 when project has reached total cap across all rounds', async () => {
@@ -641,6 +644,8 @@ describe('qAccService', () => {
         newQfRound.roundPOLCapPerProject! - 7_000, // 3000 + 4000 from previous rounds
       ),
     );
+
+    await QfRound.delete(newQfRound.id);
   });
 
   it('should reset user caps but maintain project caps across rounds', async () => {
@@ -694,6 +699,8 @@ describe('qAccService', () => {
       result2,
       Math.min(newQfRound.roundPOLCapPerUserPerProject!, 2_000),
     );
+
+    await QfRound.delete(newQfRound.id);
   });
 
   it('should prevent donations when project reaches close cap across rounds', async () => {
@@ -810,5 +817,7 @@ describe('qAccService', () => {
       result2,
       Math.min(newQfRound.roundPOLCapPerUserPerProject!, 3_000),
     );
+
+    await QfRound.delete(newQfRound.id);
   });
 });
