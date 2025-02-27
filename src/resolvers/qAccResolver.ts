@@ -62,8 +62,14 @@ export class QAccResolver {
   async projectUserTotalDonationAmounts(
     @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
     @Arg('userId', _type => Int, { nullable: false }) userId: number,
+    @Arg('seasonNumber', _type => Int, { nullable: true })
+    seasonNumber?: number,
   ) {
-    const record = await getProjectUserRecordAmount({ projectId, userId });
+    const record = await getProjectUserRecordAmount({
+      projectId,
+      userId,
+      seasonNumber,
+    });
     return {
       totalDonationAmount: record.totalDonationAmount,
       eaTotalDonationAmount: record.eaTotalDonationAmount,
