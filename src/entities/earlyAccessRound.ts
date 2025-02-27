@@ -82,6 +82,9 @@ export class EarlyAccessRound extends BaseEntity {
         .where('eaRound.roundNumber <= :roundNumber', {
           roundNumber: this.roundNumber,
         })
+        .andWhere('eaRound.seasonNumber = :seasonNumber', {
+          seasonNumber: this.seasonNumber,
+        })
         .cache('cumulativeCapEarlyAccessRound-' + this.roundNumber, 300000)
         .getRawOne();
 

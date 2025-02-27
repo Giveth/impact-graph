@@ -160,9 +160,31 @@ export class QfRound extends BaseEntity {
 
   @AfterLoad()
   async calculateCumulativeCaps() {
-    // Each round has its own caps, independent of seasons
-    this.cumulativePOLCapPerProject = this.roundPOLCapPerProject || 0;
-    this.cumulativePOLCapPerUserPerProject =
-      this.roundPOLCapPerUserPerProject || 0;
+    // Get all QF rounds in the same season ordered by roundNumber
+    if (this.seasonNumber) {
+      const roundsInSeason = await QfRound.find({
+        where: { seasonNumber: this.seasonNumber },
+        order: { roundNumber: 'ASC' },
+      });
+
+      // Calculate cumulative caps by summing up all previous rounds in the season
+      let cumulativeProjectCap = 0;
+      let cumulativeUserCap = 0;
+
+      for (const round of roundsInSeason) {
+        if (round.roundNumber! <= this.roundNumber!) {
+          cumulativeProjectCap += round.roundPOLCapPerProject || 0;
+          cumulativeUserCap += round.roundPOLCapPerUserPerProject || 0;
+        }
+      }
+
+      this.cumulativePOLCapPerProject = cumulativeProjectCap;
+      this.cumulativePOLCapPerUserPerProject = cumulativeUserCap;
+    } else {
+      // If no season number, just use the round's own caps
+      this.cumulativePOLCapPerProject = this.roundPOLCapPerProject || 0;
+      this.cumulativePOLCapPerUserPerProject =
+        this.roundPOLCapPerUserPerProject || 0;
+    }
   }
 }

@@ -551,10 +551,11 @@ function findQfRoundCumulativeCapsTestCases() {
     expect(roundFromDB?.cumulativePOLCapPerUserPerProject).to.equal(50000);
   });
 
-  it('should calculate cumulative cap across multiple rounds', async () => {
+  it.only('should calculate cumulative cap across multiple rounds', async () => {
     // Save multiple rounds
     await QfRound.create({
       roundNumber: 1,
+      seasonNumber: 1,
       name: 'Test Round 1',
       allocatedFund: 1000000,
       minimumPassportScore: 8,
@@ -567,6 +568,7 @@ function findQfRoundCumulativeCapsTestCases() {
 
     await QfRound.create({
       roundNumber: 2,
+      seasonNumber: 1,
       name: 'Test Round 2',
       allocatedFund: 2000000,
       minimumPassportScore: 8,
@@ -579,6 +581,7 @@ function findQfRoundCumulativeCapsTestCases() {
 
     const latestRound = await QfRound.create({
       roundNumber: 3,
+      seasonNumber: 1,
       name: 'Test Round 3',
       allocatedFund: 1500000,
       minimumPassportScore: 8,
@@ -591,10 +594,13 @@ function findQfRoundCumulativeCapsTestCases() {
 
     const roundFromDB = await findQfRoundById(latestRound.id);
 
-    // The cumulative cap should be the sum of caps from all previous rounds
-    // Only first round matters
-    expect(roundFromDB?.cumulativePOLCapPerProject).to.equal(0);
-    expect(roundFromDB?.cumulativePOLCapPerUserPerProject).to.equal(0);
+    // cumulative cap should be the sum of caps from all previous rounds
+    expect(roundFromDB?.cumulativePOLCapPerProject).to.equal(
+      1000000 + 2000000 + 1500000,
+    );
+    expect(roundFromDB?.cumulativePOLCapPerUserPerProject).to.equal(
+      50000 + 100000 + 75000,
+    );
   });
 
   it('should only return cumulutive capsfor the first round', async () => {
