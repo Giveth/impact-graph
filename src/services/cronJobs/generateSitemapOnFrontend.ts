@@ -106,6 +106,7 @@ const fetchProjects = async () => {
       .select(['project.title', 'project.slug', 'project.descriptionSummary'])
       .where('project.slug IS NOT NULL')
       .where('project.statusId= :statusId', { statusId: ProjStatus.active })
+      .andWhere('project.verified = :verified', { verified: true })
       .getMany();
 
     return projects;
