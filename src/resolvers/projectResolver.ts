@@ -390,8 +390,9 @@ export class ProjectResolver {
         { isActive: true },
       )
       .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .leftJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields) // aliased selection
+      .addSelect(publicSelectionFields)
       .where('project.id != :id', { id: currentProject?.id })
       .andWhere(
         `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
