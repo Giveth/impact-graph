@@ -105,7 +105,8 @@ const fetchProjects = async () => {
     const projects = await Project.createQueryBuilder('project')
       .select(['project.title', 'project.slug', 'project.descriptionSummary'])
       .where('project.slug IS NOT NULL')
-      .where('project.statusId= :statusId', { statusId: ProjStatus.active })
+      .andWhere('project.statusId= :statusId', { statusId: ProjStatus.active })
+      .andWhere('project.verified = :verified', { verified: true })
       .getMany();
 
     return projects;
