@@ -36,6 +36,7 @@ import { EarlyAccessRound } from './earlyAccessRound';
 import { ProjectRoundRecord } from './projectRoundRecord';
 import { ProjectUserRecord } from './projectUserRecord';
 import { AnkrState } from './ankrState';
+import { SwapTransaction } from './swapTransaction';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -85,5 +86,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectUserRecord,
 
     AnkrState,
+    SwapTransaction,
   ];
 };
