@@ -1,4 +1,4 @@
-name: early-access-pipeline
+name: pre-prod-pipeline
 
 on:
   workflow_dispatch:
@@ -144,7 +144,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/generalmagicio/qacc-be:early-access
+          tags: ghcr.io/generalmagicio/qacc-be:pre-prod
 
   deploy:
     needs: publish
@@ -153,9 +153,9 @@ jobs:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.EARLY_ACCESS_HOST }}
-          username: ${{ secrets.EARLY_ACCESS_USERNAME }}
-          key: ${{ secrets.EARLY_ACCESS_PRIVATE_KEY }}
+          host: ${{ secrets.PRE_PROD_HOST }}
+          username: ${{ secrets.PRE_PROD_USERNAME }}
+          key: ${{ secrets.PRE_PROD_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
@@ -172,9 +172,9 @@ jobs:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.EARLY_ACCESS_HOST }}
-          username: ${{ secrets.EARLY_ACCESS_USERNAME }}
-          key: ${{ secrets.EARLY_ACCESS_PRIVATE_KEY }}
+          host: ${{ secrets.PRE_PROD_HOST }}
+          username: ${{ secrets.PRE_PROD_USERNAME }}
+          key: ${{ secrets.PRE_PROD_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
@@ -211,9 +211,9 @@ jobs:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          host: ${{ secrets.PRE_PROD_HOST }}
+          username: ${{ secrets.PRE_PROD_USERNAME }}
+          key: ${{ secrets.PRE_PROD_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
@@ -242,9 +242,9 @@ jobs:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          host: ${{ secrets.PRE_PROD_HOST }}
+          username: ${{ secrets.PRE_PROD_USERNAME }}
+          key: ${{ secrets.PRE_PROD_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd QAcc-BE
@@ -264,4 +264,4 @@ jobs:
                 echo "qacc-be-graph-ql3 is not healthy, stopping deployment"
                 exit 1
             fi
-            echo "First deployment phase completed successfully"
+            echo "Third deployment phase completed successfully"
