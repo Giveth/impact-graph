@@ -1,3 +1,5 @@
+import { Service } from 'typedi';
+import { GraphQLJSON } from 'graphql-scalars';
 import {
   Arg,
   Args,
@@ -13,7 +15,6 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
 import { Brackets, In, Repository } from 'typeorm';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
@@ -72,6 +73,10 @@ import { updateOrCreateProjectUserRecord } from '../repositories/projectUserReco
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { QfRound } from '../entities/qfRound';
+import {
+  SwapTransaction,
+  SWAP_TRANSACTION_STATUS,
+} from '../entities/swapTransaction';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 @ObjectType()
@@ -209,6 +214,42 @@ class DonationMetrics {
 
   @Field(_type => Float, { nullable: true })
   averagePercentageToGiveth: number;
+}
+
+@InputType()
+class SwapTransactionInput {
+  @Field()
+  squidRequestId: string;
+
+  @Field()
+  firstTxHash: string;
+
+  @Field()
+  fromChainId: number;
+
+  @Field()
+  toChainId: number;
+
+  @Field()
+  fromTokenAddress: string;
+
+  @Field()
+  toTokenAddress: string;
+
+  @Field()
+  fromAmount: number;
+
+  @Field()
+  toAmount: number;
+
+  @Field()
+  fromTokenSymbol: string;
+
+  @Field()
+  toTokenSymbol: string;
+
+  @Field(_type => GraphQLJSON, { nullable: true })
+  metadata?: Record<string, any>;
 }
 
 // eslint-disable-next-line unused-imports/no-unused-imports
@@ -697,6 +738,7 @@ export class DonationResolver {
     useDonationBox?: boolean,
     @Arg('relevantDonationTxHash', { nullable: true })
     relevantDonationTxHash?: string,
+    @Arg('swapData', { nullable: true }) swapData?: SwapTransactionInput,
     donateTime = new Date(),
   ): Promise<number> {
     const logData = {
@@ -711,6 +753,8 @@ export class DonationResolver {
       transakId,
       referrerId,
       userId: ctx?.req?.user?.userId,
+      swapData,
+      isSwap: !!swapData,
     };
     logger.debug(
       'createDonation() resolver has been called with this data',
@@ -837,7 +881,26 @@ export class DonationResolver {
           qfRound = await findActiveQfRound({ date: donateTime });
         }
       }
-      const donation = Donation.create({
+
+      let swapTransaction: SwapTransaction | undefined;
+      if (swapData) {
+        swapTransaction = await SwapTransaction.create({
+          squidRequestId: swapData.squidRequestId,
+          firstTxHash: swapData.firstTxHash,
+          fromChainId: swapData.fromChainId,
+          toChainId: swapData.toChainId,
+          fromTokenAddress: swapData.fromTokenAddress,
+          toTokenAddress: swapData.toTokenAddress,
+          fromAmount: swapData.fromAmount,
+          toAmount: swapData.toAmount,
+          fromTokenSymbol: swapData.fromTokenSymbol,
+          toTokenSymbol: swapData.toTokenSymbol,
+          status: SWAP_TRANSACTION_STATUS.PENDING,
+          metadata: swapData.metadata,
+        }).save();
+      }
+
+      const donationData = {
         amount: Number(amount),
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
@@ -861,30 +924,11 @@ export class DonationResolver {
         chainType: chainType as ChainType,
         useDonationBox,
         relevantDonationTxHash,
-        // donationPercentage,
-      });
-      // if (referrerId) {
-      //   // Fill referrer data if referrerId is valid
-      //   try {
-      //     const {
-      //       referralStartTimestamp,
-      //       isReferrerGivbackEligible,
-      //       referrerWalletAddress,
-      //     } = await getChainvineReferralInfoForDonation({
-      //       referrerId,
-      //       fromAddress,
-      //       donorUserId: donorUser.id,
-      //       projectVerified: project.verified,
-      //     });
-      //     donation.isReferrerGivbackEligible = isReferrerGivbackEligible;
-      //     donation.referrerWallet = referrerWalletAddress;
-      //     donation.referralStartTimestamp = referralStartTimestamp;
+        swapTransaction,
+        isSwap: !!swapData,
+      };
 
-      //     await setUserAsReferrer(referrerWalletAddress);
-      //   } catch (e) {
-      //     logger.error('get chainvine wallet address error', e);
-      //   }
-      // }
+      const donation = await Donation.create(donationData).save();
 
       let priceChainId;
 
