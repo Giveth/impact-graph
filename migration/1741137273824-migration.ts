@@ -20,10 +20,10 @@ export class Migration1741137273824 implements MigrationInterface {
       `ALTER TABLE "user" ADD "qaccPointsMultiplier" real NOT NULL DEFAULT '1'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "qacc_points_history" ADD CONSTRAINT "FK_bc51feb404630572f9dca285c26" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+      `ALTER TABLE "qacc_points_history" ADD CONSTRAINT "FK_bc51feb404630572f9dca285c26" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
-      `ALTER TABLE "qacc_points_history" ADD CONSTRAINT "FK_0783dd0cebeb22564e6677fb441" FOREIGN KEY ("donationId") REFERENCES "donation"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+      `ALTER TABLE "qacc_points_history" ADD CONSTRAINT "FK_0783dd0cebeb22564e6677fb441" FOREIGN KEY ("donationId") REFERENCES "donation"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
     );
   }
 

@@ -20,12 +20,12 @@ export class QaccPointsHistory extends BaseEntity {
 
   @Index()
   @Field(_type => User, { nullable: true })
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   user: User;
 
   @Index()
   @Field(_type => Donation, { nullable: true })
-  @ManyToOne(() => Donation, { eager: true })
+  @ManyToOne(() => Donation, { eager: true, onDelete: 'CASCADE' })
   donation: Donation;
 
   @Field(_type => Float, { nullable: false })
