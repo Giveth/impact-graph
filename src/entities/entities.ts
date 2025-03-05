@@ -36,6 +36,7 @@ import { EarlyAccessRound } from './earlyAccessRound';
 import { ProjectRoundRecord } from './projectRoundRecord';
 import { ProjectUserRecord } from './projectUserRecord';
 import { AnkrState } from './ankrState';
+import { QaccPointsHistory } from './qaccPointsHistory';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -83,6 +84,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     EarlyAccessRound,
     ProjectRoundRecord,
     ProjectUserRecord,
+    QaccPointsHistory,
 
     AnkrState,
   ];
