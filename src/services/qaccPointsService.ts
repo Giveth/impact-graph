@@ -18,11 +18,13 @@ export const addQaccPointsForDonation = async (donation: Donation) => {
       return;
     }
 
+    const pointsEarned = user.qaccPointsMultiplier * amount;
+
     // Store q/acc points (1 POL = 1 q/acc point)
     const qaccPointsEntry = QaccPointsHistory.create({
       user,
       donation,
-      pointsEarned: amount,
+      pointsEarned,
     });
     await qaccPointsEntry.save();
 
