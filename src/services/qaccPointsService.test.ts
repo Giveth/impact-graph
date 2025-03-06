@@ -3,6 +3,7 @@ import { assert } from 'chai';
 import {
   createDonationData,
   createProjectData,
+  deleteProjectDirectlyFromDb,
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -52,6 +53,9 @@ function addQaccPointsForDonationTestCases() {
     // Clean up the database after each test
     await Donation.delete({});
     await QfRound.delete(qfRound.id);
+    await deleteProjectDirectlyFromDb(firstProject.id);
+    await Project.delete({ id: firstProject.id });
+    await User.delete([projectOwner.id]);
   });
 
   it('should add qaccPointsHistory and update user points', async () => {
