@@ -1207,6 +1207,8 @@ export const userByAddress = `
       passportStamps
       privadoVerified
       acceptedToS
+      qaccPoints
+      qaccPointsMultiplier
     }
   }
 `;
@@ -2224,3 +2226,31 @@ export const qAccStat = `
     }
   }
 `;
+
+export const getQaccPointsHistoryOfUser = `
+query getQaccPointsHistory {
+  getQaccPointsHistory {
+    pointsEarned
+    user{
+      name
+    }
+    donation{
+      id
+      
+    }
+  }
+}
+`;
+
+export const getUsersByQaccPoints = `query ( $take: Int) {
+  getUsersByQaccPoints(
+    take: $take
+  ){
+   id
+    name
+    email
+    qaccPoints
+    qaccPointsMultiplier
+    
+  }
+}`;

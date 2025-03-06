@@ -1,5 +1,10 @@
 import { Donation } from '../entities/donation';
+import { Project } from '../entities/project';
 import { QaccPointsHistory } from '../entities/qaccPointsHistory';
+import {
+  findUsersUniqueProjectsCount,
+  updateUserPointsMultiplier,
+} from '../repositories/userRepository';
 import { logger } from '../utils/logger';
 import { updateUserQaccPoints } from './userService';
 
@@ -18,7 +23,28 @@ export const addQaccPointsForDonation = async (donation: Donation) => {
       return;
     }
 
-    const pointsEarned = user.qaccPointsMultiplier * amount;
+    const userProjectCount = await findUsersUniqueProjectsCount(user.id);
+
+    let multiplier = user.qaccPointsMultiplier;
+
+    const totalProjectsCount =
+      await Project.createQueryBuilder('project').getCount();
+
+    if (userProjectCount >= 5) {
+      multiplier = 2;
+    }
+    if (userProjectCount >= 10) {
+      multiplier = 3;
+    }
+    if (totalProjectsCount > 10 && userProjectCount === totalProjectsCount) {
+      multiplier = 5;
+    }
+
+    if (multiplier > user.qaccPointsMultiplier) {
+      await updateUserPointsMultiplier(user.id, multiplier);
+    }
+
+    const pointsEarned = multiplier * amount;
 
     // Store q/acc points (1 POL = 1 q/acc point)
     const qaccPointsEntry = QaccPointsHistory.create({
