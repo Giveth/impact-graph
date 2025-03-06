@@ -87,4 +87,67 @@ function addQaccPointsForDonationTestCases() {
       donationAmount * user?.qaccPointsMultiplier,
     );
   });
+
+  it('should not process the same donation twice', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.qaccPointsMultiplier = 2;
+    await user.save();
+
+    const donationAmount = 100;
+
+    // Create and save a single verified donation
+    const donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        amount: donationAmount,
+        status: 'verified',
+        qfRoundId: qfRound.id,
+        user: user,
+      },
+      user.id,
+      firstProject.id,
+    );
+
+    // Process the donation once
+    await addQaccPointsForDonation(donation);
+
+    // Fetch user and history after first processing
+    const updatedUserAfterFirstProcessing = await findUserById(user.id);
+    const historyAfterFirstProcessing = await QaccPointsHistory.find({
+      where: { donation: { id: donation.id } },
+    });
+
+    // Process the same donation again
+    await addQaccPointsForDonation(donation);
+
+    // Fetch user and history after second processing attempt
+    const updatedUserAfterSecondProcessing = await findUserById(user.id);
+    const historyAfterSecondProcessing = await QaccPointsHistory.find({
+      where: { donation: { id: donation.id } },
+    });
+    // Assertions: Ensure no duplicate processing
+    assert.equal(
+      updatedUserAfterFirstProcessing?.qaccPoints,
+      donationAmount * user.qaccPointsMultiplier,
+      'User points should be correctly calculated after first processing',
+    );
+
+    assert.equal(
+      updatedUserAfterFirstProcessing?.qaccPoints,
+      updatedUserAfterSecondProcessing?.qaccPoints,
+      'User qaccPoints should not increase after second processing',
+    );
+
+    assert.equal(
+      historyAfterFirstProcessing.length,
+      1,
+      'There should be only one history record after first processing',
+    );
+
+    assert.equal(
+      historyAfterSecondProcessing.length,
+      1,
+      'History record count should remain the same after second processing',
+    );
+  });
 }

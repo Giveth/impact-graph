@@ -1,15 +1,10 @@
-import {
-  Arg,
-  Field,
-  Float,
-  Int,
-  ObjectType,
-  Query,
-  Resolver,
-} from 'type-graphql';
+import { Ctx, Field, Float, ObjectType, Query, Resolver } from 'type-graphql';
 import { User } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { QaccPointsHistory } from '../entities/qaccPointsHistory';
+import { ApolloContext } from '../types/ApolloContext';
+import { findUserById } from '../repositories/userRepository';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 
 @ObjectType()
 export class QaccPointsHistoryResponse {
@@ -28,9 +23,13 @@ export class QaccPointsHistoryResponse {
 @Resolver()
 export class QaccPointsHistoryResolver {
   @Query(_returns => [QaccPointsHistoryResponse])
-  async getQaccPointsHistory(
-    @Arg('userId', _type => Int, { nullable: false }) userId: number,
-  ) {
+  async getQaccPointsHistory(@Ctx() ctx: ApolloContext) {
+    const userId = ctx?.req?.user?.userId;
+    const qaccUser = await findUserById(userId);
+    if (!qaccUser) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+    }
+
     const history = await QaccPointsHistory.find({
       where: { user: { id: userId } },
       relations: ['user', 'donation'],

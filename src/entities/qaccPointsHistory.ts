@@ -7,12 +7,14 @@ import {
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { User } from './user';
 import { Donation } from './donation';
 
 @ObjectType()
 @Entity('qacc_points_history')
+@Unique(['donation'])
 export class QaccPointsHistory extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()
