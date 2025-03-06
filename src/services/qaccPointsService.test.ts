@@ -14,6 +14,7 @@ import { User } from '../entities/user';
 import { findUserById } from '../repositories/userRepository';
 import { QaccPointsHistory } from '../entities/qaccPointsHistory';
 import { addQaccPointsForDonation } from './qaccPointsService';
+import { Donation } from '../entities/donation';
 
 describe(
   'addQaccPointsForDonation() test cases',
@@ -46,6 +47,13 @@ function addQaccPointsForDonationTestCases() {
     // firstProject.qfRounds = [qfRound];
 
     // await firstProject.save();
+  });
+  afterEach(async () => {
+    // Clean up the database after each test
+    await Donation.delete({});
+    await Project.delete({ id: firstProject.id });
+    await User.delete({});
+    await QfRound.delete({});
   });
 
   it('should add qaccPointsHistory and update user points', async () => {
