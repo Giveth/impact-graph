@@ -51,7 +51,7 @@ function addQaccPointsForDonationTestCases() {
   afterEach(async () => {
     // Clean up the database after each test
     await Donation.delete({});
-    await QfRound.delete({});
+    await QfRound.delete(qfRound.id);
   });
 
   it('should add qaccPointsHistory and update user points', async () => {
