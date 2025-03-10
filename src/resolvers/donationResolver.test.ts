@@ -61,7 +61,10 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
-import { QACC_DONATION_TOKEN_SYMBOL } from '../constants/qacc';
+import {
+  QACC_DONATION_TOKEN_ADDRESS,
+  QACC_DONATION_TOKEN_SYMBOL,
+} from '../constants/qacc';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { ProjectRoundRecord } from '../entities/projectRoundRecord';
 import { ProjectUserRecord } from '../entities/projectUserRecord';
@@ -2716,6 +2719,187 @@ function createDonationTestCases() {
       updatedDraftDonation?.matchedDonationId,
       saveDonationResponse.data.data.createDonation,
     );
+  });
+
+  describe('swap donation test cases', () => {
+    it('should create a donation with swap transaction', async () => {
+      const project = await saveProjectDirectlyToDb(createProjectData());
+      const walletAddress = generateRandomEtheriumAddress();
+      const user = await saveUserDirectlyToDb(walletAddress);
+      const accessToken = await generateTestAccessToken(user.id);
+
+      const swapData = {
+        squidRequestId: 'test-squid-request-id',
+        firstTxHash: generateRandomEvmTxHash(),
+        fromChainId: NETWORK_IDS.MAIN_NET,
+        toChainId: NETWORK_IDS.POLYGON,
+        fromTokenAddress: generateRandomEtheriumAddress(),
+        toTokenAddress: QACC_DONATION_TOKEN_ADDRESS,
+        fromAmount: 100,
+        toAmount: 95,
+        fromTokenSymbol: 'ETH',
+        toTokenSymbol: QACC_DONATION_TOKEN_SYMBOL,
+        metadata: { test: 'data' },
+      };
+
+      const variables = {
+        projectId: project.id,
+        transactionNetworkId: QACC_NETWORK_ID,
+        transactionId: generateRandomEvmTxHash(),
+        token: QACC_DONATION_TOKEN_SYMBOL,
+        amount: 95,
+        nonce: 11,
+        swapData,
+      };
+
+      const response = await axios.post(
+        graphqlUrl,
+        {
+          query: createDonationMutation,
+          variables,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      assert.isOk(response.data.data.createDonation);
+      const donationId = response.data.data.createDonation;
+      const donation = await Donation.findOne({
+        where: { id: donationId },
+        relations: ['swapTransaction'],
+      });
+
+      assert.isOk(donation);
+      assert.isTrue(donation?.isSwap);
+      assert.isOk(donation?.swapTransaction);
+      assert.equal(
+        donation?.swapTransaction?.squidRequestId,
+        swapData.squidRequestId,
+      );
+      assert.equal(
+        donation?.swapTransaction?.firstTxHash,
+        swapData.firstTxHash,
+      );
+      assert.equal(
+        donation?.swapTransaction?.fromChainId,
+        swapData.fromChainId,
+      );
+      assert.equal(donation?.swapTransaction?.toChainId, swapData.toChainId);
+      assert.equal(
+        donation?.swapTransaction?.fromTokenAddress,
+        swapData.fromTokenAddress,
+      );
+      assert.equal(
+        donation?.swapTransaction?.toTokenAddress,
+        swapData.toTokenAddress,
+      );
+      assert.equal(donation?.swapTransaction?.fromAmount, swapData.fromAmount);
+      assert.equal(donation?.swapTransaction?.toAmount, swapData.toAmount);
+      assert.equal(
+        donation?.swapTransaction?.fromTokenSymbol,
+        swapData.fromTokenSymbol,
+      );
+      assert.equal(
+        donation?.swapTransaction?.toTokenSymbol,
+        swapData.toTokenSymbol,
+      );
+      assert.deepEqual(donation?.swapTransaction?.metadata, swapData.metadata);
+    });
+
+    it('should create a donation without swap transaction when swapData is not provided', async () => {
+      const project = await saveProjectDirectlyToDb(createProjectData());
+      const walletAddress = generateRandomEtheriumAddress();
+      const user = await saveUserDirectlyToDb(walletAddress);
+      const accessToken = await generateTestAccessToken(user.id);
+
+      const variables = {
+        amount: 100,
+        transactionId: generateRandomEvmTxHash(),
+        transactionNetworkId: QACC_NETWORK_ID,
+        token: QACC_DONATION_TOKEN_SYMBOL,
+        projectId: project.id,
+        nonce: 11,
+      };
+
+      const response = await axios.post(
+        graphqlUrl,
+        {
+          query: createDonationMutation,
+          variables,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      assert.isOk(response.data.data.createDonation);
+      const donationId = response.data.data.createDonation;
+      const donation = await Donation.findOne({
+        where: { id: donationId },
+        relations: ['swapTransaction'],
+      });
+
+      assert.isOk(donation);
+      assert.isFalse(donation?.isSwap);
+      assert.isNull(donation?.swapTransaction);
+    });
+
+    it('should validate swap transaction data', async () => {
+      const project = await saveProjectDirectlyToDb(createProjectData());
+      const walletAddress = generateRandomEtheriumAddress();
+      const user = await saveUserDirectlyToDb(walletAddress);
+      const accessToken = await generateTestAccessToken(user.id);
+
+      const swapData = {
+        // Missing required fields
+        squidRequestId: 'test-squid-request-id',
+        firstTxHash: generateRandomEvmTxHash(),
+        fromChainId: NETWORK_IDS.MAIN_NET,
+        // Missing toChainId
+        fromTokenAddress: generateRandomEtheriumAddress(),
+        // Missing toTokenAddress
+        fromAmount: 100,
+        toAmount: 95,
+        fromTokenSymbol: 'ETH',
+        toTokenSymbol: 'MATIC',
+      };
+
+      const variables = {
+        amount: 95,
+        nonce: 11,
+        transactionId: generateRandomEvmTxHash(),
+        transactionNetworkId: NETWORK_IDS.POLYGON,
+        token: 'MATIC',
+        projectId: project.id,
+        swapData,
+      };
+
+      const response = await axios.post(
+        graphqlUrl,
+        {
+          query: createDonationMutation,
+          variables,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      assert.isOk(response.data.errors);
+      assert.isNotEmpty(response.data.errors);
+      // The exact error message will depend on your validation setup
+      assert.include(
+        response.data.errors[0].message,
+        'Variable "$swapData" got invalid value',
+      );
+    });
   });
 }
 
