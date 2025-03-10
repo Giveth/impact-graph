@@ -7,12 +7,15 @@ import {
   ManyToOne,
   RelationId,
   Index,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
 import { QfRound } from './qfRound';
 import { ChainType } from '../types/network';
 import { EarlyAccessRound } from './earlyAccessRound';
+import { SwapTransaction } from './swapTransaction';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -288,6 +291,20 @@ export class Donation extends BaseEntity {
   @Field({ nullable: true })
   @Column({ type: 'float', nullable: true })
   cliff?: number;
+
+  @Field(_type => SwapTransaction, { nullable: true })
+  @OneToOne(() => SwapTransaction)
+  @JoinColumn({ name: 'swapTransactionId' })
+  swapTransaction?: SwapTransaction;
+
+  @RelationId((donation: Donation) => donation.swapTransaction)
+  @Column({ nullable: true })
+  @Index('IDX_donation_swap_transaction')
+  swapTransactionId?: number;
+
+  @Field(_type => Boolean)
+  @Column({ type: 'boolean', default: false })
+  isSwap: boolean;
 
   // we should calculated these values in the front-end, because they are presentation logics
   // // Virtual field to calculate remaining months and days
