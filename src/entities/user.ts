@@ -228,6 +228,14 @@ export class User extends BaseEntity {
   @Column({ default: null, nullable: true })
   acceptedToSDate: Date;
 
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'real', default: 0 })
+  qaccPoints: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'real', default: 1 })
+  qaccPointsMultiplier: number;
+
   @Column('integer', { array: true, default: [] })
   privadoVerifiedRequestIds: number[];
 

@@ -361,6 +361,7 @@ export const createDonationData = (params?: {
   qfRoundId?: number;
   transactionId?: string;
   earlyAccessRoundId?: number;
+  user?: User;
 }): CreateDonationData => {
   return {
     transactionId: params?.transactionId || generateRandomEvmTxHash(),
@@ -376,6 +377,7 @@ export const createDonationData = (params?: {
     segmentNotified: true,
     qfRoundId: params?.qfRoundId || undefined,
     earlyAccessRoundId: params?.earlyAccessRoundId || undefined,
+    user: params?.user || undefined,
   };
 };
 
@@ -1949,6 +1951,7 @@ export const DONATION_SEED_DATA = {
 
 export interface CreateDonationData {
   id?: number;
+  user?: User;
   transactionId: string;
   transactionNetworkId: number;
   toWalletAddress: string;

@@ -16,6 +16,7 @@ import { DraftDonationResolver } from './draftDonationResolver';
 import { OnboardingFormResolver } from './onboardingFormResolver';
 import { RoundsResolver } from './roundsResolver';
 import { QAccResolver } from './qAccResolver';
+import { QaccPointsHistoryResolver } from './qaccPointsHistoryResolver';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getResolvers = (): Function[] => {
@@ -42,5 +43,6 @@ export const getResolvers = (): Function[] => {
     RoundsResolver,
 
     QAccResolver,
+    QaccPointsHistoryResolver,
   ];
 };

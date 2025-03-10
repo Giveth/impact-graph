@@ -969,7 +969,7 @@ function createDonationTestCases() {
         minimumPassportScore: 8,
         slug: new Date().getTime().toString(),
         allocatedFund: 100,
-        beginDate: moment().subtract(1, 'second'),
+        beginDate: moment().subtract(1, 'days').toDate(),
         endDate: moment().add(2, 'day'),
       }).save();
       // project.qfRounds = [qfRound];
@@ -1227,7 +1227,7 @@ function createDonationTestCases() {
         minimumPassportScore: 8,
         slug: new Date().getTime().toString(),
         allocatedFund: 100,
-        beginDate: moment(),
+        beginDate: moment().subtract(1, 'days').toDate(),
         endDate: moment().add(2, 'day'),
       }).save();
       // project.qfRounds = [qfRound];
@@ -1299,7 +1299,7 @@ function createDonationTestCases() {
         minimumPassportScore: 8,
         slug: new Date().getTime().toString(),
         allocatedFund: 100,
-        beginDate: moment(),
+        beginDate: moment().subtract(1, 'days').toDate(),
         endDate: moment().add(2, 'day'),
       }).save();
       // project.qfRounds = [qfRound];
@@ -4725,8 +4725,9 @@ function donationsToWalletsTestCases() {
 
 async function recentDonationsTestCases() {
   // Clear all other donations
+
   beforeEach(async () => {
-    await Donation.clear();
+    await Donation.delete({});
   });
 
   it('should return limited number of recent donations', async () => {
