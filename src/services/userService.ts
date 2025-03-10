@@ -99,3 +99,18 @@ export const updateUserGitcoinScores = async (user: User) => {
   user.passportScoreUpdateTimestamp = new Date();
   await user.save();
 };
+
+export const updateUserQaccPoints = async (userId: number, amount: number) => {
+  try {
+    await Donation.query(
+      `
+      UPDATE "user"
+      SET "qaccPoints" = "qaccPoints" + ($2 * "qaccPointsMultiplier")
+      WHERE "id" = $1
+      `,
+      [userId, amount],
+    );
+  } catch (e) {
+    logger.error('updateUserTotalDonated() error', e);
+  }
+};

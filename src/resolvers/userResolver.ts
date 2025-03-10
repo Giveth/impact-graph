@@ -270,6 +270,18 @@ export class UserResolver {
     };
   }
 
+  @Query(_returns => [User])
+  async getUsersByQaccPoints(
+    @Arg('take', _type => Int, { defaultValue: 5 }) take: number,
+  ) {
+    const users = await User.find({
+      order: { qaccPoints: 'DESC' },
+      take,
+    });
+
+    return users;
+  }
+
   @Mutation(_returns => Boolean)
   async updateUser(
     @Arg('fullName', { nullable: true }) fullName: string,

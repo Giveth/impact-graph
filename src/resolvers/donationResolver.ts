@@ -73,6 +73,7 @@ import { updateOrCreateProjectUserRecord } from '../repositories/projectUserReco
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { QfRound } from '../entities/qfRound';
+import { addQaccPointsForDonation } from '../services/qaccPointsService';
 import {
   SwapTransaction,
   SWAP_TRANSACTION_STATUS,
@@ -996,6 +997,8 @@ export class DonationResolver {
           amount: Number(amount),
           networkId,
         }),
+
+        addQaccPointsForDonation(donation),
       ]);
 
       return donation.id;
