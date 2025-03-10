@@ -293,7 +293,7 @@ export class Donation extends BaseEntity {
   cliff?: number;
 
   @Field(_type => SwapTransaction, { nullable: true })
-  @OneToOne(() => SwapTransaction)
+  @OneToOne(() => SwapTransaction, { eager: true })
   @JoinColumn({ name: 'swapTransactionId' })
   swapTransaction?: SwapTransaction;
 
