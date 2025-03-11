@@ -118,6 +118,6 @@ const verifySwapTransaction = async (swapId: number) => {
 
 // Helper function to check if status is completed
 const isCompletedStatus = (status: string) => {
-  const completedStatuses = ['success'];
+  const completedStatuses = ['success', 'destination_executed'];
   return completedStatuses.includes(status);
 };

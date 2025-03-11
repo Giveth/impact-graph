@@ -62,21 +62,23 @@ export const createSwap = async (params: {
 
 export const updateSwapDonationStatus = async (
   swapId: number,
-  swapStatus: any,
+  status: {
+    squidTransactionStatus: string;
+    toChain: { transactionId: string };
+  },
 ): Promise<void> => {
   const swap = await getSwapById(swapId);
   if (!swap) {
     throw new Error(`Swap with id ${swapId} not found`);
   }
 
-  swap.secondTxHash = swapStatus.secondTxHash;
-  swap.toAmount = swapStatus.toAmount;
-  swap.status = swapStatus.squidTransactionStatus;
+  swap.secondTxHash = status.toChain.transactionId;
+  swap.status = status.squidTransactionStatus;
   await swap.save();
 
   if (swap.donation) {
     swap.donation.status = DONATION_STATUS.PENDING;
-    swap.donation.transactionId = swapStatus.secondTxHash;
+    swap.donation.transactionId = status.toChain.transactionId;
     await swap.donation.save();
   }
 };
