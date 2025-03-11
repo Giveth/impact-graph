@@ -884,6 +884,7 @@ export class DonationResolver {
       }
 
       let swapTransaction: SwapTransaction | undefined;
+      let donationStatus = DONATION_STATUS.PENDING;
       if (swapData) {
         swapTransaction = await SwapTransaction.create({
           squidRequestId: swapData.squidRequestId,
@@ -899,6 +900,7 @@ export class DonationResolver {
           status: SWAP_TRANSACTION_STATUS.PENDING,
           metadata: swapData.metadata,
         }).save();
+        donationStatus = DONATION_STATUS.SWAP_PENDING;
       }
 
       const donationData = {
@@ -927,6 +929,7 @@ export class DonationResolver {
         relevantDonationTxHash,
         swapTransaction,
         isSwap: !!swapData,
+        status: donationStatus,
       };
 
       const donation = await Donation.create(donationData).save();
