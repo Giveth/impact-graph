@@ -604,6 +604,7 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
+      .leftJoinAndSelect('donation.swapTransaction', 'swapTransaction')
       .addSelect(publicSelectionFields)
       .where(`donation.projectId = :projectId`, { projectId })
       .orderBy(
