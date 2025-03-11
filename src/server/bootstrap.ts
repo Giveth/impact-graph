@@ -67,6 +67,7 @@ import { ChainType } from '../types/network';
 import { runSyncDataWithInverter } from '../services/cronJobs/syncDataWithInverter';
 import { runSyncWithAnkrTransfers } from '../services/cronJobs/syncWithAnkrTransfers';
 import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
+
 Resource.validate = validate;
 
 const options = {
