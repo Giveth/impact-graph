@@ -44,7 +44,7 @@ export const createSwap = async (params: {
   fromChainId: string;
   toChainId: string;
   transactionHash: string;
-  requestId: string;
+  requestId?: string;
 }): Promise<SwapTransaction> => {
   const swap = SwapTransaction.create({
     fromTokenAddress: params.fromToken,
