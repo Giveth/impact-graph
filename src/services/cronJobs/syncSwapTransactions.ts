@@ -120,7 +120,7 @@ const verifySwapTransaction = async (swapId: number) => {
 
     const params = {
       transactionId: swap.firstTxHash,
-      requestId: swap.squidRequestId,
+      ...(swap.squidRequestId && { requestId: swap.squidRequestId }),
       fromChainId: swap.fromChainId.toString(),
       toChainId: swap.toChainId.toString(),
     };
@@ -129,6 +129,7 @@ const verifySwapTransaction = async (swapId: number) => {
       const status = await getStatus(params);
       logger.debug(`Route status for swap ${swapId}:`, {
         status: status.squidTransactionStatus,
+        requestId: swap.squidRequestId || 'not provided',
       });
 
       // Update swap status in database

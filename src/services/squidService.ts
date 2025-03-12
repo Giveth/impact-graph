@@ -92,7 +92,7 @@ interface SquidStatusResponse {
 
 export const getStatus = async (params: {
   transactionId: string;
-  requestId: string;
+  requestId?: string;
   fromChainId: string;
   toChainId: string;
 }): Promise<SquidStatusResponse> => {

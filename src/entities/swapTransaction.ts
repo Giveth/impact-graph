@@ -23,9 +23,9 @@ export class SwapTransaction extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
-  @Column()
-  squidRequestId: string;
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  squidRequestId?: string;
 
   @Field()
   @Column()
