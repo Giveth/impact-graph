@@ -18,6 +18,7 @@ import { EarlyAccessRound } from './earlyAccessRound';
 import { SwapTransaction } from './swapTransaction';
 
 export const DONATION_STATUS = {
+  SWAP_PENDING: 'swap_pending',
   PENDING: 'pending',
   VERIFIED: 'verified',
   FAILED: 'failed',
