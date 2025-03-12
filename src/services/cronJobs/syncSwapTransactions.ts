@@ -10,6 +10,7 @@ import {
   updateSwapStatus,
   updateSwapDonationStatus,
 } from '../../repositories/swapRepository';
+import { DONATION_STATUS } from '../../entities/donation';
 
 const verifySwapsQueue = new Bull('verify-swaps-queue', {
   redis: redisConfig,
@@ -87,11 +88,9 @@ function processVerifySwapsJobs() {
   );
 }
 
-// Time thresholds
-const MINUTE = 60 * 1000;
 const failedThresholdMinutes =
   Number(config.get('SWAP_FAILED_THRESHOLD_MINUTES')) || 60; // Default 60 minutes
-const FAILED_THRESHOLD = failedThresholdMinutes * MINUTE;
+const FAILED_THRESHOLD = failedThresholdMinutes * 60 * 1000; // Convert minutes to milliseconds
 
 const verifySwapTransaction = async (swapId: number) => {
   try {
@@ -107,6 +106,15 @@ const verifySwapTransaction = async (swapId: number) => {
         `Swap ${swapId} is older than ${failedThresholdMinutes} minutes, marking as failed`,
       );
       await updateSwapStatus(swapId, 'failed');
+
+      // Update donation status to failed as well
+      if (swap.donation) {
+        logger.debug(
+          `Updating associated donation status to failed for swap ${swapId}`,
+        );
+        swap.donation.status = DONATION_STATUS.FAILED;
+        await swap.donation.save();
+      }
       return;
     }
 
