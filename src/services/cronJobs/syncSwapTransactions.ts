@@ -87,7 +87,12 @@ function processVerifySwapsJobs() {
   );
 }
 
-// Verify a single swap transaction
+// Time thresholds
+const MINUTE = 60 * 1000;
+const failedThresholdMinutes =
+  Number(config.get('SWAP_FAILED_THRESHOLD_MINUTES')) || 60; // Default 60 minutes
+const FAILED_THRESHOLD = failedThresholdMinutes * MINUTE;
+
 const verifySwapTransaction = async (swapId: number) => {
   try {
     const swap = await getSwapById(swapId);
@@ -95,20 +100,42 @@ const verifySwapTransaction = async (swapId: number) => {
       throw new Error('Swap not found');
     }
 
-    // Get status from Squid API
-    const status = await getStatus({
+    // Check if transaction is older than the failed threshold
+    const transactionAge = Date.now() - swap.createdAt.getTime();
+    if (transactionAge > FAILED_THRESHOLD) {
+      logger.debug(
+        `Swap ${swapId} is older than ${failedThresholdMinutes} minutes, marking as failed`,
+      );
+      await updateSwapStatus(swapId, 'failed');
+      return;
+    }
+
+    const params = {
       transactionId: swap.firstTxHash,
       requestId: swap.squidRequestId,
       fromChainId: swap.fromChainId.toString(),
       toChainId: swap.toChainId.toString(),
-    });
+    };
 
-    // Update swap status in database
-    await updateSwapStatus(swapId, status.squidTransactionStatus);
+    try {
+      const status = await getStatus(params);
+      logger.debug(`Route status for swap ${swapId}:`, {
+        status: status.squidTransactionStatus,
+      });
 
-    // If swap is completed, update related statistics
-    if (isCompletedStatus(status.squidTransactionStatus)) {
-      await updateSwapDonationStatus(swapId, status);
+      // Update swap status in database
+      await updateSwapStatus(swapId, status.squidTransactionStatus);
+
+      // If swap is completed, update related statistics
+      if (isCompletedStatus(status.squidTransactionStatus)) {
+        await updateSwapDonationStatus(swapId, status);
+      }
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        logger.debug(`Transaction not found for swap ${swapId}`);
+      } else {
+        throw error;
+      }
     }
   } catch (error) {
     logger.error('Error verifying swap transaction:', error);
