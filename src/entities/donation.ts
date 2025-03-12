@@ -18,6 +18,7 @@ import { EarlyAccessRound } from './earlyAccessRound';
 import { SwapTransaction } from './swapTransaction';
 
 export const DONATION_STATUS = {
+  SWAP_PENDING: 'swap_pending',
   PENDING: 'pending',
   VERIFIED: 'verified',
   FAILED: 'failed',
@@ -293,7 +294,7 @@ export class Donation extends BaseEntity {
   cliff?: number;
 
   @Field(_type => SwapTransaction, { nullable: true })
-  @OneToOne(() => SwapTransaction)
+  @OneToOne(() => SwapTransaction, { eager: true })
   @JoinColumn({ name: 'swapTransactionId' })
   swapTransaction?: SwapTransaction;
 

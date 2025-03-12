@@ -28,7 +28,11 @@ export async function updateOrCreateProjectRoundRecord(
       .addSelect('SUM(COALESCE(donation.valueUsd,0))', 'totalDonationUsdAmount')
       .where('donation.projectId = :projectId', { projectId })
       .andWhere('donation.status IN (:...status)', {
-        status: [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
+        status: [
+          DONATION_STATUS.VERIFIED,
+          DONATION_STATUS.PENDING,
+          DONATION_STATUS.SWAP_PENDING,
+        ],
       });
 
     if (qfRoundId) {
@@ -153,7 +157,11 @@ export async function getCumulativePastRoundsDonationAmounts({
       )
       .where('donation.projectId = :projectId', { projectId })
       .andWhere('donation.status IN (:...status)', {
-        status: [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
+        status: [
+          DONATION_STATUS.VERIFIED,
+          DONATION_STATUS.PENDING,
+          DONATION_STATUS.SWAP_PENDING,
+        ],
       });
 
     if (earlyAccessRoundId) {

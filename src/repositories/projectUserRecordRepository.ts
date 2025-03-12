@@ -53,7 +53,11 @@ export async function updateOrCreateProjectUserRecord({
     projectId,
     userId,
     seasonNumber || null,
-    [DONATION_STATUS.VERIFIED, DONATION_STATUS.PENDING],
+    [
+      DONATION_STATUS.VERIFIED,
+      DONATION_STATUS.PENDING,
+      DONATION_STATUS.SWAP_PENDING,
+    ],
   ]);
 
   return result[0];
