@@ -18,6 +18,7 @@ import { validateEmail } from '../utils/validators/commonValidators';
 import {
   findUserById,
   findUserByWalletAddress,
+  isValidEmail,
 } from '../repositories/userRepository';
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 import { UserByAddressResponse } from './types/userResolver';
@@ -460,5 +461,10 @@ export class UserResolver {
       users,
       totalCount,
     };
+  }
+
+  @Query(_returns => Boolean)
+  async validateEmail(@Arg('email') email: string): Promise<boolean> {
+    return isValidEmail(email);
   }
 }
