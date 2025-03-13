@@ -199,7 +199,7 @@ export class UserResolver {
     }
     if (email !== undefined) {
       // User can unset his email by putting empty string
-      if (!validateEmail(email)) {
+      if (!validateEmail(email) || !isValidEmail(email)) {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
       }
       dbUser.email = email;
@@ -403,7 +403,7 @@ export class UserResolver {
     const user = await getLoggedInUser(ctx);
 
     // Check is mail valid
-    if (!validateEmail(email)) {
+    if (!validateEmail(email) || !isValidEmail(email)) {
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
     }
 
