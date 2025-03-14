@@ -18,6 +18,7 @@ import { validateEmail } from '../utils/validators/commonValidators';
 import {
   findUserById,
   findUserByWalletAddress,
+  isValidEmail,
 } from '../repositories/userRepository';
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 import { UserByAddressResponse } from './types/userResolver';
@@ -198,7 +199,7 @@ export class UserResolver {
     }
     if (email !== undefined) {
       // User can unset his email by putting empty string
-      if (!validateEmail(email)) {
+      if (!validateEmail(email) || !isValidEmail(email)) {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
       }
       dbUser.email = email;
@@ -402,7 +403,7 @@ export class UserResolver {
     const user = await getLoggedInUser(ctx);
 
     // Check is mail valid
-    if (!validateEmail(email)) {
+    if (!validateEmail(email) || !isValidEmail(email)) {
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
     }
 
@@ -460,5 +461,10 @@ export class UserResolver {
       users,
       totalCount,
     };
+  }
+
+  @Query(_returns => Boolean)
+  async validateEmail(@Arg('email') email: string): Promise<boolean> {
+    return isValidEmail(email);
   }
 }

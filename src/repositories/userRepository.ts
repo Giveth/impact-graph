@@ -5,6 +5,7 @@ import { PowerBoosting } from '../entities/powerBoosting';
 import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import { isEvmAddress } from '../utils/networks';
 import { retrieveActiveQfRoundUserMBDScore } from './qfRoundRepository';
+import { validateEmailWithExternalService } from '../utils/user';
 
 export const findAdminUserByEmail = async (
   email: string,
@@ -200,4 +201,14 @@ export const findUsersWhoSupportProject = async (
     }
   }
   return users;
+};
+
+/**
+ * Check if the email is valid
+ *
+ * @param email
+ * @returns true if the email is valid, false otherwise
+ */
+export const isValidEmail = async (email: string): Promise<boolean> => {
+  return validateEmailWithExternalService(email);
 };
