@@ -7,8 +7,10 @@ export class OnboardingFormResolver {
   @Query(_returns => Boolean)
   async subscribeOnboarding(@Arg('email') email: string): Promise<boolean> {
     try {
-      await getNotificationAdapter().subscribeOnboarding({ email });
-      return true;
+      const response = await getNotificationAdapter().subscribeOnboarding({
+        email,
+      });
+      return response;
     } catch (e) {
       logger.debug('subscribeOnboarding() error', e);
       return false;
