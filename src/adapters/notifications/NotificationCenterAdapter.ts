@@ -19,6 +19,7 @@ import {
   findAllUsers,
   findUserById,
   findUsersWhoSupportProject,
+  isValidEmail,
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
@@ -62,18 +63,21 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
-  async subscribeOnboarding(params: { email: string }): Promise<void> {
+  async subscribeOnboarding(params: { email: string }): Promise<boolean> {
     try {
       const { email } = params;
-      if (!email) return;
+      const isValid = await isValidEmail(email);
+      if (!email || !isValid) return false;
       await callSendNotification({
         eventName: NOTIFICATIONS_EVENT_NAMES.SUBSCRIBE_ONBOARDING,
         segment: {
           payload: { email },
         },
       });
+      return true;
     } catch (e) {
       logger.error('subscribeOnboarding >> error', e);
+      return false;
     }
   }
 
