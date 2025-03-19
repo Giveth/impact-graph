@@ -237,3 +237,25 @@ export const getUserEmailConfirmationFields = async (
 
   return emailVerification || null;
 };
+
+export const findUsersUniqueProjectsCount = async (userId: number) => {
+  const uniqueProjectsCount = await Donation.createQueryBuilder('donation')
+    .select('COUNT(DISTINCT donation.projectId)', 'count')
+    .where('donation.userId = :userId', { userId })
+    .getRawOne();
+
+  const projectCount = parseInt(uniqueProjectsCount.count, 10) || 0;
+
+  return projectCount;
+};
+
+export const updateUserPointsMultiplier = async (
+  userId: number,
+  multiplier: number,
+) => {
+  await User.createQueryBuilder()
+    .update(User)
+    .set({ qaccPointsMultiplier: multiplier })
+    .where('id = :userId', { userId })
+    .execute();
+};
