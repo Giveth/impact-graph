@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Service } from 'typedi';
 import { GraphQLJSON } from 'graphql-scalars';
 import {
@@ -219,8 +220,8 @@ class DonationMetrics {
 
 @InputType()
 class SwapTransactionInput {
-  @Field()
-  squidRequestId: string;
+  @Field({ nullable: true })
+  squidRequestId?: string;
 
   @Field()
   firstTxHash: string;
@@ -888,7 +889,7 @@ export class DonationResolver {
       let donationStatus = DONATION_STATUS.PENDING;
       if (swapData) {
         swapTransaction = await SwapTransaction.create({
-          squidRequestId: swapData.squidRequestId,
+          ...(swapData.squidRequestId && { squidRequestId: swapData.squidRequestId }),
           firstTxHash: swapData.firstTxHash,
           fromChainId: swapData.fromChainId,
           toChainId: swapData.toChainId,
