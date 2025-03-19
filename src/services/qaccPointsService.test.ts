@@ -18,6 +18,7 @@ import { addQaccPointsForDonation } from './qaccPointsService';
 import { Donation } from '../entities/donation';
 import { ProjectAddress } from '../entities/projectAddress';
 import { Reaction } from '../entities/reaction';
+import { FeaturedUpdate } from '../entities/featuredUpdate';
 
 describe(
   'addQaccPointsForDonation() test cases',
@@ -182,6 +183,7 @@ function updateUserQaccPointsMultiplierTestCases() {
   afterEach(async () => {
     await Donation.delete({});
     await User.delete([user.id]);
+    await FeaturedUpdate.delete({});
     await Reaction.delete({});
     await ProjectUpdate.delete({});
     await ProjectAddress.delete({});
