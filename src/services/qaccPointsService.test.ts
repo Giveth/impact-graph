@@ -9,13 +9,15 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { Project } from '../entities/project';
+import { Project, ProjectUpdate } from '../entities/project';
 import { QfRound } from '../entities/qfRound';
 import { User } from '../entities/user';
 import { findUserById } from '../repositories/userRepository';
 import { QaccPointsHistory } from '../entities/qaccPointsHistory';
 import { addQaccPointsForDonation } from './qaccPointsService';
 import { Donation } from '../entities/donation';
+import { ProjectAddress } from '../entities/projectAddress';
+import { Reaction } from '../entities/reaction';
 
 describe(
   'addQaccPointsForDonation() test cases',
@@ -164,7 +166,7 @@ function addQaccPointsForDonationTestCases() {
 function updateUserQaccPointsMultiplierTestCases() {
   let user: User;
   const donationAmount = 100;
-  const projects: Project[] = [];
+  let projects: Project[] = [];
   beforeEach(async () => {
     // Create user with default multiplier of 1
     user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -180,6 +182,11 @@ function updateUserQaccPointsMultiplierTestCases() {
   afterEach(async () => {
     await Donation.delete({});
     await User.delete([user.id]);
+    await Reaction.delete({});
+    await ProjectUpdate.delete({});
+    await ProjectAddress.delete({});
+    await Project.delete({});
+    projects = [];
   });
 
   it('should keep multiplier at 1 for <5 projects', async () => {
@@ -248,6 +255,29 @@ function updateUserQaccPointsMultiplierTestCases() {
       updatedUser?.qaccPointsMultiplier,
       3,
       'Multiplier should be 3',
+    );
+  });
+
+  it('should update multiplier to 5 when user donates to 10 and equal to number of prokects projects', async () => {
+    for (let i = 0; i < 12; i++) {
+      const donation = await saveDonationDirectlyToDb(
+        {
+          ...createDonationData(),
+          amount: donationAmount,
+          status: 'verified',
+          user: user,
+        },
+        user.id,
+        projects[i].id,
+      );
+      await addQaccPointsForDonation(donation);
+    }
+
+    const updatedUser = await findUserById(user.id);
+    assert.equal(
+      updatedUser?.qaccPointsMultiplier,
+      5,
+      'Multiplier should be 5',
     );
   });
 }
