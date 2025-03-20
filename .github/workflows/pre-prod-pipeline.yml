@@ -1,0 +1,267 @@
+name: pre-prod-pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - test-production
+  pull_request:
+    branches:
+      - test-production
+
+jobs:
+  run-linters:
+    name: Run linters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.11.0
+
+      # ESLint and Prettier must be in `package.json`
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          eslint: true
+          #prettier: true
+          continue_on_error: true
+
+  test:
+    runs-on: ubuntu-latest
+    needs: run-linters
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      postgres:
+        # Use this postgres image https://github.com/Giveth/postgres-givethio
+        image: ghcr.io/giveth/postgres-givethio:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: qacc
+          PGDATA: /var/lib/postgresql/data/pgdata
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5443:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Wait for PostgreSQL to become ready
+        run: |
+          for i in {1..10}
+          do
+            pg_isready -h localhost -p 5443 -U postgres && echo Success && break
+            echo -n .
+            sleep 1
+          done
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.11.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run eslint
+        run: npm run eslint
+
+      - name: Run build
+        run: npm run build
+
+      - name: Run migrations
+        run: npm run db:migrate:run:test
+
+      - name: Run tests
+        run: npm run test
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+          INFURA_ID: ${{ secrets.INFURA_ID }}
+          POLYGON_SCAN_API_KEY: ${{ secrets.POLYGON_SCAN_API_KEY }}
+          OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
+          CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
+          CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
+          ARBITRUM_SCAN_API_KEY: ${{ secrets.ARBITRUM_SCAN_API_KEY }}
+          ARBITRUM_SEPOLIA_SCAN_API_KEY: ${{ secrets.ARBITRUM_SEPOLIA_SCAN_API_KEY }}
+          BASE_SCAN_API_KEY: ${{ secrets.BASE_SCAN_API_KEY }}
+          BASE_SEPOLIA_SCAN_API_KEY: ${{ secrets.BASE_SEPOLIA_SCAN_API_KEY }}
+          ZKEVM_MAINNET_SCAN_API_KEY: ${{ secrets.ZKEVM_MAINNET_SCAN_API_KEY }}
+          ZKEVM_CARDONA_SCAN_API_KEY: ${{ secrets.ZKEVM_CARDONA_SCAN_API_KEY }}
+          MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
+          ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
+          DROP_DATABASE: ${{ secrets.DROP_DATABASE_DURING_TEST_STAGING }}
+          SOLANA_TEST_NODE_RPC_URL: ${{ secrets.SOLANA_TEST_NODE_RPC_URL }}
+          SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
+          SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
+          MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
+          PRIVADO_VERIFIER_NETWORK_ID: ${{ secrets.PRIVADO_VERIFIER_NETWORK_ID }}
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/generalmagicio/qacc-be:pre-prod
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRE_PROD_HOST }}
+          username: ${{ secrets.PRE_PROD_USERNAME }}
+          key: ${{ secrets.PRE_PROD_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            git reset --hard origin/test-production
+            git checkout test-production
+            git pull origin test-production
+            docker image prune -a --force
+            docker compose pull
+
+  rollout-deploy-1:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRE_PROD_HOST }}
+          username: ${{ secrets.PRE_PROD_USERNAME }}
+          key: ${{ secrets.PRE_PROD_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            ## Update each backend service one by one
+            ## First Deployment
+            docker compose rm -fs qacc-be-graph-ql1
+            docker compose rm -fs qacc-be-job
+            docker compose up --force-recreate -d qacc-be-graph-ql1
+            docker compose up --force-recreate -d qacc-be-job
+
+            # Wait for qacc-be-graph-ql1 to be healthy (timeout after 5 minutes)
+            echo "Waiting for qacc-be-graph-ql1 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" qacc-be-graph-ql1)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql1 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for qacc-be-graph-ql1 to become healthy"
+                exit 1
+            fi
+            # Check if qacc-be-graph-ql1 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' qacc-be-graph-ql1)" != "\"healthy\"" ]; then
+                echo "qacc-be-graph-ql1 is not healthy, stopping deployment"
+                exit 1
+            fi
+            # Check if qacc-be-job is running
+            if [ "$(docker inspect --format='{{json .State.Status}}' qacc-be-job)" != "\"running\"" ]; then
+                echo "qacc-be-job is not running, stopping deployment"
+                exit 1
+            fi
+            echo "First deployment phase completed successfully"
+
+  rollout-deploy-2:
+    needs: rollout-deploy-1
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRE_PROD_HOST }}
+          username: ${{ secrets.PRE_PROD_USERNAME }}
+          key: ${{ secrets.PRE_PROD_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            ## Second Deployment
+            docker compose rm -fs qacc-be-graph-ql2
+            docker compose up --force-recreate -d qacc-be-graph-ql2
+
+            # Wait for qacc-be-graph-ql2 to be healthy (timeout after 5 minutes)
+            echo "Waiting for qacc-be-graph-ql2 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" qacc-be-graph-ql2)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql2 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for qacc-be-graph-ql2 to become healthy"
+                exit 1
+            fi
+            # Check if qacc-be-graph-ql2 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' qacc-be-graph-ql2)" != "\"healthy\"" ]; then
+                echo "qacc-be-graph-ql2 is not healthy, stopping deployment"
+                exit 1
+            fi
+            echo "Second deployment phase completed successfully"
+
+  rollout-deploy-3:
+    needs: rollout-deploy-2
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRE_PROD_HOST }}
+          username: ${{ secrets.PRE_PROD_USERNAME }}
+          key: ${{ secrets.PRE_PROD_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd QAcc-BE
+            ## Third Deployment
+            docker compose rm -fs qacc-be-graph-ql3
+            docker compose up --force-recreate -d qacc-be-graph-ql3
+
+            # Wait for qacc-be-graph-ql3 to be healthy (timeout after 5 minutes)
+            echo "Waiting for qacc-be-graph-ql3 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" qacc-be-graph-ql3)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql3 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for qacc-be-graph-ql3 to become healthy"
+                exit 1
+            fi
+            # Check if qacc-be-graph-ql3 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' qacc-be-graph-ql3)" != "\"healthy\"" ]; then
+                echo "qacc-be-graph-ql3 is not healthy, stopping deployment"
+                exit 1
+            fi
+            echo "Third deployment phase completed successfully"
