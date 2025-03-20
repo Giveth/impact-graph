@@ -19,7 +19,7 @@ const qfRoundUsersMissedMBDScore = Number(
 
 export const runCheckPendingUserModelScoreCronjob = () => {
   logger.debug(
-    'runCheckPendingUserModelScoreCronjob() has been called, cronJobTime',
+    'runCheckPendingUserModelScoreCronjob() has been called, cronJobTime is ',
     cronJobTime,
   );
   schedule(cronJobTime, async () => {

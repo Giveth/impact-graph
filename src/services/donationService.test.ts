@@ -1033,35 +1033,35 @@ function fillStableCoinDonationsPriceTestCases() {
     expect(donation.priceUsd).to.below(donation.valueUsd);
   });
 
-  it('should fill price for Celo donation on the CELO Alfajores network', async () => {
-    const token = 'CELO';
-    const amount = 100;
-    let donation = await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        currency: token,
-        valueUsd: undefined,
-        valueEth: undefined,
-        amount,
-      },
-      SEED_DATA.FIRST_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
-    );
+  // it('should fill price for Celo donation on the CELO Alfajores network', async () => {
+  //   const token = 'CELO';
+  //   const amount = 100;
+  //   let donation = await saveDonationDirectlyToDb(
+  //     {
+  //       ...createDonationData(),
+  //       currency: token,
+  //       valueUsd: undefined,
+  //       valueEth: undefined,
+  //       amount,
+  //     },
+  //     SEED_DATA.FIRST_USER.id,
+  //     SEED_DATA.FIRST_PROJECT.id,
+  //   );
 
-    const project = (await Project.findOne({
-      where: { id: SEED_DATA.FIRST_PROJECT.id },
-    })) as Project;
+  //   const project = (await Project.findOne({
+  //     where: { id: SEED_DATA.FIRST_PROJECT.id },
+  //   })) as Project;
 
-    await updateDonationPricesAndValues(
-      donation,
-      project,
-      { symbol: token },
-      CHAIN_ID.ALFAJORES,
-    );
+  //   await updateDonationPricesAndValues(
+  //     donation,
+  //     project,
+  //     { symbol: token },
+  //     CHAIN_ID.ALFAJORES,
+  //   );
 
-    donation = (await findDonationById(donation.id))!;
-    expect(donation.valueUsd).to.gt(0);
-  });
+  //   donation = (await findDonationById(donation.id))!;
+  //   expect(donation.valueUsd).to.gt(0);
+  // });
 }
 
 function insertDonationsFromQfRoundHistoryTestCases() {

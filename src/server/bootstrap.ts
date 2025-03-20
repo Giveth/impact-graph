@@ -66,7 +66,6 @@ import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUse
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
 import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
 import { addClient } from '../services/sse/sse';
-import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncUsersModelScore';
 import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
@@ -373,11 +372,15 @@ export async function bootstrap() {
     }
 
     // If we need to deactivate the process use the env var NO MORE
-    if (process.env.SYNC_USERS_MBD_SCORE_ACTIVE === 'true') {
-      runCheckPendingUserModelScoreCronjob();
-    }
+    // if (process.env.SYNC_USERS_MBD_SCORE_ACTIVE === 'true') {
+    // runCheckPendingUserModelScoreCronjob();
+    // }
 
-    if (process.env.SITEMAP_CRON_SECRET !== '') {
+    // if (process.env.SITEMAP_CRON_SECRET !== '') {
+    //   runGenerateSitemapOnFrontend();
+    // }
+
+    if (process.env.GENERATE_SITEMAP_CRONJOB_EXPRESSION !== '') {
       runGenerateSitemapOnFrontend();
     }
 

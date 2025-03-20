@@ -30,12 +30,14 @@ import { updateUserTotalDonated } from '../services/userService';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { NETWORK_IDS } from '../provider';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
+import { isValidEmail } from '../repositories/userRepository';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
 describe('refreshUserScores() test cases', refreshUserScoresTestCases);
 describe('userEmailVerification() test cases', userEmailVerification);
 describe('allUsersBasicData() test cases', allUsersBasicData);
+describe('isValidEmail() test cases', isValidEmailTestCases);
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
 function refreshUserScoresTestCases() {
@@ -1247,6 +1249,22 @@ function allUsersBasicData() {
           'Password should not be included in the response',
         );
       }
+    });
+  });
+}
+
+function isValidEmailTestCases() {
+  describe('isValidEmail() test cases', () => {
+    it('should return true for valid email', async () => {
+      const email = `${new Date().getTime()}@giveth.io`;
+      const isValid = await isValidEmail(email);
+      assert.isTrue(isValid);
+    });
+
+    it('should return false for invalid email', async () => {
+      const email = `${new Date().getTime()}@giveeeeth.io`;
+      const isValid = await isValidEmail(email);
+      assert.isNotOk(isValid);
     });
   });
 }
