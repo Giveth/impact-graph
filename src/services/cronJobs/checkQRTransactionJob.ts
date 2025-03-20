@@ -95,15 +95,22 @@ export async function checkTransactions(
         (isNativePayment || isCreateAccount) && transactionAge < TWO_MINUTES;
 
       if (isMatchingTransaction) {
-        if (
-          toWalletMemo &&
-          transaction.type === 'payment' &&
-          transaction.transaction.memo !== toWalletMemo
-        ) {
-          logger.debug(
-            `Transaction memo does not match donation memo for donation ID ${donation.id}`,
-          );
-          return;
+        const memo = transaction.transaction.memo;
+
+        if (transaction.type === 'payment') {
+          if (toWalletMemo) {
+            if (memo !== toWalletMemo) {
+              logger.debug(
+                `Transaction memo does not match donation memo for donation ID ${donation.id}`,
+              );
+              return;
+            }
+          } else if (memo !== id.toString()) {
+            logger.debug(
+              `Transaction memo matches donation memo for donation ID ${donation.id}`,
+            );
+            return;
+          }
         }
 
         // Check if donation already exists
