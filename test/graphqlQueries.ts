@@ -2244,15 +2244,21 @@ query getQaccPointsHistory {
 }
 `;
 
-export const getUsersByQaccPoints = `query ( $take: Int) {
+export const getUsersByQaccPoints = `query ( $take: Int,$skip:Int,$orderBy:SortUserBy) {
   getUsersByQaccPoints(
     take: $take
+    skip:$skip
+    orderBy:$orderBy
   ){
+    users{
    id
     name
     email
     qaccPoints
     qaccPointsMultiplier
+    projectsFundedCount
+    }
+    totalCount
     
   }
 }`;

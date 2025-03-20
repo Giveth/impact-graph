@@ -2,6 +2,7 @@ import {
   Arg,
   Ctx,
   Field,
+  InputType,
   Int,
   Mutation,
   ObjectType,
@@ -12,7 +13,7 @@ import {
 import { Brackets, Repository } from 'typeorm';
 
 import moment from 'moment';
-import { User } from '../entities/user';
+import { User, UserOrderField } from '../entities/user';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -56,10 +57,34 @@ export enum UserKycType {
   GTCPass = 'GTCPass',
 }
 
+enum UserSortDirection {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
+
 registerEnumType(UserKycType, {
   name: 'UserKycType',
   description: 'User KYC type either Privado zk ID or Gitcoin Passport',
 });
+
+registerEnumType(UserOrderField, {
+  name: 'UserOrderField',
+  description: 'Sort by field',
+});
+
+registerEnumType(UserSortDirection, {
+  name: 'UserSortDirection',
+  description: 'Sort direction',
+});
+
+@InputType()
+class SortUserBy {
+  @Field(_type => UserOrderField)
+  field: UserOrderField;
+
+  @Field(_type => UserSortDirection)
+  direction: UserSortDirection;
+}
 
 @ObjectType()
 class EligibleUser {
@@ -91,6 +116,15 @@ class BatchMintingEligibleUserV2Response {
 
   @Field(_offset => Number, { nullable: false })
   skip: number;
+}
+
+@ObjectType()
+class PaginatedUsers {
+  @Field(_type => [User], { nullable: true })
+  users: User[];
+
+  @Field(_type => Number, { nullable: true })
+  totalCount: number;
 }
 
 // eslint-disable-next-line unused-imports/no-unused-imports
@@ -270,16 +304,25 @@ export class UserResolver {
     };
   }
 
-  @Query(_returns => [User])
+  @Query(_returns => PaginatedUsers)
   async getUsersByQaccPoints(
-    @Arg('take', _type => Int, { defaultValue: 5 }) take: number,
+    @Arg('take', _type => Int, { defaultValue: 15 }) take: number,
+    @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('orderBy', _type => SortUserBy, {
+      defaultValue: {
+        field: UserOrderField.QaccPoints,
+        direction: UserSortDirection.DESC,
+      },
+    })
+    orderBy: SortUserBy,
   ) {
-    const users = await User.find({
-      order: { qaccPoints: 'DESC' },
+    const [users, totalCount] = await User.findAndCount({
+      order: { [orderBy.field]: orderBy.direction },
       take,
+      skip,
     });
 
-    return users;
+    return { users, totalCount };
   }
 
   @Mutation(_returns => Boolean)
