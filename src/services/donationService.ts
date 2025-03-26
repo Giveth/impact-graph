@@ -281,6 +281,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       chainType: donation.chainType,
       safeTxHash: donation.safeTransactionId,
       timestamp: donation.createdAt.getTime() / 1000,
+      isSwap: donation.isSwap,
     });
     donation.status = DONATION_STATUS.VERIFIED;
 
