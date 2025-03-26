@@ -253,9 +253,28 @@ export class DonationResolver {
     const query = this.donationRepository
       .createQueryBuilder('donation')
       .select('currency')
-      .addSelect('COUNT(DISTINCT "userId")', 'uniqueDonorCount')
       .addSelect(
-        'COUNT(DISTINCT "userId") * 100.0 / SUM(COUNT(DISTINCT "userId")) OVER ()',
+        `COUNT(DISTINCT 
+          CASE 
+            WHEN donation."userId" IS NOT NULL THEN CONCAT('user_', donation."userId") 
+            ELSE CONCAT('anon_', donation."fromWalletAddress") 
+          END
+        )`,
+        'uniqueDonorCount',
+      )
+      .addSelect(
+        `COUNT(DISTINCT 
+          CASE 
+            WHEN donation."userId" IS NOT NULL THEN CONCAT('user_', donation."userId") 
+            ELSE CONCAT('anon_', donation."fromWalletAddress") 
+          END
+        ) * 100.0 / 
+        NULLIF(SUM(COUNT(DISTINCT 
+          CASE 
+            WHEN donation."userId" IS NOT NULL THEN CONCAT('user_', donation."userId") 
+            ELSE CONCAT('anon_', donation."fromWalletAddress") 
+          END
+        )) OVER (), 0)`,
         'currencyPercentage',
       )
       .groupBy('currency')

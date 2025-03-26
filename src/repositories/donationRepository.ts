@@ -462,14 +462,25 @@ export const donorsCountPerDate = async (
 
 export const newDonorsCount = async (fromDate: string, toDate: string) => {
   return Donation.createQueryBuilder('donation')
-    .select('donation.userId')
-    .addSelect('MIN(donation.createdAt)')
-    .groupBy('donation.userId')
-    .having('MIN(donation.createdAt) BETWEEN :fromDate AND :toDate', {
+    .select(
+      `
+    CASE 
+      WHEN donation."userId" IS NOT NULL THEN CONCAT('user_', donation."userId") 
+      ELSE CONCAT('anon_', donation."fromWalletAddress") 
+    END
+  `,
+      'donor_identity',
+    )
+    .addSelect('MIN(donation."createdAt")', 'firstDonationDate')
+    .where('"valueUsd" IS NOT NULL')
+    .andWhere(
+      '(donation."userId" IS NOT NULL OR donation."fromWalletAddress" IS NOT NULL)',
+    )
+    .groupBy('donor_identity')
+    .having('MIN(donation."createdAt") BETWEEN :fromDate AND :toDate', {
       fromDate,
       toDate,
     })
-    .groupBy('donation.userId')
     .getRawMany();
 };
 
@@ -478,16 +489,31 @@ export const newDonorsDonationTotalUsd = async (
   toDate: string,
 ) => {
   const result = await Donation.query(
-    `SELECT SUM(d."valueUsd") AS total_usd_value_of_first_donations
-FROM (
-    SELECT "userId", MIN("createdAt") AS firstDonationDate
-    FROM "donation"
-    GROUP BY "userId"
-) AS first_donations
-JOIN "donation" d ON first_donations."userId" = d."userId" AND first_donations.firstDonationDate = d."createdAt"
-WHERE d."createdAt" BETWEEN $1 AND $2
-  AND d."valueUsd" IS NOT NULL;
-`,
+    `
+    SELECT SUM(d."valueUsd") AS total_usd_value_of_first_donations
+    FROM (
+      SELECT 
+        CASE 
+          WHEN "userId" IS NOT NULL THEN CONCAT('user_', "userId")
+          ELSE CONCAT('anon_', "fromWalletAddress")
+        END AS donor_identity,
+        MIN("createdAt") AS firstDonationDate
+      FROM "donation"
+      WHERE "valueUsd" IS NOT NULL
+        AND ("userId" IS NOT NULL OR "fromWalletAddress" IS NOT NULL)
+      GROUP BY donor_identity
+    ) AS first_donations
+    JOIN "donation" d 
+      ON (
+        CASE 
+          WHEN d."userId" IS NOT NULL THEN CONCAT('user_', d."userId")
+          ELSE CONCAT('anon_', d."fromWalletAddress")
+        END
+      ) = first_donations.donor_identity
+      AND d."createdAt" = first_donations.firstDonationDate
+    WHERE d."createdAt" BETWEEN $1 AND $2
+      AND d."valueUsd" IS NOT NULL;
+    `,
     [fromDate, toDate],
   );
   return result[0]?.total_usd_value_of_first_donations || 0;
