@@ -84,7 +84,7 @@ export async function getEvmTransactionInfoFromNetwork(
       i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
     );
   }
-  validateTransactionWithInputData(transaction, input);
+  await validateTransactionWithInputData(transaction, input);
   return transaction;
 }
 
