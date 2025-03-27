@@ -3,6 +3,7 @@ import {
   SWAP_TRANSACTION_STATUS,
 } from '../entities/swapTransaction';
 import { DONATION_STATUS } from '../entities/donation';
+import { findDonationBySwapId } from './donationRepository';
 
 export const getPendingSwaps = async (): Promise<SwapTransaction[]> => {
   return await SwapTransaction.createQueryBuilder('swap')
@@ -76,9 +77,10 @@ export const updateSwapDonationStatus = async (
   swap.status = status.squidTransactionStatus;
   await swap.save();
 
-  if (swap.donation) {
-    swap.donation.status = DONATION_STATUS.PENDING;
-    swap.donation.transactionId = status.toChain.transactionId;
-    await swap.donation.save();
+  const donation = await findDonationBySwapId(swapId);
+  if (donation) {
+    donation.status = DONATION_STATUS.PENDING;
+    donation.transactionId = status.toChain.transactionId;
+    await donation.save();
   }
 };
