@@ -410,6 +410,10 @@ export function getProvider(networkId: number) {
         `https://linea-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
+    case NETWORK_IDS.POLYGON:
+      url = process.env.POLYGON_MAINNET_NODE_HTTP_URL as string;
+      break;
+
     // Infura doesn support Polygon ZKEVM
     case NETWORK_IDS.ZKEVM_MAINNET:
       url = process.env.ZKEVM_MAINNET_NODE_HTTP_URL as string;
