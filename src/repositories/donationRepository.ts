@@ -134,6 +134,16 @@ export const findDonationById = async (
     .getOne();
 };
 
+export const findDonationBySwapId = async (
+  swapId: number,
+): Promise<Donation | null> => {
+  return Donation.createQueryBuilder('donation')
+    .where(`donation.swapTransactionId = :swapId`, {
+      swapId,
+    })
+    .getOne();
+};
+
 export const donationsTotalAmountPerDateRange = async (
   fromDate?: string,
   toDate?: string,

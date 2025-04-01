@@ -28,6 +28,8 @@ export const NETWORK_IDS = {
   ZKEVM_MAINNET: 1101,
   ZKEVM_CARDONA: 2442,
 
+  POLYGON_AMOY: 80002,
+
   LINEA_MAINNET: 59144,
   LINEA_SEPOLIA: 59141,
 
@@ -408,6 +410,10 @@ export function getProvider(networkId: number) {
         `https://linea-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
+    case NETWORK_IDS.POLYGON:
+      url = process.env.POLYGON_MAINNET_NODE_HTTP_URL as string;
+      break;
+
     // Infura doesn support Polygon ZKEVM
     case NETWORK_IDS.ZKEVM_MAINNET:
       url = process.env.ZKEVM_MAINNET_NODE_HTTP_URL as string;
@@ -415,6 +421,10 @@ export function getProvider(networkId: number) {
 
     case NETWORK_IDS.ZKEVM_CARDONA:
       url = process.env.ZKEVM_CARDONA_NODE_HTTP_URL as string;
+      break;
+
+    case NETWORK_IDS.POLYGON_AMOY:
+      url = process.env.POLYGON_AMOY_NODE_HTTP_URL as string;
       break;
 
     default: {
