@@ -4,6 +4,7 @@ import { QaccPointsHistory } from '../entities/qaccPointsHistory';
 import {
   findUsersUniqueProjectsCount,
   updateUserPointsMultiplier,
+  updateUserProjectsFundedCount,
 } from '../repositories/userRepository';
 import { logger } from '../utils/logger';
 import { updateUserQaccPoints } from './userService';
@@ -24,6 +25,9 @@ export const addQaccPointsForDonation = async (donation: Donation) => {
     }
 
     const userProjectCount = await findUsersUniqueProjectsCount(user.id);
+    if (user.projectsFundedCount !== userProjectCount) {
+      await updateUserProjectsFundedCount(user.id, userProjectCount);
+    }
 
     let multiplier = user.qaccPointsMultiplier;
 

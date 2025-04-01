@@ -259,3 +259,14 @@ export const updateUserPointsMultiplier = async (
     .where('id = :userId', { userId })
     .execute();
 };
+
+export const updateUserProjectsFundedCount = async (
+  userId: number,
+  count: number,
+) => {
+  await User.createQueryBuilder()
+    .update(User)
+    .set({ projectsFundedCount: count })
+    .where('id = :userId', { userId })
+    .execute();
+};
