@@ -67,6 +67,7 @@ import { ChainType } from '../types/network';
 import { runSyncDataWithInverter } from '../services/cronJobs/syncDataWithInverter';
 import { runSyncWithAnkrTransfers } from '../services/cronJobs/syncWithAnkrTransfers';
 import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
+import { runUpdateUserRanksCronJob } from '../services/cronJobs/updateUserRanks';
 
 Resource.validate = validate;
 
@@ -161,6 +162,8 @@ export async function bootstrap() {
     runNotifyMissingDonationsCronJob();
 
     runCheckPendingSwapsCronJob();
+
+    runUpdateUserRanksCronJob();
 
     if (process.env.ENABLE_IMPORT_LOST_DONATIONS === 'true') {
       runSyncLostDonations();

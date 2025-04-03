@@ -243,6 +243,10 @@ export class User extends BaseEntity {
 
   @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', default: 0 })
+  rank: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'real', default: 0 })
   projectsFundedCount: number;
 
   @Column('integer', { array: true, default: [] })
