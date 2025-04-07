@@ -5,9 +5,14 @@ import {
 import { DONATION_STATUS } from '../entities/donation';
 import { findDonationBySwapId } from './donationRepository';
 
-export const getPendingSwaps = async (): Promise<SwapTransaction[]> => {
+export const getNotCompletedSwaps = async (): Promise<SwapTransaction[]> => {
   return await SwapTransaction.createQueryBuilder('swap')
-    .where('swap.status = :status', { status: SWAP_TRANSACTION_STATUS.PENDING })
+    .where('swap.status NOT IN (:...statuses)', {
+      statuses: [
+        SWAP_TRANSACTION_STATUS.SUCCESS,
+        SWAP_TRANSACTION_STATUS.FAILED,
+      ],
+    })
     .getMany();
 };
 

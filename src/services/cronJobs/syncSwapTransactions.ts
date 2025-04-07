@@ -5,12 +5,13 @@ import { redisConfig } from '../../redis';
 import { logger } from '../../utils/logger';
 import { getStatus } from '../squidService';
 import {
-  getPendingSwaps,
+  getNotCompletedSwaps,
   getSwapById,
   updateSwapStatus,
   updateSwapDonationStatus,
 } from '../../repositories/swapRepository';
 import { DONATION_STATUS } from '../../entities/donation';
+import { SWAP_TRANSACTION_STATUS } from '../../entities/swapTransaction';
 
 const verifySwapsQueue = new Bull('verify-swaps-queue', {
   redis: redisConfig,
@@ -48,12 +49,12 @@ export const runCheckPendingSwapsCronJob = () => {
 const addJobToCheckPendingSwaps = async () => {
   logger.debug('addJobToCheckPendingSwaps() has been called');
 
-  // Get pending swaps from database
-  const pendingSwaps = await getPendingSwaps();
-  logger.debug('Pending swaps to be checked', pendingSwaps.length);
+  // Get not completed swaps from database
+  const notCompletedSwaps = await getNotCompletedSwaps();
+  logger.debug('Not completed swaps to be checked', notCompletedSwaps.length);
 
-  pendingSwaps.forEach(swap => {
-    logger.debug('Add pending swap to queue', { swapId: swap.id });
+  notCompletedSwaps.forEach(swap => {
+    logger.debug('Add not completed swap to queue', { swapId: swap.id });
     verifySwapsQueue.add(
       {
         swapId: swap.id,
@@ -105,7 +106,7 @@ const verifySwapTransaction = async (swapId: number) => {
       logger.debug(
         `Swap ${swapId} is older than ${failedThresholdMinutes} minutes, marking as failed`,
       );
-      await updateSwapStatus(swapId, 'failed');
+      await updateSwapStatus(swapId, SWAP_TRANSACTION_STATUS.FAILED);
 
       // Update donation status to failed as well
       if (swap.donation) {
@@ -137,7 +138,10 @@ const verifySwapTransaction = async (swapId: number) => {
 
       // If swap is completed, update related statistics
       if (isCompletedStatus(status.squidTransactionStatus)) {
-        await updateSwapDonationStatus(swapId, status);
+        await updateSwapDonationStatus(swapId, {
+          ...status,
+          squidTransactionStatus: SWAP_TRANSACTION_STATUS.SUCCESS,
+        });
       }
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -154,6 +158,9 @@ const verifySwapTransaction = async (swapId: number) => {
 
 // Helper function to check if status is completed
 const isCompletedStatus = (status: string) => {
-  const completedStatuses = ['success', 'destination_executed'];
+  const completedStatuses = [
+    SWAP_TRANSACTION_STATUS.SUCCESS,
+    SWAP_TRANSACTION_STATUS.DESTINATION_EXECUTED,
+  ];
   return completedStatuses.includes(status);
 };

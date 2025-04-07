@@ -12,7 +12,9 @@ import { Donation } from './donation';
 
 export const SWAP_TRANSACTION_STATUS = {
   PENDING: 'pending',
-  COMPLETED: 'completed',
+  ONGOING: 'ongoing',
+  DESTINATION_EXECUTED: 'destination_executed',
+  SUCCESS: 'success',
   FAILED: 'failed',
 };
 
