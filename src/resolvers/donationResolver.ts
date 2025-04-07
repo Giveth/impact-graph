@@ -693,6 +693,7 @@ export class DonationResolver {
     const query = this.donationRepository
       .createQueryBuilder('donation')
       .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
       .leftJoinAndSelect('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .leftJoinAndSelect('donation.earlyAccessRound', 'earlyAccessRound')
@@ -889,7 +890,9 @@ export class DonationResolver {
       let donationStatus = DONATION_STATUS.PENDING;
       if (swapData) {
         swapTransaction = await SwapTransaction.create({
-          ...(swapData.squidRequestId && { squidRequestId: swapData.squidRequestId }),
+          ...(swapData.squidRequestId && {
+            squidRequestId: swapData.squidRequestId,
+          }),
           firstTxHash: swapData.firstTxHash,
           fromChainId: swapData.fromChainId,
           toChainId: swapData.toChainId,
