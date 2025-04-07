@@ -725,7 +725,8 @@ export class DonationResolver {
 
   @Mutation(_returns => Number)
   async createDonation(
-    @Arg('amount') amount: number,
+    @Arg('amount') amount: number, //amount in POl
+    @Arg('toTokenAmount') toTokenAmount: number,
     @Arg('transactionId', { nullable: true }) transactionId: string,
     @Arg('transactionNetworkId') transactionNetworkId: number,
     @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
@@ -777,6 +778,7 @@ export class DonationResolver {
       });
 
       const validaDataInput = {
+        toTokenAmount,
         amount,
         transactionId,
         transactionNetworkId: networkId,
@@ -910,6 +912,7 @@ export class DonationResolver {
 
       const donationData = {
         amount: Number(amount),
+        toTokenAmount: Number(toTokenAmount),
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
         transactionNetworkId: networkId,
