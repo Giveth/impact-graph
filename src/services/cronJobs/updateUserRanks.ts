@@ -1,7 +1,7 @@
 import { schedule } from 'node-cron';
 import { logger } from '../../utils/logger';
 import config from '../../config';
-import { User } from '../../entities/user';
+import { AppDataSource } from '../../orm';
 
 const cronJobTime =
   (config.get('UPDATE_USERS_RANKS_CRONJOB_EXPRESSION') as string) ||
@@ -18,17 +18,12 @@ export const runUpdateUserRanksCronJob = () => {
 
 async function updateUserRanks() {
   try {
-    await User.query(`
-            WITH ranked_users AS (
-              SELECT id, RANK() OVER (ORDER BY "qaccPoints" DESC) as rank
-              FROM "user"
-            )
-            UPDATE "user"
-            SET rank = ranked_users.rank
-            FROM ranked_users
-            WHERE "user".id = ranked_users.id;
-          `);
-    logger.info('User ranks updated successfully');
+    await AppDataSource.getDataSource().query(
+      `
+         REFRESH MATERIALIZED VIEW user_ranks_materialized_view
+        `,
+    );
+    logger.info('User ranks materialized_view refreshed successfully');
   } catch (error) {
     logger.error('Error updating user ranks:', error);
   }

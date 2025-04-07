@@ -42,6 +42,7 @@ import {
   GITCOIN_PASSPORT_MIN_VALID_ANALYSIS_SCORE,
   GITCOIN_PASSPORT_MIN_VALID_SCORER_SCORE,
 } from '../constants/gitcoin';
+import { UserRankMaterializedView } from '../entities/userRanksMaterialized';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -316,7 +317,7 @@ export class UserResolver {
     })
     orderBy: SortUserBy,
   ) {
-    const [users, totalCount] = await User.findAndCount({
+    const [users, totalCount] = await UserRankMaterializedView.findAndCount({
       order: { [orderBy.field]: orderBy.direction },
       take,
       skip,
