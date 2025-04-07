@@ -1816,6 +1816,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
