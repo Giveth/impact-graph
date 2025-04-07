@@ -16,7 +16,7 @@ export const runUpdateUserRanksCronJob = () => {
   });
 };
 
-async function updateUserRanks() {
+export async function updateUserRanks() {
   try {
     await AppDataSource.getDataSource().query(
       `

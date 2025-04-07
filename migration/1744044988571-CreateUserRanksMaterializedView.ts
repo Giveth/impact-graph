@@ -5,7 +5,7 @@ export class CreateUserRanksMaterializedView1744044988571
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-        CREATE MATERIALIZED VIEW user_ranks_materialized_view AS
+        CREATE MATERIALIZED VIEW IF NOT EXISTS user_ranks_materialized_view AS
         SELECT 
             id, 
             "name", 

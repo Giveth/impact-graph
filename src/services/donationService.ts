@@ -59,6 +59,7 @@ import {
   QACC_DONATION_TOKEN_SYMBOL,
 } from '../constants/qacc';
 import { ApolloContext } from '../types/ApolloContext';
+import { updateUserRanks } from './cronJobs/updateUserRanks';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -316,6 +317,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     //   }
     // }
     await donation.save();
+    await updateUserRanks();
 
     // ONLY verified donations should be accumulated
     // After updating, recalculate user and project total donations
