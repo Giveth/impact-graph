@@ -58,6 +58,7 @@ export type UserStreamBalanceWarning =
 export enum UserOrderField {
   QaccPoints = 'qaccPoints',
   ProjectsFundedCount = 'projectsFundedCount',
+  Rank = 'rank',
 }
 
 @ObjectType()
