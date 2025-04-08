@@ -143,7 +143,7 @@ export const createDonationQueryValidator = Joi.object({
   useDonationBox: Joi.boolean(),
   relevantDonationTxHash: Joi.string().allow(null, ''),
   swapData: swapTransactionValidator.allow(null, ''),
-  fromTokenAmount: Joi.number().integer().allow(null),
+  fromTokenAmount: Joi.number().greater(0).allow(null),
 });
 
 export const createDraftDonationQueryValidator = Joi.object({
@@ -171,7 +171,7 @@ export const createDraftDonationQueryValidator = Joi.object({
   chainType: Joi.string().required(),
   useDonationBox: Joi.boolean(),
   relevantDonationTxHash: Joi.string().allow(null, ''),
-  fromTokenAmount: Joi.number().integer().allow(null),
+  fromTokenAmount: Joi.number().greater(0).allow(null),
 });
 
 export const updateDonationQueryValidator = Joi.object({

@@ -743,8 +743,8 @@ export class DonationResolver {
     @Arg('relevantDonationTxHash', { nullable: true })
     relevantDonationTxHash?: string,
     @Arg('swapData', { nullable: true }) swapData?: SwapTransactionInput,
-    donateTime = new Date(),
     @Arg('fromTokenAmount', { nullable: true }) fromTokenAmount?: number,
+    donateTime = new Date(),
   ): Promise<number> {
     const logData = {
       amount,
