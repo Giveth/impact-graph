@@ -1,25 +1,25 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddToTokenAmountMigration1744059552128
+export class AddFromTokenAmountMigration1744074957554
   implements MigrationInterface
 {
-  name = 'Migration1744059552128';
+  name = 'Migration1744074957554';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "donation" ADD "toTokenAmount" double precision`,
+      `ALTER TABLE "donation" ADD "fromTokenAmount" double precision`,
     );
     await queryRunner.query(
-      `ALTER TABLE "draft_donation" ADD "toTokenAmount" double precision`,
+      `ALTER TABLE "draft_donation" ADD "fromTokenAmount" double precision`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "draft_donation" DROP COLUMN "toTokenAmount"`,
+      `ALTER TABLE "draft_donation" DROP COLUMN "fromTokenAmount"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "donation" DROP COLUMN "toTokenAmount"`,
+      `ALTER TABLE "donation" DROP COLUMN "fromTokenAmount"`,
     );
   }
 }

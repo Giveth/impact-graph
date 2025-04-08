@@ -697,7 +697,6 @@ const ankrTransferHandler = async (transfer: TokenTransfer) => {
     // insert the donation
     const donationId = await getDonationResolver().createDonation(
       +transfer.value,
-      0,
       txHash,
       QACC_NETWORK_ID,
       QACC_DONATION_TOKEN_ADDRESS,
@@ -716,6 +715,7 @@ const ankrTransferHandler = async (transfer: TokenTransfer) => {
       undefined, // relevant donation tx hash
       undefined, // swapData
       new Date(transfer.timestamp * 1000),
+      undefined, //fromTokenAmount
     );
 
     await Donation.update(Number(donationId), {

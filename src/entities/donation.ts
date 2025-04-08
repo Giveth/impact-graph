@@ -143,9 +143,9 @@ export class Donation extends BaseEntity {
   @Column({ type: 'float' })
   amount: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ type: 'float', nullable: true })
-  toTokenAmount: number;
+  fromTokenAmount?: number;
 
   @Field({ nullable: true })
   @Column({ type: 'float', nullable: true })

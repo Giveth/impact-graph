@@ -95,7 +95,6 @@ const swapTransactionValidator = Joi.object({
 });
 
 export const createDonationQueryValidator = Joi.object({
-  toTokenAmount: Joi.number()?.greater(0),
   amount: Joi.number()?.greater(0).required(),
   transactionId: Joi.when('safeTransactionId', {
     is: Joi.any().empty(),
@@ -144,10 +143,10 @@ export const createDonationQueryValidator = Joi.object({
   useDonationBox: Joi.boolean(),
   relevantDonationTxHash: Joi.string().allow(null, ''),
   swapData: swapTransactionValidator.allow(null, ''),
+  fromTokenAmount: Joi.number().integer().allow(null),
 });
 
 export const createDraftDonationQueryValidator = Joi.object({
-  toTokenAmount: Joi.number()?.greater(0),
   amount: Joi.number()?.greater(0).required(),
   networkId: Joi.number()
     .required()
@@ -172,6 +171,7 @@ export const createDraftDonationQueryValidator = Joi.object({
   chainType: Joi.string().required(),
   useDonationBox: Joi.boolean(),
   relevantDonationTxHash: Joi.string().allow(null, ''),
+  fromTokenAmount: Joi.number().integer().allow(null),
 });
 
 export const updateDonationQueryValidator = Joi.object({

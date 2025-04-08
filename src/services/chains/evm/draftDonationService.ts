@@ -263,7 +263,6 @@ async function submitMatchedDraftDonation(
     );
     const donationId = await getDonationResolver().createDonation(
       amount,
-      0,
       tx.hash,
       networkId,
       tokenAddress,
@@ -283,6 +282,7 @@ async function submitMatchedDraftDonation(
       undefined, // swapData
 
       new Date(+tx.timeStamp * 1000),
+      undefined, //fromTokenAmount
     );
 
     await Donation.update(Number(donationId), {
