@@ -280,9 +280,8 @@ async function submitMatchedDraftDonation(
       undefined, // use donationBox
       undefined, // relevant donation tx hash
       undefined, // swapData
-
-      new Date(+tx.timeStamp * 1000),
       undefined, //fromTokenAmount
+      new Date(+tx.timeStamp * 1000),
     );
 
     await Donation.update(Number(donationId), {
