@@ -7,10 +7,10 @@ export class AddFromTokenAmountMigration1744074957554
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "donation" ADD "fromTokenAmount" double precision`,
+      `ALTER TABLE "donation" ADD "fromTokenAmount" double precision NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "draft_donation" ADD "fromTokenAmount" double precision`,
+      `ALTER TABLE "draft_donation" ADD "fromTokenAmount" double precision NULL`,
     );
   }
 

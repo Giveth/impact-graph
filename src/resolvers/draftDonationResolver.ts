@@ -50,7 +50,7 @@ export class DraftDonationResolver {
     useDonationBox?: boolean,
     @Arg('relevantDonationTxHash', { nullable: true })
     relevantDonationTxHash?: string,
-    @Arg('fromTokenAmount') fromTokenAmount?: number,
+    @Arg('fromTokenAmount', { nullable: true }) fromTokenAmount?: number,
   ): Promise<number> {
     const logData = {
       amount,
