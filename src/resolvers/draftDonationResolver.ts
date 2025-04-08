@@ -36,6 +36,7 @@ export class DraftDonationResolver {
   async createDraftDonation(
     // TODO we should change it to bigInt in both backend and frontend to not round numbers
     @Arg('amount') amount: number,
+
     @Arg('networkId') networkId: number,
     @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
     @Arg('anonymous', { nullable: true }) anonymous: boolean,
@@ -49,6 +50,7 @@ export class DraftDonationResolver {
     useDonationBox?: boolean,
     @Arg('relevantDonationTxHash', { nullable: true })
     relevantDonationTxHash?: string,
+    @Arg('fromTokenAmount', { nullable: true }) fromTokenAmount?: number,
   ): Promise<number> {
     const logData = {
       amount,
@@ -93,6 +95,7 @@ export class DraftDonationResolver {
         chainType,
         useDonationBox,
         relevantDonationTxHash,
+        fromTokenAmount,
       };
       try {
         validateWithJoiSchema(
@@ -135,6 +138,7 @@ export class DraftDonationResolver {
         .insert()
         .values({
           amount: Number(amount),
+          fromTokenAmount: Number(fromTokenAmount),
           networkId: _networkId,
           currency: token,
           userId: donorUser.id,

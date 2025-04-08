@@ -80,6 +80,10 @@ export class DraftDonation extends BaseEntity {
   @Column({ type: 'real' })
   amount: number;
 
+  @Field({ nullable: true })
+  @Column({ type: 'float', nullable: true })
+  fromTokenAmount?: number;
+
   @Field()
   @Column({ nullable: true })
   projectId: number;

@@ -717,6 +717,7 @@ const ankrTransferHandler = async (transfer: TokenTransfer) => {
       undefined, // relevant donation tx hash
       undefined, // swapData
       new Date(transfer.timestamp * 1000),
+      undefined, //fromTokenAmount
     );
 
     await Donation.update(Number(donationId), {

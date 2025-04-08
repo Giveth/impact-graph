@@ -282,6 +282,7 @@ async function submitMatchedDraftDonation(
       undefined, // swapData
 
       new Date(+tx.timeStamp * 1000),
+      undefined, //fromTokenAmount
     );
 
     await Donation.update(Number(donationId), {

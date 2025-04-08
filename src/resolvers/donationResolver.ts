@@ -725,7 +725,7 @@ export class DonationResolver {
 
   @Mutation(_returns => Number)
   async createDonation(
-    @Arg('amount') amount: number,
+    @Arg('amount') amount: number, //amount in POl
     @Arg('transactionId', { nullable: true }) transactionId: string,
     @Arg('transactionNetworkId') transactionNetworkId: number,
     @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
@@ -744,6 +744,7 @@ export class DonationResolver {
     relevantDonationTxHash?: string,
     @Arg('swapData', { nullable: true }) swapData?: SwapTransactionInput,
     donateTime = new Date(),
+    @Arg('fromTokenAmount', { nullable: true }) fromTokenAmount?: number,
   ): Promise<number> {
     const logData = {
       amount,
@@ -791,6 +792,7 @@ export class DonationResolver {
         chainType,
         useDonationBox,
         relevantDonationTxHash,
+        fromTokenAmount,
       };
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
@@ -910,6 +912,7 @@ export class DonationResolver {
 
       const donationData = {
         amount: Number(amount),
+        fromTokenAmount: Number(fromTokenAmount),
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
         transactionNetworkId: networkId,
