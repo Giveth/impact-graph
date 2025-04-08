@@ -70,7 +70,6 @@ import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
 import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
-import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncUsersModelScore';
 
 Resource.validate = validate;
 
@@ -371,11 +370,6 @@ export async function bootstrap() {
     if (process.env.PROJECT_REVOKE_SERVICE_ACTIVE === 'true') {
       runCheckProjectVerificationStatus();
     }
-
-    // If we need to deactivate the process use the env var NO MORE
-    // if (process.env.SYNC_USERS_MBD_SCORE_ACTIVE === 'true') {
-    runCheckPendingUserModelScoreCronjob();
-    // }
 
     // if (process.env.SITEMAP_CRON_SECRET !== '') {
     //   runGenerateSitemapOnFrontend();

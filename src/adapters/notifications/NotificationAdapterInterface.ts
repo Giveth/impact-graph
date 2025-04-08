@@ -34,7 +34,7 @@ export interface OrttoPerson {
 }
 
 export interface NotificationAdapterInterface {
-  subscribeOnboarding(params: { email: string }): Promise<void>;
+  subscribeOnboarding(params: { email: string }): Promise<boolean>;
 
   createOrttoProfile(params: User): Promise<void>;
 

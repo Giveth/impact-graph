@@ -115,6 +115,8 @@ jobs:
           SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
           MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
           GIV_POWER_SUBGRAPH_URL: ${{ secrets.GIV_POWER_SUBGRAPH_URL }}
+          VERIFY_RIGHT_URL: ${{ secrets.VERIFY_RIGHT_URL }}
+          VERIFY_RIGHT_TOKEN: ${{ secrets.VERIFY_RIGHT_TOKEN }}
 
   publish:
     needs: test
