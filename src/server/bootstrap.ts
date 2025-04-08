@@ -70,6 +70,7 @@ import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
 import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
+import { runCheckPendingUserModelScoreCronjob } from '../services/cronJobs/syncUsersModelScore';
 
 Resource.validate = validate;
 
