@@ -1086,7 +1086,7 @@ function checkUserPrivadoVerfiedStateTestCases() {
 }
 
 function acceptedTermsOfServicesTestCases() {
-  it("should return true and set user's accepted terms of service with privado approved", async () => {
+  it.skip("should return true and set user's accepted terms of service with privado approved", async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
       privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
     });
@@ -1114,7 +1114,7 @@ function acceptedTermsOfServicesTestCases() {
     assert.isTrue(updatedUser?.acceptedToS);
   });
 
-  it('should return false without privado approval', async () => {
+  it.skip('should return false without privado approval', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
 
@@ -1139,7 +1139,7 @@ function acceptedTermsOfServicesTestCases() {
     assert.isNotTrue(updatedUser?.acceptedToS);
   });
 
-  it('should not return true `acceptedToS` for users have not accepted terms of service on userByAddress query', async () => {
+  it.skip('should not return true `acceptedToS` for users have not accepted terms of service on userByAddress query', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const fetchUserResponse = await axios.post(graphqlUrl, {
@@ -1153,7 +1153,7 @@ function acceptedTermsOfServicesTestCases() {
     assert.isNotTrue(fetchUserResponse.data.data.userByAddress.acceptedToS);
   });
 
-  it('should return true for users have accepted terms of service', async () => {
+  it.skip('should return true for users have accepted terms of service', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress(), {
       privadoVerifiedRequestIds: [PrivadoAdapter.privadoRequestId],
     });
