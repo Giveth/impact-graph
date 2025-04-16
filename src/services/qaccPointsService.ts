@@ -40,7 +40,7 @@ export const addQaccPointsForDonation = async (donation: Donation) => {
     if (userProjectCount >= 10) {
       multiplier = 3;
     }
-    if (totalProjectsCount > 10 && userProjectCount === totalProjectsCount) {
+    if (userProjectCount >= totalProjectsCount) {
       multiplier = 5;
     }
 
