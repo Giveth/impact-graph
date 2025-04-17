@@ -1,17 +1,19 @@
 /* eslint-disable no-console */
 import fs from 'fs-extra';
+import { ethers } from 'ethers';
 import {
-  SIX_MONTH_IN_SEC_182,
-  streamCliff,
-  streamEndDate,
+  streamCliffForQacc,
   streamEndDateForQacc,
-  streamStartDate,
   streamStartDateForQacc,
+  ONE_MONTH_IN_SEC,
+  initialSupplyOfFirstSeasonProjects,
 } from './configs';
 import { AppDataSource } from '../orm';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { QfRound } from '../entities/qfRound';
-
+import { Project } from '../entities/project';
+import bondingCurveABI from '../abi/bondingCurveABI';
+import { getProvider, QACC_NETWORK_ID } from '../provider';
 // Function to ensure directory exists or create it
 export function ensureDirectoryExists(dirPath: string) {
   if (!fs.existsSync(dirPath)) {
@@ -27,11 +29,52 @@ export function toScreamingSnakeCase(str: string): string {
     .replace(/[^A-Z0-9_]/g, ''); // Remove non-alphanumeric characters except underscores
 }
 
-export function getStreamDetails(isEarlyAccess: boolean) {
+export function getStreamDetails(project: Project, seasonNumber: number) {
   return {
-    START: isEarlyAccess ? streamStartDate : streamStartDateForQacc,
-    CLIFF: isEarlyAccess ? streamCliff : SIX_MONTH_IN_SEC_182,
-    END: isEarlyAccess ? streamEndDate : streamEndDateForQacc,
+    START: streamStartDateForQacc,
+    CLIFF:
+      seasonNumber === project.seasonNumber
+        ? streamCliffForQacc
+        : streamCliffForQacc -
+          (project.seasonNumber! - seasonNumber) * ONE_MONTH_IN_SEC,
+    END:
+      seasonNumber === project.seasonNumber
+        ? streamEndDateForQacc
+        : streamEndDateForQacc -
+          (project.seasonNumber! - seasonNumber) * 2 * ONE_MONTH_IN_SEC,
+  };
+}
+
+export async function getLimitsForProject(project: Project, round: QfRound) {
+  let currentlyRecivedFounds = 0;
+
+  if (project.seasonNumber === 1) {
+    const bondingCurveContract = new ethers.Contract(
+      project.abc.fundingManagerAddress,
+      bondingCurveABI,
+      getProvider(QACC_NETWORK_ID),
+    );
+    const currentVirtualCollateralSupply: bigint =
+      await bondingCurveContract.getVirtualCollateralSupply();
+    const currentVirtualCollateralSupplyInPOL = ethers.utils.formatEther(
+      currentVirtualCollateralSupply,
+    );
+    currentlyRecivedFounds =
+      Number(currentVirtualCollateralSupplyInPOL) -
+      initialSupplyOfFirstSeasonProjects;
+  }
+  return {
+    INDIVIDUAL: (round.roundPOLCapPerUserPerProject || '5000').toString(), // Default to 5000 for individual cap
+    INDIVIDUAL_2: (
+      round.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly || '1000'
+    ).toString(), // Only required for QACC rounds if for users with GP score only
+    TOTAL: (
+      Number(round.roundPOLCapPerProject || '1000000') - currentlyRecivedFounds
+    ).toString(), // Default to 1000000 for total limit
+    TOTAL_2: (
+      Number(round.roundPOLCloseCapPerProject || '1050000') -
+      currentlyRecivedFounds
+    ).toString(), // Only required for QACC rounds
   };
 }
 
@@ -77,4 +120,39 @@ export async function getRoundByBatchNumber(batchNumber: number) {
   }
 
   return { round, isEarlyAccess };
+}
+
+export function getProjectNameBasedOnSeasonNumber(project: Project) {
+  let screamingSnakeCaseTitle = toScreamingSnakeCase(project.title);
+  if (project.seasonNumber && project.seasonNumber < 2) {
+    screamingSnakeCaseTitle = `${screamingSnakeCaseTitle}_2`;
+  }
+  return screamingSnakeCaseTitle;
+}
+
+export async function getRoundBySeasonNumberAndBatchNumber(
+  seasonNumber: number,
+  batchNumber: number,
+) {
+  const datasource = AppDataSource.getDataSource();
+  const qfRoundRepository = datasource.getRepository(QfRound);
+
+  const qfRounds = await qfRoundRepository.find({
+    where: { seasonNumber },
+  });
+
+  if (qfRounds.length > 1) {
+    const sortedQfRounds = qfRounds.sort(
+      (a, b) => (a.roundNumber ?? 0) - (b.roundNumber ?? 0),
+    );
+    const round = sortedQfRounds[batchNumber - 1];
+    if (!round) {
+      throw new Error(
+        `No QF round found for season number ${seasonNumber} and batch number ${batchNumber}`,
+      );
+    }
+    return round;
+  }
+
+  return qfRounds[0];
 }

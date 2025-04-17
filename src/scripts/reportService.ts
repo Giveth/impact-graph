@@ -6,7 +6,7 @@ import config from '../config';
 
 const mongoUri = config.get('MONGO_DB_URI') as string;
 const dbName = config.get('MONGO_DB_REPORT_DB_NAME') as string;
-const collectionName = 'reports';
+const collectionName = 'reportsForSeason2';
 
 // Function to save all reports in the MongoDB
 export async function saveReportsToDB(outputFolderPath: string) {

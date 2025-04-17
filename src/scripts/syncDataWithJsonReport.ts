@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import path from 'path';
-import _ from 'lodash';
 import { ethers } from 'ethers';
 import fs from 'fs-extra';
 import { Donation } from '../entities/donation';
@@ -36,6 +35,7 @@ function getAllReportFiles(dirPath: string) {
 async function processReportForDonations(
   donations: Donation[],
   reportData: any,
+  seasonNumber: number,
 ) {
   try {
     const participants = reportData.batch.data.participants;
@@ -99,8 +99,7 @@ async function processReportForDonations(
         }
         donation.rewardTokenAmount = rewardAmount || 0;
 
-        const isEarlyAccessRound = reportData.batch.config.isEarlyAccess;
-        const vestingInfo = getStreamDetails(isEarlyAccessRound);
+        const vestingInfo = getStreamDetails(donation.project, seasonNumber);
 
         donation.cliff = vestingInfo.CLIFF * 1000;
         donation.rewardStreamStart = new Date(vestingInfo.START * 1000);
@@ -123,74 +122,73 @@ async function processReportForDonations(
   }
 }
 
-export async function updateRewardsForDonations(batchNumber: number) {
+export async function updateRewardsForDonationsOfProject(
+  seasonNumber: number,
+  batchNumber: number,
+  projectId: number,
+) {
   try {
     const datasource = AppDataSource.getDataSource();
     const donationRepository = datasource.getRepository(Donation);
     const donations = await donationRepository.find({
-      where: [
-        { rewardStreamEnd: undefined },
-        { rewardStreamStart: undefined },
-        { rewardTokenAmount: undefined },
-      ],
+      where: {
+        projectId,
+        rewardStreamEnd: undefined,
+        rewardStreamStart: undefined,
+        rewardTokenAmount: undefined,
+      },
     });
-
-    const donationsByProjectId = _.groupBy(donations, 'projectId');
 
     const allReportFiles = getAllReportFiles(reportFilesDir);
 
-    for (const projectId of Object.keys(donationsByProjectId)) {
-      console.debug(`Start processing project ${projectId} for donations.`);
+    console.debug(`Start processing project ${projectId} for donations.`);
 
-      const project = await Project.findOne({
-        where: { id: Number(projectId) },
-      });
-      if (!project || !project.abc?.orchestratorAddress) {
-        console.error(
-          `Project or orchestratorAddress not found for project ${projectId}!`,
-        );
-        continue;
-      }
+    const project = await Project.findOne({
+      where: { id: Number(projectId) },
+    });
+    if (!project || !project.abc?.orchestratorAddress) {
+      console.error(
+        `Project or orchestratorAddress not found for project ${projectId}!`,
+      );
+      return;
+    }
 
-      // Look for matching report files based on orchestrator address
-      let matchedReportFile = null;
-      for (const reportFilePath of allReportFiles) {
-        const fileName = path.basename(reportFilePath);
+    // Look for matching report files based on orchestrator address
+    let matchedReportFile = null;
+    for (const reportFilePath of allReportFiles) {
+      const fileName = path.basename(reportFilePath);
 
-        if (fileName.endsWith(`${batchNumber}.json`)) {
-          const reportData = await loadReportFile(reportFilePath);
-          if (!reportData) continue;
+      if (fileName.endsWith(`${batchNumber}.json`)) {
+        const reportData = await loadReportFile(reportFilePath);
+        if (!reportData) continue;
 
-          const reportOrchestratorAddress =
-            reportData.queries?.addresses?.orchestrator?.toLowerCase();
-          if (
-            reportOrchestratorAddress ===
-            project.abc.orchestratorAddress.toLowerCase()
-          ) {
-            matchedReportFile = reportData;
-            break;
-          }
+        const reportOrchestratorAddress =
+          reportData.queries?.addresses?.orchestrator?.toLowerCase();
+        if (
+          reportOrchestratorAddress ===
+          project.abc.orchestratorAddress.toLowerCase()
+        ) {
+          matchedReportFile = reportData;
+          break;
         }
       }
-
-      if (!matchedReportFile) {
-        console.error(
-          `No matching report found for project with orchestrator address ${project.abc.orchestratorAddress}, for batch number ${batchNumber}`,
-        );
-        continue;
-      }
-
-      await updateNumberOfBatchMintingTransactionsForProject(
-        project,
-        matchedReportFile,
-        batchNumber,
-      );
-
-      await processReportForDonations(
-        donationsByProjectId[projectId],
-        matchedReportFile,
-      );
     }
+
+    if (!matchedReportFile) {
+      console.error(
+        `No matching report found for project with orchestrator address ${project.abc.orchestratorAddress}, for batch number ${batchNumber}`,
+      );
+      return;
+    }
+
+    await updateNumberOfBatchMintingTransactionsForProject(
+      project,
+      matchedReportFile,
+      seasonNumber,
+      batchNumber,
+    );
+
+    await processReportForDonations(donations, matchedReportFile, seasonNumber);
   } catch (error) {
     console.error(`Error updating rewards for donations`, error);
   }
@@ -199,16 +197,18 @@ export async function updateRewardsForDonations(batchNumber: number) {
 async function updateNumberOfBatchMintingTransactionsForProject(
   project: Project,
   reportData: any,
+  seasonNumber: number,
   batchNumber: number,
 ) {
   const transactions = reportData.safe.proposedTransactions;
+  const numberToSave = seasonNumber * 100 + batchNumber; // example: 101 for season 1, batch 1
   if (transactions.length > 0) {
     if (!project.batchNumbersWithSafeTransactions) {
-      project.batchNumbersWithSafeTransactions = [batchNumber];
+      project.batchNumbersWithSafeTransactions = [numberToSave];
     } else if (
-      !project.batchNumbersWithSafeTransactions.includes(batchNumber)
+      !project.batchNumbersWithSafeTransactions.includes(numberToSave)
     ) {
-      project.batchNumbersWithSafeTransactions.push(batchNumber);
+      project.batchNumbersWithSafeTransactions.push(numberToSave);
     } else {
       return;
     }
