@@ -10,7 +10,7 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, MoreThan, Repository } from 'typeorm';
 
 import moment from 'moment';
 import { User, UserOrderField } from '../entities/user';
@@ -316,8 +316,15 @@ export class UserResolver {
       },
     })
     orderBy: SortUserBy,
+    @Arg('walletAddress', _type => String, { nullable: true })
+    walletAddress?: string,
   ) {
+    const whereCondition: any = { qaccPoints: MoreThan(0) };
+    if (walletAddress) {
+      whereCondition.walletAddress = walletAddress;
+    }
     const [users, totalCount] = await UserRankMaterializedView.findAndCount({
+      where: whereCondition,
       order: { [orderBy.field]: orderBy.direction },
       take,
       skip,
