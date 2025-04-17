@@ -2244,17 +2244,19 @@ query getQaccPointsHistory {
 }
 `;
 
-export const getUsersByQaccPoints = `query ( $take: Int,$skip:Int,$orderBy:SortUserBy) {
+export const getUsersByQaccPoints = `query ( $take: Int,$skip:Int,$orderBy:SortUserBy,$walletAddress:String) {
   getUsersByQaccPoints(
     take: $take
     skip:$skip
     orderBy:$orderBy
+    walletAddress:$walletAddress
   ){
     users{
    id
     name
     email
     qaccPoints
+    walletAddress
     qaccPointsMultiplier
     projectsFundedCount
     }
