@@ -2,6 +2,7 @@
 import path from 'path';
 import { ethers } from 'ethers';
 import fs from 'fs-extra';
+import { IsNull } from 'typeorm';
 import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import { AppDataSource } from '../orm';
@@ -133,9 +134,9 @@ export async function updateRewardsForDonationsOfProject(
     const donations = await donationRepository.find({
       where: {
         projectId,
-        rewardStreamEnd: undefined,
-        rewardStreamStart: undefined,
-        rewardTokenAmount: undefined,
+        rewardStreamEnd: IsNull(),
+        rewardStreamStart: IsNull(),
+        rewardTokenAmount: IsNull(),
       },
     });
 

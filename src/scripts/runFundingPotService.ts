@@ -336,10 +336,10 @@ async function main() {
       (await getFirstRoundThatNeedExecuteBatchMinting()).batchNumber;
     console.info('Batch number is:', batchNumber);
 
-    const dryRun = Boolean(process.argv[5]) || false;
+    const dryRun = (process.argv[5] ?? '').toLowerCase() === 'true';
     console.info('Dry run is:', dryRun);
 
-    const isLastProject = Boolean(process.argv[6]) || false;
+    const isLastProject = (process.argv[6] ?? '').toLowerCase() === 'true';
     console.info('Is last project is:', isLastProject);
 
     // Step 3

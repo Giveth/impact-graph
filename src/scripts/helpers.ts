@@ -46,7 +46,7 @@ export function getStreamDetails(project: Project, seasonNumber: number) {
 }
 
 export async function getLimitsForProject(project: Project, round: QfRound) {
-  let currentlyRecivedFounds = 0;
+  let currentlyRecivedFunds = 0;
 
   if (project.seasonNumber === 1) {
     const bondingCurveContract = new ethers.Contract(
@@ -59,7 +59,7 @@ export async function getLimitsForProject(project: Project, round: QfRound) {
     const currentVirtualCollateralSupplyInPOL = ethers.utils.formatEther(
       currentVirtualCollateralSupply,
     );
-    currentlyRecivedFounds =
+    currentlyRecivedFunds =
       Number(currentVirtualCollateralSupplyInPOL) -
       initialSupplyOfFirstSeasonProjects;
   }
@@ -69,11 +69,11 @@ export async function getLimitsForProject(project: Project, round: QfRound) {
       round.roundPOLCapPerUserPerProjectWithGitcoinScoreOnly || '1000'
     ).toString(), // Only required for QACC rounds if for users with GP score only
     TOTAL: (
-      Number(round.roundPOLCapPerProject || '1000000') - currentlyRecivedFounds
+      Number(round.roundPOLCapPerProject || '1000000') - currentlyRecivedFunds
     ).toString(), // Default to 1000000 for total limit
     TOTAL_2: (
       Number(round.roundPOLCloseCapPerProject || '1050000') -
-      currentlyRecivedFounds
+      currentlyRecivedFunds
     ).toString(), // Only required for QACC rounds
   };
 }
@@ -140,6 +140,12 @@ export async function getRoundBySeasonNumberAndBatchNumber(
   const qfRounds = await qfRoundRepository.find({
     where: { seasonNumber },
   });
+
+  if (qfRounds.length === 0) {
+    throw new Error(
+      `No QF round found for season number ${seasonNumber} and batch number ${batchNumber}`,
+    );
+  }
 
   if (qfRounds.length > 1) {
     const sortedQfRounds = qfRounds.sort(
