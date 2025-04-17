@@ -36,6 +36,7 @@ function getAllReportFiles(dirPath: string) {
 async function processReportForDonations(
   donations: Donation[],
   reportData: any,
+  project: Project,
   seasonNumber: number,
 ) {
   try {
@@ -100,7 +101,7 @@ async function processReportForDonations(
         }
         donation.rewardTokenAmount = rewardAmount || 0;
 
-        const vestingInfo = getStreamDetails(donation.project, seasonNumber);
+        const vestingInfo = getStreamDetails(project, seasonNumber);
 
         donation.cliff = vestingInfo.CLIFF * 1000;
         donation.rewardStreamStart = new Date(vestingInfo.START * 1000);
@@ -189,7 +190,12 @@ export async function updateRewardsForDonationsOfProject(
       batchNumber,
     );
 
-    await processReportForDonations(donations, matchedReportFile, seasonNumber);
+    await processReportForDonations(
+      donations,
+      matchedReportFile,
+      project,
+      seasonNumber,
+    );
   } catch (error) {
     console.error(`Error updating rewards for donations`, error);
   }
