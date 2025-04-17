@@ -1,14 +1,14 @@
 import path from 'path';
 
-export const streamStartDate = 1730196000; // Oct 29, 2024, 10am GMT
-// Des 20th 2024, 10am GMT
-export const streamStartDateForQacc = 1734688800; // Dec 20, 2024, 10am GMT
+export const collectionName = 'reportsForSeason2';
+export const streamStartDateForQacc = 1744847390; // TODO: update this for production
+export const streamEndDateForQacc = 1776383390; // TODO: update this for production
 // 182 days is sec
-export const SIX_MONTH_IN_SEC_182 = 15724800;
-export const streamEndDate = 1793268000; // Oct 29, 2026, 10am GMT
-// Des 20th 2025, 10am GMT
-export const streamEndDateForQacc = 1766224800; // Dec 20, 2025, 10am GMT
-export const streamCliff = 31536000; // 1 year in secs = 365 * 24 * 60 * 60
+export const streamCliffForQacc = 15724800;
+// 30 days is sec
+export const ONE_MONTH_IN_SEC = 2592000;
+
+export const initialSupplyOfFirstSeasonProjects = 250000; // 250k POL // TODO: update this for production
 
 // The URL of the GitHub repository containing the reports
 export const repoUrl = 'https://github.com/InverterNetwork/funding-pot.git';

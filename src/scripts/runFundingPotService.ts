@@ -8,16 +8,17 @@ import config from '../config';
 import { Project } from '../entities/project';
 import { AppDataSource } from '../orm';
 import {
-  toScreamingSnakeCase,
   ensureDirectoryExists,
   getStreamDetails,
-  getRoundByBatchNumber,
+  getRoundBySeasonNumberAndBatchNumber,
+  getProjectNameBasedOnSeasonNumber,
+  getLimitsForProject,
 } from './helpers';
 import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { findAllEarlyAccessRounds } from '../repositories/earlyAccessRoundRepository';
 import { findQfRounds } from '../repositories/qfRoundRepository';
-import { updateRewardsForDonations } from './syncDataWithJsonReport';
-import { restoreReportsFromDB, saveReportsToDB } from './reportService';
+import { updateRewardsForDonationsOfProject } from './syncDataWithJsonReport';
+import { saveReportsToDB } from './reportService';
 
 // Attention: the configs of batches should be saved in the funding pot repo
 // this script pulls the latest version of funding pot service,
@@ -35,105 +36,41 @@ async function pullLatestVersionOfFundingPot() {
   }
 }
 
-async function generateBatchFile(batchNumber: number, dryRun: boolean) {
-  console.info(`Generating batch config for batch number: ${batchNumber}`);
-  const { round, isEarlyAccess } = await getRoundByBatchNumber(batchNumber);
-  if (!isEarlyAccess) {
-    round.startDate = round.beginDate;
-  }
-
-  const now = new Date();
-  const offsetSecs = now.getTimezoneOffset() * 60;
-
-  const batchConfig = {
-    TIMEFRAME: {
-      FROM_TIMESTAMP:
-        Math.floor(new Date(round.startDate).getTime() / 1000) - offsetSecs, // Convert to timestamp
-      TO_TIMESTAMP:
-        Math.floor(new Date(round.endDate).getTime() / 1000) - offsetSecs,
-    },
-    VESTING_DETAILS: getStreamDetails(isEarlyAccess),
-    LIMITS: {
-      INDIVIDUAL: (
-        (isEarlyAccess
-          ? round.cumulativeUSDCapPerUserPerProject
-          : round.roundUSDCapPerUserPerProject) || '5000'
-      ).toString(), // Default to 5000 for individual cap
-      INDIVIDUAL_2: isEarlyAccess
-        ? '0'
-        : (
-            round.roundUSDCapPerUserPerProjectWithGitcoinScoreOnly || '1000'
-          ).toString(), // Only required for QACC rounds if for users with GP score only
-      TOTAL: (
-        (isEarlyAccess
-          ? round.cumulativeUSDCapPerProject
-          : round.roundUSDCapPerProject) || '100000'
-      ).toString(), // Default to 100000 for total limit
-      TOTAL_2: isEarlyAccess
-        ? '0'
-        : (round.roundUSDCloseCapPerProject || '1050000').toString(), // Only required for QACC rounds
-    },
-    IS_EARLY_ACCESS: isEarlyAccess, // Set based on the round type
-    PRICE: '1',
-    ONLY_REPORT: dryRun, // If we set this flag, only report will be generated and no transactions propose to the safes
-  };
-
-  const batchFilePath = path.join(
-    repoLocalDir,
-    'data',
-    'production',
-    'input',
-    'batches',
-    `${batchNumber}.json`,
-  );
-
-  // Ensure the directory exists
-  ensureDirectoryExists(path.dirname(batchFilePath));
-
-  // Write the batch data to the {batchNumber}.json file
-  await fs.writeJson(batchFilePath, batchConfig, { spaces: 2 });
-
-  console.info(`Batch config successfully written to ${batchFilePath}`);
-
-  const outputFilePath = path.join(
-    repoLocalDir,
-    'data',
-    'production',
-    'output',
-    '.keep',
-  );
-
-  // create output directory for reports
-  ensureDirectoryExists(path.dirname(outputFilePath));
-}
-
-async function fillProjectsData() {
+async function fillInputData(
+  seasonNumber: number,
+  projectId: number,
+  batchNumber: number,
+  dryRun: boolean,
+) {
   console.info('Initialize the data source (database connection)...');
   await AppDataSource.initialize(false);
   console.info('Data source initialized.');
   const datasource = AppDataSource.getDataSource();
   const projectRepository = datasource.getRepository(Project);
+  console.info(
+    `Generating input data for season number: ${seasonNumber}, project id: ${projectId}, batch number: ${batchNumber}`,
+  );
 
-  const allProjects = await projectRepository.find();
+  const round = await getRoundBySeasonNumberAndBatchNumber(
+    seasonNumber,
+    batchNumber,
+  );
 
-  // Prepare the projects data in the required format
-  const projectsData = {};
-  allProjects.forEach(project => {
-    // Check if project has the required fields (orchestratorAddress, projectAddress, NFT)
-    if (project.abc) {
-      const screamingSnakeCaseTitle = toScreamingSnakeCase(project.title);
-      projectsData[screamingSnakeCaseTitle] = {
-        SAFE: project.abc.projectAddress || '',
-        ORCHESTRATOR: project.abc.orchestratorAddress || '',
-        NFT: project.abc.nftContractAddress || '',
-        MATCHING_FUNDS: project.matchingFunds?.toString() || '',
-      };
-    } else {
-      console.warn(
-        `Project ${project.id} does not have abc object. Skipping...`,
-      );
-    }
+  const now = new Date();
+  const offsetSecs = now.getTimezoneOffset() * 60;
+
+  const project = await projectRepository.findOne({
+    where: { id: projectId },
   });
+
+  if (!project) {
+    console.error(`Project ${projectId} does not exist!`);
+    process.exit();
+  }
+
+  const projectName = getProjectNameBasedOnSeasonNumber(project, seasonNumber);
+
+  console.log('project name is:', projectName);
 
   // Define the path to the projects.json file inside funding pot repo
   const filePath = path.join(
@@ -147,10 +84,55 @@ async function fillProjectsData() {
   // Ensure the directory exists
   ensureDirectoryExists(path.dirname(filePath));
 
+  let projectsData = {};
+  if (fs.existsSync(filePath)) {
+    projectsData = await fs.readJson(filePath);
+  }
+  if (project.abc) {
+    projectsData[projectName] = {
+      SAFE: project.abc.projectAddress || '',
+      ORCHESTRATOR: project.abc.orchestratorAddress || '',
+      NFT: '0x0000000000000000000000000000000000000000', // We don't have NFT for new projects as we don't have any Early Access Rounds
+      BATCH_CONFIGS: {
+        // Currently, we only have one batch config
+        1: {
+          TIMEFRAME: {
+            FROM_TIMESTAMP:
+              Math.floor(new Date(round.beginDate).getTime() / 1000) -
+              offsetSecs, // Convert to timestamp
+            TO_TIMESTAMP:
+              Math.floor(new Date(round.endDate).getTime() / 1000) - offsetSecs,
+          },
+          VESTING_DETAILS: getStreamDetails(project, seasonNumber),
+          LIMITS: await getLimitsForProject(project, round),
+          IS_EARLY_ACCESS: false, // Currently, we don't have early access rounds
+          PRICE: '1', // based on using the caps as POL amount, use 1 as price
+          ONLY_REPORT: dryRun, // If we set this flag, only report will be generated and no transactions propose to the safes
+          MATCHING_FUNDS: project.matchingFunds?.toString() || '0',
+        },
+      },
+    };
+  } else {
+    console.warn(`Project ${projectId} does not have abc object. Skipping...`);
+  }
+
   // Write the projects data to the projects.json file
   await fs.writeJson(filePath, projectsData, { spaces: 2 });
 
   console.info(`Projects data successfully written to ${filePath}`);
+
+  const outputFilePath = path.join(
+    repoLocalDir,
+    'data',
+    'production',
+    'output',
+    '.keep',
+  );
+
+  // create output directory for reports
+  ensureDirectoryExists(path.dirname(outputFilePath));
+
+  return projectName;
 }
 
 async function createEnvFile() {
@@ -178,7 +160,7 @@ async function createEnvFile() {
       .replace('ANKR_NETWORK_ID="base_sepolia"', 'ANKR_NETWORK_ID=polygon')
       .replace(
         'RPC_URL="https://sepolia.base.org"',
-        'RPC_URL="https://polygon.llamarpc.com"',
+        `RPC_URL="${config.get('POLYGON_MAINNET_NODE_HTTP_URL')}"`,
       )
       .replace('CHAIN_ID=84532', 'CHAIN_ID=137')
       .replace(
@@ -232,8 +214,13 @@ async function installDependencies() {
   await execShellCommand('npm install --loglevel=error', serviceDir);
 }
 
-async function runFundingPotService(batchNumber: number, dryRun?: boolean) {
-  const command = 'npm run all ' + batchNumber;
+async function runFundingPotService(
+  seasonNumber: number,
+  projectName: string,
+  batchNumber: number,
+  dryRun?: boolean,
+) {
+  const command = `npm run project ${seasonNumber} ${projectName} ${batchNumber}`;
   console.info(`Running "${command}" in ${serviceDir}...`);
   try {
     await execShellCommand(command, serviceDir);
@@ -320,8 +307,14 @@ async function getFirstRoundThatNeedExecuteBatchMinting() {
   };
 }
 
-async function setBatchMintingExecutionFlag(batchNumber: number) {
-  const { round } = await getRoundByBatchNumber(batchNumber);
+async function setBatchMintingExecutionFlag(
+  seasonNumber: number,
+  batchNumber: number,
+) {
+  const round = await getRoundBySeasonNumberAndBatchNumber(
+    seasonNumber,
+    batchNumber,
+  );
   round.isBatchMintingExecuted = true;
   await round.save();
 }
@@ -329,57 +322,78 @@ async function setBatchMintingExecutionFlag(batchNumber: number) {
 async function main() {
   try {
     // Step 0
+    console.info('Get season number from args...');
+    const seasonNumber = Number(process.argv[2]);
+    console.info('Season number is:', seasonNumber);
+
+    // Step 1
+    console.info('Get project id from args...');
+    const projectId = Number(process.argv[3]);
+    console.info('Project id is:', projectId);
+
+    // Step 2
     console.info('Get batch number from args or calculating it...');
     const batchNumber =
-      Number(process.argv[2]) ||
+      Number(process.argv[4]) ||
       (await getFirstRoundThatNeedExecuteBatchMinting()).batchNumber;
     console.info('Batch number is:', batchNumber);
 
-    const dryRun = Boolean(process.argv[3]) || false;
-    // Step 1
+    const dryRun = (process.argv[5] ?? '').toLowerCase() === 'true';
+    console.info('Dry run is:', dryRun);
+
+    const isLastProject = (process.argv[6] ?? '').toLowerCase() === 'true';
+    console.info('Is last project is:', isLastProject);
+
+    // Step 3
     console.info('Start pulling latest version of funding pot service...');
     await pullLatestVersionOfFundingPot();
     console.info('Funding pot service updates successfully.');
 
-    // Step 2
+    // Step 4
     console.info('Installing dependencies of funding pot service...');
     await installDependencies();
     console.info('Dependencies installed.');
 
-    // Step 3
-    console.info('Filling projects data in to the funding pot service...');
-    await fillProjectsData();
-    console.info('Projects data filled successfully.');
-
     // Step 5
-    console.info('Create batch config in the funding pot service...');
-    await generateBatchFile(batchNumber, dryRun);
-    console.info('Batch config created successfully.');
+    console.info('Filling input data in to the funding pot service...');
+    const projectName = await fillInputData(
+      seasonNumber,
+      projectId,
+      batchNumber,
+      dryRun,
+    );
+    console.info('Input data filled successfully.');
 
-    // Step 4
+    // Step 6
     console.info('Creating .env file for funding pot service...');
     await createEnvFile();
     console.info('Env file created successfully.');
 
-    // Step 5
-    console.info('Restoring previous report files...');
-    await restoreReportsFromDB(reportFilesDir);
-    console.info('Previous report files restored successfully!');
+    // Step 7
+    // console.info('Restoring previous report files...');
+    // await restoreReportsFromDB(reportFilesDir);
+    // console.info('Previous report files restored successfully!');
 
-    // Step 6
+    // Step 8
     console.info('Running funding pot service...');
-    await runFundingPotService(batchNumber, dryRun);
+    await runFundingPotService(seasonNumber, projectName, batchNumber, dryRun);
     console.info('Funding pot service executed successfully!');
 
-    // Step 7
+    // Step 9
     if (!dryRun) {
-      console.info('Setting batch minting execution flag in round data...');
-      await setBatchMintingExecutionFlag(batchNumber);
-      console.info('Batch minting execution flag set successfully.');
+      if (!isLastProject) {
+        console.info('Setting batch minting execution flag in round data...');
+        await setBatchMintingExecutionFlag(seasonNumber, batchNumber);
+        console.info('Batch minting execution flag set successfully.');
+      }
 
-      // Step 8
+      // Step 10
       console.info('Start Syncing reward data in donations...');
-      await updateRewardsForDonations(batchNumber);
+      await updateRewardsForDonationsOfProject(
+        seasonNumber,
+        batchNumber,
+        projectId,
+      );
       console.info('Rewards data synced successfully.');
     }
     console.info('Done!');

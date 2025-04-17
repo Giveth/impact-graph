@@ -3,10 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import { MongoClient } from 'mongodb';
 import config from '../config';
+import { collectionName } from './configs';
 
 const mongoUri = config.get('MONGO_DB_URI') as string;
 const dbName = config.get('MONGO_DB_REPORT_DB_NAME') as string;
-const collectionName = 'reports';
 
 // Function to save all reports in the MongoDB
 export async function saveReportsToDB(outputFolderPath: string) {
