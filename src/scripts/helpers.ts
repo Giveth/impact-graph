@@ -122,10 +122,13 @@ export async function getRoundByBatchNumber(batchNumber: number) {
   return { round, isEarlyAccess };
 }
 
-export function getProjectNameBasedOnSeasonNumber(project: Project) {
+export function getProjectNameBasedOnSeasonNumber(
+  project: Project,
+  seasonNumber: number,
+) {
   let screamingSnakeCaseTitle = toScreamingSnakeCase(project.title);
-  if (project.seasonNumber && project.seasonNumber < 2) {
-    screamingSnakeCaseTitle = `${screamingSnakeCaseTitle}_2`;
+  if (project.seasonNumber && project.seasonNumber < seasonNumber) {
+    screamingSnakeCaseTitle = `${screamingSnakeCaseTitle}_S${seasonNumber}`;
   }
   return screamingSnakeCaseTitle;
 }

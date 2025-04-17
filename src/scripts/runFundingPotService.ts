@@ -18,7 +18,7 @@ import { EarlyAccessRound } from '../entities/earlyAccessRound';
 import { findAllEarlyAccessRounds } from '../repositories/earlyAccessRoundRepository';
 import { findQfRounds } from '../repositories/qfRoundRepository';
 import { updateRewardsForDonationsOfProject } from './syncDataWithJsonReport';
-import { restoreReportsFromDB, saveReportsToDB } from './reportService';
+import { saveReportsToDB } from './reportService';
 
 // Attention: the configs of batches should be saved in the funding pot repo
 // this script pulls the latest version of funding pot service,
@@ -68,7 +68,9 @@ async function fillInputData(
     process.exit();
   }
 
-  const projectName = getProjectNameBasedOnSeasonNumber(project);
+  const projectName = getProjectNameBasedOnSeasonNumber(project, seasonNumber);
+
+  console.log('project name is:', projectName);
 
   // Define the path to the projects.json file inside funding pot repo
   const filePath = path.join(
@@ -90,7 +92,7 @@ async function fillInputData(
     projectsData[projectName] = {
       SAFE: project.abc.projectAddress || '',
       ORCHESTRATOR: project.abc.orchestratorAddress || '',
-      NFT: project.abc.nftContractAddress || '',
+      NFT: '0x0000000000000000000000000000000000000000', // We don't have NFT for new projects as we don't have any Early Access Rounds
       BATCH_CONFIGS: {
         // Currently, we only have one batch config
         1: {
@@ -106,7 +108,7 @@ async function fillInputData(
           IS_EARLY_ACCESS: false, // Currently, we don't have early access rounds
           PRICE: '1', // based on using the caps as POL amount, use 1 as price
           ONLY_REPORT: dryRun, // If we set this flag, only report will be generated and no transactions propose to the safes
-          MATCHING_FUNDS: project.matchingFunds?.toString() || '',
+          MATCHING_FUNDS: project.matchingFunds?.toString() || '0',
         },
       },
     };
@@ -158,7 +160,7 @@ async function createEnvFile() {
       .replace('ANKR_NETWORK_ID="base_sepolia"', 'ANKR_NETWORK_ID=polygon')
       .replace(
         'RPC_URL="https://sepolia.base.org"',
-        'RPC_URL="https://polygon.llamarpc.com"',
+        `RPC_URL="${config.get('POLYGON_MAINNET_NODE_HTTP_URL')}"`,
       )
       .replace('CHAIN_ID=84532', 'CHAIN_ID=137')
       .replace(
@@ -368,9 +370,9 @@ async function main() {
     console.info('Env file created successfully.');
 
     // Step 7
-    console.info('Restoring previous report files...');
-    await restoreReportsFromDB(reportFilesDir);
-    console.info('Previous report files restored successfully!');
+    // console.info('Restoring previous report files...');
+    // await restoreReportsFromDB(reportFilesDir);
+    // console.info('Previous report files restored successfully!');
 
     // Step 8
     console.info('Running funding pot service...');
