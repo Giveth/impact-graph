@@ -78,7 +78,7 @@ This diagram shows how project verification works through social network account
 ## 3. Getting Started
 
 ### Prerequisites
-- Node.js (v20 or later as specified in .nvmrc)
+- Node.js (v20.11.0 or later as specified in .nvmrc)
 - PostgreSQL database
 - Redis instance
 - Various API keys for external services (detailed in environment variables)
