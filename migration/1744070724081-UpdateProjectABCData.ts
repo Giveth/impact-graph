@@ -61,7 +61,7 @@ export class UpdateProjectABCData1744070724081 implements MigrationInterface {
         '{fundingManagerAddress}',
         '"0x1d4fa4979BE3638D46D61e125f992dB703bC3173"'
       )
-      WHERE abc->>'tokenTicker' = 'XADE'
+      WHERE abc->>'tokenTicker' = 'ACHAD'
     `);
 
     // Update GRAND TIMELINE project
