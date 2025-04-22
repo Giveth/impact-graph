@@ -149,6 +149,7 @@ jobs:
   deploy:
     needs: publish
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Increasing the timeout to 30 minutes
     steps:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
