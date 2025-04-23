@@ -36,12 +36,12 @@ export function getStreamDetails(project: Project, seasonNumber: number) {
       seasonNumber === project.seasonNumber
         ? streamCliffForQacc
         : streamCliffForQacc -
-          (project.seasonNumber! - seasonNumber) * ONE_MONTH_IN_SEC,
+          (seasonNumber - project.seasonNumber!) * ONE_MONTH_IN_SEC,
     END:
       seasonNumber === project.seasonNumber
         ? streamEndDateForQacc
         : streamEndDateForQacc -
-          (project.seasonNumber! - seasonNumber) * 2 * ONE_MONTH_IN_SEC,
+          (seasonNumber - project.seasonNumber!) * 2 * ONE_MONTH_IN_SEC,
   };
 }
 
