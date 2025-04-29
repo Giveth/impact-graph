@@ -250,6 +250,7 @@ const getUserRemainedCapBasedOnGitcoinScore = async ({
     await updateUserGitcoinScores(user);
   }
   if (
+    !user.skipVerification &&
     !user.hasEnoughGitcoinAnalysisScore &&
     !user.hasEnoughGitcoinPassportScore
   ) {
