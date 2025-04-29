@@ -123,7 +123,8 @@ export class QAccResolver {
       };
     } else if (
       dbUser.hasEnoughGitcoinAnalysisScore ||
-      dbUser.hasEnoughGitcoinPassportScore
+      dbUser.hasEnoughGitcoinPassportScore ||
+      dbUser.skipVerification
     ) {
       const cap = await qAccService.getUserRemainedCapBasedOnGitcoinScore({
         projectId,

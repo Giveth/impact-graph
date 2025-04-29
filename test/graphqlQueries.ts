@@ -2264,3 +2264,9 @@ export const getUsersByQaccPoints = `query ( $take: Int,$skip:Int,$orderBy:SortU
     
   }
 }`;
+
+export const setSkipVerificationMutation = `
+  mutation ($skipVerification: Boolean!) {
+    setSkipVerification(skipVerification: $skipVerification)
+  }
+`;

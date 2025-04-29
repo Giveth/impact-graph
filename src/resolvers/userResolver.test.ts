@@ -25,6 +25,7 @@ import {
   userByAddress,
   userVerificationConfirmEmail,
   userVerificationSendEmailConfirmation,
+  setSkipVerificationMutation,
 } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { DONATION_STATUS } from '../entities/donation';
@@ -68,6 +69,8 @@ describe(
   'batchMintingEligibleV2Users() test cases',
   batchMintingEligibleUsersV2TestCases,
 );
+
+describe('setSkipVerification() test cases', setSkipVerificationTestCases);
 
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
@@ -1411,5 +1414,102 @@ function batchMintingEligibleUsersV2TestCases() {
       { address: user3.walletAddress, kycType: UserKycType.zkId },
       { address: user4.walletAddress, kycType: UserKycType.GTCPass },
     ]);
+  });
+}
+
+function setSkipVerificationTestCases() {
+  it('should set skipVerification to true for authenticated user', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: setSkipVerificationMutation,
+        variables: {
+          skipVerification: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.setSkipVerification);
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+    assert.isTrue(updatedUser?.skipVerification);
+  });
+
+  it('should set skipVerification to false for authenticated user', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.skipVerification = true;
+    await user.save();
+    const accessToken = await generateTestAccessToken(user.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: setSkipVerificationMutation,
+        variables: {
+          skipVerification: false,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.setSkipVerification);
+
+    const updatedUser = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+    assert.isFalse(updatedUser?.skipVerification);
+  });
+
+  it('should throw error when user is not authenticated', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: setSkipVerificationMutation,
+      variables: {
+        skipVerification: true,
+      },
+    });
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
+  });
+
+  it('should throw error when user is not found', async () => {
+    const accessToken = await generateTestAccessToken(999999); // Non-existent user ID
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: setSkipVerificationMutation,
+        variables: {
+          skipVerification: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(result.data.errors[0].message, errorMessages.USER_NOT_FOUND);
   });
 }
