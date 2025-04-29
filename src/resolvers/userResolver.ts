@@ -599,4 +599,24 @@ export class UserResolver {
     }
     return false;
   }
+
+  @Mutation(_returns => Boolean)
+  async setSkipVerification(
+    @Arg('skipVerification', _type => Boolean) skipVerification: boolean,
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<boolean> {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+
+    const userFromDB = await findUserById(user.userId);
+    if (!userFromDB) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+    }
+
+    userFromDB.skipVerification = skipVerification;
+    await userFromDB.save();
+    return true;
+  }
 }

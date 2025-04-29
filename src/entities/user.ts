@@ -254,6 +254,10 @@ export class User extends BaseEntity {
   privadoVerifiedRequestIds: number[];
 
   @Field(_type => Boolean, { nullable: true })
+  @Column({ nullable: true })
+  skipVerification?: boolean;
+
+  @Field(_type => Boolean, { nullable: true })
   get privadoVerified(): boolean {
     return (
       this.privadoVerifiedRequestIds?.includes(
