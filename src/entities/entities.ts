@@ -39,6 +39,7 @@ import { AnkrState } from './ankrState';
 import { SwapTransaction } from './swapTransaction';
 import { QaccPointsHistory } from './qaccPointsHistory';
 import { UserRankMaterializedView } from './userRanksMaterialized';
+import { VestingData } from './vestingData';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -91,5 +92,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     AnkrState,
     SwapTransaction,
     UserRankMaterializedView,
+    VestingData,
   ];
 };
