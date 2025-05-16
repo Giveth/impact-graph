@@ -257,8 +257,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         symbol: donation.currency,
         networkId: transactionNetworkId,
       });
+      // Handle special cases for token decimals
+      // For example, USDC has 6 decimals, but we want to treat it as 18 decimals like SuperFluid does
+      const tokenDecimals =
+        token?.decimals === 6 || token?.decimals === 8
+          ? 18
+          : token?.decimals ?? 18;
       const amount =
-        (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
+        (Number(donation.flowRate) / 10 ** tokenDecimals) * 2628000; // convert flowRate in wei from per second to per month
       const price = await getTokenPrice(transactionNetworkId, token!);
       const donationValueUsd = toFixNumber(amount * price, 4);
       logger.debug('donationReceived (recurring) has been called', {
