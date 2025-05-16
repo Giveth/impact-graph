@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { formatGivPowerBalance } from './givPowerSubgraphAdapter';
 import { generateRandomEtheriumAddress } from '../../../test/testUtils';
 import { givPowerSubgraphAdapter } from '../adaptersFactory';
-
+import { logger } from '../../utils/logger';
 describe(
   'getUserPowerBalanceInBlockNumber() test cases',
   getUserPowerBalanceInBlockNumberTestCases,
@@ -43,9 +43,9 @@ function getUserPowerBalanceInBlockNumberTestCases() {
       assert.equal(result[secondAddress].balance, 25000);
       assert.equal(result[fakeWalletAddress].balance, 0);
     } catch (err: any) {
-      console.warn('err', err);
+      logger.warn('Skipped due to rate limit (429):', err);
       if (err.response?.status === 429) {
-        console.warn('Skipped due to rate limit (429):', err.message);
+        logger.warn('Skipped due to rate limit (429):', err.message);
         return; // gracefully exit the test
       }
       throw err; // rethrow others
