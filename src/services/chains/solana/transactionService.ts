@@ -14,7 +14,9 @@ import { findTokenByNetworkAndSymbol } from '../../../utils/tokenUtils';
 import { NETWORK_IDS } from '../../../provider';
 
 const solanaProviders = new Map<number, SolanaWeb3.Connection>();
+const solanaFallbackProviders = new Map<number, SolanaWeb3.Connection>();
 
+// Primary RPC endpoints
 const getSolanaWebProvider = (chainId: number) => {
   if (solanaProviders.has(chainId)) {
     return solanaProviders.get(chainId);
@@ -39,6 +41,66 @@ const getSolanaWebProvider = (chainId: number) => {
   return solanaProviders[chainId];
 };
 
+// Fallback RPC endpoints
+const getSolanaFallbackProvider = (chainId: number) => {
+  if (solanaFallbackProviders.has(chainId)) {
+    return solanaFallbackProviders.get(chainId);
+  }
+  switch (chainId) {
+    case NETWORK_IDS.SOLANA_MAINNET:
+      solanaFallbackProviders[chainId] = new SolanaWeb3.Connection(
+        process.env.SOLANA_MAINNET_FALLBACK_RPC_URL ||
+          'https://api.mainnet-beta.solana.com',
+      );
+      break;
+    case NETWORK_IDS.SOLANA_TESTNET:
+      solanaFallbackProviders[chainId] = new SolanaWeb3.Connection(
+        process.env.SOLANA_TEST_FALLBACK_RPC_URL ||
+          'https://api.testnet.solana.com',
+      );
+      break;
+    default:
+      // DEVNET
+      solanaFallbackProviders[chainId] = new SolanaWeb3.Connection(
+        process.env.SOLANA_DEVNET_FALLBACK_RPC_URL ||
+          'https://api.devnet.solana.com',
+      );
+  }
+  return solanaFallbackProviders[chainId];
+};
+
+// Helper function to get transaction with fallback
+const getParsedTransactionWithFallback = async (
+  txHash: string,
+  networkId: number,
+) => {
+  try {
+    // Try primary RPC first
+    logger.info(`Trying primary RPC for transaction ${txHash}`);
+    const result =
+      await getSolanaWebProvider(networkId).getParsedTransaction(txHash);
+    if (result) {
+      return result;
+    }
+    throw new Error('Transaction not found on primary RPC');
+  } catch (error) {
+    // If primary fails, try fallback RPC
+    logger.info(
+      `Primary RPC failed, trying fallback for transaction ${txHash}: ${error.message}`,
+    );
+    try {
+      return await getSolanaFallbackProvider(networkId).getParsedTransaction(
+        txHash,
+      );
+    } catch (fallbackError) {
+      logger.error(
+        `Fallback RPC also failed for transaction ${txHash}: ${fallbackError.message}`,
+      );
+      throw fallbackError;
+    }
+  }
+};
+
 export const getSolanaTransactionDetailForSolanaTransfer = async (
   params: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo | null> => {
@@ -46,9 +108,10 @@ export const getSolanaTransactionDetailForSolanaTransfer = async (
   const SOL_CURRENCY_TYPE = 'SOL';
 
   try {
-    const result = await getSolanaWebProvider(
+    const result = await getParsedTransactionWithFallback(
+      params.txHash,
       params.networkId,
-    ).getParsedTransaction(params.txHash);
+    );
     const data = result?.transaction?.message?.instructions?.find(
       instruction =>
         instruction?.parsed?.type === TRANSFER_INSTRUCTION_TYPE &&
@@ -84,9 +147,10 @@ async function getTransactionDetailForSplTokenTransfer(
 ): Promise<NetworkTransactionInfo | null> {
   try {
     const SPL_TOKEN_TRANSFER_INSTRUCTION_TYPE = 'spl-token';
-    const result = await getSolanaWebProvider(
+    const result = await getParsedTransactionWithFallback(
+      params.txHash,
       params.networkId,
-    ).getParsedTransaction(params.txHash);
+    );
     const token = await findTokenByNetworkAndSymbol(
       params.networkId,
       params.symbol,

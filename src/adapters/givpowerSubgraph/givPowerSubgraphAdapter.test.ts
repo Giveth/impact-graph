@@ -16,6 +16,7 @@ describe(
 
 function getUserPowerBalanceInBlockNumberTestCases() {
   it('should return correct info for block 24124422', async () => {
+    await new Promise(r => setTimeout(r, Math.random() * 3000));
     const firstAddress = '0x00d18ca9782be1caef611017c2fbc1a39779a57c';
     const secondAddress = '0x05a1ff0a32bc24265bcb39499d0c5d9a6cb2011c';
     const fakeWalletAddress = generateRandomEtheriumAddress();
@@ -30,6 +31,7 @@ function getUserPowerBalanceInBlockNumberTestCases() {
     assert.equal(result[fakeWalletAddress].balance, 0);
   });
   it('should return correct info for block 24344249', async () => {
+    await new Promise(r => setTimeout(r, Math.random() * 3000));
     const firstAddress = '0x00d18ca9782be1caef611017c2fbc1a39779a57c';
     const secondAddress = '0x05a1ff0a32bc24265bcb39499d0c5d9a6cb2011c';
     const fakeWalletAddress = generateRandomEtheriumAddress();
@@ -47,6 +49,7 @@ function getUserPowerBalanceInBlockNumberTestCases() {
 
 function getLatestIndexedBlockTestCases() {
   it('should fetch latest block info', async () => {
+    await new Promise(r => setTimeout(r, Math.random() * 3000));
     const block = await givPowerSubgraphAdapter.getLatestIndexedBlockInfo();
     assert.isOk(block);
     assert.isAbove(block.number, 0);
