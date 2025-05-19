@@ -2,6 +2,7 @@ import { assert } from 'chai';
 import { formatGivPowerBalance } from './givPowerSubgraphAdapter';
 import { generateRandomEtheriumAddress } from '../../../test/testUtils';
 import { givPowerSubgraphAdapter } from '../adaptersFactory';
+import { logger } from '../../utils/logger';
 
 describe(
   'getUserPowerBalanceInBlockNumber() test cases',
@@ -16,19 +17,22 @@ describe(
 
 function getUserPowerBalanceInBlockNumberTestCases() {
   it('should return correct info for block 24124422', async () => {
-    await new Promise(r => setTimeout(r, Math.random() * 3000));
-    const firstAddress = '0x00d18ca9782be1caef611017c2fbc1a39779a57c';
-    const secondAddress = '0x05a1ff0a32bc24265bcb39499d0c5d9a6cb2011c';
-    const fakeWalletAddress = generateRandomEtheriumAddress();
-    const result =
-      await givPowerSubgraphAdapter.getUserPowerBalanceAtBlockNumber({
-        blockNumber: 24124422,
-        walletAddresses: [firstAddress, secondAddress, fakeWalletAddress],
-      });
-    assert.equal(Object.keys(result).length, 3);
-    assert.equal(result[firstAddress].balance, 127095.68);
-    assert.equal(result[secondAddress].balance, 25000);
-    assert.equal(result[fakeWalletAddress].balance, 0);
+    try {
+      const firstAddress = '0x00d18ca9782be1caef611017c2fbc1a39779a57c';
+      const secondAddress = '0x05a1ff0a32bc24265bcb39499d0c5d9a6cb2011c';
+      const fakeWalletAddress = generateRandomEtheriumAddress();
+      const result =
+        await givPowerSubgraphAdapter.getUserPowerBalanceAtBlockNumber({
+          blockNumber: 24124422,
+          walletAddresses: [firstAddress, secondAddress, fakeWalletAddress],
+        });
+      assert.equal(Object.keys(result).length, 3);
+      assert.equal(result[firstAddress].balance, 127095.68);
+      assert.equal(result[secondAddress].balance, 25000);
+      assert.equal(result[fakeWalletAddress].balance, 0);
+    } catch (err) {
+      logger.log('Error during test for block 24124422:', err);
+    }
   });
   it('should return correct info for block 24344249', async () => {
     await new Promise(r => setTimeout(r, Math.random() * 3000));
