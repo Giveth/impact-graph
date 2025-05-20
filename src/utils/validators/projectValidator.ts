@@ -182,8 +182,8 @@ export const canUserVisitProject = (
   const adminUserId =
     project.adminUserId && project.adminUserId > 0
       ? project.adminUserId
-      : project.adminUser.id && project.adminUser.id > 0
-        ? project.adminUser.id
+      : project.adminUser?.id && project.adminUser?.id > 0
+        ? project.adminUser?.id
         : null;
 
   // If project is draft or cancelled, just owner can view it
