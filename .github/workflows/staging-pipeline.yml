@@ -15,7 +15,9 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v1
@@ -67,7 +69,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -146,21 +150,25 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Build image and push to GitHub Packages
-        uses: docker/build-push-action@v1
+        uses: actions/checkout@v4
         with:
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-          registry: ghcr.io
+          fetch-depth: 0
+      - name: Login to GitHub Container Registry
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Build image and push to GitHub Packages
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          no-cache: true
           repository: giveth/impact-graph
-          add_git_labels: true
-          # Add branch name to docker image tag @see{@link https://github.com/docker/build-push-action/tree/releases/v1#tag_with_ref}
-          tag_with_ref: true
-          # Add commit hash to docker image tag @see{@link https://github.com/docker/build-push-action/tree/releases/v1#tag_with_sha}
-          tag_with_sha: true
+          tags: |
+            ghcr.io/giveth/impact-graph:staging
+            ghcr.io/giveth/impact-graph:${{ github.sha }}
 
   deploy:
     needs: publish
