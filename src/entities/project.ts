@@ -51,6 +51,7 @@ import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
 import { EstimatedClusterMatching } from './estimatedClusterMatching';
+import { Cause } from './cause';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -450,6 +451,13 @@ export class Project extends BaseEntity {
 
   @Column('uuid', { nullable: true, unique: true })
   endaomentId?: string;
+
+  @Field(_type => Cause, { nullable: true })
+  @ManyToOne(_type => Cause, cause => cause.projects)
+  cause: Cause;
+
+  @Column({ nullable: true })
+  causeId: number;
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
