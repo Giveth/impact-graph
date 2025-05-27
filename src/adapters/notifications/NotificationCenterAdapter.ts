@@ -1048,8 +1048,14 @@ const getEmailDataDonationAttributes = async (params: {
       symbol: donation.currency,
       networkId: transactionNetworkId,
     });
-    amount =
-      (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
+    // Handle special cases for token decimals
+    // For example, USDC has 6 decimals, but we want to treat it as 18 decimals like SuperFluid does
+    const tokenDecimals =
+      token?.decimals === 6 || token?.decimals === 8
+        ? 18
+        : token?.decimals ?? 18;
+    amount = (Number(donation.flowRate) / 10 ** tokenDecimals) * 2628000; // convert flowRate in wei from per second to per month
+    amount = toFixNumber(amount, 4);
   } else {
     amount = Number(donation.amount);
     transactionId = donation.transactionId;
