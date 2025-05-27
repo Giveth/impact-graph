@@ -1,4 +1,11 @@
-import { Field, ID, ObjectType, Float, registerEnumType } from 'type-graphql';
+import {
+  Field,
+  ID,
+  ObjectType,
+  Float,
+  registerEnumType,
+  Int,
+} from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -7,7 +14,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  OneToMany,
+  ManyToMany,
   JoinColumn,
 } from 'typeorm';
 import { User } from './user';
@@ -111,17 +118,25 @@ export class Cause extends BaseEntity {
   })
   listingStatus: ListingStatus;
 
+  @Field(_type => [Project])
+  @ManyToMany(_type => Project, project => project.causes)
+  projects: Project[];
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'integer', default: 0 })
+  activeProjectsCount: number;
+
   @Field(_type => Float)
   @Column('float', { default: 0 })
   totalRaised: number;
 
   @Field(_type => Float)
   @Column('float', { default: 0 })
-  totalDonated: number;
+  totalDistributed: number;
 
-  @Field(_type => [Project])
-  @OneToMany(_type => Project, project => project.cause)
-  projects: Project[];
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  totalDonated: number;
 
   @Field()
   @UpdateDateColumn()

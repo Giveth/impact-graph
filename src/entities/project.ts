@@ -452,12 +452,14 @@ export class Project extends BaseEntity {
   @Column('uuid', { nullable: true, unique: true })
   endaomentId?: string;
 
-  @Field(_type => Cause, { nullable: true })
-  @ManyToOne(_type => Cause, cause => cause.projects)
-  cause: Cause;
+  @Field(_type => [Cause], { nullable: true })
+  @ManyToMany(_type => Cause, cause => cause.projects)
+  @JoinTable()
+  causes: Cause[];
 
-  @Column({ nullable: true })
-  causeId: number;
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'integer', default: 0 })
+  activeCausesCount: number;
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
