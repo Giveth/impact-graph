@@ -141,6 +141,7 @@ jobs:
           no-cache: true  
           repository: giveth/impact-graph
           tags: |
+            ghcr.io/giveth/impact-graph:latest
             ghcr.io/giveth/impact-graph:master
             ghcr.io/giveth/impact-graph:${{ github.sha }}
 
