@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, Float } from 'type-graphql';
+import { Field, ID, ObjectType, Float, registerEnumType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -14,9 +14,31 @@ import { User } from './user';
 import { Project } from './project';
 
 export enum CauseStatus {
+  REJECTED = 'rejected',
+  PENDING = 'pending',
+  CLARIFICATION = 'clarification',
+  VERIFICATION = 'verification',
   ACTIVE = 'active',
-  DEACTIVATED = 'deactivated',
+  DEACTIVE = 'deactive',
+  CANCELLED = 'cancelled',
+  DRAFTED = 'drafted',
 }
+
+export enum ListingStatus {
+  NotReviewed = 'Not Reviewed',
+  Listed = 'Listed',
+  NotListed = 'Not Listed',
+}
+
+registerEnumType(CauseStatus, {
+  name: 'CauseStatus',
+  description: 'The status of a cause',
+});
+
+registerEnumType(ListingStatus, {
+  name: 'ListingStatus',
+  description: 'The listing status of a cause',
+});
 
 @Entity()
 @ObjectType()
@@ -77,9 +99,17 @@ export class Cause extends BaseEntity {
   @Column({
     type: 'enum',
     enum: CauseStatus,
-    default: CauseStatus.ACTIVE,
+    default: CauseStatus.PENDING,
   })
   status: CauseStatus;
+
+  @Field(_type => ListingStatus)
+  @Column({
+    type: 'enum',
+    enum: ListingStatus,
+    default: ListingStatus.NotReviewed,
+  })
+  listingStatus: ListingStatus;
 
   @Field(_type => Float)
   @Column('float', { default: 0 })
