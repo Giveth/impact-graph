@@ -21,6 +21,7 @@ import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRe
 import { ReferredEvent } from './referredEvent';
 import { RecurringDonation } from './recurringDonation';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
+import { Cause } from './cause';
 
 export const publicSelectionFields = [
   'user.id',
@@ -262,6 +263,26 @@ export class User extends BaseEntity {
   segmentUserId() {
     return `givethId-${this.id}`;
   }
+
+  @Field(_type => [Cause], { nullable: true })
+  @OneToMany(_type => Cause, cause => cause.owner)
+  ownedCauses?: Cause[];
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'integer', default: 0 })
+  ownedCausesCount: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', default: 0 })
+  totalCausesRaised: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', default: 0 })
+  totalCausesDistributed: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', default: 0 })
+  totalCausesDonated: number;
 }
 
 @ObjectType()
