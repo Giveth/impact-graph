@@ -45,6 +45,17 @@ export class UpdateCauseStatusAndAddListingStatus1748376323567
       DROP TYPE IF EXISTS listing_status_enum;
     `);
 
+    // First, map expanded status values to original ones
+    await queryRunner.query(`
+      UPDATE cause
+      SET status = CASE
+        WHEN status IN ('active') THEN 'active'
+        WHEN status IN ('deactive', 'cancelled', 'drafted', 'rejected') THEN 'deactivated'
+        ELSE 'active' -- Default mapping for pending, clarification, verification
+      END
+      WHERE status NOT IN ('active', 'deactivated');
+    `);
+
     // Revert cause_status_enum to previous (active, deactivated)
     await queryRunner.query(`
       CREATE TYPE cause_status_enum_old AS ENUM ('active', 'deactivated');
