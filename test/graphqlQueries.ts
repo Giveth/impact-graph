@@ -2661,7 +2661,6 @@ mutation CreateCause(
   $title: String!
   $description: String!
   $chainId: Float!
-  $ownerId: Float!
   $projectIds: [Float!]!
   $mainCategory: String!
   $subCategories: [String!]!
@@ -2672,7 +2671,6 @@ mutation CreateCause(
     title: $title
     description: $description
     chainId: $chainId
-    ownerId: $ownerId
     projectIds: $projectIds
     mainCategory: $mainCategory
     subCategories: $subCategories
@@ -2695,5 +2693,11 @@ mutation CreateCause(
     activeProjectsCount
     createdAt
     updatedAt
+    owner {
+      id
+    }
+    projects {
+      id
+    }
   }
 }`;
