@@ -540,43 +540,35 @@ export function getProvider(networkId: number) {
 
 export function getBlockExplorerApiUrl(networkId: number): string {
   let apiUrl;
-  let apiKey;
+  // After the migration to Etherscan V2, we can use the Etherscan API key for all networks
+  const apiKey = config.get('ETHERSCAN_API_KEY');
   switch (networkId) {
     case NETWORK_IDS.XDAI:
       apiUrl = config.get('GNOSISSCAN_API_URL');
-      apiKey = config.get('GNOSISSCAN_API_KEY');
       break;
     case NETWORK_IDS.MAIN_NET:
       apiUrl = config.get('ETHERSCAN_MAINNET_API_URL');
-      apiKey = config.get('ETHERSCAN_API_KEY');
       break;
     case NETWORK_IDS.ROPSTEN:
       apiUrl = config.get('ETHERSCAN_ROPSTEN_API_URL');
-      apiKey = config.get('ETHERSCAN_API_KEY');
       break;
     case NETWORK_IDS.SEPOLIA:
       apiUrl = config.get('ETHERSCAN_SEPOLIA_API_URL');
-      apiKey = config.get('ETHERSCAN_API_KEY');
       break;
     case NETWORK_IDS.POLYGON:
       apiUrl = config.get('POLYGON_SCAN_API_URL');
-      apiKey = config.get('POLYGON_SCAN_API_KEY');
       break;
     case NETWORK_IDS.CELO:
       apiUrl = config.get('CELO_SCAN_API_URL');
-      apiKey = config.get('CELO_SCAN_API_KEY');
       break;
     case NETWORK_IDS.CELO_ALFAJORES:
       apiUrl = config.get('CELO_ALFAJORES_SCAN_API_URL');
-      apiKey = config.get('CELO_ALFAJORES_SCAN_API_KEY');
       break;
     case NETWORK_IDS.OPTIMISTIC:
       apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
-      apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
       break;
     case NETWORK_IDS.OPTIMISM_SEPOLIA:
       apiUrl = config.get('OPTIMISTIC_SEPOLIA_SCAN_API_URL');
-      apiKey = config.get('OPTIMISTIC_SEPOLIA_SCAN_API_KEY');
       break;
     case NETWORK_IDS.ETC:
       // ETC network doesn't need API key
@@ -586,27 +578,21 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       return config.get('MORDOR_ETC_TESTNET_SCAN_API_URL') as string;
     case NETWORK_IDS.ARBITRUM_MAINNET:
       apiUrl = config.get('ARBITRUM_SCAN_API_URL');
-      apiKey = config.get('ARBITRUM_SCAN_API_KEY');
       break;
     case NETWORK_IDS.ARBITRUM_SEPOLIA:
       apiUrl = config.get('ARBITRUM_SEPOLIA_SCAN_API_URL');
-      apiKey = config.get('ARBITRUM_SEPOLIA_SCAN_API_KEY');
       break;
     case NETWORK_IDS.BASE_MAINNET:
       apiUrl = config.get('BASE_SCAN_API_URL');
-      apiKey = config.get('BASE_SCAN_API_KEY');
       break;
     case NETWORK_IDS.BASE_SEPOLIA:
       apiUrl = config.get('BASE_SEPOLIA_SCAN_API_URL');
-      apiKey = config.get('BASE_SEPOLIA_SCAN_API_KEY');
       break;
     case NETWORK_IDS.ZKEVM_MAINNET:
       apiUrl = config.get('ZKEVM_MAINNET_SCAN_API_URL');
-      apiKey = config.get('ZKEVM_MAINET_SCAN_API_KEY');
       break;
     case NETWORK_IDS.ZKEVM_CARDONA:
       apiUrl = config.get('ZKEVM_CARDONA_SCAN_API_URL');
-      apiKey = config.get('ZKEVM_CARDONA_SCAN_API_KEY');
       break;
     case NETWORK_IDS.STELLAR_MAINNET:
       // Stellar network doesn't need API key
@@ -619,5 +605,5 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
 
-  return `${apiUrl}?apikey=${apiKey}`;
+  return `${apiUrl}&apikey=${apiKey}`;
 }
