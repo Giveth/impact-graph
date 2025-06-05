@@ -210,6 +210,11 @@ export const errorMessages = {
   USER_EMAIL_CODE_NOT_FOUND: 'User email verification code not found',
   USER_EMAIL_CODE_NOT_MATCH: 'User email verification code not match',
   EMAIL_NOT_VERIFIED: 'Email not verified',
+  CAUSE_ALREADY_EXISTS: 'Cause already exists',
+  INVALID_INPUT: 'Invalid input',
+  INVALID_CHAIN_ID: 'Invalid chain id',
+  INVALID_PROJECT_COUNT: 'Invalid project count',
+  INVALID_PROJECT_IDS: 'Invalid project ids',
 };
 
 export const translationErrorMessagesKeys = {
@@ -389,4 +394,9 @@ export const translationErrorMessagesKeys = {
   USER_EMAIL_CODE_NOT_FOUND: 'USER_EMAIL_CODE_NOT_FOUND',
   USER_EMAIL_CODE_NOT_MATCH: 'USER_EMAIL_CODE_NOT_MATCH',
   EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
+  CAUSE_ALREADY_EXISTS: 'CAUSE_ALREADY_EXISTS',
+  INVALID_INPUT: 'INVALID_INPUT',
+  INVALID_CHAIN_ID: 'INVALID_CHAIN_ID',
+  INVALID_PROJECT_COUNT: 'INVALID_PROJECT_COUNT',
+  INVALID_PROJECT_IDS: 'INVALID_PROJECT_IDS',
 };

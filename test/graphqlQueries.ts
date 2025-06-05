@@ -2655,3 +2655,49 @@ export const getLastSitemapUrlQuery = `
     }
   }
 `;
+
+export const createCauseQuery = `
+mutation CreateCause(
+  $title: String!
+  $description: String!
+  $chainId: Float!
+  $projectIds: [Float!]!
+  $mainCategory: String!
+  $subCategories: [String!]!
+  $depositTxHash: String
+  $bannerImage: String
+) {
+  createCause(
+    title: $title
+    description: $description
+    chainId: $chainId
+    projectIds: $projectIds
+    mainCategory: $mainCategory
+    subCategories: $subCategories
+    depositTxHash: $depositTxHash
+    bannerImage: $bannerImage
+  ) {
+    id
+    title
+    description
+    chainId
+    fundingPoolAddress
+    causeId
+    mainCategory
+    subCategories
+    status
+    listingStatus
+    totalRaised
+    totalDistributed
+    totalDonated
+    activeProjectsCount
+    createdAt
+    updatedAt
+    owner {
+      id
+    }
+    projects {
+      id
+    }
+  }
+}`;
