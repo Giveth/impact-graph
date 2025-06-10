@@ -112,6 +112,7 @@
     "USER_EMAIL_CODE_NOT_MATCH": "El código de verificación del correo electrónico del usuario no coincide",
     "EMAIL_NOT_VERIFIED": "Correo electrónico no verificado",
     "CAUSE_ALREADY_EXISTS": "Causa ya existe",
+    "CAUSE_TITLE_ALREADY_EXISTS": "El título de la causa ya existe",
     "INVALID_INPUT": "Entrada inválida",
     "INVALID_CHAIN_ID": "ID de cadena inválido",
     "INVALID_PROJECT_COUNT": "Cuenta de proyecto inválida",

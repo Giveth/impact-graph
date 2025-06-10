@@ -1,4 +1,4 @@
-import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
+import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import { Cause, CauseStatus, ListingStatus } from '../entities/cause';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -6,10 +6,19 @@ import { Project } from '../entities/project';
 import { logger } from '../utils/logger';
 import SentryLogger from '../sentryLogger';
 import { findUserById } from '../repositories/userRepository';
-import { createCause } from '../repositories/causeRepository';
+import {
+  createCause,
+  validateCauseTitle,
+} from '../repositories/causeRepository';
+import { verifyTransaction } from '../utils/transactionVerification';
 
 @Resolver()
 export class CauseResolver {
+  @Query(() => Boolean)
+  async isValidCauseTitle(@Arg('title') title: string): Promise<boolean> {
+    return validateCauseTitle(title);
+  }
+
   @Mutation(() => Cause)
   async createCause(
     @Ctx() { req: { user: _user } }: ApolloContext,
@@ -76,14 +85,27 @@ export class CauseResolver {
 
       // Verify deposit transaction if provided
       if (depositTxHash) {
-        // TODO: Implement deposit transaction verification
-        // This should verify the transaction exists and is valid
-        // For now, we'll just check if it's a non-empty string
         if (!depositTxHash.trim()) {
           throw new Error(
             i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH),
           );
         }
+
+        // Get token contract address from environment
+        const causeCreationFeeTokenContractAddress =
+          process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS;
+        if (!causeCreationFeeTokenContractAddress) {
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.TOKEN_CONTRACT_NOT_CONFIGURED),
+          );
+        }
+
+        // Verify the transaction
+        await verifyTransaction(
+          depositTxHash,
+          chainId,
+          causeCreationFeeTokenContractAddress,
+        );
       }
 
       // Generate unique causeId

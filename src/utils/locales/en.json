@@ -123,6 +123,7 @@
     "USER_EMAIL_CODE_NOT_MATCH": "User email verification code not match",
     "EMAIL_NOT_VERIFIED": "Email not verified",
     "CAUSE_ALREADY_EXISTS": "Cause already exists",
+    "CAUSE_TITLE_ALREADY_EXISTS": "Cause title already exists",
     "INVALID_INPUT": "Invalid input",
     "INVALID_CHAIN_ID": "Invalid chain id",
     "INVALID_PROJECT_COUNT": "Invalid project count",

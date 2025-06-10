@@ -2,6 +2,7 @@ import { In } from 'typeorm';
 import { Cause, CauseStatus } from '../entities/cause';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 
 export const findCauseById = async (id: number): Promise<Cause | null> => {
   return Cause.findOne({
@@ -116,4 +117,26 @@ export const deactivateCause = async (causeId: string): Promise<Cause> => {
   }
 
   return cause;
+};
+
+export const validateCauseTitle = async (title: string): Promise<boolean> => {
+  const trimmedTitle = title.trim();
+  if (!trimmedTitle) {
+    throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_INPUT));
+  }
+
+  // Check if a cause with similar title exists
+  const existingCause = await Cause.findOne({
+    where: {
+      title: trimmedTitle,
+    },
+  });
+
+  if (existingCause) {
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.CAUSE_TITLE_ALREADY_EXISTS),
+    );
+  }
+
+  return true;
 };

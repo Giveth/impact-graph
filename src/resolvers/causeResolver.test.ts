@@ -8,6 +8,86 @@ import {
 } from '../../test/testUtils';
 import { createCauseQuery } from '../../test/graphqlQueries';
 
+const isValidCauseTitleQuery = `
+query IsValidCauseTitle($title: String!) {
+  isValidCauseTitle(title: $title)
+}`;
+
+describe('isValidCauseTitle() test cases', () => {
+  it('should return true for a unique title', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: isValidCauseTitleQuery,
+      variables: {
+        title: 'Unique Test Cause Title',
+      },
+    });
+
+    assert.isTrue(response.data.data.isValidCauseTitle);
+  });
+
+  it('should throw error for empty title', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: isValidCauseTitleQuery,
+      variables: {
+        title: '',
+      },
+    });
+
+    const errorMsg = response.data.errors?.[0]?.message;
+    assert.isOk(errorMsg, 'Error message should be defined');
+    assert.equal(errorMsg, 'Invalid input');
+  });
+
+  it('should throw error for existing title', async () => {
+    // First create a cause with a specific title
+    const user = await saveUserDirectlyToDb('0x123');
+    const projects = await Promise.all(
+      Array(5)
+        .fill(null)
+        .map((_, index) =>
+          saveProjectDirectlyToDb({
+            ...createProjectData(`test-project-${index}`),
+            slug: `test-project-${index}`,
+          }),
+        ),
+    );
+    const token = await generateTestAccessToken(user.id);
+
+    const causeTitle = 'Existing Test Cause Title';
+    await axios.post(
+      'http://localhost:4000/graphql',
+      {
+        query: createCauseQuery,
+        variables: {
+          title: causeTitle,
+          description: 'Test Description',
+          chainId: 137,
+          projectIds: projects.map(p => p.id),
+          mainCategory: 'test',
+          subCategories: ['sub1', 'sub2'],
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    // Then try to validate the same title
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: isValidCauseTitleQuery,
+      variables: {
+        title: causeTitle,
+      },
+    });
+
+    const errorMsg = response.data.errors?.[0]?.message;
+    assert.isOk(errorMsg, 'Error message should be defined');
+    assert.equal(errorMsg, 'Cause already exists');
+  });
+});
+
 describe('createCause() test cases', () => {
   it('should create cause successfully with valid input', async () => {
     const user = await saveUserDirectlyToDb('0x123');
