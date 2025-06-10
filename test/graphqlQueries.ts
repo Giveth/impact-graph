@@ -2701,3 +2701,8 @@ mutation CreateCause(
     }
   }
 }`;
+
+export const isValidCauseTitleQuery = `
+query IsValidCauseTitle($title: String!) {
+  isValidCauseTitle(title: $title)
+}`;

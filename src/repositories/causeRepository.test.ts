@@ -11,6 +11,7 @@ import {
   createCause,
   activateCause,
   deactivateCause,
+  validateCauseTitle,
 } from './causeRepository';
 import {
   saveUserDirectlyToDb,
@@ -258,6 +259,73 @@ describe('causeRepository test cases', () => {
         where: { id: testProject.id },
       });
       assert.equal(updatedProject?.activeCausesCount, 0);
+    });
+  });
+
+  describe('validateCauseTitle test cases', () => {
+    it('should return true for a unique title', async () => {
+      const result = await validateCauseTitle('Unique Test Cause Title');
+      assert.isTrue(result);
+    });
+
+    it('should throw error for empty title', async () => {
+      try {
+        await validateCauseTitle('');
+        assert.fail('Should have thrown an error');
+      } catch (e) {
+        assert.equal(e.message, 'Invalid input');
+      }
+    });
+
+    it('should throw error for whitespace-only title', async () => {
+      try {
+        await validateCauseTitle('   ');
+        assert.fail('Should have thrown an error');
+      } catch (e) {
+        assert.equal(e.message, 'Invalid input');
+      }
+    });
+
+    it('should throw error for existing title', async () => {
+      // First create a cause with a specific title
+      const causeTitle = 'Existing Test Cause Title';
+      await createCause(
+        {
+          ...createTestCauseData('test-cause-id-4'),
+          title: causeTitle,
+        },
+        testUser,
+        [testProject],
+      );
+
+      // Then try to validate the same title
+      try {
+        await validateCauseTitle(causeTitle);
+        assert.fail('Should have thrown an error');
+      } catch (e) {
+        assert.equal(e.message, 'Cause title already exists');
+      }
+    });
+
+    it('should trim whitespace from title before validation', async () => {
+      // First create a cause with a specific title
+      const causeTitle = 'Test Cause Title';
+      await createCause(
+        {
+          ...createTestCauseData('test-cause-id-5'),
+          title: causeTitle,
+        },
+        testUser,
+        [testProject],
+      );
+
+      // Try to validate the same title with extra whitespace
+      try {
+        await validateCauseTitle('  Test Cause Title  ');
+        assert.fail('Should have thrown an error');
+      } catch (e) {
+        assert.equal(e.message, 'Cause title already exists');
+      }
     });
   });
 });

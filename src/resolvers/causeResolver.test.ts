@@ -6,12 +6,26 @@ import {
   createProjectData,
   generateTestAccessToken,
 } from '../../test/testUtils';
-import { createCauseQuery } from '../../test/graphqlQueries';
+import {
+  createCauseQuery,
+  isValidCauseTitleQuery,
+} from '../../test/graphqlQueries';
+import { Cause } from '../entities/cause';
+import { Project } from '../entities/project';
+import { User } from '../entities/user';
 
-const isValidCauseTitleQuery = `
-query IsValidCauseTitle($title: String!) {
-  isValidCauseTitle(title: $title)
-}`;
+beforeEach(async () => {
+  // Truncate all relevant tables in the correct order with CASCADE
+  await Cause.getRepository().query(
+    'TRUNCATE TABLE "cause" RESTART IDENTITY CASCADE',
+  );
+  await Project.getRepository().query(
+    'TRUNCATE TABLE "project" RESTART IDENTITY CASCADE',
+  );
+  await User.getRepository().query(
+    'TRUNCATE TABLE "user" RESTART IDENTITY CASCADE',
+  );
+});
 
 describe('isValidCauseTitle() test cases', () => {
   it('should return true for a unique title', async () => {
@@ -30,6 +44,19 @@ describe('isValidCauseTitle() test cases', () => {
       query: isValidCauseTitleQuery,
       variables: {
         title: '',
+      },
+    });
+
+    const errorMsg = response.data.errors?.[0]?.message;
+    assert.isOk(errorMsg, 'Error message should be defined');
+    assert.equal(errorMsg, 'Invalid input');
+  });
+
+  it('should throw error for whitespace-only title', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: isValidCauseTitleQuery,
+      variables: {
+        title: '   ',
       },
     });
 
@@ -84,7 +111,30 @@ describe('isValidCauseTitle() test cases', () => {
 
     const errorMsg = response.data.errors?.[0]?.message;
     assert.isOk(errorMsg, 'Error message should be defined');
-    assert.equal(errorMsg, 'Cause already exists');
+    assert.equal(errorMsg, 'Cause title already exists');
+  });
+
+  it('should handle special characters in title', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: isValidCauseTitleQuery,
+      variables: {
+        title: 'Test Cause Title!@#$%^&*()',
+      },
+    });
+
+    assert.isTrue(response.data.data.isValidCauseTitle);
+  });
+
+  it('should handle long titles', async () => {
+    const longTitle = 'A'.repeat(255); // Maximum length for text field
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: isValidCauseTitleQuery,
+      variables: {
+        title: longTitle,
+      },
+    });
+
+    assert.isTrue(response.data.data.isValidCauseTitle);
   });
 });
 
@@ -139,22 +189,11 @@ describe('createCause() test cases', () => {
   });
 
   it('should fail when user is not authenticated', async () => {
-    const projects = await Promise.all(
-      Array(5)
-        .fill(null)
-        .map((_, index) =>
-          saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-auth-${index}`),
-            slug: `test-project-auth-${index}`,
-          }),
-        ),
-    );
-
     const variables = {
       title: 'Test Cause',
       description: 'Test Description',
       chainId: 137,
-      projectIds: projects.map(p => p.id),
+      projectIds: [1, 2, 3, 4, 5],
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
     };
