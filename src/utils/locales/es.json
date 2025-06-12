@@ -119,5 +119,6 @@
     "INVALID_PROJECT_COUNT": "Cuenta de proyecto inválida",
     "INVALID_PROJECT_IDS": "IDs de proyecto inválidos",
     "TOKEN_CONTRACT_NOT_CONFIGURED": "Contrato de token no configurado",
-    "TRANSACTION_ALREADY_USED": "El hash de la transacción ya se ha utilizado en otra causa"
+    "TRANSACTION_ALREADY_USED": "El hash de la transacción ya se ha utilizado en otra causa",
+    "EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET": "El monto esperado de la creación de causa no está configurado en las variables de entorno"
 }

@@ -52,6 +52,29 @@ export async function verifyTransaction(
       );
     }
 
+    // Get the expected amount from environment variable
+    const expectedAmount = process.env.EXPECTED_CAUSE_CREATION_FEE_AMOUNT;
+    if (!expectedAmount) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET,
+        ),
+      );
+    }
+
+    // Check if any of the transfer events match the expected amount
+    const hasMatchingAmount = relevantEvents.some(event => {
+      if (!event.args) {
+        return false;
+      }
+      const eventAmount = event.args.value.toString();
+      return eventAmount >= expectedAmount;
+    });
+
+    if (!hasMatchingAmount) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
+    }
+
     return true;
   } catch (error) {
     logger.error('Error verifying transaction', {

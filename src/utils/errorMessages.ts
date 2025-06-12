@@ -219,6 +219,8 @@ export const errorMessages = {
   INVALID_PROJECT_IDS: 'Invalid project ids',
   TRANSACTION_ALREADY_USED: 'Transaction hash already used in another cause',
   TOKEN_CONTRACT_NOT_CONFIGURED: 'Token contract not configured',
+  EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET:
+    'Expected cause creation fee amount not set in environment variables',
 };
 
 export const translationErrorMessagesKeys = {
@@ -409,4 +411,6 @@ export const translationErrorMessagesKeys = {
   NO_TRANSFER_EVENT_FOUND: 'NO_TRANSFER_EVENT_FOUND',
   TOKEN_CONTRACT_NOT_CONFIGURED: 'TOKEN_CONTRACT_NOT_CONFIGURED',
   TRANSACTION_ALREADY_USED: 'TRANSACTION_ALREADY_USED',
+  EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET:
+    'EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET',
 };
