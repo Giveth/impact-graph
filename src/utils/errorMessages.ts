@@ -217,6 +217,8 @@ export const errorMessages = {
   INVALID_CHAIN_ID: 'Invalid chain id',
   INVALID_PROJECT_COUNT: 'Invalid project count',
   INVALID_PROJECT_IDS: 'Invalid project ids',
+  TRANSACTION_ALREADY_USED: 'Transaction hash already used in another cause',
+  TOKEN_CONTRACT_NOT_CONFIGURED: 'Token contract not configured',
 };
 
 export const translationErrorMessagesKeys = {
@@ -406,4 +408,5 @@ export const translationErrorMessagesKeys = {
   TRANSACTION_FAILED: 'TRANSACTION_FAILED',
   NO_TRANSFER_EVENT_FOUND: 'NO_TRANSFER_EVENT_FOUND',
   TOKEN_CONTRACT_NOT_CONFIGURED: 'TOKEN_CONTRACT_NOT_CONFIGURED',
+  TRANSACTION_ALREADY_USED: 'TRANSACTION_ALREADY_USED',
 };

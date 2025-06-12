@@ -118,5 +118,6 @@
     "INVALID_CHAIN_ID": "ID de cadena inválido",
     "INVALID_PROJECT_COUNT": "Cuenta de proyecto inválida",
     "INVALID_PROJECT_IDS": "IDs de proyecto inválidos",
-    "TOKEN_CONTRACT_NOT_CONFIGURED": "Contrato de token no configurado"
+    "TOKEN_CONTRACT_NOT_CONFIGURED": "Contrato de token no configurado",
+    "TRANSACTION_ALREADY_USED": "El hash de la transacción ya se ha utilizado en otra causa"
 }

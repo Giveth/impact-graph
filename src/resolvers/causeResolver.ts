@@ -11,6 +11,7 @@ import {
   validateCauseTitle,
   findCauseById,
   findAllCauses,
+  validateTransactionHash,
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
 
@@ -140,6 +141,9 @@ export class CauseResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
       }
 
+      // Validate transaction hash is not already used
+      await validateTransactionHash(depositTxHash);
+
       // Get token contract address from environment
       const causeCreationFeeTokenContractAddress =
         process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS;
@@ -176,6 +180,8 @@ export class CauseResolver {
         totalDistributed: 0,
         totalDonated: 0,
         activeProjectsCount: projects.length,
+        depositTxHash: depositTxHash.trim().toLowerCase(),
+        depositTxChainId,
       };
 
       const cause = await createCause(causeData, user, projects);

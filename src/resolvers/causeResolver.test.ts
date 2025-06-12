@@ -449,6 +449,74 @@ describe('createCause() test cases', () => {
     process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS =
       originalTokenContract;
   });
+
+  it('should fail when transaction hash is already used', async () => {
+    const user = await saveUserDirectlyToDb('0x123');
+    const projects = await Promise.all(
+      Array(5)
+        .fill(null)
+        .map((_, index) =>
+          saveProjectDirectlyToDb({
+            ...createProjectData(`test-project-tx-dup-${index}`),
+            slug: `test-project-tx-dup-${index}`,
+          }),
+        ),
+    );
+    const token = await generateTestAccessToken(user.id);
+
+    const txHash =
+      '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+
+    // First create a cause with the transaction hash
+    await axios.post(
+      'http://localhost:4000/graphql',
+      {
+        query: createCauseQuery,
+        variables: {
+          title: 'First Cause',
+          description: 'First Description',
+          chainId: 137,
+          projectIds: projects.map(p => p.id),
+          mainCategory: 'test',
+          subCategories: ['sub1', 'sub2'],
+          depositTxHash: txHash,
+          depositTxChainId: 137,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    // Try to create another cause with the same transaction hash
+    const response = await axios.post(
+      'http://localhost:4000/graphql',
+      {
+        query: createCauseQuery,
+        variables: {
+          title: 'Second Cause',
+          description: 'Second Description',
+          chainId: 137,
+          projectIds: projects.map(p => p.id),
+          mainCategory: 'test',
+          subCategories: ['sub1', 'sub2'],
+          depositTxHash: txHash,
+          depositTxChainId: 137,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const errorMsg = response.data.errors?.[0]?.message;
+    assert.isOk(errorMsg, 'Error message should be defined');
+    assert.equal(errorMsg, 'Transaction hash already used in another cause');
+  });
 });
 
 describe('causes() test cases', () => {
@@ -485,8 +553,7 @@ describe('causes() test cases', () => {
             projectIds: projects.map(p => p.id),
             mainCategory: 'test',
             subCategories: ['sub1', 'sub2'],
-            depositTxHash:
-              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${i}`,
             depositTxChainId: 137,
           },
         },

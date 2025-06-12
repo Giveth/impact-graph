@@ -141,6 +141,30 @@ export const validateCauseTitle = async (title: string): Promise<boolean> => {
   return true;
 };
 
+export const validateTransactionHash = async (
+  depositTxHash: string,
+): Promise<boolean> => {
+  const trimmedTxHash = depositTxHash.trim().toLowerCase();
+  if (!trimmedTxHash) {
+    throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
+  }
+
+  // Check if a cause with this transaction hash exists
+  const existingCause = await Cause.findOne({
+    where: {
+      depositTxHash: trimmedTxHash,
+    },
+  });
+
+  if (existingCause) {
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.TRANSACTION_ALREADY_USED),
+    );
+  }
+
+  return true;
+};
+
 export const findAllCauses = async (
   limit?: number,
   offset?: number,
