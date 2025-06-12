@@ -50,32 +50,43 @@ export const createCause = async (
   owner: User,
   projects: Project[],
 ): Promise<Cause> => {
-  const cause = new Cause();
-  Object.assign(cause, {
-    ...causeData,
-    ownerId: owner.id,
-    projects,
-  });
+  return await Cause.getRepository().manager.transaction(
+    async transactionalEntityManager => {
+      const cause = new Cause();
+      Object.assign(cause, {
+        ...causeData,
+        ownerId: owner.id,
+        projects,
+      });
 
-  const savedCause = await cause.save();
+      const savedCause = await transactionalEntityManager.save(cause);
 
-  // Update user's ownedCausesCount
-  await User.update(
-    { id: owner.id },
-    { ownedCausesCount: () => '"ownedCausesCount" + 1' },
+      // Update user's ownedCausesCount
+      await transactionalEntityManager.update(
+        User,
+        { id: owner.id },
+        { ownedCausesCount: () => '"ownedCausesCount" + 1' },
+      );
+
+      // Return the cause with all relations
+      const result = await transactionalEntityManager.findOne(Cause, {
+        where: { id: savedCause.id },
+        relations: ['owner', 'projects'],
+      });
+
+      if (!result) {
+        throw new Error('Failed to retrieve created cause');
+      }
+
+      return result;
+    },
   );
-
-  // Return the cause with all relations
-  return Cause.findOne({
-    where: { id: savedCause.id },
-    relations: ['owner', 'projects'],
-  }) as Promise<Cause>;
 };
 
 export const activateCause = async (causeId: string): Promise<Cause> => {
   const cause = await findCauseByCauseId(causeId);
   if (!cause) {
-    throw new Error('Cause not found');
+    throw new Error(i18n.__(translationErrorMessagesKeys.CAUSE_NOT_FOUND));
   }
 
   if (cause.status === CauseStatus.ACTIVE) {
@@ -97,7 +108,7 @@ export const activateCause = async (causeId: string): Promise<Cause> => {
 export const deactivateCause = async (causeId: string): Promise<Cause> => {
   const cause = await findCauseByCauseId(causeId);
   if (!cause) {
-    throw new Error('Cause not found');
+    throw new Error(i18n.__(translationErrorMessagesKeys.CAUSE_NOT_FOUND));
   }
 
   if (cause.status === CauseStatus.DEACTIVE) {
