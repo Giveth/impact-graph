@@ -74,6 +74,14 @@ export class Cause extends BaseEntity {
   @Column('text', { unique: true })
   causeId: string;
 
+  @Field()
+  @Column('text', { unique: true })
+  depositTxHash: string;
+
+  @Field()
+  @Column()
+  depositTxChainId: number;
+
   @Field(_type => Float)
   @Column('float', { default: 0 })
   givpowerRank: number;

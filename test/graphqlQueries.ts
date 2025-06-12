@@ -2655,3 +2655,120 @@ export const getLastSitemapUrlQuery = `
     }
   }
 `;
+
+export const createCauseQuery = `
+mutation CreateCause(
+  $title: String!
+  $description: String!
+  $chainId: Float!
+  $projectIds: [Float!]!
+  $mainCategory: String!
+  $subCategories: [String!]!
+  $depositTxHash: String!
+  $depositTxChainId: Float!
+  $bannerImage: String
+) {
+  createCause(
+    title: $title
+    description: $description
+    chainId: $chainId
+    projectIds: $projectIds
+    mainCategory: $mainCategory
+    subCategories: $subCategories
+    depositTxHash: $depositTxHash
+    depositTxChainId: $depositTxChainId
+    bannerImage: $bannerImage
+  ) {
+    id
+    title
+    description
+    chainId
+    fundingPoolAddress
+    causeId
+    mainCategory
+    subCategories
+    status
+    listingStatus
+    totalRaised
+    totalDistributed
+    totalDonated
+    activeProjectsCount
+    createdAt
+    updatedAt
+    owner {
+      id
+    }
+    projects {
+      id
+    }
+  }
+}`;
+
+export const isValidCauseTitleQuery = `
+query IsValidCauseTitle($title: String!) {
+  isValidCauseTitle(title: $title)
+}`;
+
+export const causesQuery = `
+  query Causes($limit: Float, $offset: Float) {
+    causes(limit: $limit, offset: $offset) {
+      id
+      title
+      description
+      chainId
+      fundingPoolAddress
+      causeId
+      mainCategory
+      subCategories
+      status
+      listingStatus
+      totalRaised
+      totalDistributed
+      totalDonated
+      activeProjectsCount
+      createdAt
+      updatedAt
+      owner {
+        id
+        walletAddress
+      }
+      projects {
+        id
+        title
+        slug
+      }
+    }
+  }
+`;
+
+export const causeByIdQuery = `
+  query Cause($id: Float!) {
+    cause(id: $id) {
+      id
+      title
+      description
+      chainId
+      fundingPoolAddress
+      causeId
+      mainCategory
+      subCategories
+      status
+      listingStatus
+      totalRaised
+      totalDistributed
+      totalDonated
+      activeProjectsCount
+      createdAt
+      updatedAt
+      owner {
+        id
+        walletAddress
+      }
+      projects {
+        id
+        title
+        slug
+      }
+    }
+  }
+`;
