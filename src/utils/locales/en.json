@@ -131,5 +131,6 @@
     "INVALID_PROJECT_IDS": "Invalid project ids",
     "TOKEN_CONTRACT_NOT_CONFIGURED": "Token contract not configured",
     "TRANSACTION_ALREADY_USED": "Transaction hash already used in another cause",
-    "EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET": "Expected cause creation fee amount not set in environment variables"
+    "EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET": "Expected cause creation fee amount not set in environment variables",
+    "CAUSE_CREATION_FEE_RECIVER_NOT_CONFIGURED": "Cause creation fee reciver not configured in environment variables"
 }

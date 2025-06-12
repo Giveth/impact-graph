@@ -221,6 +221,8 @@ export const errorMessages = {
   TOKEN_CONTRACT_NOT_CONFIGURED: 'Token contract not configured',
   EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET:
     'Expected cause creation fee amount not set in environment variables',
+  CAUSE_CREATION_FEE_RECIVER_NOT_CONFIGURED:
+    'Cause creation fee reciver not configured in environment variables',
 };
 
 export const translationErrorMessagesKeys = {
@@ -413,4 +415,6 @@ export const translationErrorMessagesKeys = {
   TRANSACTION_ALREADY_USED: 'TRANSACTION_ALREADY_USED',
   EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET:
     'EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET',
+  CAUSE_CREATION_FEE_RECIVER_NOT_CONFIGURED:
+    'CAUSE_CREATION_FEE_RECIVER_NOT_CONFIGURED',
 };

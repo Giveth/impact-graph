@@ -35,6 +35,16 @@ export async function verifyTransaction(
       );
     }
 
+    // Get the expected receiver address from environment
+    const expectedReceiverAddress = process.env.CAUSE_CREATION_FEE_RECIVER;
+    if (!expectedReceiverAddress) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.CAUSE_CREATION_FEE_RECIVER_NOT_CONFIGURED,
+        ),
+      );
+    }
+
     // Create contract instance
     const contract = new ethers.Contract(
       tokenContractAddress,
@@ -72,15 +82,18 @@ export async function verifyTransaction(
       );
     }
 
-    // Check if any of the transfer events match the expected amount
-    const hasMatchingAmount = relevantEvents.some(event => {
+    // Check if any of the transfer events match the expected amount and receiver
+    const hasMatchingTransfer = relevantEvents.some(event => {
       if (!event.args) {
         return false;
       }
-      return event.args.value.gte(expectedAmount);
+      const matchesAmount = event.args.value.gte(expectedAmount);
+      const matchesReceiver =
+        event.args.to.toLowerCase() === expectedReceiverAddress.toLowerCase();
+      return matchesAmount && matchesReceiver;
     });
 
-    if (!hasMatchingAmount) {
+    if (!hasMatchingTransfer) {
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
     }
 
