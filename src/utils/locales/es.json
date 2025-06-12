@@ -113,6 +113,7 @@
     "EMAIL_NOT_VERIFIED": "Correo electrónico no verificado",
     "CAUSE_ALREADY_EXISTS": "Causa ya existe",
     "CAUSE_TITLE_ALREADY_EXISTS": "El título de la causa ya existe",
+    "CAUSE_NOT_FOUND": "Causa no encontrada",
     "INVALID_INPUT": "Entrada inválida",
     "INVALID_CHAIN_ID": "ID de cadena inválido",
     "INVALID_PROJECT_COUNT": "Cuenta de proyecto inválida",

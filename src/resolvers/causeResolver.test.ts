@@ -9,6 +9,8 @@ import {
 import {
   createCauseQuery,
   isValidCauseTitleQuery,
+  causesQuery,
+  causeByIdQuery,
 } from '../../test/graphqlQueries';
 import { Cause } from '../entities/cause';
 import { Project } from '../entities/project';
@@ -319,5 +321,250 @@ describe('createCause() test cases', () => {
     const errorMsg = response.data.errors?.[0]?.message;
     assert.isOk(errorMsg, 'Error message should be defined');
     assert.equal(errorMsg, 'Invalid chain id');
+  });
+});
+
+describe('causes() test cases', () => {
+  let user: User;
+  let projects: Project[];
+  let token: string;
+  let causes: any[];
+
+  beforeEach(async () => {
+    // Create test user and projects
+    user = await saveUserDirectlyToDb('0x123');
+    projects = await Promise.all(
+      Array(5)
+        .fill(null)
+        .map((_, index) =>
+          saveProjectDirectlyToDb({
+            ...createProjectData(`test-project-${index}`),
+            slug: `test-project-${index}`,
+          }),
+        ),
+    );
+    token = await generateTestAccessToken(user.id);
+    // Create multiple causes
+    causes = [];
+    for (let i = 0; i < 3; i++) {
+      const response = await axios.post(
+        'http://localhost:4000/graphql',
+        {
+          query: createCauseQuery,
+          variables: {
+            title: `Test Cause ${i}`,
+            description: `Test Description ${i}`,
+            chainId: 137,
+            projectIds: projects.map(p => p.id),
+            mainCategory: 'test',
+            subCategories: ['sub1', 'sub2'],
+          },
+        },
+        {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      causes.push(response.data.data.createCause);
+    }
+  });
+
+  it('should return all causes with relations', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {},
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3);
+    assert.equal(returnedCauses[0].owner.id, user.id);
+    assert.equal(returnedCauses[0].projects.length, 5);
+    assert.equal(returnedCauses[0].activeProjectsCount, 5);
+  });
+
+  it('should respect limit parameter', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        limit: 2,
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 2);
+  });
+
+  it('should respect offset parameter', async () => {
+    const firstCauseResponse = await axios.post(
+      'http://localhost:4000/graphql',
+      {
+        query: causesQuery,
+        variables: {
+          limit: 1,
+        },
+      },
+    );
+    const firstCause = firstCauseResponse.data.data.causes[0];
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        offset: 1,
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 2);
+    assert.notEqual(returnedCauses[0].id, firstCause.id);
+    assert.notEqual(returnedCauses[1].id, firstCause.id);
+  });
+
+  it('should respect both limit and offset parameters', async () => {
+    const firstCauseResponse = await axios.post(
+      'http://localhost:4000/graphql',
+      {
+        query: causesQuery,
+        variables: {
+          limit: 1,
+        },
+      },
+    );
+    const firstCause = firstCauseResponse.data.data.causes[0];
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        limit: 1,
+        offset: 1,
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 1);
+    assert.notEqual(returnedCauses[0].id, firstCause.id);
+  });
+
+  it('should return causes in descending order by createdAt', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {},
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3);
+    // Most recent cause should be first
+    assert.equal(returnedCauses[0].id, causes[2].id);
+    assert.equal(returnedCauses[1].id, causes[1].id);
+    assert.equal(returnedCauses[2].id, causes[0].id);
+  });
+});
+
+describe('cause() test cases', () => {
+  let user: User;
+  let projects: Project[];
+  let token: string;
+  let createdCause: any;
+
+  beforeEach(async () => {
+    // Create test user and projects
+    user = await saveUserDirectlyToDb('0x123');
+    projects = await Promise.all(
+      Array(5)
+        .fill(null)
+        .map((_, index) =>
+          saveProjectDirectlyToDb({
+            ...createProjectData(`test-project-${index}`),
+            slug: `test-project-${index}`,
+          }),
+        ),
+    );
+    token = await generateTestAccessToken(user.id);
+
+    // Create a cause
+    const response = await axios.post(
+      'http://localhost:4000/graphql',
+      {
+        query: createCauseQuery,
+        variables: {
+          title: 'Test Cause',
+          description: 'Test Description',
+          chainId: 137,
+          projectIds: projects.map(p => p.id),
+          mainCategory: 'test',
+          subCategories: ['sub1', 'sub2'],
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    createdCause = response.data.data.createCause;
+  });
+
+  it('should return cause by id with relations', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causeByIdQuery,
+      variables: {
+        id: Number(createdCause.id),
+      },
+    });
+
+    const cause = response.data.data.cause;
+    assert.isOk(cause);
+    assert.equal(cause.id, createdCause.id);
+    assert.equal(cause.title, createdCause.title);
+    assert.equal(cause.description, createdCause.description);
+    assert.equal(cause.chainId, createdCause.chainId);
+    assert.equal(cause.mainCategory, createdCause.mainCategory);
+    assert.deepEqual(cause.subCategories, createdCause.subCategories);
+    assert.equal(cause.status, createdCause.status);
+    assert.equal(cause.owner.id, user.id);
+    assert.equal(cause.projects.length, 5);
+    assert.equal(cause.activeProjectsCount, 5);
+  });
+
+  it('should return null for non-existent cause id', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causeByIdQuery,
+      variables: {
+        id: 999999,
+      },
+    });
+
+    const cause = response.data.data.cause;
+    assert.isNull(cause);
+  });
+
+  it('should include all required fields in response', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causeByIdQuery,
+      variables: {
+        id: Number(createdCause.id),
+      },
+    });
+
+    const cause = response.data.data.cause;
+    assert.isNotNull(cause);
+    assert.isNotNull(cause.id);
+    assert.isNotNull(cause.title);
+    assert.isNotNull(cause.description);
+    assert.isNotNull(cause.chainId);
+    assert.isNotNull(cause.fundingPoolAddress);
+    assert.isNotNull(cause.causeId);
+    assert.isNotNull(cause.mainCategory);
+    assert.isNotNull(cause.subCategories);
+    assert.isNotNull(cause.status);
+    assert.isNotNull(cause.listingStatus);
+    assert.isNotNull(cause.totalRaised);
+    assert.isNotNull(cause.totalDistributed);
+    assert.isNotNull(cause.totalDonated);
+    assert.isNotNull(cause.activeProjectsCount);
+    assert.isNotNull(cause.createdAt);
+    assert.isNotNull(cause.updatedAt);
+    assert.isNotNull(cause.owner);
+    assert.isNotNull(cause.projects);
   });
 });

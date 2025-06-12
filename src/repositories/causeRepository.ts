@@ -140,3 +140,22 @@ export const validateCauseTitle = async (title: string): Promise<boolean> => {
 
   return true;
 };
+
+export const findAllCauses = async (
+  limit?: number,
+  offset?: number,
+): Promise<Cause[]> => {
+  const queryBuilder = Cause.createQueryBuilder('cause')
+    .leftJoinAndSelect('cause.owner', 'owner')
+    .leftJoinAndSelect('cause.projects', 'projects')
+    .orderBy('cause.createdAt', 'DESC');
+
+  if (limit) {
+    queryBuilder.take(limit);
+  }
+  if (offset) {
+    queryBuilder.skip(offset);
+  }
+
+  return queryBuilder.getMany();
+};

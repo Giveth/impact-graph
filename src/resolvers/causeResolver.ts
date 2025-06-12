@@ -9,11 +9,62 @@ import { findUserById } from '../repositories/userRepository';
 import {
   createCause,
   validateCauseTitle,
+  findCauseById,
+  findAllCauses,
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
 
+const DEFAULT_CAUSES_LIMIT = 10;
+const MAX_CAUSES_LIMIT = 100;
+
 @Resolver()
 export class CauseResolver {
+  @Query(() => [Cause])
+  async causes(
+    @Arg('limit', {
+      nullable: true,
+      description: `Maximum number of causes to return. Default: ${DEFAULT_CAUSES_LIMIT}, Max: ${MAX_CAUSES_LIMIT}`,
+    })
+    limit?: number,
+    @Arg('offset', {
+      nullable: true,
+      description: 'Number of causes to skip',
+    })
+    offset?: number,
+  ): Promise<Cause[]> {
+    try {
+      // Apply default limit if none provided, or cap at maximum limit
+      const effectiveLimit = limit
+        ? Math.min(limit, MAX_CAUSES_LIMIT)
+        : DEFAULT_CAUSES_LIMIT;
+
+      const causes = await findAllCauses(effectiveLimit, offset);
+      return causes;
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('causes() error', {
+        error: e,
+        errorMessage: e.message,
+        errorStack: e.stack,
+        limit,
+        offset,
+      });
+      return [];
+    }
+  }
+
+  @Query(() => Cause, { nullable: true })
+  async cause(@Arg('id') id: number): Promise<Cause | null> {
+    try {
+      const cause = await findCauseById(id);
+      return cause || null;
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('cause() error', { error: e, causeId: id });
+      throw e;
+    }
+  }
+
   @Query(() => Boolean)
   async isValidCauseTitle(@Arg('title') title: string): Promise<boolean> {
     return validateCauseTitle(title);

@@ -12,6 +12,7 @@ import {
   activateCause,
   deactivateCause,
   validateCauseTitle,
+  findAllCauses,
 } from './causeRepository';
 import {
   saveUserDirectlyToDb,
@@ -263,17 +264,17 @@ describe('causeRepository test cases', () => {
   });
 
   describe('validateCauseTitle test cases', () => {
-    it('should return true for a unique title', async () => {
-      const result = await validateCauseTitle('Unique Test Cause Title');
-      assert.isTrue(result);
+    it('should validate a unique cause title', async () => {
+      const isValid = await validateCauseTitle('unique cause title');
+      assert.isTrue(isValid);
     });
 
     it('should throw error for empty title', async () => {
       try {
         await validateCauseTitle('');
         assert.fail('Should have thrown an error');
-      } catch (e) {
-        assert.equal(e.message, 'Invalid input');
+      } catch (error) {
+        assert.equal(error.message, 'Invalid input');
       }
     });
 
@@ -281,8 +282,8 @@ describe('causeRepository test cases', () => {
       try {
         await validateCauseTitle('   ');
         assert.fail('Should have thrown an error');
-      } catch (e) {
-        assert.equal(e.message, 'Invalid input');
+      } catch (error) {
+        assert.equal(error.message, 'Invalid input');
       }
     });
 
@@ -326,6 +327,86 @@ describe('causeRepository test cases', () => {
       } catch (e) {
         assert.equal(e.message, 'Cause title already exists');
       }
+    });
+  });
+
+  describe.only('findAllCauses test cases', () => {
+    it('should find all causes with relations', async () => {
+      // Create a second cause
+      await createCause(createTestCauseData('test-cause-id-4'), testUser, [
+        testProject,
+      ]);
+
+      const causes = await findAllCauses();
+      assert.equal(causes.length, 2);
+      assert.equal(causes[0].owner.id, testUser.id);
+      assert.equal(causes[1].owner.id, testUser.id);
+      assert.equal(causes[0].projects[0].id, testProject.id);
+      assert.equal(causes[1].projects[0].id, testProject.id);
+    });
+
+    it('should respect limit parameter', async () => {
+      // Create a second cause
+      await createCause(createTestCauseData('test-cause-id-5'), testUser, [
+        testProject,
+      ]);
+
+      const causes = await findAllCauses(1, 0);
+      assert.equal(causes.length, 1);
+    });
+
+    it('should respect offset parameter', async () => {
+      // Create a second cause
+      const secondCause = await createCause(
+        createTestCauseData('test-cause-id-6'),
+        testUser,
+        [testProject],
+      );
+
+      const causes = await findAllCauses(1, 1);
+      assert.equal(causes.length, 1);
+      assert.equal(causes[0].id, testCause.id); // Should be the first cause
+
+      const causes2 = await findAllCauses(1, 0);
+      assert.equal(causes2.length, 1);
+      assert.equal(causes2[0].id, secondCause.id); // Should be the second cause
+    });
+
+    it('should return causes in descending order by createdAt', async () => {
+      // Create a second cause
+      const secondCause = await createCause(
+        createTestCauseData('test-cause-id-7'),
+        testUser,
+        [testProject],
+      );
+
+      const causes = await findAllCauses();
+      assert.equal(causes.length, 2);
+      assert.equal(causes[0].id, secondCause.id); // Most recent first
+      assert.equal(causes[1].id, testCause.id);
+    });
+
+    it('should handle limit and offset together', async () => {
+      // Create two more causes
+      const secondCause = await createCause(
+        createTestCauseData('test-cause-id-8'),
+        testUser,
+        [testProject],
+      );
+      await createCause(createTestCauseData('test-cause-id-9'), testUser, [
+        testProject,
+      ]);
+
+      const causes = await findAllCauses(2, 1);
+      assert.equal(causes.length, 2);
+      // Should skip the most recent cause and return the next two
+      assert.equal(causes[0].id, secondCause.id);
+      assert.equal(causes[1].id, testCause.id);
+    });
+
+    it('should return empty array when no causes match offset', async () => {
+      const causes = await findAllCauses(10, 100);
+      assert.equal(causes.length, 0);
     });
   });
 });
