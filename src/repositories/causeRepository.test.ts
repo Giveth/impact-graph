@@ -26,7 +26,7 @@ describe('causeRepository test cases', () => {
   let testProject: Project;
   let testCause: Cause;
 
-  const createTestCauseData = (causeId: string) => ({
+  const createTestCauseData = (causeId: string, txHash: string) => ({
     title: 'test cause',
     description: 'test description',
     chainId: 1,
@@ -35,6 +35,8 @@ describe('causeRepository test cases', () => {
     mainCategory: 'test',
     subCategories: ['test'],
     status: CauseStatus.PENDING,
+    depositTxHash: txHash,
+    depositTxChainId: 137,
   });
 
   beforeEach(async () => {
@@ -60,7 +62,7 @@ describe('causeRepository test cases', () => {
 
     // Create test cause
     testCause = await createCause(
-      createTestCauseData('test-cause-id-0'),
+      createTestCauseData('test-cause-id-0', '0x123456789abcdef'),
       testUser,
       [testProject],
     );
@@ -83,6 +85,8 @@ describe('causeRepository test cases', () => {
       assert.equal(foundCause?.mainCategory, testCause.mainCategory);
       assert.deepEqual(foundCause?.subCategories, testCause.subCategories);
       assert.equal(foundCause?.status, testCause.status);
+      assert.equal(foundCause?.depositTxHash, testCause.depositTxHash);
+      assert.equal(foundCause?.depositTxChainId, testCause.depositTxChainId);
       assert.equal(foundCause?.owner.id, testUser.id);
       assert.equal(foundCause?.projects[0].id, testProject.id);
     });
@@ -122,9 +126,11 @@ describe('causeRepository test cases', () => {
   describe('findCausesByOwnerId test cases', () => {
     it('should find causes by owner id with relations', async () => {
       // Create another cause for the same owner
-      await createCause(createTestCauseData('test-cause-id-1'), testUser, [
-        testProject,
-      ]);
+      await createCause(
+        createTestCauseData('test-cause-id-1', '0xuniquehash1'),
+        testUser,
+        [testProject],
+      );
 
       const causes = await findCausesByOwnerId(testUser.id);
 
@@ -151,7 +157,7 @@ describe('causeRepository test cases', () => {
 
       // Create a cause with both projects
       const multiProjectCause = await createCause(
-        createTestCauseData('test-cause-id-2'),
+        createTestCauseData('test-cause-id-2', '0xuniquehash2'),
         testUser,
         [testProject, project2],
       );
@@ -179,7 +185,7 @@ describe('causeRepository test cases', () => {
 
   describe('createCause test cases', () => {
     it('should create cause with relations', async () => {
-      const causeData = createTestCauseData('test-cause-id-3');
+      const causeData = createTestCauseData('test-cause-id-3', '0xuniquehash3');
       const cause = await createCause(causeData, testUser, [testProject]);
 
       assert.isOk(cause);
@@ -191,12 +197,48 @@ describe('causeRepository test cases', () => {
       assert.equal(cause.mainCategory, causeData.mainCategory);
       assert.deepEqual(cause.subCategories, causeData.subCategories);
       assert.equal(cause.status, causeData.status);
+      assert.equal(cause.depositTxHash, causeData.depositTxHash);
+      assert.equal(cause.depositTxChainId, causeData.depositTxChainId);
       assert.equal(cause.owner.id, testUser.id);
       assert.equal(cause.projects[0].id, testProject.id);
 
       // Check if user's ownedCausesCount was updated
       const updatedUser = await User.findOne({ where: { id: testUser.id } });
       assert.equal(updatedUser?.ownedCausesCount, 2); // Including the one from beforeEach
+    });
+
+    it('should throw error when deposit transaction hash is missing', async () => {
+      const causeData = {
+        ...createTestCauseData('test-cause-id-10', '0xuniquehash10'),
+        depositTxHash: undefined,
+      };
+
+      try {
+        await createCause(causeData, testUser, [testProject]);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.equal(
+          error.message,
+          'null value in column "depositTxHash" of relation "cause" violates not-null constraint',
+        );
+      }
+    });
+
+    it('should throw error when deposit chain id is missing', async () => {
+      const causeData = {
+        ...createTestCauseData('test-cause-id-11', '0xuniquehash11'),
+        depositTxChainId: undefined,
+      };
+
+      try {
+        await createCause(causeData, testUser, [testProject]);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.equal(
+          error.message,
+          'null value in column "depositTxChainId" of relation "cause" violates not-null constraint',
+        );
+      }
     });
   });
 
@@ -292,7 +334,7 @@ describe('causeRepository test cases', () => {
       const causeTitle = 'Existing Test Cause Title';
       await createCause(
         {
-          ...createTestCauseData('test-cause-id-4'),
+          ...createTestCauseData('test-cause-id-4', '0xuniquehash4'),
           title: causeTitle,
         },
         testUser,
@@ -313,7 +355,7 @@ describe('causeRepository test cases', () => {
       const causeTitle = 'Test Cause Title';
       await createCause(
         {
-          ...createTestCauseData('test-cause-id-5'),
+          ...createTestCauseData('test-cause-id-5', '0xuniquehash5'),
           title: causeTitle,
         },
         testUser,
@@ -330,12 +372,14 @@ describe('causeRepository test cases', () => {
     });
   });
 
-  describe.only('findAllCauses test cases', () => {
+  describe('findAllCauses test cases', () => {
     it('should find all causes with relations', async () => {
       // Create a second cause
-      await createCause(createTestCauseData('test-cause-id-4'), testUser, [
-        testProject,
-      ]);
+      await createCause(
+        createTestCauseData('test-cause-id-4', '0xuniquehash4'),
+        testUser,
+        [testProject],
+      );
 
       const causes = await findAllCauses();
       assert.equal(causes.length, 2);
@@ -347,9 +391,11 @@ describe('causeRepository test cases', () => {
 
     it('should respect limit parameter', async () => {
       // Create a second cause
-      await createCause(createTestCauseData('test-cause-id-5'), testUser, [
-        testProject,
-      ]);
+      await createCause(
+        createTestCauseData('test-cause-id-5', '0xuniquehash5'),
+        testUser,
+        [testProject],
+      );
 
       const causes = await findAllCauses(1, 0);
       assert.equal(causes.length, 1);
@@ -358,7 +404,7 @@ describe('causeRepository test cases', () => {
     it('should respect offset parameter', async () => {
       // Create a second cause
       const secondCause = await createCause(
-        createTestCauseData('test-cause-id-6'),
+        createTestCauseData('test-cause-id-6', '0xuniquehash6'),
         testUser,
         [testProject],
       );
@@ -375,7 +421,7 @@ describe('causeRepository test cases', () => {
     it('should return causes in descending order by createdAt', async () => {
       // Create a second cause
       const secondCause = await createCause(
-        createTestCauseData('test-cause-id-7'),
+        createTestCauseData('test-cause-id-7', '0xuniquehash7'),
         testUser,
         [testProject],
       );
@@ -389,13 +435,15 @@ describe('causeRepository test cases', () => {
     it('should handle limit and offset together', async () => {
       // Create two more causes
       const secondCause = await createCause(
-        createTestCauseData('test-cause-id-8'),
+        createTestCauseData('test-cause-id-8', '0xuniquehash8'),
         testUser,
         [testProject],
       );
-      await createCause(createTestCauseData('test-cause-id-9'), testUser, [
-        testProject,
-      ]);
+      await createCause(
+        createTestCauseData('test-cause-id-9', '0xuniquehash9'),
+        testUser,
+        [testProject],
+      );
 
       const causes = await findAllCauses(2, 1);
       assert.equal(causes.length, 2);
