@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import axios from 'axios';
+import sinon from 'sinon';
 import {
   saveUserDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -15,6 +16,10 @@ import {
 import { Cause } from '../entities/cause';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
+import * as verifyTransactionModule from '../utils/transactionVerification';
+
+process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS =
+  '0x0000000000000000000000000000000000000000';
 
 beforeEach(async () => {
   // Truncate all relevant tables in the correct order with CASCADE
@@ -27,6 +32,13 @@ beforeEach(async () => {
   await User.getRepository().query(
     'TRUNCATE TABLE "user" RESTART IDENTITY CASCADE',
   );
+
+  // Mock verifyTransaction to return true in tests
+  sinon.stub(verifyTransactionModule, 'verifyTransaction').resolves(true);
+});
+
+afterEach(() => {
+  sinon.restore();
 });
 
 describe('isValidCauseTitle() test cases', () => {
@@ -94,6 +106,9 @@ describe('isValidCauseTitle() test cases', () => {
           projectIds: projects.map(p => p.id),
           mainCategory: 'test',
           subCategories: ['sub1', 'sub2'],
+          depositTxHash:
+            '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          depositTxChainId: 137,
         },
       },
       {
@@ -162,6 +177,9 @@ describe('createCause() test cases', () => {
       projectIds: projects.map(p => p.id),
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
+      depositTxHash:
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxChainId: 137,
     };
 
     const response = await axios.post(
@@ -198,6 +216,9 @@ describe('createCause() test cases', () => {
       projectIds: [1, 2, 3, 4, 5],
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
+      depositTxHash:
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxChainId: 137,
     };
 
     const response = await axios.post('http://localhost:4000/graphql', {
@@ -224,6 +245,9 @@ describe('createCause() test cases', () => {
       projectIds: [project.id], // Less than 5 projects
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
+      depositTxHash:
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxChainId: 137,
     };
 
     const response = await axios.post(
@@ -264,6 +288,9 @@ describe('createCause() test cases', () => {
       projectIds: projects.map(p => p.id),
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
+      depositTxHash:
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxChainId: 137,
     };
 
     const response = await axios.post(
@@ -304,6 +331,9 @@ describe('createCause() test cases', () => {
       projectIds: projects.map(p => p.id),
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
+      depositTxHash:
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxChainId: 137,
     };
 
     const response = await axios.post(
@@ -321,6 +351,103 @@ describe('createCause() test cases', () => {
     const errorMsg = response.data.errors?.[0]?.message;
     assert.isOk(errorMsg, 'Error message should be defined');
     assert.equal(errorMsg, 'Invalid chain id');
+  });
+
+  it('should fail with invalid transaction hash', async () => {
+    const user = await saveUserDirectlyToDb('0x123');
+    const projects = await Promise.all(
+      Array(5)
+        .fill(null)
+        .map((_, index) =>
+          saveProjectDirectlyToDb({
+            ...createProjectData(`test-project-tx-${index}`),
+            slug: `test-project-tx-${index}`,
+          }),
+        ),
+    );
+    const token = await generateTestAccessToken(user.id);
+
+    const variables = {
+      title: 'Test Cause',
+      description: 'Test Description',
+      chainId: 137,
+      projectIds: projects.map(p => p.id),
+      mainCategory: 'test',
+      subCategories: ['sub1', 'sub2'],
+      depositTxHash: '', // Empty transaction hash
+      depositTxChainId: 137,
+    };
+
+    const response = await axios.post(
+      'http://localhost:4000/graphql',
+      {
+        query: createCauseQuery,
+        variables,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const errorMsg = response.data.errors?.[0]?.message;
+    assert.isOk(errorMsg, 'Error message should be defined');
+    assert.equal(errorMsg, 'Invalid txHash');
+  });
+
+  it('should fail when token contract is not configured', async () => {
+    // Save original env value
+    const originalTokenContract =
+      process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS;
+    // Remove token contract address
+    delete process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS;
+
+    const user = await saveUserDirectlyToDb('0x123');
+    const projects = await Promise.all(
+      Array(5)
+        .fill(null)
+        .map((_, index) =>
+          saveProjectDirectlyToDb({
+            ...createProjectData(`test-project-token-${index}`),
+            slug: `test-project-token-${index}`,
+          }),
+        ),
+    );
+    const token = await generateTestAccessToken(user.id);
+
+    const variables = {
+      title: 'Test Cause',
+      description: 'Test Description',
+      chainId: 137,
+      projectIds: projects.map(p => p.id),
+      mainCategory: 'test',
+      subCategories: ['sub1', 'sub2'],
+      depositTxHash:
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxChainId: 137,
+    };
+
+    const response = await axios.post(
+      'http://localhost:4000/graphql',
+      {
+        query: createCauseQuery,
+        variables,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const errorMsg = response.data.errors?.[0]?.message;
+    assert.isOk(errorMsg, 'Error message should be defined');
+    assert.equal(errorMsg, 'Token contract not configured');
+
+    // Restore original env value
+    process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS =
+      originalTokenContract;
   });
 });
 
@@ -358,6 +485,9 @@ describe('causes() test cases', () => {
             projectIds: projects.map(p => p.id),
             mainCategory: 'test',
             subCategories: ['sub1', 'sub2'],
+            depositTxHash:
+              '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+            depositTxChainId: 137,
           },
         },
         {
@@ -493,6 +623,9 @@ describe('cause() test cases', () => {
           projectIds: projects.map(p => p.id),
           mainCategory: 'test',
           subCategories: ['sub1', 'sub2'],
+          depositTxHash:
+            '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          depositTxChainId: 137,
         },
       },
       {

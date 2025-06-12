@@ -2664,7 +2664,8 @@ mutation CreateCause(
   $projectIds: [Float!]!
   $mainCategory: String!
   $subCategories: [String!]!
-  $depositTxHash: String
+  $depositTxHash: String!
+  $depositTxChainId: Float!
   $bannerImage: String
 ) {
   createCause(
@@ -2675,6 +2676,7 @@ mutation CreateCause(
     mainCategory: $mainCategory
     subCategories: $subCategories
     depositTxHash: $depositTxHash
+    depositTxChainId: $depositTxChainId
     bannerImage: $bannerImage
   ) {
     id

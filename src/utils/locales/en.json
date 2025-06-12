@@ -128,5 +128,6 @@
     "INVALID_INPUT": "Invalid input",
     "INVALID_CHAIN_ID": "Invalid chain id",
     "INVALID_PROJECT_COUNT": "Invalid project count",
-    "INVALID_PROJECT_IDS": "Invalid project ids"
+    "INVALID_PROJECT_IDS": "Invalid project ids",
+    "TOKEN_CONTRACT_NOT_CONFIGURED": "Token contract not configured"
 }

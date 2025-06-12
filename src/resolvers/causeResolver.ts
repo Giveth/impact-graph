@@ -79,7 +79,8 @@ export class CauseResolver {
     @Arg('projectIds', () => [Number]) projectIds: number[],
     @Arg('mainCategory') mainCategory: string,
     @Arg('subCategories', () => [String]) subCategories: string[],
-    @Arg('depositTxHash', { nullable: true }) depositTxHash?: string,
+    @Arg('depositTxHash') depositTxHash: string,
+    @Arg('depositTxChainId') depositTxChainId: number,
     @Arg('bannerImage', { nullable: true }) _bannerImage?: string,
   ): Promise<Cause> {
     const logData = {
@@ -90,6 +91,7 @@ export class CauseResolver {
       mainCategory,
       subCategories,
       depositTxHash,
+      depositTxChainId,
       userId: _user?.userId,
     };
     logger.debug(
@@ -134,30 +136,25 @@ export class CauseResolver {
         );
       }
 
-      // Verify deposit transaction if provided
-      if (depositTxHash) {
-        if (!depositTxHash.trim()) {
-          throw new Error(
-            i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH),
-          );
-        }
+      if (!depositTxHash.trim()) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
+      }
 
-        // Get token contract address from environment
-        const causeCreationFeeTokenContractAddress =
-          process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS;
-        if (!causeCreationFeeTokenContractAddress) {
-          throw new Error(
-            i18n.__(translationErrorMessagesKeys.TOKEN_CONTRACT_NOT_CONFIGURED),
-          );
-        }
-
-        // Verify the transaction
-        await verifyTransaction(
-          depositTxHash,
-          chainId,
-          causeCreationFeeTokenContractAddress,
+      // Get token contract address from environment
+      const causeCreationFeeTokenContractAddress =
+        process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS;
+      if (!causeCreationFeeTokenContractAddress) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.TOKEN_CONTRACT_NOT_CONFIGURED),
         );
       }
+
+      // Verify the transaction
+      await verifyTransaction(
+        depositTxHash,
+        depositTxChainId,
+        causeCreationFeeTokenContractAddress,
+      );
 
       // Generate unique causeId
       const causeId = `cause_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
