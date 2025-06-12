@@ -61,7 +61,9 @@ export async function verifyTransaction(
     }
 
     // Get the expected amount from environment variable
-    const expectedAmount = process.env.EXPECTED_CAUSE_CREATION_FEE_AMOUNT;
+    const expectedAmount = ethers.BigNumber.from(
+      process.env.EXPECTED_CAUSE_CREATION_FEE_AMOUNT,
+    );
     if (!expectedAmount) {
       throw new Error(
         i18n.__(
@@ -75,8 +77,7 @@ export async function verifyTransaction(
       if (!event.args) {
         return false;
       }
-      const eventAmount = event.args.value.toString();
-      return eventAmount >= expectedAmount;
+      return event.args.value.gte(expectedAmount);
     });
 
     if (!hasMatchingAmount) {

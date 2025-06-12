@@ -18,9 +18,6 @@ import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import * as verifyTransactionModule from '../utils/transactionVerification';
 
-process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS =
-  '0x0000000000000000000000000000000000000000';
-
 beforeEach(async () => {
   // Truncate all relevant tables in the correct order with CASCADE
   await Cause.getRepository().query(
