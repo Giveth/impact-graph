@@ -18,6 +18,16 @@ import { verifyTransaction } from '../utils/transactionVerification';
 const DEFAULT_CAUSES_LIMIT = 10;
 const MAX_CAUSES_LIMIT = 100;
 
+const getCauseCreationFeeTokenContractAddresses = (): {
+  [chainId: number]: string;
+} => {
+  return {
+    137: process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_POLYGON || '',
+    10: process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_OPTIMISM || '',
+    8453: process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_BASE || '',
+  };
+};
+
 @Resolver()
 export class CauseResolver {
   @Query(() => [Cause])
@@ -144,20 +154,15 @@ export class CauseResolver {
       // Validate transaction hash is not already used
       await validateTransactionHash(depositTxHash);
 
-      // Get token contract address from environment
-      const causeCreationFeeTokenContractAddress =
-        process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS;
-      if (!causeCreationFeeTokenContractAddress) {
-        throw new Error(
-          i18n.__(translationErrorMessagesKeys.TOKEN_CONTRACT_NOT_CONFIGURED),
-        );
-      }
+      // Get token contract addresses from environment
+      const causeCreationFeeTokenContractAddresses =
+        getCauseCreationFeeTokenContractAddresses();
 
       // Verify the transaction
       await verifyTransaction(
         depositTxHash,
         depositTxChainId,
-        causeCreationFeeTokenContractAddress,
+        causeCreationFeeTokenContractAddresses,
       );
 
       // Generate unique causeId

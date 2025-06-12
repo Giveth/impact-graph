@@ -11,7 +11,7 @@ const TOKEN_ABI = [
 export async function verifyTransaction(
   txHash: string,
   chainId: number,
-  tokenContractAddress: string,
+  tokenContractAddresses: { [chainId: number]: string },
 ): Promise<boolean> {
   try {
     const provider = getProvider(chainId);
@@ -25,6 +25,14 @@ export async function verifyTransaction(
     // Check if transaction was not successful
     if (receipt.status === 0) {
       throw new Error(i18n.__(translationErrorMessagesKeys.TRANSACTION_FAILED));
+    }
+
+    // Get the token contract address for this chain
+    const tokenContractAddress = tokenContractAddresses[chainId];
+    if (!tokenContractAddress) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.TOKEN_CONTRACT_NOT_CONFIGURED),
+      );
     }
 
     // Create contract instance
@@ -81,7 +89,7 @@ export async function verifyTransaction(
       error,
       txHash,
       chainId,
-      tokenContractAddress,
+      tokenContractAddresses,
     });
     throw error;
   }
