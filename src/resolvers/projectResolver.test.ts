@@ -5377,14 +5377,13 @@ function addProjectUpdateTestCases() {
   it('should can not add project update because of not found project ', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
-    const projectUpdateCount = await ProjectUpdate.count();
 
     const result = await axios.post(
       graphqlUrl,
       {
         query: addProjectUpdateQuery,
         variables: {
-          projectId: Number(projectUpdateCount + 1),
+          projectId: 9999999,
           content: 'TestProjectUpdateFateme2',
           title: 'testProjectUpdateFateme2',
         },
@@ -5532,13 +5531,12 @@ function editProjectUpdateTestCases() {
       isEmailVerified: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
-    const projectUpdateCount = await ProjectUpdate.count();
     const result = await axios.post(
       graphqlUrl,
       {
         query: editProjectUpdateQuery,
         variables: {
-          updateId: Number(projectUpdateCount + 10),
+          updateId: 9999999,
           content: 'TestProjectUpdateFateme2',
           title: 'testEditProjectUpdateFateme2',
         },
@@ -5648,13 +5646,12 @@ function deleteProjectUpdateTestCases() {
       isEmailVerified: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
-    const projectUpdateCount = await ProjectUpdate.count();
     const result = await axios.post(
       graphqlUrl,
       {
         query: deleteProjectUpdateQuery,
         variables: {
-          updateId: Number(projectUpdateCount + 10),
+          updateId: 9999999,
         },
       },
       {
@@ -5780,13 +5777,12 @@ function deleteDraftProjectTestCases() {
   it('should can not delete draft project because of not found project ', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
-    const projectCount = await Project.count();
     const result = await axios.post(
       graphqlUrl,
       {
         query: deleteDraftProjectQuery,
         variables: {
-          projectId: Number(projectCount + 10),
+          projectId: 9999999,
         },
       },
       {
