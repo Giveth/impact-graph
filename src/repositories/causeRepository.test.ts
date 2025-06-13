@@ -28,10 +28,10 @@ describe('causeRepository test cases', () => {
   let testCause: Cause;
 
   const createTestCauseData = (causeId: string, txHash: string) => ({
-    title: 'test cause',
+    title: `test cause ${Date.now()}`,
     description: 'test description',
     chainId: 1,
-    fundingPoolAddress: '0x123',
+    fundingPoolAddress: `0x${Math.random().toString(16).substr(2, 40)}`,
     causeId,
     mainCategory: 'test',
     subCategories: ['test'],
@@ -46,13 +46,13 @@ describe('causeRepository test cases', () => {
     testUser = await saveUserDirectlyToDb(userWallet);
 
     // Create test project
-    const projectData = createProjectData('test project');
+    const projectData = createProjectData(`test project ${Date.now()}`);
     projectData.adminUserId = testUser.id;
     testProject = await saveProjectDirectlyToDb(projectData);
 
     // Create test cause
     testCause = await createCause(
-      createTestCauseData('test-cause-id-0', '0x123456789abcdef'),
+      createTestCauseData('test-cause-id-0', `0x123456789abcdef${Date.now()}`),
       testUser,
       [testProject],
     );
@@ -61,14 +61,15 @@ describe('causeRepository test cases', () => {
   afterEach(async () => {
     // Clean up test data
     await Cause.getRepository().query(
-      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" = $1)',
-      ['test cause'],
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE $1)',
+      ['test cause%'],
     );
     await Cause.getRepository().query(
-      'DELETE FROM "cause" WHERE "title" = $1',
-      ['test cause'],
+      'DELETE FROM "cause" WHERE "title" LIKE $1',
+      ['test cause%'],
     );
     await deleteProjectDirectlyFromDb(testProject.id);
+    // Delete user last since it's referenced by causes
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
       [testUser.walletAddress],
@@ -134,7 +135,7 @@ describe('causeRepository test cases', () => {
     it('should find causes by owner id with relations', async () => {
       // Create another cause for the same owner
       const secondCause = await createCause(
-        createTestCauseData('test-cause-id-1', '0xuniquehash1'),
+        createTestCauseData('test-cause-id-1', `0xuniquehash1${Date.now()}`),
         testUser,
         [testProject],
       );
@@ -167,13 +168,13 @@ describe('causeRepository test cases', () => {
   describe('findCausesByProjectIds test cases', () => {
     it('should find causes by project ids with relations', async () => {
       // Create a second project
-      const project2Data = createProjectData('test project 2');
+      const project2Data = createProjectData(`test project 2 ${Date.now()}`);
       project2Data.adminUserId = testUser.id;
       const project2 = await saveProjectDirectlyToDb(project2Data);
 
       // Create a cause with both projects
       const multiProjectCause = await createCause(
-        createTestCauseData('test-cause-id-2', '0xuniquehash2'),
+        createTestCauseData('test-cause-id-2', `0xuniquehash2${Date.now()}`),
         testUser,
         [testProject, project2],
       );
@@ -211,7 +212,10 @@ describe('causeRepository test cases', () => {
 
   describe('createCause test cases', () => {
     it('should create cause with relations', async () => {
-      const causeData = createTestCauseData('test-cause-id-3', '0xuniquehash3');
+      const causeData = createTestCauseData(
+        'test-cause-id-3',
+        `0xuniquehash3${Date.now()}`,
+      );
       const cause = await createCause(causeData, testUser, [testProject]);
 
       assert.isOk(cause);
@@ -366,10 +370,13 @@ describe('causeRepository test cases', () => {
 
     it('should throw error for existing title', async () => {
       // First create a cause with a specific title
-      const causeTitle = 'Existing Test Cause Title';
+      const causeTitle = `Existing Test Cause Title ${Date.now()}`;
       const existingCause = await createCause(
         {
-          ...createTestCauseData('test-cause-id-4', '0xuniquehash4'),
+          ...createTestCauseData(
+            'test-cause-id-4',
+            `0xuniquehash4${Date.now()}`,
+          ),
           title: causeTitle,
         },
         testUser,
@@ -396,10 +403,13 @@ describe('causeRepository test cases', () => {
 
     it('should trim whitespace from title before validation', async () => {
       // First create a cause with a specific title
-      const causeTitle = 'Test Cause Title';
+      const causeTitle = `Test Cause Title ${Date.now()}`;
       const existingCause = await createCause(
         {
-          ...createTestCauseData('test-cause-id-5', '0xuniquehash5'),
+          ...createTestCauseData(
+            'test-cause-id-5',
+            `0xuniquehash5${Date.now()}`,
+          ),
           title: causeTitle,
         },
         testUser,
@@ -408,7 +418,7 @@ describe('causeRepository test cases', () => {
 
       // Try to validate the same title with extra whitespace
       try {
-        await validateCauseTitle('  Test Cause Title  ');
+        await validateCauseTitle(`  ${causeTitle}  `);
         assert.fail('Should have thrown an error');
       } catch (e) {
         assert.equal(e.message, 'Cause title already exists');
@@ -429,7 +439,7 @@ describe('causeRepository test cases', () => {
     it('should find all causes with relations', async () => {
       // Create a second cause
       const secondCause = await createCause(
-        createTestCauseData('test-cause-id-4', '0xuniquehash4'),
+        createTestCauseData('test-cause-id-4', `0xuniquehash4${Date.now()}`),
         testUser,
         [testProject],
       );
@@ -454,7 +464,7 @@ describe('causeRepository test cases', () => {
     it('should respect limit parameter', async () => {
       // Create a second cause
       const secondCause = await createCause(
-        createTestCauseData('test-cause-id-5', '0xuniquehash5'),
+        createTestCauseData('test-cause-id-5', `0xuniquehash5${Date.now()}`),
         testUser,
         [testProject],
       );
@@ -475,7 +485,7 @@ describe('causeRepository test cases', () => {
     it('should respect offset parameter', async () => {
       // Create a second cause
       const secondCause = await createCause(
-        createTestCauseData('test-cause-id-6', '0xuniquehash6'),
+        createTestCauseData('test-cause-id-6', `0xuniquehash6${Date.now()}`),
         testUser,
         [testProject],
       );
@@ -501,7 +511,7 @@ describe('causeRepository test cases', () => {
     it('should return causes in descending order by createdAt', async () => {
       // Create a second cause
       const secondCause = await createCause(
-        createTestCauseData('test-cause-id-7', '0xuniquehash7'),
+        createTestCauseData('test-cause-id-7', `0xuniquehash7${Date.now()}`),
         testUser,
         [testProject],
       );
@@ -524,12 +534,12 @@ describe('causeRepository test cases', () => {
     it('should handle limit and offset together', async () => {
       // Create two more causes
       const secondCause = await createCause(
-        createTestCauseData('test-cause-id-8', '0xuniquehash8'),
+        createTestCauseData('test-cause-id-8', `0xuniquehash8${Date.now()}`),
         testUser,
         [testProject],
       );
       const thirdCause = await createCause(
-        createTestCauseData('test-cause-id-9', '0xuniquehash9'),
+        createTestCauseData('test-cause-id-9', `0xuniquehash9${Date.now()}`),
         testUser,
         [testProject],
       );

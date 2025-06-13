@@ -68,7 +68,7 @@ describe('isValidCauseTitle() test cases', () => {
 
   it('should throw error for existing title', async () => {
     // First create a cause with a specific title
-    const user = await saveUserDirectlyToDb('0x123');
+    const user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     const projects = await Promise.all(
       Array(5)
         .fill(null)
@@ -81,7 +81,7 @@ describe('isValidCauseTitle() test cases', () => {
     );
     const token = await generateTestAccessToken(user.id);
 
-    const causeTitle = 'Existing Test Cause Title';
+    const causeTitle = `Existing Test Cause Title ${Date.now()}`;
     await axios.post(
       'http://localhost:4000/graphql',
       {
@@ -93,8 +93,7 @@ describe('isValidCauseTitle() test cases', () => {
           projectIds: projects.map(p => p.id),
           mainCategory: 'test',
           subCategories: ['sub1', 'sub2'],
-          depositTxHash:
-            '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${Date.now()}`,
           depositTxChainId: 137,
         },
       },
@@ -131,7 +130,7 @@ describe('isValidCauseTitle() test cases', () => {
     }
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
-      ['0x123'],
+      [user.walletAddress],
     );
   });
 
@@ -161,7 +160,7 @@ describe('isValidCauseTitle() test cases', () => {
 
 describe('createCause() test cases', () => {
   it('should create cause successfully with valid input', async () => {
-    const user = await saveUserDirectlyToDb('0x123');
+    const user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     const projects = await Promise.all(
       Array(5)
         .fill(null)
@@ -175,7 +174,7 @@ describe('createCause() test cases', () => {
     const token = await generateTestAccessToken(user.id);
 
     const variables = {
-      title: 'Test Cause',
+      title: `Test Cause ${Date.now()}`,
       description: 'Test Description',
       chainId: 137,
       projectIds: projects.map(p => p.id),
@@ -200,7 +199,7 @@ describe('createCause() test cases', () => {
 
     const cause = response.data.data.createCause;
     assert.isOk(cause);
-    assert.equal(cause.title, 'Test Cause');
+    assert.equal(cause.title, variables.title);
     assert.equal(cause.description, 'Test Description');
     assert.equal(cause.chainId, 137);
     assert.equal(cause.mainCategory, 'test');
@@ -213,18 +212,18 @@ describe('createCause() test cases', () => {
     // Clean up test data
     await Cause.getRepository().query(
       'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" = $1)',
-      ['Test Cause'],
+      [variables.title],
     );
     await Cause.getRepository().query(
       'DELETE FROM "cause" WHERE "title" = $1',
-      ['Test Cause'],
+      [variables.title],
     );
     for (const project of projects) {
       await deleteProjectDirectlyFromDb(project.id);
     }
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
-      ['0x123'],
+      [user.walletAddress],
     );
   });
 
@@ -250,7 +249,7 @@ describe('createCause() test cases', () => {
   });
 
   it('should fail with invalid project count', async () => {
-    const user = await saveUserDirectlyToDb('0x123');
+    const user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(`test-project-invalid-count-${Date.now()}`),
       slug: `test-project-invalid-count-${Date.now()}`,
@@ -258,7 +257,7 @@ describe('createCause() test cases', () => {
     const token = await generateTestAccessToken(user.id);
 
     const variables = {
-      title: 'Test Cause',
+      title: `Test Cause ${Date.now()}`,
       description: 'Test Description',
       chainId: 137,
       projectIds: [project.id], // Less than 5 projects
@@ -288,12 +287,12 @@ describe('createCause() test cases', () => {
     await deleteProjectDirectlyFromDb(project.id);
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
-      ['0x123'],
+      [user.walletAddress],
     );
   });
 
   it('should fail with missing required fields', async () => {
-    const user = await saveUserDirectlyToDb('0x123');
+    const user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     const projects = await Promise.all(
       Array(5)
         .fill(null)
@@ -339,12 +338,12 @@ describe('createCause() test cases', () => {
     }
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
-      ['0x123'],
+      [user.walletAddress],
     );
   });
 
   it('should fail with invalid chain ID', async () => {
-    const user = await saveUserDirectlyToDb('0x123');
+    const user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     const projects = await Promise.all(
       Array(5)
         .fill(null)
@@ -358,7 +357,7 @@ describe('createCause() test cases', () => {
     const token = await generateTestAccessToken(user.id);
 
     const variables = {
-      title: 'Test Cause',
+      title: `Test Cause ${Date.now()}`,
       description: 'Test Description',
       chainId: 1234, // Invalid chain ID
       projectIds: projects.map(p => p.id),
@@ -390,12 +389,12 @@ describe('createCause() test cases', () => {
     }
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
-      ['0x123'],
+      [user.walletAddress],
     );
   });
 
   it('should fail with invalid transaction hash', async () => {
-    const user = await saveUserDirectlyToDb('0x123');
+    const user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     const projects = await Promise.all(
       Array(5)
         .fill(null)
@@ -409,7 +408,7 @@ describe('createCause() test cases', () => {
     const token = await generateTestAccessToken(user.id);
 
     const variables = {
-      title: 'Test Cause',
+      title: `Test Cause ${Date.now()}`,
       description: 'Test Description',
       chainId: 137,
       projectIds: projects.map(p => p.id),
@@ -442,12 +441,12 @@ describe('createCause() test cases', () => {
     }
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
-      ['0x123'],
+      [user.walletAddress],
     );
   });
 
   it('should fail when transaction hash is already used', async () => {
-    const user = await saveUserDirectlyToDb('0x123');
+    const user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     const projects = await Promise.all(
       Array(5)
         .fill(null)
@@ -468,7 +467,7 @@ describe('createCause() test cases', () => {
       {
         query: createCauseQuery,
         variables: {
-          title: 'First Cause',
+          title: `First Cause ${Date.now()}`,
           description: 'First Description',
           chainId: 137,
           projectIds: projects.map(p => p.id),
@@ -491,7 +490,7 @@ describe('createCause() test cases', () => {
       {
         query: createCauseQuery,
         variables: {
-          title: 'Second Cause',
+          title: `Second Cause ${Date.now()}`,
           description: 'Second Description',
           chainId: 137,
           projectIds: projects.map(p => p.id),
@@ -514,19 +513,19 @@ describe('createCause() test cases', () => {
 
     // Clean up test data
     await Cause.getRepository().query(
-      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" IN ($1, $2))',
-      ['First Cause', 'Second Cause'],
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE $1)',
+      ['First Cause%'],
     );
     await Cause.getRepository().query(
-      'DELETE FROM "cause" WHERE "title" IN ($1, $2)',
-      ['First Cause', 'Second Cause'],
+      'DELETE FROM "cause" WHERE "title" LIKE $1',
+      ['First Cause%'],
     );
     for (const project of projects) {
       await deleteProjectDirectlyFromDb(project.id);
     }
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
-      ['0x123'],
+      [user.walletAddress],
     );
   });
 });
@@ -539,7 +538,7 @@ describe('causes() test cases', () => {
 
   beforeEach(async () => {
     // Create test user and projects
-    user = await saveUserDirectlyToDb('0x123');
+    user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     projects = await Promise.all(
       Array(5)
         .fill(null)
@@ -559,13 +558,13 @@ describe('causes() test cases', () => {
         {
           query: createCauseQuery,
           variables: {
-            title: `Test Cause ${i}`,
+            title: `Test Cause ${Date.now()}-${i}`,
             description: `Test Description ${i}`,
             chainId: 137,
             projectIds: projects.map(p => p.id),
             mainCategory: 'test',
             subCategories: ['sub1', 'sub2'],
-            depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${i}`,
+            depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${i}${Date.now()}`,
             depositTxChainId: 137,
           },
         },
@@ -582,17 +581,19 @@ describe('causes() test cases', () => {
   afterEach(async () => {
     // Clean up test data
     await Cause.getRepository().query(
-      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE \'Test Cause%\')',
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE $1)',
+      ['Test Cause%'],
     );
     await Cause.getRepository().query(
-      'DELETE FROM "cause" WHERE "title" LIKE \'Test Cause%\'',
+      'DELETE FROM "cause" WHERE "title" LIKE $1',
+      ['Test Cause%'],
     );
     for (const project of projects) {
       await deleteProjectDirectlyFromDb(project.id);
     }
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
-      ['0x123'],
+      [user.walletAddress],
     );
   });
 
@@ -694,7 +695,7 @@ describe('cause() test cases', () => {
 
   beforeEach(async () => {
     // Create test user and projects
-    user = await saveUserDirectlyToDb('0x123');
+    user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     projects = await Promise.all(
       Array(5)
         .fill(null)
@@ -713,7 +714,7 @@ describe('cause() test cases', () => {
       {
         query: createCauseQuery,
         variables: {
-          title: 'Test Cause',
+          title: `Test Cause ${Date.now()}`,
           description: 'Test Description',
           chainId: 137,
           projectIds: projects.map(p => p.id),
@@ -735,19 +736,19 @@ describe('cause() test cases', () => {
   afterEach(async () => {
     // Clean up test data
     await Cause.getRepository().query(
-      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" = $1)',
-      ['Test Cause'],
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE $1)',
+      ['Test Cause%'],
     );
     await Cause.getRepository().query(
-      'DELETE FROM "cause" WHERE "title" = $1',
-      ['Test Cause'],
+      'DELETE FROM "cause" WHERE "title" LIKE $1',
+      ['Test Cause%'],
     );
     for (const project of projects) {
       await deleteProjectDirectlyFromDb(project.id);
     }
     await User.getRepository().query(
       'DELETE FROM "user" WHERE "walletAddress" = $1',
-      ['0x123'],
+      [user.walletAddress],
     );
   });
 
