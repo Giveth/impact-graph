@@ -59,21 +59,27 @@ describe('causeRepository test cases', () => {
   });
 
   afterEach(async () => {
-    // Clean up test data
+    // First clean up project-causes relationships
     await Cause.getRepository().query(
       'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE $1)',
       ['test cause%'],
     );
+    // Then clean up causes
     await Cause.getRepository().query(
       'DELETE FROM "cause" WHERE "title" LIKE $1',
       ['test cause%'],
     );
-    await deleteProjectDirectlyFromDb(testProject.id);
+    // Clean up project
+    if (testProject?.id) {
+      await deleteProjectDirectlyFromDb(testProject.id);
+    }
     // Delete user last since it's referenced by causes
-    await User.getRepository().query(
-      'DELETE FROM "user" WHERE "walletAddress" = $1',
-      [testUser.walletAddress],
-    );
+    if (testUser?.walletAddress) {
+      await User.getRepository().query(
+        'DELETE FROM "user" WHERE "walletAddress" = $1',
+        [testUser.walletAddress],
+      );
+    }
   });
 
   describe('findCauseById test cases', () => {

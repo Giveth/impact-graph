@@ -580,21 +580,31 @@ describe('causes() test cases', () => {
 
   afterEach(async () => {
     // Clean up test data
+    // First clean up project-causes relationships
     await Cause.getRepository().query(
       'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE $1)',
       ['Test Cause%'],
     );
+    // Then clean up causes
     await Cause.getRepository().query(
       'DELETE FROM "cause" WHERE "title" LIKE $1',
       ['Test Cause%'],
     );
-    for (const project of projects) {
-      await deleteProjectDirectlyFromDb(project.id);
+    // Clean up projects
+    if (projects?.length) {
+      for (const project of projects) {
+        if (project?.id) {
+          await deleteProjectDirectlyFromDb(project.id);
+        }
+      }
     }
-    await User.getRepository().query(
-      'DELETE FROM "user" WHERE "walletAddress" = $1',
-      [user.walletAddress],
-    );
+    // Delete user last since it's referenced by causes
+    if (user?.walletAddress) {
+      await User.getRepository().query(
+        'DELETE FROM "user" WHERE "walletAddress" = $1',
+        [user.walletAddress],
+      );
+    }
   });
 
   it('should return all causes with relations', async () => {
@@ -735,21 +745,31 @@ describe('cause() test cases', () => {
 
   afterEach(async () => {
     // Clean up test data
+    // First clean up project-causes relationships
     await Cause.getRepository().query(
       'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE $1)',
       ['Test Cause%'],
     );
+    // Then clean up causes
     await Cause.getRepository().query(
       'DELETE FROM "cause" WHERE "title" LIKE $1',
       ['Test Cause%'],
     );
-    for (const project of projects) {
-      await deleteProjectDirectlyFromDb(project.id);
+    // Clean up projects
+    if (projects?.length) {
+      for (const project of projects) {
+        if (project?.id) {
+          await deleteProjectDirectlyFromDb(project.id);
+        }
+      }
     }
-    await User.getRepository().query(
-      'DELETE FROM "user" WHERE "walletAddress" = $1',
-      [user.walletAddress],
-    );
+    // Delete user last since it's referenced by causes
+    if (user?.walletAddress) {
+      await User.getRepository().query(
+        'DELETE FROM "user" WHERE "walletAddress" = $1',
+        [user.walletAddress],
+      );
+    }
   });
 
   it('should return cause by id with relations', async () => {
