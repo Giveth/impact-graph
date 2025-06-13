@@ -19,6 +19,7 @@ import {
   saveProjectDirectlyToDb,
   createProjectData,
   generateRandomEtheriumAddress,
+  deleteProjectDirectlyFromDb,
 } from '../../test/testUtils';
 
 describe('causeRepository test cases', () => {
@@ -40,17 +41,6 @@ describe('causeRepository test cases', () => {
   });
 
   beforeEach(async () => {
-    // Truncate all relevant tables in the correct order with CASCADE
-    await Cause.getRepository().query(
-      'TRUNCATE TABLE "cause" RESTART IDENTITY CASCADE',
-    );
-    await Cause.getRepository().query(
-      'TRUNCATE TABLE "project" RESTART IDENTITY CASCADE',
-    );
-    await Cause.getRepository().query(
-      'TRUNCATE TABLE "user" RESTART IDENTITY CASCADE',
-    );
-
     // Create test user
     const userWallet = generateRandomEtheriumAddress();
     testUser = await saveUserDirectlyToDb(userWallet);
@@ -65,6 +55,23 @@ describe('causeRepository test cases', () => {
       createTestCauseData('test-cause-id-0', '0x123456789abcdef'),
       testUser,
       [testProject],
+    );
+  });
+
+  afterEach(async () => {
+    // Clean up test data
+    await Cause.getRepository().query(
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" = $1)',
+      ['test cause'],
+    );
+    await Cause.getRepository().query(
+      'DELETE FROM "cause" WHERE "title" = $1',
+      ['test cause'],
+    );
+    await deleteProjectDirectlyFromDb(testProject.id);
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      [testUser.walletAddress],
     );
   });
 
@@ -126,7 +133,7 @@ describe('causeRepository test cases', () => {
   describe('findCausesByOwnerId test cases', () => {
     it('should find causes by owner id with relations', async () => {
       // Create another cause for the same owner
-      await createCause(
+      const secondCause = await createCause(
         createTestCauseData('test-cause-id-1', '0xuniquehash1'),
         testUser,
         [testProject],
@@ -140,6 +147,15 @@ describe('causeRepository test cases', () => {
       assert.equal(causes[0].projects[0].id, testProject.id);
       assert.equal(causes[1].projects[0].id, testProject.id);
       assert.notEqual(causes[0].causeId, causes[1].causeId);
+
+      // Clean up second cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [secondCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        secondCause.id,
+      ]);
     });
 
     it('should return empty array when no causes found', async () => {
@@ -175,6 +191,16 @@ describe('causeRepository test cases', () => {
       assert.equal(foundMultiProjectCause?.projects.length, 2);
       assert.equal(foundMultiProjectCause?.projects[0].id, testProject.id);
       assert.equal(foundMultiProjectCause?.projects[1].id, project2.id);
+
+      // Clean up second project and multi-project cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [multiProjectCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        multiProjectCause.id,
+      ]);
+      await deleteProjectDirectlyFromDb(project2.id);
     });
 
     it('should return empty array when no causes found', async () => {
@@ -205,6 +231,15 @@ describe('causeRepository test cases', () => {
       // Check if user's ownedCausesCount was updated
       const updatedUser = await User.findOne({ where: { id: testUser.id } });
       assert.equal(updatedUser?.ownedCausesCount, 2); // Including the one from beforeEach
+
+      // Clean up created cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [cause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        cause.id,
+      ]);
     });
 
     it('should throw error when deposit transaction hash is missing', async () => {
@@ -332,7 +367,7 @@ describe('causeRepository test cases', () => {
     it('should throw error for existing title', async () => {
       // First create a cause with a specific title
       const causeTitle = 'Existing Test Cause Title';
-      await createCause(
+      const existingCause = await createCause(
         {
           ...createTestCauseData('test-cause-id-4', '0xuniquehash4'),
           title: causeTitle,
@@ -348,12 +383,21 @@ describe('causeRepository test cases', () => {
       } catch (e) {
         assert.equal(e.message, 'Cause title already exists');
       }
+
+      // Clean up existing cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [existingCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        existingCause.id,
+      ]);
     });
 
     it('should trim whitespace from title before validation', async () => {
       // First create a cause with a specific title
       const causeTitle = 'Test Cause Title';
-      await createCause(
+      const existingCause = await createCause(
         {
           ...createTestCauseData('test-cause-id-5', '0xuniquehash5'),
           title: causeTitle,
@@ -369,13 +413,22 @@ describe('causeRepository test cases', () => {
       } catch (e) {
         assert.equal(e.message, 'Cause title already exists');
       }
+
+      // Clean up existing cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [existingCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        existingCause.id,
+      ]);
     });
   });
 
   describe('findAllCauses test cases', () => {
     it('should find all causes with relations', async () => {
       // Create a second cause
-      await createCause(
+      const secondCause = await createCause(
         createTestCauseData('test-cause-id-4', '0xuniquehash4'),
         testUser,
         [testProject],
@@ -387,11 +440,20 @@ describe('causeRepository test cases', () => {
       assert.equal(causes[1].owner.id, testUser.id);
       assert.equal(causes[0].projects[0].id, testProject.id);
       assert.equal(causes[1].projects[0].id, testProject.id);
+
+      // Clean up second cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [secondCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        secondCause.id,
+      ]);
     });
 
     it('should respect limit parameter', async () => {
       // Create a second cause
-      await createCause(
+      const secondCause = await createCause(
         createTestCauseData('test-cause-id-5', '0xuniquehash5'),
         testUser,
         [testProject],
@@ -399,6 +461,15 @@ describe('causeRepository test cases', () => {
 
       const causes = await findAllCauses(1, 0);
       assert.equal(causes.length, 1);
+
+      // Clean up second cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [secondCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        secondCause.id,
+      ]);
     });
 
     it('should respect offset parameter', async () => {
@@ -416,6 +487,15 @@ describe('causeRepository test cases', () => {
       const causes2 = await findAllCauses(1, 0);
       assert.equal(causes2.length, 1);
       assert.equal(causes2[0].id, secondCause.id); // Should be the second cause
+
+      // Clean up second cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [secondCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        secondCause.id,
+      ]);
     });
 
     it('should return causes in descending order by createdAt', async () => {
@@ -430,6 +510,15 @@ describe('causeRepository test cases', () => {
       assert.equal(causes.length, 2);
       assert.equal(causes[0].id, secondCause.id); // Most recent first
       assert.equal(causes[1].id, testCause.id);
+
+      // Clean up second cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [secondCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        secondCause.id,
+      ]);
     });
 
     it('should handle limit and offset together', async () => {
@@ -439,7 +528,7 @@ describe('causeRepository test cases', () => {
         testUser,
         [testProject],
       );
-      await createCause(
+      const thirdCause = await createCause(
         createTestCauseData('test-cause-id-9', '0xuniquehash9'),
         testUser,
         [testProject],
@@ -450,6 +539,16 @@ describe('causeRepository test cases', () => {
       // Should skip the most recent cause and return the next two
       assert.equal(causes[0].id, secondCause.id);
       assert.equal(causes[1].id, testCause.id);
+
+      // Clean up additional causes
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" IN ($1, $2)',
+        [secondCause.id, thirdCause.id],
+      );
+      await Cause.getRepository().query(
+        'DELETE FROM "cause" WHERE "id" IN ($1, $2)',
+        [secondCause.id, thirdCause.id],
+      );
     });
 
     it('should return empty array when no causes match offset', async () => {

@@ -6,6 +6,7 @@ import {
   saveProjectDirectlyToDb,
   createProjectData,
   generateTestAccessToken,
+  deleteProjectDirectlyFromDb,
 } from '../../test/testUtils';
 import {
   createCauseQuery,
@@ -19,17 +20,6 @@ import { User } from '../entities/user';
 import * as verifyTransactionModule from '../utils/transactionVerification';
 
 beforeEach(async () => {
-  // Truncate all relevant tables in the correct order with CASCADE
-  await Cause.getRepository().query(
-    'TRUNCATE TABLE "cause" RESTART IDENTITY CASCADE',
-  );
-  await Project.getRepository().query(
-    'TRUNCATE TABLE "project" RESTART IDENTITY CASCADE',
-  );
-  await User.getRepository().query(
-    'TRUNCATE TABLE "user" RESTART IDENTITY CASCADE',
-  );
-
   // Mock verifyTransaction to return true in tests
   sinon.stub(verifyTransactionModule, 'verifyTransaction').resolves(true);
 });
@@ -84,8 +74,8 @@ describe('isValidCauseTitle() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-${index}`),
-            slug: `test-project-${index}`,
+            ...createProjectData(`test-project-${Date.now()}-${index}`),
+            slug: `test-project-${Date.now()}-${index}`,
           }),
         ),
     );
@@ -126,6 +116,23 @@ describe('isValidCauseTitle() test cases', () => {
     const errorMsg = response.data.errors?.[0]?.message;
     assert.isOk(errorMsg, 'Error message should be defined');
     assert.equal(errorMsg, 'Cause title already exists');
+
+    // Clean up test data
+    await Cause.getRepository().query(
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" = $1)',
+      [causeTitle],
+    );
+    await Cause.getRepository().query(
+      'DELETE FROM "cause" WHERE "title" = $1',
+      [causeTitle],
+    );
+    for (const project of projects) {
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      ['0x123'],
+    );
   });
 
   it('should handle special characters in title', async () => {
@@ -160,8 +167,8 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-${index}`),
-            slug: `test-project-${index}`,
+            ...createProjectData(`test-project-${Date.now()}-${index}`),
+            slug: `test-project-${Date.now()}-${index}`,
           }),
         ),
     );
@@ -174,8 +181,7 @@ describe('createCause() test cases', () => {
       projectIds: projects.map(p => p.id),
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
-      depositTxHash:
-        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${Date.now()}`,
       depositTxChainId: 137,
     };
 
@@ -203,6 +209,23 @@ describe('createCause() test cases', () => {
     assert.equal(cause.owner.id, user.id);
     assert.equal(cause.projects.length, 5);
     assert.equal(cause.activeProjectsCount, 5);
+
+    // Clean up test data
+    await Cause.getRepository().query(
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" = $1)',
+      ['Test Cause'],
+    );
+    await Cause.getRepository().query(
+      'DELETE FROM "cause" WHERE "title" = $1',
+      ['Test Cause'],
+    );
+    for (const project of projects) {
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      ['0x123'],
+    );
   });
 
   it('should fail when user is not authenticated', async () => {
@@ -213,8 +236,7 @@ describe('createCause() test cases', () => {
       projectIds: [1, 2, 3, 4, 5],
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
-      depositTxHash:
-        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${Date.now()}`,
       depositTxChainId: 137,
     };
 
@@ -230,8 +252,8 @@ describe('createCause() test cases', () => {
   it('should fail with invalid project count', async () => {
     const user = await saveUserDirectlyToDb('0x123');
     const project = await saveProjectDirectlyToDb({
-      ...createProjectData('test-project-invalid-count'),
-      slug: 'test-project-invalid-count',
+      ...createProjectData(`test-project-invalid-count-${Date.now()}`),
+      slug: `test-project-invalid-count-${Date.now()}`,
     });
     const token = await generateTestAccessToken(user.id);
 
@@ -242,8 +264,7 @@ describe('createCause() test cases', () => {
       projectIds: [project.id], // Less than 5 projects
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
-      depositTxHash:
-        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${Date.now()}`,
       depositTxChainId: 137,
     };
 
@@ -262,6 +283,13 @@ describe('createCause() test cases', () => {
     const errorMsg = response.data.errors?.[0]?.message;
     assert.isOk(errorMsg, 'Error message should be defined');
     assert.equal(errorMsg, 'Invalid project count');
+
+    // Clean up test data
+    await deleteProjectDirectlyFromDb(project.id);
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      ['0x123'],
+    );
   });
 
   it('should fail with missing required fields', async () => {
@@ -271,8 +299,8 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-missing-${index}`),
-            slug: `test-project-missing-${index}`,
+            ...createProjectData(`test-project-missing-${Date.now()}-${index}`),
+            slug: `test-project-missing-${Date.now()}-${index}`,
           }),
         ),
     );
@@ -285,8 +313,7 @@ describe('createCause() test cases', () => {
       projectIds: projects.map(p => p.id),
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
-      depositTxHash:
-        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${Date.now()}`,
       depositTxChainId: 137,
     };
 
@@ -305,6 +332,15 @@ describe('createCause() test cases', () => {
     const errorMsg = response.data.errors?.[0]?.message;
     assert.isOk(errorMsg, 'Error message should be defined');
     assert.equal(errorMsg, 'Invalid input');
+
+    // Clean up test data
+    for (const project of projects) {
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      ['0x123'],
+    );
   });
 
   it('should fail with invalid chain ID', async () => {
@@ -314,8 +350,8 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-chain-${index}`),
-            slug: `test-project-chain-${index}`,
+            ...createProjectData(`test-project-chain-${Date.now()}-${index}`),
+            slug: `test-project-chain-${Date.now()}-${index}`,
           }),
         ),
     );
@@ -328,8 +364,7 @@ describe('createCause() test cases', () => {
       projectIds: projects.map(p => p.id),
       mainCategory: 'test',
       subCategories: ['sub1', 'sub2'],
-      depositTxHash:
-        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${Date.now()}`,
       depositTxChainId: 137,
     };
 
@@ -348,6 +383,15 @@ describe('createCause() test cases', () => {
     const errorMsg = response.data.errors?.[0]?.message;
     assert.isOk(errorMsg, 'Error message should be defined');
     assert.equal(errorMsg, 'Invalid chain id');
+
+    // Clean up test data
+    for (const project of projects) {
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      ['0x123'],
+    );
   });
 
   it('should fail with invalid transaction hash', async () => {
@@ -357,8 +401,8 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-tx-${index}`),
-            slug: `test-project-tx-${index}`,
+            ...createProjectData(`test-project-tx-${Date.now()}-${index}`),
+            slug: `test-project-tx-${Date.now()}-${index}`,
           }),
         ),
     );
@@ -391,6 +435,15 @@ describe('createCause() test cases', () => {
     const errorMsg = response.data.errors?.[0]?.message;
     assert.isOk(errorMsg, 'Error message should be defined');
     assert.equal(errorMsg, 'Invalid txHash');
+
+    // Clean up test data
+    for (const project of projects) {
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      ['0x123'],
+    );
   });
 
   it('should fail when transaction hash is already used', async () => {
@@ -400,15 +453,14 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-tx-dup-${index}`),
-            slug: `test-project-tx-dup-${index}`,
+            ...createProjectData(`test-project-tx-dup-${Date.now()}-${index}`),
+            slug: `test-project-tx-dup-${Date.now()}-${index}`,
           }),
         ),
     );
     const token = await generateTestAccessToken(user.id);
 
-    const txHash =
-      '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+    const txHash = `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${Date.now()}`;
 
     // First create a cause with the transaction hash
     await axios.post(
@@ -459,6 +511,23 @@ describe('createCause() test cases', () => {
     const errorMsg = response.data.errors?.[0]?.message;
     assert.isOk(errorMsg, 'Error message should be defined');
     assert.equal(errorMsg, 'Transaction hash already used in another cause');
+
+    // Clean up test data
+    await Cause.getRepository().query(
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" IN ($1, $2))',
+      ['First Cause', 'Second Cause'],
+    );
+    await Cause.getRepository().query(
+      'DELETE FROM "cause" WHERE "title" IN ($1, $2)',
+      ['First Cause', 'Second Cause'],
+    );
+    for (const project of projects) {
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      ['0x123'],
+    );
   });
 });
 
@@ -476,8 +545,8 @@ describe('causes() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-${index}`),
-            slug: `test-project-${index}`,
+            ...createProjectData(`test-project-${Date.now()}-${index}`),
+            slug: `test-project-${Date.now()}-${index}`,
           }),
         ),
     );
@@ -508,6 +577,23 @@ describe('causes() test cases', () => {
       );
       causes.push(response.data.data.createCause);
     }
+  });
+
+  afterEach(async () => {
+    // Clean up test data
+    await Cause.getRepository().query(
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE \'Test Cause%\')',
+    );
+    await Cause.getRepository().query(
+      'DELETE FROM "cause" WHERE "title" LIKE \'Test Cause%\'',
+    );
+    for (const project of projects) {
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      ['0x123'],
+    );
   });
 
   it('should return all causes with relations', async () => {
@@ -614,8 +700,8 @@ describe('cause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-${index}`),
-            slug: `test-project-${index}`,
+            ...createProjectData(`test-project-${Date.now()}-${index}`),
+            slug: `test-project-${Date.now()}-${index}`,
           }),
         ),
     );
@@ -633,8 +719,7 @@ describe('cause() test cases', () => {
           projectIds: projects.map(p => p.id),
           mainCategory: 'test',
           subCategories: ['sub1', 'sub2'],
-          depositTxHash:
-            '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          depositTxHash: `0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef${Date.now()}`,
           depositTxChainId: 137,
         },
       },
@@ -645,6 +730,25 @@ describe('cause() test cases', () => {
       },
     );
     createdCause = response.data.data.createCause;
+  });
+
+  afterEach(async () => {
+    // Clean up test data
+    await Cause.getRepository().query(
+      'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" = $1)',
+      ['Test Cause'],
+    );
+    await Cause.getRepository().query(
+      'DELETE FROM "cause" WHERE "title" = $1',
+      ['Test Cause'],
+    );
+    for (const project of projects) {
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+    await User.getRepository().query(
+      'DELETE FROM "user" WHERE "walletAddress" = $1',
+      ['0x123'],
+    );
   });
 
   it('should return cause by id with relations', async () => {
