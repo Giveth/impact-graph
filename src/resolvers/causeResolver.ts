@@ -14,6 +14,7 @@ import {
   validateTransactionHash,
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
+import { NETWORK_IDS } from '../provider';
 
 const DEFAULT_CAUSES_LIMIT = 10;
 const MAX_CAUSES_LIMIT = 100;
@@ -21,11 +22,19 @@ const MAX_CAUSES_LIMIT = 100;
 const getCauseCreationFeeTokenContractAddresses = (): {
   [chainId: number]: string;
 } => {
-  return {
-    137: process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_POLYGON || '',
-    10: process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_OPTIMISM || '',
-    8453: process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_BASE || '',
-  };
+  const result = {};
+  result[NETWORK_IDS.POLYGON] =
+    process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_POLYGON || '';
+  result[NETWORK_IDS.XDAI] =
+    process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_GNOSIS || '';
+  if (process.env.ENVIRONMENT === 'staging') {
+    result[NETWORK_IDS.OPTIMISM_SEPOLIA] =
+      process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_OPTIMISM || '';
+  } else {
+    result[NETWORK_IDS.OPTIMISTIC] =
+      process.env.CAUSE_CREATION_FEE_TOKEN_CONTRACT_ADDRESS_OPTIMISM || '';
+  }
+  return result;
 };
 
 @Resolver()
