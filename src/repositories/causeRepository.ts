@@ -232,6 +232,9 @@ export const findAllCauses = async (
   if (sortBy) {
     const direction = sortDirection || SortDirection.DESC;
     queryBuilder.orderBy(`cause.${sortBy}`, direction);
+  } else {
+    // Default sort by newest
+    queryBuilder.orderBy('cause.createdAt', SortDirection.DESC);
   }
 
   // Apply pagination

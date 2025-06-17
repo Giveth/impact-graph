@@ -58,9 +58,16 @@ describe('causeRepository test cases', () => {
       testUser,
       [testProject],
     );
+
+    // Update the cause to have Listed status for testing
+    await Cause.update(
+      { id: testCause.id },
+      { listingStatus: ListingStatus.Listed },
+    );
   });
 
   afterEach(async () => {
+    // Clean up in the correct order to avoid foreign key constraint violations
     // First clean up project-causes relationships
     await Cause.getRepository().query(
       'DELETE FROM "project_causes_cause" WHERE "causeId" IN (SELECT id FROM "cause" WHERE "title" LIKE $1)',
@@ -451,6 +458,11 @@ describe('causeRepository test cases', () => {
         testUser,
         [testProject],
       );
+      // Update the cause to have Listed status
+      await Cause.update(
+        { id: secondCause.id },
+        { listingStatus: ListingStatus.Listed },
+      );
 
       const causes = await findAllCauses();
       assert.equal(causes.length, 2);
@@ -476,6 +488,11 @@ describe('causeRepository test cases', () => {
         testUser,
         [testProject],
       );
+      // Update the cause to have Listed status
+      await Cause.update(
+        { id: secondCause.id },
+        { listingStatus: ListingStatus.Listed },
+      );
 
       const causes = await findAllCauses(1);
       assert.equal(causes.length, 1);
@@ -496,6 +513,11 @@ describe('causeRepository test cases', () => {
         createTestCauseData('test-cause-id-6', `0xuniquehash6${Date.now()}`),
         testUser,
         [testProject],
+      );
+      // Update the cause to have Listed status
+      await Cause.update(
+        { id: secondCause.id },
+        { listingStatus: ListingStatus.Listed },
       );
 
       const causes = await findAllCauses(1, 1);
@@ -522,6 +544,11 @@ describe('causeRepository test cases', () => {
         createTestCauseData('test-cause-id-7', `0xuniquehash7${Date.now()}`),
         testUser,
         [testProject],
+      );
+      // Update the cause to have Listed status
+      await Cause.update(
+        { id: secondCause.id },
+        { listingStatus: ListingStatus.Listed },
       );
 
       const causes = await findAllCauses();
@@ -550,6 +577,15 @@ describe('causeRepository test cases', () => {
         createTestCauseData('test-cause-id-9', `0xuniquehash9${Date.now()}`),
         testUser,
         [testProject],
+      );
+      // Update the causes to have Listed status
+      await Cause.update(
+        { id: secondCause.id },
+        { listingStatus: ListingStatus.Listed },
+      );
+      await Cause.update(
+        { id: thirdCause.id },
+        { listingStatus: ListingStatus.Listed },
       );
 
       const causes = await findAllCauses(2, 1);
@@ -582,15 +618,20 @@ describe('causeRepository test cases', () => {
             'test-cause-id-10',
             `0xuniquehash10${Date.now()}`,
           ),
-          chainId: 1, // Different chain ID
+          chainId: 100, // Different chain ID
         },
         testUser,
         [testProject],
       );
+      // Update the cause to have Listed status
+      await Cause.update(
+        { id: differentChainCause.id },
+        { listingStatus: ListingStatus.Listed },
+      );
 
-      const causes = await findAllCauses(undefined, undefined, 137); // Filter by chainId 137
+      const causes = await findAllCauses(undefined, undefined, 100); // Filter by chainId 100
       assert.equal(causes.length, 1);
-      assert.equal(causes[0].chainId, 137);
+      assert.equal(causes[0].chainId, 100);
 
       // Clean up different chain cause
       await Cause.getRepository().query(
@@ -615,6 +656,11 @@ describe('causeRepository test cases', () => {
         },
         testUser,
         [testProject],
+      );
+      // Update the cause to have Listed status
+      await Cause.update(
+        { id: searchableCause.id },
+        { listingStatus: ListingStatus.Listed },
       );
 
       const causes = await findAllCauses(
@@ -659,6 +705,15 @@ describe('causeRepository test cases', () => {
         },
         testUser,
         [testProject],
+      );
+      // Update the causes to have Listed status
+      await Cause.update(
+        { id: lowRaisedCause.id },
+        { listingStatus: ListingStatus.Listed },
+      );
+      await Cause.update(
+        { id: highRaisedCause.id },
+        { listingStatus: ListingStatus.Listed },
       );
 
       const causes = await findAllCauses(
