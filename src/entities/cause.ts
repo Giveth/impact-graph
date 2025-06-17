@@ -146,6 +146,14 @@ export class Cause extends BaseEntity {
   @Column('float', { default: 0 })
   totalDonated: number;
 
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  givPower: number;
+
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  givBack: number;
+
   @Field()
   @UpdateDateColumn()
   updatedAt: Date;

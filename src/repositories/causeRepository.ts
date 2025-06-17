@@ -1,8 +1,21 @@
 import { In } from 'typeorm';
-import { Cause, CauseStatus } from '../entities/cause';
+import { Cause, CauseStatus, ListingStatus } from '../entities/cause';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+
+export enum CauseSortField {
+  GIVPOWER = 'givPower',
+  GIVBACK = 'givBack',
+  CREATED_AT = 'createdAt',
+  AMOUNT_RAISED = 'totalRaised',
+  PROJECT_COUNT = 'activeProjectsCount',
+}
+
+export enum SortDirection {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
 
 export const findCauseById = async (id: number): Promise<Cause | null> => {
   return Cause.findOne({
@@ -179,12 +192,49 @@ export const validateTransactionHash = async (
 export const findAllCauses = async (
   limit?: number,
   offset?: number,
+  chainId?: number,
+  searchTerm?: string,
+  sortBy?: CauseSortField,
+  sortDirection?: SortDirection,
+  listingStatus?: ListingStatus | 'all',
 ): Promise<Cause[]> => {
   const queryBuilder = Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.owner', 'owner')
-    .leftJoinAndSelect('cause.projects', 'projects')
-    .orderBy('cause.createdAt', 'DESC');
+    .leftJoinAndSelect('cause.projects', 'projects');
 
+  // Apply listing status filter
+  if (listingStatus) {
+    if (listingStatus !== 'all') {
+      queryBuilder.where('cause.listingStatus = :listingStatus', {
+        listingStatus,
+      });
+    }
+  } else {
+    // Default to Listed status if no listing status specified
+    queryBuilder.where('cause.listingStatus = :listingStatus', {
+      listingStatus: ListingStatus.Listed,
+    });
+  }
+
+  // Apply filters
+  if (chainId) {
+    queryBuilder.andWhere('cause.chainId = :chainId', { chainId });
+  }
+
+  if (searchTerm) {
+    queryBuilder.andWhere(
+      '(LOWER(cause.title) LIKE LOWER(:searchTerm) OR LOWER(cause.description) LIKE LOWER(:searchTerm))',
+      { searchTerm: `%${searchTerm}%` },
+    );
+  }
+
+  // Apply sorting
+  if (sortBy) {
+    const direction = sortDirection || SortDirection.DESC;
+    queryBuilder.orderBy(`cause.${sortBy}`, direction);
+  }
+
+  // Apply pagination
   if (limit) {
     queryBuilder.take(limit);
   }
