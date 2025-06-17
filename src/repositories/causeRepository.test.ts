@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { CauseStatus } from '../entities/cause';
+import { CauseStatus, ListingStatus } from '../entities/cause';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { Cause } from '../entities/cause';
@@ -13,6 +13,8 @@ import {
   deactivateCause,
   validateCauseTitle,
   findAllCauses,
+  CauseSortField,
+  SortDirection,
 } from './causeRepository';
 import {
   saveUserDirectlyToDb,
@@ -475,7 +477,7 @@ describe('causeRepository test cases', () => {
         [testProject],
       );
 
-      const causes = await findAllCauses(1, 0);
+      const causes = await findAllCauses(1);
       assert.equal(causes.length, 1);
 
       // Clean up second cause
@@ -514,7 +516,7 @@ describe('causeRepository test cases', () => {
       ]);
     });
 
-    it('should return causes in descending order by createdAt', async () => {
+    it('should return causes in descending order by createdAt by default', async () => {
       // Create a second cause
       const secondCause = await createCause(
         createTestCauseData('test-cause-id-7', `0xuniquehash7${Date.now()}`),
@@ -570,6 +572,180 @@ describe('causeRepository test cases', () => {
     it('should return empty array when no causes match offset', async () => {
       const causes = await findAllCauses(10, 100);
       assert.equal(causes.length, 0);
+    });
+
+    it('should filter by chainId', async () => {
+      // Create a cause with different chainId
+      const differentChainCause = await createCause(
+        {
+          ...createTestCauseData(
+            'test-cause-id-10',
+            `0xuniquehash10${Date.now()}`,
+          ),
+          chainId: 1, // Different chain ID
+        },
+        testUser,
+        [testProject],
+      );
+
+      const causes = await findAllCauses(undefined, undefined, 137); // Filter by chainId 137
+      assert.equal(causes.length, 1);
+      assert.equal(causes[0].chainId, 137);
+
+      // Clean up different chain cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [differentChainCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        differentChainCause.id,
+      ]);
+    });
+
+    it('should filter by search term', async () => {
+      // Create a cause with specific title
+      const searchableCause = await createCause(
+        {
+          ...createTestCauseData(
+            'test-cause-id-11',
+            `0xuniquehash11${Date.now()}`,
+          ),
+          title: 'Unique Searchable Title',
+          description: 'This is a unique description',
+        },
+        testUser,
+        [testProject],
+      );
+
+      const causes = await findAllCauses(
+        undefined,
+        undefined,
+        undefined,
+        'Unique Searchable',
+      );
+      assert.equal(causes.length, 1);
+      assert.equal(causes[0].id, searchableCause.id);
+
+      // Clean up searchable cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [searchableCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        searchableCause.id,
+      ]);
+    });
+
+    it('should sort by totalRaised', async () => {
+      // Create causes with different totalRaised values
+      const lowRaisedCause = await createCause(
+        {
+          ...createTestCauseData(
+            'test-cause-id-12',
+            `0xuniquehash12${Date.now()}`,
+          ),
+          totalRaised: 100,
+        },
+        testUser,
+        [testProject],
+      );
+      const highRaisedCause = await createCause(
+        {
+          ...createTestCauseData(
+            'test-cause-id-13',
+            `0xuniquehash13${Date.now()}`,
+          ),
+          totalRaised: 1000,
+        },
+        testUser,
+        [testProject],
+      );
+
+      const causes = await findAllCauses(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        CauseSortField.AMOUNT_RAISED,
+        SortDirection.DESC,
+      );
+      assert.equal(causes.length, 3); // Including the original testCause
+      assert.equal(causes[0].id, highRaisedCause.id); // Highest first
+      assert.equal(causes[1].id, lowRaisedCause.id);
+
+      // Clean up additional causes
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" IN ($1, $2)',
+        [lowRaisedCause.id, highRaisedCause.id],
+      );
+      await Cause.getRepository().query(
+        'DELETE FROM "cause" WHERE "id" IN ($1, $2)',
+        [lowRaisedCause.id, highRaisedCause.id],
+      );
+    });
+
+    it('should filter by listing status', async () => {
+      // Update test cause to have a specific listing status
+      await Cause.update(
+        { id: testCause.id },
+        { listingStatus: ListingStatus.NotReviewed },
+      );
+
+      const causes = await findAllCauses(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        ListingStatus.NotReviewed,
+      );
+      assert.equal(causes.length, 1);
+      assert.equal(causes[0].listingStatus, ListingStatus.NotReviewed);
+
+      // Reset the listing status
+      await Cause.update(
+        { id: testCause.id },
+        { listingStatus: ListingStatus.Listed },
+      );
+    });
+
+    it('should return all causes when listingStatus is "all"', async () => {
+      // Create a cause with different listing status
+      const notListedCause = await createCause(
+        {
+          ...createTestCauseData(
+            'test-cause-id-14',
+            `0xuniquehash14${Date.now()}`,
+          ),
+        },
+        testUser,
+        [testProject],
+      );
+      await Cause.update(
+        { id: notListedCause.id },
+        { listingStatus: ListingStatus.NotListed },
+      );
+
+      const causes = await findAllCauses(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'all',
+      );
+      assert.equal(causes.length, 2); // Should return both causes
+
+      // Clean up not listed cause
+      await Cause.getRepository().query(
+        'DELETE FROM "project_causes_cause" WHERE "causeId" = $1',
+        [notListedCause.id],
+      );
+      await Cause.getRepository().query('DELETE FROM "cause" WHERE "id" = $1', [
+        notListedCause.id,
+      ]);
     });
   });
 });

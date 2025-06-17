@@ -14,7 +14,7 @@ import {
   causesQuery,
   causeByIdQuery,
 } from '../../test/graphqlQueries';
-import { Cause } from '../entities/cause';
+import { Cause, ListingStatus } from '../entities/cause';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import * as verifyTransactionModule from '../utils/transactionVerification';
@@ -695,6 +695,221 @@ describe('causes() test cases', () => {
     assert.equal(returnedCauses[1].id, causes[1].id);
     assert.equal(returnedCauses[2].id, causes[0].id);
   });
+
+  it('should filter by chainId', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        chainId: 137,
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3);
+    returnedCauses.forEach(cause => {
+      assert.equal(cause.chainId, 137);
+    });
+  });
+
+  it('should filter by search term', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        searchTerm: 'Test Cause',
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3);
+    returnedCauses.forEach(cause => {
+      assert.include(cause.title.toLowerCase(), 'test cause');
+    });
+  });
+
+  it('should sort by totalRaised in descending order', async () => {
+    // Update causes with different totalRaised values
+    await Cause.update({ id: causes[0].id }, { totalRaised: 100 });
+    await Cause.update({ id: causes[1].id }, { totalRaised: 500 });
+    await Cause.update({ id: causes[2].id }, { totalRaised: 1000 });
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        sortBy: 'AMOUNT_RAISED',
+        sortDirection: 'DESC',
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3);
+    assert.equal(returnedCauses[0].totalRaised, 1000);
+    assert.equal(returnedCauses[1].totalRaised, 500);
+    assert.equal(returnedCauses[2].totalRaised, 100);
+  });
+
+  it('should sort by totalRaised in ascending order', async () => {
+    // Update causes with different totalRaised values
+    await Cause.update({ id: causes[0].id }, { totalRaised: 100 });
+    await Cause.update({ id: causes[1].id }, { totalRaised: 500 });
+    await Cause.update({ id: causes[2].id }, { totalRaised: 1000 });
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        sortBy: 'AMOUNT_RAISED',
+        sortDirection: 'ASC',
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3);
+    assert.equal(returnedCauses[0].totalRaised, 100);
+    assert.equal(returnedCauses[1].totalRaised, 500);
+    assert.equal(returnedCauses[2].totalRaised, 1000);
+  });
+
+  it('should sort by givPower', async () => {
+    // Update causes with different givPower values
+    await Cause.update({ id: causes[0].id }, { givPower: 10 });
+    await Cause.update({ id: causes[1].id }, { givPower: 50 });
+    await Cause.update({ id: causes[2].id }, { givPower: 100 });
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        sortBy: 'GIVPOWER',
+        sortDirection: 'DESC',
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3);
+    assert.equal(returnedCauses[0].givPower, 100);
+    assert.equal(returnedCauses[1].givPower, 50);
+    assert.equal(returnedCauses[2].givPower, 10);
+  });
+
+  it('should sort by givBack', async () => {
+    // Update causes with different givBack values
+    await Cause.update({ id: causes[0].id }, { givBack: 5 });
+    await Cause.update({ id: causes[1].id }, { givBack: 25 });
+    await Cause.update({ id: causes[2].id }, { givBack: 50 });
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        sortBy: 'GIVBACK',
+        sortDirection: 'DESC',
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3);
+    assert.equal(returnedCauses[0].givBack, 50);
+    assert.equal(returnedCauses[1].givBack, 25);
+    assert.equal(returnedCauses[2].givBack, 5);
+  });
+
+  it('should sort by project count', async () => {
+    // Update causes with different activeProjectsCount values
+    await Cause.update({ id: causes[0].id }, { activeProjectsCount: 3 });
+    await Cause.update({ id: causes[1].id }, { activeProjectsCount: 7 });
+    await Cause.update({ id: causes[2].id }, { activeProjectsCount: 10 });
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        sortBy: 'PROJECT_COUNT',
+        sortDirection: 'DESC',
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3);
+    assert.equal(returnedCauses[0].activeProjectsCount, 10);
+    assert.equal(returnedCauses[1].activeProjectsCount, 7);
+    assert.equal(returnedCauses[2].activeProjectsCount, 3);
+  });
+
+  it('should filter by listing status', async () => {
+    // Update one cause to have different listing status
+    await Cause.update(
+      { id: causes[0].id },
+      { listingStatus: ListingStatus.NotReviewed },
+    );
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        listingStatus: 'Not Reviewed',
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 1);
+    assert.equal(returnedCauses[0].listingStatus, 'Not Reviewed');
+
+    // Reset the listing status
+    await Cause.update(
+      { id: causes[0].id },
+      { listingStatus: ListingStatus.Listed },
+    );
+  });
+
+  it('should return all causes when listingStatus is "all"', async () => {
+    // Update one cause to have different listing status
+    await Cause.update(
+      { id: causes[0].id },
+      { listingStatus: ListingStatus.NotListed },
+    );
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        listingStatus: 'all',
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 3); // Should return all causes
+
+    // Reset the listing status
+    await Cause.update(
+      { id: causes[0].id },
+      { listingStatus: ListingStatus.Listed },
+    );
+  });
+
+  it('should combine multiple filters and sorting', async () => {
+    // Update causes with different values
+    await Cause.update(
+      { id: causes[0].id },
+      { totalRaised: 100, chainId: 137 },
+    );
+    await Cause.update(
+      { id: causes[1].id },
+      { totalRaised: 500, chainId: 137 },
+    );
+    await Cause.update({ id: causes[2].id }, { totalRaised: 1000, chainId: 1 }); // Different chain
+
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causesQuery,
+      variables: {
+        chainId: 137,
+        searchTerm: 'Test Cause',
+        sortBy: 'AMOUNT_RAISED',
+        sortDirection: 'DESC',
+        limit: 2,
+      },
+    });
+
+    const returnedCauses = response.data.data.causes;
+    assert.equal(returnedCauses.length, 2);
+    assert.equal(returnedCauses[0].chainId, 137);
+    assert.equal(returnedCauses[1].chainId, 137);
+    assert.equal(returnedCauses[0].totalRaised, 500);
+    assert.equal(returnedCauses[1].totalRaised, 100);
+  });
 });
 
 describe('cause() test cases', () => {
@@ -829,10 +1044,26 @@ describe('cause() test cases', () => {
     assert.isNotNull(cause.totalRaised);
     assert.isNotNull(cause.totalDistributed);
     assert.isNotNull(cause.totalDonated);
+    assert.isNotNull(cause.givPower);
+    assert.isNotNull(cause.givBack);
     assert.isNotNull(cause.activeProjectsCount);
     assert.isNotNull(cause.createdAt);
     assert.isNotNull(cause.updatedAt);
     assert.isNotNull(cause.owner);
     assert.isNotNull(cause.projects);
+  });
+
+  it('should return givPower and givBack fields with default values', async () => {
+    const response = await axios.post('http://localhost:4000/graphql', {
+      query: causeByIdQuery,
+      variables: {
+        id: Number(createdCause.id),
+      },
+    });
+
+    const cause = response.data.data.cause;
+    assert.isNotNull(cause);
+    assert.equal(cause.givPower, 0);
+    assert.equal(cause.givBack, 0);
   });
 });

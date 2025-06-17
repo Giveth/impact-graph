@@ -2692,6 +2692,8 @@ mutation CreateCause(
     totalRaised
     totalDistributed
     totalDonated
+    givPower
+    givBack
     activeProjectsCount
     createdAt
     updatedAt
@@ -2710,8 +2712,24 @@ query IsValidCauseTitle($title: String!) {
 }`;
 
 export const causesQuery = `
-  query Causes($limit: Float, $offset: Float) {
-    causes(limit: $limit, offset: $offset) {
+  query Causes(
+    $limit: Int, 
+    $offset: Int, 
+    $chainId: Int, 
+    $searchTerm: String, 
+    $sortBy: CauseSortField, 
+    $sortDirection: SortDirection, 
+    $listingStatus: ListingStatus
+  ) {
+    causes(
+      limit: $limit, 
+      offset: $offset, 
+      chainId: $chainId, 
+      searchTerm: $searchTerm, 
+      sortBy: $sortBy, 
+      sortDirection: $sortDirection, 
+      listingStatus: $listingStatus
+    ) {
       id
       title
       description
@@ -2725,12 +2743,15 @@ export const causesQuery = `
       totalRaised
       totalDistributed
       totalDonated
+      givPower
+      givBack
       activeProjectsCount
       createdAt
       updatedAt
       owner {
         id
         walletAddress
+        name
       }
       projects {
         id
@@ -2757,12 +2778,15 @@ export const causeByIdQuery = `
       totalRaised
       totalDistributed
       totalDonated
+      givPower
+      givBack
       activeProjectsCount
       createdAt
       updatedAt
       owner {
         id
         walletAddress
+        name
       }
       projects {
         id
