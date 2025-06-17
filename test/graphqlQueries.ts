@@ -2713,13 +2713,13 @@ query IsValidCauseTitle($title: String!) {
 
 export const causesQuery = `
   query Causes(
-    $limit: Int, 
-    $offset: Int, 
-    $chainId: Int, 
+    $limit: Float, 
+    $offset: Float, 
+    $chainId: Float, 
     $searchTerm: String, 
-    $sortBy: CauseSortField, 
-    $sortDirection: SortDirection, 
-    $listingStatus: ListingStatus
+    $sortBy: String, 
+    $sortDirection: String, 
+    $listingStatus: String
   ) {
     causes(
       limit: $limit, 

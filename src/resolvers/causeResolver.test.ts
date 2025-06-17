@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import axios from 'axios';
 import sinon from 'sinon';
+import { In } from 'typeorm';
 import {
   saveUserDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -18,6 +19,7 @@ import { Cause, ListingStatus } from '../entities/cause';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import * as verifyTransactionModule from '../utils/transactionVerification';
+import { CauseSortField, SortDirection } from '../repositories/causeRepository';
 
 beforeEach(async () => {
   // Mock verifyTransaction to return true in tests
@@ -576,6 +578,12 @@ describe('causes() test cases', () => {
       );
       causes.push(response.data.data.createCause);
     }
+
+    // Update all causes to have Listed status so they are returned by the causes query
+    await Cause.update(
+      { id: In(causes.map(c => c.id)) },
+      { listingStatus: ListingStatus.Listed },
+    );
   });
 
   afterEach(async () => {
@@ -735,8 +743,8 @@ describe('causes() test cases', () => {
     const response = await axios.post('http://localhost:4000/graphql', {
       query: causesQuery,
       variables: {
-        sortBy: 'AMOUNT_RAISED',
-        sortDirection: 'DESC',
+        sortBy: CauseSortField.AMOUNT_RAISED,
+        sortDirection: SortDirection.DESC,
       },
     });
 
@@ -756,8 +764,8 @@ describe('causes() test cases', () => {
     const response = await axios.post('http://localhost:4000/graphql', {
       query: causesQuery,
       variables: {
-        sortBy: 'AMOUNT_RAISED',
-        sortDirection: 'ASC',
+        sortBy: CauseSortField.AMOUNT_RAISED,
+        sortDirection: SortDirection.ASC,
       },
     });
 
@@ -777,8 +785,8 @@ describe('causes() test cases', () => {
     const response = await axios.post('http://localhost:4000/graphql', {
       query: causesQuery,
       variables: {
-        sortBy: 'GIVPOWER',
-        sortDirection: 'DESC',
+        sortBy: CauseSortField.GIVPOWER,
+        sortDirection: SortDirection.DESC,
       },
     });
 
@@ -798,8 +806,8 @@ describe('causes() test cases', () => {
     const response = await axios.post('http://localhost:4000/graphql', {
       query: causesQuery,
       variables: {
-        sortBy: 'GIVBACK',
-        sortDirection: 'DESC',
+        sortBy: CauseSortField.GIVBACK,
+        sortDirection: SortDirection.DESC,
       },
     });
 
@@ -819,8 +827,8 @@ describe('causes() test cases', () => {
     const response = await axios.post('http://localhost:4000/graphql', {
       query: causesQuery,
       variables: {
-        sortBy: 'PROJECT_COUNT',
-        sortDirection: 'DESC',
+        sortBy: CauseSortField.PROJECT_COUNT,
+        sortDirection: SortDirection.DESC,
       },
     });
 
@@ -841,13 +849,13 @@ describe('causes() test cases', () => {
     const response = await axios.post('http://localhost:4000/graphql', {
       query: causesQuery,
       variables: {
-        listingStatus: 'Not Reviewed',
+        listingStatus: ListingStatus.NotReviewed,
       },
     });
 
     const returnedCauses = response.data.data.causes;
     assert.equal(returnedCauses.length, 1);
-    assert.equal(returnedCauses[0].listingStatus, 'Not Reviewed');
+    assert.equal(returnedCauses[0].listingStatus, 'NotReviewed');
 
     // Reset the listing status
     await Cause.update(
@@ -897,8 +905,8 @@ describe('causes() test cases', () => {
       variables: {
         chainId: 137,
         searchTerm: 'Test Cause',
-        sortBy: 'AMOUNT_RAISED',
-        sortDirection: 'DESC',
+        sortBy: CauseSortField.AMOUNT_RAISED,
+        sortDirection: SortDirection.DESC,
         limit: 2,
       },
     });
