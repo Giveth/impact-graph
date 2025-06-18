@@ -12,11 +12,13 @@ import {
   findCauseById,
   findAllCauses,
   validateTransactionHash,
+  CauseSortField,
+  SortDirection,
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
 import { NETWORK_IDS } from '../provider';
 
-const DEFAULT_CAUSES_LIMIT = 10;
+const DEFAULT_CAUSES_LIMIT = 20;
 const MAX_CAUSES_LIMIT = 100;
 
 const getCauseCreationFeeTokenContractAddresses = (): {
@@ -51,6 +53,31 @@ export class CauseResolver {
       description: 'Number of causes to skip',
     })
     offset?: number,
+    @Arg('chainId', {
+      nullable: true,
+      description: 'Filter by chain ID',
+    })
+    chainId?: number,
+    @Arg('searchTerm', {
+      nullable: true,
+      description: 'Search term to filter causes by title or description',
+    })
+    searchTerm?: string,
+    @Arg('sortBy', {
+      nullable: true,
+      description: 'Field to sort by',
+    })
+    sortBy?: CauseSortField,
+    @Arg('sortDirection', {
+      nullable: true,
+      description: 'Sort direction',
+    })
+    sortDirection?: SortDirection,
+    @Arg('listingStatus', {
+      nullable: true,
+      description: 'Filter by listing status',
+    })
+    listingStatus?: ListingStatus | 'all',
   ): Promise<Cause[]> {
     try {
       // Apply default limit if none provided, or cap at maximum limit
@@ -58,7 +85,15 @@ export class CauseResolver {
         ? Math.min(limit, MAX_CAUSES_LIMIT)
         : DEFAULT_CAUSES_LIMIT;
 
-      const causes = await findAllCauses(effectiveLimit, offset);
+      const causes = await findAllCauses(
+        effectiveLimit,
+        offset,
+        chainId,
+        searchTerm,
+        sortBy,
+        sortDirection,
+        listingStatus,
+      );
       return causes;
     } catch (e) {
       SentryLogger.captureException(e);
@@ -68,6 +103,11 @@ export class CauseResolver {
         errorStack: e.stack,
         limit,
         offset,
+        chainId,
+        searchTerm,
+        sortBy,
+        sortDirection,
+        listingStatus,
       });
       return [];
     }

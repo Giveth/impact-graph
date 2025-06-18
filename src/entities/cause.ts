@@ -118,6 +118,12 @@ export class Cause extends BaseEntity {
   })
   status: CauseStatus;
 
+  // This is needed to return the enum value as a string
+  @Field(() => String)
+  get statusValue(): string {
+    return this.status;
+  }
+
   @Field(_type => ListingStatus)
   @Column({
     type: 'enum',
@@ -125,6 +131,12 @@ export class Cause extends BaseEntity {
     default: ListingStatus.NotReviewed,
   })
   listingStatus: ListingStatus;
+
+  // This is needed to return the enum value as a string
+  @Field(() => String)
+  get listingStatusValue(): string {
+    return this.listingStatus;
+  }
 
   @Field(_type => [Project])
   @ManyToMany(_type => Project, project => project.causes)
@@ -145,6 +157,14 @@ export class Cause extends BaseEntity {
   @Field(_type => Float)
   @Column('float', { default: 0 })
   totalDonated: number;
+
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  givPower: number;
+
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  givBack: number;
 
   @Field()
   @UpdateDateColumn()
