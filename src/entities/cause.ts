@@ -70,6 +70,10 @@ export class Cause extends BaseEntity {
   @Column('text')
   fundingPoolAddress: string;
 
+  // we should not expose this field to the client
+  @Column('text')
+  fundingPoolHdPath: string;
+
   @Field()
   @Column('text', { unique: true })
   causeId: string;

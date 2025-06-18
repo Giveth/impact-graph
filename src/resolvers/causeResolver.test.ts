@@ -20,10 +20,22 @@ import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import * as verifyTransactionModule from '../utils/transactionVerification';
 import { CauseSortField, SortDirection } from '../repositories/causeRepository';
+import * as agentDistributionServiceModule from '../services/agentDistributionService';
 
 beforeEach(async () => {
   // Mock verifyTransaction to return true in tests
   sinon.stub(verifyTransactionModule, 'verifyTransaction').resolves(true);
+
+  // Mock AgentDistributionService.generateWallet to return test data
+  sinon
+    .stub(
+      agentDistributionServiceModule.AgentDistributionService,
+      'generateWallet',
+    )
+    .resolves({
+      address: `0x${Math.random().toString(16).substr(2, 40)}`,
+      hdPath: `m/44'/60'/0'/0/${Math.floor(Math.random() * 1000)}`,
+    });
 });
 
 afterEach(() => {
