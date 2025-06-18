@@ -71,6 +71,10 @@ export class Cause extends BaseEntity {
   fundingPoolAddress: string;
 
   @Field()
+  @Column('text')
+  fundingPoolHdPath: string;
+
+  @Field()
   @Column('text', { unique: true })
   causeId: string;
 
