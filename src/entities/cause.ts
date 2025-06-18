@@ -70,7 +70,7 @@ export class Cause extends BaseEntity {
   @Column('text')
   fundingPoolAddress: string;
 
-  @Field()
+  // we should not expose this field to the client
   @Column('text')
   fundingPoolHdPath: string;
 

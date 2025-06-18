@@ -32,7 +32,6 @@ export class AgentDistributionService {
 
       logger.debug('Wallet generated successfully', {
         address: response.data.address,
-        hdPath: response.data.hdPath,
       });
 
       return response.data;

@@ -220,6 +220,11 @@ export class CauseResolver {
 
       // Generate funding pool address via API
       const walletData = await AgentDistributionService.generateWallet();
+      if (!walletData?.address || !walletData?.hdPath) {
+        throw new Error(
+          'Wallet generation service returned an invalid payload',
+        );
+      }
       const fundingPoolAddress = walletData.address;
       const fundingPoolHdPath = walletData.hdPath;
 
