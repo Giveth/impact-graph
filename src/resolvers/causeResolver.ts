@@ -17,6 +17,7 @@ import {
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
 import { NETWORK_IDS } from '../provider';
+import { AgentDistributionService } from '../services/agentDistributionService';
 
 const DEFAULT_CAUSES_LIMIT = 20;
 const MAX_CAUSES_LIMIT = 100;
@@ -217,14 +218,17 @@ export class CauseResolver {
       // Generate unique causeId
       const causeId = `cause_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Create funding pool address (this should be replaced with actual implementation)
-      const fundingPoolAddress = `0x${Math.random().toString(16).substr(2, 40)}`;
+      // Generate funding pool address via API
+      const walletData = await AgentDistributionService.generateWallet();
+      const fundingPoolAddress = walletData.address;
+      const fundingPoolHdPath = walletData.hdPath;
 
       const causeData = {
         title: title.trim(),
         description: description.trim(),
         chainId,
         fundingPoolAddress,
+        fundingPoolHdPath,
         causeId,
         mainCategory: mainCategory.trim(),
         subCategories: subCategories.map(cat => cat.trim()),
