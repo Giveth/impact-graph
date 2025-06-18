@@ -77,7 +77,7 @@ export class CauseResolver {
       nullable: true,
       description: 'Filter by listing status',
     })
-    listingStatus?: ListingStatus,
+    listingStatus?: ListingStatus | 'all',
   ): Promise<Cause[]> {
     try {
       // Apply default limit if none provided, or cap at maximum limit
