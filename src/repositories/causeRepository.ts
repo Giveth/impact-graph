@@ -208,8 +208,9 @@ export const findAllCauses = async (
       queryBuilder.where('cause.listingStatus = :listingStatus', {
         listingStatus,
       });
+    } else {
+      queryBuilder.where('1 = 1'); // Start with a default condition to avoid query errors
     }
-    queryBuilder.where('1 = 1'); // Start with a default condition to avoid query errors
   } else {
     // Default to Listed status if no listing status specified
     queryBuilder.where('cause.listingStatus = :listingStatus', {
