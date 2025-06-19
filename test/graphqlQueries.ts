@@ -2797,3 +2797,38 @@ export const causeByIdQuery = `
     }
   }
 `;
+
+export const causeBySlugQuery = `
+  query CauseBySlug($slug: String!) {
+    causeBySlug(slug: $slug) {
+      id
+      title
+      description
+      chainId
+      fundingPoolAddress
+      causeId
+      mainCategory
+      subCategories
+      status
+      listingStatus
+      totalRaised
+      totalDistributed
+      totalDonated
+      givPower
+      givBack
+      activeProjectsCount
+      createdAt
+      updatedAt
+      owner {
+        id
+        walletAddress
+        name
+      }
+      projects {
+        id
+        title
+        slug
+      }
+    }
+  }
+`;

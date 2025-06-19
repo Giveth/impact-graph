@@ -127,6 +127,22 @@ export class CauseResolver {
     }
   }
 
+  @Query(() => Cause, { nullable: true })
+  async causeBySlug(@Arg('slug') slug: string): Promise<Cause | null> {
+    try {
+      const causeFindId = await Cause.findOne({ where: { slug } });
+      if (!causeFindId) {
+        return null;
+      }
+      const cause = await findCauseById(causeFindId.id);
+      return cause || null;
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('causeBySlug() error', { error: e, causeSlug: slug });
+      throw e;
+    }
+  }
+
   @Query(() => Boolean)
   async isValidCauseTitle(@Arg('title') title: string): Promise<boolean> {
     return validateCauseTitle(title);
