@@ -32,6 +32,7 @@ import { ProjectFraudTab } from './tabs/projectFraudTab';
 import { RecurringDonationTab } from './tabs/recurringDonationTab';
 import { AnchorContractAddressTab } from './tabs/anchorContractAddressTab';
 import { projectSocialMediaTab } from './tabs/projectSocialMediaTab';
+import { causesTab } from './tabs/causesTab';
 // use redis for session data instead of in-memory storage
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const RedisStore = require('connect-redis').default;
@@ -131,6 +132,7 @@ const getResources = async (): Promise<AdminJsResources> => {
   const resources: AdminJsResources = [
     projectVerificationTab,
     donationTab,
+    causesTab,
     await generateTokenTab(),
     featuredUpdateTab,
     thirdPartProjectImportTab,

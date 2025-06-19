@@ -591,6 +591,34 @@ const recurringDonationPermissions = {
   // Add more roles here as needed
 };
 
+const causePermissions = {
+  [UserRole.ADMIN]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+    bulkDelete: true,
+  },
+  [UserRole.OPERATOR]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+  },
+  [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+  },
+  // Add more roles here as needed
+};
+
 const hasAccessToResource = (params: {
   currentAdmin: any;
   action: string;
@@ -823,5 +851,13 @@ export const canAccessRecurringDonationAction = (
     currentAdmin,
     action,
     resourcePermissions: recurringDonationPermissions,
+  });
+};
+
+export const canAccessCauseAction = ({ currentAdmin }, action: string) => {
+  return hasAccessToResource({
+    currentAdmin,
+    action,
+    resourcePermissions: causePermissions,
   });
 };
