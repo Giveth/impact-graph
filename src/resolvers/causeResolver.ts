@@ -1,4 +1,5 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import slugify from 'slugify';
 import { Cause, CauseStatus, ListingStatus } from '../entities/cause';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -17,6 +18,7 @@ import {
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
 import { NETWORK_IDS } from '../provider';
+import { titleWithoutSpecialCharacters } from '../utils/utils';
 
 const DEFAULT_CAUSES_LIMIT = 20;
 const MAX_CAUSES_LIMIT = 100;
@@ -217,6 +219,24 @@ export class CauseResolver {
       // Generate unique causeId
       const causeId = `cause_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+      const cleanTitle = titleWithoutSpecialCharacters(title.trim());
+      let slug = slugify(cleanTitle, { lower: true, strict: true });
+      let counter = 1;
+      const unique = true;
+
+      while (unique) {
+        const existingSlug = await Cause.createQueryBuilder('cause')
+          .where('lower(slug) = lower(:slug)', { slug })
+          .getOne();
+
+        if (!existingSlug) {
+          break; // Slug is unique
+        }
+
+        slug = `${slug}-${counter}`;
+        counter++;
+      }
+
       // Create funding pool address (this should be replaced with actual implementation)
       const fundingPoolAddress = `0x${Math.random().toString(16).substr(2, 40)}`;
 
@@ -224,6 +244,7 @@ export class CauseResolver {
         title: title.trim(),
         description: description.trim(),
         chainId,
+        slug,
         fundingPoolAddress,
         causeId,
         mainCategory: mainCategory.trim(),
