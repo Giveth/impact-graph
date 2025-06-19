@@ -196,7 +196,7 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   latestUpdateCreationDate: Date;
 
-  @Field(_type => Organization)
+  @Field(_type => Organization, { nullable: true })
   @ManyToOne(_type => Organization)
   @JoinTable()
   organization: Organization;
