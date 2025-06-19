@@ -2732,6 +2732,7 @@ export const causesQuery = `
     ) {
       id
       title
+      slug
       description
       chainId
       fundingPoolAddress

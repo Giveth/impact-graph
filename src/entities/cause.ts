@@ -16,6 +16,7 @@ import {
   ManyToOne,
   ManyToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from './user';
 import { Project } from './project';
@@ -57,6 +58,11 @@ export class Cause extends BaseEntity {
   @Field()
   @Column('text')
   title: string;
+
+  @Index({ unique: true })
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  slug?: string;
 
   @Field()
   @Column('text')
