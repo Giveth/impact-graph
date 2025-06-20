@@ -400,7 +400,7 @@ export const sendNotificationForDonation = async (params: {
     });
   }
 
-  if (donorUser) {
+  if (donorUser && donorUser.email) {
     await getNotificationAdapter().donationSent({
       donation,
       project,
