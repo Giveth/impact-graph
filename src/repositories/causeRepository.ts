@@ -1,5 +1,9 @@
-import { In } from 'typeorm';
-import { Cause, CauseStatus, ListingStatus } from '../entities/cause';
+import {
+  Cause,
+  ReviewStatus,
+  ProjStatus,
+  ProjectType,
+} from '../entities/project';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -18,38 +22,66 @@ export enum SortDirection {
 }
 
 export const findCauseById = async (id: number): Promise<Cause | null> => {
-  return Cause.findOne({
-    where: { id },
-    relations: ['owner', 'projects'],
-  });
+  return Cause.createQueryBuilder('cause')
+    .leftJoinAndSelect('cause.adminUser', 'adminUser')
+    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
+    .leftJoinAndSelect('cause.status', 'status')
+    .leftJoinAndSelect('causeProjects.project', 'project')
+    .leftJoinAndSelect('cause.categories', 'categories')
+    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+    .where('cause.id = :id', { id })
+    .andWhere('cause.projectType = :projectType', {
+      projectType: ProjectType.CAUSE,
+    })
+    .getOne();
 };
 
 export const findCauseByCauseId = async (
-  causeId: string,
+  causeId: number,
 ): Promise<Cause | null> => {
-  return Cause.findOne({
-    where: { causeId },
-    relations: ['owner', 'projects'],
-  });
+  return Cause.createQueryBuilder('cause')
+    .leftJoinAndSelect('cause.adminUser', 'adminUser')
+    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
+    .leftJoinAndSelect('causeProjects.project', 'project')
+    .leftJoinAndSelect('cause.status', 'status')
+    .leftJoinAndSelect('cause.categories', 'categories')
+    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+    .where('cause.id = :causeId', { causeId })
+    .andWhere('cause.projectType = :projectType', {
+      projectType: ProjectType.CAUSE,
+    })
+    .getOne();
 };
 
 export const findCausesByOwnerId = async (
   ownerId: number,
 ): Promise<Cause[]> => {
-  return Cause.find({
-    where: { ownerId },
-    relations: ['owner', 'projects'],
-  });
+  return Cause.createQueryBuilder('cause')
+    .leftJoinAndSelect('cause.adminUser', 'adminUser')
+    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
+    .leftJoinAndSelect('causeProjects.project', 'project')
+    .leftJoinAndSelect('cause.categories', 'categories')
+    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+    .where('cause.adminUserId = :ownerId', { ownerId })
+    .andWhere('cause.projectType = :projectType', {
+      projectType: ProjectType.CAUSE,
+    })
+    .getMany();
 };
 
 export const findCausesByProjectIds = async (
   projectIds: number[],
 ): Promise<Cause[]> => {
   const causes = await Cause.createQueryBuilder('cause')
-    .innerJoinAndSelect('cause.owner', 'owner')
-    .innerJoinAndSelect('cause.projects', 'project')
-    .where('project.id IN (:...projectIds)', { projectIds })
+    .innerJoinAndSelect('cause.adminUser', 'adminUser')
+    .innerJoinAndSelect('cause.causeProjects', 'causeProjects')
+    .innerJoinAndSelect('causeProjects.project', 'project')
+    .where('cause.projectType = :projectType', {
+      projectType: ProjectType.CAUSE,
+    })
+    .andWhere('project.id IN (:...projectIds)', { projectIds })
     .getMany();
+
   // Deduplicate by cause.id
   const uniqueCauses = new Map<number, Cause>();
   for (const cause of causes) {
@@ -59,7 +91,7 @@ export const findCausesByProjectIds = async (
 };
 
 export const createCause = async (
-  causeData: Partial<Cause>,
+  causeData: any,
   owner: User,
   projects: Project[],
 ): Promise<Cause> => {
@@ -68,11 +100,23 @@ export const createCause = async (
       const cause = new Cause();
       Object.assign(cause, {
         ...causeData,
-        ownerId: owner.id,
-        projects,
+        adminUserId: owner.id,
+        projectType: ProjectType.CAUSE,
+        walletAddress: causeData.fundingPoolAddress,
       });
 
       const savedCause = await transactionalEntityManager.save(cause);
+
+      // Create cause-project relationships
+      for (const project of projects) {
+        await transactionalEntityManager.save('CauseProject', {
+          causeId: savedCause.id,
+          projectId: project.id,
+          amountReceived: 0,
+          amountReceivedUsdValue: 0,
+          causeScore: 0,
+        });
+      }
 
       // Update user's ownedCausesCount
       await transactionalEntityManager.update(
@@ -82,10 +126,16 @@ export const createCause = async (
       );
 
       // Return the cause with all relations
-      const result = await transactionalEntityManager.findOne(Cause, {
-        where: { id: savedCause.id },
-        relations: ['owner', 'projects'],
-      });
+      const result = await transactionalEntityManager
+        .createQueryBuilder(Cause, 'cause')
+        .leftJoinAndSelect('cause.adminUser', 'adminUser')
+        .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
+        .leftJoinAndSelect('causeProjects.project', 'project')
+        .leftJoinAndSelect('cause.status', 'status')
+        .leftJoinAndSelect('cause.categories', 'categories')
+        .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+        .where('cause.id = :id', { id: savedCause.id })
+        .getOne();
 
       if (!result) {
         throw new Error('Failed to retrieve created cause');
@@ -96,49 +146,34 @@ export const createCause = async (
   );
 };
 
-export const activateCause = async (causeId: string): Promise<Cause> => {
+export const activateCause = async (causeId: number): Promise<Cause> => {
   const cause = await findCauseByCauseId(causeId);
   if (!cause) {
     throw new Error(i18n.__(translationErrorMessagesKeys.CAUSE_NOT_FOUND));
   }
 
-  if (cause.status === CauseStatus.ACTIVE) {
+  if (cause.statusId === ProjStatus.active) {
     return cause;
   }
 
-  cause.status = CauseStatus.ACTIVE;
+  cause.statusId = ProjStatus.active;
   await cause.save();
-
-  // Update projects' activeCausesCount
-  await Project.update(
-    { id: In(cause.projects.map(p => p.id)) },
-    { activeCausesCount: () => '"activeCausesCount" + 1' },
-  );
 
   return cause;
 };
 
-export const deactivateCause = async (causeId: string): Promise<Cause> => {
+export const deactivateCause = async (causeId: number): Promise<Cause> => {
   const cause = await findCauseByCauseId(causeId);
   if (!cause) {
     throw new Error(i18n.__(translationErrorMessagesKeys.CAUSE_NOT_FOUND));
   }
 
-  if (cause.status === CauseStatus.DEACTIVE) {
+  if (cause.statusId === ProjStatus.deactive) {
     return cause;
   }
 
-  const wasActive = cause.status === CauseStatus.ACTIVE;
-  cause.status = CauseStatus.DEACTIVE;
+  cause.statusId = ProjStatus.deactive;
   await cause.save();
-
-  // Update projects' activeCausesCount only if the cause was previously active
-  if (wasActive) {
-    await Project.update(
-      { id: In(cause.projects.map(p => p.id)) },
-      { activeCausesCount: () => '"activeCausesCount" - 1' },
-    );
-  }
 
   return cause;
 };
@@ -153,6 +188,7 @@ export const validateCauseTitle = async (title: string): Promise<boolean> => {
   const existingCause = await Cause.findOne({
     where: {
       title: trimmedTitle,
+      projectType: ProjectType.CAUSE,
     },
   });
 
@@ -177,6 +213,7 @@ export const validateTransactionHash = async (
   const existingCause = await Cause.findOne({
     where: {
       depositTxHash: trimmedTxHash,
+      projectType: ProjectType.CAUSE,
     },
   });
 
@@ -196,25 +233,29 @@ export const findAllCauses = async (
   searchTerm?: string,
   sortBy?: CauseSortField,
   sortDirection?: SortDirection,
-  listingStatus?: ListingStatus | 'all',
+  listingStatus?: ReviewStatus | 'all',
 ): Promise<Cause[]> => {
   const queryBuilder = Cause.createQueryBuilder('cause')
-    .leftJoinAndSelect('cause.owner', 'owner')
-    .leftJoinAndSelect('cause.projects', 'projects');
+    .leftJoinAndSelect('cause.adminUser', 'adminUser')
+    .leftJoinAndSelect('cause.status', 'status')
+    .leftJoinAndSelect('cause.categories', 'categories')
+    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
+    .leftJoinAndSelect('causeProjects.project', 'project')
+    .where('cause.projectType = :projectType', {
+      projectType: ProjectType.CAUSE,
+    });
 
   // Apply listing status filter
   if (listingStatus) {
     if (listingStatus !== 'all') {
-      queryBuilder.where('cause.listingStatus = :listingStatus', {
-        listingStatus,
+      queryBuilder.andWhere('cause.reviewStatus = :reviewStatus', {
+        reviewStatus: listingStatus,
       });
-    } else {
-      queryBuilder.where('1 = 1'); // Start with a default condition to avoid query errors
     }
   } else {
     // Default to Listed status if no listing status specified
-    queryBuilder.where('cause.listingStatus = :listingStatus', {
-      listingStatus: ListingStatus.Listed,
+    queryBuilder.andWhere('cause.reviewStatus = :reviewStatus', {
+      reviewStatus: ReviewStatus.Listed,
     });
   }
 

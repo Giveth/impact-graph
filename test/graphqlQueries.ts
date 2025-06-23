@@ -2662,7 +2662,6 @@ mutation CreateCause(
   $description: String!
   $chainId: Float!
   $projectIds: [Float!]!
-  $mainCategory: String!
   $subCategories: [String!]!
   $depositTxHash: String!
   $depositTxChainId: Float!
@@ -2673,7 +2672,6 @@ mutation CreateCause(
     description: $description
     chainId: $chainId
     projectIds: $projectIds
-    mainCategory: $mainCategory
     subCategories: $subCategories
     depositTxHash: $depositTxHash
     depositTxChainId: $depositTxChainId
@@ -2683,31 +2681,45 @@ mutation CreateCause(
     title
     description
     chainId
-    fundingPoolAddress
-    causeId
-    mainCategory
-    subCategories
-    status
-    listingStatus
+    walletAddress
+    slug
+    creationDate
+    updatedAt
+    categories {
+      id
+      name
+      mainCategory {
+        id
+        title
+        slug
+        banner
+        description
+      }
+    }
+    status {
+      id
+      name
+    }
+    reviewStatus
     totalRaised
     totalDistributed
     totalDonated
-    givPower
-    givBack
     activeProjectsCount
-    createdAt
-    updatedAt
-    owner {
+    adminUser {
       id
+      walletAddress
+      name
     }
     projects {
       id
+      title
+      slug
     }
   }
 }`;
 
 export const isValidCauseTitleQuery = `
-query IsValidCauseTitle($title: String!) {
+query isValidCauseTitle($title: String!) {
   isValidCauseTitle(title: $title)
 }`;
 
@@ -2732,24 +2744,33 @@ export const causesQuery = `
     ) {
       id
       title
-      slug
       description
       chainId
-      fundingPoolAddress
-      causeId
-      mainCategory
-      subCategories
-      status
-      listingStatus
+      walletAddress
+      slug
+      creationDate
+      updatedAt
+      categories {
+        id
+        name
+        mainCategory {
+          id
+          title
+          slug
+          banner
+          description
+        }
+      }
+      status {
+        id
+        name
+      }
+      reviewStatus
       totalRaised
       totalDistributed
       totalDonated
-      givPower
-      givBack
       activeProjectsCount
-      createdAt
-      updatedAt
-      owner {
+      adminUser {
         id
         walletAddress
         name
@@ -2770,21 +2791,31 @@ export const causeByIdQuery = `
       title
       description
       chainId
-      fundingPoolAddress
-      causeId
-      mainCategory
-      subCategories
-      status
-      listingStatus
+      walletAddress
+      slug
+      creationDate
+      updatedAt
+      categories {
+        id
+        name
+        mainCategory {
+          id
+          title
+          slug
+          banner
+          description
+        }
+      }
+      status {
+        id
+        name
+      }
+      reviewStatus
       totalRaised
       totalDistributed
       totalDonated
-      givPower
-      givBack
       activeProjectsCount
-      createdAt
-      updatedAt
-      owner {
+      adminUser {
         id
         walletAddress
         name
@@ -2805,21 +2836,31 @@ export const causeBySlugQuery = `
       title
       description
       chainId
-      fundingPoolAddress
-      causeId
-      mainCategory
-      subCategories
-      status
-      listingStatus
+      walletAddress
+      slug
+      creationDate
+      updatedAt
+      categories {
+        id
+        name
+        mainCategory {
+          id
+          title
+          slug
+          banner
+          description
+        }
+      }
+      status {
+        id
+        name
+      }
+      reviewStatus
       totalRaised
       totalDistributed
       totalDonated
-      givPower
-      givBack
       activeProjectsCount
-      createdAt
-      updatedAt
-      owner {
+      adminUser {
         id
         walletAddress
         name

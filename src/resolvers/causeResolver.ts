@@ -1,6 +1,11 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import slugify from 'slugify';
-import { Cause, CauseStatus, ListingStatus } from '../entities/cause';
+import {
+  Cause,
+  ReviewStatus,
+  ProjStatus,
+  ProjectType,
+} from '../entities/project';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { Project } from '../entities/project';
@@ -19,6 +24,9 @@ import {
 import { verifyTransaction } from '../utils/transactionVerification';
 import { NETWORK_IDS } from '../provider';
 import { titleWithoutSpecialCharacters } from '../utils/utils';
+import { Category } from '../entities/category';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import { ProjectStatus } from '../entities/projectStatus';
 
 const DEFAULT_CAUSES_LIMIT = 20;
 const MAX_CAUSES_LIMIT = 100;
@@ -41,7 +49,7 @@ const getCauseCreationFeeTokenContractAddresses = (): {
   return result;
 };
 
-@Resolver()
+@Resolver(_of => Cause)
 export class CauseResolver {
   @Query(() => [Cause])
   async causes(
@@ -79,7 +87,7 @@ export class CauseResolver {
       nullable: true,
       description: 'Filter by listing status',
     })
-    listingStatus?: ListingStatus | 'all',
+    listingStatus?: ReviewStatus | 'all',
   ): Promise<Cause[]> {
     try {
       // Apply default limit if none provided, or cap at maximum limit
@@ -130,7 +138,9 @@ export class CauseResolver {
   @Query(() => Cause, { nullable: true })
   async causeBySlug(@Arg('slug') slug: string): Promise<Cause | null> {
     try {
-      const causeFindId = await Cause.findOne({ where: { slug } });
+      const causeFindId = await Cause.findOne({
+        where: { slug, projectType: ProjectType.CAUSE },
+      });
       if (!causeFindId) {
         return null;
       }
@@ -155,7 +165,6 @@ export class CauseResolver {
     @Arg('description') description: string,
     @Arg('chainId') chainId: number,
     @Arg('projectIds', () => [Number]) projectIds: number[],
-    @Arg('mainCategory') mainCategory: string,
     @Arg('subCategories', () => [String]) subCategories: string[],
     @Arg('depositTxHash') depositTxHash: string,
     @Arg('depositTxChainId') depositTxChainId: number,
@@ -166,7 +175,6 @@ export class CauseResolver {
       description,
       chainId,
       projectIds,
-      mainCategory,
       subCategories,
       depositTxHash,
       depositTxChainId,
@@ -185,12 +193,7 @@ export class CauseResolver {
       }
 
       // Validate required fields
-      if (
-        !title?.trim() ||
-        !description?.trim() ||
-        !chainId ||
-        !mainCategory?.trim()
-      ) {
+      if (!title?.trim() || !description?.trim() || !chainId) {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_INPUT));
       }
 
@@ -232,9 +235,6 @@ export class CauseResolver {
         causeCreationFeeTokenContractAddresses,
       );
 
-      // Generate unique causeId
-      const causeId = `cause_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
       const cleanTitle = titleWithoutSpecialCharacters(title.trim());
       let slug = slugify(cleanTitle, { lower: true, strict: true });
       let counter = 1;
@@ -243,6 +243,9 @@ export class CauseResolver {
       while (unique) {
         const existingSlug = await Cause.createQueryBuilder('cause')
           .where('lower(slug) = lower(:slug)', { slug })
+          .andWhere('cause.projectType = :projectType', {
+            projectType: ProjectType.CAUSE,
+          })
           .getOne();
 
         if (!existingSlug) {
@@ -256,23 +259,80 @@ export class CauseResolver {
       // Create funding pool address (this should be replaced with actual implementation)
       const fundingPoolAddress = `0x${Math.random().toString(16).substr(2, 40)}`;
 
+      // We do not create categories only use existing ones
+      const categories = await Promise.all(
+        subCategories
+          ? subCategories.map(async category => {
+              const [c] = await Category.find({
+                where: {
+                  name: category,
+                  isActive: true,
+                  canUseOnFrontend: true,
+                },
+              });
+              if (!c) {
+                throw new Error(
+                  i18n.__(
+                    translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+                  ),
+                );
+              }
+              return c;
+            })
+          : [],
+      );
+
+      if (categories.length > 5) {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+          ),
+        );
+      }
+
+      const organization = await Organization.findOne({
+        where: {
+          label: ORGANIZATION_LABELS.GIVETH,
+        },
+      });
+      const now = new Date();
+
+      const status = await ProjectStatus.findOne({
+        where: {
+          id: ProjStatus.pending,
+        },
+      });
+
       const causeData = {
         title: title.trim(),
         description: description.trim(),
         chainId,
         slug,
+        slugHistory: [],
+        organization,
         fundingPoolAddress,
-        causeId,
-        mainCategory: mainCategory.trim(),
-        subCategories: subCategories.map(cat => cat.trim()),
-        status: CauseStatus.PENDING,
-        listingStatus: ListingStatus.NotReviewed,
+        categories,
+        status: status as ProjectStatus,
+        statusId: status?.id,
+        reviewStatus: ReviewStatus.NotReviewed,
         totalRaised: 0,
+        verified: true,
+        giveBacks: true,
+        qualityScore: 0,
+        totalDonations: 0,
+        adminUserId: user.id,
+        adminUser: user,
+        totalReactions: 0,
+        totalProjectUpdates: 1,
         totalDistributed: 0,
         totalDonated: 0,
         activeProjectsCount: projects.length,
         depositTxHash: depositTxHash.trim().toLowerCase(),
         depositTxChainId,
+        creationDate: now,
+        updatedAt: now,
+        latestUpdateCreationDate: now,
+        isDraft: false,
       };
 
       const cause = await createCause(causeData, user, projects);

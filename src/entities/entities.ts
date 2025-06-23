@@ -29,7 +29,7 @@ import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
 import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
 import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
 import { User } from './user';
-import { Project, ProjectUpdate } from './project';
+import { Cause, CauseProject, Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
 import BroadcastNotification from './broadcastNotification';
 import { FeaturedUpdate } from './featuredUpdate';
@@ -54,7 +54,6 @@ import { UserQfRoundModelScore } from './userQfRoundModelScore';
 import { ProjectGivbackRankView } from './ProjectGivbackRankView';
 import { EstimatedClusterMatching } from './estimatedClusterMatching';
 import { SitemapUrl } from './sitemapUrl';
-import { Cause, CauseProject } from './cause';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [

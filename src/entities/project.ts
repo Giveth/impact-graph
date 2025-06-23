@@ -17,9 +17,13 @@ import {
   PrimaryGeneratedColumn,
   RelationId,
   JoinTable,
+  JoinColumn,
+  ChildEntity,
+  TableInheritance,
 } from 'typeorm';
 
 import { Int } from 'type-graphql/dist/scalars/aliases';
+import { registerEnumType } from 'type-graphql';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { User } from './user';
@@ -51,7 +55,6 @@ import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
 import { EstimatedClusterMatching } from './estimatedClusterMatching';
-import { Cause } from './cause';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -133,7 +136,18 @@ export enum ReviewStatus {
   NotListed = 'Not Listed',
 }
 
+export enum ProjectType {
+  PROJECT = 'project',
+  CAUSE = 'cause',
+}
+
+registerEnumType(ProjectType, {
+  name: 'ProjectType',
+  description: 'The type of project entity',
+});
+
 @Entity()
+@TableInheritance({ column: { type: 'varchar', name: 'projectType' } })
 @ObjectType()
 export class Project extends BaseEntity {
   @Field(_type => ID)
@@ -452,14 +466,14 @@ export class Project extends BaseEntity {
   @Column('uuid', { nullable: true, unique: true })
   endaomentId?: string;
 
-  @Field(_type => [Cause], { nullable: true })
-  @ManyToMany(_type => Cause, cause => cause.projects)
-  @JoinTable()
-  causes: Cause[];
+  @Field(_type => ProjectType)
+  @Column({ default: ProjectType.PROJECT })
+  projectType: string = ProjectType.PROJECT;
 
-  @Field(_type => Int, { nullable: true })
-  @Column({ type: 'integer', default: 0 })
-  activeCausesCount: number;
+  // Many-to-many relationship with causes through CauseProject junction table
+  @Field(_type => [CauseProject], { nullable: true })
+  @OneToMany(_type => CauseProject, causeProject => causeProject.project)
+  causeProjects: CauseProject[];
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
@@ -751,4 +765,97 @@ export class ProjectUpdate extends BaseEntity {
   setProjectUpdateContentSummary() {
     this.contentSummary = getHtmlTextSummary(this.content);
   }
+}
+
+@ObjectType()
+@ChildEntity()
+export class Cause extends Project {
+  @Field()
+  @Column('text', { unique: true })
+  depositTxHash: string;
+
+  @Field()
+  @Column()
+  depositTxChainId: number;
+
+  @Field()
+  @Column()
+  chainId: number;
+
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  totalRaised: number;
+
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  totalDistributed: number;
+
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  totalDonated: number;
+
+  // Many-to-many relationship with projects through CauseProject junction table
+  @Field(_type => [CauseProject], { nullable: true })
+  @OneToMany(_type => CauseProject, causeProject => causeProject.cause)
+  causeProjects: CauseProject[];
+
+  // Virtual field to get projects directly
+  @Field(_type => [Project], { nullable: true })
+  async projects(): Promise<Project[]> {
+    const causeProjects = await CauseProject.find({
+      where: { causeId: this.id },
+      relations: ['project'],
+    });
+    return causeProjects.map(cp => cp.project);
+  }
+
+  // Virtual field to get projects count
+  @Field(_type => Number, { nullable: true })
+  async activeProjectsCount(): Promise<number> {
+    const causeProjects = await CauseProject.count({
+      where: { causeId: this.id },
+    });
+    return causeProjects;
+  }
+
+  // Override the projectType to always be CAUSE
+  @Field(_type => ProjectType)
+  @Column({ default: ProjectType.CAUSE })
+  projectType: string = ProjectType.CAUSE;
+}
+
+@Entity()
+@ObjectType()
+export class CauseProject extends BaseEntity {
+  @Field(_type => ID)
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Field(_type => Cause)
+  @ManyToOne(_type => Cause, cause => cause.causeProjects)
+  @JoinColumn()
+  cause: Cause;
+
+  @Column()
+  causeId: number;
+
+  @Field(_type => Project)
+  @ManyToOne(_type => Project, project => project.causeProjects)
+  @JoinColumn()
+  project: Project;
+
+  @Column()
+  projectId: number;
+
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  amountReceived: number;
+
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  amountReceivedUsdValue: number;
+
+  @Field(_type => Float)
+  @Column('float', { default: 0 })
+  causeScore: number;
 }
