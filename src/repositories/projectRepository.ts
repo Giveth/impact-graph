@@ -2,6 +2,7 @@ import { UpdateResult } from 'typeorm';
 import {
   FilterField,
   Project,
+  ProjectType,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
@@ -125,7 +126,10 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'projectPower.totalPower',
       'projectPower.powerRank',
       'projectPower.round',
-    ]);
+    ])
+    .where('project.projectType = :projectType', {
+      projectType: ProjectType.PROJECT,
+    });
 
   if (includeUnlisted) {
     query = query.where(`project.statusId = ${ProjStatus.active}`);
