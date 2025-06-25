@@ -13,7 +13,8 @@ export class ImplementSingleTableInheritance1750123930818
       ADD COLUMN IF NOT EXISTS "depositTxChainId" integer,
       ADD COLUMN IF NOT EXISTS "totalRaised" float NOT NULL DEFAULT 0,
       ADD COLUMN IF NOT EXISTS "totalDistributed" float NOT NULL DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS "totalDonated" float NOT NULL DEFAULT 0
+      ADD COLUMN IF NOT EXISTS "totalDonated" float NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS "fundingPoolHdPath" text NOT NULL DEFAULT 'm/44''/60''/0''/0/0';
     `);
 
     // Add unique constraint to depositTxHash if it doesn't exist

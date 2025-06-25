@@ -27,6 +27,7 @@ import { titleWithoutSpecialCharacters } from '../utils/utils';
 import { Category } from '../entities/category';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjectStatus } from '../entities/projectStatus';
+import { AgentDistributionService } from '../services/agentDistributionService';
 
 const DEFAULT_CAUSES_LIMIT = 20;
 const MAX_CAUSES_LIMIT = 100;
@@ -256,8 +257,15 @@ export class CauseResolver {
         counter++;
       }
 
-      // Create funding pool address (this should be replaced with actual implementation)
-      const fundingPoolAddress = `0x${Math.random().toString(16).substr(2, 40)}`;
+      // Generate funding pool address via API
+      const walletData = await AgentDistributionService.generateWallet();
+      if (!walletData?.address || !walletData?.hdPath) {
+        throw new Error(
+          'Wallet generation service returned an invalid payload',
+        );
+      }
+      const fundingPoolAddress = walletData.address;
+      const fundingPoolHdPath = walletData.hdPath;
 
       // We do not create categories only use existing ones
       const categories = await Promise.all(
@@ -311,6 +319,7 @@ export class CauseResolver {
         slugHistory: [],
         organization,
         fundingPoolAddress,
+        fundingPoolHdPath,
         categories,
         status: status as ProjectStatus,
         statusId: status?.id,

@@ -774,6 +774,10 @@ export class Cause extends Project {
   @Column('text', { unique: true })
   depositTxHash: string;
 
+  // we should not expose this field to the client
+  @Column('text')
+  fundingPoolHdPath: string;
+
   @Field()
   @Column()
   depositTxChainId: number;

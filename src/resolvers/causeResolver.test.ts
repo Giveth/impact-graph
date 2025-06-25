@@ -8,6 +8,7 @@ import {
   generateTestAccessToken,
   deleteProjectDirectlyFromDb,
   graphqlUrl,
+  generateRandomEvmTxHash,
 } from '../../test/testUtils';
 import {
   createCauseQuery,
@@ -17,6 +18,7 @@ import { Cause, CauseProject, Project, ProjectType } from '../entities/project';
 import * as verifyTransactionModule from '../utils/transactionVerification';
 import { MainCategory } from '../entities/mainCategory';
 import { Category } from '../entities/category';
+import * as agentDistributionServiceModule from '../services/agentDistributionService';
 
 before(async () => {
   // create the categories and the main categories here
@@ -43,6 +45,17 @@ before(async () => {
 beforeEach(async () => {
   // Mock verifyTransaction to return true in tests
   sinon.stub(verifyTransactionModule, 'verifyTransaction').resolves(true);
+
+  // Mock AgentDistributionService.generateWallet to return test data
+  sinon
+    .stub(
+      agentDistributionServiceModule.AgentDistributionService,
+      'generateWallet',
+    )
+    .resolves({
+      address: generateRandomEvmTxHash(),
+      hdPath: `m/44'/60'/0'/0/${Math.floor(Math.random() * 1000)}`,
+    });
 });
 
 afterEach(() => {

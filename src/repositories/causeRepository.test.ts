@@ -59,6 +59,7 @@ describe('causeRepository test cases', async () => {
     chainId: 1,
     slug: `test-cause-${Date.now()}`,
     fundingPoolAddress: `0x${Math.random().toString(16).substr(2, 40)}`,
+    fundingPoolHdPath: `m/44'/60'/0'/0/${Math.floor(Math.random() * 1000)}`,
     categories: [category1],
     statusId: ProjStatus.pending,
     reviewStatus: ReviewStatus.NotReviewed,
