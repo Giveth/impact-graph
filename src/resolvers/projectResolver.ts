@@ -163,6 +163,11 @@ registerEnumType(SortingField, {
   description: 'Sort by type',
 });
 
+registerEnumType(ProjectType, {
+  name: 'ProjectType',
+  description: 'Project type',
+});
+
 registerEnumType(FilterField, {
   name: 'FilterField',
   description: 'Filter by field',
@@ -273,8 +278,8 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   includeUnlisted?: boolean;
 
-  @Field({ nullable: true, defaultValue: ProjectType.CAUSE.toLowerCase() })
-  projectType?: ProjectType;
+  @Field({ nullable: true, defaultValue: 'project' })
+  projectType?: string;
 }
 
 @ObjectType()

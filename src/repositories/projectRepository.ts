@@ -2,7 +2,6 @@ import { UpdateResult } from 'typeorm';
 import {
   FilterField,
   Project,
-  ProjectType,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
@@ -86,7 +85,7 @@ export type FilterProjectQueryInputParams = {
   activeQfRoundId?: number;
   qfRoundSlug?: string;
   includeUnlisted?: boolean;
-  projectType?: ProjectType;
+  projectType?: string;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
