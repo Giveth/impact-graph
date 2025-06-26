@@ -242,7 +242,7 @@ export const findAllCauses = async (
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
     .leftJoinAndSelect('causeProjects.project', 'project')
     .where('cause.projectType = :projectType', {
-      projectType: ProjectType.CAUSE,
+      projectType: ProjectType.CAUSE.toLowerCase(),
     });
 
   // Apply listing status filter
@@ -277,7 +277,7 @@ export const findAllCauses = async (
     queryBuilder.orderBy(`cause.${sortBy}`, direction);
   } else {
     // Default sort by newest
-    queryBuilder.orderBy('cause.createdAt', SortDirection.DESC);
+    queryBuilder.orderBy('cause.creationDate', SortDirection.DESC);
   }
 
   // Apply pagination
