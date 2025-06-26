@@ -86,6 +86,7 @@ export type FilterProjectQueryInputParams = {
   activeQfRoundId?: number;
   qfRoundSlug?: string;
   includeUnlisted?: boolean;
+  projectType?: ProjectType;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -101,6 +102,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     qfRoundSlug,
     activeQfRoundId,
     includeUnlisted,
+    projectType,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -128,7 +130,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'projectPower.round',
     ])
     .where('project.projectType = :projectType', {
-      projectType: ProjectType.PROJECT,
+      projectType,
     });
 
   if (includeUnlisted) {

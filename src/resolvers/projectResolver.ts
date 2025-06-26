@@ -25,6 +25,7 @@ import {
   FilterField,
   OrderField,
   Project,
+  ProjectType,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
@@ -271,6 +272,9 @@ class GetProjectsArgs {
 
   @Field({ nullable: true })
   includeUnlisted?: boolean;
+
+  @Field({ nullable: true, defaultValue: ProjectType.CAUSE.toLowerCase() })
+  projectType?: ProjectType;
 }
 
 @ObjectType()
@@ -745,6 +749,7 @@ export class ProjectResolver {
       qfRoundId,
       qfRoundSlug,
       includeUnlisted,
+      projectType,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
@@ -772,6 +777,7 @@ export class ProjectResolver {
       qfRoundSlug,
       activeQfRoundId,
       includeUnlisted,
+      projectType,
     };
     let campaign;
     if (campaignSlug) {
