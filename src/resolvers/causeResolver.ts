@@ -169,7 +169,7 @@ export class CauseResolver {
     @Arg('subCategories', () => [String]) subCategories: string[],
     @Arg('depositTxHash') depositTxHash: string,
     @Arg('depositTxChainId') depositTxChainId: number,
-    @Arg('bannerImage', { nullable: true }) _bannerImage?: string,
+    @Arg('bannerImage', { nullable: true }) bannerImage?: string,
   ): Promise<Cause> {
     const logData = {
       title,
@@ -340,6 +340,7 @@ export class CauseResolver {
         depositTxChainId,
         creationDate: now,
         updatedAt: now,
+        image: bannerImage,
         latestUpdateCreationDate: now,
         isDraft: false,
       };
