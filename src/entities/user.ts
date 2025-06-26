@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProjStatus, ReviewStatus } from './project';
+import { Cause, ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
@@ -21,7 +21,6 @@ import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRe
 import { ReferredEvent } from './referredEvent';
 import { RecurringDonation } from './recurringDonation';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
-import { Cause } from './cause';
 
 export const publicSelectionFields = [
   'user.id',
@@ -265,7 +264,7 @@ export class User extends BaseEntity {
   }
 
   @Field(_type => [Cause], { nullable: true })
-  @OneToMany(_type => Cause, cause => cause.owner)
+  @OneToMany(_type => Cause, cause => cause.adminUser)
   ownedCauses?: Cause[];
 
   @Field(_type => Int, { nullable: true })
