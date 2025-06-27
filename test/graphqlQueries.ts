@@ -938,6 +938,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         verified
         isGivbackEligible
         traceCampaignId
+        projectType
         listed
         reviewStatus
         givingBlocksId

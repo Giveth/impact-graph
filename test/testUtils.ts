@@ -8,6 +8,7 @@ import { User } from '../src/entities/user';
 import { Donation, DONATION_STATUS } from '../src/entities/donation';
 import {
   Project,
+  ProjectType,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
@@ -153,6 +154,7 @@ export interface CreateProjectData {
   networkId?: number;
   chainType?: ChainType;
   isGivbackEligible: boolean;
+  projectType?: string;
 }
 
 export const saveUserDirectlyToDb = async (
@@ -258,6 +260,7 @@ export const saveProjectDirectlyToDb = async (
   const categories = await categoriesPromise;
   const project = await Project.create({
     ...projectData,
+    projectType: ProjectType.PROJECT,
     status,
     organization,
     categories,
@@ -340,6 +343,7 @@ export const createProjectData = (name?: string): CreateProjectData => {
     totalReactions: 0,
     totalProjectUpdates: 1,
     projectUpdateCreationDate: new Date(),
+    projectType: ProjectType.PROJECT,
   };
 };
 

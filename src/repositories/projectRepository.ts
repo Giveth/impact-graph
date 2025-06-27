@@ -127,10 +127,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'projectPower.totalPower',
       'projectPower.powerRank',
       'projectPower.round',
-    ])
-    .where('project.projectType = :projectType', {
-      projectType,
-    });
+    ]);
 
   if (includeUnlisted) {
     query = query.where(`project.statusId = ${ProjStatus.active}`);
@@ -139,6 +136,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
+  }
+
+  // Apply projectType filter
+  if (projectType) {
+    query = query.andWhere('project.projectType = :projectType', {
+      projectType,
+    });
   }
 
   const isFilterByQF =
