@@ -137,8 +137,8 @@ export enum ReviewStatus {
 }
 
 export enum ProjectType {
-  PROJECT = 'project',
-  CAUSE = 'cause',
+  PROJECT = 'Project',
+  CAUSE = 'Cause',
 }
 
 registerEnumType(ProjectType, {

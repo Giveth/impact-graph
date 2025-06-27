@@ -278,7 +278,7 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   includeUnlisted?: boolean;
 
-  @Field({ nullable: true, defaultValue: 'project' })
+  @Field({ nullable: true, defaultValue: 'Project' })
   projectType?: string;
 }
 
