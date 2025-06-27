@@ -4265,6 +4265,22 @@ function projectSearchTestCases() {
     assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
   });
 
+  it('should return no projects of type cause', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        projectType: 'Cause',
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    const projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, 0);
+  });
+
   it('should return projects with the project title inverted in the searchTerm', async () => {
     const limit = 1;
     const USER_DATA = SEED_DATA.FIRST_USER;

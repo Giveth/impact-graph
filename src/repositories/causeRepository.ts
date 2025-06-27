@@ -1,9 +1,4 @@
-import {
-  Cause,
-  ReviewStatus,
-  ProjStatus,
-  ProjectType,
-} from '../entities/project';
+import { Cause, ReviewStatus, ProjStatus } from '../entities/project';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -30,8 +25,8 @@ export const findCauseById = async (id: number): Promise<Cause | null> => {
     .leftJoinAndSelect('cause.categories', 'categories')
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
     .where('cause.id = :id', { id })
-    .andWhere('cause.projectType = :projectType', {
-      projectType: ProjectType.CAUSE,
+    .andWhere('lower(cause.projectType) = lower(:projectType)', {
+      projectType: 'cause',
     })
     .getOne();
 };
@@ -47,8 +42,8 @@ export const findCauseByCauseId = async (
     .leftJoinAndSelect('cause.categories', 'categories')
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
     .where('cause.id = :causeId', { causeId })
-    .andWhere('cause.projectType = :projectType', {
-      projectType: ProjectType.CAUSE,
+    .andWhere('lower(cause.projectType) = lower(:projectType)', {
+      projectType: 'cause',
     })
     .getOne();
 };
@@ -63,8 +58,8 @@ export const findCausesByOwnerId = async (
     .leftJoinAndSelect('cause.categories', 'categories')
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
     .where('cause.adminUserId = :ownerId', { ownerId })
-    .andWhere('cause.projectType = :projectType', {
-      projectType: ProjectType.CAUSE,
+    .andWhere('lower(cause.projectType) = lower(:projectType)', {
+      projectType: 'cause',
     })
     .getMany();
 };
@@ -76,8 +71,8 @@ export const findCausesByProjectIds = async (
     .innerJoinAndSelect('cause.adminUser', 'adminUser')
     .innerJoinAndSelect('cause.causeProjects', 'causeProjects')
     .innerJoinAndSelect('causeProjects.project', 'project')
-    .where('cause.projectType = :projectType', {
-      projectType: ProjectType.CAUSE,
+    .where('lower(cause.projectType) = lower(:projectType)', {
+      projectType: 'cause',
     })
     .andWhere('project.id IN (:...projectIds)', { projectIds })
     .getMany();
@@ -101,7 +96,7 @@ export const createCause = async (
       Object.assign(cause, {
         ...causeData,
         adminUserId: owner.id,
-        projectType: ProjectType.CAUSE.toLowerCase(),
+        projectType: 'cause',
         walletAddress: causeData.fundingPoolAddress,
       });
 
@@ -188,7 +183,7 @@ export const validateCauseTitle = async (title: string): Promise<boolean> => {
   const existingCause = await Cause.findOne({
     where: {
       title: trimmedTitle,
-      projectType: ProjectType.CAUSE,
+      projectType: 'cause',
     },
   });
 
@@ -213,7 +208,7 @@ export const validateTransactionHash = async (
   const existingCause = await Cause.findOne({
     where: {
       depositTxHash: trimmedTxHash,
-      projectType: ProjectType.CAUSE,
+      projectType: 'cause',
     },
   });
 
@@ -241,8 +236,8 @@ export const findAllCauses = async (
     .leftJoinAndSelect('cause.categories', 'categories')
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
     .leftJoinAndSelect('causeProjects.project', 'project')
-    .where('cause.projectType = :projectType', {
-      projectType: ProjectType.CAUSE.toLowerCase(),
+    .where('lower(cause.projectType) = lower(:projectType)', {
+      projectType: 'cause',
     });
 
   // Apply listing status filter

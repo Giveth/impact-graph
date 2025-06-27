@@ -25,7 +25,6 @@ import {
   FilterField,
   OrderField,
   Project,
-  ProjectType,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
@@ -163,11 +162,6 @@ registerEnumType(SortingField, {
   description: 'Sort by type',
 });
 
-registerEnumType(ProjectType, {
-  name: 'ProjectType',
-  description: 'Project type',
-});
-
 registerEnumType(FilterField, {
   name: 'FilterField',
   description: 'Filter by field',
@@ -278,7 +272,7 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   includeUnlisted?: boolean;
 
-  @Field({ nullable: true, defaultValue: 'project' })
+  @Field(_type => String, { nullable: true, defaultValue: 'project' })
   projectType?: string;
 }
 

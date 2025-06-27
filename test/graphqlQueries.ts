@@ -900,6 +900,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $connectedWalletUserId: Int
     $qfRoundId: Int
     $qfRoundSlug: String
+    $projectType: String
   ) {
     allProjects(
       limit: $limit
@@ -913,6 +914,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       connectedWalletUserId: $connectedWalletUserId
       qfRoundId: $qfRoundId
       qfRoundSlug: $qfRoundSlug
+      projectType: $projectType
     ) {
     
       campaign{
@@ -923,6 +925,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       projects {
         id
         title
+        projectType
         balance
         image
         slug

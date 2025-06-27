@@ -1,11 +1,6 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import slugify from 'slugify';
-import {
-  Cause,
-  ReviewStatus,
-  ProjStatus,
-  ProjectType,
-} from '../entities/project';
+import { Cause, ReviewStatus, ProjStatus } from '../entities/project';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { Project } from '../entities/project';
@@ -140,7 +135,7 @@ export class CauseResolver {
   async causeBySlug(@Arg('slug') slug: string): Promise<Cause | null> {
     try {
       const causeFindId = await Cause.findOne({
-        where: { slug, projectType: ProjectType.CAUSE },
+        where: { slug, projectType: 'cause' },
       });
       if (!causeFindId) {
         return null;
@@ -245,7 +240,7 @@ export class CauseResolver {
         const existingSlug = await Cause.createQueryBuilder('cause')
           .where('lower(slug) = lower(:slug)', { slug })
           .andWhere('cause.projectType = :projectType', {
-            projectType: ProjectType.CAUSE,
+            projectType: 'cause',
           })
           .getOne();
 

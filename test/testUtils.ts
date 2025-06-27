@@ -153,6 +153,7 @@ export interface CreateProjectData {
   networkId?: number;
   chainType?: ChainType;
   isGivbackEligible: boolean;
+  projectType?: string;
 }
 
 export const saveUserDirectlyToDb = async (
@@ -259,6 +260,7 @@ export const saveProjectDirectlyToDb = async (
   const project = await Project.create({
     ...projectData,
     status,
+    projectType: projectData.projectType || 'project',
     organization,
     categories,
     adminUser: user,

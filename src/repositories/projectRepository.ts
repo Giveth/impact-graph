@@ -1,5 +1,6 @@
-import { UpdateResult } from 'typeorm';
+import { SelectQueryBuilder, UpdateResult } from 'typeorm';
 import {
+  Cause,
   FilterField,
   Project,
   ProjectUpdate,
@@ -104,7 +105,15 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     projectType,
   } = params;
 
-  let query = Project.createQueryBuilder('project')
+  let queryBuilderBase: SelectQueryBuilder<Project | Cause>;
+  // Need to change entity to prevent Project type being set wrongly
+  if (projectType?.toLowerCase() === 'cause') {
+    queryBuilderBase = Cause.createQueryBuilder('project');
+  } else {
+    queryBuilderBase = Project.createQueryBuilder('project');
+  }
+
+  let query = queryBuilderBase
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.addresses', 'addresses')
     // We dont need it right now, but I comment it because we may need it later
@@ -128,7 +137,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'projectPower.powerRank',
       'projectPower.round',
     ])
-    .where('project.projectType = :projectType', {
+    .where('lower(project.projectType) = lower(:projectType)', {
       projectType,
     });
 

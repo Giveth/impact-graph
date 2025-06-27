@@ -1,12 +1,6 @@
 import { assert } from 'chai';
 import { User } from '../entities/user';
-import {
-  Project,
-  Cause,
-  ReviewStatus,
-  ProjStatus,
-  ProjectType,
-} from '../entities/project';
+import { Project, Cause, ReviewStatus, ProjStatus } from '../entities/project';
 import {
   findCauseById,
   findCauseByCauseId,
@@ -100,12 +94,12 @@ describe('causeRepository test cases', async () => {
     // First clean up cause-project relationships
     await Cause.getRepository().query(
       'DELETE FROM "cause_project" WHERE "causeId" IN (SELECT id FROM "project" WHERE "title" LIKE $1 AND "projectType" = $2)',
-      ['test cause%', ProjectType.CAUSE],
+      ['test cause%', 'cause'],
     );
     // Then clean up causes
     await Cause.getRepository().query(
       'DELETE FROM "project" WHERE "title" LIKE $1 AND "projectType" = $2',
-      ['test cause%', ProjectType.CAUSE],
+      ['test cause%', 'cause'],
     );
     // Clean up project
     if (testProject?.id) {

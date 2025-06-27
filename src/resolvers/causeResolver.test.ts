@@ -14,7 +14,7 @@ import {
   createCauseQuery,
   isValidCauseTitleQuery,
 } from '../../test/graphqlQueries';
-import { Cause, CauseProject, Project, ProjectType } from '../entities/project';
+import { Cause, CauseProject, Project } from '../entities/project';
 import * as verifyTransactionModule from '../utils/transactionVerification';
 import { MainCategory } from '../entities/mainCategory';
 import { Category } from '../entities/category';
@@ -243,11 +243,11 @@ describe('createCause() test cases', () => {
     // Clean up test data
     await Cause.getRepository().query(
       'DELETE FROM "cause_project" WHERE "causeId" IN (SELECT id FROM "project" WHERE "title" = $1 and "projectType" = $2)',
-      [variables.title, ProjectType.CAUSE],
+      [variables.title, 'cause'],
     );
     await Cause.getRepository().query(
       'DELETE FROM "project" WHERE "title" = $1 and "projectType" = $2',
-      [variables.title, ProjectType.CAUSE],
+      [variables.title, 'cause'],
     );
     for (const project of projects) {
       await CauseProject.getRepository().query(
@@ -521,11 +521,11 @@ describe('createCause() test cases', () => {
     // Clean up test data
     await Cause.getRepository().query(
       'DELETE FROM "cause_project" WHERE "causeId" IN (SELECT id FROM "project" WHERE "title" LIKE $1 and "projectType" = $2)',
-      ['First Cause%', ProjectType.CAUSE],
+      ['First Cause%', 'cause'],
     );
     await Cause.getRepository().query(
       'DELETE FROM "project" WHERE "title" LIKE $1 and "projectType" = $2',
-      ['First Cause%', ProjectType.CAUSE],
+      ['First Cause%', 'cause'],
     );
     for (const project of projects) {
       await CauseProject.getRepository().query(
@@ -536,7 +536,7 @@ describe('createCause() test cases', () => {
     }
     await Project.getRepository().query(
       'DELETE FROM "project" WHERE "adminUserId" = $1 and "projectType" = $2',
-      [user.id, ProjectType.PROJECT],
+      [user.id, 'project'],
     );
   });
 });

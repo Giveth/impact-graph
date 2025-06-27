@@ -23,7 +23,6 @@ import {
 } from 'typeorm';
 
 import { Int } from 'type-graphql/dist/scalars/aliases';
-import { registerEnumType } from 'type-graphql';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { User } from './user';
@@ -135,19 +134,10 @@ export enum ReviewStatus {
   Listed = 'Listed',
   NotListed = 'Not Listed',
 }
-
-export enum ProjectType {
-  PROJECT = 'project',
-  CAUSE = 'cause',
-}
-
-registerEnumType(ProjectType, {
-  name: 'ProjectType',
-  description: 'The type of project entity',
-});
-
 @Entity()
-@TableInheritance({ column: { type: 'varchar', name: 'projectType' } })
+@TableInheritance({
+  column: { type: 'string', name: 'projectType', default: 'project' },
+})
 @ObjectType()
 export class Project extends BaseEntity {
   @Field(_type => ID)
@@ -466,9 +456,9 @@ export class Project extends BaseEntity {
   @Column('uuid', { nullable: true, unique: true })
   endaomentId?: string;
 
-  @Field(_type => ProjectType)
-  @Column({ default: ProjectType.PROJECT })
-  projectType: string = ProjectType.PROJECT;
+  @Field(_type => String, { nullable: true })
+  @Column({ default: 'project' })
+  projectType: string = 'project';
 
   // Many-to-many relationship with causes through CauseProject junction table
   @Field(_type => [CauseProject], { nullable: true })
@@ -823,9 +813,9 @@ export class Cause extends Project {
   }
 
   // Override the projectType to always be CAUSE
-  @Field(_type => ProjectType)
-  @Column({ default: ProjectType.CAUSE.toLowerCase() })
-  projectType: string = ProjectType.CAUSE.toLowerCase();
+  @Field(_type => String)
+  @Column({ default: 'cause' })
+  projectType: string = 'cause';
 }
 
 @Entity()
