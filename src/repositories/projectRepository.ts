@@ -111,7 +111,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   let queryBuilderBase: SelectQueryBuilder<Project | Cause>;
   // Need to change entity to prevent Project type being set wrongly
   if (normalizedProjectType === 'cause') {
-    queryBuilderBase = Project.createQueryBuilder('project');
+    queryBuilderBase = Cause.createQueryBuilder('project');
   } else {
     queryBuilderBase = Project.createQueryBuilder('project');
   }
