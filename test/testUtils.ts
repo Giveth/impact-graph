@@ -397,6 +397,7 @@ export const SEED_DATA = {
     id: 1,
     walletAddress: generateRandomEtheriumAddress(),
     isEmailVerified: true,
+    projectType: 'project',
   },
   SECOND_USER: {
     name: 'secondUser',
@@ -407,6 +408,7 @@ export const SEED_DATA = {
     id: 2,
     walletAddress: generateRandomEtheriumAddress(),
     isEmailVerified: true,
+    projectType: 'project',
   },
   THIRD_USER: {
     name: 'thirdUser',
@@ -417,6 +419,7 @@ export const SEED_DATA = {
     id: 3,
     walletAddress: generateRandomEtheriumAddress(),
     isEmailVerified: true,
+    projectType: 'project',
   },
   ADMIN_USER: {
     name: 'adminUser',
@@ -427,6 +430,7 @@ export const SEED_DATA = {
     id: 4,
     walletAddress: generateRandomEtheriumAddress(),
     isEmailVerified: true,
+    projectType: 'project',
   },
   PROJECT_OWNER_USER: {
     name: 'project owner user',
@@ -436,6 +440,7 @@ export const SEED_DATA = {
     id: 5,
     walletAddress: generateRandomEtheriumAddress(),
     isEmailVerified: true,
+    projectType: 'project',
   },
   FIRST_PROJECT: {
     ...createProjectData(),
@@ -444,6 +449,7 @@ export const SEED_DATA = {
     description: 'first description',
     id: 1,
     adminUserId: 1,
+    projectType: 'project',
   },
   SECOND_PROJECT: {
     ...createProjectData(),
@@ -452,6 +458,7 @@ export const SEED_DATA = {
     description: 'second description',
     id: 2,
     adminUserId: 2,
+    projectType: 'project',
   },
   TRANSAK_PROJECT: {
     ...createProjectData(),
@@ -460,6 +467,7 @@ export const SEED_DATA = {
     description: 'transak description',
     id: 3,
     adminUserId: 3,
+    projectType: 'project',
   },
   FOURTH_PROJECT: {
     ...createProjectData(),
@@ -468,6 +476,7 @@ export const SEED_DATA = {
     description: 'forth description',
     id: 4,
     adminUserId: 1,
+    projectType: 'project',
   },
   FIFTH_PROJECT: {
     ...createProjectData(),
@@ -476,6 +485,7 @@ export const SEED_DATA = {
     description: 'forth description',
     id: 5,
     adminUserId: 1,
+    projectType: 'project',
   },
   SIXTH_PROJECT: {
     ...createProjectData(),
@@ -484,6 +494,7 @@ export const SEED_DATA = {
     description: 'forth description',
     id: 6,
     adminUserId: 1,
+    projectType: 'project',
   },
   NON_VERIFIED_PROJECT: {
     ...createProjectData(),
@@ -493,6 +504,7 @@ export const SEED_DATA = {
     id: 7,
     verified: false,
     adminUserId: 1,
+    projectType: 'project',
   },
   MAIN_CATEGORIES: ['drink', 'food', 'nonProfit'],
   NON_PROFIT_SUB_CATEGORIES: [CATEGORY_NAMES.registeredNonProfits],
