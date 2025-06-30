@@ -342,6 +342,7 @@ export const createProjectData = (name?: string): CreateProjectData => {
     totalReactions: 0,
     totalProjectUpdates: 1,
     projectUpdateCreationDate: new Date(),
+    projectType: 'project',
   };
 };
 
