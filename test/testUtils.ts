@@ -345,6 +345,35 @@ export const createProjectData = (name?: string): CreateProjectData => {
     projectType: 'project',
   };
 };
+export const createCauseData = (name?: string): CreateProjectData => {
+  const title = name ? name : String(new Date().getTime());
+  const walletAddress = generateRandomEtheriumAddress();
+  return {
+    // title: `test project`,
+    title,
+    description: 'test description',
+    walletAddress,
+    categories: ['food1'],
+    verified: true,
+    isGivbackEligible: true,
+    listed: true,
+    reviewStatus: ReviewStatus.Listed,
+    giveBacks: false,
+    creationDate: new Date(),
+    updatedAt: new Date(),
+    latestUpdateCreationDate: new Date(),
+    slug: title,
+    // firstUser's id
+    adminUserId: 1,
+    qualityScore: 30,
+    // just need the initial value to be different from 0
+    totalDonations: 10,
+    totalReactions: 0,
+    totalProjectUpdates: 1,
+    projectUpdateCreationDate: new Date(),
+    projectType: 'cause',
+  };
+};
 
 export const deleteProjectDirectlyFromDb = async (
   projectId: number,

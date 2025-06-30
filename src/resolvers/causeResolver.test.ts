@@ -4,11 +4,11 @@ import sinon from 'sinon';
 import {
   saveUserDirectlyToDb,
   saveProjectDirectlyToDb,
-  createProjectData,
   generateTestAccessToken,
   deleteProjectDirectlyFromDb,
   graphqlUrl,
   generateRandomEvmTxHash,
+  createCauseData,
 } from '../../test/testUtils';
 import {
   createCauseQuery,
@@ -199,7 +199,7 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-${Date.now()}-${index}`),
+            ...createCauseData(`test-project-${Date.now()}-${index}`),
             slug: `test-project-${Date.now()}-${index}`,
           }),
         ),
@@ -281,7 +281,7 @@ describe('createCause() test cases', () => {
   it('should fail with invalid project count', async () => {
     const user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
     const project = await saveProjectDirectlyToDb({
-      ...createProjectData(`test-project-invalid-count-${Date.now()}`),
+      ...createCauseData(`test-project-invalid-count-${Date.now()}`),
       slug: `test-project-invalid-count-${Date.now()}`,
     });
     const token = await generateTestAccessToken(user.id);
@@ -323,7 +323,7 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-missing-${Date.now()}-${index}`),
+            ...createCauseData(`test-project-missing-${Date.now()}-${index}`),
             slug: `test-project-missing-${Date.now()}-${index}`,
           }),
         ),
@@ -369,7 +369,7 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-chain-${Date.now()}-${index}`),
+            ...createCauseData(`test-project-chain-${Date.now()}-${index}`),
             slug: `test-project-chain-${Date.now()}-${index}`,
           }),
         ),
@@ -415,7 +415,7 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-tx-${Date.now()}-${index}`),
+            ...createCauseData(`test-project-tx-${Date.now()}-${index}`),
             slug: `test-project-tx-${Date.now()}-${index}`,
           }),
         ),
@@ -462,7 +462,7 @@ describe('createCause() test cases', () => {
         .fill(null)
         .map((_, index) =>
           saveProjectDirectlyToDb({
-            ...createProjectData(`test-project-tx-dup-${Date.now()}-${index}`),
+            ...createCauseData(`test-project-tx-dup-${Date.now()}-${index}`),
             slug: `test-project-tx-dup-${Date.now()}-${index}`,
           }),
         ),
@@ -516,7 +516,7 @@ describe('createCause() test cases', () => {
     );
 
     const errorMsg = response.data.errors?.[0]?.message;
-    assert.include(errorMsg, 'duplicate key value violates');
+    assert.include(errorMsg, 'Transaction hash already used in another cause');
 
     // Clean up test data
     await Cause.getRepository().query(
