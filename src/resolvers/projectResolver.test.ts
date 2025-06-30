@@ -4272,7 +4272,7 @@ function projectSearchTestCases() {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
         limit,
-        projectType: 'Cause',
+        projectType: 'cause',
         connectedWalletUserId: USER_DATA.id,
       },
     });
