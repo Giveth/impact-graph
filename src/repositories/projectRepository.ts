@@ -105,9 +105,12 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     projectType,
   } = params;
 
+  // Convert projectType to lowercase to ensure consistent filtering
+  const normalizedProjectType = projectType?.toLowerCase() || 'project';
+
   let queryBuilderBase: SelectQueryBuilder<Project | Cause>;
   // Need to change entity to prevent Project type being set wrongly
-  if (projectType?.toLowerCase() === 'cause') {
+  if (normalizedProjectType === 'cause') {
     queryBuilderBase = Cause.createQueryBuilder('project');
   } else {
     queryBuilderBase = Project.createQueryBuilder('project');
@@ -136,10 +139,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'projectPower.totalPower',
       'projectPower.powerRank',
       'projectPower.round',
-    ])
-    .where('lower(project.projectType) = lower(:projectType)', {
-      projectType,
-    });
+    ]);
 
   if (includeUnlisted) {
     query = query.where(`project.statusId = ${ProjStatus.active}`);
@@ -148,6 +148,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
+  }
+
+  // Filter by projectType
+  if (normalizedProjectType) {
+    query = query.andWhere('project.projectType = :projectType', {
+      projectType: normalizedProjectType,
+    });
   }
 
   const isFilterByQF =

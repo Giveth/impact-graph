@@ -758,7 +758,7 @@ export class ProjectUpdate extends BaseEntity {
 }
 
 @ObjectType()
-@ChildEntity()
+@ChildEntity('cause')
 export class Cause extends Project {
   @Field()
   @Column('text', { unique: true })

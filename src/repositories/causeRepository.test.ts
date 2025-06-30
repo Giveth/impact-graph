@@ -17,11 +17,11 @@ import {
 import {
   saveUserDirectlyToDb,
   saveProjectDirectlyToDb,
-  createProjectData,
   generateRandomEtheriumAddress,
   deleteProjectDirectlyFromDb,
   saveMainCategoryDirectlyToDb,
   saveCategoryDirectlyToDb,
+  createCauseData,
 } from '../../test/testUtils';
 import { generateRandomString } from '../utils/utils';
 
@@ -71,7 +71,7 @@ describe('causeRepository test cases', async () => {
     testUser = await saveUserDirectlyToDb(userWallet);
 
     // Create test project
-    const projectData = createProjectData(`test project ${Date.now()}`);
+    const projectData = createCauseData(`test project ${Date.now()}`);
     projectData.adminUserId = testUser.id;
     testProject = await saveProjectDirectlyToDb(projectData);
 
@@ -204,7 +204,7 @@ describe('causeRepository test cases', async () => {
   describe('findCausesByProjectIds test cases', () => {
     it('should find causes by project ids with relations', async () => {
       // Create a second project
-      const project2Data = createProjectData(`test project 2 ${Date.now()}`);
+      const project2Data = createCauseData(`test project 2 ${Date.now()}`);
       project2Data.adminUserId = testUser.id;
       const project2 = await saveProjectDirectlyToDb(project2Data);
 

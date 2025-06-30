@@ -565,6 +565,17 @@ before(async () => {
     logger.debug('Clear Redis: ', await redis.flushall());
 
     await bootstrap();
+
+    // Fix discriminator metadata issue with TableInheritance
+    AppDataSource.getDataSource().entityMetadatas.forEach(metadata => {
+      if (metadata.name === 'Project') {
+        metadata.discriminatorValue = 'project';
+      }
+      if (metadata.name === 'Cause') {
+        metadata.discriminatorValue = 'cause';
+      }
+    });
+
     await seedDb();
     await runMigrations();
   } catch (e) {
