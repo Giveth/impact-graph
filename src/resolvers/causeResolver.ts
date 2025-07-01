@@ -322,6 +322,7 @@ export class CauseResolver {
         totalRaised: 0,
         verified: true,
         giveBacks: true,
+        isGivbackEligible: true,
         qualityScore: 0,
         totalDonations: 0,
         adminUserId: user.id,
