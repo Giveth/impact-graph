@@ -2,6 +2,12 @@ import { Cause, ReviewStatus, ProjStatus } from '../entities/project';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { ChainType } from '../types/network';
+import { getAppropriateNetworkId } from '../services/chains';
+import {
+  addBulkNewProjectAddress,
+  findProjectRecipientAddressByProjectId,
+} from './projectAddressRepository';
 
 export enum CauseSortField {
   GIVPOWER = 'givPower',
@@ -101,6 +107,26 @@ export const createCause = async (
       });
 
       const savedCause = await transactionalEntityManager.save(cause);
+
+      const projectAddress = {
+        project: cause,
+        user: owner,
+        address: causeData.fundingPoolAddress,
+        chainType: ChainType.EVM,
+        networkId: getAppropriateNetworkId({
+          networkId: cause.chainId,
+          chainType: ChainType.EVM,
+        }),
+        isRecipient: true,
+      };
+
+      await addBulkNewProjectAddress([projectAddress]);
+
+      savedCause.addresses = await findProjectRecipientAddressByProjectId({
+        projectId: savedCause.id,
+      });
+
+      await transactionalEntityManager.save(savedCause);
 
       // Create cause-project relationships
       for (const project of projects) {
