@@ -371,6 +371,7 @@ function projectsByUserIdTestCases() {
         query: projectsByUserIdQuery,
         variables: {
           userId: user!.id,
+          projectType: 'project',
         },
       },
       {
