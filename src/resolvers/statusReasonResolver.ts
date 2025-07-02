@@ -1,4 +1,4 @@
-import { Arg, Query, Resolver } from 'type-graphql';
+import { Arg, Query, Resolver, Int } from 'type-graphql';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
 import {
   findAllStatusReasons,
@@ -10,7 +10,8 @@ import { logger } from '../utils/logger';
 export class StatusReasonResolver {
   @Query(_returns => [ProjectStatusReason])
   async getStatusReasons(
-    @Arg('statusId', { nullable: true }) statusId?: number,
+    @Arg('statusId', _type => Int, { nullable: true, defaultValue: 6 })
+    statusId?: number,
   ) {
     try {
       return statusId

@@ -309,7 +309,7 @@ export const activateProjectQuery = `
  `;
 
 export const projectStatusReasonsQuery = `
-  query ($statusId: Float) {
+  query ($statusId: Int) {
       getStatusReasons(statusId: $statusId) {
                       description
                       status {

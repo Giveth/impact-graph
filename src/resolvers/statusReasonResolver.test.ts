@@ -11,7 +11,9 @@ function getStatusReasonsTestCases() {
   it('should return result', async () => {
     const result = await axios.post(graphqlUrl, {
       query: projectStatusReasonsQuery,
-      variables: {},
+      variables: {
+        statusId: 6,
+      },
     });
     assert.isArray(result.data.data.getStatusReasons);
     assert.isOk(result.data.data.getStatusReasons[0]);
