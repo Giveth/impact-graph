@@ -371,6 +371,7 @@ function projectsByUserIdTestCases() {
         query: projectsByUserIdQuery,
         variables: {
           userId: user!.id,
+          projectType: 'project',
         },
       },
       {
@@ -401,6 +402,7 @@ function projectsByUserIdTestCases() {
       query: projectsByUserIdQuery,
       variables: {
         userId,
+        projectType: 'project',
       },
     });
     const projects = result.data.data.projectsByUserId.projects;
@@ -424,6 +426,7 @@ function projectsByUserIdTestCases() {
       variables: {
         take,
         userId,
+        projectType: 'project',
       },
     });
     const projects = result.data.data.projectsByUserId.projects;
@@ -458,6 +461,7 @@ function projectsByUserIdTestCases() {
         query: projectsByUserIdQuery,
         variables: {
           userId: user.id,
+          projectType: 'project',
         },
       },
       {
@@ -484,6 +488,7 @@ function projectsByUserIdTestCases() {
       variables: {
         take,
         userId,
+        projectType: 'project',
       },
     });
     const projects = result.data.data.projectsByUserId.projects;
@@ -508,6 +513,7 @@ function projectsByUserIdTestCases() {
       query: projectsByUserIdQuery,
       variables: {
         userId,
+        projectType: 'project',
       },
     });
     const projects = result.data.data.projectsByUserId.projects;
@@ -530,6 +536,7 @@ function projectsByUserIdTestCases() {
       query: projectsByUserIdQuery,
       variables: {
         userId,
+        projectType: 'project',
       },
     });
     const projects = result.data.data.projectsByUserId.projects;

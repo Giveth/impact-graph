@@ -1546,8 +1546,8 @@ export const projectsBySlugsQuery = `
   `;
 
 export const projectsByUserIdQuery = `
-  query ($take: Float, $skip: Float, $userId: Int!) {
-      projectsByUserId(take: $take, skip: $skip, userId: $userId) {
+  query ($take: Float, $skip: Float, $userId: Int!, $projectType: String!) {
+      projectsByUserId(take: $take, skip: $skip, userId: $userId, projectType: $projectType) {
         projects {
           id
           title

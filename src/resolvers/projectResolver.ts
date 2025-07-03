@@ -1880,9 +1880,16 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
+    @Arg('projectType', _type => String, {
+      nullable: true,
+      defaultValue: 'project',
+    })
+    projectType: string = 'project',
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     const { field, direction } = orderBy;
+    // Convert projectType to lowercase to ensure consistent filtering
+    const normalizedProjectType = projectType?.toLowerCase() || 'project';
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
@@ -1902,6 +1909,13 @@ export class ProjectResolver {
     }
 
     query = query.where('project.adminUserId = :userId', { userId });
+
+    // Filter by projectType
+    if (normalizedProjectType) {
+      query = query.andWhere('project.projectType = :projectType', {
+        projectType: normalizedProjectType,
+      });
+    }
 
     if (userId !== user?.userId) {
       query = query.andWhere(
