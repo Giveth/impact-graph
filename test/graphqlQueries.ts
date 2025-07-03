@@ -2688,6 +2688,11 @@ mutation CreateCause(
     slug
     creationDate
     updatedAt
+    causeProjects {
+      id
+      projectId
+      causeId
+    }
     categories {
       id
       name
