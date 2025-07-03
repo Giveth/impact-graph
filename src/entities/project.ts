@@ -851,15 +851,15 @@ export class CauseProject extends BaseEntity {
   @Column()
   projectId: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   amountReceived: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   amountReceivedUsdValue: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   causeScore: number;
 }
