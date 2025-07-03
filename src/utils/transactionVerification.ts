@@ -8,6 +8,96 @@ const TOKEN_ABI = [
   'event Transfer(address indexed from, address indexed to, uint256 value)',
 ];
 
+// Retry configuration for transaction receipt
+const RETRY_CONFIG = {
+  maxAttempts: 5,
+  initialDelayMs: 2000, // 2 seconds
+  maxDelayMs: 30000, // 30 seconds
+  backoffMultiplier: 2,
+};
+
+// Helper function to sleep
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to calculate delay with exponential backoff
+const calculateDelay = (attempt: number): number => {
+  const delay =
+    RETRY_CONFIG.initialDelayMs *
+    Math.pow(RETRY_CONFIG.backoffMultiplier, attempt - 1);
+  return Math.min(delay, RETRY_CONFIG.maxDelayMs);
+};
+
+// Helper function to get transaction receipt with retry
+const getTransactionReceiptWithRetry = async (
+  provider: ethers.providers.Provider,
+  txHash: string,
+  chainId: number,
+): Promise<ethers.providers.TransactionReceipt> => {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= RETRY_CONFIG.maxAttempts; attempt++) {
+    try {
+      const receipt = await provider.getTransactionReceipt(txHash);
+      if (receipt) {
+        if (attempt > 1) {
+          logger.info(`Transaction receipt found after ${attempt} attempts`, {
+            txHash,
+            chainId,
+            attempts: attempt,
+          });
+        }
+        return receipt;
+      }
+
+      // Receipt not found, retry if we have more attempts
+      if (attempt < RETRY_CONFIG.maxAttempts) {
+        const delay = calculateDelay(attempt);
+        logger.info(
+          `Transaction receipt not found, retrying in ${delay}ms (attempt ${attempt}/${RETRY_CONFIG.maxAttempts})`,
+          {
+            txHash,
+            chainId,
+            attempt,
+            delay,
+          },
+        );
+        await sleep(delay);
+        continue;
+      }
+
+      // Last attempt failed
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
+    } catch (error) {
+      lastError = error as Error;
+
+      // If this is the last attempt, throw the error
+      if (attempt === RETRY_CONFIG.maxAttempts) {
+        logger.error(
+          'Failed to get transaction receipt after all retry attempts',
+          {
+            error: error instanceof Error ? error.message : String(error),
+            txHash,
+            chainId,
+            attempts: attempt,
+          },
+        );
+        throw error;
+      }
+
+      // Log the error and continue to next attempt
+      logger.warn('Failed to get transaction receipt, will retry', {
+        error: error instanceof Error ? error.message : String(error),
+        txHash,
+        chainId,
+        attempt,
+        maxAttempts: RETRY_CONFIG.maxAttempts,
+      });
+    }
+  }
+
+  throw lastError || new Error('Failed to get transaction receipt');
+};
+
 export async function verifyTransaction(
   txHash: string,
   chainId: number,
@@ -16,11 +106,12 @@ export async function verifyTransaction(
   try {
     const provider = getProvider(chainId);
 
-    // Get transaction receipt
-    const receipt = await provider.getTransactionReceipt(txHash);
-    if (!receipt) {
-      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
-    }
+    // Get transaction receipt with retry
+    const receipt = await getTransactionReceiptWithRetry(
+      provider,
+      txHash,
+      chainId,
+    );
 
     // Check if transaction was not successful
     if (receipt.status === 0) {
