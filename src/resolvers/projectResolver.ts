@@ -22,6 +22,7 @@ import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { GraphQLResolveInfo } from 'graphql/type';
 import { Reaction } from '../entities/reaction';
 import {
+  Cause,
   FilterField,
   OrderField,
   Project,
@@ -1063,6 +1064,10 @@ export class ProjectResolver {
 
     const project = await query.getOne();
     canUserVisitProject(project, user?.userId);
+
+    if (project?.projectType === 'cause') {
+      project.causeProjects = await (project as Cause).loadCauseProjects();
+    }
 
     if (fields.verificationFormStatus) {
       const verificationForm = await getVerificationFormStatusByProjectId(

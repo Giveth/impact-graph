@@ -803,6 +803,14 @@ export class Cause extends Project {
     return causeProjects.map(cp => cp.project);
   }
 
+  @Field(_type => [CauseProject], { nullable: true })
+  async loadCauseProjects(): Promise<CauseProject[]> {
+    return await CauseProject.find({
+      where: { causeId: this.id },
+      relations: ['project'],
+    });
+  }
+
   // Virtual field to get projects count
   @Field(_type => Number, { nullable: true })
   async activeProjectsCount(): Promise<number> {
@@ -825,31 +833,33 @@ export class CauseProject extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(_type => Cause)
+  @Field(_type => Cause, { nullable: true })
   @ManyToOne(_type => Cause, cause => cause.causeProjects)
   @JoinColumn()
   cause: Cause;
 
+  @Field(_type => ID, { nullable: true })
   @Column()
   causeId: number;
 
-  @Field(_type => Project)
+  @Field(_type => Project, { nullable: true })
   @ManyToOne(_type => Project, project => project.causeProjects)
   @JoinColumn()
   project: Project;
 
+  @Field(_type => ID, { nullable: true })
   @Column()
   projectId: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   amountReceived: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   amountReceivedUsdValue: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   causeScore: number;
 }

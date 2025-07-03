@@ -19,6 +19,7 @@ import * as verifyTransactionModule from '../utils/transactionVerification';
 import { MainCategory } from '../entities/mainCategory';
 import { Category } from '../entities/category';
 import * as agentDistributionServiceModule from '../services/agentDistributionService';
+import { ProjectAddress } from '../entities/projectAddress';
 
 before(async () => {
   // create the categories and the main categories here
@@ -241,6 +242,10 @@ describe('createCause() test cases', () => {
     assert.equal(cause.activeProjectsCount, 5);
 
     // Clean up test data
+    await ProjectAddress.getRepository().query(
+      'DELETE FROM "project_address" WHERE "projectId" IN (SELECT id FROM "project" WHERE "title" = $1 and "projectType" = $2)',
+      [variables.title, 'cause'],
+    );
     await Cause.getRepository().query(
       'DELETE FROM "cause_project" WHERE "causeId" IN (SELECT id FROM "project" WHERE "title" = $1 and "projectType" = $2)',
       [variables.title, 'cause'],
@@ -519,6 +524,10 @@ describe('createCause() test cases', () => {
     assert.include(errorMsg, 'Transaction hash already used in another cause');
 
     // Clean up test data
+    await ProjectAddress.getRepository().query(
+      'DELETE FROM "project_address" WHERE "projectId" IN (SELECT id FROM "project" WHERE "title" LIKE $1 and "projectType" = $2)',
+      ['First Cause%', 'cause'],
+    );
     await Cause.getRepository().query(
       'DELETE FROM "cause_project" WHERE "causeId" IN (SELECT id FROM "project" WHERE "title" LIKE $1 and "projectType" = $2)',
       ['First Cause%', 'cause'],

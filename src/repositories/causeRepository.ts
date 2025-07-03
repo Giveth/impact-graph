@@ -1,4 +1,9 @@
-import { Cause, ReviewStatus, ProjStatus } from '../entities/project';
+import {
+  Cause,
+  ReviewStatus,
+  ProjStatus,
+  CauseProject,
+} from '../entities/project';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -26,8 +31,8 @@ export const findCauseById = async (id: number): Promise<Cause | null> => {
   return Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.adminUser', 'adminUser')
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-    .leftJoinAndSelect('cause.status', 'status')
     .leftJoinAndSelect('causeProjects.project', 'project')
+    .leftJoinAndSelect('cause.status', 'status')
     .leftJoinAndSelect('cause.categories', 'categories')
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
     .where('cause.id = :id', { id })
@@ -96,75 +101,70 @@ export const createCause = async (
   owner: User,
   projects: Project[],
 ): Promise<Cause> => {
-  return await Cause.getRepository().manager.transaction(
-    async transactionalEntityManager => {
-      const cause = new Cause();
-      Object.assign(cause, {
-        ...causeData,
-        adminUserId: owner.id,
-        projectType: 'cause',
-        walletAddress: causeData.fundingPoolAddress,
-      });
+  const cause = Cause.create({
+    ...causeData,
+    adminUserId: owner.id,
+    projectType: 'cause',
+    walletAddress: causeData.fundingPoolAddress,
+  });
 
-      const savedCause = await transactionalEntityManager.save(cause);
+  const savedCause = await cause.save();
 
-      const projectAddress = {
-        project: cause,
-        user: owner,
-        address: causeData.fundingPoolAddress,
-        chainType: ChainType.EVM,
-        networkId: getAppropriateNetworkId({
-          networkId: cause.chainId,
-          chainType: ChainType.EVM,
-        }),
-        isRecipient: true,
-      };
+  const projectAddress = {
+    project: cause,
+    user: owner,
+    address: causeData.fundingPoolAddress,
+    chainType: ChainType.EVM,
+    networkId: getAppropriateNetworkId({
+      networkId: cause.chainId,
+      chainType: ChainType.EVM,
+    }),
+    isRecipient: true,
+  };
 
-      await addBulkNewProjectAddress([projectAddress]);
+  await addBulkNewProjectAddress([projectAddress]);
 
-      savedCause.addresses = await findProjectRecipientAddressByProjectId({
-        projectId: savedCause.id,
-      });
+  savedCause.addresses = await findProjectRecipientAddressByProjectId({
+    projectId: savedCause.id,
+  });
 
-      await transactionalEntityManager.save(savedCause);
+  await savedCause.save();
 
-      // Create cause-project relationships
-      for (const project of projects) {
-        await transactionalEntityManager.save('CauseProject', {
-          causeId: savedCause.id,
-          projectId: project.id,
-          amountReceived: 0,
-          amountReceivedUsdValue: 0,
-          causeScore: 0,
-        });
-      }
+  // Create cause-project relationships
+  for (const project of projects) {
+    await CauseProject.create({
+      causeId: savedCause.id,
+      projectId: project.id,
+      amountReceived: 0,
+      amountReceivedUsdValue: 0,
+      causeScore: 0,
+    }).save();
+  }
 
-      // Update user's ownedCausesCount
-      await transactionalEntityManager.update(
-        User,
-        { id: owner.id },
-        { ownedCausesCount: () => '"ownedCausesCount" + 1' },
-      );
-
-      // Return the cause with all relations
-      const result = await transactionalEntityManager
-        .createQueryBuilder(Cause, 'cause')
-        .leftJoinAndSelect('cause.adminUser', 'adminUser')
-        .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-        .leftJoinAndSelect('causeProjects.project', 'project')
-        .leftJoinAndSelect('cause.status', 'status')
-        .leftJoinAndSelect('cause.categories', 'categories')
-        .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-        .where('cause.id = :id', { id: savedCause.id })
-        .getOne();
-
-      if (!result) {
-        throw new Error('Failed to retrieve created cause');
-      }
-
-      return result;
-    },
+  // Update user's ownedCausesCount
+  await User.update(
+    { id: owner.id },
+    { ownedCausesCount: () => '"ownedCausesCount" + 1' },
   );
+
+  // Return the cause with all relations
+  const result = await Cause.createQueryBuilder('cause')
+    .leftJoinAndSelect('cause.adminUser', 'adminUser')
+    .leftJoinAndSelect('cause.status', 'status')
+    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
+    .leftJoinAndSelect('causeProjects.project', 'project')
+    .leftJoinAndSelect('cause.categories', 'categories')
+    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+    .where('cause.id = :id', { id: savedCause.id })
+    .getOne();
+
+  if (!result) {
+    throw new Error('Failed to retrieve created cause');
+  }
+
+  result.causeProjects = await result.loadCauseProjects();
+
+  return result;
 };
 
 export const activateCause = async (causeId: number): Promise<Cause> => {
@@ -258,10 +258,10 @@ export const findAllCauses = async (
 ): Promise<Cause[]> => {
   const queryBuilder = Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.adminUser', 'adminUser')
-    .leftJoinAndSelect('cause.status', 'status')
-    .leftJoinAndSelect('cause.categories', 'categories')
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
     .leftJoinAndSelect('causeProjects.project', 'project')
+    .leftJoinAndSelect('cause.status', 'status')
+    .leftJoinAndSelect('cause.categories', 'categories')
     .where('lower(cause.projectType) = lower(:projectType)', {
       projectType: 'cause',
     });
