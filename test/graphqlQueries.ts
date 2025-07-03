@@ -1093,6 +1093,12 @@ export const fetchProjectBySlugQuery = `
       impactLocation
       qualityScore
       verified
+      projectType
+      causeProjects {
+        id
+        projectId
+        causeId
+      }
       traceCampaignId
       listed
       reviewStatus

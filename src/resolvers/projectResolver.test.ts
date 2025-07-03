@@ -48,6 +48,7 @@ import {
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
 import {
+  CauseProject,
   Project,
   ProjectUpdate,
   ProjStatus,
@@ -4273,6 +4274,34 @@ function projectSearchTestCases() {
   });
 
   it('should return no projects of type cause', async () => {
+    // First, find all causes to get their IDs
+    const causes = await Project.find({ where: { projectType: 'cause' } });
+    const causeIds = causes.map(c => c.id);
+
+    if (causeIds.length > 0) {
+      // Delete related data in the correct order:
+
+      // 1. Delete project addresses
+      await ProjectAddress.createQueryBuilder()
+        .delete()
+        .where('projectId IN (:...causeIds)', { causeIds })
+        .execute();
+
+      await ProjectUpdate.createQueryBuilder()
+        .delete()
+        .where('projectId IN (:...causeIds)', { causeIds })
+        .execute();
+
+      // 2. Delete cause-project relationships
+      await CauseProject.createQueryBuilder()
+        .delete()
+        .where('causeId IN (:...causeIds)', { causeIds })
+        .execute();
+
+      // 3. Finally, delete the causes themselves
+      await Project.delete({ projectType: 'cause' });
+    }
+
     const limit = 1;
     const USER_DATA = SEED_DATA.FIRST_USER;
     const result = await axios.post(graphqlUrl, {
@@ -4401,6 +4430,61 @@ function projectBySlugTestCases() {
     assert.isNotOk(project.adminUser.email);
     assert.isOk(project.categories[0].mainCategory.title);
   });
+
+  // it('should return projects that are cause with indicated slug and verification form status if owner', async () => {
+  //   const project1 = await saveProjectDirectlyToDb({
+  //     ...createProjectData(),
+  //     title: String(new Date().getTime()),
+  //     slug: String(new Date().getTime()),
+  //     projectType: 'cause',
+  //   });
+
+  //   const project2 = await saveProjectDirectlyToDb({
+  //     ...createProjectData(),
+  //     title: String(new Date().getTime()),
+  //     slug: String(new Date().getTime()),
+  //     projectType: 'project',
+  //   });
+
+  //   await CauseProject.create({
+  //     cause: project1,
+  //     project: project2,
+  //   }).save();
+
+  //   const user = (await User.findOne({
+  //     where: {
+  //       id: project1.adminUserId,
+  //     },
+  //   })) as User;
+
+  //   const accessToken = await generateTestAccessToken(user!.id);
+
+  //   const result = await axios.post(
+  //     graphqlUrl,
+  //     {
+  //       query: fetchProjectBySlugQuery,
+  //       variables: {
+  //         slug: project1.slug,
+  //         connectedWalletUserId: user!.id,
+  //       },
+  //     },
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${accessToken}`,
+  //       },
+  //     },
+  //   );
+
+  //   const project = result.data.data.projectBySlug;
+  //   assert.equal(Number(project.id), project1.id);
+  //   assert.isOk(project.adminUser.walletAddress);
+  //   assert.isOk(project.adminUser.firstName);
+  //   assert.isNotOk(project.adminUser.email);
+  //   assert.equal(project.projectType, 'cause');
+  //   assert.isOk(project.causeProjects);
+  //   assert.equal(project.causeProjects.length, 0);
+  //   assert.isOk(project.categories[0].mainCategory.title);
+  // });
 
   it('should return projects with indicated slug', async () => {
     const walletAddress = generateRandomEtheriumAddress();
