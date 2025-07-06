@@ -71,6 +71,7 @@ export enum ProjStatus {
 
 // Always use Enums to prevent sql injection with plain strings
 export enum SortingField {
+  ActiveProjectsCount = 'ActiveProjectsCount',
   MostFunded = 'MostFunded',
   MostLiked = 'MostLiked',
   Newest = 'Newest',
@@ -811,14 +812,9 @@ export class Cause extends Project {
     });
   }
 
-  // Virtual field to get projects count
-  @Field(_type => Number, { nullable: true })
-  async activeProjectsCount(): Promise<number> {
-    const causeProjects = await CauseProject.count({
-      where: { causeId: this.id },
-    });
-    return causeProjects;
-  }
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'integer', default: 0 })
+  activeProjectsCount: number;
 
   // Override the projectType to always be CAUSE
   @Field(_type => String)
