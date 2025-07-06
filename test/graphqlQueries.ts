@@ -2887,3 +2887,110 @@ export const causeBySlugQuery = `
     }
   }
 `;
+
+export const updateCauseProjectDistributionMutation = `
+  mutation ($input: UpdateCauseProjectDistributionInput!) {
+    updateCauseProjectDistribution(input: $input) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+      cause {
+        id
+        title
+      }
+      project {
+        id
+        title
+      }
+    }
+  }
+`;
+
+export const updateCauseProjectEvaluationMutation = `
+  mutation ($input: UpdateCauseProjectEvaluationInput!) {
+    updateCauseProjectEvaluation(input: $input) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+      cause {
+        id
+        title
+      }
+      project {
+        id
+        title
+      }
+    }
+  }
+`;
+
+export const bulkUpdateCauseProjectDistributionMutation = `
+  mutation ($updates: [UpdateCauseProjectDistributionInput!]!) {
+    bulkUpdateCauseProjectDistribution(updates: $updates) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+    }
+  }
+`;
+
+export const bulkUpdateCauseProjectEvaluationMutation = `
+  mutation ($updates: [UpdateCauseProjectEvaluationInput!]!) {
+    bulkUpdateCauseProjectEvaluation(updates: $updates) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+    }
+  }
+`;
+
+export const causeProjectQuery = `
+  query ($causeId: Float!, $projectId: Float!) {
+    causeProject(causeId: $causeId, projectId: $projectId) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+      cause {
+        id
+        title
+      }
+      project {
+        id
+        title
+      }
+    }
+  }
+`;
+
+export const causeProjectsQuery = `
+  query ($causeId: Float!) {
+    causeProjects(causeId: $causeId) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+      project {
+        id
+        title
+        description
+      }
+    }
+  }
+`;
