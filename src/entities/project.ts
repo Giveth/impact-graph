@@ -761,31 +761,31 @@ export class ProjectUpdate extends BaseEntity {
 @ObjectType()
 @ChildEntity('cause')
 export class Cause extends Project {
-  @Field()
+  @Field({ nullable: true })
   @Column('text', { unique: true })
   depositTxHash: string;
 
   // we should not expose this field to the client
-  @Column('text')
+  @Column('text', { nullable: true })
   fundingPoolHdPath: string;
 
-  @Field()
-  @Column()
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   depositTxChainId: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   chainId: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   totalRaised: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   totalDistributed: number;
 
-  @Field(_type => Float)
+  @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   totalDonated: number;
 
@@ -817,7 +817,7 @@ export class Cause extends Project {
   activeProjectsCount: number;
 
   // Override the projectType to always be CAUSE
-  @Field(_type => String)
+  @Field(_type => String, { nullable: true })
   @Column({ default: 'cause' })
   projectType: string = 'cause';
 }
