@@ -502,7 +502,7 @@ export class CauseResolver {
 
       const status = await ProjectStatus.findOne({
         where: {
-          id: ProjStatus.pending,
+          id: ProjStatus.active,
         },
       });
 
