@@ -952,7 +952,6 @@ export const projectsTab = {
       projectType: {
         isVisible: { list: false, filter: true, show: true, edit: false },
       },
-      causeScore: {
       addresses: {
         isVisible: {
           list: false,
