@@ -943,6 +943,16 @@ export const projectsTab = {
       slugHistory: {
         isVisible: false,
       },
+      activeProjectsCount: {
+        isVisible: { list: false, filter: false, show: true, edit: false },
+      },
+      projects: {
+        isVisible: { list: false, filter: false, show: true, edit: false },
+      },
+      projectType: {
+        isVisible: { list: false, filter: true, show: true, edit: false },
+      },
+      causeScore: {
       addresses: {
         isVisible: {
           list: false,
