@@ -1,6 +1,11 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import slugify from 'slugify';
-import { Cause, ReviewStatus, ProjStatus } from '../entities/project';
+import {
+  Cause,
+  ReviewStatus,
+  ProjStatus,
+  CauseProject,
+} from '../entities/project';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { Project } from '../entities/project';
@@ -18,11 +23,31 @@ import {
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
 import { NETWORK_IDS } from '../provider';
-import { titleWithoutSpecialCharacters } from '../utils/utils';
+import {
+  creteSlugFromProject,
+  titleWithoutSpecialCharacters,
+} from '../utils/utils';
 import { Category } from '../entities/category';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjectStatus } from '../entities/projectStatus';
 import { AgentDistributionService } from '../services/agentDistributionService';
+import {
+  addBulkNewProjectAddress,
+  findProjectRecipientAddressByProjectId,
+  removeRecipientAddressOfProject,
+} from '../repositories/projectAddressRepository';
+import { getAppropriateNetworkId } from '../services/chains';
+import { User } from '../entities/user';
+import {
+  getAppropriateSlug,
+  getQualityScore,
+} from '../services/projectService';
+import {
+  validateProjectRelatedAddresses,
+  validateProjectTitleForEdit,
+} from '../utils/validators/projectValidator';
+import { Reaction } from '../entities/reaction';
+import { UpdateProjectInput } from './types/project-input';
 
 const DEFAULT_CAUSES_LIMIT = 20;
 const MAX_CAUSES_LIMIT = 100;
@@ -47,6 +72,7 @@ const getCauseCreationFeeTokenContractAddresses = (): {
 
 @Resolver(_of => Cause)
 export class CauseResolver {
+  categoryRepository: any;
   @Query(() => [Cause])
   async causes(
     @Arg('limit', {
@@ -152,6 +178,180 @@ export class CauseResolver {
   @Query(() => Boolean)
   async isValidCauseTitle(@Arg('title') title: string): Promise<boolean> {
     return validateCauseTitle(title);
+  }
+
+  @Mutation(_returns => Cause)
+  async updateCause(
+    @Arg('projectId') projectId: number,
+    @Arg('newProjectData') newProjectData: UpdateProjectInput,
+    @Ctx() { req: { user } }: ApolloContext,
+  ) {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+
+    const dbUser = await findUserById(user.userId);
+
+    // Check if user email is verified
+    if (!dbUser || !dbUser.isEmailVerified) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.EMAIL_NOT_VERIFIED));
+    }
+
+    const { bannerImage } = newProjectData;
+
+    // const project = await Project.findOne({ id: projectId });
+    const project = await findCauseById(projectId);
+
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+
+    logger.debug(`project.adminUserId ---> : ${project.adminUserId}`);
+    logger.debug(`user.userId ---> : ${user.userId}`);
+    logger.debug(`updateProject, inputData :`, newProjectData);
+    if (project.adminUserId !== user.userId)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
+
+    for (const field in newProjectData) {
+      if (field === 'addresses' || field === 'socialMedia') {
+        // We will take care of addresses and relations manually
+        continue;
+      }
+      project[field] = newProjectData[field];
+    }
+
+    if (!newProjectData.categories) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        ),
+      );
+    }
+
+    const categoriesPromise = newProjectData.categories.map(async category => {
+      const [c] = await this.categoryRepository.find({
+        where: {
+          name: category,
+          isActive: true,
+          canUseOnFrontend: true,
+        },
+      });
+      if (!c) {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+          ),
+        );
+      }
+      return c;
+    });
+
+    const categories = await Promise.all(categoriesPromise);
+    if (categories.length > 5) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+        ),
+      );
+    }
+    project.categories = categories;
+
+    const heartCount = await Reaction.count({ where: { projectId } });
+
+    const qualityScore = getQualityScore(
+      project.description,
+      Boolean(bannerImage),
+      heartCount,
+    );
+    if (newProjectData.title) {
+      await validateProjectTitleForEdit(newProjectData.title, projectId);
+    }
+
+    if (newProjectData.addresses) {
+      await validateProjectRelatedAddresses(
+        newProjectData.addresses,
+        projectId,
+      );
+    }
+    const slugBase = creteSlugFromProject(newProjectData.title);
+    if (!slugBase) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
+      );
+    }
+    const newSlug = await getAppropriateSlug(slugBase, projectId);
+    if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
+      // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
+      project.slugHistory?.push(project.slug as string);
+    }
+    if (bannerImage !== undefined) {
+      project.image = bannerImage;
+    }
+
+    // Find and validate projects
+    const { projectIds } = newProjectData;
+    const projects = await Project.findByIds(projectIds as any[]);
+    if (projects.length !== (projectIds as any[]).length) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_IDS),
+      );
+    }
+
+    // Create cause-project relationships
+    for (const subProject of projects) {
+      await CauseProject.create({
+        causeId: project.id,
+        projectId: subProject.id,
+        amountReceived: 0,
+        amountReceivedUsdValue: 0,
+        causeScore: 0,
+      }).save();
+    }
+    project.activeProjectsCount = projects.length;
+    project.slug = newSlug;
+    project.qualityScore = qualityScore;
+    project.updatedAt = new Date();
+    project.listed = null;
+    project.reviewStatus = ReviewStatus.NotReviewed;
+
+    await project.save();
+    await project.reload();
+
+    const adminUser = (await findUserById(project.adminUserId)) as User;
+    if (newProjectData.addresses) {
+      await removeRecipientAddressOfProject({ project });
+      await addBulkNewProjectAddress(
+        newProjectData?.addresses.map(relatedAddress => {
+          return {
+            project,
+            user: adminUser,
+            address: relatedAddress.address,
+            chainType: relatedAddress.chainType,
+            memo: relatedAddress.memo,
+
+            // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
+            networkId: getAppropriateNetworkId({
+              networkId: relatedAddress.networkId,
+              chainType: relatedAddress.chainType,
+            }),
+
+            isRecipient: true,
+          };
+        }),
+      );
+    }
+
+    project.adminUser = adminUser;
+    project.addresses = await findProjectRecipientAddressByProjectId({
+      projectId,
+    });
+
+    // Edit emails
+    // await getNotificationAdapter().projectEdited({ project });
+
+    return project;
   }
 
   @Mutation(() => Cause)

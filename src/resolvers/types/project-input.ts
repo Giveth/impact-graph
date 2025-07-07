@@ -48,6 +48,10 @@ class ProjectInput {
   image?: string;
 
   @Field({ nullable: true })
+  @MaxLength(IMAGE_LINK_MAX_SIZE)
+  bannerImage?: string;
+
+  @Field({ nullable: true })
   @MaxLength(IMPACT_LOCATION_MAX_SIZE)
   impactLocation?: string;
 
@@ -56,6 +60,9 @@ class ProjectInput {
 
   @Field({ nullable: true })
   organisationId?: number;
+
+  @Field(() => [Number], { nullable: true })
+  projectIds?: number[];
 
   @Field(() => [ProjectSocialMediaInput], { nullable: true })
   socialMedia?: ProjectSocialMediaInput[];
