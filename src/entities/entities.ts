@@ -54,6 +54,7 @@ import { UserQfRoundModelScore } from './userQfRoundModelScore';
 import { ProjectGivbackRankView } from './ProjectGivbackRankView';
 import { EstimatedClusterMatching } from './estimatedClusterMatching';
 import { SitemapUrl } from './sitemapUrl';
+import { SwapTransaction } from './swapTransaction';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -126,6 +127,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectGivbackRankView,
 
     SitemapUrl,
+    SwapTransaction,
 
     Cause,
     CauseProject,

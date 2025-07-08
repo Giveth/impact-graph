@@ -751,3 +751,13 @@ export async function findDonationsByProjectIdWhichUseDonationBox(
     [startDate, endDate, true, projectId],
   );
 }
+
+export const findDonationBySwapId = async (
+  swapId: number,
+): Promise<Donation | null> => {
+  return Donation.createQueryBuilder('donation')
+    .where(`donation.swapTransactionId = :swapId`, {
+      swapId,
+    })
+    .getOne();
+};
