@@ -16,6 +16,7 @@ import {
   UpdateCauseProjectDistributionInput,
   UpdateCauseProjectEvaluationInput,
 } from './types/causeProject-input';
+import { createOrUpdateCauseProject } from '../repositories/causeProjectRepository';
 
 @Resolver(_of => CauseProject)
 export class CauseProjectResolver {
@@ -71,11 +72,6 @@ export class CauseProjectResolver {
         amountReceivedUsdValue,
         causeScore,
       } = input;
-
-      // Import the repository function
-      const { createOrUpdateCauseProject } = await import(
-        '../repositories/causeProjectRepository'
-      );
 
       const causeProject = await createOrUpdateCauseProject(
         causeId,
