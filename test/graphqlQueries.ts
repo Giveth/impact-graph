@@ -210,6 +210,7 @@ export const updateProjectQuery = `
       verified
       slugHistory
       creationDate
+      updatedAt
       adminUserId
       walletAddress
       impactLocation
@@ -231,7 +232,69 @@ export const updateProjectQuery = `
       }
     }
   }
- `;
+`;
+
+export const updateCauseQuery = `
+  mutation ($projectId: Float!, $newProjectData: UpdateProjectInput!) {
+    updateCause(projectId: $projectId, newProjectData: $newProjectData) {
+      id
+      title
+      description
+      descriptionSummary
+      image
+      slug
+      listed
+      reviewStatus
+      verified
+      slugHistory
+      creationDate
+      updatedAt
+      adminUserId
+      walletAddress
+      chainId
+      totalRaised
+      totalDistributed
+      totalDonated
+      activeProjectsCount
+      categories {
+        name
+        mainCategory {
+          title
+          slug
+          banner
+          description
+        }
+      }
+      addresses {
+        address
+        isRecipient
+        networkId
+        chainType
+      }
+      causeProjects {
+        id
+        projectId
+        causeId
+      }
+      projects {
+        id
+        title
+        slug
+      }
+      adminUser {
+        id
+        name
+        email
+        walletAddress
+        isEmailVerified
+      }
+      status {
+        id
+        name
+      }
+    }
+  }
+`;
 
 export const addRecipientAddressToProjectQuery = `
   mutation ($projectId: Float!, $networkId: Float!, $address: String!, $chainType: ChainType) {
@@ -268,7 +331,7 @@ export const addRecipientAddressToProjectQuery = `
       }
     }
   }
- `;
+`;
 
 export const registerOnChainvineQuery = `
   mutation {
@@ -300,13 +363,13 @@ export const deactivateProjectQuery = `
   mutation ($projectId: Float!, $reasonId: Float) {
     deactivateProject(projectId: $projectId, reasonId: $reasonId)
   }
- `;
+`;
 
 export const activateProjectQuery = `
   mutation ($projectId: Float!) {
     activateProject(projectId: $projectId)
   }
- `;
+`;
 
 export const projectStatusReasonsQuery = `
   query ($statusId: Int) {
@@ -318,7 +381,7 @@ export const projectStatusReasonsQuery = `
                       }
       }
   }
- `;
+`;
 
 export const fetchDonationsByDonorQuery = `
   query {

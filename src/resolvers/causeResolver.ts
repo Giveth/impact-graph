@@ -299,18 +299,25 @@ export class CauseResolver {
       );
     }
 
+    // Delete existing cause-project relationships
+    await CauseProject.delete({ causeId: project.id });
+
+    const causeProjects: CauseProject[] = [];
     // Create cause-project relationships
     for (const subProject of projects) {
-      await CauseProject.create({
+      const causeProject = await CauseProject.create({
         causeId: project.id,
         projectId: subProject.id,
         amountReceived: 0,
         amountReceivedUsdValue: 0,
         causeScore: 0,
       }).save();
+
+      causeProjects.push(causeProject);
     }
     project.activeProjectsCount = projects.length;
     project.slug = newSlug;
+    project.activeProjectsCount = projects.length;
     project.qualityScore = qualityScore;
     project.updatedAt = new Date();
     project.listed = null;
