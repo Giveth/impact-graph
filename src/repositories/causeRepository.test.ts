@@ -132,7 +132,7 @@ describe('causeRepository test cases', async () => {
       assert.equal(foundCause?.depositTxHash, testCause.depositTxHash);
       assert.equal(foundCause?.depositTxChainId, testCause.depositTxChainId);
       assert.equal(foundCause?.adminUser.id, testUser.id);
-      assert.equal(foundCause?.causeProjects[0].project.id, testProject.id);
+      assert.equal(foundCause?.causeProjects?.[0]?.project.id, testProject.id);
     });
 
     it('should return null when cause not found', async () => {
@@ -157,7 +157,7 @@ describe('causeRepository test cases', async () => {
       assert.deepEqual(foundCause?.categories, testCause.categories);
       assert.equal(foundCause?.statusId, testCause.statusId);
       assert.equal(foundCause?.adminUser.id, testUser.id);
-      assert.equal(foundCause?.causeProjects[0].project.id, testProject.id);
+      assert.equal(foundCause?.causeProjects?.[0]?.project.id, testProject.id);
     });
 
     it('should return null when cause not found', async () => {
@@ -180,8 +180,8 @@ describe('causeRepository test cases', async () => {
       assert.equal(causes.length, 2);
       assert.equal(causes[0].adminUser.id, testUser.id);
       assert.equal(causes[1].adminUser.id, testUser.id);
-      assert.equal(causes[0].causeProjects[0].project.id, testProject.id);
-      assert.equal(causes[1].causeProjects[0].project.id, testProject.id);
+      assert.equal(causes[0].causeProjects?.[0]?.project.id, testProject.id);
+      assert.equal(causes[1].causeProjects?.[0]?.project.id, testProject.id);
       assert.notEqual(causes[0].id, causes[1].id);
 
       // Clean up second cause
@@ -225,13 +225,13 @@ describe('causeRepository test cases', async () => {
         c => c.id === multiProjectCause.id,
       );
       assert.isOk(foundMultiProjectCause);
-      assert.equal(foundMultiProjectCause?.causeProjects.length, 2);
+      assert.equal(foundMultiProjectCause?.causeProjects?.length, 2);
       assert.equal(
-        foundMultiProjectCause?.causeProjects[0].project.id,
+        foundMultiProjectCause?.causeProjects?.[0]?.project.id,
         testProject.id,
       );
       assert.equal(
-        foundMultiProjectCause?.causeProjects[1].project.id,
+        foundMultiProjectCause?.causeProjects?.[1]?.project.id,
         project2.id,
       );
 
@@ -269,7 +269,7 @@ describe('causeRepository test cases', async () => {
       assert.equal(cause.depositTxHash, causeData.depositTxHash);
       assert.equal(cause.depositTxChainId, causeData.depositTxChainId);
       assert.equal(cause.adminUser.id, testUser.id);
-      assert.equal(cause.causeProjects[0].project.id, testProject.id);
+      assert.equal(cause.causeProjects?.[0]?.project.id, testProject.id);
 
       // Check if user's ownedCausesCount was updated
       const updatedUser = await User.findOne({ where: { id: testUser.id } });
@@ -465,8 +465,8 @@ describe('causeRepository test cases', async () => {
       assert.equal(causes.length, 2);
       assert.equal(causes[0].adminUser.id, testUser.id);
       assert.equal(causes[1].adminUser.id, testUser.id);
-      assert.equal(causes[0].causeProjects[0].project.id, testProject.id);
-      assert.equal(causes[1].causeProjects[0].project.id, testProject.id);
+      assert.equal(causes[0].causeProjects?.[0]?.project.id, testProject.id);
+      assert.equal(causes[1].causeProjects?.[0]?.project.id, testProject.id);
 
       // Clean up second cause
       await Cause.getRepository().query(

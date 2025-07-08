@@ -464,7 +464,7 @@ export class Project extends BaseEntity {
   // Many-to-many relationship with causes through CauseProject junction table
   @Field(_type => [CauseProject], { nullable: true })
   @OneToMany(_type => CauseProject, causeProject => causeProject.project)
-  causeProjects: CauseProject[];
+  causeProjects?: CauseProject[];
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
@@ -763,40 +763,40 @@ export class ProjectUpdate extends BaseEntity {
 export class Cause extends Project {
   @Field({ nullable: true })
   @Column('text', { unique: true })
-  depositTxHash: string;
+  depositTxHash?: string;
 
   // we should not expose this field to the client
   @Column('text', { nullable: true })
-  fundingPoolHdPath: string;
+  fundingPoolHdPath?: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  depositTxChainId: number;
+  depositTxChainId?: number;
 
   @Field({ nullable: true })
   @Column()
-  chainId: number;
+  chainId?: number;
 
   @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
-  totalRaised: number;
+  totalRaised?: number;
 
   @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
-  totalDistributed: number;
+  totalDistributed?: number;
 
   @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
-  totalDonated: number;
+  totalDonated?: number;
 
   // Many-to-many relationship with projects through CauseProject junction table
   @Field(_type => [CauseProject], { nullable: true })
   @OneToMany(_type => CauseProject, causeProject => causeProject.cause)
-  causeProjects: CauseProject[];
+  causeProjects?: CauseProject[];
 
   // Virtual field to get projects directly
   @Field(_type => [Project], { nullable: true })
-  async projects(): Promise<Project[]> {
+  async projects(): Promise<Project[] | null> {
     const causeProjects = await CauseProject.find({
       where: { causeId: this.id },
       relations: ['project'],
@@ -814,7 +814,7 @@ export class Cause extends Project {
 
   @Field(_type => Int, { nullable: true })
   @Column({ type: 'integer', default: 0 })
-  activeProjectsCount: number;
+  activeProjectsCount?: number;
 
   // Override the projectType to always be CAUSE
   @Field(_type => String, { nullable: true })

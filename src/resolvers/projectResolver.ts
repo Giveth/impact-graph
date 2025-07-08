@@ -126,7 +126,7 @@ const projectFiltersCacheDuration = Number(
 @ObjectType()
 class AllProjects {
   @Field(_type => [Project])
-  projects: Project[];
+  projects: Project[] | Cause[];
 
   @Field(_type => Int)
   totalCount: number;
