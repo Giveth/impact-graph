@@ -930,6 +930,10 @@ export class ProjectResolver {
 
     const project = await query.getOne();
 
+    if (project?.projectType === 'cause') {
+      project.causeProjects = await (project as Cause).loadCauseProjects();
+    }
+
     canUserVisitProject(project, user?.userId);
 
     return project;
