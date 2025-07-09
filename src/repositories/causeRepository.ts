@@ -262,6 +262,22 @@ export const findAllCauses = async (
     .leftJoinAndSelect('causeProjects.project', 'project')
     .leftJoinAndSelect('cause.status', 'status')
     .leftJoinAndSelect('cause.categories', 'categories')
+    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect(
+      'project.categories',
+      'categories',
+      'categories.isActive = :isActive',
+      { isActive: true },
+    )
+    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+    .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoinAndSelect('project.socialMedia', 'socialMedia')
+    .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+    .leftJoinAndSelect('project.projectPower', 'projectPower')
+    .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
+    .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+    .leftJoinAndSelect('project.qfRounds', 'qfRounds')
     .where('lower(cause.projectType) = lower(:projectType)', {
       projectType: 'cause',
     });

@@ -609,6 +609,75 @@ export class Project extends BaseEntity {
   setProjectDescriptionSummary() {
     this.descriptionSummary = getHtmlTextSummary(this.description);
   }
+
+  // we should not expose this field to the client
+  @Column('text', { nullable: true })
+  fundingPoolHdPath?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  depositTxChainId?: number;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  chainId?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  totalRaised?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  totalDistributed?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  totalDonated?: number;
+
+  // Virtual field to get projects directly
+  @Field(_type => [Project], { nullable: true })
+  async projects(): Promise<Project[] | null> {
+    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+      .leftJoin('project.adminUser', 'user')
+      .where('causeProject.causeId = :causeId', { causeId: this.id })
+      .getMany();
+    return causeProjects.map(cp => cp.project);
+  }
+
+  @Field(_type => [CauseProject], { nullable: true })
+  async loadCauseProjects(): Promise<CauseProject[]> {
+    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+      .leftJoin('project.adminUser', 'user')
+      .where('causeProject.causeId = :causeId', { causeId: this.id })
+      .getMany();
+    return causeProjects;
+  }
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'integer', default: 0 })
+  activeProjectsCount?: number;
 }
 
 @Entity()
@@ -774,19 +843,19 @@ export class Cause extends Project {
   depositTxChainId?: number;
 
   @Field({ nullable: true })
-  @Column()
+  @Column({ nullable: true })
   chainId?: number;
 
   @Field(_type => Float, { nullable: true })
-  @Column('float', { default: 0 })
+  @Column('float', { default: 0, nullable: true })
   totalRaised?: number;
 
   @Field(_type => Float, { nullable: true })
-  @Column('float', { default: 0 })
+  @Column('float', { default: 0, nullable: true })
   totalDistributed?: number;
 
   @Field(_type => Float, { nullable: true })
-  @Column('float', { default: 0 })
+  @Column('float', { default: 0, nullable: true })
   totalDonated?: number;
 
   // Many-to-many relationship with projects through CauseProject junction table
@@ -794,32 +863,69 @@ export class Cause extends Project {
   @OneToMany(_type => CauseProject, causeProject => causeProject.cause)
   causeProjects?: CauseProject[];
 
-  // Virtual field to get projects directly
-  @Field(_type => [Project], { nullable: true })
-  async projects(): Promise<Project[] | null> {
-    const causeProjects = await CauseProject.find({
-      where: { causeId: this.id },
-      relations: ['project'],
-    });
-    return causeProjects.map(cp => cp.project);
-  }
-
-  @Field(_type => [CauseProject], { nullable: true })
-  async loadCauseProjects(): Promise<CauseProject[]> {
-    return await CauseProject.find({
-      where: { causeId: this.id },
-      relations: ['project'],
-    });
-  }
-
   @Field(_type => Int, { nullable: true })
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, nullable: true })
   activeProjectsCount?: number;
 
   // Override the projectType to always be CAUSE
   @Field(_type => String, { nullable: true })
   @Column({ default: 'cause' })
   projectType: string = 'cause';
+
+  // Virtual field to get projects directly
+  @Field(_type => [Project], { nullable: true })
+  async projects(): Promise<Project[] | null> {
+    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
+      .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+      .leftJoin('project.adminUser', 'user')
+      .where('causeProject.causeId = :causeId', { causeId: this.id })
+      .getMany();
+    return causeProjects.map(cp => cp.project);
+  }
+
+  @Field(_type => [CauseProject], { nullable: true })
+  async loadCauseProjects(): Promise<CauseProject[]> {
+    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
+      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+      .leftJoin('project.adminUser', 'user')
+      .where('causeProject.causeId = :causeId', { causeId: this.id })
+      .getMany();
+    return causeProjects;
+  }
 }
 
 @Entity()
