@@ -151,7 +151,10 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
 
   // Filter by projectType
-  if (normalizedProjectType) {
+  if (
+    normalizedProjectType &&
+    (normalizedProjectType === 'cause' || normalizedProjectType === 'project')
+  ) {
     query = query.andWhere('project.projectType = :projectType', {
       projectType: normalizedProjectType,
     });
