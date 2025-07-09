@@ -188,6 +188,7 @@ export const createDraftDonationQueryValidator = Joi.object({
   toWalletMemo: Joi.string().allow(null, ''),
   qrCodeDataUrl: Joi.string().allow(null, '').pattern(dateURLRegex),
   isQRDonation: Joi.boolean(),
+  fromTokenAmount: Joi.number().greater(0).allow(null),
 });
 
 export const createDraftRecurringDonationQueryValidator = Joi.object({

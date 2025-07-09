@@ -70,6 +70,7 @@ import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
 import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
+import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
 
 Resource.validate = validate;
 
@@ -362,6 +363,8 @@ export async function bootstrap() {
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
     runCheckAndUpdateEndaomentProject();
+
+    runCheckPendingSwapsCronJob();
 
     // if (process.env.ENABLE_CLUSTER_MATCHING === 'true') {
     //   runSyncEstimatedClusterMatchingCronjob();

@@ -265,6 +265,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       chainType: donation.chainType,
       safeTxHash: donation.safeTransactionId,
       timestamp: donation.createdAt.getTime() / 1000,
+      isSwap: donation.isSwap,
       importedFromDraftOrBackupService: Boolean(
         donation.importDate || relevantDraftDonation,
       ),

@@ -902,6 +902,7 @@ export class DonationResolver {
         chainType,
         useDonationBox,
         relevantDonationTxHash,
+        fromTokenAmount,
       };
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
@@ -1020,6 +1021,7 @@ export class DonationResolver {
 
       const donation = Donation.create({
         amount: Number(amount),
+        fromTokenAmount: Number(fromTokenAmount),
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
         transactionNetworkId: networkId,
