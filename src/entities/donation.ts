@@ -20,6 +20,7 @@ export const DONATION_STATUS = {
   PENDING: 'pending',
   VERIFIED: 'verified',
   FAILED: 'failed',
+  SWAP_PENDING: 'swapPending',
 };
 
 export const DONATION_ORIGINS = {

@@ -11,6 +11,8 @@ export const createDonationMutation = `
     $anonymous: Boolean
     $referrerId: String
     $safeTransactionId: String
+    $swapData: SwapTransactionInput
+    $fromTokenAmount: Float
   ) {
     createDonation(
       transactionId: $transactionId
@@ -24,6 +26,8 @@ export const createDonationMutation = `
       anonymous: $anonymous
       referrerId: $referrerId
       safeTransactionId: $safeTransactionId
+      swapData: $swapData
+      fromTokenAmount: $fromTokenAmount
     )
   }
 `;
