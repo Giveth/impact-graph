@@ -41,8 +41,6 @@ export const updateSwapStatus = async (
 };
 
 export const createSwap = async (params: {
-  fromAddress: string;
-  toAddress: string;
   fromToken: string;
   toToken: string;
   fromAmount: number;
@@ -84,7 +82,7 @@ export const updateSwapDonationStatus = async (
 
   const donation = await findDonationBySwapId(swapId);
   if (donation) {
-    donation.status = DONATION_STATUS.PENDING;
+    donation.status = DONATION_STATUS.PENDING; // mark donation as pending to be verified by donation verification service (we set the second tx hash to the donation)
     donation.transactionId = status.toChain.transactionId;
     await donation.save();
   }

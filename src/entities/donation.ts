@@ -6,6 +6,7 @@ import {
   BaseEntity,
   ManyToOne,
   OneToOne,
+  JoinColumn,
   RelationId,
   Index,
 } from 'typeorm';
@@ -308,6 +309,7 @@ export class Donation extends BaseEntity {
 
   @Field(_type => SwapTransaction, { nullable: true })
   @OneToOne(() => SwapTransaction, swapTransaction => swapTransaction.donation)
+  @JoinColumn({ name: 'swapTransactionId' })
   swapTransaction?: SwapTransaction;
 
   @Field({ nullable: true })
