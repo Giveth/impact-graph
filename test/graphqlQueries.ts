@@ -999,6 +999,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         adminUserId
         description
         walletAddress
+        activeProjectsCount
         impactLocation
         qualityScore
         verified
