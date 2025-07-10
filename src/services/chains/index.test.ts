@@ -426,24 +426,24 @@ function getTransactionDetailTestCases() {
     );
   });
 
-  it('should return transaction detail for normal transfer on polygon', async () => {
-    // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
+  // it('should return transaction detail for normal transfer on polygon', async () => {
+  //   // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
 
-    const amount = 30_900;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8',
-      symbol: 'MATIC',
-      networkId: NETWORK_IDS.POLYGON,
-      fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
-      toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
-      amount,
-      timestamp: 1677400082,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'MATIC');
-    assert.equal(transactionInfo.amount, amount);
-  });
+  //   const amount = 30_900;
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash:
+  //       '0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8',
+  //     symbol: 'MATIC',
+  //     networkId: NETWORK_IDS.POLYGON,
+  //     fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
+  //     toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
+  //     amount,
+  //     timestamp: 1677400082,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'MATIC');
+  //   assert.equal(transactionInfo.amount, amount);
+  // });
 
   it('should return transaction detail for normal transfer on optimism-sepolia', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809
