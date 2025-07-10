@@ -214,6 +214,6 @@ export async function getSolanaTransactionInfoFromNetwork(
       i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
     );
   }
-  validateTransactionWithInputData(txData, input);
+  await validateTransactionWithInputData(txData, input);
   return txData;
 }

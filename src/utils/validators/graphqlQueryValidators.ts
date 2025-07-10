@@ -77,6 +77,26 @@ export const resourcePerDateReportValidator = Joi.object({
   }),
 });
 
+const swapTransactionValidator = Joi.object({
+  squidRequestId: Joi.string().required(),
+  firstTxHash: Joi.string()
+    .required()
+    .pattern(txHashRegex, 'EVM transaction IDs'),
+  fromChainId: Joi.number()
+    .required()
+    .valid(...Object.values(NETWORK_IDS)),
+  toChainId: Joi.number()
+    .required()
+    .valid(...Object.values(NETWORK_IDS)),
+  fromTokenAddress: Joi.string().required(),
+  toTokenAddress: Joi.string().pattern(ethereumWalletAddressRegex).required(),
+  fromAmount: Joi.number().greater(0).required(),
+  toAmount: Joi.number().greater(0).required(),
+  fromTokenSymbol: Joi.string().required(),
+  toTokenSymbol: Joi.string().required(),
+  metadata: Joi.object().allow(null, ''),
+});
+
 export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
   transactionId: Joi.when('safeTransactionId', {
@@ -125,6 +145,8 @@ export const createDonationQueryValidator = Joi.object({
   chainType: Joi.string().required(),
   useDonationBox: Joi.boolean(),
   relevantDonationTxHash: Joi.string().allow(null, ''),
+  swapData: swapTransactionValidator.allow(null, ''),
+  fromTokenAmount: Joi.number().greater(0).allow(null),
 });
 
 export const createDraftDonationQueryValidator = Joi.object({
@@ -166,6 +188,7 @@ export const createDraftDonationQueryValidator = Joi.object({
   toWalletMemo: Joi.string().allow(null, ''),
   qrCodeDataUrl: Joi.string().allow(null, '').pattern(dateURLRegex),
   isQRDonation: Joi.boolean(),
+  fromTokenAmount: Joi.number().greater(0).allow(null),
 });
 
 export const createDraftRecurringDonationQueryValidator = Joi.object({

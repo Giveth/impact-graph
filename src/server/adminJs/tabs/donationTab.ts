@@ -644,6 +644,10 @@ export const donationTab = {
           { value: DONATION_STATUS.VERIFIED, label: DONATION_STATUS.VERIFIED },
           { value: DONATION_STATUS.PENDING, label: DONATION_STATUS.PENDING },
           { value: DONATION_STATUS.FAILED, label: DONATION_STATUS.FAILED },
+          {
+            value: DONATION_STATUS.SWAP_PENDING,
+            label: DONATION_STATUS.SWAP_PENDING,
+          },
         ],
       },
       createdAt: {

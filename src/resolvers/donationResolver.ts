@@ -13,6 +13,7 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
+import { GraphQLJSON } from 'graphql-scalars';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
 import { Brackets, In, Repository } from 'typeorm';
@@ -75,6 +76,10 @@ import { nonZeroRecurringDonationsByProjectId } from '../repositories/recurringD
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { getTokenPrice } from '../services/priceService';
 import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
+import {
+  SWAP_TRANSACTION_STATUS,
+  SwapTransaction,
+} from '../entities/swapTransaction';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
@@ -233,6 +238,42 @@ class DonationMetrics {
 
   @Field(_type => Float, { nullable: true })
   averagePercentageToGiveth: number;
+}
+
+@InputType()
+class SwapTransactionInput {
+  @Field({ nullable: true })
+  squidRequestId?: string;
+
+  @Field()
+  firstTxHash: string;
+
+  @Field()
+  fromChainId: number;
+
+  @Field()
+  toChainId: number;
+
+  @Field()
+  fromTokenAddress: string;
+
+  @Field()
+  toTokenAddress: string;
+
+  @Field()
+  fromAmount: number;
+
+  @Field()
+  toAmount: number;
+
+  @Field()
+  fromTokenSymbol: string;
+
+  @Field()
+  toTokenSymbol: string;
+
+  @Field(_type => GraphQLJSON, { nullable: true })
+  metadata?: Record<string, any>;
 }
 
 @Resolver(_of => User)
@@ -672,6 +713,7 @@ export class DonationResolver {
       .createQueryBuilder('donation')
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
+      .leftJoinAndSelect('donation.swapTransaction', 'swapTransaction')
       .addSelect(publicSelectionFields)
       .where(
         `donation.projectId = ${projectId} AND donation.recurringDonationId IS NULL`,
@@ -810,6 +852,8 @@ export class DonationResolver {
     useDonationBox?: boolean,
     @Arg('relevantDonationTxHash', { nullable: true })
     relevantDonationTxHash?: string,
+    @Arg('swapData', { nullable: true }) swapData?: SwapTransactionInput,
+    @Arg('fromTokenAmount', { nullable: true }) fromTokenAmount?: number,
   ): Promise<number> {
     const logData = {
       amount,
@@ -823,6 +867,9 @@ export class DonationResolver {
       transakId,
       referrerId,
       userId: ctx?.req?.user?.userId,
+      swapData,
+      isSwap: !!swapData,
+      fromTokenAmount,
     };
     logger.debug(
       'createDonation() resolver has been called with this data',
@@ -855,6 +902,7 @@ export class DonationResolver {
         chainType,
         useDonationBox,
         relevantDonationTxHash,
+        fromTokenAmount,
       };
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
@@ -948,8 +996,32 @@ export class DonationResolver {
           donationPercentage = (amount / totalValue) * 100;
         }
       }
+
+      let swapTransaction: SwapTransaction | undefined;
+      let donationStatus = DONATION_STATUS.PENDING;
+      if (swapData) {
+        swapTransaction = await SwapTransaction.create({
+          ...(swapData.squidRequestId && {
+            squidRequestId: swapData.squidRequestId,
+          }),
+          firstTxHash: swapData.firstTxHash,
+          fromChainId: swapData.fromChainId,
+          toChainId: swapData.toChainId,
+          fromTokenAddress: swapData.fromTokenAddress,
+          toTokenAddress: swapData.toTokenAddress,
+          fromAmount: swapData.fromAmount,
+          toAmount: swapData.toAmount,
+          fromTokenSymbol: swapData.fromTokenSymbol,
+          toTokenSymbol: swapData.toTokenSymbol,
+          status: SWAP_TRANSACTION_STATUS.PENDING,
+          metadata: swapData.metadata,
+        }).save();
+        donationStatus = DONATION_STATUS.SWAP_PENDING;
+      }
+
       const donation = Donation.create({
         amount: Number(amount),
+        fromTokenAmount: Number(fromTokenAmount),
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
         transactionNetworkId: networkId,
@@ -971,6 +1043,9 @@ export class DonationResolver {
         useDonationBox,
         relevantDonationTxHash,
         donationPercentage,
+        swapTransaction,
+        isSwap: !!swapData,
+        status: donationStatus,
       });
       if (referrerId) {
         // Fill referrer data if referrerId is valid
