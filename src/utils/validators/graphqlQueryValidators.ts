@@ -88,7 +88,7 @@ const swapTransactionValidator = Joi.object({
   toChainId: Joi.number()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
-  fromTokenAddress: Joi.string().pattern(ethereumWalletAddressRegex).required(),
+  fromTokenAddress: Joi.string().required(),
   toTokenAddress: Joi.string().pattern(ethereumWalletAddressRegex).required(),
   fromAmount: Joi.number().greater(0).required(),
   toAmount: Joi.number().greater(0).required(),
