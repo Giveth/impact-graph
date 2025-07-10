@@ -71,7 +71,8 @@ export enum ProjStatus {
 
 // Always use Enums to prevent sql injection with plain strings
 export enum SortingField {
-  ActiveProjectsCount = 'ActiveProjectsCount',
+  MostNumberOfProjects = 'MostNumberOfProjects',
+  LeastNumberOfProjects = 'LeastNumberOfProjects',
   MostFunded = 'MostFunded',
   MostLiked = 'MostLiked',
   Newest = 'Newest',
