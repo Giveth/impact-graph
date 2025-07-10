@@ -211,8 +211,11 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
 
   switch (sortingBy) {
-    case SortingField.ActiveProjectsCount:
+    case SortingField.MostNumberOfProjects:
       query.orderBy('project.activeProjectsCount', OrderDirection.DESC);
+      break;
+    case SortingField.LeastNumberOfProjects:
+      query.orderBy('project.activeProjectsCount', OrderDirection.ASC);
       break;
     case SortingField.MostFunded:
       query.orderBy('project.totalDonations', OrderDirection.DESC);
