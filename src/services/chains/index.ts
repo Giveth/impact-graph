@@ -37,7 +37,7 @@ export const ONE_HOUR = 60 * 60;
 export async function validateTransactionWithInputData(
   transaction: NetworkTransactionInfo,
   input: TransactionDetailInput,
-): Promise<never | void> {
+): Promise<void> {
   if (input.isSwap) {
     const toAddress = await getSwapSafeReceivedAddress(
       input.networkId,
