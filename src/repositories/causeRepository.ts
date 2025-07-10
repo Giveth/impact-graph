@@ -265,10 +265,11 @@ export const findAllCauses = async (
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
     .leftJoinAndSelect(
       'project.categories',
-      'categories',
-      'categories.isActive = :isActive',
+      'projectCategories',
+      'projectCategories.isActive = :isActive',
       { isActive: true },
     )
+    .leftJoinAndSelect('projectCategories.mainCategory', 'projectMainCategory')
     .leftJoinAndSelect('project.addresses', 'addresses')
     .leftJoinAndSelect('project.socialMedia', 'socialMedia')
     .leftJoinAndSelect('project.projectPower', 'projectPower')
