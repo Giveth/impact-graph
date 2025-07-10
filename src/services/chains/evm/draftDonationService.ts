@@ -278,6 +278,11 @@ async function submitMatchedDraftDonation(
       } as ApolloContext,
       referrerId,
       '',
+      undefined, // draftDonationId
+      undefined, // useDonationBox
+      undefined, // relevantDonationTxHash
+      undefined, // swapData
+      draftDonation.fromTokenAmount, // fromTokenAmount
     );
 
     await Donation.update(Number(donationId), {

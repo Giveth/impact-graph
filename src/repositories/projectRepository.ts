@@ -151,7 +151,10 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
 
   // Filter by projectType
-  if (normalizedProjectType) {
+  if (
+    normalizedProjectType &&
+    (normalizedProjectType === 'cause' || normalizedProjectType === 'project')
+  ) {
     query = query.andWhere('project.projectType = :projectType', {
       projectType: normalizedProjectType,
     });
@@ -208,8 +211,11 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
 
   switch (sortingBy) {
-    case SortingField.ActiveProjectsCount:
+    case SortingField.MostNumberOfProjects:
       query.orderBy('project.activeProjectsCount', OrderDirection.DESC);
+      break;
+    case SortingField.LeastNumberOfProjects:
+      query.orderBy('project.activeProjectsCount', OrderDirection.ASC);
       break;
     case SortingField.MostFunded:
       query.orderBy('project.totalDonations', OrderDirection.DESC);

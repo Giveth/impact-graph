@@ -72,7 +72,6 @@ const getCauseCreationFeeTokenContractAddresses = (): {
 
 @Resolver(_of => Cause)
 export class CauseResolver {
-  categoryRepository: any;
   @Query(() => [Cause])
   async causes(
     @Arg('limit', {
@@ -231,7 +230,7 @@ export class CauseResolver {
     }
 
     const categoriesPromise = newProjectData.categories.map(async category => {
-      const [c] = await this.categoryRepository.find({
+      const [c] = await Category.find({
         where: {
           name: category,
           isActive: true,

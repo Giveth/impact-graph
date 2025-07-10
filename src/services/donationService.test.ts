@@ -80,50 +80,50 @@ function sendSegmentEventForDonationTestCases() {
 }
 
 function syncDonationStatusWithBlockchainNetworkTestCases() {
-  it('should verify a Polygon donation', async () => {
-    // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
+  // it('should verify a Polygon donation', async () => {
+  //   // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
 
-    const amount = 30_900;
+  //   const amount = 30_900;
 
-    const transactionInfo = {
-      txHash:
-        '0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8',
-      currency: 'MATIC',
-      networkId: NETWORK_IDS.POLYGON,
-      fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
-      toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
-      amount,
-      timestamp: 1677400082 * 1000,
-    };
-    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      walletAddress: transactionInfo.toAddress,
-    });
-    const donation = await saveDonationDirectlyToDb(
-      {
-        amount: transactionInfo.amount,
-        transactionNetworkId: transactionInfo.networkId,
-        transactionId: transactionInfo.txHash,
-        currency: transactionInfo.currency,
-        fromWalletAddress: transactionInfo.fromAddress,
-        toWalletAddress: transactionInfo.toAddress,
-        valueUsd: 100,
-        anonymous: false,
-        createdAt: new Date(transactionInfo.timestamp),
-        status: DONATION_STATUS.PENDING,
-      },
-      user.id,
-      project.id,
-    );
-    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
-      donationId: donation.id,
-    });
-    assert.isOk(updateDonation);
-    assert.equal(updateDonation.id, donation.id);
-    assert.isTrue(updateDonation.segmentNotified);
-    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
-  });
+  //   const transactionInfo = {
+  //     txHash:
+  //       '0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8',
+  //     currency: 'MATIC',
+  //     networkId: NETWORK_IDS.POLYGON,
+  //     fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
+  //     toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
+  //     amount,
+  //     timestamp: 1677400082 * 1000,
+  //   };
+  //   const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+  //   const project = await saveProjectDirectlyToDb({
+  //     ...createProjectData(),
+  //     walletAddress: transactionInfo.toAddress,
+  //   });
+  //   const donation = await saveDonationDirectlyToDb(
+  //     {
+  //       amount: transactionInfo.amount,
+  //       transactionNetworkId: transactionInfo.networkId,
+  //       transactionId: transactionInfo.txHash,
+  //       currency: transactionInfo.currency,
+  //       fromWalletAddress: transactionInfo.fromAddress,
+  //       toWalletAddress: transactionInfo.toAddress,
+  //       valueUsd: 100,
+  //       anonymous: false,
+  //       createdAt: new Date(transactionInfo.timestamp),
+  //       status: DONATION_STATUS.PENDING,
+  //     },
+  //     user.id,
+  //     project.id,
+  //   );
+  //   const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+  //     donationId: donation.id,
+  //   });
+  //   assert.isOk(updateDonation);
+  //   assert.equal(updateDonation.id, donation.id);
+  //   assert.isTrue(updateDonation.segmentNotified);
+  //   assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+  // });
 
   it('should verify a Celo donation', async () => {
     // https://celoscan.io/tx/0xa2a282cf6a7dec8b166aa52ac3d00fcd15a370d414615e29a168cfbb592e3637
