@@ -46,8 +46,8 @@ export const findRelatedAddressByWalletAddress = async (
 
   switch (chainType) {
     case ChainType.SOLANA:
-      query = query.where(`address = :walletAddress`, {
-        walletAddress,
+      query = query.where(`UPPER(address) = :walletAddress`, {
+        walletAddress: walletAddress.toUpperCase(),
       });
       break;
     case ChainType.STELLAR:
