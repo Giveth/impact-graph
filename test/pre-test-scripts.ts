@@ -560,13 +560,54 @@ async function runMigrations() {
   }
 }
 
-before(async () => {
+// Global flag to track database initialization status
+let databaseInitialized = false;
+
+/**
+ * Verifies that the database connection is ready
+ * @returns A promise that resolves when the database is ready
+ */
+async function ensureDatabaseReady() {
+  // Check if AppDataSource is initialized
+  if (
+    !AppDataSource.getDataSource() ||
+    !AppDataSource.getDataSource().isInitialized
+  ) {
+    logger.debug('Database not initialized yet, waiting...');
+    throw new Error('Database connection not initialized');
+  }
+
+  // Verify connection by executing a simple query
   try {
+    await AppDataSource.getDataSource().query('SELECT 1');
+    logger.debug('Database connection verified successfully');
+    return true;
+  } catch (error) {
+    logger.error('Database connection verification failed', error);
+    throw new Error(
+      `Database connection verification failed: ${error.message}`,
+    );
+  }
+}
+
+// Run before all tests
+before(async function () {
+  // Increase timeout for database initialization
+  this.timeout(60000); // 60 seconds timeout for setup
+  try {
+    logger.debug('Test setup starting', new Date());
     logger.debug('Clear Redis: ', await redis.flushall());
 
+    // Initialize the application and database
+    logger.debug('Bootstrapping application...', new Date());
     await bootstrap();
+    logger.debug('Bootstrap completed', new Date());
 
+    // Verify database connection is ready
+    logger.debug('Verifying database connection...', new Date());
+    await ensureDatabaseReady();
     // Fix discriminator metadata issue with TableInheritance
+    logger.debug('Setting up entity metadata...', new Date());
     AppDataSource.getDataSource().entityMetadatas.forEach(metadata => {
       if (metadata.name === 'Project') {
         metadata.discriminatorValue = 'project';
@@ -576,9 +617,23 @@ before(async () => {
       }
     });
 
+    // Seed the database and run migrations
+    logger.debug('Seeding database...', new Date());
     await seedDb();
+    logger.debug('Running migrations...', new Date());
     await runMigrations();
+    // Mark database as initialized
+    databaseInitialized = true;
+    logger.debug('Test setup completed successfully', new Date());
   } catch (e) {
+    logger.error('Test setup failed', e);
     throw new Error(`Could not setup tests requirements \n${e.message}`);
+  }
+});
+
+// Add a beforeEach hook to ensure database is ready before each test
+beforeEach(function () {
+  if (!databaseInitialized) {
+    throw new Error('Database not initialized. Tests cannot run.');
   }
 });
