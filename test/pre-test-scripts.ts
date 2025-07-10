@@ -564,7 +564,7 @@ async function runMigrations() {
 let databaseInitialized = false;
 
 /**
- * Verifies that the database connection is ready
+ * Verifies that the database connection is ready and sets the DataSource for all entities
  * @returns A promise that resolves when the database is ready
  */
 async function ensureDatabaseReady() {
@@ -580,7 +580,33 @@ async function ensureDatabaseReady() {
   // Verify connection by executing a simple query
   try {
     await AppDataSource.getDataSource().query('SELECT 1');
-    logger.debug('Database connection verified successfully');
+
+    // Set the DataSource for all entities to ensure they can be used
+    const dataSource = AppDataSource.getDataSource();
+    const entities = dataSource.entityMetadatas.map(
+      metadata => metadata.target,
+    );
+
+    // Explicitly set the DataSource for each entity
+    entities.forEach(entity => {
+      if (
+        typeof entity === 'function' &&
+        typeof entity['useDataSource'] === 'function'
+      ) {
+        try {
+          (entity as any).useDataSource(dataSource);
+        } catch (e) {
+          logger.warn(
+            `Failed to set DataSource for entity: ${(entity as any).name}`,
+            e,
+          );
+        }
+      }
+    });
+
+    logger.debug(
+      'Database connection verified and DataSource set for all entities',
+    );
     return true;
   } catch (error) {
     logger.error('Database connection verification failed', error);
@@ -602,6 +628,65 @@ before(async function () {
     logger.debug('Bootstrapping application...', new Date());
     await bootstrap();
     logger.debug('Bootstrap completed', new Date());
+
+    // Ensure DataSource is set for all entities immediately after bootstrap
+    const dataSource = AppDataSource.getDataSource();
+    if (dataSource && dataSource.isInitialized) {
+      logger.debug('Setting DataSource for all entities after bootstrap');
+      const entities = dataSource.entityMetadatas.map(
+        metadata => metadata.target,
+      );
+
+      // Try to explicitly set DataSource for entities that are causing issues
+      try {
+        // Set DataSource for Token entity
+        if (Token && typeof Token['useDataSource'] === 'function') {
+          (Token as any).useDataSource(dataSource);
+          logger.debug('Token entity DataSource explicitly set');
+        }
+
+        // Import and set DataSource for ProjectAddress entity
+        // We need to import it here because it might not be available in the global scope
+        const { ProjectAddress } = await import(
+          '../src/entities/projectAddress'
+        );
+        if (
+          ProjectAddress &&
+          typeof ProjectAddress['useDataSource'] === 'function'
+        ) {
+          (ProjectAddress as any).useDataSource(dataSource);
+          logger.debug('ProjectAddress entity DataSource explicitly set');
+        }
+
+        // Set DataSource for Project entity
+        if (Project && typeof Project['useDataSource'] === 'function') {
+          (Project as any).useDataSource(dataSource);
+          logger.debug('Project entity DataSource explicitly set');
+        }
+      } catch (e) {
+        logger.warn(
+          'Failed to explicitly set DataSource for specific entities',
+          e,
+        );
+      }
+
+      entities.forEach(entity => {
+        if (
+          typeof entity === 'function' &&
+          typeof entity['useDataSource'] === 'function'
+        ) {
+          try {
+            (entity as any).useDataSource(dataSource);
+          } catch (e) {
+            logger.warn(
+              `Failed to set DataSource for entity after bootstrap: ${(entity as any).name}`,
+              e,
+            );
+          }
+        }
+      });
+      logger.debug('DataSource set for all entities after bootstrap');
+    }
 
     // Verify database connection is ready
     logger.debug('Verifying database connection...', new Date());
