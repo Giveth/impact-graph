@@ -635,22 +635,32 @@ export class Project extends BaseEntity {
   @Column('float', { default: 0, nullable: true })
   totalDonated?: number;
 
-  // Virtual field to get projects directly
   @Field(_type => [Project], { nullable: true })
   async projects(): Promise<Project[] | null> {
     const causeProjects = await CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
-      .innerJoinAndSelect(
+      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
+      .leftJoinAndSelect(
+        'project.projectUpdates',
+        'projectUpdates',
+        'projectUpdates.projectId = project.id',
+      )
+      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndSelect(
         'project.categories',
         'categories',
         'categories.isActive = :isActive',
         { isActive: true },
       )
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-      .leftJoin('project.adminUser', 'user')
+      .leftJoinAndSelect('project.adminUser', 'adminUser')
       .where('causeProject.causeId = :causeId', { causeId: this.id })
       .getMany();
     return causeProjects.map(cp => cp.project);
@@ -670,7 +680,7 @@ export class Project extends BaseEntity {
       )
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-      .leftJoin('project.adminUser', 'user')
+      .leftJoinAndSelect('project.adminUser', 'adminUser')
       .where('causeProject.causeId = :causeId', { causeId: this.id })
       .getMany();
     return causeProjects;
@@ -884,7 +894,11 @@ export class Cause extends Project {
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
-      .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+      .leftJoinAndSelect(
+        'project.projectUpdates',
+        'projectUpdates',
+        'projectUpdates.projectId = project.id',
+      )
       .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
       .leftJoinAndSelect(
         'project.categories',
@@ -895,7 +909,7 @@ export class Cause extends Project {
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-      .leftJoin('project.adminUser', 'user')
+      .leftJoinAndSelect('project.adminUser', 'adminUser')
       .where('causeProject.causeId = :causeId', { causeId: this.id })
       .getMany();
     return causeProjects.map(cp => cp.project);
