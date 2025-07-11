@@ -1,4 +1,5 @@
 import { bootstrap } from '../src/server/bootstrap';
+// Using real blockchain providers for tests
 import {
   saveProjectDirectlyToDb,
   saveDonationDirectlyToDb,
@@ -560,34 +561,35 @@ async function runMigrations() {
   }
 }
 
-// Global flag to track database initialization status
+// Global flags to track database initialization status
 let databaseInitialized = false;
+let snapshotCreated = false;
 
 /**
  * Verifies that the database connection is ready and sets the DataSource for all entities
  * @returns A promise that resolves when the database is ready
  */
 async function ensureDatabaseReady() {
-  // Check if AppDataSource is initialized
-  if (
-    !AppDataSource.getDataSource() ||
-    !AppDataSource.getDataSource().isInitialized
-  ) {
-    logger.debug('Database not initialized yet, waiting...');
-    throw new Error('Database connection not initialized');
-  }
-
-  // Verify connection by executing a simple query
   try {
-    await AppDataSource.getDataSource().query('SELECT 1');
-
-    // Set the DataSource for all entities to ensure they can be used
     const dataSource = AppDataSource.getDataSource();
+    if (!dataSource) {
+      throw new Error('DataSource not available');
+    }
+
+    if (!dataSource.isInitialized) {
+      logger.debug('Initializing database connection...');
+      await AppDataSource.initialize();
+      logger.debug('Database connection initialized');
+    }
+
+    // Verify connection is working by running a simple query
+    await dataSource.query('SELECT 1');
+    logger.debug('Database connection verified');
+
+    // Set DataSource for all entities
     const entities = dataSource.entityMetadatas.map(
       metadata => metadata.target,
     );
-
-    // Explicitly set the DataSource for each entity
     entities.forEach(entity => {
       if (
         typeof entity === 'function' &&
@@ -604,15 +606,110 @@ async function ensureDatabaseReady() {
       }
     });
 
-    logger.debug(
-      'Database connection verified and DataSource set for all entities',
-    );
-    return true;
+    logger.debug('DataSource set for all entities');
+    return dataSource;
   } catch (error) {
     logger.error('Database connection verification failed', error);
     throw new Error(
       `Database connection verification failed: ${error.message}`,
     );
+  }
+}
+
+// Run after all tests
+after(function () {
+  // Cleanup after tests
+  logger.debug('Test cleanup complete');
+});
+
+/**
+ * Creates a database snapshot that can be restored quickly
+ * This significantly speeds up tests by avoiding full database recreation
+ */
+async function createDatabaseSnapshot() {
+  const dataSource = AppDataSource.getDataSource();
+  if (!dataSource || !dataSource.isInitialized) {
+    throw new Error('Cannot create snapshot: DataSource not initialized');
+  }
+
+  logger.debug('Creating database snapshot...', new Date());
+
+  try {
+    // Create a snapshot of the current database state
+    await dataSource.query(`SELECT pg_advisory_lock(1)`);
+    await dataSource.query(`DROP SCHEMA IF EXISTS snapshot CASCADE`);
+    await dataSource.query(`CREATE SCHEMA snapshot`);
+
+    // Get all tables from public schema
+    const tables = await dataSource.query(
+      `SELECT tablename FROM pg_tables WHERE schemaname = 'public'`,
+    );
+
+    // Copy each table structure and data to snapshot schema
+    for (const { tablename } of tables) {
+      await dataSource.query(
+        `CREATE TABLE snapshot.${tablename} AS SELECT * FROM public.${tablename}`,
+      );
+    }
+
+    await dataSource.query(`SELECT pg_advisory_unlock(1)`);
+    logger.debug('Database snapshot created successfully', new Date());
+    snapshotCreated = true;
+  } catch (error) {
+    logger.error('Failed to create database snapshot', error);
+    throw error;
+  }
+}
+
+/**
+ * Restores database from snapshot
+ * This is much faster than recreating the database from scratch
+ */
+async function restoreDatabaseFromSnapshot() {
+  if (!snapshotCreated) {
+    logger.debug('No snapshot available to restore from');
+    return false;
+  }
+
+  const dataSource = AppDataSource.getDataSource();
+  if (!dataSource || !dataSource.isInitialized) {
+    throw new Error('Cannot restore snapshot: DataSource not initialized');
+  }
+
+  logger.debug('Restoring database from snapshot...', new Date());
+
+  try {
+    await dataSource.query(`SELECT pg_advisory_lock(2)`);
+
+    // Get all tables from public schema
+    const tables = await dataSource.query(
+      `SELECT tablename FROM pg_tables WHERE schemaname = 'public'`,
+    );
+
+    // Truncate all tables in public schema
+    for (const { tablename } of tables) {
+      if (tablename !== 'migrations') {
+        // Don't truncate migrations table
+        await dataSource.query(`TRUNCATE TABLE public.${tablename} CASCADE`);
+      }
+    }
+
+    // Copy data from snapshot schema to public schema
+    for (const { tablename } of tables) {
+      if (tablename !== 'migrations') {
+        // Don't restore migrations table
+        await dataSource.query(
+          `INSERT INTO public.${tablename} SELECT * FROM snapshot.${tablename}`,
+        );
+      }
+    }
+
+    await dataSource.query(`SELECT pg_advisory_unlock(2)`);
+    logger.debug('Database restored from snapshot successfully', new Date());
+    return true;
+  } catch (error) {
+    logger.error('Failed to restore database from snapshot', error);
+    return false;
   }
 }
 
@@ -691,6 +788,7 @@ before(async function () {
     // Verify database connection is ready
     logger.debug('Verifying database connection...', new Date());
     await ensureDatabaseReady();
+
     // Fix discriminator metadata issue with TableInheritance
     logger.debug('Setting up entity metadata...', new Date());
     AppDataSource.getDataSource().entityMetadatas.forEach(metadata => {
@@ -702,11 +800,21 @@ before(async function () {
       }
     });
 
-    // Seed the database and run migrations
-    logger.debug('Seeding database...', new Date());
-    await seedDb();
-    logger.debug('Running migrations...', new Date());
-    await runMigrations();
+    // Try to restore from snapshot first
+    const restored = await restoreDatabaseFromSnapshot();
+
+    // If no snapshot exists or restore failed, seed the database and create a snapshot
+    if (!restored) {
+      // Seed the database and run migrations
+      logger.debug('Seeding database...', new Date());
+      await seedDb();
+      logger.debug('Running migrations...', new Date());
+      await runMigrations();
+
+      // Create a snapshot for future test runs
+      await createDatabaseSnapshot();
+    }
+
     // Mark database as initialized
     databaseInitialized = true;
     logger.debug('Test setup completed successfully', new Date());
@@ -722,3 +830,22 @@ beforeEach(function () {
     throw new Error('Database not initialized. Tests cannot run.');
   }
 });
+
+// Add an afterEach hook to clear Redis cache between tests
+afterEach(async function () {
+  try {
+    // Clear Redis cache to prevent test interference
+    await redis.flushall();
+  } catch (error) {
+    logger.warn('Failed to clear Redis cache between tests', error);
+  }
+});
+
+// Export functions for use in setup script
+export {
+  seedDb,
+  runMigrations,
+  ensureDatabaseReady,
+  createDatabaseSnapshot,
+  restoreDatabaseFromSnapshot,
+};
