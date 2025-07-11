@@ -909,7 +909,6 @@ export class Cause extends Project {
         'socialMedia',
         'socialMedia.projectId = project.id',
       )
-      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
@@ -940,7 +939,16 @@ export class Cause extends Project {
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
+      .leftJoinAndSelect(
+        'project.socialProfiles',
+        'socialProfiles',
+        'socialProfiles.projectId = project.id',
+      )
+      .leftJoinAndSelect(
+        'project.socialMedia',
+        'socialMedia',
+        'socialMedia.projectId = project.id',
+      )
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
