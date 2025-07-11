@@ -122,14 +122,18 @@ export async function matchDraftDonations(
           const draftDonations =
             targetTxAddrToDraftDonationMap.get(targetAddress);
 
-          logger.debug('matchDraftDonations() draftDonations count', {
-            address: user,
-            networkId: Number(networkId),
-            draftDonationsCount: draftDonations?.length,
-            targetTxAddrToDraftDonationMap,
-            targetAddress,
-            userDraftDonationsByNetwork,
-          });
+          logger.debug(
+            'matchDraftDonations - try matching transaction with draftDonations',
+            {
+              address: user,
+              hash: transaction.hash,
+              networkId: Number(networkId),
+              draftDonationsCount: draftDonations?.length,
+              targetTxAddrToDraftDonationMap,
+              targetAddress,
+              // userDraftDonationsByNetwork,
+            },
+          );
 
           if (draftDonations) {
             // doantions with same target address
