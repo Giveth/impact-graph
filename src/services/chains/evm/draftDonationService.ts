@@ -18,8 +18,8 @@ import { DraftDonationWorker } from '../../../workers/draftDonationMatchWorker';
 import { normalizeAmount } from '../../../utils/utils';
 
 export const isAmountWithinTolerance = (
-  callData1,
-  callData2,
+  transactionInput,
+  expectedTransferCallData,
   tokenDecimals,
 ) => {
   // Define the tolerance as 0.001 tokens in terms of the full token amount
@@ -31,8 +31,12 @@ export const isAmountWithinTolerance = (
     return BigInt('0x' + amountHex);
   }
 
-  const amount1 = extractAmount(callData1);
-  const amount2 = extractAmount(callData2);
+  const amount1 = extractAmount(
+    // Take only the part will include transfer function signature and params
+    // CELO transactions historically included three additional fields compared to standard Ethereum transaction
+    transactionInput.slice(0, expectedTransferCallData.length),
+  );
+  const amount2 = extractAmount(expectedTransferCallData);
 
   // Convert BigInt amounts to string then normalize
   const normalizedAmount1 = normalizeAmount(amount1.toString(), tokenDecimals);
