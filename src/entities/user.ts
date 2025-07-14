@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Cause, ProjStatus, ReviewStatus } from './project';
+import { ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
@@ -35,6 +35,9 @@ export const publicSelectionFields = [
   'user.passportScore',
   'user.passportStamps',
   'user.isEmailVerified',
+  'user.ownedCausesCount',
+  'user.totalCausesRaised',
+  'user.totalCausesDistributed',
 ];
 
 export enum UserRole {
@@ -263,10 +266,6 @@ export class User extends BaseEntity {
     return `givethId-${this.id}`;
   }
 
-  @Field(_type => [Cause], { nullable: true })
-  @OneToMany(_type => Cause, cause => cause.adminUser)
-  ownedCauses?: Cause[];
-
   @Field(_type => Int, { nullable: true })
   @Column({ type: 'integer', default: 0 })
   ownedCausesCount: number;
@@ -278,10 +277,6 @@ export class User extends BaseEntity {
   @Field(_type => Float, { nullable: true })
   @Column({ type: 'float', default: 0 })
   totalCausesDistributed: number;
-
-  @Field(_type => Float, { nullable: true })
-  @Column({ type: 'float', default: 0 })
-  totalCausesDonated: number;
 }
 
 @ObjectType()
