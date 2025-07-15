@@ -2,6 +2,7 @@ import { User } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { logger } from '../utils/logger';
 import { findAdminUserByEmail } from '../repositories/userRepository';
+import { Project } from '../entities/project';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcrypt');
 
@@ -59,9 +60,18 @@ export const updateUserTotalReceived = async (userId: number) => {
       .addGroupBy('user.id')
       .getRawOne();
 
+    const totalCausesRaised = await Project.createQueryBuilder('project')
+      .select('COALESCE(SUM(project.totalDonations), 0)', 'totalCausesRaised')
+      .where('project.adminUserId = :userId', { userId })
+      .andWhere('project.projectType = :projectType', { projectType: 'cause' })
+      .getRawOne();
+
     await User.createQueryBuilder()
       .update(User)
-      .set({ totalReceived: totalReceived.totalReceived })
+      .set({
+        totalReceived: totalReceived.totalReceived,
+        totalCausesRaised: totalCausesRaised.totalCausesRaised,
+      })
       .where('id = :userId', { userId })
       .execute();
   } catch (e) {
