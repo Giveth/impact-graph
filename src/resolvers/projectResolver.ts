@@ -2250,10 +2250,19 @@ export class ProjectResolver {
       await getNotificationAdapter().projectDeactivated({
         project,
       });
-      await Promise.all([
-        refreshProjectPowerView(),
-        refreshProjectFuturePowerView(),
-      ]);
+
+      // Execute in background, return immediately
+      setImmediate(async () => {
+        try {
+          await Promise.all([
+            refreshProjectPowerView(),
+            refreshProjectFuturePowerView(),
+          ]);
+        } catch (error) {
+          logger.error('Background power view refresh error:', error);
+        }
+      });
+
       return true;
     } catch (error) {
       logger.error('projectResolver.deactivateProject() error', error);
@@ -2289,10 +2298,19 @@ export class ProjectResolver {
           project,
         });
       }
-      await Promise.all([
-        refreshProjectPowerView(),
-        refreshProjectFuturePowerView(),
-      ]);
+
+      // Execute in background, return immediately
+      setImmediate(async () => {
+        try {
+          await Promise.all([
+            refreshProjectPowerView(),
+            refreshProjectFuturePowerView(),
+          ]);
+        } catch (error) {
+          logger.error('Background power view refresh error:', error);
+        }
+      });
+
       return true;
     } catch (error) {
       logger.error('projectResolver.activateProject() error', error);
