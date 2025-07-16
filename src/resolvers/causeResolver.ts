@@ -48,6 +48,8 @@ import {
 } from '../utils/validators/projectValidator';
 import { Reaction } from '../entities/reaction';
 import { UpdateProjectInput } from './types/project-input';
+import { Token } from '../entities/token';
+import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 
 const DEFAULT_CAUSES_LIMIT = 20;
 const MAX_CAUSES_LIMIT = 100;
@@ -557,6 +559,33 @@ export class CauseResolver {
         error: e,
         inputData: logData,
       });
+      throw e;
+    }
+  }
+
+  @Query(_returns => [Token])
+  async getCauseAcceptTokens(
+    @Arg('causeId') causeId: number,
+    @Arg('networkId') networkId: number,
+  ): Promise<Token[]> {
+    try {
+      const organization = await Organization.createQueryBuilder('organization')
+        .innerJoin(
+          'organization.projects',
+          'project',
+          'project.id = :causeId',
+          { causeId },
+        )
+        .leftJoinAndSelect('organization.tokens', 'tokens')
+        .andWhere('tokens.networkId = :networkId', { networkId })
+        .getOne();
+
+      if (!organization) {
+        return [];
+      }
+      return sortTokensByOrderAndAlphabets(organization.tokens);
+    } catch (e) {
+      logger.error('getCauseAcceptTokens error', e);
       throw e;
     }
   }

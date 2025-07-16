@@ -1794,6 +1794,31 @@ export const getProjectsAcceptTokensQuery = `
   }
 `;
 
+export const getCauseAcceptTokensQuery = `
+  query(
+      $causeId: Float!,
+      $networkId: Float!
+  ){
+    getCauseAcceptTokens(
+     causeId: $causeId,
+     networkId: $networkId){
+      id
+      symbol
+      networkId
+      chainType
+      decimals
+      mainnetAddress
+      name
+      address
+      isGivbackEligible
+      order
+      isStableCoin
+      coingeckoId
+      isQR
+    }
+  }
+`;
+
 export const getPurpleList = `
   query{
     getPurpleList
