@@ -150,6 +150,9 @@ export class CauseResolver {
   async cause(@Arg('id') id: number): Promise<Cause | null> {
     try {
       const cause = await findCauseById(id);
+      if (cause) {
+        cause.causeProjects = await cause.loadCauseProjects();
+      }
       return cause || null;
     } catch (e) {
       SentryLogger.captureException(e);
@@ -168,6 +171,9 @@ export class CauseResolver {
         return null;
       }
       const cause = await findCauseById(causeFindId.id);
+      if (cause) {
+        cause.causeProjects = await cause.loadCauseProjects();
+      }
       return cause || null;
     } catch (e) {
       SentryLogger.captureException(e);

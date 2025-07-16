@@ -279,6 +279,7 @@ export const updateCauseQuery = `
         id
         projectId
         causeId
+        isIncluded
       }
       projects {
         id
