@@ -229,49 +229,48 @@ export class CauseResolver {
       project[field] = newProjectData[field];
     }
 
-    if (!newProjectData.categories) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-        ),
-      );
-    }
-
-    const categoriesPromise = newProjectData.categories.map(async category => {
-      const [c] = await Category.find({
-        where: {
-          name: category,
-          isActive: true,
-          canUseOnFrontend: true,
+    if (newProjectData.categories) {
+      const categoriesPromise = newProjectData.categories.map(
+        async category => {
+          const [c] = await Category.find({
+            where: {
+              name: category,
+              isActive: true,
+              canUseOnFrontend: true,
+            },
+          });
+          if (!c) {
+            throw new Error(
+              i18n.__(
+                translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+              ),
+            );
+          }
+          return c;
         },
-      });
-      if (!c) {
+      );
+
+      const categories = await Promise.all(categoriesPromise);
+      if (categories.length > 5) {
         throw new Error(
           i18n.__(
-            translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+            translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
           ),
         );
       }
-      return c;
-    });
-
-    const categories = await Promise.all(categoriesPromise);
-    if (categories.length > 5) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
-        ),
-      );
+      project.categories = categories;
     }
-    project.categories = categories;
 
     const heartCount = await Reaction.count({ where: { projectId } });
 
-    const qualityScore = getQualityScore(
-      project.description,
-      Boolean(bannerImage),
-      heartCount,
-    );
+    if (!bannerImage) {
+      const qualityScore = getQualityScore(
+        project.description,
+        Boolean(bannerImage),
+        heartCount,
+      );
+      project.qualityScore = qualityScore;
+    }
     if (newProjectData.title) {
       await validateProjectTitleForEdit(newProjectData.title, projectId);
     }
@@ -350,7 +349,6 @@ export class CauseResolver {
     project.activeProjectsCount = projects.length;
     project.slug = newSlug;
     project.activeProjectsCount = projects.length;
-    project.qualityScore = qualityScore;
     project.updatedAt = new Date();
     project.listed = null;
     project.reviewStatus = ReviewStatus.NotReviewed;
