@@ -300,21 +300,46 @@ export class CauseResolver {
       );
     }
 
-    // Delete existing cause-project relationships
-    await CauseProject.delete({ causeId: project.id });
+    // Get existing cause-project relationships
+    const existingCauseProjects = await CauseProject.find({
+      where: { causeId: project.id },
+    });
+
+    // Create a map of existing project IDs for quick lookup
+    const newProjectIds = new Set(projectIds);
+
+    // Set isIncluded to false for projects that are no longer in the array
+    for (const existingCauseProject of existingCauseProjects) {
+      if (!newProjectIds.has(existingCauseProject.projectId)) {
+        existingCauseProject.isIncluded = false;
+        await existingCauseProject.save();
+      }
+    }
 
     const causeProjects: CauseProject[] = [];
-    // Create cause-project relationships
+    // Create or update cause-project relationships
     for (const subProject of projects) {
-      const causeProject = await CauseProject.create({
-        causeId: project.id,
-        projectId: subProject.id,
-        amountReceived: 0,
-        amountReceivedUsdValue: 0,
-        causeScore: 0,
-      }).save();
+      let causeProject = existingCauseProjects.find(
+        cp => cp.projectId === subProject.id,
+      );
 
-      causeProjects.push(causeProject);
+      if (causeProject) {
+        // Update existing relationship
+        causeProject.isIncluded = true;
+        await causeProject.save();
+        causeProjects.push(causeProject);
+      } else {
+        // Create new relationship
+        causeProject = await CauseProject.create({
+          causeId: project.id,
+          projectId: subProject.id,
+          amountReceived: 0,
+          amountReceivedUsdValue: 0,
+          causeScore: 0,
+          isIncluded: true,
+        }).save();
+        causeProjects.push(causeProject);
+      }
     }
     project.activeProjectsCount = projects.length;
     project.slug = newSlug;

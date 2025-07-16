@@ -995,6 +995,10 @@ export class CauseProject extends BaseEntity {
   @Column()
   projectId: number;
 
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ default: true })
+  isIncluded: boolean;
+
   @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })
   amountReceived: number;
