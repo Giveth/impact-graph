@@ -384,6 +384,7 @@ export class CauseResolver {
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
     });
+    project.causeProjects = await project.loadCauseProjects();
 
     // Edit emails
     // await getNotificationAdapter().projectEdited({ project });
