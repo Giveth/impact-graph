@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import { ChainType } from '../../types/network';
 import { getSolanaTransactionInfoFromNetwork } from './solana/transactionService';
 import { getEvmTransactionInfoFromNetwork } from './evm/transactionService';
@@ -34,23 +33,87 @@ export interface TransactionDetailInput {
 
 export const ONE_HOUR = 60 * 60;
 
+export async function isSwapTransactionToProjectAddress(
+  networkId: number,
+  txHash: string,
+  toAddress: string,
+): Promise<boolean> {
+  try {
+    const provider = getProvider(networkId);
+    const receipt = await provider.getTransactionReceipt(txHash);
+
+    if (!receipt || !receipt.logs) {
+      logger.debug('No transaction receipt or logs found for swap validation', {
+        txHash,
+        networkId,
+      });
+      return false;
+    }
+
+    // For swap transactions, we need to check if there's a transfer event
+    // that eventually reaches the target address
+    // This is a simplified check - in practice, swap validation should use the Squid API
+    const transferEventSignature =
+      '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'; // Transfer event signature
+
+    for (const log of receipt.logs) {
+      try {
+        // Check if this is a Transfer event
+        if (
+          log.topics[0] === transferEventSignature &&
+          log.topics.length >= 3
+        ) {
+          // Extract the 'to' address from the Transfer event (topics[1] is 'from', topics[2] is 'to')
+          const transferToAddress = '0x' + log.topics[2].substring(26); // Remove padding
+
+          if (transferToAddress.toLowerCase() === toAddress.toLowerCase()) {
+            logger.debug(
+              'Found transfer to target address in swap transaction',
+              {
+                txHash,
+                toAddress,
+                transferToAddress,
+              },
+            );
+            return true;
+          }
+        }
+      } catch (error) {
+        logger.debug('Error parsing log in swap transaction validation', {
+          error: error.message,
+          log,
+        });
+        continue;
+      }
+    }
+
+    logger.debug('No transfer to target address found in swap transaction', {
+      txHash,
+      toAddress,
+    });
+    return false;
+  } catch (error) {
+    logger.error('Error validating swap transaction', {
+      error: error.message,
+      txHash,
+      networkId,
+      toAddress,
+    });
+    return false;
+  }
+}
+
 export async function validateTransactionWithInputData(
   transaction: NetworkTransactionInfo,
   input: TransactionDetailInput,
 ): Promise<void> {
   if (input.isSwap) {
-    const toAddress = await getSwapSafeReceivedAddress(
+    const isValidSwapTransaction = await isSwapTransactionToProjectAddress(
       input.networkId,
       input.txHash,
+      input.toAddress,
     );
-    if (!toAddress) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.SWAP_TRANSACTION_LOGS_SAFE_RECEIEVED_ADDRESS_NOT_FOUND,
-        ),
-      );
-    }
-    if (toAddress.toLowerCase() !== input.toAddress.toLowerCase()) {
+    if (!isValidSwapTransaction) {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.SWAP_TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
@@ -137,29 +200,3 @@ export function getAppropriateNetworkId(params: {
 export const closeTo = (a: number, b: number, delta = 0.001) => {
   return Math.abs(1 - a / b) < delta;
 };
-
-export async function getSwapSafeReceivedAddress(
-  networkId: number,
-  txHash: string,
-): Promise<string | undefined> {
-  const abi = ['event SafeReceived(address indexed sender, uint256 value)'];
-  const provider = getProvider(networkId);
-  const receipt = await provider.getTransactionReceipt(txHash);
-  const contract = new ethers.Contract(
-    '0xce16F69375520ab01377ce7B88f5BA8C48F8D666', // squid router address
-    abi,
-    provider,
-  );
-  const result: string | undefined = undefined;
-  for (const log of receipt.logs) {
-    try {
-      const parsedLog = contract.interface.parseLog(log);
-      if (parsedLog.name === 'SafeReceived') {
-        return log.address; //returns the projectAddress receiving the amount
-      }
-    } catch (error) {
-      continue;
-    }
-  }
-  return result;
-}
