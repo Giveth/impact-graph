@@ -13,6 +13,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_BOOSTED = 'Project boosted',
   PROJECT_BOOSTED_BY_PROJECT_OWNER = 'Project boosted by project owner',
   PROJECT_VERIFIED = 'Project verified',
+  PROJECT_GIVBACKS_ELIGIBLE = 'Project givbacks eligible',
   PROJECT_VERIFIED_USERS_WHO_SUPPORT = 'Project verified - Users who supported',
 
   // https://github.com/Giveth/impact-graph/issues/624#issuecomment-1240364389

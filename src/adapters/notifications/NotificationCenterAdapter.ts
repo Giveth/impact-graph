@@ -1,19 +1,14 @@
 import axios from 'axios';
 import Bull from 'bull';
-import {
-  BroadCastNotificationInputParams,
-  NotificationAdapterInterface,
-  OrttoPerson,
-  ProjectsHaveNewRankingInputParam,
-} from './NotificationAdapterInterface';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
+import config from '../../config';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import { UserStreamBalanceWarning, User } from '../../entities/user';
-import { createBasicAuthentication, isProduction } from '../../utils/utils';
-import { logger } from '../../utils/logger';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
+import { RecurringDonation } from '../../entities/recurringDonation';
+import { Token } from '../../entities/token';
+import { User, UserStreamBalanceWarning } from '../../entities/user';
 import { redisConfig } from '../../redis';
-import config from '../../config';
+import { findOrganizationById } from '../../repositories/organizationRepository';
 import { findProjectById } from '../../repositories/projectRepository';
 import {
   findAllUsers,
@@ -21,13 +16,18 @@ import {
   findUsersWhoSupportProject,
   isValidEmail,
 } from '../../repositories/userRepository';
-import { buildProjectLink } from './NotificationCenterUtils';
-import { buildTxLink } from '../../utils/networks';
-import { RecurringDonation } from '../../entities/recurringDonation';
-import { getTokenPrice } from '../../services/priceService';
-import { Token } from '../../entities/token';
 import { toFixNumber } from '../../services/donationService';
-import { findOrganizationById } from '../../repositories/organizationRepository';
+import { getTokenPrice } from '../../services/priceService';
+import { logger } from '../../utils/logger';
+import { buildTxLink } from '../../utils/networks';
+import { createBasicAuthentication, isProduction } from '../../utils/utils';
+import {
+  BroadCastNotificationInputParams,
+  NotificationAdapterInterface,
+  OrttoPerson,
+  ProjectsHaveNewRankingInputParam,
+} from './NotificationAdapterInterface';
+import { buildProjectLink } from './NotificationCenterUtils';
 
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
@@ -345,6 +345,40 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     //     '-' +
     //     donation.transactionId,
     // });
+  }
+
+  async projectGivbacksEligible(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    const projectOwner = project.adminUser as User;
+    const now = new Date();
+
+    const supporters = await findUsersWhoSupportProject(project.id);
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(user => ({
+        data: {
+          project,
+          eventName:
+            NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_USERS_WHO_SUPPORT,
+          user,
+          trackId: `project-givbacks-eligible-${
+            project.id
+          }-${user.walletAddress.toLowerCase()}-${now}`,
+        },
+      })),
+    );
+    await sendProjectRelatedNotificationsQueue.add({
+      project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_GIVBACKS_ELIGIBLE,
+      sendEmail: true,
+      segment: {
+        payload: await getEmailDataProjectAttributes({
+          project,
+        }),
+      },
+      trackId: `project-givbacks-eligible-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
+    });
   }
 
   async projectVerified(params: { project: Project }): Promise<void> {

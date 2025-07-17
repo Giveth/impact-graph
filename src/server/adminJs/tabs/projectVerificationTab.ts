@@ -1,9 +1,9 @@
 import adminJs from 'adminjs';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import {
   ActionResponse,
   After,
 } from 'adminjs/src/backend/actions/action.interface';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
@@ -14,10 +14,16 @@ import {
   ResourceActions,
 } from '../adminJsPermissions';
 
+import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
+import { Project, RevokeSteps } from '../../../entities/project';
 import {
-  AdminJsContextInterface,
-  AdminJsRequestInterface,
-} from '../adminJs-types';
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../../../repositories/projectPowerViewRepository';
+import {
+  findProjectById,
+  updateProjectWithVerificationForm,
+} from '../../../repositories/projectRepository';
 import {
   approveMultipleProjects,
   approveProject,
@@ -27,23 +33,17 @@ import {
   verifyForm,
   verifyMultipleForms,
 } from '../../../repositories/projectVerificationRepository';
+import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository';
 import {
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
-import {
-  findProjectById,
-  updateProjectWithVerificationForm,
-} from '../../../repositories/projectRepository';
-import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
 import { logger } from '../../../utils/logger';
-import { Project, RevokeSteps } from '../../../entities/project';
-import { fillSocialProfileAndQfRounds } from './projectsTab';
-import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository';
 import {
-  refreshProjectFuturePowerView,
-  refreshProjectPowerView,
-} from '../../../repositories/projectPowerViewRepository';
+  AdminJsContextInterface,
+  AdminJsRequestInterface,
+} from '../adminJs-types';
+import { fillSocialProfileAndQfRounds } from './projectsTab';
 
 const extractLastComment = (verificationForm: ProjectVerificationForm) => {
   const commentsSorted = verificationForm.commentsSection?.comments?.sort(
@@ -135,7 +135,7 @@ export const verifySingleVerificationForm = async (
 
     if (approved) {
       await updateProjectWithVerificationForm(verificationForm, project);
-      await getNotificationAdapter().projectVerified({
+      await getNotificationAdapter().projectGivbacksEligible({
         project,
       });
     } else {
@@ -297,7 +297,7 @@ export const approveVerificationForms = async (
       );
       const { project } = verificationForm;
       if (approved) {
-        await getNotificationAdapter().projectVerified({
+        await getNotificationAdapter().projectGivbacksEligible({
           project,
         });
       } else {

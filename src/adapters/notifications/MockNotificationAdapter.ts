@@ -1,14 +1,14 @@
+import { Donation } from '../../entities/donation';
+import { Project } from '../../entities/project';
+import { RecurringDonation } from '../../entities/recurringDonation';
+import { User } from '../../entities/user';
+import { logger } from '../../utils/logger';
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
   OrttoPerson,
   ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
-import { Donation } from '../../entities/donation';
-import { Project } from '../../entities/project';
-import { User } from '../../entities/user';
-import { logger } from '../../utils/logger';
-import { RecurringDonation } from '../../entities/recurringDonation';
 
 export class MockNotificationAdapter implements NotificationAdapterInterface {
   async subscribeOnboarding(params: { email: string }): Promise<boolean> {
@@ -76,6 +76,13 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
       projectSlug: params.project.slug,
       donationTxHash: params.donation.transactionId,
       donationNetworkId: params.donation.transactionNetworkId,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectGivbacksEligible(params: { project: Project }): Promise<void> {
+    logger.debug('MockNotificationAdapter projectGivbacksEligible', {
+      projectSlug: params.project.slug,
     });
     return Promise.resolve(undefined);
   }
