@@ -23,6 +23,7 @@ import { GraphQLResolveInfo } from 'graphql/type';
 import { Reaction } from '../entities/reaction';
 import {
   Cause,
+  CauseProject,
   FilterField,
   OrderField,
   Project,
@@ -2263,6 +2264,8 @@ export class ProjectResolver {
         }
       });
 
+      await CauseProject.update({ projectId }, { isIncluded: false });
+
       return true;
     } catch (error) {
       logger.error('projectResolver.deactivateProject() error', error);
@@ -2310,6 +2313,8 @@ export class ProjectResolver {
           logger.error('Background power view refresh error:', error);
         }
       });
+
+      await CauseProject.update({ projectId }, { isIncluded: true });
 
       return true;
     } catch (error) {
