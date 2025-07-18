@@ -1,6 +1,7 @@
 // @ts-check
 import path from 'path';
 import http from 'http';
+import { AddressInfo } from 'net';
 import { rateLimit } from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
 import { ApolloServer } from '@apollo/server';
@@ -301,11 +302,14 @@ export async function bootstrap() {
 
     const httpServer = http.createServer(app);
 
+    // Use a different port for tests to avoid conflicts
+    const port = process.env.NODE_ENV === 'test' ? 0 : 4000; // Port 0 means use any available port
     await new Promise<void>((resolve, reject) => {
       httpServer
-        .listen({ port: 4000 }, () => {
+        .listen({ port }, () => {
+          const actualPort = (httpServer.address() as AddressInfo).port;
           logger.debug(
-            `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
+            `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${actualPort}/graphql`,
           );
           performPostStartTasks();
           resolve(); // Resolve the Promise once the server is successfully listening
