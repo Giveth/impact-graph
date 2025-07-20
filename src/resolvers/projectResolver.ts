@@ -1504,6 +1504,7 @@ export class ProjectResolver {
       verified: false,
       giveBacks: false,
       adminUser: user,
+      projectType: 'project',
     });
 
     await project.save();

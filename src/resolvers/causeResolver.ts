@@ -577,6 +577,7 @@ export class CauseResolver {
         image: bannerImage,
         latestUpdateCreationDate: now,
         isDraft: false,
+        projectType: 'cause',
       };
 
       const cause = await createCause(causeData, user, projects);
