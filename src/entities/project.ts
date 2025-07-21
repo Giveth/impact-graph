@@ -600,9 +600,13 @@ export class Project extends BaseEntity {
 
   @BeforeUpdate()
   async updateProjectDescriptionSummary() {
+    const project = await Project.findOne({ where: { id: this.id } });
     await Project.update(
       { id: this.id },
-      { descriptionSummary: getHtmlTextSummary(this.description) },
+      {
+        descriptionSummary: getHtmlTextSummary(this.description),
+        projectType: project?.projectType?.toLowerCase() || 'project',
+      },
     );
   }
 
