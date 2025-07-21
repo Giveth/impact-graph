@@ -608,6 +608,7 @@ export class Project extends BaseEntity {
 
   @BeforeInsert()
   setProjectDescriptionSummary() {
+    this.projectType = this.projectType.toLowerCase();
     this.descriptionSummary = getHtmlTextSummary(this.description);
   }
 
