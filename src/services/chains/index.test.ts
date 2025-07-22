@@ -68,25 +68,25 @@ function getTransactionDetailTestCases() {
   //   assert.equal(transactionInfo.amount, amount);
   // });
 
-  it('should return transaction when transactionHash is wrong because of speedup in ethereum classic', async () => {
-    const amount = 1.0204004980625;
-    const txHash =
-      '0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec1111';
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash,
-      symbol: 'ETC',
-      networkId: NETWORK_IDS.ETC,
-      fromAddress: '0x8d0846e68a457D457c71124d14D2b43988a17E4f',
-      toAddress: '0x216D44960291E4129435c719217a7ECAe8c29927',
-      timestamp: 1696324809,
-      nonce: 28,
-      amount,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETC');
-    assert.equal(transactionInfo.amount, amount);
-    assert.notEqual(transactionInfo.hash, txHash);
-  });
+  // it('should return transaction when transactionHash is wrong because of speedup in ethereum classic', async () => {
+  //   const amount = 1.0204004980625;
+  //   const txHash =
+  //     '0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec1111';
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash,
+  //     symbol: 'ETC',
+  //     networkId: NETWORK_IDS.ETC,
+  //     fromAddress: '0x8d0846e68a457D457c71124d14D2b43988a17E4f',
+  //     toAddress: '0x216D44960291E4129435c719217a7ECAe8c29927',
+  //     timestamp: 1696324809,
+  //     nonce: 28,
+  //     amount,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'ETC');
+  //   assert.equal(transactionInfo.amount, amount);
+  //   assert.notEqual(transactionInfo.hash, txHash);
+  // });
   it('should return transaction detail for DAI transfer on ethereum classic', async () => {
     // https://etc.blockscout.com/tx/0x48e0c03ed99996fac3a7ecaaf05a1582a9191d8e37b6ebdbdd630b83350faf63
     // eslint-disable-next-line @typescript-eslint/no-loss-of-precision

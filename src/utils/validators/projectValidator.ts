@@ -119,7 +119,8 @@ export const validateProjectTitle = async (title: string): Promise<boolean> => {
     query: `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project`,
   });
   const projectWithThisTitle = await Project.query(
-    `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project`,
+    `SELECT title , REGEXP_MATCHES(title, $1,'i') FROM project`,
+    [regex.source],
   );
   logger.debug(
     'validateProjectTitle projectWithThisTitle',
