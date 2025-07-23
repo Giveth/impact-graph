@@ -3,19 +3,10 @@ import { Cause, CauseProject, ProjStatus } from '../../entities/project';
 import { NETWORK_IDS } from '../../provider';
 import { logger } from '../../utils/logger';
 import config from '../../config';
-import { AgentDistributionService } from '../agentDistributionService';
-
-interface DistributionServicePayload {
-  walletAddress: string;
-  causeId: number;
-  projects: Array<{
-    projectId: number;
-    name: string;
-    slug: string;
-    walletAddress: string;
-    score: number;
-  }>;
-}
+import {
+  AgentDistributionService,
+  DistributionServicePayload,
+} from '../agentDistributionService';
 
 export const runCauseDistributionJob = async (): Promise<void> => {
   try {
@@ -186,5 +177,7 @@ export const scheduleCauseDistributionJob = (): void => {
     }
   });
 
-  logger.info('Cause distribution job scheduled to run every 3 hours');
+  logger.info(
+    `Cause distribution job scheduled with expression: ${cronJobTime}`,
+  );
 };

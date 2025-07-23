@@ -6,7 +6,7 @@ interface WalletGenerationResponse {
   hdPath: string;
 }
 
-interface DistributionServicePayload {
+export interface DistributionServicePayload {
   walletAddress: string;
   causeId: number;
   projects: Array<{
@@ -24,11 +24,11 @@ export class AgentDistributionService {
 
   static async generateWallet(): Promise<WalletGenerationResponse> {
     try {
-      if (!this.AGENT_DISTRIBUTION_SERVICE_API_URL) {
+      if (!AgentDistributionService.AGENT_DISTRIBUTION_SERVICE_API_URL) {
         throw new Error('AGENT_DISTRIBUTION_SERVICE_API_URL is not set');
       }
 
-      const generateAddressUrl = `${this.AGENT_DISTRIBUTION_SERVICE_API_URL}/api/wallet/generate`;
+      const generateAddressUrl = `${AgentDistributionService.AGENT_DISTRIBUTION_SERVICE_API_URL}/api/wallet/generate`;
       logger.debug('Generating wallet via API', { url: generateAddressUrl });
 
       const response = await axios.post<WalletGenerationResponse>(
@@ -56,7 +56,8 @@ export class AgentDistributionService {
   static async callDistributionService(
     payload: DistributionServicePayload,
   ): Promise<boolean> {
-    const distributionServiceUrl = this.AGENT_DISTRIBUTION_SERVICE_API_URL;
+    const distributionServiceUrl =
+      AgentDistributionService.AGENT_DISTRIBUTION_SERVICE_API_URL;
 
     if (!distributionServiceUrl) {
       throw new Error('AGENT_DISTRIBUTION_SERVICE_API_URL is not configured');
