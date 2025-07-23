@@ -98,7 +98,7 @@ export const runCauseDistributionJob = async (): Promise<void> => {
   }
 };
 
-const getEligibleProjectsForCause = async (
+export const getEligibleProjectsForCause = async (
   causeId: number,
 ): Promise<
   Array<{
