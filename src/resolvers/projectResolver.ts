@@ -2272,7 +2272,14 @@ export class ProjectResolver {
         }
       });
 
-      await CauseProject.update({ projectId }, { isIncluded: false });
+      if (project.projectType === 'project') {
+        await CauseProject.update({ projectId }, { isIncluded: false });
+      } else if (project.projectType === 'cause') {
+        await CauseProject.update(
+          { causeId: project.id },
+          { isIncluded: false },
+        );
+      }
 
       return true;
     } catch (error) {
@@ -2322,7 +2329,14 @@ export class ProjectResolver {
         }
       });
 
-      await CauseProject.update({ projectId }, { isIncluded: true });
+      if (project.projectType === 'project') {
+        await CauseProject.update({ projectId }, { isIncluded: true });
+      } else if (project.projectType === 'cause') {
+        await CauseProject.update(
+          { causeId: project.id },
+          { isIncluded: true },
+        );
+      }
 
       return true;
     } catch (error) {
