@@ -8,6 +8,7 @@ import {
 } from 'adminjs/src/backend/actions/action.interface';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import {
+  CauseProject,
   Project,
   ProjectUpdate,
   ProjStatus,
@@ -391,11 +392,23 @@ export const updateStatusOfProjects = async (
         await changeUserBoostingsAfterProjectCancelled({
           projectId: project.id,
         });
+        await CauseProject.update(
+          { projectId: project.id },
+          { isIncluded: false },
+        );
       } else if (status === ProjStatus.active) {
         await getNotificationAdapter().projectReactivated({
           project: projectWithAdmin,
         });
+        await CauseProject.update(
+          { projectId: project.id },
+          { isIncluded: true },
+        );
       } else if (status === ProjStatus.deactive) {
+        await CauseProject.update(
+          { projectId: project.id },
+          { isIncluded: false },
+        );
         await getNotificationAdapter().projectDeactivated({
           project: projectWithAdmin,
         });
@@ -1232,6 +1245,10 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
               )
             ) {
+              await CauseProject.update(
+                { projectId: project.id },
+                { isIncluded: false },
+              );
               const verificationForm = await getVerificationFormByProjectId(
                 project.id,
               );
@@ -1247,6 +1264,17 @@ export const projectsTab = {
               statusChanges?.includes(NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED)
             ) {
               project.listed = true;
+              if (
+                project.listed =
+                  true &&
+                  project.projectType === 'project' &&
+                  project.statusId === ProjStatus.active
+              ) {
+                await CauseProject.update(
+                  { projectId: project.id },
+                  { isIncluded: true },
+                );
+              }
               await project.save();
             }
 
@@ -1273,6 +1301,10 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
               )
             ) {
+              await CauseProject.update(
+                { projectId: project.id },
+                { isIncluded: false },
+              );
               await changeUserBoostingsAfterProjectCancelled({
                 projectId: project.id,
               });
