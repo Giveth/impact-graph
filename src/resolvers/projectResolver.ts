@@ -1190,6 +1190,7 @@ export class ProjectResolver {
     project.updatedAt = new Date();
     project.listed = null;
     project.reviewStatus = ReviewStatus.NotReviewed;
+    project.title = convert(newProjectData.title);
 
     await project.save();
     await project.reload();
