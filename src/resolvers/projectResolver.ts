@@ -20,6 +20,7 @@ import graphqlFields from 'graphql-fields';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { GraphQLResolveInfo } from 'graphql/type';
+import { convert } from 'html-to-text';
 import { Reaction } from '../entities/reaction';
 import {
   FilterField,
@@ -1189,6 +1190,7 @@ export class ProjectResolver {
     project.updatedAt = new Date();
     project.listed = null;
     project.reviewStatus = ReviewStatus.NotReviewed;
+    project.title = convert(newProjectData.title);
 
     await project.save();
     await project.reload();
@@ -1472,6 +1474,7 @@ export class ProjectResolver {
 
     const project = Project.create({
       ...projectInput,
+      title: convert(projectInput.title),
       categories: categories as Category[],
       organization: organization as Organization,
       image,
