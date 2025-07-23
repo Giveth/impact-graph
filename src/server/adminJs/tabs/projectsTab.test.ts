@@ -135,7 +135,7 @@ function unverifyProjectsTestCases() {
 }
 
 function updateStatusOfProjectsTestCases() {
-  it('should delist project, when changing status of one project to cancelled', async () => {
+  it('should deList and unverified project, when changing status of one project to cancelled', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -167,11 +167,12 @@ function updateStatusOfProjectsTestCases() {
     const updatedProject = await findProjectById(project.id);
     assert.isOk(updatedProject);
     assert.equal(updatedProject?.statusId, ProjStatus.cancelled);
+    assert.isNotTrue(updatedProject?.verified);
     assert.isNotTrue(updatedProject?.listed);
     assert.notEqual(updatedProject?.reviewStatus, ReviewStatus.Listed);
   });
 
-  it('should delist project, when changing status of multi projects to cancelled', async () => {
+  it('should deList and unverified project, when changing status of multi projects to cancelled', async () => {
     const firstProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -211,12 +212,14 @@ function updateStatusOfProjectsTestCases() {
     const updatedFirstProject = await findProjectById(firstProject.id);
     assert.isOk(updatedFirstProject);
     assert.equal(updatedFirstProject?.statusId, ProjStatus.cancelled);
+    assert.isNotTrue(updatedFirstProject?.verified);
     assert.isNotTrue(updatedFirstProject?.listed);
     assert.notEqual(updatedFirstProject?.reviewStatus, ReviewStatus.Listed);
 
     const updatedSecondProject = await findProjectById(secondProject.id);
     assert.isOk(updatedSecondProject);
     assert.equal(updatedSecondProject?.statusId, ProjStatus.cancelled);
+    assert.isNotTrue(updatedSecondProject?.verified);
     assert.isNotTrue(updatedSecondProject?.listed);
     assert.notEqual(updatedSecondProject?.reviewStatus, ReviewStatus.Listed);
   });
