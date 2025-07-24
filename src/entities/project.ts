@@ -464,7 +464,7 @@ export class Project extends BaseEntity {
   // Many-to-many relationship with causes through CauseProject junction table
   @Field(_type => [CauseProject], { nullable: true })
   @OneToMany(_type => CauseProject, causeProject => causeProject.project)
-  causeProjects?: CauseProject[] = [];
+  causeProjects?: CauseProject[];
 
   @Field(_type => [Project], { nullable: true })
   async projects(): Promise<Project[] | []> {
