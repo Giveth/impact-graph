@@ -20,6 +20,7 @@ import {
   validateTransactionHash,
   CauseSortField,
   SortDirection,
+  loadCauseProjects,
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
 import { NETWORK_IDS } from '../provider';
@@ -151,7 +152,7 @@ export class CauseResolver {
     try {
       const cause = await findCauseById(id);
       if (cause) {
-        cause.causeProjects = await cause.loadCauseProjects();
+        cause.causeProjects = await loadCauseProjects(cause);
       }
       return cause || null;
     } catch (e) {
@@ -172,7 +173,7 @@ export class CauseResolver {
       }
       const cause = await findCauseById(causeFindId.id);
       if (cause) {
-        cause.causeProjects = await cause.loadCauseProjects();
+        cause.causeProjects = await loadCauseProjects(cause);
       }
       return cause || null;
     } catch (e) {
@@ -384,7 +385,7 @@ export class CauseResolver {
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
     });
-    project.causeProjects = await project.loadCauseProjects();
+    project.causeProjects = await loadCauseProjects(project);
 
     // Edit emails
     // await getNotificationAdapter().projectEdited({ project });

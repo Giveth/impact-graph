@@ -117,6 +117,7 @@ import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
 } from '../repositories/projectSocialMediaRepository';
+import { loadCauseProjects } from '../repositories/causeRepository';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -932,7 +933,7 @@ export class ProjectResolver {
     const project = await query.getOne();
 
     if (project?.projectType === 'cause') {
-      project.causeProjects = await (project as Cause).loadCauseProjects();
+      project.causeProjects = await loadCauseProjects(project as Cause);
     }
 
     canUserVisitProject(project, user?.userId);
@@ -1071,7 +1072,7 @@ export class ProjectResolver {
     canUserVisitProject(project, user?.userId);
 
     if (project?.projectType === 'cause') {
-      project.causeProjects = await (project as Cause).loadCauseProjects();
+      project.causeProjects = await loadCauseProjects(project as Cause);
     }
 
     if (fields.verificationFormStatus) {
