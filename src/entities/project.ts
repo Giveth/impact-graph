@@ -53,7 +53,6 @@ import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
-import { EstimatedClusterMatching } from './estimatedClusterMatching';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -534,33 +533,11 @@ export class Project extends BaseEntity {
       activeQfRound.id,
     );
 
-    const estimatedClusterMatching =
-      await EstimatedClusterMatching.createQueryBuilder(
-        'estimated_cluster_matching',
-      )
-        .where('estimated_cluster_matching."projectId" = :projectId', {
-          projectId: this.id,
-        })
-        .andWhere('estimated_cluster_matching."qfRoundId" = :qfRoundId', {
-          qfRoundId: activeQfRound.id,
-        })
-        .getOne();
-
-    let matching: number;
-    if (!estimatedClusterMatching) matching = 0;
-
-    if (!estimatedClusterMatching) {
-      matching = 0;
-    } else {
-      matching = estimatedClusterMatching.matching;
-    }
-
     // Facilitate migration in frontend return empty values for now
     return {
       projectDonationsSqrtRootSum: projectDonationsSqrtRootSum,
       allProjectsSum: allProjectsSum,
       matchingPool,
-      matching,
     };
   }
 
@@ -600,12 +577,10 @@ export class Project extends BaseEntity {
 
   @BeforeUpdate()
   async updateProjectDescriptionSummary() {
-    const project = await Project.findOne({ where: { id: this.id } });
     await Project.update(
       { id: this.id },
       {
         descriptionSummary: getHtmlTextSummary(this.description),
-        projectType: project?.projectType?.toLowerCase() || 'project',
       },
     );
   }
@@ -641,7 +616,11 @@ export class Project extends BaseEntity {
   totalDonated?: number;
 
   @Field(_type => [Project], { nullable: true })
-  async projects(): Promise<Project[] | null> {
+  async projects(): Promise<Project[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
     const causeProjects = await CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
@@ -681,7 +660,11 @@ export class Project extends BaseEntity {
   }
 
   @Field(_type => [CauseProject], { nullable: true })
-  async loadCauseProjects(): Promise<CauseProject[]> {
+  async loadCauseProjects(): Promise<CauseProject[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
     const causeProjects = await CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
@@ -899,7 +882,11 @@ export class Cause extends Project {
 
   // Virtual field to get projects directly
   @Field(_type => [Project], { nullable: true })
-  async projects(): Promise<Project[] | null> {
+  async projects(): Promise<Project[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
     const causeProjects = await CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
@@ -939,7 +926,11 @@ export class Cause extends Project {
   }
 
   @Field(_type => [CauseProject], { nullable: true })
-  async loadCauseProjects(): Promise<CauseProject[]> {
+  async loadCauseProjects(): Promise<CauseProject[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
     const causeProjects = await CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
