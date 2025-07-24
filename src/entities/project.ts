@@ -580,6 +580,11 @@ export class Project extends BaseEntity {
     }
   }
 
+  @Field(_type => [CauseProject], { nullable: true })
+  async loadCauseProjects(): Promise<CauseProject[] | []> {
+    return [];
+  }
+
   @BeforeUpdate()
   async updateProjectDescriptionSummary() {
     await Project.update(
@@ -816,6 +821,46 @@ export class Cause extends Project {
   @Field(_type => String, { nullable: true })
   @Column({ default: 'cause' })
   projectType: string = 'cause';
+
+  @Field(_type => [CauseProject], { nullable: true })
+  async loadCauseProjects(): Promise<CauseProject[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
+    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect(
+        'project.socialProfiles',
+        'socialProfiles',
+        'socialProfiles.projectId = project.id',
+      )
+      .leftJoinAndSelect(
+        'project.socialMedia',
+        'socialMedia',
+        'socialMedia.projectId = project.id',
+      )
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
+      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+      .leftJoin('project.adminUser', 'user')
+      .where('causeProject.causeId = :causeId', { causeId: this.id })
+      .getMany();
+    return causeProjects;
+  }
 
   // Virtual field to get projects directly
   @Field(_type => [Project], { nullable: true })
