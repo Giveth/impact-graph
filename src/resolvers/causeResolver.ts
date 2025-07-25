@@ -318,6 +318,7 @@ export class CauseResolver {
     for (const existingCauseProject of existingCauseProjects) {
       if (!newProjectIds.has(existingCauseProject.projectId)) {
         existingCauseProject.isIncluded = false;
+        existingCauseProject.userRemoved = true;
         await existingCauseProject.save();
       }
     }
@@ -332,6 +333,7 @@ export class CauseResolver {
       if (causeProject) {
         // Update existing relationship
         causeProject.isIncluded = true;
+        causeProject.userRemoved = false;
         await causeProject.save();
         causeProjects.push(causeProject);
       } else {
@@ -343,6 +345,7 @@ export class CauseResolver {
           amountReceivedUsdValue: 0,
           causeScore: 0,
           isIncluded: true,
+          userRemoved: false,
         }).save();
         causeProjects.push(causeProject);
       }
