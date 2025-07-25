@@ -672,7 +672,10 @@ export async function getProjectQfRoundStats(params: {
   const { projectId, qfRound } = params;
   const { id: qfRoundId, beginDate, endDate } = qfRound;
   const result = await Donation.createQueryBuilder('donation')
-    .select('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
+    .select(
+      'COUNT(DISTINCT donation."userId") + COUNT(*) FILTER (WHERE donation."userId" IS NULL)',
+      'uniqueDonors',
+    )
     .addSelect('COALESCE(SUM(donation.valueUsd), 0)', 'totalDonationValueUsd')
     .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
     .andWhere('donation.projectId = :projectId', { projectId })
@@ -694,7 +697,10 @@ export async function countUniqueDonorsAndSumDonationValueUsd(
 ): Promise<{ totalDonations: number; uniqueDonors: number }> {
   const result = await Donation.createQueryBuilder('donation')
     .select('COALESCE(SUM(donation.valueUsd), 0)', 'totalDonations')
-    .addSelect('COUNT(DISTINCT donation.userId)', 'uniqueDonors')
+    .addSelect(
+      'COUNT(DISTINCT donation."userId") + COUNT(*) FILTER (WHERE donation."userId" IS NULL)',
+      'uniqueDonors',
+    )
     .where('donation.projectId = :projectId', { projectId })
     .andWhere('donation.status = :status', { status: 'verified' })
     .getRawOne();
