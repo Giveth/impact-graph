@@ -1,5 +1,6 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import slugify from 'slugify';
+import { convert } from 'html-to-text';
 import {
   Cause,
   ReviewStatus,
@@ -356,6 +357,7 @@ export class CauseResolver {
     project.updatedAt = new Date();
     project.listed = null;
     project.reviewStatus = ReviewStatus.NotReviewed;
+    project.title = convert(newProjectData.title);
 
     await project.save();
     await project.reload();
@@ -549,7 +551,7 @@ export class CauseResolver {
       });
 
       const causeData = {
-        title: title.trim(),
+        title: convert(title.trim()),
         description: description.trim(),
         chainId,
         slug,
