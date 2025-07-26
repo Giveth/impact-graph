@@ -214,6 +214,7 @@
         "test:causeRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/causeRepository.test.ts",
         "test:causeProjectResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/causeProjectResolver.test.ts",
         "test:causeProjectRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/causeProjectRepository.test.ts",
+        "test:causeDistributionJob": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/causeDistributionJob.test.ts",
         "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
         "start:test": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./test.ts",
         "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",

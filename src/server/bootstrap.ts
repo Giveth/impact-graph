@@ -71,6 +71,7 @@ import { refreshProjectEstimatedMatchingView } from '../services/projectViewsSer
 import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
 import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
 import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
+import { scheduleCauseDistributionJob } from '../services/cronJobs/causeDistributionJob';
 
 Resource.validate = validate;
 
@@ -452,6 +453,9 @@ export async function bootstrap() {
     );
 
     runCheckQRTransactionJob();
+
+    // Schedule cause distribution job
+    scheduleCauseDistributionJob();
   }
 
   async function performPostStartTasks() {
