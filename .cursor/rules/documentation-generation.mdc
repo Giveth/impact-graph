@@ -1,0 +1,49 @@
+---
+description: this rule is for generating documentation
+globs: 
+alwaysApply: false
+---
+
+Your job is to provide updated Readme files for this repository for Giveth on GitHub. 
+
+Preserve any existing documentation in the README that appears up to date including mermaid state diagrams, functionality of features/integrations and overviews of type definitions and enums
+
+Documentation should follow these guidelines and general structure: 
+
+### 1. Project Overview
+
+- [ ] **Purpose**: Briefly describe what the project does and its role within the larger ecosystem.
+- [ ] **Key Features**: Highlight major functionalities.
+- [ ] **Live Links**: Provide URLs to live applications, staging environments, or dashboards.
+
+### 2. Architecture Overview
+
+- [ ] **System Diagram**: Include a high-level diagram illustrating how components interact.
+- [ ] **Tech Stack**: List primary technologies and frameworks used.
+- [ ] **Data Flow**: Explain how data moves through the system.
+
+
+### 3. Getting Started
+
+- [ ] **Prerequisites**: Detail required software, versions, and tools.
+- [ ] **Installation Steps**: Provide step-by-step instructions to set up the development environment.
+- [ ] **Configuration**: Explain how to set environment variables and other configurations.
+
+
+### 4. Usage Instructions
+
+- [ ] **Running the Application**: Commands to start the application in various modes (development, production).
+- [ ] **Testing**: Instructions on how to run tests and interpret results.
+- [ ] **Common Tasks**: Guide on performing routine tasks like database migrations or seeding data.
+
+
+### 5. Deployment Process
+
+- [ ] **Environments**: List and describe different deployment environments.
+- [ ] **Deployment Steps**: Provide a walkthrough of the deployment process.
+- [ ] **CI/CD Integration**: Explain how continuous integration and deployment are handled.
+
+### 6. Troubleshooting
+
+- [ ] **Common Issues**: List known issues and their solutions.
+- [ ] **Logs and Debugging**: Guide on accessing logs and debugging common problems.

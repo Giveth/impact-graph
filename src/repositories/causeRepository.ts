@@ -28,7 +28,7 @@ export enum SortDirection {
 }
 
 export const findCauseById = async (id: number): Promise<Cause | null> => {
-  return Cause.createQueryBuilder('cause')
+  const cause = await Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.adminUser', 'adminUser')
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
     .leftJoinAndSelect('causeProjects.project', 'project')
@@ -40,12 +40,22 @@ export const findCauseById = async (id: number): Promise<Cause | null> => {
       projectType: 'cause',
     })
     .getOne();
+
+  if (cause) {
+    // Ensure causeProjects are properly loaded with their project relations
+    cause.causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .where('causeProject.causeId = :causeId', { causeId: id })
+      .getMany();
+  }
+
+  return cause;
 };
 
 export const findCauseByCauseId = async (
   causeId: number,
 ): Promise<Cause | null> => {
-  return Cause.createQueryBuilder('cause')
+  const cause = await Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.adminUser', 'adminUser')
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
     .leftJoinAndSelect('causeProjects.project', 'project')
@@ -57,12 +67,22 @@ export const findCauseByCauseId = async (
       projectType: 'cause',
     })
     .getOne();
+
+  if (cause) {
+    // Ensure causeProjects are properly loaded with their project relations
+    cause.causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .where('causeProject.causeId = :causeId', { causeId })
+      .getMany();
+  }
+
+  return cause;
 };
 
 export const findCausesByOwnerId = async (
   ownerId: number,
 ): Promise<Cause[]> => {
-  return Cause.createQueryBuilder('cause')
+  const causes = await Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.adminUser', 'adminUser')
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
     .leftJoinAndSelect('causeProjects.project', 'project')
@@ -73,6 +93,16 @@ export const findCausesByOwnerId = async (
       projectType: 'cause',
     })
     .getMany();
+
+  // Ensure causeProjects are properly loaded for each cause
+  for (const cause of causes) {
+    cause.causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .where('causeProject.causeId = :causeId', { causeId: cause.id })
+      .getMany();
+  }
+
+  return causes;
 };
 
 export const findCausesByProjectIds = async (
@@ -87,6 +117,14 @@ export const findCausesByProjectIds = async (
     })
     .andWhere('project.id IN (:...projectIds)', { projectIds })
     .getMany();
+
+  // Ensure causeProjects are properly loaded for each cause
+  for (const cause of causes) {
+    cause.causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .where('causeProject.causeId = :causeId', { causeId: cause.id })
+      .getMany();
+  }
 
   // Deduplicate by cause.id
   const uniqueCauses = new Map<number, Cause>();
@@ -106,6 +144,9 @@ export const createCause = async (
     adminUserId: owner.id,
     projectType: 'cause',
     walletAddress: causeData.fundingPoolAddress,
+    verified: true, // Set verified to true as it's a required field
+    giveBacks: causeData.giveBacks || false, // Set giveBacks as it's also required
+    totalDonations: 0, // Set totalDonations to 0 as it's a required field
   });
 
   const savedCause = await cause.save();
