@@ -39,7 +39,7 @@
         "express-formidable": "^1.2.0",
         "express-rate-limit": "^7.1.5",
         "express-session": "^1.17.3",
-        "form-data": "^3.0.1",
+        "form-data": "^3.0.4",
         "google-spreadsheet": "^3.2.0",
         "graphql": "16.8.1",
         "graphql-fields": "^2.0.3",
