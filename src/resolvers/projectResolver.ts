@@ -1514,8 +1514,10 @@ export class ProjectResolver {
     await project.save();
 
     // bad practice: Typeorm bug with single table inheritance using class Name instead of default or set values
-    project.projectType = project.projectType.toLowerCase();
-    await project.save();
+    await Project.query(
+      `UPDATE "project" SET "projectType" = LOWER("projectType") WHERE "id" = $1`,
+      [project.id],
+    );
 
     if (projectInput.socialMedia && projectInput.socialMedia.length > 0) {
       const socialMediaEntities = projectInput.socialMedia.map(
