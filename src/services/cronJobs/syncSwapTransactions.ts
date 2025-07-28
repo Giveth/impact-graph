@@ -15,6 +15,10 @@ import { SWAP_TRANSACTION_STATUS } from '../../entities/swapTransaction';
 
 const verifySwapsQueue = new Bull('verify-swaps-queue', {
   redis: redisConfig,
+  defaultJobOptions: {
+    removeOnComplete: true,
+    removeOnFail: true,
+  },
 });
 
 const TWO_MINUTES = 1000 * 60 * 2;
