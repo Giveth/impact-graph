@@ -1,111 +1,125 @@
 import { schedule } from 'node-cron';
-import Bull from 'bull';
+import axios from 'axios';
 import config from '../../config';
-import { redisConfig } from '../../redis';
 import { logger } from '../../utils/logger';
-
-const projectEvaluationQueue = new Bull('project-evaluation-queue', {
-  redis: redisConfig,
-  defaultJobOptions: {
-    removeOnComplete: true,
-    removeOnFail: true,
-  },
-});
-
-const TWO_MINUTES = 1000 * 60 * 2;
-
-// Log queue status every 2 minutes
-setInterval(async () => {
-  const projectEvaluationQueueCount = await projectEvaluationQueue.count();
-  logger.debug(`Project evaluation job queues count:`, {
-    projectEvaluationQueueCount,
-  });
-}, TWO_MINUTES);
-
-// Number of concurrent jobs to process
-const numberOfProjectEvaluationConcurrentJob =
-  Number(config.get('NUMBER_OF_PROJECT_EVALUATION_CONCURRENT_JOB')) || 1;
+import { Cause } from '../../entities/project';
 
 // Cron expression for how often to run the evaluation
 const cronJobTime =
-  (config.get('PROJECT_EVALUATION_CRONJOB_EXPRESSION') as string) || '* * * * *'; // Every minute by default
+  (config.get('PROJECT_EVALUATION_CRONJOB_EXPRESSION') as string) ||
+  '0 */2 * * *'; // Every minute by default
+
+// Evaluation service URL
+const evaluationServiceUrl =
+  config.get('EVALUATION_SERVICE_URL') || 'https://staging.eval.ads.giveth.io';
 
 export const runProjectEvaluationCronJob = () => {
   logger.debug(
     'runProjectEvaluationCronJob() has been called, cronJobTime',
     cronJobTime,
   );
-  processProjectEvaluationJobs();
   schedule(cronJobTime, async () => {
-    await addJobToProjectEvaluation();
+    await evaluateAllCauses();
   });
 };
 
-const addJobToProjectEvaluation = async () => {
-  logger.debug('addJobToProjectEvaluation() has been called');
+export const evaluateAllCauses = async () => {
+  logger.debug('evaluateAllCauses() has been called');
 
-  // TODO: Get projects that need evaluation from database
-  // const projectsToEvaluate = await getProjectsToEvaluate();
-  // logger.debug('Projects to evaluate', projectsToEvaluate.length);
+  try {
+    // Get active causes with their projects
+    const causesData = await getActiveCausesWithProjects();
+    logger.debug('Active causes to evaluate', causesData.length);
 
-  // projectsToEvaluate.forEach(project => {
-  //   logger.debug('Add project to evaluation queue', { projectId: project.id });
-  //   projectEvaluationQueue.add(
-  //     {
-  //       projectId: project.id,
-  //     },
-  //     {
-  //       jobId: `evaluate-project-id-${project.id}`,
-  //       removeOnComplete: true,
-  //       removeOnFail: true,
-  //     },
-  //   );
-  // });
+    if (causesData.length === 0) {
+      logger.debug('No active causes found for evaluation');
+      return;
+    }
+
+    // Send evaluation request to the service
+    await sendEvaluationRequest(causesData);
+  } catch (error) {
+    logger.error('Error in evaluateAllCauses:', error);
+  }
 };
 
-function processProjectEvaluationJobs() {
-  logger.debug('processProjectEvaluationJobs() has been called');
-  projectEvaluationQueue.process(
-    numberOfProjectEvaluationConcurrentJob,
-    async (job, done) => {
-      const { projectId } = job.data;
-      logger.debug('job processing', { jobData: job.data });
-      try {
-        await evaluateProject(projectId);
-        done();
-      } catch (e) {
-        logger.error(
-          'processProjectEvaluationJobs >> evaluateProject error',
-          e,
-        );
-        done();
-      }
-    },
-  );
-}
-
-const evaluateProject = async (projectId: number) => {
+export const getActiveCausesWithProjects = async () => {
   try {
-    // TODO: Get project from database
-    // const project = await getProjectById(projectId);
-    // if (!project) {
-    //   throw new Error('Project not found');
-    // }
+    // Simple query to get active causes with their included projects
+    const causes = await Cause.createQueryBuilder('cause')
+      .leftJoinAndSelect(
+        'cause.causeProjects',
+        'causeProjects',
+        'causeProject.causeId = cause.id',
+      )
+      .where('cause.projectType = :projectType', { projectType: 'cause' })
+      .andWhere('cause.statusId = :statusId', { statusId: 5 }) // ProjStatus.active = 5
+      .andWhere('causeProject.userRemoved = :userRemoved', {
+        userRemoved: false,
+      })
+      .andWhere('causeProject.isIncluded = :isIncluded', { isIncluded: true })
+      .getMany();
 
-    // TODO: Implement project evaluation logic
-    // const evaluationResult = await performProjectEvaluation(project);
+    // Transform to the required format
+    const causesWithProjects = causes
+      .map(cause => ({
+        cause: {
+          id: cause.id,
+          title: cause.title,
+          description: cause.description || '',
+        },
+        projectIds: (cause.causeProjects || []).map(cp => cp.project.id),
+      }))
+      .filter(cause => cause.projectIds.length > 0);
 
-    // TODO: Update project with evaluation results
-    // await updateProjectEvaluation(projectId, evaluationResult);
-
-    logger.debug(`Project evaluation completed for project ${projectId}`);
+    return causesWithProjects;
   } catch (error) {
-    logger.error('Error evaluating project:', error);
+    logger.error('Error fetching active causes with projects:', error);
     throw error;
   }
 };
 
-// TODO: Add any helper functions needed for project evaluation
-// const performProjectEvaluation = async (project: any) => {
-//   // Implementation here
-// }; 
+const sendEvaluationRequest = async (causes: any[]) => {
+  try {
+    const requestBody = {
+      causes,
+    };
+
+    logger.debug('Sending evaluation request to service', {
+      url: `${evaluationServiceUrl}/evaluate/causes`,
+      causeCount: causes.length,
+      totalProjects: causes.reduce(
+        (sum, cause) => sum + cause.projectIds.length,
+        0,
+      ),
+    });
+
+    const response = await axios.post(
+      `${evaluationServiceUrl}/evaluate/causes`,
+      requestBody,
+      {
+        timeout: 30000, // 30 second timeout
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    logger.debug('Evaluation request sent successfully', {
+      status: response.status,
+      successfulCauses: response.data?.successfulCauses,
+      failedCauses: response.data?.failedCauses,
+    });
+  } catch (error: any) {
+    logger.error('Failed to send evaluation request:', {
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+
+    // Re-throw if it's a critical error that should break the process
+    if (error.response?.status >= 500) {
+      throw error;
+    }
+  }
+};
