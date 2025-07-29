@@ -14,7 +14,6 @@ export const runCauseDistributionJob = async (): Promise<void> => {
 
     // Get all active causes
     const activeCauses = await Cause.createQueryBuilder('cause')
-      .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
       .leftJoinAndSelect('causeProjects.project', 'project')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.status', 'status')
@@ -23,6 +22,10 @@ export const runCauseDistributionJob = async (): Promise<void> => {
       .getMany();
 
     logger.info(`Found ${activeCauses.length} active causes`);
+
+    activeCauses.forEach(async cause => {
+      cause.causeProjects = await cause.loadCauseProjects();
+    });
 
     let totalProcessedCauses = 0;
     let totalProcessedProjects = 0;
