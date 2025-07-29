@@ -8,6 +8,7 @@ import {
 } from 'adminjs/src/backend/actions/action.interface';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import {
+  CauseProject,
   Project,
   ProjectUpdate,
   ProjStatus,
@@ -354,7 +355,6 @@ export const updateStatusOfProjects = async (
   if (projectStatus) {
     const updateData: any = { status: projectStatus };
     if (status === ProjStatus.cancelled || status === ProjStatus.deactive) {
-      updateData.verified = false;
       updateData.listed = false;
       updateData.reviewStatus = ReviewStatus.NotListed;
     }
@@ -391,11 +391,44 @@ export const updateStatusOfProjects = async (
         await changeUserBoostingsAfterProjectCancelled({
           projectId: project.id,
         });
+        if (project.projectType === 'project') {
+          await CauseProject.update(
+            { projectId: project.id },
+            { isIncluded: false },
+          );
+        } else if (project.projectType === 'cause') {
+          await CauseProject.update(
+            { causeId: project.id },
+            { isIncluded: false },
+          );
+        }
       } else if (status === ProjStatus.active) {
         await getNotificationAdapter().projectReactivated({
           project: projectWithAdmin,
         });
+        if (project.projectType === 'project') {
+          await CauseProject.update(
+            { projectId: project.id },
+            { isIncluded: true },
+          );
+        } else if (project.projectType === 'cause') {
+          await CauseProject.update(
+            { causeId: project.id },
+            { isIncluded: true },
+          );
+        }
       } else if (status === ProjStatus.deactive) {
+        if (project.projectType === 'project') {
+          await CauseProject.update(
+            { projectId: project.id },
+            { isIncluded: false },
+          );
+        } else if (project.projectType === 'cause') {
+          await CauseProject.update(
+            { causeId: project.id },
+            { isIncluded: false },
+          );
+        }
         await getNotificationAdapter().projectDeactivated({
           project: projectWithAdmin,
         });
@@ -1232,6 +1265,12 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
               )
             ) {
+              if (project.projectType === 'project') {
+                await CauseProject.update(
+                  { projectId: project.id },
+                  { isIncluded: false },
+                );
+              }
               const verificationForm = await getVerificationFormByProjectId(
                 project.id,
               );
@@ -1273,6 +1312,17 @@ export const projectsTab = {
                 NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
               )
             ) {
+              if (project.projectType === 'project') {
+                await CauseProject.update(
+                  { projectId: project.id },
+                  { isIncluded: false },
+                );
+              } else if (project.projectType === 'cause') {
+                await CauseProject.update(
+                  { causeId: project.id },
+                  { isIncluded: false },
+                );
+              }
               await changeUserBoostingsAfterProjectCancelled({
                 projectId: project.id,
               });

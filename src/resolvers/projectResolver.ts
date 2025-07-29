@@ -20,6 +20,7 @@ import graphqlFields from 'graphql-fields';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { GraphQLResolveInfo } from 'graphql/type';
+import { convert } from 'html-to-text';
 import { Reaction } from '../entities/reaction';
 import {
   Cause,
@@ -117,6 +118,7 @@ import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
 } from '../repositories/projectSocialMediaRepository';
+import { loadCauseProjects } from '../repositories/causeRepository';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -932,7 +934,7 @@ export class ProjectResolver {
     const project = await query.getOne();
 
     if (project?.projectType === 'cause') {
-      project.causeProjects = await (project as Cause).loadCauseProjects();
+      project.causeProjects = await loadCauseProjects(project as Cause);
     }
 
     canUserVisitProject(project, user?.userId);
@@ -1071,7 +1073,7 @@ export class ProjectResolver {
     canUserVisitProject(project, user?.userId);
 
     if (project?.projectType === 'cause') {
-      project.causeProjects = await (project as Cause).loadCauseProjects();
+      project.causeProjects = await loadCauseProjects(project as Cause);
     }
 
     if (fields.verificationFormStatus) {
@@ -1204,6 +1206,7 @@ export class ProjectResolver {
     project.updatedAt = new Date();
     project.listed = null;
     project.reviewStatus = ReviewStatus.NotReviewed;
+    project.title = convert(newProjectData.title);
 
     await project.save();
     await project.reload();
@@ -1487,6 +1490,7 @@ export class ProjectResolver {
 
     const project = Project.create({
       ...projectInput,
+      title: convert(projectInput.title),
       categories: categories as Category[],
       organization: organization as Organization,
       image,
@@ -1510,8 +1514,10 @@ export class ProjectResolver {
     await project.save();
 
     // bad practice: Typeorm bug with single table inheritance using class Name instead of default or set values
-    project.projectType = project.projectType.toLowerCase();
-    await project.save();
+    await Project.query(
+      `UPDATE "project" SET "projectType" = LOWER("projectType") WHERE "id" = $1`,
+      [project.id],
+    );
 
     if (projectInput.socialMedia && projectInput.socialMedia.length > 0) {
       const socialMediaEntities = projectInput.socialMedia.map(
@@ -2269,7 +2275,14 @@ export class ProjectResolver {
         }
       });
 
-      await CauseProject.update({ projectId }, { isIncluded: false });
+      if (project.projectType === 'project') {
+        await CauseProject.update({ projectId }, { isIncluded: false });
+      } else if (project.projectType === 'cause') {
+        await CauseProject.update(
+          { causeId: project.id },
+          { isIncluded: false },
+        );
+      }
 
       return true;
     } catch (error) {
@@ -2319,7 +2332,14 @@ export class ProjectResolver {
         }
       });
 
-      await CauseProject.update({ projectId }, { isIncluded: true });
+      if (project.projectType === 'project') {
+        await CauseProject.update({ projectId }, { isIncluded: true });
+      } else if (project.projectType === 'cause') {
+        await CauseProject.update(
+          { causeId: project.id },
+          { isIncluded: true },
+        );
+      }
 
       return true;
     } catch (error) {

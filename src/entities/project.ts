@@ -53,7 +53,6 @@ import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
-import { EstimatedClusterMatching } from './estimatedClusterMatching';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -467,6 +466,11 @@ export class Project extends BaseEntity {
   @OneToMany(_type => CauseProject, causeProject => causeProject.project)
   causeProjects?: CauseProject[];
 
+  @Field(_type => [Project], { nullable: true })
+  async projects(): Promise<Project[] | []> {
+    return [];
+  }
+
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
     const maxDaysForListing = moment()
@@ -534,33 +538,11 @@ export class Project extends BaseEntity {
       activeQfRound.id,
     );
 
-    const estimatedClusterMatching =
-      await EstimatedClusterMatching.createQueryBuilder(
-        'estimated_cluster_matching',
-      )
-        .where('estimated_cluster_matching."projectId" = :projectId', {
-          projectId: this.id,
-        })
-        .andWhere('estimated_cluster_matching."qfRoundId" = :qfRoundId', {
-          qfRoundId: activeQfRound.id,
-        })
-        .getOne();
-
-    let matching: number;
-    if (!estimatedClusterMatching) matching = 0;
-
-    if (!estimatedClusterMatching) {
-      matching = 0;
-    } else {
-      matching = estimatedClusterMatching.matching;
-    }
-
     // Facilitate migration in frontend return empty values for now
     return {
       projectDonationsSqrtRootSum: projectDonationsSqrtRootSum,
       allProjectsSum: allProjectsSum,
       matchingPool,
-      matching,
     };
   }
 
@@ -598,14 +580,17 @@ export class Project extends BaseEntity {
     }
   }
 
+  @Field(_type => [CauseProject], { nullable: true })
+  async loadCauseProjects(): Promise<CauseProject[] | []> {
+    return [];
+  }
+
   @BeforeUpdate()
   async updateProjectDescriptionSummary() {
-    const project = await Project.findOne({ where: { id: this.id } });
     await Project.update(
       { id: this.id },
       {
         descriptionSummary: getHtmlTextSummary(this.description),
-        projectType: project?.projectType?.toLowerCase() || 'project',
       },
     );
   }
@@ -639,66 +624,6 @@ export class Project extends BaseEntity {
   @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0, nullable: true })
   totalDonated?: number;
-
-  @Field(_type => [Project], { nullable: true })
-  async projects(): Promise<Project[] | null> {
-    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
-      .leftJoinAndSelect('causeProject.project', 'project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect(
-        'project.socialMedia',
-        'socialMedia',
-        'socialMedia.projectId = project.id',
-      )
-      .leftJoinAndSelect(
-        'project.socialProfiles',
-        'socialProfiles',
-        'socialProfiles.projectId = project.id',
-      )
-      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-      .leftJoinAndSelect('project.projectPower', 'projectPower')
-      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
-      .leftJoinAndSelect(
-        'project.projectUpdates',
-        'projectUpdates',
-        'projectUpdates.projectId = project.id',
-      )
-      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-      .leftJoinAndSelect('project.adminUser', 'adminUser')
-      .where('causeProject.causeId = :causeId', { causeId: this.id })
-      .getMany();
-    return causeProjects.map(cp => cp.project);
-  }
-
-  @Field(_type => [CauseProject], { nullable: true })
-  async loadCauseProjects(): Promise<CauseProject[]> {
-    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
-      .leftJoinAndSelect('causeProject.project', 'project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .innerJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-      .leftJoinAndSelect('project.adminUser', 'adminUser')
-      .where('causeProject.causeId = :causeId', { causeId: this.id })
-      .getMany();
-    return causeProjects;
-  }
 
   @Field(_type => Int, { nullable: true })
   @Column({ type: 'integer', default: 0 })
@@ -897,9 +822,53 @@ export class Cause extends Project {
   @Column({ default: 'cause' })
   projectType: string = 'cause';
 
+  @Field(_type => [CauseProject], { nullable: true })
+  async loadCauseProjects(): Promise<CauseProject[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
+    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect(
+        'project.socialProfiles',
+        'socialProfiles',
+        'socialProfiles.projectId = project.id',
+      )
+      .leftJoinAndSelect(
+        'project.socialMedia',
+        'socialMedia',
+        'socialMedia.projectId = project.id',
+      )
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
+      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+      .leftJoin('project.adminUser', 'user')
+      .where('causeProject.causeId = :causeId', { causeId: this.id })
+      .getMany();
+    return causeProjects;
+  }
+
   // Virtual field to get projects directly
   @Field(_type => [Project], { nullable: true })
-  async projects(): Promise<Project[] | null> {
+  async projects(): Promise<Project[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
     const causeProjects = await CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
@@ -937,42 +906,6 @@ export class Cause extends Project {
       .getMany();
     return causeProjects.map(cp => cp.project);
   }
-
-  @Field(_type => [CauseProject], { nullable: true })
-  async loadCauseProjects(): Promise<CauseProject[]> {
-    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
-      .leftJoinAndSelect('causeProject.project', 'project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect(
-        'project.socialProfiles',
-        'socialProfiles',
-        'socialProfiles.projectId = project.id',
-      )
-      .leftJoinAndSelect(
-        'project.socialMedia',
-        'socialMedia',
-        'socialMedia.projectId = project.id',
-      )
-      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-      .leftJoinAndSelect('project.projectPower', 'projectPower')
-      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
-      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
-      .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-      .leftJoin('project.adminUser', 'user')
-      .where('causeProject.causeId = :causeId', { causeId: this.id })
-      .getMany();
-    return causeProjects;
-  }
 }
 
 @Entity()
@@ -1003,6 +936,10 @@ export class CauseProject extends BaseEntity {
   @Field(_type => Boolean, { nullable: true })
   @Column({ default: true })
   isIncluded: boolean;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ default: false })
+  userRemoved: boolean;
 
   @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0 })

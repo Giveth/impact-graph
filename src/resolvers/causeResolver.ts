@@ -1,5 +1,6 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import slugify from 'slugify';
+import { convert } from 'html-to-text';
 import {
   Cause,
   ReviewStatus,
@@ -20,6 +21,7 @@ import {
   validateTransactionHash,
   CauseSortField,
   SortDirection,
+  loadCauseProjects,
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
 import { NETWORK_IDS } from '../provider';
@@ -151,7 +153,7 @@ export class CauseResolver {
     try {
       const cause = await findCauseById(id);
       if (cause) {
-        cause.causeProjects = await cause.loadCauseProjects();
+        cause.causeProjects = await loadCauseProjects(cause);
       }
       return cause || null;
     } catch (e) {
@@ -172,7 +174,7 @@ export class CauseResolver {
       }
       const cause = await findCauseById(causeFindId.id);
       if (cause) {
-        cause.causeProjects = await cause.loadCauseProjects();
+        cause.causeProjects = await loadCauseProjects(cause);
       }
       return cause || null;
     } catch (e) {
@@ -317,6 +319,7 @@ export class CauseResolver {
     for (const existingCauseProject of existingCauseProjects) {
       if (!newProjectIds.has(existingCauseProject.projectId)) {
         existingCauseProject.isIncluded = false;
+        existingCauseProject.userRemoved = true;
         await existingCauseProject.save();
       }
     }
@@ -331,6 +334,7 @@ export class CauseResolver {
       if (causeProject) {
         // Update existing relationship
         causeProject.isIncluded = true;
+        causeProject.userRemoved = false;
         await causeProject.save();
         causeProjects.push(causeProject);
       } else {
@@ -342,6 +346,7 @@ export class CauseResolver {
           amountReceivedUsdValue: 0,
           causeScore: 0,
           isIncluded: true,
+          userRemoved: false,
         }).save();
         causeProjects.push(causeProject);
       }
@@ -352,6 +357,7 @@ export class CauseResolver {
     project.updatedAt = new Date();
     project.listed = null;
     project.reviewStatus = ReviewStatus.NotReviewed;
+    project.title = convert(newProjectData.title);
 
     await project.save();
     await project.reload();
@@ -384,7 +390,7 @@ export class CauseResolver {
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
     });
-    project.causeProjects = await project.loadCauseProjects();
+    project.causeProjects = await loadCauseProjects(project);
 
     // Edit emails
     // await getNotificationAdapter().projectEdited({ project });
@@ -545,7 +551,7 @@ export class CauseResolver {
       });
 
       const causeData = {
-        title: title.trim(),
+        title: convert(title.trim()),
         description: description.trim(),
         chainId,
         slug,
