@@ -45,32 +45,82 @@ export const evaluateAllCauses = async () => {
 
 export const getActiveCausesWithProjects = async () => {
   try {
-    // Simple query to get active causes with their included projects
-    const causes = await Cause.createQueryBuilder('cause')
-      .leftJoinAndSelect(
-        'cause.causeProjects',
-        'causeProjects',
-        'causeProject.causeId = cause.id',
-      )
-      .where('cause.projectType = :projectType', { projectType: 'cause' })
-      .andWhere('cause.statusId = :statusId', { statusId: 5 }) // ProjStatus.active = 5
-      .andWhere('causeProject.userRemoved = :userRemoved', {
-        userRemoved: false,
-      })
-      .andWhere('causeProject.isIncluded = :isIncluded', { isIncluded: true })
-      .getMany();
+    // Raw query to get active causes with their included projects and categories
+    const rawResults = await Cause.query(`
+      SELECT 
+        c.id as cause_id,
+        c.title as cause_title,
+        c.description as cause_description,
+        cp."projectId",
+        cat.name as category_name,
+        cat.value as category_description,
+        mc.title as maincategory_title,
+        mc.description as maincategory_description
+      FROM project c
+      INNER JOIN cause_project cp ON c.id = cp."causeId"
+      INNER JOIN project p ON cp."projectId" = p.id
+      LEFT JOIN project_categories_category pcc ON c.id = pcc."projectId"
+      LEFT JOIN category cat ON pcc."categoryId" = cat.id
+      LEFT JOIN main_category mc ON cat."mainCategoryId" = mc.id
+      WHERE c."projectType" = 'cause'
+        AND c."statusId" = 5
+        AND cp."userRemoved" = false
+        AND cp."isIncluded" = true
+        AND p."statusId" = 5
+        AND (cat.id IS NULL OR cat."isActive" = true)
+      ORDER BY c.id, cp."projectId", cat.id
+    `);
 
-    // Transform to the required format
-    const causesWithProjects = causes
-      .map(cause => ({
-        cause: {
-          id: cause.id,
-          title: cause.title,
-          description: cause.description || '',
-        },
-        projectIds: (cause.causeProjects || []).map(cp => cp.project.id),
-      }))
-      .filter(cause => cause.projectIds.length > 0);
+    // Group results by cause
+    const causesMap = new Map();
+
+    rawResults.forEach(row => {
+      const causeId = row.cause_id;
+
+      if (!causesMap.has(causeId)) {
+        causesMap.set(causeId, {
+          cause: {
+            id: causeId,
+            title: row.cause_title,
+            description: row.cause_description || '',
+            categories: [],
+          },
+          projectIds: [],
+        });
+      }
+
+      const causeData = causesMap.get(causeId);
+
+      // Add project ID if not already added
+      if (!causeData.projectIds.includes(row.projectId)) {
+        causeData.projectIds.push(row.projectId);
+      }
+
+      // Add category if it exists and not already added
+      if (row.category_name && row.maincategory_title) {
+        const categoryExists = causeData.cause.categories.some(
+          cat => cat.category_name === row.category_name,
+        );
+
+        if (!categoryExists) {
+          causeData.cause.categories.push({
+            category_name: row.category_name,
+            category_description: row.category_description,
+            maincategory_title: row.maincategory_title,
+            maincategory_description: row.maincategory_description,
+          });
+        }
+      }
+    });
+
+    // Convert map to array and filter out causes with no projects
+    const causesWithProjects = Array.from(causesMap.values()).filter(
+      cause => cause.projectIds.length > 0,
+    );
+
+    logger.debug('Found active causes with projects', {
+      totalCauses: causesWithProjects.length,
+    });
 
     return causesWithProjects;
   } catch (error) {
@@ -88,10 +138,6 @@ const sendEvaluationRequest = async (causes: any[]) => {
     logger.debug('Sending evaluation request to service', {
       url: `${evaluationServiceUrl}/evaluate/causes`,
       causeCount: causes.length,
-      totalProjects: causes.reduce(
-        (sum, cause) => sum + cause.projectIds.length,
-        0,
-      ),
     });
 
     const response = await axios.post(
