@@ -141,26 +141,23 @@ const sendEvaluationRequest = async (causes: any[]) => {
     });
 
     // Fire and forget - don't wait for response
-    axios.post(
-      `${evaluationServiceUrl}/evaluate/causes`,
-      requestBody,
-      {
+    axios
+      .post(`${evaluationServiceUrl}/evaluate/causes`, requestBody, {
         timeout: 30000, // 30 second timeout
         headers: {
           'Content-Type': 'application/json',
         },
-      },
-    ).catch(error => {
-      // Only log errors, don't throw
-      logger.error('Failed to send evaluation request:', {
-        error: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
+      })
+      .catch(error => {
+        // Only log errors, don't throw
+        logger.error('Failed to send evaluation request:', {
+          error: error.message,
+          status: error.response?.status,
+          data: error.response?.data,
+        });
       });
-    });
 
     logger.debug('Evaluation request sent (fire and forget)');
-
   } catch (error: any) {
     logger.error('Error preparing evaluation request:', {
       error: error.message,
