@@ -15,6 +15,7 @@ import {
 import { createCause } from '../repositories/causeRepository';
 import { Cause, CauseProject } from '../entities/project';
 import { createCauseData } from '../../test/testUtils';
+import { findCauseProjectByCauseAndProject } from '../repositories/causeProjectRepository';
 
 describe('CauseProjectResolver test cases', () => {
   let testUser: any;
@@ -57,7 +58,21 @@ describe('CauseProjectResolver test cases', () => {
   });
 
   describe('updateCauseProjectDistribution() test cases', () => {
-    it('should update cause project distribution data successfully', async () => {
+    beforeEach(async () => {
+      // Reset the cause project to initial state before each test
+      const existingCauseProject = await findCauseProjectByCauseAndProject(
+        testCause.id,
+        testProject.id,
+      );
+      if (existingCauseProject) {
+        existingCauseProject.amountReceived = 0;
+        existingCauseProject.amountReceivedUsdValue = 0;
+        existingCauseProject.causeScore = 0;
+        await existingCauseProject.save();
+      }
+    });
+
+    it('should accumulate cause project distribution data successfully', async () => {
       const variables = {
         input: {
           causeId: testCause.id,
@@ -79,6 +94,29 @@ describe('CauseProjectResolver test cases', () => {
       assert.equal(result.amountReceived, 100.5);
       assert.equal(result.amountReceivedUsdValue, 250.75);
       assert.equal(result.causeScore, 0); // Should remain unchanged
+
+      // Second update - should accumulate
+      const variables2 = {
+        input: {
+          causeId: testCause.id,
+          projectId: testProject.id,
+          amountReceived: 50.25,
+          amountReceivedUsdValue: 125.5,
+        },
+      };
+
+      const response2 = await axios.post(graphqlUrl, {
+        query: updateCauseProjectDistributionMutation,
+        variables: variables2,
+      });
+
+      const result2 = response2.data.data.updateCauseProjectDistribution;
+      assert.isOk(result2);
+      assert.equal(result2.causeId, testCause.id);
+      assert.equal(result2.projectId, testProject.id);
+      assert.equal(result2.amountReceived, 150.75); // 100.5 + 50.25
+      assert.equal(result2.amountReceivedUsdValue, 376.25); // 250.75 + 125.5
+      assert.equal(result2.causeScore, 0); // Should remain unchanged
     });
 
     it('should fail with invalid cause ID', async () => {
@@ -121,6 +159,20 @@ describe('CauseProjectResolver test cases', () => {
   });
 
   describe('updateCauseProjectEvaluation() test cases', () => {
+    beforeEach(async () => {
+      // Reset the cause project to initial state before each test
+      const existingCauseProject = await findCauseProjectByCauseAndProject(
+        testCause.id,
+        testProject.id,
+      );
+      if (existingCauseProject) {
+        existingCauseProject.amountReceived = 100.5; // Set a default amount for testing
+        existingCauseProject.amountReceivedUsdValue = 250.75; // Set a default amount for testing
+        existingCauseProject.causeScore = 0; // Reset score
+        await existingCauseProject.save();
+      }
+    });
+
     it('should update cause project evaluation data successfully', async () => {
       const variables = {
         input: {
@@ -147,6 +199,20 @@ describe('CauseProjectResolver test cases', () => {
   });
 
   describe('causeProject() test cases', () => {
+    beforeEach(async () => {
+      // Reset the cause project to initial state before each test
+      const existingCauseProject = await findCauseProjectByCauseAndProject(
+        testCause.id,
+        testProject.id,
+      );
+      if (existingCauseProject) {
+        existingCauseProject.amountReceived = 100.5; // Set a default amount for testing
+        existingCauseProject.amountReceivedUsdValue = 250.75; // Set a default amount for testing
+        existingCauseProject.causeScore = 85.5; // Set expected score
+        await existingCauseProject.save();
+      }
+    });
+
     it('should retrieve cause project data successfully', async () => {
       const variables = {
         causeId: testCause.id,
@@ -184,6 +250,20 @@ describe('CauseProjectResolver test cases', () => {
   });
 
   describe('causeProjects() test cases', () => {
+    beforeEach(async () => {
+      // Reset the cause project to initial state before each test
+      const existingCauseProject = await findCauseProjectByCauseAndProject(
+        testCause.id,
+        testProject.id,
+      );
+      if (existingCauseProject) {
+        existingCauseProject.amountReceived = 100.5; // Set a default amount for testing
+        existingCauseProject.amountReceivedUsdValue = 250.75; // Set a default amount for testing
+        existingCauseProject.causeScore = 85.5; // Set expected score
+        await existingCauseProject.save();
+      }
+    });
+
     it('should retrieve all cause projects for a cause', async () => {
       const variables = {
         causeId: testCause.id,
