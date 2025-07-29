@@ -92,10 +92,46 @@ export const updateCauseProjectDistribution = async (
     amountReceivedUsdValue,
   });
 
-  return createOrUpdateCauseProject(causeId, projectId, {
-    amountReceived,
-    amountReceivedUsdValue,
+  // Validate that cause and project exist
+  const cause = await Cause.findOne({
+    where: { id: causeId, projectType: 'cause' },
   });
+  if (!cause) {
+    throw new Error(i18n.__(translationErrorMessagesKeys.CAUSE_NOT_FOUND));
+  }
+
+  const project = await Project.findOne({
+    where: { id: projectId },
+  });
+  if (!project) {
+    throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+  }
+
+  // Find existing CauseProject record
+  let causeProject = await findCauseProjectByCauseAndProject(
+    causeId,
+    projectId,
+  );
+
+  if (causeProject) {
+    // Update existing record by accumulating amounts
+    causeProject.amountReceived =
+      (causeProject.amountReceived || 0) + amountReceived;
+    causeProject.amountReceivedUsdValue =
+      (causeProject.amountReceivedUsdValue || 0) + amountReceivedUsdValue;
+  } else {
+    // Create new record
+    causeProject = CauseProject.create({
+      causeId,
+      projectId,
+      amountReceived,
+      amountReceivedUsdValue,
+      causeScore: 0,
+    });
+  }
+
+  await causeProject.save();
+  return causeProject;
 };
 
 export const updateCauseProjectEvaluation = async (

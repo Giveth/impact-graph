@@ -212,6 +212,9 @@ const getadminJsInstance = async () => {
     resources,
     locale: {
       translations: {
+        labels: {
+          ProjectVerificationForm: 'GIVbacks Eligibility Form',
+        },
         resources: {
           Donation: {
             properties: {

@@ -20,6 +20,7 @@ import graphqlFields from 'graphql-fields';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { GraphQLResolveInfo } from 'graphql/type';
+import { convert } from 'html-to-text';
 import { Reaction } from '../entities/reaction';
 import {
   Cause,
@@ -1205,6 +1206,7 @@ export class ProjectResolver {
     project.updatedAt = new Date();
     project.listed = null;
     project.reviewStatus = ReviewStatus.NotReviewed;
+    project.title = convert(newProjectData.title);
 
     await project.save();
     await project.reload();
@@ -1488,6 +1490,7 @@ export class ProjectResolver {
 
     const project = Project.create({
       ...projectInput,
+      title: convert(projectInput.title),
       categories: categories as Category[],
       organization: organization as Organization,
       image,
@@ -1511,8 +1514,10 @@ export class ProjectResolver {
     await project.save();
 
     // bad practice: Typeorm bug with single table inheritance using class Name instead of default or set values
-    project.projectType = project.projectType.toLowerCase();
-    await project.save();
+    await Project.query(
+      `UPDATE "project" SET "projectType" = LOWER("projectType") WHERE "id" = $1`,
+      [project.id],
+    );
 
     if (projectInput.socialMedia && projectInput.socialMedia.length > 0) {
       const socialMediaEntities = projectInput.socialMedia.map(

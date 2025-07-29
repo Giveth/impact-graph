@@ -192,21 +192,51 @@ describe('causeProjectRepository test cases', () => {
   });
 
   describe('updateCauseProjectDistribution() test cases', () => {
-    it('should update distribution data successfully', async () => {
-      const causeProject = await updateCauseProjectDistribution(
+    beforeEach(async () => {
+      // Reset the cause project to initial state before each test
+      const existingCauseProject = await findCauseProjectByCauseAndProject(
+        testCause.id,
+        testProject.id,
+      );
+      if (existingCauseProject) {
+        existingCauseProject.amountReceived = 0;
+        existingCauseProject.amountReceivedUsdValue = 0;
+        existingCauseProject.causeScore = 90.0; // Set a default score for testing
+        await existingCauseProject.save();
+      }
+    });
+
+    it('should accumulate distribution data successfully', async () => {
+      // First update
+      const causeProject1 = await updateCauseProjectDistribution(
         testCause.id,
         testProject.id,
         150.0,
         375.0,
       );
 
-      assert.isOk(causeProject);
-      assert.equal(causeProject.causeId, testCause.id);
-      assert.equal(causeProject.projectId, testProject.id);
-      assert.equal(causeProject.amountReceived, 150.0);
-      assert.equal(causeProject.amountReceivedUsdValue, 375.0);
+      assert.isOk(causeProject1);
+      assert.equal(causeProject1.causeId, testCause.id);
+      assert.equal(causeProject1.projectId, testProject.id);
+      assert.equal(causeProject1.amountReceived, 150.0);
+      assert.equal(causeProject1.amountReceivedUsdValue, 375.0);
       // causeScore should remain unchanged
-      assert.equal(causeProject.causeScore, 90.0);
+      assert.equal(causeProject1.causeScore, 90.0);
+
+      // Second update - should accumulate
+      const causeProject2 = await updateCauseProjectDistribution(
+        testCause.id,
+        testProject.id,
+        50.0,
+        125.0,
+      );
+
+      assert.isOk(causeProject2);
+      assert.equal(causeProject2.causeId, testCause.id);
+      assert.equal(causeProject2.projectId, testProject.id);
+      assert.equal(causeProject2.amountReceived, 200.0); // 150 + 50
+      assert.equal(causeProject2.amountReceivedUsdValue, 500.0); // 375 + 125
+      assert.equal(causeProject2.causeScore, 90.0); // Should remain unchanged
     });
 
     it('should create new record if it does not exist', async () => {
@@ -241,6 +271,20 @@ describe('causeProjectRepository test cases', () => {
   });
 
   describe('updateCauseProjectEvaluation() test cases', () => {
+    beforeEach(async () => {
+      // Reset the cause project to initial state before each test
+      const existingCauseProject = await findCauseProjectByCauseAndProject(
+        testCause.id,
+        testProject.id,
+      );
+      if (existingCauseProject) {
+        existingCauseProject.amountReceived = 150.0; // Set a default amount for testing
+        existingCauseProject.amountReceivedUsdValue = 375.0; // Set a default amount for testing
+        existingCauseProject.causeScore = 0; // Reset score
+        await existingCauseProject.save();
+      }
+    });
+
     it('should update evaluation data successfully', async () => {
       const causeProject = await updateCauseProjectEvaluation(
         testCause.id,
@@ -328,6 +372,23 @@ describe('causeProjectRepository test cases', () => {
         assert.equal(results[1].projectId, project2.id);
         assert.equal(results[1].amountReceived, 400.0);
         assert.equal(results[1].amountReceivedUsdValue, 1000.0);
+
+        // Test accumulation by running the same updates again
+        const results2 = await bulkUpdateCauseProjectDistribution(updates);
+
+        assert.isOk(results2);
+        assert.isArray(results2);
+        assert.equal(results2.length, 2);
+
+        assert.equal(results2[0].causeId, testCause.id);
+        assert.equal(results2[0].projectId, project1.id);
+        assert.equal(results2[0].amountReceived, 600.0); // 300 + 300
+        assert.equal(results2[0].amountReceivedUsdValue, 1500.0); // 750 + 750
+
+        assert.equal(results2[1].causeId, testCause.id);
+        assert.equal(results2[1].projectId, project2.id);
+        assert.equal(results2[1].amountReceived, 800.0); // 400 + 400
+        assert.equal(results2[1].amountReceivedUsdValue, 2000.0); // 1000 + 1000
       } finally {
         // Clean up
         await CauseProject.getRepository().query(
