@@ -14,6 +14,7 @@ export const runCauseDistributionJob = async (): Promise<void> => {
 
     // Get all active causes
     const activeCauses = await Cause.createQueryBuilder('cause')
+      .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
       .leftJoinAndSelect('causeProjects.project', 'project')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.status', 'status')
