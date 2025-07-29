@@ -140,7 +140,8 @@ const sendEvaluationRequest = async (causes: any[]) => {
       causeCount: causes.length,
     });
 
-    const response = await axios.post(
+    // Fire and forget - don't wait for response
+    axios.post(
       `${evaluationServiceUrl}/evaluate/causes`,
       requestBody,
       {
@@ -149,23 +150,20 @@ const sendEvaluationRequest = async (causes: any[]) => {
           'Content-Type': 'application/json',
         },
       },
-    );
-
-    logger.debug('Evaluation request sent successfully', {
-      status: response.status,
-      successfulCauses: response.data?.successfulCauses,
-      failedCauses: response.data?.failedCauses,
+    ).catch(error => {
+      // Only log errors, don't throw
+      logger.error('Failed to send evaluation request:', {
+        error: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
     });
+
+    logger.debug('Evaluation request sent (fire and forget)');
+
   } catch (error: any) {
-    logger.error('Failed to send evaluation request:', {
+    logger.error('Error preparing evaluation request:', {
       error: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
     });
-
-    // Re-throw if it's a critical error that should break the process
-    if (error.response?.status >= 500) {
-      throw error;
-    }
   }
 };
