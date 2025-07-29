@@ -1911,8 +1911,15 @@ export class ProjectResolver {
     const { field, direction } = orderBy;
     // Convert projectType to lowercase to ensure consistent filtering
     const normalizedProjectType = projectType?.toLowerCase() || 'project';
-    let query = this.projectRepository
-      .createQueryBuilder('project')
+
+    let query;
+    if (normalizedProjectType === 'cause') {
+      query = Cause.createQueryBuilder('project');
+    } else {
+      query = Project.createQueryBuilder('project');
+    }
+
+    query = query
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
@@ -1926,6 +1933,15 @@ export class ProjectResolver {
         query,
         connectedWalletUserId,
         user,
+      );
+    }
+
+    if (normalizedProjectType === 'cause') {
+      query = query.leftJoinAndMapMany(
+        'project.causeProjects',
+        CauseProject,
+        'causeProjects',
+        'causeProjects."causeId" = project.id',
       );
     }
 
