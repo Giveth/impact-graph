@@ -71,6 +71,7 @@ import { refreshProjectEstimatedMatchingView } from '../services/projectViewsSer
 import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
 import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
 import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
+import { runProjectEvaluationCronJob } from '../services/cronJobs/projectEvaluationService';
 import { scheduleCauseDistributionJob } from '../services/cronJobs/causeDistributionJob';
 
 Resource.validate = validate;
@@ -360,6 +361,7 @@ export async function bootstrap() {
   async function initializeCronJobs() {
     logger.debug('initializeCronJobs() has been called', new Date());
     runCheckPendingDonationsCronJob();
+    runProjectEvaluationCronJob();
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
