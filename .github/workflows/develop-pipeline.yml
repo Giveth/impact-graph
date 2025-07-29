@@ -7,8 +7,9 @@ on:
   pull_request:
     branches:
       - develop
+
 jobs:
-  test:
+  setup:
     runs-on: ubuntu-latest
     services:
       # Label used to access the service container
@@ -16,7 +17,7 @@ jobs:
         # Docker Hub image
         image: redis
         # Set health checks to wait until redis has started
-        options: >-
+        options: >
           --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
@@ -31,7 +32,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: givethio
           PGDATA: /var/lib/postgresql/data/pgdata
-        options: >-
+        options: >
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
@@ -52,8 +53,116 @@ jobs:
         run: npm run build
       - name: Run migrations
         run: npm run db:migrate:run:test
+      - name: Setup test database
+        run: npm run test:setup
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
+          MAINNET_NODE_HTTP_URL: ${{ secrets.MAINNET_NODE_HTTP_URL }}
+          POLYGON_NODE_HTTP_URL: ${{ secrets.POLYGON_NODE_HTTP_URL }}
+          CELO_NODE_HTTP_URL: ${{ secrets.CELO_NODE_HTTP_URL }}
+          OPTIMISM_NODE_HTTP_URL: ${{ secrets.OPTIMISM_NODE_HTTP_URL }}
+          ARBITRUM_NODE_HTTP_URL: ${{ secrets.ARBITRUM_NODE_HTTP_URL }}
+          SOLANA_NODE_HTTP_URL: ${{ secrets.SOLANA_NODE_HTTP_URL }}
+          SOLANA_NODE_WS_URL: ${{ secrets.SOLANA_NODE_WS_URL }}
+          SOLANA_EXPLORER_API_URL: ${{ secrets.SOLANA_EXPLORER_API_URL }}
+          SOLANA_EXPLORER_API_KEY: ${{ secrets.SOLANA_EXPLORER_API_KEY }}
+          SOLANA_EXPLORER_API_SECRET: ${{ secrets.SOLANA_EXPLORER_API_SECRET }}
+          SOLANA_EXPLORER_API_PASSPHRASE: ${{ secrets.SOLANA_EXPLORER_API_PASSPHRASE }}
+          SOLANA_EXPLORER_API_ACCOUNT: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT }}
+          SOLANA_EXPLORER_API_ACCOUNT_SECRET: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT_SECRET }}
+          SOLANA_EXPLORER_API_ACCOUNT_PASSPHRASE: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT_PASSPHRASE }}
+          SOLANA_EXPLORER_API_ACCOUNT_PUBKEY: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT_PUBKEY }}
+          SOLANA_EXPLORER_API_ACCOUNT_PRIVKEY: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT_PRIVKEY }}
+          SOLANA_EXPLORER_API_ACCOUNT_MNEMONIC: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT_MNEMONIC }}
+          SOLANA_EXPLORER_API_ACCOUNT_SEED: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT_SEED }}
+          SOLANA_EXPLORER_API_ACCOUNT_DERIVATION_PATH: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT_DERIVATION_PATH }}
+          SOLANA_EXPLORER_API_ACCOUNT_DERIVATION_PATH_INDEX: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT_DERIVATION_PATH_INDEX }}
+          SOLANA_EXPLORER_API_ACCOUNT_DERIVATION_PATH_HARDENED: ${{ secrets.SOLANA_EXPLORER_API_ACCOUNT_DERIVATION_PATH_HARDENED }}
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      postgres:
+        # Use this postgres image https://github.com/Giveth/postgres-givethio
+        image: ghcr.io/giveth/postgres-givethio:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: givethio
+          PGDATA: /var/lib/postgresql/data/pgdata
+        options: >
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5443:5432
+    strategy:
+      fail-fast: false
+      matrix:
+        # Split tests into multiple parallel jobs
+        test-group: [
+          'repositories',
+          'adapters',
+          'resolvers',
+          'services',
+          'entities',
+          'server',
+          'utils',
+          'migrations'
+        ]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.11.0
+      - name: Install dependencies
+        run: npm ci
+      - name: Run build
+        run: npm run build
       - name: Run tests
-        run: npm run test
+        run: |
+          case ${{ matrix.test-group }} in
+            repositories)
+              npm run test:repositories
+              ;;
+            adapters)
+              npm run test:adapters
+              ;;
+            resolvers)
+              npm run test:resolvers
+              ;;
+            services)
+              npm run test:services
+              ;;
+            entities)
+              npm run test:entities
+              ;;
+            server)
+              npm run test:server
+              ;;
+            utils)
+              npm run test:utils
+              ;;
+            migrations)
+              npm run test:migrations
+              ;;
+          esac
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}

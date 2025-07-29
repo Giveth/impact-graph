@@ -103,7 +103,7 @@ export const getSimilarTitleInProjectsRegex = (title: string): RegExp => {
 };
 
 export const validateProjectTitle = async (title: string): Promise<boolean> => {
-  const isTitleValid = /^[a-zA-Z0-9?!@#$%^&*+=._|/<">`'-]+$/.test(
+  const isTitleValid = /^[a-zA-Z0-9?!@#$%^&*+=._|/<">`'()[\]{},-]+$/.test(
     // https://github.com/Giveth/giveth-dapps-v2/issues/1975#issuecomment-1383112084
     title.replace(/\s/g, ''),
   );
