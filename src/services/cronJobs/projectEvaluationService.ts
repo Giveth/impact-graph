@@ -58,7 +58,7 @@ export const getActiveCausesWithProjects = async () => {
         mc.description as maincategory_description
       FROM project c
       INNER JOIN cause_project cp ON c.id = cp."causeId"
-      INNER JOIN project p ON cp."projectId" = p.id and p.statusId = 5 and p.projectType = 'project' and p.verified = true
+      INNER JOIN project p ON cp."projectId" = p.id
       LEFT JOIN project_categories_category pcc ON c.id = pcc."projectId"
       LEFT JOIN category cat ON pcc."categoryId" = cat.id
       LEFT JOIN main_category mc ON cat."mainCategoryId" = mc.id

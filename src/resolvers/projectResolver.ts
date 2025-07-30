@@ -873,6 +873,8 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
     @Info() info: GraphQLResolveInfo,
+    @Arg('userRemoved', _type => Boolean, { nullable: true })
+    userRemoved?: boolean,
   ) {
     const fields = graphqlFields(info);
 
@@ -934,7 +936,10 @@ export class ProjectResolver {
     const project = await query.getOne();
 
     if (project?.projectType === 'cause') {
-      project.causeProjects = await loadCauseProjects(project as Cause);
+      project.causeProjects = await loadCauseProjects(
+        project as Cause,
+        userRemoved,
+      );
     }
 
     canUserVisitProject(project, user?.userId);
@@ -958,6 +963,8 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
     @Info() info: GraphQLResolveInfo,
+    @Arg('userRemoved', _type => Boolean, { nullable: true })
+    userRemoved?: boolean,
   ) {
     const minimalProject = await findProjectIdBySlug(slug);
     if (!minimalProject) {
@@ -1073,7 +1080,10 @@ export class ProjectResolver {
     canUserVisitProject(project, user?.userId);
 
     if (project?.projectType === 'cause') {
-      project.causeProjects = await loadCauseProjects(project as Cause);
+      project.causeProjects = await loadCauseProjects(
+        project as Cause,
+        userRemoved,
+      );
     }
 
     if (fields.verificationFormStatus) {
