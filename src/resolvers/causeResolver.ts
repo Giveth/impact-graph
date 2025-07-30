@@ -351,9 +351,10 @@ export class CauseResolver {
         causeProjects.push(causeProject);
       }
     }
-    project.activeProjectsCount = projects.length;
     project.slug = newSlug;
-    project.activeProjectsCount = projects.length;
+    project.activeProjectsCount = causeProjects.filter(
+      cp => !cp.userRemoved && cp.isIncluded,
+    ).length;
     project.updatedAt = new Date();
     project.listed = null;
     project.reviewStatus = ReviewStatus.NotReviewed;
