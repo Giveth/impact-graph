@@ -1342,7 +1342,6 @@ export const fetchLikedProjectsQuery = `
       take: $take
       skip: $skip
     ) {
-
       projects {
         id
         title
@@ -1621,7 +1620,7 @@ export const projectsBySlugsQuery = `
   `;
 
 export const projectsByUserIdQuery = `
-  query ($take: Float, $skip: Float, $userId: Int!, $projectType: String!) {
+  query ($take: Float, $skip: Float, $userId: Int!, $projectType: String) {
       projectsByUserId(take: $take, skip: $skip, userId: $userId, projectType: $projectType) {
         projects {
           id
@@ -1637,6 +1636,7 @@ export const projectsByUserIdQuery = `
           listed
           reviewStatus
           givingBlocksId
+          projectType
           qfRounds {
             name
             id
@@ -1687,6 +1687,10 @@ export const projectsByUserIdQuery = `
               }
             }
             status
+          }
+          causeProjects {
+            projectId
+            causeId
           }
           categories {
             name

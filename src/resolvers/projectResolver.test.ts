@@ -184,6 +184,11 @@ describe(
 
 describe('deleteDraftProject test cases --->', deleteDraftProjectTestCases);
 
+describe(
+  'leftJoinAndMapMany Cause test cases --->',
+  leftJoinAndMapManyCauseTestCases,
+);
+
 function projectsPerDateTestCases() {
   it('should projects created in a time range', async () => {
     await saveProjectDirectlyToDb({
@@ -5931,5 +5936,63 @@ function deleteDraftProjectTestCases() {
       result.data.errors[0].message,
       errorMessages.ONLY_DRAFTED_PROJECTS_CAN_BE_DELETED,
     );
+  });
+}
+
+function leftJoinAndMapManyCauseTestCases() {
+  it('should test leftJoinAndMapMany for Cause with causeProjects', async () => {
+    // Create a user
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    // Create a cause
+    const cause = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      adminUserId: user.id,
+      statusId: ProjStatus.active,
+      projectType: 'cause',
+    });
+
+    // Create a project
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      adminUserId: user.id,
+      statusId: ProjStatus.active,
+      projectType: 'project',
+    });
+
+    // Create CauseProject relationship
+    await CauseProject.create({
+      causeId: cause.id,
+      projectId: project.id,
+      isIncluded: true,
+      userRemoved: false,
+      amountReceived: 0,
+      amountReceivedUsdValue: 0,
+      causeScore: 0,
+    }).save();
+
+    // Test the leftJoinAndMapMany functionality by querying projects by user ID with cause type
+    const result = await axios.post(graphqlUrl, {
+      query: projectsByUserIdQuery,
+      variables: {
+        userId: user.id,
+        take: 10,
+        skip: 0,
+        projectType: 'cause',
+        connectedWalletUserId: user.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projects = result.data.data.projectsByUserId.projects;
+    assert.equal(projects.length, 1);
+    assert.equal(projects[0].id, cause.id);
+    assert.equal(projects[0].projectType, 'cause');
+
+    // Verify that causeProjects is populated through leftJoinAndMapMany
+    assert.isOk(projects[0].causeProjects);
+    assert.equal(projects[0].causeProjects.length, 1);
+    assert.equal(projects[0].causeProjects[0].projectId, project.id);
+    assert.equal(projects[0].causeProjects[0].causeId, cause.id);
   });
 }

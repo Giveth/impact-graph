@@ -1905,7 +1905,7 @@ export class ProjectResolver {
       nullable: true,
       defaultValue: 'project',
     })
-    projectType: string = 'project',
+    projectType: string,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     const { field, direction } = orderBy;
@@ -1936,15 +1936,6 @@ export class ProjectResolver {
       );
     }
 
-    if (normalizedProjectType === 'cause') {
-      query = query.leftJoinAndMapMany(
-        'project.causeProjects',
-        CauseProject,
-        'causeProjects',
-        'causeProjects."causeId" = project.id',
-      );
-    }
-
     query = query.where('project.adminUserId = :userId', { userId });
 
     // Filter by projectType
@@ -1968,6 +1959,12 @@ export class ProjectResolver {
       .take(take)
       .skip(skip)
       .getManyAndCount();
+
+    for (const project of projects) {
+      if (project.projectType === 'cause') {
+        project.causeProjects = await loadCauseProjects(project);
+      }
+    }
 
     return {
       projects,
