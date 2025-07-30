@@ -249,12 +249,13 @@ export const validateTransactionHash = async (
 
 export const loadCauseProjects = async (
   cause: Cause,
+  userRemoved: boolean | undefined = undefined,
 ): Promise<CauseProject[] | []> => {
   if (cause.projectType.toLowerCase() === 'project') {
     return [];
   }
 
-  const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+  const baseQuery = await CauseProject.createQueryBuilder('causeProject')
     .leftJoinAndSelect('causeProject.project', 'project')
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.addresses', 'addresses')
@@ -283,8 +284,15 @@ export const loadCauseProjects = async (
     .leftJoinAndSelect('project.organization', 'organization')
     .leftJoinAndSelect('project.qfRounds', 'qfRounds')
     .leftJoin('project.adminUser', 'user')
-    .where('causeProject.causeId = :causeId', { causeId: cause.id })
-    .getMany();
+    .where('causeProject.causeId = :causeId', { causeId: cause.id });
+
+  if (userRemoved !== undefined) {
+    baseQuery.andWhere('causeProject.userRemoved = :userRemoved', {
+      userRemoved,
+    });
+  }
+
+  const causeProjects = await baseQuery.getMany();
   return causeProjects;
 };
 

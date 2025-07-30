@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { In } from 'typeorm';
 import { Cause, CauseProject, Project } from '../../entities/project';
 import { getActiveCausesWithProjects } from './projectEvaluationService';
 import { MainCategory } from '../../entities/mainCategory';

@@ -6,7 +6,7 @@ import { Cause } from '../../entities/project';
 
 // Cron expression for how often to run the evaluation
 const cronJobTime =
-  (config.get('PROJECT_EVALUATION_CRONJOB_EXPRESSION') as string) ||
+  (config.get('PROJECT_EVALU`ATION_CRONJOB_EXPRESSION') as string) ||
   '10 */2 * * *'; // Every 2 hours at 10 minutes past the hour
 
 // Evaluation service URL
