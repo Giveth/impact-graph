@@ -7,7 +7,7 @@ import { Cause } from '../../entities/project';
 // Cron expression for how often to run the evaluation
 const cronJobTime =
   (config.get('PROJECT_EVALUATION_CRONJOB_EXPRESSION') as string) ||
-  '0 */2 * * *'; // Every minute by default
+  '10 */2 * * *'; // Every 2 hours at 10 minutes past the hour
 
 // Evaluation service URL
 const evaluationServiceUrl =
@@ -58,7 +58,7 @@ export const getActiveCausesWithProjects = async () => {
         mc.description as maincategory_description
       FROM project c
       INNER JOIN cause_project cp ON c.id = cp."causeId"
-      INNER JOIN project p ON cp."projectId" = p.id
+      INNER JOIN project p ON cp."projectId" = p.id and p.statusId = 5 and p.projectType = 'project' and p.verified = true
       LEFT JOIN project_categories_category pcc ON c.id = pcc."projectId"
       LEFT JOIN category cat ON pcc."categoryId" = cat.id
       LEFT JOIN main_category mc ON cat."mainCategoryId" = mc.id
