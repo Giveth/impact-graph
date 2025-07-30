@@ -1905,14 +1905,21 @@ export class ProjectResolver {
       nullable: true,
       defaultValue: 'project',
     })
-    projectType: string = 'project',
+    projectType: string,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     const { field, direction } = orderBy;
     // Convert projectType to lowercase to ensure consistent filtering
     const normalizedProjectType = projectType?.toLowerCase() || 'project';
-    let query = this.projectRepository
-      .createQueryBuilder('project')
+
+    let query;
+    if (normalizedProjectType === 'cause') {
+      query = Cause.createQueryBuilder('project');
+    } else {
+      query = Project.createQueryBuilder('project');
+    }
+
+    query = query
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
@@ -1952,6 +1959,12 @@ export class ProjectResolver {
       .take(take)
       .skip(skip)
       .getManyAndCount();
+
+    for (const project of projects) {
+      if (project.projectType === 'cause') {
+        project.causeProjects = await loadCauseProjects(project);
+      }
+    }
 
     return {
       projects,
