@@ -1,11 +1,11 @@
-import { Field, InputType, Float } from 'type-graphql';
+import { Field, InputType, Float, ObjectType } from 'type-graphql';
 
 @InputType()
 export class UpdateCauseProjectInput {
-  @Field(() => Float)
+  @Field()
   causeId: number;
 
-  @Field(() => Float)
+  @Field()
   projectId: number;
 
   @Field(() => Float, { nullable: true })
@@ -20,10 +20,10 @@ export class UpdateCauseProjectInput {
 
 @InputType()
 export class UpdateCauseProjectDistributionInput {
-  @Field(() => Float)
+  @Field()
   causeId: number;
 
-  @Field(() => Float)
+  @Field()
   projectId: number;
 
   @Field(() => Float)
@@ -35,12 +35,51 @@ export class UpdateCauseProjectDistributionInput {
 
 @InputType()
 export class UpdateCauseProjectEvaluationInput {
-  @Field(() => Float)
+  @Field()
   causeId: number;
 
-  @Field(() => Float)
+  @Field()
   projectId: number;
 
   @Field(() => Float)
   causeScore: number;
+}
+
+@InputType()
+export class FeeBreakdownInput {
+  @Field()
+  causeId: number;
+
+  @Field(() => Float)
+  causeOwnerAmount: number;
+
+  @Field(() => Float)
+  causeOwnerAmountUsdValue: number;
+
+  @Field(() => Float)
+  givgardenAmount: number;
+
+  @Field(() => Float)
+  givgardenAmountUsdValue: number;
+
+  @Field(() => Float)
+  totalAmount: number;
+
+  @Field(() => Float)
+  totalAmountUsdValue: number;
+}
+
+@InputType()
+export class CompleteDistributionUpdateInput {
+  @Field(() => [UpdateCauseProjectDistributionInput])
+  projects: UpdateCauseProjectDistributionInput[];
+
+  @Field(() => FeeBreakdownInput)
+  feeBreakdown: FeeBreakdownInput;
+}
+
+@ObjectType()
+export class CompleteDistributionUpdateResponse {
+  @Field()
+  success: boolean;
 }

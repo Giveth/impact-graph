@@ -3054,6 +3054,14 @@ export const bulkUpdateCauseProjectEvaluationMutation = `
   }
 `;
 
+export const updateCompleteDistributionMutation = `
+  mutation ($update: CompleteDistributionUpdateInput!) {
+    updateCompleteDistribution(update: $update) {
+      success
+    }
+  }
+`;
+
 export const causeProjectQuery = `
   query ($causeId: Float!, $projectId: Float!) {
     causeProject(causeId: $causeId, projectId: $projectId) {

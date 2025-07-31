@@ -15,8 +15,11 @@ import {
   UpdateCauseProjectInput,
   UpdateCauseProjectDistributionInput,
   UpdateCauseProjectEvaluationInput,
+  CompleteDistributionUpdateInput,
+  CompleteDistributionUpdateResponse,
 } from './types/causeProject-input';
 import { createOrUpdateCauseProject } from '../repositories/causeProjectRepository';
+import { Cause } from '../entities/project';
 
 @Resolver(_of => CauseProject)
 export class CauseProjectResolver {
@@ -223,6 +226,59 @@ export class CauseProjectResolver {
       logger.error('bulkUpdateCauseProjectEvaluation() error', {
         error: e,
         updateCount: updates.length,
+      });
+      throw e;
+    }
+  }
+
+  @Mutation(() => CompleteDistributionUpdateResponse)
+  async updateCompleteDistribution(
+    @Arg('update') update: CompleteDistributionUpdateInput,
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<CompleteDistributionUpdateResponse> {
+    try {
+      logger.info('updateCompleteDistribution() called', {
+        update,
+        userId: user?.userId,
+      });
+
+      const { projects, feeBreakdown } = update;
+
+      // Update all projects
+      const updatedProjects =
+        await bulkUpdateCauseProjectDistribution(projects);
+
+      // Update cause's totalDistributed using the total amount from fee breakdown
+      const cause = await Cause.findOne({
+        where: { id: feeBreakdown.causeId, projectType: 'cause' },
+      });
+
+      if (!cause) {
+        throw new Error('Cause not found');
+      }
+
+      // Update cause's totalDistributed with the total amount from fee breakdown
+      const currentTotalDistributed = cause.totalDistributed || 0;
+      const newTotalDistributed =
+        currentTotalDistributed + feeBreakdown.totalAmount;
+
+      await Cause.update(
+        { id: feeBreakdown.causeId },
+        { totalDistributed: newTotalDistributed },
+      );
+
+      logger.info('Complete distribution update successful', {
+        projectCount: updatedProjects.length,
+        causeId: feeBreakdown.causeId,
+        totalAmount: feeBreakdown.totalAmount,
+      });
+
+      return { success: true };
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('updateCompleteDistribution() error', {
+        error: e,
+        update,
       });
       throw e;
     }
