@@ -80,7 +80,7 @@ export class AgentDistributionService {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 60000, // 60 second timeout
+        timeout: 200000, // 200 second timeout
       });
 
       logger.info('Distribution service call successful', {
