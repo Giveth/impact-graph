@@ -5,6 +5,7 @@ import {
   updateCauseProjectEvaluationMutation,
   causeProjectQuery,
   causeProjectsQuery,
+  updateCompleteDistributionMutation,
 } from '../../test/graphqlQueries';
 import { graphqlUrl } from '../../test/testUtils';
 import {
@@ -195,6 +196,62 @@ describe('CauseProjectResolver test cases', () => {
       // Previous distribution data should remain
       assert.equal(result.amountReceived, 100.5);
       assert.equal(result.amountReceivedUsdValue, 250.75);
+    });
+  });
+
+  describe('updateCompleteDistribution() test cases', () => {
+    beforeEach(async () => {
+      // Reset the cause project to initial state before each test
+      const existingCauseProject = await findCauseProjectByCauseAndProject(
+        testCause.id,
+        testProject.id,
+      );
+      if (existingCauseProject) {
+        existingCauseProject.amountReceived = 0;
+        existingCauseProject.amountReceivedUsdValue = 0;
+        existingCauseProject.causeScore = 0;
+        await existingCauseProject.save();
+      }
+    });
+
+    it('should update complete distribution successfully', async () => {
+      const variables = {
+        update: {
+          projects: [
+            {
+              causeId: testCause.id,
+              projectId: testProject.id,
+              amountReceived: 100.0,
+              amountReceivedUsdValue: 250.0,
+            },
+          ],
+          feeBreakdown: {
+            causeId: testCause.id,
+            causeOwnerAmount: 80.0,
+            causeOwnerAmountUsdValue: 200.0,
+            givgardenAmount: 20.0,
+            givgardenAmountUsdValue: 50.0,
+            totalAmount: 100.0,
+            totalAmountUsdValue: 250.0,
+          },
+        },
+      };
+
+      const response = await axios.post(graphqlUrl, {
+        query: updateCompleteDistributionMutation,
+        variables,
+      });
+
+      const result = response.data.data.updateCompleteDistribution;
+      assert.isOk(result);
+      assert.equal(result.success, true);
+
+      // Verify cause's totalDistributed was updated
+      const updatedCause = await Cause.findOne({
+        where: { id: testCause.id },
+      });
+      assert.isOk(updatedCause);
+      assert.equal(updatedCause?.totalDistributed, 100.0);
     });
   });
 

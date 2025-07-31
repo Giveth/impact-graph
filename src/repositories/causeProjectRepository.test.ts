@@ -268,37 +268,6 @@ describe('causeProjectRepository test cases', () => {
         await deleteProjectDirectlyFromDb(newProject.id);
       }
     });
-
-    it('should update cause totalDistributed when distribution is updated', async () => {
-      // Get initial cause state
-      const initialCause = await Cause.findOne({
-        where: { id: testCause.id },
-      });
-      const initialTotalDistributed = initialCause?.totalDistributed || 0;
-
-      // Update distribution
-      const causeProject = await updateCauseProjectDistribution(
-        testCause.id,
-        testProject.id,
-        250.0,
-        625.0,
-      );
-
-      // Verify cause project was updated
-      assert.isOk(causeProject);
-      assert.equal(causeProject.amountReceived, 250.0);
-      assert.equal(causeProject.amountReceivedUsdValue, 625.0);
-
-      // Verify cause's totalDistributed was updated
-      const updatedCause = await Cause.findOne({
-        where: { id: testCause.id },
-      });
-      assert.isOk(updatedCause);
-      assert.equal(
-        updatedCause?.totalDistributed,
-        initialTotalDistributed + 250.0,
-      );
-    });
   });
 
   describe('updateCauseProjectEvaluation() test cases', () => {

@@ -132,15 +132,6 @@ export const updateCauseProjectDistribution = async (
 
   await causeProject.save();
 
-  // Update cause's totalDistributed by adding the new amounts
-  const currentTotalDistributed = cause.totalDistributed || 0;
-  const newTotalDistributed = currentTotalDistributed + amountReceived;
-
-  await Cause.update(
-    { id: causeId },
-    { totalDistributed: newTotalDistributed },
-  );
-
   return causeProject;
 };
 
@@ -169,7 +160,6 @@ export const bulkUpdateCauseProjectDistribution = async (
   }>,
 ): Promise<CauseProject[]> => {
   const results: CauseProject[] = [];
-  const causeUpdates = new Map<number, number>(); // causeId -> total amount to add
 
   for (const update of updates) {
     const result = await updateCauseProjectDistribution(
@@ -179,27 +169,6 @@ export const bulkUpdateCauseProjectDistribution = async (
       update.amountReceivedUsdValue,
     );
     results.push(result);
-
-    // Track total amount to add for each cause
-    const currentAmount = causeUpdates.get(update.causeId) || 0;
-    causeUpdates.set(update.causeId, currentAmount + update.amountReceived);
-  }
-
-  // Update totalDistributed for all affected causes
-  for (const [causeId, amountToAdd] of causeUpdates) {
-    const cause = await Cause.findOne({
-      where: { id: causeId, projectType: 'cause' },
-    });
-
-    if (cause) {
-      const currentTotalDistributed = cause.totalDistributed || 0;
-      const newTotalDistributed = currentTotalDistributed + amountToAdd;
-
-      await Cause.update(
-        { id: causeId },
-        { totalDistributed: newTotalDistributed },
-      );
-    }
   }
 
   return results;
