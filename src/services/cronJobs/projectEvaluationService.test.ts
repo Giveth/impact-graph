@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import sinon from 'sinon';
 import { Cause, CauseProject, Project } from '../../entities/project';
 import { getActiveCausesWithProjects } from './projectEvaluationService';
 import { MainCategory } from '../../entities/mainCategory';
@@ -39,6 +40,10 @@ describe('projectEvaluationService', () => {
   });
 
   beforeEach(async () => {
+    // Stub the checkBalance function to return "10" for all addresses
+    const projectEvaluationService = await import('./projectEvaluationService');
+    sinon.stub(projectEvaluationService, 'checkBalance').resolves('10');
+
     // Create test user
     user = await saveUserDirectlyToDb(`0x123${Date.now()}`);
 
@@ -139,6 +144,9 @@ describe('projectEvaluationService', () => {
   });
 
   afterEach(async () => {
+    // Restore sinon stubs
+    sinon.restore();
+
     // Clean up test data
     // Delete cause-project relationships
     await CauseProject.getRepository().query(
