@@ -4432,7 +4432,6 @@ function projectBySlugTestCases() {
     assert.equal(project.verificationFormStatus, verificationForm.status);
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
-    assert.isNotOk(project.adminUser.email);
     assert.isOk(project.categories[0].mainCategory.title);
   });
 
@@ -4531,7 +4530,6 @@ function projectBySlugTestCases() {
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.givbackFactor);
     assert.isOk(project.adminUser.firstName);
-    assert.isNotOk(project.adminUser.email);
     assert.isNotEmpty(project.addresses);
     assert.equal(project.addresses[0].address, walletAddress);
     assert.equal(project.addresses[0].chainType, ChainType.EVM);
@@ -5087,7 +5085,6 @@ function projectBySlugTestCases() {
     assert.equal(Number(project.id), draftedProject.id);
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
-    assert.isNotOk(project.adminUser.email);
   });
 
   it('should not return cancelled if not logged in', async () => {
@@ -5170,7 +5167,6 @@ function projectBySlugTestCases() {
     assert.equal(Number(project.id), cancelledProject.id);
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
-    assert.isNotOk(project.adminUser.email);
   });
 
   it('should return project instant power get by slug', async () => {

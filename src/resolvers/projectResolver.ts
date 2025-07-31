@@ -1061,7 +1061,7 @@ export class ProjectResolver {
         adminUserFields.includes(field),
       );
       query = query
-        .leftJoin('project.adminUser', 'user')
+        .leftJoinAndSelect('project.adminUser', 'user')
         .addSelect(
           filterByPublicFields.length > 0
             ? filterByPublicFields
