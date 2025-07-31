@@ -2,6 +2,12 @@ import axios from 'axios';
 import { logger } from '../utils/logger';
 
 interface WalletGenerationResponse {
+  success: boolean;
+  data: WalletGenerationData;
+  message: string;
+}
+
+interface WalletGenerationData {
   address: string;
   hdPath: string;
 }
@@ -22,7 +28,7 @@ export class AgentDistributionService {
   private static readonly AGENT_DISTRIBUTION_SERVICE_API_URL =
     process.env.AGENT_DISTRIBUTION_SERVICE_API_URL;
 
-  static async generateWallet(): Promise<WalletGenerationResponse> {
+  static async generateWallet(): Promise<WalletGenerationData> {
     try {
       if (!AgentDistributionService.AGENT_DISTRIBUTION_SERVICE_API_URL) {
         throw new Error('AGENT_DISTRIBUTION_SERVICE_API_URL is not set');
@@ -42,11 +48,14 @@ export class AgentDistributionService {
         },
       );
 
-      logger.debug('Wallet generated successfully', {
-        address: response.data.address,
-      });
-
-      return response.data;
+      if (response.data.success) {
+        logger.debug('Wallet generated successfully', {
+          address: response.data.data.address,
+        });
+        return response.data.data;
+      } else {
+        throw new Error(response.data.message);
+      }
     } catch (error) {
       logger.error('Failed to generate wallet', { error });
       throw new Error('Failed to generate funding pool address');
