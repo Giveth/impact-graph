@@ -4,7 +4,7 @@ import {
   ProjStatus,
   CauseProject,
 } from '../entities/project';
-import { User } from '../entities/user';
+import { User, publicSelectionFields } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { ChainType } from '../types/network';
@@ -284,6 +284,7 @@ export const loadCauseProjects = async (
     .leftJoinAndSelect('project.organization', 'organization')
     .leftJoinAndSelect('project.qfRounds', 'qfRounds')
     .leftJoin('project.adminUser', 'user')
+    .addSelect(publicSelectionFields)
     .where('causeProject.causeId = :causeId', { causeId: cause.id });
 
   if (userRemoved !== undefined) {
