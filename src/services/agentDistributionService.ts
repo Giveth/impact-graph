@@ -16,6 +16,7 @@ export interface DistributionServicePayload {
     walletAddress: string;
     score: number;
   }>;
+  causeOwnerAddress: string;
 }
 
 export class AgentDistributionService {

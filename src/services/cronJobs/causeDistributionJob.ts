@@ -18,6 +18,7 @@ export const runCauseDistributionJob = async (): Promise<void> => {
       .leftJoinAndSelect('causeProjects.project', 'project')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('cause.adminUser', 'user')
       .where('cause.projectType = :projectType', { projectType: 'cause' })
       .andWhere('cause.statusId = :statusId', { statusId: ProjStatus.active })
       .getMany();
@@ -52,6 +53,7 @@ export const runCauseDistributionJob = async (): Promise<void> => {
         walletAddress: cause.walletAddress,
         causeId: cause.id,
         projects: eligibleProjects,
+        causeOwnerAddress: cause.adminUser?.walletAddress || '',
       };
 
       // Call the distribution service endpoint for this cause
