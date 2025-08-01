@@ -1425,6 +1425,12 @@ function createProjectTestCases() {
       sampleProject.description,
     );
   });
+
+  it('should have default owner earnings values for new cause project', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    assert.equal(project.ownerTotalEarned, 0);
+    assert.equal(project.ownerTotalEarnedUsdValue, 0);
+  });
 }
 
 function updateProjectTestCases() {

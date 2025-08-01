@@ -608,6 +608,12 @@ function userByAddressTestCases() {
     });
     assert.equal(result.data.data.userByAddress.donationsCount, 1);
   });
+
+  it('should have default cause earnings values for new users', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    assert.equal(user.causesTotalEarned, 0);
+    assert.equal(user.causesTotalEarnedUsdValue, 0);
+  });
 }
 
 function updateUserTestCases() {

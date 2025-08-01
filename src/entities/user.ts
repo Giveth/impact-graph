@@ -277,6 +277,14 @@ export class User extends BaseEntity {
   @Field(_type => Float, { nullable: true })
   @Column({ type: 'float', default: 0 })
   totalCausesDistributed: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', default: 0 })
+  causesTotalEarned: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', default: 0 })
+  causesTotalEarnedUsdValue: number;
 }
 
 @ObjectType()

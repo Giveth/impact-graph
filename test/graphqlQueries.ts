@@ -1447,6 +1447,8 @@ export const userByAddress = `
       projectsCount
       passportScore
       passportStamps
+      causesTotalEarned
+      causesTotalEarnedUsdValue
     }
   }
 `;
@@ -1778,6 +1780,8 @@ export const projectByIdQuery = `
         id
         walletAddress
       }
+      ownerTotalEarned
+      ownerTotalEarnedUsdValue
     }
   }
 `;
