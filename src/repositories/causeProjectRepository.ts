@@ -134,9 +134,9 @@ export const updateCauseProjectDistribution = async (
 
   // Update project ownerTotalEarned and ownerTotalEarnedUsdValue inside project table
   await Project.update(projectId, {
-    ownerTotalEarned: cause.ownerTotalEarned || 0 + amountReceived,
+    ownerTotalEarned: (cause.ownerTotalEarned || 0) + amountReceived,
     ownerTotalEarnedUsdValue:
-      cause.ownerTotalEarnedUsdValue || 0 + amountReceivedUsdValue,
+      (cause.ownerTotalEarnedUsdValue || 0) + amountReceivedUsdValue,
   });
 
   return causeProject;
