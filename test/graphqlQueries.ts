@@ -1778,6 +1778,8 @@ export const projectByIdQuery = `
         id
         walletAddress
       }
+      ownerTotalEarned
+      ownerTotalEarnedUsdValue
     }
   }
 `;

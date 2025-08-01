@@ -628,6 +628,14 @@ export class Project extends BaseEntity {
   @Field(_type => Int, { nullable: true })
   @Column({ type: 'integer', default: 0 })
   activeProjectsCount?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  ownerTotalEarned?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  ownerTotalEarnedUsdValue?: number;
 }
 
 @Entity()

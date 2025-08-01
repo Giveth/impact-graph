@@ -132,6 +132,13 @@ export const updateCauseProjectDistribution = async (
 
   await causeProject.save();
 
+  // Update project ownerTotalEarned and ownerTotalEarnedUsdValue inside project table
+  await Project.update(projectId, {
+    ownerTotalEarned: cause.ownerTotalEarned || 0 + amountReceived,
+    ownerTotalEarnedUsdValue:
+      cause.ownerTotalEarnedUsdValue || 0 + amountReceivedUsdValue,
+  });
+
   return causeProject;
 };
 
