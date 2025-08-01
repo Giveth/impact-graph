@@ -5,6 +5,7 @@ import config from '../../config';
 import { logger } from '../../utils/logger';
 import { Cause } from '../../entities/project';
 import { erc20ABI } from '../../assets/erc20ABI';
+import { getProvider } from '../../provider';
 
 const tpolTokenAddress = '0xc7B1807822160a8C5b6c9EaF5C584aAD0972deeC'; // GIV token address for production
 const givTokenAddress = '0xc20CAf8deE81059ec0c8E5971b2AF7347eC131f4'; // TPOL token address for staging
@@ -119,8 +120,7 @@ export const getActiveCausesWithProjects = async () => {
     `);
 
     // Get provider for balance checking
-    const { getProvider } = await import('../../provider');
-    const provider = getProvider(137); // Polygon network
+    const provider = await getProvider(137); // Polygon network
 
     // Group results by cause and check balances
     const causesMap = new Map();
@@ -150,7 +150,7 @@ export const getActiveCausesWithProjects = async () => {
           const balanceNumber = parseFloat(balance);
 
           // Only add project if balance > 0
-          if (balanceNumber > 0) {
+          if (balanceNumber > 0.1) {
             causeData.projectIds.push(row.projectId);
           }
         } catch (error) {
