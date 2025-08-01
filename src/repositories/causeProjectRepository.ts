@@ -145,11 +145,13 @@ export const updateCauseProjectDistribution = async (
     where: { id: cause.adminUserId },
   });
 
-  await User.update(cause.adminUserId, {
-    causesTotalEarned: (user.causesTotalEarned || 0) + amountReceived,
-    causesTotalEarnedUsdValue:
-      (user.causesTotalEarnedUsdValue || 0) + amountReceivedUsdValue,
-  });
+  if (user) {
+    await User.update(cause.adminUserId, {
+      causesTotalEarned: (user.causesTotalEarned || 0) + amountReceived,
+      causesTotalEarnedUsdValue:
+        (user.causesTotalEarnedUsdValue || 0) + amountReceivedUsdValue,
+    });
+  }
 
   return causeProject;
 };

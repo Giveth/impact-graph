@@ -1447,6 +1447,8 @@ export const userByAddress = `
       projectsCount
       passportScore
       passportStamps
+      causesTotalEarned
+      causesTotalEarnedUsdValue
     }
   }
 `;
