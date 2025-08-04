@@ -251,7 +251,7 @@ export class CauseProjectResolver {
       // Update cause's totalDistributed using the total amount from fee breakdown
       const cause = await Cause.findOne({
         where: { id: feeBreakdown.causeId, projectType: 'cause' },
-        relations: ['user'],
+        relations: ['adminUser'],
       });
 
       if (!cause) {
