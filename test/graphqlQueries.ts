@@ -2758,6 +2758,7 @@ export const getLastSitemapUrlQuery = `
         sitemapProjectsURL
         sitemapUsersURL
         sitemapQFRoundsURL
+        sitemapCausesURL
       }
     }
   }
