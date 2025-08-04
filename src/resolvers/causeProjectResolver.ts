@@ -20,6 +20,7 @@ import {
 } from './types/causeProject-input';
 import { createOrUpdateCauseProject } from '../repositories/causeProjectRepository';
 import { Cause } from '../entities/project';
+import { User } from '../entities/user';
 
 @Resolver(_of => CauseProject)
 export class CauseProjectResolver {
@@ -270,6 +271,18 @@ export class CauseProjectResolver {
           `COALESCE("ownerTotalEarned", 0) + ${feeBreakdown.causeOwnerAmount}`;
         updateData.ownerTotalEarnedUsdValue = () =>
           `COALESCE("ownerTotalEarnedUsdValue", 0) + ${feeBreakdown.causeOwnerAmountUsdValue}`;
+
+        // Update user's totalCausesDistributed and causesTotalEarned with atomic database updates
+        const userUpdateData: any = {
+          totalCausesDistributed: () =>
+            `COALESCE("totalCausesDistributed", 0) + ${feeBreakdown.totalAmount}`,
+          causesTotalEarned: () =>
+            `COALESCE("causesTotalEarned", 0) + ${feeBreakdown.causeOwnerAmount}`,
+          causesTotalEarnedUsdValue: () =>
+            `COALESCE("causesTotalEarnedUsdValue", 0) + ${feeBreakdown.causeOwnerAmountUsdValue}`,
+        };
+
+        await User.update({ id: cause.adminUser.id }, userUpdateData);
 
         logger.info('Cause owner total earned updated successfully', {
           causeId: feeBreakdown.causeId,
