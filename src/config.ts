@@ -56,6 +56,7 @@ const envVars = [
   'GIVBACK_MAX_FACTOR',
   'GIVBACK_MIN_FACTOR',
   'DONATION_VERIFICAITON_EXPIRATION_HOURS',
+  'CAUSE_PROJECT_IP_WHITELIST',
 ];
 
 interface requiredEnv {
@@ -94,6 +95,7 @@ interface requiredEnv {
   GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT: string;
   GIVPOWER_BOOSTING_PERCENTAGE_PRECISION: string;
   GIVPOWER_ROUND_DURATION: string;
+  CAUSE_PROJECT_IP_WHITELIST: string; // Comma separated IP addresses
 }
 
 class Config {
