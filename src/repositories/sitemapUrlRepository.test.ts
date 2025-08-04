@@ -20,6 +20,7 @@ describe('sitemapUrlRepository testCases', () => {
       sitemapProjectsURL: 'https://giveth.io/projects',
       sitemapUsersURL: 'https://giveth.io/users',
       sitemapQFRoundsURL: 'https://giveth.io/qf-rounds',
+      sitemapCausesURL: 'https://giveth.io/causes',
     };
     newEntry.created_at = new Date();
 
