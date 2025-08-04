@@ -251,6 +251,7 @@ export class CauseProjectResolver {
       // Update cause's totalDistributed using the total amount from fee breakdown
       const cause = await Cause.findOne({
         where: { id: feeBreakdown.causeId, projectType: 'cause' },
+        relations: ['adminUser'],
       });
 
       if (!cause) {
@@ -258,14 +259,31 @@ export class CauseProjectResolver {
       }
 
       // Update cause's totalDistributed with the total amount from fee breakdown
-      const currentTotalDistributed = cause.totalDistributed || 0;
-      const newTotalDistributed =
-        currentTotalDistributed + feeBreakdown.totalAmount;
+      // Use atomic update with database-level calculations to prevent race conditions
+      const updateData: any = {
+        totalDistributed: () =>
+          `COALESCE("totalDistributed", 0) + ${feeBreakdown.totalAmount}`,
+      };
 
-      await Cause.update(
-        { id: feeBreakdown.causeId },
-        { totalDistributed: newTotalDistributed },
-      );
+      if (cause.adminUser) {
+        updateData.ownerTotalEarned = () =>
+          `COALESCE("ownerTotalEarned", 0) + ${feeBreakdown.causeOwnerAmount}`;
+        updateData.ownerTotalEarnedUsdValue = () =>
+          `COALESCE("ownerTotalEarnedUsdValue", 0) + ${feeBreakdown.causeOwnerAmountUsdValue}`;
+
+        logger.info('Cause owner total earned updated successfully', {
+          causeId: feeBreakdown.causeId,
+          totalAmount: feeBreakdown.totalAmount,
+          totalAmountUsdValue: feeBreakdown.totalAmountUsdValue,
+          newOwnerTotalEarned:
+            (cause.ownerTotalEarned || 0) + feeBreakdown.causeOwnerAmount,
+          newOwnerTotalEarnedUsdValue:
+            (cause.ownerTotalEarnedUsdValue || 0) +
+            feeBreakdown.causeOwnerAmountUsdValue,
+        });
+      }
+
+      await Cause.update({ id: feeBreakdown.causeId }, updateData);
 
       logger.info('Complete distribution update successful', {
         projectCount: updatedProjects.length,
