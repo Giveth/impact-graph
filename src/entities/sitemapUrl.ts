@@ -16,6 +16,9 @@ export class SitemapUrlsObject {
 
   @Field()
   sitemapQFRoundsURL: string;
+
+  @Field()
+  sitemapCausesURL: string;
 }
 
 @ObjectType()

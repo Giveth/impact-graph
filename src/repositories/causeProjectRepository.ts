@@ -1,7 +1,6 @@
 import { CauseProject } from '../entities/project';
 import { Cause } from '../entities/project';
 import { Project } from '../entities/project';
-import { User } from '../entities/user';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
 
@@ -132,27 +131,6 @@ export const updateCauseProjectDistribution = async (
   }
 
   await causeProject.save();
-
-  // Update project ownerTotalEarned and ownerTotalEarnedUsdValue inside project table
-  await Project.update(projectId, {
-    ownerTotalEarned: (cause.ownerTotalEarned || 0) + amountReceived,
-    ownerTotalEarnedUsdValue:
-      (cause.ownerTotalEarnedUsdValue || 0) + amountReceivedUsdValue,
-  });
-
-  // Update user's causesTotalEarned and causesTotalEarnedUsdValue
-  const user = await User.findOne({
-    where: { id: cause.adminUserId },
-  });
-
-  if (user) {
-    await User.update(cause.adminUserId, {
-      causesTotalEarned: (user.causesTotalEarned || 0) + amountReceived,
-      causesTotalEarnedUsdValue:
-        (user.causesTotalEarnedUsdValue || 0) + amountReceivedUsdValue,
-    });
-  }
-
   return causeProject;
 };
 

@@ -251,6 +251,7 @@ export class CauseProjectResolver {
       // Update cause's totalDistributed using the total amount from fee breakdown
       const cause = await Cause.findOne({
         where: { id: feeBreakdown.causeId, projectType: 'cause' },
+        relations: ['user'],
       });
 
       if (!cause) {
@@ -266,6 +267,34 @@ export class CauseProjectResolver {
         { id: feeBreakdown.causeId },
         { totalDistributed: newTotalDistributed },
       );
+
+      // Update cause owner's total earned
+      if (cause.adminUser) {
+        const currentOwnerTotalEarned = cause.ownerTotalEarned || 0;
+        const currentOwnerTotalEarnedUsdValue =
+          cause.ownerTotalEarnedUsdValue || 0;
+        const newOwnerTotalEarned =
+          currentOwnerTotalEarned + feeBreakdown.causeOwnerAmount;
+        const newOwnerTotalEarnedUsdValue =
+          currentOwnerTotalEarnedUsdValue +
+          feeBreakdown.causeOwnerAmountUsdValue;
+
+        await Cause.update(
+          { id: feeBreakdown.causeId },
+          {
+            ownerTotalEarned: newOwnerTotalEarned,
+            ownerTotalEarnedUsdValue: newOwnerTotalEarnedUsdValue,
+          },
+        );
+
+        logger.info('Cause owner total earned updated successfully', {
+          causeId: feeBreakdown.causeId,
+          totalAmount: feeBreakdown.totalAmount,
+          totalAmountUsdValue: feeBreakdown.totalAmountUsdValue,
+          newOwnerTotalEarned,
+          newOwnerTotalEarnedUsdValue,
+        });
+      }
 
       logger.info('Complete distribution update successful', {
         projectCount: updatedProjects.length,
