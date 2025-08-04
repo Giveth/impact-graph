@@ -259,42 +259,31 @@ export class CauseProjectResolver {
       }
 
       // Update cause's totalDistributed with the total amount from fee breakdown
-      const currentTotalDistributed = cause.totalDistributed || 0;
-      const newTotalDistributed =
-        currentTotalDistributed + feeBreakdown.totalAmount;
+      // Use atomic update with database-level calculations to prevent race conditions
+      const updateData: any = {
+        totalDistributed: () =>
+          `COALESCE("totalDistributed", 0) + ${feeBreakdown.totalAmount}`,
+      };
 
-      await Cause.update(
-        { id: feeBreakdown.causeId },
-        { totalDistributed: newTotalDistributed },
-      );
-
-      // Update cause owner's total earned
       if (cause.adminUser) {
-        const currentOwnerTotalEarned = cause.ownerTotalEarned || 0;
-        const currentOwnerTotalEarnedUsdValue =
-          cause.ownerTotalEarnedUsdValue || 0;
-        const newOwnerTotalEarned =
-          currentOwnerTotalEarned + feeBreakdown.causeOwnerAmount;
-        const newOwnerTotalEarnedUsdValue =
-          currentOwnerTotalEarnedUsdValue +
-          feeBreakdown.causeOwnerAmountUsdValue;
-
-        await Cause.update(
-          { id: feeBreakdown.causeId },
-          {
-            ownerTotalEarned: newOwnerTotalEarned,
-            ownerTotalEarnedUsdValue: newOwnerTotalEarnedUsdValue,
-          },
-        );
+        updateData.ownerTotalEarned = () =>
+          `COALESCE("ownerTotalEarned", 0) + ${feeBreakdown.causeOwnerAmount}`;
+        updateData.ownerTotalEarnedUsdValue = () =>
+          `COALESCE("ownerTotalEarnedUsdValue", 0) + ${feeBreakdown.causeOwnerAmountUsdValue}`;
 
         logger.info('Cause owner total earned updated successfully', {
           causeId: feeBreakdown.causeId,
           totalAmount: feeBreakdown.totalAmount,
           totalAmountUsdValue: feeBreakdown.totalAmountUsdValue,
-          newOwnerTotalEarned,
-          newOwnerTotalEarnedUsdValue,
+          newOwnerTotalEarned:
+            (cause.ownerTotalEarned || 0) + feeBreakdown.causeOwnerAmount,
+          newOwnerTotalEarnedUsdValue:
+            (cause.ownerTotalEarnedUsdValue || 0) +
+            feeBreakdown.causeOwnerAmountUsdValue,
         });
       }
+
+      await Cause.update({ id: feeBreakdown.causeId }, updateData);
 
       logger.info('Complete distribution update successful', {
         projectCount: updatedProjects.length,
