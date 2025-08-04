@@ -15,6 +15,7 @@ describe('SitemapUrlResolver', () => {
       sitemapProjectsURL: 'https://giveth.io/projects',
       sitemapUsersURL: 'https://giveth.io/users',
       sitemapQFRoundsURL: 'https://giveth.io/qf-rounds',
+      sitemapCausesURL: 'https://giveth.io/causes',
     };
 
     await sitemapUrlRepository.save(sitemapUrl);
