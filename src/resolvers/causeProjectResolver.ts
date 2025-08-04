@@ -272,30 +272,17 @@ export class CauseProjectResolver {
         updateData.ownerTotalEarnedUsdValue = () =>
           `COALESCE("ownerTotalEarnedUsdValue", 0) + ${feeBreakdown.causeOwnerAmountUsdValue}`;
 
-        // Update user's totalCausesDistributed
-        const currentTotalCausesDistributed =
-          cause.adminUser.totalCausesDistributed || 0;
-        const newTotalCausesDistributed =
-          currentTotalCausesDistributed + feeBreakdown.totalAmount;
+        // Update user's totalCausesDistributed and causesTotalEarned with atomic database updates
+        const userUpdateData: any = {
+          totalCausesDistributed: () =>
+            `COALESCE("totalCausesDistributed", 0) + ${feeBreakdown.totalAmount}`,
+          causesTotalEarned: () =>
+            `COALESCE("causesTotalEarned", 0) + ${feeBreakdown.causeOwnerAmount}`,
+          causesTotalEarnedUsdValue: () =>
+            `COALESCE("causesTotalEarnedUsdValue", 0) + ${feeBreakdown.causeOwnerAmountUsdValue}`,
+        };
 
-        // Update user's causesTotalEarned and causesTotalEarnedUsdValue
-        const currentCausesTotalEarned = cause.adminUser.causesTotalEarned || 0;
-        const currentCausesTotalEarnedUsdValue =
-          cause.adminUser.causesTotalEarnedUsdValue || 0;
-        const newCausesTotalEarned =
-          currentCausesTotalEarned + feeBreakdown.causeOwnerAmount;
-        const newCausesTotalEarnedUsdValue =
-          currentCausesTotalEarnedUsdValue +
-          feeBreakdown.causeOwnerAmountUsdValue;
-
-        await User.update(
-          { id: cause.adminUser.id },
-          {
-            totalCausesDistributed: newTotalCausesDistributed,
-            causesTotalEarned: newCausesTotalEarned,
-            causesTotalEarnedUsdValue: newCausesTotalEarnedUsdValue,
-          },
-        );
+        await User.update({ id: cause.adminUser.id }, userUpdateData);
 
         logger.info('Cause owner total earned updated successfully', {
           causeId: feeBreakdown.causeId,
