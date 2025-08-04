@@ -131,6 +131,7 @@ export const updateCauseProjectDistribution = async (
   }
 
   await causeProject.save();
+
   return causeProject;
 };
 

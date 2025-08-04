@@ -20,6 +20,7 @@ import {
 } from './types/causeProject-input';
 import { createOrUpdateCauseProject } from '../repositories/causeProjectRepository';
 import { Cause } from '../entities/project';
+import { User } from '../entities/user';
 
 @Resolver(_of => CauseProject)
 export class CauseProjectResolver {
@@ -251,7 +252,7 @@ export class CauseProjectResolver {
       // Update cause's totalDistributed using the total amount from fee breakdown
       const cause = await Cause.findOne({
         where: { id: feeBreakdown.causeId, projectType: 'cause' },
-        relations: ['user'],
+        relations: ['adminUser'],
       });
 
       if (!cause) {
@@ -284,6 +285,31 @@ export class CauseProjectResolver {
           {
             ownerTotalEarned: newOwnerTotalEarned,
             ownerTotalEarnedUsdValue: newOwnerTotalEarnedUsdValue,
+          },
+        );
+
+        // Update user's totalCausesDistributed
+        const currentTotalCausesDistributed =
+          cause.adminUser.totalCausesDistributed || 0;
+        const newTotalCausesDistributed =
+          currentTotalCausesDistributed + feeBreakdown.totalAmount;
+
+        // Update user's causesTotalEarned and causesTotalEarnedUsdValue
+        const currentCausesTotalEarned = cause.adminUser.causesTotalEarned || 0;
+        const currentCausesTotalEarnedUsdValue =
+          cause.adminUser.causesTotalEarnedUsdValue || 0;
+        const newCausesTotalEarned =
+          currentCausesTotalEarned + feeBreakdown.causeOwnerAmount;
+        const newCausesTotalEarnedUsdValue =
+          currentCausesTotalEarnedUsdValue +
+          feeBreakdown.causeOwnerAmountUsdValue;
+
+        await User.update(
+          { id: cause.adminUser.id },
+          {
+            totalCausesDistributed: newTotalCausesDistributed,
+            causesTotalEarned: newCausesTotalEarned,
+            causesTotalEarnedUsdValue: newCausesTotalEarnedUsdValue,
           },
         );
 
