@@ -3,6 +3,7 @@ import { CauseProject } from '../entities/project';
 import { ApolloContext } from '../types/ApolloContext';
 import { logger } from '../utils/logger';
 import SentryLogger from '../sentryLogger';
+import { isIPWhitelisted } from '../utils/ipWhitelist';
 import {
   findCauseProjectByCauseAndProject,
   findCauseProjectsByCauseId,
@@ -59,14 +60,21 @@ export class CauseProjectResolver {
   @Mutation(() => CauseProject)
   async updateCauseProject(
     @Arg('input') input: UpdateCauseProjectInput,
-    @Ctx() { req: { user } }: ApolloContext,
+    @Ctx() { req, expressReq }: ApolloContext,
   ): Promise<CauseProject> {
     try {
+      // Check IP whitelist for update endpoints
+      if (!isIPWhitelisted(expressReq)) {
+        throw new Error(
+          'Access denied: IP address not whitelisted for cause project updates',
+        );
+      }
+
       // For now, we'll allow updates without authentication for external services
       // In production, you might want to add API key authentication
       logger.info('updateCauseProject() called', {
         input,
-        userId: user?.userId,
+        userId: req.user?.userId,
       });
 
       const {
@@ -104,12 +112,19 @@ export class CauseProjectResolver {
   @Mutation(() => CauseProject)
   async updateCauseProjectDistribution(
     @Arg('input') input: UpdateCauseProjectDistributionInput,
-    @Ctx() { req: { user } }: ApolloContext,
+    @Ctx() { req, expressReq }: ApolloContext,
   ): Promise<CauseProject> {
     try {
+      // Check IP whitelist for update endpoints
+      if (!isIPWhitelisted(expressReq)) {
+        throw new Error(
+          'Access denied: IP address not whitelisted for cause project updates',
+        );
+      }
+
       logger.info('updateCauseProjectDistribution() called', {
         input,
-        userId: user?.userId,
+        userId: req.user?.userId,
       });
 
       const { causeId, projectId, amountReceived, amountReceivedUsdValue } =
@@ -142,12 +157,19 @@ export class CauseProjectResolver {
   @Mutation(() => CauseProject)
   async updateCauseProjectEvaluation(
     @Arg('input') input: UpdateCauseProjectEvaluationInput,
-    @Ctx() { req: { user } }: ApolloContext,
+    @Ctx() { req, expressReq }: ApolloContext,
   ): Promise<CauseProject> {
     try {
+      // Check IP whitelist for update endpoints
+      if (!isIPWhitelisted(expressReq)) {
+        throw new Error(
+          'Access denied: IP address not whitelisted for cause project updates',
+        );
+      }
+
       logger.info('updateCauseProjectEvaluation() called', {
         input,
-        userId: user?.userId,
+        userId: req.user?.userId,
       });
 
       const { causeId, projectId, causeScore } = input;
@@ -176,12 +198,19 @@ export class CauseProjectResolver {
   async bulkUpdateCauseProjectDistribution(
     @Arg('updates', () => [UpdateCauseProjectDistributionInput])
     updates: UpdateCauseProjectDistributionInput[],
-    @Ctx() { req: { user } }: ApolloContext,
+    @Ctx() { req, expressReq }: ApolloContext,
   ): Promise<CauseProject[]> {
     try {
+      // Check IP whitelist for update endpoints
+      if (!isIPWhitelisted(expressReq)) {
+        throw new Error(
+          'Access denied: IP address not whitelisted for cause project updates',
+        );
+      }
+
       logger.info('bulkUpdateCauseProjectDistribution() called', {
         updateCount: updates.length,
-        userId: user?.userId,
+        userId: req.user?.userId,
       });
 
       const causeProjects = await bulkUpdateCauseProjectDistribution(updates);
@@ -206,12 +235,19 @@ export class CauseProjectResolver {
   async bulkUpdateCauseProjectEvaluation(
     @Arg('updates', () => [UpdateCauseProjectEvaluationInput])
     updates: UpdateCauseProjectEvaluationInput[],
-    @Ctx() { req: { user } }: ApolloContext,
+    @Ctx() { req, expressReq }: ApolloContext,
   ): Promise<CauseProject[]> {
     try {
+      // Check IP whitelist for update endpoints
+      if (!isIPWhitelisted(expressReq)) {
+        throw new Error(
+          'Access denied: IP address not whitelisted for cause project updates',
+        );
+      }
+
       logger.info('bulkUpdateCauseProjectEvaluation() called', {
         updateCount: updates.length,
-        userId: user?.userId,
+        userId: req.user?.userId,
       });
 
       const causeProjects = await bulkUpdateCauseProjectEvaluation(updates);
@@ -235,12 +271,19 @@ export class CauseProjectResolver {
   @Mutation(() => CompleteDistributionUpdateResponse)
   async updateCompleteDistribution(
     @Arg('update') update: CompleteDistributionUpdateInput,
-    @Ctx() { req: { user } }: ApolloContext,
+    @Ctx() { req, expressReq }: ApolloContext,
   ): Promise<CompleteDistributionUpdateResponse> {
     try {
+      // Check IP whitelist for update endpoints
+      if (!isIPWhitelisted(expressReq)) {
+        throw new Error(
+          'Access denied: IP address not whitelisted for cause project updates',
+        );
+      }
+
       logger.info('updateCompleteDistribution() called', {
         update,
-        userId: user?.userId,
+        userId: req.user?.userId,
       });
 
       const { projects, feeBreakdown } = update;

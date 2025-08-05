@@ -275,6 +275,7 @@ export async function bootstrap() {
           const apolloContext: ApolloContext = {
             projectsFiltersThreadPool,
             req: { user, auth },
+            expressReq: req, // Include Express request object for IP checking
           };
           return apolloContext;
         },
