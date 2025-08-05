@@ -5,6 +5,8 @@ import {
   Entity,
   BaseEntity,
   ManyToOne,
+  OneToOne,
+  JoinColumn,
   RelationId,
   Index,
 } from 'typeorm';
@@ -13,11 +15,13 @@ import { User } from './user';
 import { QfRound } from './qfRound';
 import { ChainType } from '../types/network';
 import { RecurringDonation } from './recurringDonation';
+import { SwapTransaction } from './swapTransaction';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
   VERIFIED: 'verified',
   FAILED: 'failed',
+  SWAP_PENDING: 'swapPending',
 };
 
 export const DONATION_ORIGINS = {
@@ -134,6 +138,10 @@ export class Donation extends BaseEntity {
   @Field()
   @Column({ type: 'real' })
   amount: number;
+
+  @Field({ nullable: true })
+  @Column({ type: 'real', nullable: true })
+  fromTokenAmount?: number;
 
   @Field({ nullable: true })
   @Column({ type: 'real', nullable: true })
@@ -298,6 +306,19 @@ export class Donation extends BaseEntity {
   @Field({ nullable: true })
   @Column('decimal', { precision: 5, scale: 2, nullable: true })
   donationPercentage?: number;
+
+  @Field(_type => SwapTransaction, { nullable: true })
+  @OneToOne(() => SwapTransaction, swapTransaction => swapTransaction.donation)
+  @JoinColumn({ name: 'swapTransactionId' })
+  swapTransaction?: SwapTransaction;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  swapTransactionId?: number;
+
+  @Field({ nullable: false })
+  @Column({ default: false })
+  isSwap: boolean;
 
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')

@@ -23,6 +23,8 @@ import { GraphQLResolveInfo } from 'graphql/type';
 import { convert } from 'html-to-text';
 import { Reaction } from '../entities/reaction';
 import {
+  Cause,
+  CauseProject,
   FilterField,
   OrderField,
   Project,
@@ -116,6 +118,7 @@ import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
 } from '../repositories/projectSocialMediaRepository';
+import { loadCauseProjects } from '../repositories/causeRepository';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -126,7 +129,7 @@ const projectFiltersCacheDuration = Number(
 @ObjectType()
 class AllProjects {
   @Field(_type => [Project])
-  projects: Project[];
+  projects: Project[] | Cause[];
 
   @Field(_type => Int)
   totalCount: number;
@@ -272,6 +275,9 @@ class GetProjectsArgs {
 
   @Field({ nullable: true })
   includeUnlisted?: boolean;
+
+  @Field(_type => String, { nullable: true, defaultValue: 'project' })
+  projectType?: string;
 }
 
 @ObjectType()
@@ -746,6 +752,7 @@ export class ProjectResolver {
       qfRoundId,
       qfRoundSlug,
       includeUnlisted,
+      projectType,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
@@ -773,6 +780,7 @@ export class ProjectResolver {
       qfRoundSlug,
       activeQfRoundId,
       includeUnlisted,
+      projectType,
     };
     let campaign;
     if (campaignSlug) {
@@ -865,6 +873,8 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
     @Info() info: GraphQLResolveInfo,
+    @Arg('userRemoved', _type => Boolean, { nullable: true })
+    userRemoved?: boolean,
   ) {
     const fields = graphqlFields(info);
 
@@ -925,6 +935,13 @@ export class ProjectResolver {
 
     const project = await query.getOne();
 
+    if (project?.projectType === 'cause') {
+      project.causeProjects = await loadCauseProjects(
+        project as Cause,
+        userRemoved,
+      );
+    }
+
     canUserVisitProject(project, user?.userId);
 
     return project;
@@ -946,6 +963,8 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
     @Info() info: GraphQLResolveInfo,
+    @Arg('userRemoved', _type => Boolean, { nullable: true })
+    userRemoved?: boolean,
   ) {
     const minimalProject = await findProjectIdBySlug(slug);
     if (!minimalProject) {
@@ -1042,7 +1061,7 @@ export class ProjectResolver {
         adminUserFields.includes(field),
       );
       query = query
-        .leftJoin('project.adminUser', 'user')
+        .leftJoinAndSelect('project.adminUser', 'user')
         .addSelect(
           filterByPublicFields.length > 0
             ? filterByPublicFields
@@ -1059,6 +1078,13 @@ export class ProjectResolver {
 
     const project = await query.getOne();
     canUserVisitProject(project, user?.userId);
+
+    if (project?.projectType === 'cause') {
+      project.causeProjects = await loadCauseProjects(
+        project as Cause,
+        userRemoved,
+      );
+    }
 
     if (fields.verificationFormStatus) {
       const verificationForm = await getVerificationFormStatusByProjectId(
@@ -1492,9 +1518,16 @@ export class ProjectResolver {
       verified: false,
       giveBacks: false,
       adminUser: user,
+      projectType: 'project',
     });
 
     await project.save();
+
+    // bad practice: Typeorm bug with single table inheritance using class Name instead of default or set values
+    await Project.query(
+      `UPDATE "project" SET "projectType" = LOWER("projectType") WHERE "id" = $1`,
+      [project.id],
+    );
 
     if (projectInput.socialMedia && projectInput.socialMedia.length > 0) {
       const socialMediaEntities = projectInput.socialMedia.map(
@@ -1878,11 +1911,25 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
+    @Arg('projectType', _type => String, {
+      nullable: true,
+      defaultValue: 'project',
+    })
+    projectType: string,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     const { field, direction } = orderBy;
-    let query = this.projectRepository
-      .createQueryBuilder('project')
+    // Convert projectType to lowercase to ensure consistent filtering
+    const normalizedProjectType = projectType?.toLowerCase() || 'project';
+
+    let query;
+    if (normalizedProjectType === 'cause') {
+      query = Cause.createQueryBuilder('project');
+    } else {
+      query = Project.createQueryBuilder('project');
+    }
+
+    query = query
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
@@ -1901,6 +1948,13 @@ export class ProjectResolver {
 
     query = query.where('project.adminUserId = :userId', { userId });
 
+    // Filter by projectType
+    if (normalizedProjectType) {
+      query = query.andWhere('project.projectType = :projectType', {
+        projectType: normalizedProjectType,
+      });
+    }
+
     if (userId !== user?.userId) {
       query = query.andWhere(
         `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
@@ -1915,6 +1969,12 @@ export class ProjectResolver {
       .take(take)
       .skip(skip)
       .getManyAndCount();
+
+    for (const project of projects) {
+      if (project.projectType === 'cause') {
+        project.causeProjects = await loadCauseProjects(project);
+      }
+    }
 
     return {
       projects,
@@ -2225,10 +2285,28 @@ export class ProjectResolver {
       await getNotificationAdapter().projectDeactivated({
         project,
       });
-      await Promise.all([
-        refreshProjectPowerView(),
-        refreshProjectFuturePowerView(),
-      ]);
+
+      // Execute in background, return immediately
+      setImmediate(async () => {
+        try {
+          await Promise.all([
+            refreshProjectPowerView(),
+            refreshProjectFuturePowerView(),
+          ]);
+        } catch (error) {
+          logger.error('Background power view refresh error:', error);
+        }
+      });
+
+      if (project.projectType === 'project') {
+        await CauseProject.update({ projectId }, { isIncluded: false });
+      } else if (project.projectType === 'cause') {
+        await CauseProject.update(
+          { causeId: project.id },
+          { isIncluded: false },
+        );
+      }
+
       return true;
     } catch (error) {
       logger.error('projectResolver.deactivateProject() error', error);
@@ -2264,10 +2342,28 @@ export class ProjectResolver {
           project,
         });
       }
-      await Promise.all([
-        refreshProjectPowerView(),
-        refreshProjectFuturePowerView(),
-      ]);
+
+      // Execute in background, return immediately
+      setImmediate(async () => {
+        try {
+          await Promise.all([
+            refreshProjectPowerView(),
+            refreshProjectFuturePowerView(),
+          ]);
+        } catch (error) {
+          logger.error('Background power view refresh error:', error);
+        }
+      });
+
+      if (project.projectType === 'project') {
+        await CauseProject.update({ projectId }, { isIncluded: true });
+      } else if (project.projectType === 'cause') {
+        await CauseProject.update(
+          { causeId: project.id },
+          { isIncluded: true },
+        );
+      }
+
       return true;
     } catch (error) {
       logger.error('projectResolver.activateProject() error', error);

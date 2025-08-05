@@ -22,6 +22,8 @@ import { RecurringDonationResolver } from './recurringDonationResolver';
 import { DraftDonationResolver } from './draftDonationResolver';
 import { OnboardingFormResolver } from './onboardingFormResolver';
 import { SitemapUrlResolver } from './sitemapUrlResolver';
+import { CauseResolver } from './causeResolver';
+import { CauseProjectResolver } from './causeProjectResolver';
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getResolvers = (): Function[] => {
   return [
@@ -53,5 +55,8 @@ export const getResolvers = (): Function[] => {
     OnboardingFormResolver,
 
     SitemapUrlResolver,
+
+    CauseResolver,
+    CauseProjectResolver,
   ];
 };

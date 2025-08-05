@@ -35,6 +35,9 @@ export const publicSelectionFields = [
   'user.passportScore',
   'user.passportStamps',
   'user.isEmailVerified',
+  'user.ownedCausesCount',
+  'user.totalCausesRaised',
+  'user.totalCausesDistributed',
 ];
 
 export enum UserRole {
@@ -262,6 +265,26 @@ export class User extends BaseEntity {
   segmentUserId() {
     return `givethId-${this.id}`;
   }
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'integer', default: 0 })
+  ownedCausesCount: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', default: 0 })
+  totalCausesRaised: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', default: 0 })
+  totalCausesDistributed: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', default: 0 })
+  causesTotalEarned: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', default: 0 })
+  causesTotalEarnedUsdValue: number;
 }
 
 @ObjectType()

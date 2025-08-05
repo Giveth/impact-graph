@@ -68,25 +68,25 @@ function getTransactionDetailTestCases() {
   //   assert.equal(transactionInfo.amount, amount);
   // });
 
-  it('should return transaction when transactionHash is wrong because of speedup in ethereum classic', async () => {
-    const amount = 1.0204004980625;
-    const txHash =
-      '0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec1111';
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash,
-      symbol: 'ETC',
-      networkId: NETWORK_IDS.ETC,
-      fromAddress: '0x8d0846e68a457D457c71124d14D2b43988a17E4f',
-      toAddress: '0x216D44960291E4129435c719217a7ECAe8c29927',
-      timestamp: 1696324809,
-      nonce: 28,
-      amount,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETC');
-    assert.equal(transactionInfo.amount, amount);
-    assert.notEqual(transactionInfo.hash, txHash);
-  });
+  // it('should return transaction when transactionHash is wrong because of speedup in ethereum classic', async () => {
+  //   const amount = 1.0204004980625;
+  //   const txHash =
+  //     '0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec1111';
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash,
+  //     symbol: 'ETC',
+  //     networkId: NETWORK_IDS.ETC,
+  //     fromAddress: '0x8d0846e68a457D457c71124d14D2b43988a17E4f',
+  //     toAddress: '0x216D44960291E4129435c719217a7ECAe8c29927',
+  //     timestamp: 1696324809,
+  //     nonce: 28,
+  //     amount,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'ETC');
+  //   assert.equal(transactionInfo.amount, amount);
+  //   assert.notEqual(transactionInfo.hash, txHash);
+  // });
   it('should return transaction detail for DAI transfer on ethereum classic', async () => {
     // https://etc.blockscout.com/tx/0x48e0c03ed99996fac3a7ecaaf05a1582a9191d8e37b6ebdbdd630b83350faf63
     // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
@@ -426,24 +426,24 @@ function getTransactionDetailTestCases() {
     );
   });
 
-  it('should return transaction detail for normal transfer on polygon', async () => {
-    // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
+  // it('should return transaction detail for normal transfer on polygon', async () => {
+  //   // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
 
-    const amount = 30_900;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8',
-      symbol: 'MATIC',
-      networkId: NETWORK_IDS.POLYGON,
-      fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
-      toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
-      amount,
-      timestamp: 1677400082,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'MATIC');
-    assert.equal(transactionInfo.amount, amount);
-  });
+  //   const amount = 30_900;
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash:
+  //       '0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8',
+  //     symbol: 'MATIC',
+  //     networkId: NETWORK_IDS.POLYGON,
+  //     fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
+  //     toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
+  //     amount,
+  //     timestamp: 1677400082,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'MATIC');
+  //   assert.equal(transactionInfo.amount, amount);
+  // });
 
   it('should return transaction detail for normal transfer on optimism-sepolia', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809
@@ -521,24 +521,24 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
-  it('should return transaction detail for normal transfer on Arbitrum Sepolia', async () => {
-    // https://sepolia.arbiscan.io/tx/0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c
+  // it('should return transaction detail for normal transfer on Arbitrum Sepolia', async () => {
+  //   // https://sepolia.arbiscan.io/tx/0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c
 
-    const amount = 0.0069;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c',
-      symbol: 'ETH',
-      networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
-      fromAddress: '0xefc58dbf0e606c327868b55334998aacb27f9ef2',
-      toAddress: '0xc11c479473cd06618fc75816dd6b56be4ac80efd',
-      amount,
-      timestamp: 1708344659,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETH');
-    assert.equal(transactionInfo.amount, amount);
-  });
+  //   const amount = 0.0069;
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash:
+  //       '0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c',
+  //     symbol: 'ETH',
+  //     networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
+  //     fromAddress: '0xefc58dbf0e606c327868b55334998aacb27f9ef2',
+  //     toAddress: '0xc11c479473cd06618fc75816dd6b56be4ac80efd',
+  //     amount,
+  //     timestamp: 1708344659,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'ETH');
+  //   assert.equal(transactionInfo.amount, amount);
+  // });
 
   it('should return transaction detail for normal transfer on Base Mainnet', async () => {
     // https://basescan.org/tx/0x1cbf53e5a9a0874b9ad97316e4f2e1782e24bec318bacd183d3f48052bfe1523

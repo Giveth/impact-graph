@@ -17,6 +17,9 @@ import {
   PrimaryGeneratedColumn,
   RelationId,
   JoinTable,
+  JoinColumn,
+  ChildEntity,
+  TableInheritance,
 } from 'typeorm';
 
 import { Int } from 'type-graphql/dist/scalars/aliases';
@@ -50,7 +53,6 @@ import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
-import { EstimatedClusterMatching } from './estimatedClusterMatching';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -68,6 +70,8 @@ export enum ProjStatus {
 
 // Always use Enums to prevent sql injection with plain strings
 export enum SortingField {
+  MostNumberOfProjects = 'MostNumberOfProjects',
+  LeastNumberOfProjects = 'LeastNumberOfProjects',
   MostFunded = 'MostFunded',
   MostLiked = 'MostLiked',
   Newest = 'Newest',
@@ -131,8 +135,10 @@ export enum ReviewStatus {
   Listed = 'Listed',
   NotListed = 'Not Listed',
 }
-
 @Entity()
+@TableInheritance({
+  column: { type: 'string', name: 'projectType', default: 'project' },
+})
 @ObjectType()
 export class Project extends BaseEntity {
   @Field(_type => ID)
@@ -195,7 +201,7 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   latestUpdateCreationDate: Date;
 
-  @Field(_type => Organization)
+  @Field(_type => Organization, { nullable: true })
   @ManyToOne(_type => Organization)
   @JoinTable()
   organization: Organization;
@@ -451,6 +457,20 @@ export class Project extends BaseEntity {
   @Column('uuid', { nullable: true, unique: true })
   endaomentId?: string;
 
+  @Field(_type => String, { nullable: true })
+  @Column({ default: 'project' })
+  projectType: string = 'project';
+
+  // Many-to-many relationship with causes through CauseProject junction table
+  @Field(_type => [CauseProject], { nullable: true })
+  @OneToMany(_type => CauseProject, causeProject => causeProject.project)
+  causeProjects?: CauseProject[];
+
+  @Field(_type => [Project], { nullable: true })
+  async projects(): Promise<Project[] | []> {
+    return [];
+  }
+
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: number) {
     const maxDaysForListing = moment()
@@ -518,33 +538,11 @@ export class Project extends BaseEntity {
       activeQfRound.id,
     );
 
-    const estimatedClusterMatching =
-      await EstimatedClusterMatching.createQueryBuilder(
-        'estimated_cluster_matching',
-      )
-        .where('estimated_cluster_matching."projectId" = :projectId', {
-          projectId: this.id,
-        })
-        .andWhere('estimated_cluster_matching."qfRoundId" = :qfRoundId', {
-          qfRoundId: activeQfRound.id,
-        })
-        .getOne();
-
-    let matching: number;
-    if (!estimatedClusterMatching) matching = 0;
-
-    if (!estimatedClusterMatching) {
-      matching = 0;
-    } else {
-      matching = estimatedClusterMatching.matching;
-    }
-
     // Facilitate migration in frontend return empty values for now
     return {
       projectDonationsSqrtRootSum: projectDonationsSqrtRootSum,
       allProjectsSum: allProjectsSum,
       matchingPool,
-      matching,
     };
   }
 
@@ -582,18 +580,62 @@ export class Project extends BaseEntity {
     }
   }
 
+  @Field(_type => [CauseProject], { nullable: true })
+  async loadCauseProjects(): Promise<CauseProject[] | []> {
+    return [];
+  }
+
   @BeforeUpdate()
   async updateProjectDescriptionSummary() {
     await Project.update(
       { id: this.id },
-      { descriptionSummary: getHtmlTextSummary(this.description) },
+      {
+        descriptionSummary: getHtmlTextSummary(this.description),
+      },
     );
   }
 
   @BeforeInsert()
   setProjectDescriptionSummary() {
+    this.projectType = this.projectType.toLowerCase();
     this.descriptionSummary = getHtmlTextSummary(this.description);
   }
+
+  // we should not expose this field to the client
+  @Column('text', { nullable: true })
+  fundingPoolHdPath?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  depositTxChainId?: number;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  chainId?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  totalRaised?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  totalDistributed?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  totalDonated?: number;
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'integer', default: 0 })
+  activeProjectsCount?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  ownerTotalEarned?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  ownerTotalEarnedUsdValue?: number;
 }
 
 @Entity()
@@ -741,4 +783,181 @@ export class ProjectUpdate extends BaseEntity {
   setProjectUpdateContentSummary() {
     this.contentSummary = getHtmlTextSummary(this.content);
   }
+}
+
+@ObjectType()
+@ChildEntity('cause')
+export class Cause extends Project {
+  @Field({ nullable: true })
+  @Column('text', { unique: true })
+  depositTxHash?: string;
+
+  // we should not expose this field to the client
+  @Column('text', { nullable: true })
+  fundingPoolHdPath?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  depositTxChainId?: number;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  chainId?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  totalRaised?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  totalDistributed?: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0, nullable: true })
+  totalDonated?: number;
+
+  // Many-to-many relationship with projects through CauseProject junction table
+  @Field(_type => [CauseProject], { nullable: true })
+  @OneToMany(_type => CauseProject, causeProject => causeProject.cause)
+  causeProjects?: CauseProject[];
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'integer', default: 0, nullable: true })
+  activeProjectsCount?: number;
+
+  // Override the projectType to always be CAUSE
+  @Field(_type => String, { nullable: true })
+  @Column({ default: 'cause' })
+  projectType: string = 'cause';
+
+  @Field(_type => [CauseProject], { nullable: true })
+  async loadCauseProjects(): Promise<CauseProject[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
+    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect(
+        'project.socialProfiles',
+        'socialProfiles',
+        'socialProfiles.projectId = project.id',
+      )
+      .leftJoinAndSelect(
+        'project.socialMedia',
+        'socialMedia',
+        'socialMedia.projectId = project.id',
+      )
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
+      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+      .leftJoin('project.adminUser', 'user')
+      .where('causeProject.causeId = :causeId', { causeId: this.id })
+      .getMany();
+    return causeProjects;
+  }
+
+  // Virtual field to get projects directly
+  @Field(_type => [Project], { nullable: true })
+  async projects(): Promise<Project[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
+    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect(
+        'project.socialProfiles',
+        'socialProfiles',
+        'socialProfiles.projectId = project.id',
+      )
+      .leftJoinAndSelect(
+        'project.socialMedia',
+        'socialMedia',
+        'socialMedia.projectId = project.id',
+      )
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
+      .leftJoinAndSelect(
+        'project.projectUpdates',
+        'projectUpdates',
+        'projectUpdates.projectId = project.id',
+      )
+      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+      .leftJoinAndSelect('project.adminUser', 'adminUser')
+      .where('causeProject.causeId = :causeId', { causeId: this.id })
+      .getMany();
+    return causeProjects.map(cp => cp.project);
+  }
+}
+
+@Entity()
+@ObjectType()
+export class CauseProject extends BaseEntity {
+  @Field(_type => ID)
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Field(_type => Cause, { nullable: true })
+  @ManyToOne(_type => Cause, cause => cause.causeProjects)
+  @JoinColumn()
+  cause: Cause;
+
+  @Field(_type => ID, { nullable: true })
+  @Column()
+  causeId: number;
+
+  @Field(_type => Project, { nullable: true })
+  @ManyToOne(_type => Project, project => project.causeProjects)
+  @JoinColumn()
+  project: Project;
+
+  @Field(_type => ID, { nullable: true })
+  @Column()
+  projectId: number;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ default: true })
+  isIncluded: boolean;
+
+  @Field(_type => Boolean, { nullable: true })
+  @Column({ default: false })
+  userRemoved: boolean;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0 })
+  amountReceived: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0 })
+  amountReceivedUsdValue: number;
+
+  @Field(_type => Float, { nullable: true })
+  @Column('float', { default: 0 })
+  causeScore: number;
 }

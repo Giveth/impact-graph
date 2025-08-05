@@ -28,6 +28,7 @@ import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleS
 import { errorMessages } from '../../../utils/errorMessages';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 import { pinFile } from '../../../middleware/pinataUtils';
+import { AppDataSource } from '../../../ormconfig';
 
 let initialProjectIds: number[] = [];
 
@@ -37,6 +38,9 @@ export const refreshMaterializedViews: After<
   const record: RecordJSON = response.record || {};
   const qfRoundId = record.params.id;
   const projectIds = await getRelatedProjectsOfQfRound(qfRoundId);
+
+  // Clear the cache of the active qf round
+  await AppDataSource.queryResultCache?.remove(['findActiveQfRound']);
 
   await refreshProjectEstimatedMatchingView();
   await refreshProjectActualMatchingView();

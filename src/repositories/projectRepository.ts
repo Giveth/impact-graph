@@ -1,5 +1,6 @@
-import { UpdateResult } from 'typeorm';
+import { SelectQueryBuilder, UpdateResult } from 'typeorm';
 import {
+  Cause,
   FilterField,
   Project,
   ProjectUpdate,
@@ -85,6 +86,7 @@ export type FilterProjectQueryInputParams = {
   activeQfRoundId?: number;
   qfRoundSlug?: string;
   includeUnlisted?: boolean;
+  projectType?: string;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -100,9 +102,21 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     qfRoundSlug,
     activeQfRoundId,
     includeUnlisted,
+    projectType,
   } = params;
 
-  let query = Project.createQueryBuilder('project')
+  // Convert projectType to lowercase to ensure consistent filtering
+  const normalizedProjectType = projectType?.toLowerCase() || 'project';
+
+  let queryBuilderBase: SelectQueryBuilder<Project | Cause>;
+  // Need to change entity to prevent Project type being set wrongly
+  if (normalizedProjectType === 'cause') {
+    queryBuilderBase = Cause.createQueryBuilder('project');
+  } else {
+    queryBuilderBase = Project.createQueryBuilder('project');
+  }
+
+  let query = queryBuilderBase
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.addresses', 'addresses')
     // We dont need it right now, but I comment it because we may need it later
@@ -134,6 +148,16 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
+  }
+
+  // Filter by projectType
+  if (
+    normalizedProjectType &&
+    (normalizedProjectType === 'cause' || normalizedProjectType === 'project')
+  ) {
+    query = query.andWhere('project.projectType = :projectType', {
+      projectType: normalizedProjectType,
+    });
   }
 
   const isFilterByQF =
@@ -187,6 +211,12 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
 
   switch (sortingBy) {
+    case SortingField.MostNumberOfProjects:
+      query.orderBy('project.activeProjectsCount', OrderDirection.DESC);
+      break;
+    case SortingField.LeastNumberOfProjects:
+      query.orderBy('project.activeProjectsCount', OrderDirection.ASC);
+      break;
     case SortingField.MostFunded:
       query.orderBy('project.totalDonations', OrderDirection.DESC);
       break;

@@ -11,6 +11,8 @@ export const createDonationMutation = `
     $anonymous: Boolean
     $referrerId: String
     $safeTransactionId: String
+    $swapData: SwapTransactionInput
+    $fromTokenAmount: Float
   ) {
     createDonation(
       transactionId: $transactionId
@@ -24,6 +26,8 @@ export const createDonationMutation = `
       anonymous: $anonymous
       referrerId: $referrerId
       safeTransactionId: $safeTransactionId
+      swapData: $swapData
+      fromTokenAmount: $fromTokenAmount
     )
   }
 `;
@@ -210,6 +214,7 @@ export const updateProjectQuery = `
       verified
       slugHistory
       creationDate
+      updatedAt
       adminUserId
       walletAddress
       impactLocation
@@ -231,7 +236,70 @@ export const updateProjectQuery = `
       }
     }
   }
- `;
+`;
+
+export const updateCauseQuery = `
+  mutation ($projectId: Float!, $newProjectData: UpdateProjectInput!) {
+    updateCause(projectId: $projectId, newProjectData: $newProjectData) {
+      id
+      title
+      description
+      descriptionSummary
+      image
+      slug
+      listed
+      reviewStatus
+      verified
+      slugHistory
+      creationDate
+      updatedAt
+      adminUserId
+      walletAddress
+      chainId
+      totalRaised
+      totalDistributed
+      totalDonated
+      activeProjectsCount
+      categories {
+        name
+        mainCategory {
+          title
+          slug
+          banner
+          description
+        }
+      }
+      addresses {
+        address
+        isRecipient
+        networkId
+        chainType
+      }
+      causeProjects {
+        id
+        projectId
+        causeId
+        isIncluded
+      }
+      projects {
+        id
+        title
+        slug
+      }
+      adminUser {
+        id
+        name
+        email
+        walletAddress
+        isEmailVerified
+      }
+      status {
+        id
+        name
+      }
+    }
+  }
+`;
 
 export const addRecipientAddressToProjectQuery = `
   mutation ($projectId: Float!, $networkId: Float!, $address: String!, $chainType: ChainType) {
@@ -268,7 +336,7 @@ export const addRecipientAddressToProjectQuery = `
       }
     }
   }
- `;
+`;
 
 export const registerOnChainvineQuery = `
   mutation {
@@ -300,16 +368,16 @@ export const deactivateProjectQuery = `
   mutation ($projectId: Float!, $reasonId: Float) {
     deactivateProject(projectId: $projectId, reasonId: $reasonId)
   }
- `;
+`;
 
 export const activateProjectQuery = `
   mutation ($projectId: Float!) {
     activateProject(projectId: $projectId)
   }
- `;
+`;
 
 export const projectStatusReasonsQuery = `
-  query ($statusId: Float) {
+  query ($statusId: Int) {
       getStatusReasons(statusId: $statusId) {
                       description
                       status {
@@ -318,7 +386,7 @@ export const projectStatusReasonsQuery = `
                       }
       }
   }
- `;
+`;
 
 export const fetchDonationsByDonorQuery = `
   query {
@@ -900,6 +968,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $connectedWalletUserId: Int
     $qfRoundId: Int
     $qfRoundSlug: String
+    $projectType: String
   ) {
     allProjects(
       limit: $limit
@@ -913,6 +982,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       connectedWalletUserId: $connectedWalletUserId
       qfRoundId: $qfRoundId
       qfRoundSlug: $qfRoundSlug
+      projectType: $projectType
     ) {
     
       campaign{
@@ -923,6 +993,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       projects {
         id
         title
+        projectType
         balance
         image
         slug
@@ -933,6 +1004,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         adminUserId
         description
         walletAddress
+        activeProjectsCount
         impactLocation
         qualityScore
         verified
@@ -1090,6 +1162,12 @@ export const fetchProjectBySlugQuery = `
       impactLocation
       qualityScore
       verified
+      projectType
+      causeProjects {
+        id
+        projectId
+        causeId
+      }
       traceCampaignId
       listed
       reviewStatus
@@ -1264,7 +1342,6 @@ export const fetchLikedProjectsQuery = `
       take: $take
       skip: $skip
     ) {
-
       projects {
         id
         title
@@ -1370,6 +1447,8 @@ export const userByAddress = `
       projectsCount
       passportScore
       passportStamps
+      causesTotalEarned
+      causesTotalEarnedUsdValue
     }
   }
 `;
@@ -1543,8 +1622,8 @@ export const projectsBySlugsQuery = `
   `;
 
 export const projectsByUserIdQuery = `
-  query ($take: Float, $skip: Float, $userId: Int!) {
-      projectsByUserId(take: $take, skip: $skip, userId: $userId) {
+  query ($take: Float, $skip: Float, $userId: Int!, $projectType: String) {
+      projectsByUserId(take: $take, skip: $skip, userId: $userId, projectType: $projectType) {
         projects {
           id
           title
@@ -1559,6 +1638,7 @@ export const projectsByUserIdQuery = `
           listed
           reviewStatus
           givingBlocksId
+          projectType
           qfRounds {
             name
             id
@@ -1609,6 +1689,10 @@ export const projectsByUserIdQuery = `
               }
             }
             status
+          }
+          causeProjects {
+            projectId
+            causeId
           }
           categories {
             name
@@ -1696,6 +1780,8 @@ export const projectByIdQuery = `
         id
         walletAddress
       }
+      ownerTotalEarned
+      ownerTotalEarnedUsdValue
     }
   }
 `;
@@ -1713,6 +1799,31 @@ export const getProjectsAcceptTokensQuery = `
       decimals
       mainnetAddress
       name
+    }
+  }
+`;
+
+export const getCauseAcceptTokensQuery = `
+  query(
+      $causeId: Float!,
+      $networkId: Float!
+  ){
+    getCauseAcceptTokens(
+     causeId: $causeId,
+     networkId: $networkId){
+      id
+      symbol
+      networkId
+      chainType
+      decimals
+      mainnetAddress
+      name
+      address
+      isGivbackEligible
+      order
+      isStableCoin
+      coingeckoId
+      isQR
     }
   }
 `;
@@ -2651,6 +2762,345 @@ export const getLastSitemapUrlQuery = `
         sitemapProjectsURL
         sitemapUsersURL
         sitemapQFRoundsURL
+        sitemapCausesURL
+      }
+    }
+  }
+`;
+
+export const createCauseQuery = `
+mutation CreateCause(
+  $title: String!
+  $description: String!
+  $chainId: Float!
+  $projectIds: [Float!]!
+  $subCategories: [String!]!
+  $depositTxHash: String!
+  $depositTxChainId: Float!
+  $bannerImage: String
+) {
+  createCause(
+    title: $title
+    description: $description
+    chainId: $chainId
+    projectIds: $projectIds
+    subCategories: $subCategories
+    depositTxHash: $depositTxHash
+    depositTxChainId: $depositTxChainId
+    bannerImage: $bannerImage
+  ) {
+    id
+    title
+    description
+    chainId
+    walletAddress
+    slug
+    creationDate
+    updatedAt
+    causeProjects {
+      id
+      projectId
+      causeId
+    }
+    categories {
+      id
+      name
+      mainCategory {
+        id
+        title
+        slug
+        banner
+        description
+      }
+    }
+    status {
+      id
+      name
+    }
+    reviewStatus
+    totalRaised
+    totalDistributed
+    totalDonated
+    activeProjectsCount
+    adminUser {
+      id
+      walletAddress
+      name
+    }
+    projects {
+      id
+      title
+      slug
+    }
+  }
+}`;
+
+export const isValidCauseTitleQuery = `
+query isValidCauseTitle($title: String!) {
+  isValidCauseTitle(title: $title)
+}`;
+
+export const causesQuery = `
+  query Causes(
+    $limit: Float, 
+    $offset: Float, 
+    $chainId: Float, 
+    $searchTerm: String, 
+    $sortBy: String, 
+    $sortDirection: String, 
+    $listingStatus: String
+  ) {
+    causes(
+      limit: $limit, 
+      offset: $offset, 
+      chainId: $chainId, 
+      searchTerm: $searchTerm, 
+      sortBy: $sortBy, 
+      sortDirection: $sortDirection, 
+      listingStatus: $listingStatus
+    ) {
+      id
+      title
+      description
+      chainId
+      walletAddress
+      slug
+      creationDate
+      updatedAt
+      categories {
+        id
+        name
+        mainCategory {
+          id
+          title
+          slug
+          banner
+          description
+        }
+      }
+      status {
+        id
+        name
+      }
+      reviewStatus
+      totalRaised
+      totalDistributed
+      totalDonated
+      activeProjectsCount
+      adminUser {
+        id
+        walletAddress
+        name
+      }
+      projects {
+        id
+        title
+        slug
+      }
+    }
+  }
+`;
+
+export const causeByIdQuery = `
+  query Cause($id: Float!) {
+    cause(id: $id) {
+      id
+      title
+      description
+      chainId
+      walletAddress
+      slug
+      creationDate
+      updatedAt
+      categories {
+        id
+        name
+        mainCategory {
+          id
+          title
+          slug
+          banner
+          description
+        }
+      }
+      status {
+        id
+        name
+      }
+      reviewStatus
+      totalRaised
+      totalDistributed
+      totalDonated
+      activeProjectsCount
+      adminUser {
+        id
+        walletAddress
+        name
+      }
+      projects {
+        id
+        title
+        slug
+      }
+    }
+  }
+`;
+
+export const causeBySlugQuery = `
+  query CauseBySlug($slug: String!) {
+    causeBySlug(slug: $slug) {
+      id
+      title
+      description
+      chainId
+      walletAddress
+      slug
+      creationDate
+      updatedAt
+      categories {
+        id
+        name
+        mainCategory {
+          id
+          title
+          slug
+          banner
+          description
+        }
+      }
+      status {
+        id
+        name
+      }
+      reviewStatus
+      totalRaised
+      totalDistributed
+      totalDonated
+      activeProjectsCount
+      adminUser {
+        id
+        walletAddress
+        name
+      }
+      projects {
+        id
+        title
+        slug
+      }
+    }
+  }
+`;
+
+export const updateCauseProjectDistributionMutation = `
+  mutation ($input: UpdateCauseProjectDistributionInput!) {
+    updateCauseProjectDistribution(input: $input) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+      cause {
+        id
+        title
+      }
+      project {
+        id
+        title
+      }
+    }
+  }
+`;
+
+export const updateCauseProjectEvaluationMutation = `
+  mutation ($input: UpdateCauseProjectEvaluationInput!) {
+    updateCauseProjectEvaluation(input: $input) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+      cause {
+        id
+        title
+      }
+      project {
+        id
+        title
+      }
+    }
+  }
+`;
+
+export const bulkUpdateCauseProjectDistributionMutation = `
+  mutation ($updates: [UpdateCauseProjectDistributionInput!]!) {
+    bulkUpdateCauseProjectDistribution(updates: $updates) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+    }
+  }
+`;
+
+export const bulkUpdateCauseProjectEvaluationMutation = `
+  mutation ($updates: [UpdateCauseProjectEvaluationInput!]!) {
+    bulkUpdateCauseProjectEvaluation(updates: $updates) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+    }
+  }
+`;
+
+export const updateCompleteDistributionMutation = `
+  mutation ($update: CompleteDistributionUpdateInput!) {
+    updateCompleteDistribution(update: $update) {
+      success
+    }
+  }
+`;
+
+export const causeProjectQuery = `
+  query ($causeId: Float!, $projectId: Float!) {
+    causeProject(causeId: $causeId, projectId: $projectId) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+      cause {
+        id
+        title
+      }
+      project {
+        id
+        title
+      }
+    }
+  }
+`;
+
+export const causeProjectsQuery = `
+  query ($causeId: Float!) {
+    causeProjects(causeId: $causeId) {
+      id
+      causeId
+      projectId
+      amountReceived
+      amountReceivedUsdValue
+      causeScore
+      project {
+        id
+        title
+        description
       }
     }
   }

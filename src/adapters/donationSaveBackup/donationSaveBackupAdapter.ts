@@ -25,7 +25,7 @@ const DONATION_SAVE_BACKUP_DATABASE =
   config.get('DONATION_SAVE_BACKUP_DATABASE') || 'failed_donation';
 
 // add '/' if doesn't exist at the
-const baseUrl = DONATION_SAVE_BACKUP_API_URL.endsWith('/')
+const baseUrl = DONATION_SAVE_BACKUP_API_URL?.endsWith('/')
   ? DONATION_SAVE_BACKUP_API_URL
   : `${DONATION_SAVE_BACKUP_API_URL}/`;
 

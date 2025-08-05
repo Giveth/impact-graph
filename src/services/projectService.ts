@@ -48,6 +48,7 @@ export const updateProjectStatistics = async (projectId: number) => {
     countUniqueDonors: uniqueDonors,
     sumDonationValueUsdForActiveQfRound,
     countUniqueDonorsForActiveQfRound,
+    totalRaised: totalDonations,
   });
 };
 

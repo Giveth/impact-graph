@@ -70,6 +70,9 @@ import { isTestEnv } from '../utils/utils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
 import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
+import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
+import { runProjectEvaluationCronJob } from '../services/cronJobs/projectEvaluationService';
+import { scheduleCauseDistributionJob } from '../services/cronJobs/causeDistributionJob';
 
 Resource.validate = validate;
 
@@ -272,6 +275,7 @@ export async function bootstrap() {
           const apolloContext: ApolloContext = {
             projectsFiltersThreadPool,
             req: { user, auth },
+            expressReq: req, // Include Express request object for IP checking
           };
           return apolloContext;
         },
@@ -358,10 +362,13 @@ export async function bootstrap() {
   async function initializeCronJobs() {
     logger.debug('initializeCronJobs() has been called', new Date());
     runCheckPendingDonationsCronJob();
+    runProjectEvaluationCronJob();
     runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
     runCheckAndUpdateEndaomentProject();
+
+    runCheckPendingSwapsCronJob();
 
     // if (process.env.ENABLE_CLUSTER_MATCHING === 'true') {
     //   runSyncEstimatedClusterMatchingCronjob();
@@ -449,6 +456,9 @@ export async function bootstrap() {
     );
 
     runCheckQRTransactionJob();
+
+    // Schedule cause distribution job
+    scheduleCauseDistributionJob();
   }
 
   async function performPostStartTasks() {

@@ -16,9 +16,10 @@ import { AppDataSource } from '../../orm';
 
 const timestamp = Date.now();
 
-const TEMP_PROJECT_FILE_NAME = `sitemap-projects-${timestamp}.xml`;
+const TEMP_PROJECTS_FILE_NAME = `sitemap-projects-${timestamp}.xml`;
 const TEMP_USERS_FILE_PATH = `sitemap-users-${timestamp}.xml`;
 const TEMP_QFRONDS_FILE_PATH = `sitemap-qfronds-${timestamp}.xml`;
+const TEMP_CAUSES_FILE_NAME = `sitemap-causes-${timestamp}.xml`;
 
 // Every Sunday at 00:00
 const cronJobTime =
@@ -56,10 +57,10 @@ export const runGenerateSitemapOnFrontend = () => {
 
       const sitemapProjectsContent = generateProjectsSiteMap(validProjects);
 
-      await saveSitemapToFile(sitemapProjectsContent, TEMP_PROJECT_FILE_NAME);
+      await saveSitemapToFile(sitemapProjectsContent, TEMP_PROJECTS_FILE_NAME);
 
       const sitemapProjectsURL = await uploadSitemapToPinata(
-        TEMP_PROJECT_FILE_NAME,
+        TEMP_PROJECTS_FILE_NAME,
       );
 
       logger.debug('Sitemap Projects URL:', sitemapProjectsURL);
@@ -88,10 +89,29 @@ export const runGenerateSitemapOnFrontend = () => {
 
       logger.debug('Sitemap QFRounds URL:', sitemapQFRoundsURL);
 
+      // Create and save causes sitemap
+      const causes = await fetchCauses();
+
+      // Generate XML content
+      const validCauses = causes.filter(
+        (c): c is Project & { slug: string } =>
+          c.slug !== null && c.slug !== undefined,
+      );
+      const sitemapCausesContent = generateCausesSiteMap(validCauses);
+
+      await saveSitemapToFile(sitemapCausesContent, TEMP_CAUSES_FILE_NAME);
+
+      const sitemapCausesURL = await uploadSitemapToPinata(
+        TEMP_CAUSES_FILE_NAME,
+      );
+
+      logger.debug('Sitemap Causes URL:', sitemapCausesURL);
+
       await updateSitemapInDB(
         sitemapProjectsURL,
         sitemapUsersURL,
         sitemapQFRoundsURL,
+        sitemapCausesURL,
       );
     } catch (error) {
       logger.error('runGenerateSitemapOnFrontend() error:', error.message);
@@ -107,6 +127,9 @@ const fetchProjects = async () => {
       .where('project.slug IS NOT NULL')
       .andWhere('project.statusId= :statusId', { statusId: ProjStatus.active })
       .andWhere('project.verified = :verified', { verified: true })
+      .andWhere('project.projectType = :projectType', {
+        projectType: 'project',
+      })
       .getMany();
 
     return projects;
@@ -138,6 +161,25 @@ const fetchQFRounds = async () => {
     return qfRounds;
   } catch (error) {
     logger.error('Error fetching qfRounds:', error.message);
+    return [];
+  }
+};
+
+const fetchCauses = async () => {
+  try {
+    const projects = await Project.createQueryBuilder('project')
+      .select(['project.title', 'project.slug', 'project.descriptionSummary'])
+      .where('project.slug IS NOT NULL')
+      .andWhere('project.statusId= :statusId', { statusId: ProjStatus.active })
+      .andWhere('project.verified = :verified', { verified: true })
+      .andWhere('project.projectType = :projectType', {
+        projectType: 'cause',
+      })
+      .getMany();
+
+    return projects;
+  } catch (error) {
+    logger.error('Error fetching causes:', error.message);
     return [];
   }
 };
@@ -175,6 +217,35 @@ function generateProjectsSiteMap(
         return `
             <url>
               <loc>${`${baseUrl}/project/${slug}`}</loc>
+              <title>${escapeXml(title)}</title>
+              <description>${escapeXml(descriptionSummary)}</description>
+            </url>
+          `;
+      })
+      .join('')}
+  </urlset>`;
+}
+
+/**
+ * Generate sitemap XML dynamically
+ */
+function generateCausesSiteMap(
+  projects: Array<{
+    slug: string;
+    title?: string;
+    descriptionSummary?: string;
+  }>,
+) {
+  const baseUrl = getFrontEndFullUrl();
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+  <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+    <timestamp>${timestamp}</timestamp>
+    ${projects
+      .map(({ slug, title = '', descriptionSummary = '' }) => {
+        return `
+            <url>
+              <loc>${`${baseUrl}/cause/${slug}`}</loc>
               <title>${escapeXml(title)}</title>
               <description>${escapeXml(descriptionSummary)}</description>
             </url>
@@ -294,8 +365,6 @@ async function uploadSitemapToPinata(fileName: string) {
 
     const newCID = response.IpfsHash;
 
-    // await cleanupOldPins(fileName, newCID);
-
     const sitemapURL = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${newCID}`;
 
     return sitemapURL;
@@ -339,6 +408,7 @@ export const updateSitemapInDB = async (
   sitemapProjectsURL: string,
   sitemapUsersURL: string,
   sitemapQFRoundsURL: string,
+  sitemapCausesURL: string,
 ) => {
   const sitemapRepo = AppDataSource.getDataSource().getRepository(SitemapUrl);
 
@@ -349,6 +419,7 @@ export const updateSitemapInDB = async (
       sitemapProjectsURL,
       sitemapUsersURL,
       sitemapQFRoundsURL,
+      sitemapCausesURL,
     };
     newEntry.created_at = new Date();
 
@@ -369,6 +440,7 @@ const deleteOldPinataFiles = async (sitemapUrls: any) => {
       sitemapUrls.sitemapProjectsURL,
       sitemapUrls.sitemapUsersURL,
       sitemapUrls.sitemapQFRoundsURL,
+      sitemapUrls.sitemapCausesURL,
     ];
 
     for (const url of oldUrls) {

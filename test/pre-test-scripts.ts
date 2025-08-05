@@ -43,6 +43,7 @@ import { ProjectUserInstantPowerViewV21717644442966 } from '../migration/1717644
 import { UserProjectPowerViewV21717645768886 } from '../migration/1717645768886-UserProjectPowerView_V2';
 import { ProjectGivbackRankViewV31725260193333 } from '../migration/1725260193333-projectGivbackRankView';
 import { ProjectInstantPowerViewV31724223781248 } from '../migration/1724223781248-ProjectInstantPowerViewV3';
+import { ImplementSingleTableInheritance1750123930818 } from '../migration/1750123930818-implementSingleTableInheritance';
 
 async function seedDb() {
   await seedUsers();
@@ -553,6 +554,7 @@ async function runMigrations() {
     await new EnablePgTrgmExtension1713859866338().up(queryRunner);
     await new AddPgTrgmIndexes1715086559930().up(queryRunner);
     await new ProjectGivbackRankViewV31725260193333().up(queryRunner);
+    await new ImplementSingleTableInheritance1750123930818().up(queryRunner);
   } finally {
     await queryRunner.release();
   }
@@ -563,6 +565,17 @@ before(async () => {
     logger.debug('Clear Redis: ', await redis.flushall());
 
     await bootstrap();
+
+    // Fix discriminator metadata issue with TableInheritance
+    AppDataSource.getDataSource().entityMetadatas.forEach(metadata => {
+      if (metadata.name === 'Project') {
+        metadata.discriminatorValue = 'project';
+      }
+      if (metadata.name === 'Cause') {
+        metadata.discriminatorValue = 'cause';
+      }
+    });
+
     await seedDb();
     await runMigrations();
   } catch (e) {

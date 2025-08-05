@@ -68,10 +68,9 @@ export const fetchUserProjectsCount = async (
   userId: number,
   includeSensitiveFields: boolean,
 ) => {
-  const projectsCount = Project.createQueryBuilder('project').where(
-    'project."adminUserId" = :id',
-    { id: userId },
-  );
+  const projectsCount = Project.createQueryBuilder('project')
+    .where('project."adminUserId" = :id', { id: userId })
+    .andWhere('project.projectType = :projectType', { projectType: 'project' });
 
   if (!includeSensitiveFields) {
     projectsCount.andWhere(
