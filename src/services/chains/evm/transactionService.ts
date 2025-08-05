@@ -328,7 +328,7 @@ async function getTransactionDetailForNormalTransfer(
 async function getTransactionDetailForTokenTransfer(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo | null> {
-  const { txHash, symbol, networkId } = input;
+  const { txHash, symbol, networkId, isSwap } = input;
   const token = await findTokenByNetworkAndSymbol(networkId, symbol);
   const provider = getProvider(networkId);
   logger.debug(
@@ -376,6 +376,12 @@ async function getTransactionDetailForTokenTransfer(
         ),
       );
     }
+  }
+
+  // Swap Transaction
+  if (isSwap) {
+    // todo: fix it based on the token address in the transaction logs
+    transactionTokenAddress = token.address.toLowerCase();
   }
 
   if (transaction && transactionTokenAddress !== token.address.toLowerCase()) {
