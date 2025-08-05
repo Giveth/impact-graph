@@ -207,7 +207,7 @@ const sendEvaluationRequest = async (causes: any[]) => {
     });
 
     // Fire and forget - don't wait for response
-    axios
+    await axios
       .post(`${evaluationServiceUrl}/evaluate/causes`, requestBody, {
         timeout: 30000, // 30 second timeout
         headers: {
