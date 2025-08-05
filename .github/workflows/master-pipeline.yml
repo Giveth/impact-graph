@@ -158,7 +158,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
-            docker compose stop impact-graph
             docker compose pull impact-graph
+            docker compose stop impact-graph
             docker compose up -d impact-graph
             docker image prune -a --force
