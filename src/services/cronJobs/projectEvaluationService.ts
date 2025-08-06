@@ -20,7 +20,10 @@ const evaluationServiceUrl =
   config.get('EVALUATION_SERVICE_URL') || 'https://staging.eval.ads.giveth.io';
 
 // Cache for balance checks to avoid duplicate requests
-const balanceCache = new Map<string, string>();
+const balanceCache = new Map<string, { value: string; timestamp: number }>();
+
+// Cache TTL for balance checks
+const BALANCE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // Get the appropriate token address based on environment
 const getDistributionTokenAddress = () => {
@@ -34,8 +37,15 @@ export const checkBalance = async (
   provider: ethers.providers.Provider,
 ): Promise<string> => {
   // Check cache first
-  if (balanceCache.has(address)) {
-    return balanceCache.get(address)!;
+  const cached = balanceCache.get(address);
+  const now = Date.now();
+
+  if (cached) {
+    if (now - cached.timestamp < BALANCE_CACHE_TTL_MS) {
+      return cached.value;
+    } else {
+      balanceCache.delete(address); // remove expired entry
+    }
   }
 
   try {
@@ -49,7 +59,7 @@ export const checkBalance = async (
     const balance = ethers.utils.formatEther(balanceWei);
 
     // Cache the result
-    balanceCache.set(address, balance);
+    balanceCache.set(address, { value: balance, timestamp: now });
 
     return balance;
   } catch (error) {
