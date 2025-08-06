@@ -103,30 +103,45 @@ export const getActiveCausesWithProjects = async () => {
     // Raw query to get active causes with their included projects and categories
     const rawResults = await Cause.query(`
       SELECT 
-        c.id as cause_id,
-        c.title as cause_title,
-        c.description as cause_description,
+        c.id AS cause_id,
+        c.title AS cause_title,
+        c.description AS cause_description,
         cp."projectId",
-        pa.address as project_address,
-        cat.name as category_name,
-        cat.value as category_description,
-        mc.title as maincategory_title,
-        mc.description as maincategory_description
-      FROM project c
-      INNER JOIN cause_project cp ON c.id = cp."causeId"
-      INNER JOIN project p ON cp."projectId" = p.id
-      INNER JOIN project_address pa ON p.id = pa."projectId" AND pa."networkId" = 137
-      LEFT JOIN project_categories_category pcc ON c.id = pcc."projectId"
-      LEFT JOIN category cat ON pcc."categoryId" = cat.id
-      LEFT JOIN main_category mc ON cat."mainCategoryId" = mc.id
-      WHERE c."projectType" = 'cause'
+        pa.address AS project_address,
+        -- Aggregate all category-related info into a single JSON array
+        JSON_AGG(
+          -- Create a JSON object for each category
+          DISTINCT jsonb_build_object(
+            'category_name', cat.name,
+            'category_description', cat.value,
+            'maincategory_title', mc.title,
+            'maincategory_description', mc.description
+          )
+        ) FILTER (WHERE cat.id IS NOT NULL) AS categories -- FILTER ignores NULLs from the LEFT JOIN
+      FROM 
+        project c
+        INNER JOIN cause_project cp ON c.id = cp."causeId"
+        INNER JOIN project p ON cp."projectId" = p.id
+        INNER JOIN project_address pa ON p.id = pa."projectId" AND pa."networkId" = 137
+        LEFT JOIN project_categories_category pcc ON c.id = pcc."projectId"
+        LEFT JOIN category cat ON pcc."categoryId" = cat.id
+        LEFT JOIN main_category mc ON cat."mainCategoryId" = mc.id
+      WHERE 
+        c."projectType" = 'cause'
         AND c."statusId" = 5
         AND cp."userRemoved" = false
         AND cp."isIncluded" = true
         AND p."statusId" = 5
         AND p.verified = true
         AND (cat.id IS NULL OR cat."isActive" = true)
-      ORDER BY c.id, cp."projectId", cat.id
+      -- Group by all the non-aggregated columns
+      GROUP BY 
+        c.id,
+        cp."projectId",
+        pa.address
+      ORDER BY 
+        c.id, 
+        cp."projectId";
     `);
 
     // Get provider for balance checking
@@ -137,6 +152,21 @@ export const getActiveCausesWithProjects = async () => {
 
     for (const row of rawResults) {
       const causeId = row.cause_id;
+
+      // Skip if cause is it has not balance
+      try {
+        const balance = await checkBalance(row.project_address, provider);
+        const balanceNumber = parseFloat(balance);
+        if (balanceNumber <= 0.1) {
+          continue;
+        }
+      } catch (error) {
+        logger.error(
+          `Error checking balance for project ${row.project_address}:`,
+          error,
+        );
+        // continue cause evaluation when the balance check fails
+      }
 
       if (!causesMap.has(causeId)) {
         causesMap.set(causeId, {
@@ -152,24 +182,9 @@ export const getActiveCausesWithProjects = async () => {
 
       const causeData = causesMap.get(causeId);
 
-      // Add project ID if not already added and has balance > 0
+      // Add project ID if not already added
       if (!causeData.projectIds.includes(row.projectId)) {
-        // Check balance for the project address
-        try {
-          const balance = await checkBalance(row.project_address, provider);
-          const balanceNumber = parseFloat(balance);
-
-          // Only add project if balance > 0
-          if (balanceNumber > 0.1) {
-            causeData.projectIds.push(row.projectId);
-          }
-        } catch (error) {
-          logger.error(
-            `Error checking balance for project ${row.projectId}:`,
-            error,
-          );
-          // Continue with other projects even if one fails
-        }
+        causeData.projectIds.push(row.projectId);
       }
 
       // Add category if it exists and not already added
