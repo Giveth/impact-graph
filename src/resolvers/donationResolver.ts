@@ -806,6 +806,7 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
+      .leftJoinAndSelect('donation.swapTransaction', 'swapTransaction')
       .where(`donation.userId = ${userId}`)
       .andWhere(`donation.recurringDonationId IS NULL`)
       .orderBy(

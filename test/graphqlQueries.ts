@@ -861,6 +861,16 @@ export const fetchDonationsByUserIdQuery = `
           name
           isActive
         }
+        swapTransaction {
+          fromTokenSymbol
+          toTokenSymbol
+          fromAmount
+          toAmount
+          firstTxHash
+          secondTxHash
+          fromChainId
+          toChainId
+        }
         createdAt
       }
       totalCount

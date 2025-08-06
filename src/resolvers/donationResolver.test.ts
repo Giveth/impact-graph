@@ -19,6 +19,7 @@ import {
 } from '../../test/testUtils';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
+import { SwapTransaction } from '../entities/swapTransaction';
 import {
   fetchDonationsByUserIdQuery,
   fetchDonationsByDonorQuery,
@@ -4811,6 +4812,111 @@ function donationsByUserIdTestCases() {
     assert.equal(donations[0].qfRound.id, qfRound.id);
     qfRound.isActive = false;
     await qfRound.save();
+  });
+
+  it('should return swap transaction data when donation has swap info', async () => {
+    const user = await User.create({
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    }).save();
+
+    const project = await saveProjectDirectlyToDb({
+      title: `test project ${Date.now()}`,
+      description: 'test description',
+      walletAddress: generateRandomEtheriumAddress(),
+      categories: ['food1'],
+      verified: true,
+      listed: true,
+      reviewStatus: ReviewStatus.Listed,
+      giveBacks: false,
+      isGivbackEligible: false,
+      creationDate: new Date(),
+      updatedAt: new Date(),
+      latestUpdateCreationDate: new Date(),
+      slug: `test-project-${Date.now()}`,
+      adminUserId: user.id,
+      qualityScore: 30,
+      totalDonations: 10,
+      totalReactions: 0,
+      totalProjectUpdates: 1,
+    });
+
+    // Create swap transaction
+    const swapTransaction = await SwapTransaction.create({
+      squidRequestId: 'test-squid-id',
+      firstTxHash: generateRandomEvmTxHash(),
+      secondTxHash: generateRandomEvmTxHash(),
+      fromChainId: 1,
+      toChainId: 137,
+      fromTokenAddress: generateRandomEtheriumAddress(),
+      toTokenAddress: generateRandomEtheriumAddress(),
+      fromAmount: 100,
+      toAmount: 95,
+      fromTokenSymbol: 'ETH',
+      toTokenSymbol: 'USDC',
+      status: 'success',
+    }).save();
+
+    // Create donation with swap transaction
+    const donation = await saveDonationDirectlyToDb(
+      {
+        transactionId: generateRandomEvmTxHash(),
+        transactionNetworkId: NETWORK_IDS.POLYGON,
+        toWalletAddress: generateRandomEtheriumAddress(),
+        fromWalletAddress: user.walletAddress!,
+        currency: 'USDC',
+        anonymous: false,
+        amount: 95,
+        valueUsd: 95,
+        createdAt: new Date(),
+        segmentNotified: true,
+      },
+      user.id,
+      project.id,
+    );
+
+    // Update donation with swap transaction info
+    donation.isSwap = true;
+    donation.swapTransactionId = swapTransaction.id;
+    await donation.save();
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByUserIdQuery,
+        variables: {
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'DESC',
+          },
+          userId: user.id,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByUserId.donations;
+
+    const donationWithSwap = donations.find(
+      d => Number(d.id) === Number(donation.id),
+    );
+
+    assert.isOk(donationWithSwap);
+    assert.isOk(donationWithSwap.swapTransaction);
+    assert.equal(donationWithSwap.swapTransaction.fromTokenSymbol, 'ETH');
+    assert.equal(donationWithSwap.swapTransaction.toTokenSymbol, 'USDC');
+    assert.equal(donationWithSwap.swapTransaction.fromAmount, 100);
+    assert.equal(donationWithSwap.swapTransaction.toAmount, 95);
+    assert.equal(
+      donationWithSwap.swapTransaction.firstTxHash,
+      swapTransaction.firstTxHash,
+    );
+    assert.equal(
+      donationWithSwap.swapTransaction.secondTxHash,
+      swapTransaction.secondTxHash,
+    );
+    assert.equal(donationWithSwap.swapTransaction.fromChainId, 1);
+    assert.equal(donationWithSwap.swapTransaction.toChainId, 137);
   });
 }
 
