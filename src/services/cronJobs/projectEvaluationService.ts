@@ -106,6 +106,7 @@ export const getActiveCausesWithProjects = async () => {
         c.id AS cause_id,
         c.title AS cause_title,
         c.description AS cause_description,
+        ca.address AS cause_address,
         cp."projectId",
         pa.address AS project_address,
         -- Aggregate all category-related info into a single JSON array
@@ -123,6 +124,7 @@ export const getActiveCausesWithProjects = async () => {
         INNER JOIN cause_project cp ON c.id = cp."causeId"
         INNER JOIN project p ON cp."projectId" = p.id
         INNER JOIN project_address pa ON p.id = pa."projectId" AND pa."networkId" = 137
+        INNER JOIN project_address ca ON c.id = ca."projectId" AND ca."networkId" = 137
         LEFT JOIN project_categories_category pcc ON c.id = pcc."projectId"
         LEFT JOIN category cat ON pcc."categoryId" = cat.id
         LEFT JOIN main_category mc ON cat."mainCategoryId" = mc.id
@@ -138,7 +140,8 @@ export const getActiveCausesWithProjects = async () => {
       GROUP BY 
         c.id,
         cp."projectId",
-        pa.address
+        pa.address,
+        ca.address 
       ORDER BY 
         c.id, 
         cp."projectId";
@@ -151,22 +154,22 @@ export const getActiveCausesWithProjects = async () => {
     const causesMap = new Map();
 
     for (const row of rawResults) {
-      const causeId = row.cause_id;
-
       // Skip if the cause has no balance
       try {
-        const balance = await checkBalance(row.project_address, provider);
+        const balance = await checkBalance(row.cause_address, provider);
         const balanceNumber = parseFloat(balance);
         if (balanceNumber <= 0.1) {
           continue;
         }
       } catch (error) {
         logger.error(
-          `Error checking balance for project ${row.project_address}:`,
+          `Error checking balance for cause ${row.cause_address}:`,
           error,
         );
         // continue cause evaluation when the balance check fails
       }
+
+      const causeId = row.cause_id;
 
       if (!causesMap.has(causeId)) {
         causesMap.set(causeId, {
