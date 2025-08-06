@@ -153,7 +153,7 @@ export const getActiveCausesWithProjects = async () => {
     for (const row of rawResults) {
       const causeId = row.cause_id;
 
-      // Skip if cause is it has not balance
+      // Skip if the cause has no balance
       try {
         const balance = await checkBalance(row.project_address, provider);
         const balanceNumber = parseFloat(balance);
