@@ -4917,6 +4917,12 @@ function donationsByUserIdTestCases() {
     );
     assert.equal(donationWithSwap.swapTransaction.fromChainId, 1);
     assert.equal(donationWithSwap.swapTransaction.toChainId, 137);
+
+    // Cleanup: Remove created entities to prevent test data pollution
+    await Donation.delete({ id: donation.id });
+    await SwapTransaction.delete({ id: swapTransaction.id });
+    await deleteProjectDirectlyFromDb(project.id);
+    await User.delete({ id: user.id });
   });
 }
 
