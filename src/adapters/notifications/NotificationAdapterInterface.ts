@@ -1,7 +1,7 @@
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import { UserStreamBalanceWarning, User } from '../../entities/user';
 import { RecurringDonation } from '../../entities/recurringDonation';
+import { User, UserStreamBalanceWarning } from '../../entities/user';
 
 export interface BroadCastNotificationInputParams {
   broadCastNotificationId: number;
@@ -78,6 +78,7 @@ export interface NotificationAdapterInterface {
   }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;
+  projectGivbacksEligible(params: { project: Project }): Promise<void>;
   projectBoosted(params: { projectId: number; userId: number }): Promise<void>;
   projectBoostedBatch(params: {
     projectIds: number[];
