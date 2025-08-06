@@ -108,7 +108,6 @@ export const getActiveCausesWithProjects = async () => {
         c.description AS cause_description,
         ca.address AS cause_address,
         cp."projectId",
-        pa.address AS project_address,
         -- Aggregate all category-related info into a single JSON array
         JSON_AGG(
           -- Create a JSON object for each category
@@ -123,7 +122,6 @@ export const getActiveCausesWithProjects = async () => {
         project c
         INNER JOIN cause_project cp ON c.id = cp."causeId"
         INNER JOIN project p ON cp."projectId" = p.id
-        INNER JOIN project_address pa ON p.id = pa."projectId" AND pa."networkId" = 137
         INNER JOIN project_address ca ON c.id = ca."projectId" AND ca."networkId" = 137
         LEFT JOIN project_categories_category pcc ON c.id = pcc."projectId"
         LEFT JOIN category cat ON pcc."categoryId" = cat.id
@@ -140,7 +138,6 @@ export const getActiveCausesWithProjects = async () => {
       GROUP BY 
         c.id,
         cp."projectId",
-        pa.address,
         ca.address 
       ORDER BY 
         c.id, 
