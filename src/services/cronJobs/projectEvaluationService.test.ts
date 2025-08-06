@@ -5,6 +5,8 @@ import { getActiveCausesWithProjects } from './projectEvaluationService';
 import { MainCategory } from '../../entities/mainCategory';
 import { Category } from '../../entities/category';
 import { ProjStatus } from '../../entities/project';
+import { ProjectAddress } from '../../entities/projectAddress';
+import { ChainType } from '../../types/network';
 import {
   createCauseData,
   deleteProjectDirectlyFromDb,
@@ -115,6 +117,25 @@ describe('projectEvaluationService', () => {
 
     causes.push(cause1, cause2);
 
+    // Create project addresses for causes (required by the SQL query)
+    await ProjectAddress.create({
+      project: cause1,
+      user: user,
+      address: '0x1234567890123456789012345678901234567890',
+      chainType: ChainType.EVM,
+      networkId: 137, // Polygon
+      isRecipient: true,
+    }).save();
+
+    await ProjectAddress.create({
+      project: cause2,
+      user: user,
+      address: '0x0987654321098765432109876543210987654321',
+      chainType: ChainType.EVM,
+      networkId: 137, // Polygon
+      isRecipient: true,
+    }).save();
+
     // Create cause-project relationships
     // Cause 1 gets first 5 projects
     for (let i = 0; i < 5; i++) {
@@ -151,6 +172,12 @@ describe('projectEvaluationService', () => {
     // Delete cause-project relationships
     await CauseProject.getRepository().query(
       'DELETE FROM "cause_project" WHERE "causeId" IN (SELECT id FROM "project" WHERE "title" LIKE $1 and "projectType" = $2)',
+      ['Test Cause%', 'cause'],
+    );
+
+    // Delete project addresses for causes
+    await ProjectAddress.getRepository().query(
+      'DELETE FROM "project_address" WHERE "projectId" IN (SELECT id FROM "project" WHERE "title" LIKE $1 and "projectType" = $2)',
       ['Test Cause%', 'cause'],
     );
 
