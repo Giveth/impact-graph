@@ -1025,7 +1025,7 @@ export class DonationResolver {
         fromTokenAmount:
           fromTokenAmount !== undefined && fromTokenAmount !== null
             ? Number(fromTokenAmount)
-            : undefined,
+            : 0,
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
         transactionNetworkId: networkId,
