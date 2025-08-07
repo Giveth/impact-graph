@@ -13,6 +13,7 @@ import {
   addBulkNewProjectAddress,
   findProjectRecipientAddressByProjectId,
 } from './projectAddressRepository';
+import { getSimilarTitleInProjectsRegex } from '../utils/validators/projectValidator';
 
 export enum CauseSortField {
   GIVPOWER = 'givPower',
@@ -220,6 +221,27 @@ export const validateCauseTitle = async (title: string): Promise<boolean> => {
   }
 
   return true;
+};
+
+const titleReplacerRegex = /^\s+|\s+$|\s+(?=\s)/g;
+
+export const validateCauseTitleForEdit = async (
+  title: string,
+  causeId: number,
+): Promise<boolean> => {
+  const cause = await findCauseById(causeId);
+  if (!cause) {
+    return false;
+  }
+  if (
+    getSimilarTitleInProjectsRegex(cause?.title as string).test(
+      title.replace(titleReplacerRegex, ''),
+    )
+  ) {
+    // If the new title of cause is similar to older one , we dont call validateCauseTitle
+    return true;
+  }
+  return validateCauseTitle(title);
 };
 
 export const validateTransactionHash = async (

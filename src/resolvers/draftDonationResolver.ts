@@ -186,7 +186,7 @@ export class DraftDonationResolver {
           fromTokenAmount:
             fromTokenAmount !== undefined && fromTokenAmount !== null
               ? Number(fromTokenAmount)
-              : undefined,
+              : 0,
           networkId: _networkId,
           currency: token,
           userId: isQRDonation && anonymous ? undefined : donorUser?.id,

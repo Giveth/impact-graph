@@ -22,6 +22,7 @@ import {
   CauseSortField,
   SortDirection,
   loadCauseProjects,
+  validateCauseTitleForEdit,
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
 import { NETWORK_IDS } from '../provider';
@@ -187,6 +188,18 @@ export class CauseResolver {
   @Query(() => Boolean)
   async isValidCauseTitle(@Arg('title') title: string): Promise<boolean> {
     return validateCauseTitle(title);
+  }
+
+  @Query(() => Boolean)
+  async isValidCauseTitleForEdit(
+    @Arg('title') title: string,
+    @Arg('causeId') causeId: number,
+  ): Promise<boolean> {
+    const cause = await findCauseById(causeId);
+    if (!cause) {
+      return false;
+    }
+    return validateCauseTitleForEdit(title, causeId);
   }
 
   @Mutation(_returns => Cause)
