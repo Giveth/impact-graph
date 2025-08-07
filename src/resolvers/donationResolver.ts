@@ -806,6 +806,7 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
+      .leftJoinAndSelect('donation.swapTransaction', 'swapTransaction')
       .where(`donation.userId = ${userId}`)
       .andWhere(`donation.recurringDonationId IS NULL`)
       .orderBy(
@@ -1021,7 +1022,10 @@ export class DonationResolver {
 
       const donation = Donation.create({
         amount: Number(amount),
-        fromTokenAmount: Number(fromTokenAmount),
+        fromTokenAmount:
+          fromTokenAmount !== undefined && fromTokenAmount !== null
+            ? Number(fromTokenAmount)
+            : undefined,
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
         transactionNetworkId: networkId,

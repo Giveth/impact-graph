@@ -183,7 +183,10 @@ export class DraftDonationResolver {
         .insert()
         .values({
           amount: Number(amount),
-          fromTokenAmount: Number(fromTokenAmount),
+          fromTokenAmount:
+            fromTokenAmount !== undefined && fromTokenAmount !== null
+              ? Number(fromTokenAmount)
+              : undefined,
           networkId: _networkId,
           currency: token,
           userId: isQRDonation && anonymous ? undefined : donorUser?.id,
