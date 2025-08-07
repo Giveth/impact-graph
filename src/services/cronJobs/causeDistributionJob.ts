@@ -12,83 +12,90 @@ export const runCauseDistributionJob = async (): Promise<void> => {
   try {
     logger.info('Starting cause distribution job');
 
-    // Get all active causes
-    const activeCauses = await Cause.createQueryBuilder('cause')
-      .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-      .leftJoinAndSelect('causeProjects.project', 'project')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('cause.adminUser', 'user')
-      .where('cause.projectType = :projectType', { projectType: 'cause' })
-      .andWhere('cause.statusId = :statusId', { statusId: ProjStatus.active })
-      .getMany();
+    // Get active causes with wallet addresses
+    const activeCauses = await getActiveCausesWithWalletAddresses();
 
-    logger.info(`Found ${activeCauses.length} active causes`);
+    logger.info(
+      `Found ${activeCauses.length} active causes with wallet addresses`,
+    );
 
-    activeCauses.forEach(async cause => {
-      cause.causeProjects = await cause.loadCauseProjects();
-    });
+    if (activeCauses.length === 0) {
+      logger.info('No eligible causes found for distribution');
+      return;
+    }
 
     let totalProcessedCauses = 0;
     let totalProcessedProjects = 0;
-
     let successfulCauses = 0;
     let failedCauses = 0;
 
-    for (const cause of activeCauses) {
-      if (!cause.walletAddress) {
-        logger.warn(`Cause ${cause.id} has no wallet address, skipping`);
-        continue;
-      }
+    // Process causes in batches to avoid memory issues
+    const batchSize = 5;
+    for (let i = 0; i < activeCauses.length; i += batchSize) {
+      const batchCauses = activeCauses.slice(i, i + batchSize);
 
-      // Get projects for this cause that meet the criteria
-      const eligibleProjects = await getEligibleProjectsForCause(cause.id);
+      // Get eligible projects for all causes in the batch with a single query
+      const causeIds = batchCauses.map(cause => cause.id);
+      const batchEligibleProjects =
+        await getEligibleProjectsForCauses(causeIds);
 
-      if (eligibleProjects.length === 0) {
-        logger.info(`No eligible projects found for cause ${cause.id}`);
-        continue;
-      }
-
-      // Check if cause has been evaluated - if all projects have causeScore of 0, skip distribution
-      const hasBeenEvaluated = eligibleProjects.some(
-        project => project.score > 0,
-      );
-
-      if (!hasBeenEvaluated) {
-        logger.info(
-          `Cause ${cause.id} has not been evaluated yet (all projects have causeScore of 0), skipping distribution`,
-        );
-        continue;
-      }
-
-      // Create payload for this cause
-      const distributionPayload: DistributionServicePayload = {
-        walletAddress: cause.walletAddress,
-        causeId: cause.id,
-        projects: eligibleProjects,
-        causeOwnerAddress: cause.adminUser?.walletAddress || '',
-      };
-
-      // Call the distribution service endpoint for this cause
-      const success =
-        await AgentDistributionService.callDistributionService(
-          distributionPayload,
+      for (const cause of batchCauses) {
+        const eligibleProjects = batchEligibleProjects.filter(
+          project => project.causeId === cause.id,
         );
 
-      if (success) {
-        successfulCauses++;
-        logger.info(
-          `Successfully processed cause ${cause.id} with ${eligibleProjects.length} projects`,
-        );
-      } else {
-        failedCauses++;
-        logger.warn(
-          `Failed to process cause ${cause.id} with ${eligibleProjects.length} projects`,
-        );
-      }
+        if (eligibleProjects.length === 0) {
+          logger.info(`No eligible projects found for cause ${cause.id}`);
+          continue;
+        }
 
-      totalProcessedCauses++;
-      totalProcessedProjects += eligibleProjects.length;
+        // Check if cause has been evaluated - if all projects have causeScore of 0, skip distribution
+        const hasBeenEvaluated = eligibleProjects.some(
+          project => project.score > 0,
+        );
+
+        if (!hasBeenEvaluated) {
+          logger.info(
+            `Cause ${cause.id} has not been evaluated yet (all projects have causeScore of 0), skipping distribution`,
+          );
+          continue;
+        }
+
+        // Create payload for this cause
+        const distributionPayload: DistributionServicePayload = {
+          walletAddress: cause.walletAddress!,
+          causeId: cause.id,
+          projects: eligibleProjects.map(p => ({
+            projectId: p.projectId,
+            name: p.name,
+            slug: p.slug,
+            walletAddress: p.walletAddress,
+            score: p.score,
+          })),
+          causeOwnerAddress: cause.adminUser?.walletAddress || '',
+        };
+
+        // Call the distribution service endpoint for this cause
+        const success =
+          await AgentDistributionService.callDistributionService(
+            distributionPayload,
+          );
+
+        if (success) {
+          successfulCauses++;
+          logger.info(
+            `Successfully processed cause ${cause.id} with ${eligibleProjects.length} projects`,
+          );
+        } else {
+          failedCauses++;
+          logger.warn(
+            `Failed to process cause ${cause.id} with ${eligibleProjects.length} projects`,
+          );
+        }
+
+        totalProcessedCauses++;
+        totalProcessedProjects += eligibleProjects.length;
+      }
     }
 
     if (totalProcessedCauses === 0) {
@@ -108,10 +115,31 @@ export const runCauseDistributionJob = async (): Promise<void> => {
   }
 };
 
-export const getEligibleProjectsForCause = async (
-  causeId: number,
+// Function to get active causes with wallet addresses
+export const getActiveCausesWithWalletAddresses = async (): Promise<
+  Cause[]
+> => {
+  return await Cause.createQueryBuilder('cause')
+    .select([
+      'cause.id',
+      'cause.walletAddress',
+      'user.id',
+      'user.walletAddress',
+    ])
+    .leftJoin('cause.adminUser', 'user')
+    .where('cause.projectType = :projectType', { projectType: 'cause' })
+    .andWhere('cause.statusId = :statusId', { statusId: ProjStatus.active })
+    .andWhere('cause.walletAddress IS NOT NULL') // Filter out causes without wallet addresses
+    .andWhere('cause.walletAddress != :emptyString', { emptyString: '' }) // Filter out empty string wallet addresses
+    .getMany();
+};
+
+// Optimized function to get eligible projects for multiple causes in a single query
+export const getEligibleProjectsForCauses = async (
+  causeIds: number[],
 ): Promise<
   Array<{
+    causeId: number;
     projectId: number;
     name: string;
     slug: string;
@@ -119,58 +147,41 @@ export const getEligibleProjectsForCause = async (
     score: number;
   }>
 > => {
-  // Get all projects for this cause with their addresses and status
-  const causeProjects = await CauseProject.createQueryBuilder('causeProject')
-    .leftJoinAndSelect('causeProject.project', 'project')
-    .leftJoinAndSelect('project.addresses', 'addresses')
-    .leftJoinAndSelect('project.status', 'status')
-    .where('causeProject.causeId = :causeId', { causeId })
-    .andWhere('causeProject.isIncluded = :isIncluded', { isIncluded: true })
-    .getMany();
-
-  const eligibleProjects: Array<{
-    projectId: number;
-    name: string;
-    slug: string;
-    walletAddress: string;
-    score: number;
-  }> = [];
-
-  for (const causeProject of causeProjects) {
-    const project = causeProject.project;
-
-    // Skip projects that don't meet the criteria
-    if (
-      !project.verified || // Not verified
-      project.statusId !== ProjStatus.active || // Not active (deactivated, cancelled, etc.)
-      !project.addresses || // No addresses
-      project.addresses.length === 0
-    ) {
-      continue;
-    }
-
-    // Find Polygon recipient address
-    const polygonAddress = project.addresses.find(
-      address =>
-        address.networkId === NETWORK_IDS.POLYGON &&
-        address.isRecipient === true,
-    );
-
-    if (!polygonAddress) {
-      // Skip projects without Polygon address
-      continue;
-    }
-
-    eligibleProjects.push({
-      projectId: project.id,
-      name: project.title,
-      slug: project.slug || '',
-      walletAddress: polygonAddress.address,
-      score: causeProject.causeScore,
-    });
+  if (causeIds.length === 0) {
+    return [];
   }
 
-  return eligibleProjects;
+  // Single optimized query that filters everything at the database level
+  const results = await CauseProject.createQueryBuilder('causeProject')
+    .select([
+      'causeProject.causeId',
+      'causeProject.causeScore',
+      'project.id',
+      'project.title',
+      'project.slug',
+      'addresses.address',
+    ])
+    .innerJoin('causeProject.project', 'project')
+    .innerJoin(
+      'project.addresses',
+      'addresses',
+      'addresses.networkId = :networkId AND addresses.isRecipient = :isRecipient',
+      { networkId: NETWORK_IDS.POLYGON, isRecipient: true },
+    )
+    .where('causeProject.causeId IN (:...causeIds)', { causeIds })
+    .andWhere('causeProject.isIncluded = :isIncluded', { isIncluded: true })
+    .andWhere('project.verified = :verified', { verified: true })
+    .andWhere('project.statusId = :statusId', { statusId: ProjStatus.active })
+    .getMany();
+
+  return results.map(causeProject => ({
+    causeId: causeProject.causeId,
+    projectId: causeProject.project.id,
+    name: causeProject.project.title,
+    slug: causeProject.project.slug || '',
+    walletAddress: causeProject.project.addresses?.[0]?.address || '',
+    score: causeProject.causeScore,
+  }));
 };
 
 export const scheduleCauseDistributionJob = (): void => {
