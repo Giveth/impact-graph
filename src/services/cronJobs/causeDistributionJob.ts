@@ -31,6 +31,7 @@ export const runCauseDistributionJob = async (): Promise<void> => {
 
     let totalProcessedCauses = 0;
     let totalProcessedProjects = 0;
+
     let successfulCauses = 0;
     let failedCauses = 0;
 
@@ -45,6 +46,18 @@ export const runCauseDistributionJob = async (): Promise<void> => {
 
       if (eligibleProjects.length === 0) {
         logger.info(`No eligible projects found for cause ${cause.id}`);
+        continue;
+      }
+
+      // Check if cause has been evaluated - if all projects have causeScore of 0, skip distribution
+      const hasBeenEvaluated = eligibleProjects.some(
+        project => project.score > 0,
+      );
+
+      if (!hasBeenEvaluated) {
+        logger.info(
+          `Cause ${cause.id} has not been evaluated yet (all projects have causeScore of 0), skipping distribution`,
+        );
         continue;
       }
 
