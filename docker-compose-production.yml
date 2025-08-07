@@ -14,7 +14,6 @@ services:
     environment:
       - ENVIRONMENT=production
       - LOG_PATH=/usr/src/app/logs/impact-graph.log
-      - NODE_OPTIONS=--max-old-space-size=3072
     restart: always
     volumes:
       # You should have a production.env file in the config folder
