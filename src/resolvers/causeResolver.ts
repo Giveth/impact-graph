@@ -1,4 +1,13 @@
-import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import {
+  Arg,
+  Ctx,
+  Field,
+  Int,
+  Mutation,
+  ObjectType,
+  Query,
+  Resolver,
+} from 'type-graphql';
 import slugify from 'slugify';
 import { convert } from 'html-to-text';
 import {
@@ -53,6 +62,8 @@ import { Reaction } from '../entities/reaction';
 import { UpdateProjectInput } from './types/project-input';
 import { Token } from '../entities/token';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
+import { AppDataSource } from '../orm';
+import { Campaign } from '../entities/campaign';
 
 const DEFAULT_CAUSES_LIMIT = 20;
 const MAX_CAUSES_LIMIT = 100;
@@ -74,6 +85,21 @@ const getCauseCreationFeeTokenContractAddresses = (): {
   }
   return result;
 };
+
+@ObjectType()
+class AllCauses {
+  @Field(_type => [Project])
+  projects: Project[] | Cause[];
+
+  @Field(_type => Int)
+  totalCount: number;
+
+  @Field(_type => [Category], { nullable: true })
+  categories: Category[];
+
+  @Field(_type => Campaign, { nullable: true })
+  campaign?: Campaign;
+}
 
 @Resolver(_of => Cause)
 export class CauseResolver {
@@ -638,6 +664,143 @@ export class CauseResolver {
     } catch (e) {
       logger.error('getCauseAcceptTokens error', e);
       throw e;
+    }
+  }
+
+  @Query(_returns => AllCauses, { nullable: true })
+  async causesByUserId(
+    @Arg('userId', _type => Int) userId: number,
+    @Arg('take', { defaultValue: 10 }) take: number = 10,
+    @Arg('skip', { defaultValue: 0 }) skip: number = 0,
+  ) {
+    const rawQuery = `
+      SELECT 
+        p.*,
+        jsonb_build_object(
+          'id', s.id,
+          'name', s.name,
+          'symbol', s.symbol,
+          'description', s.description
+        ) AS status,
+        u.name AS admin_user_name,
+        u."walletAddress" AS admin_user_wallet,
+        o.label AS organization_label,
+        COALESCE(json_agg(DISTINCT jsonb_build_object(
+          'address', a.address,
+          'memo', a.memo,
+          'isRecipient', a."isRecipient",
+          'networkId', a."networkId",
+          'chainType', a."chainType"
+        )) FILTER (WHERE a.id IS NOT NULL), '[]') AS addresses,
+        COALESCE(json_agg(DISTINCT jsonb_build_object(
+          'id', q.id,
+          'name', q.name,
+          'isActive', q."isActive",
+          'beginDate', q."beginDate",
+          'endDate', q."endDate"
+        )) FILTER (WHERE q.id IS NOT NULL), '[]') AS qfRounds
+      FROM project p
+      INNER JOIN "user" u ON u.id = p."adminUserId"
+      LEFT JOIN project_status s ON s.id = p."statusId"
+      LEFT JOIN organization o ON o.id = p."organizationId"
+      LEFT JOIN project_address a ON a."projectId" = p.id
+      LEFT JOIN project_qf_rounds_qf_round qrp ON qrp."projectId" = p.id
+      LEFT JOIN qf_round q ON q.id = qrp."qfRoundId"
+      WHERE 
+        p."adminUserId" = $1
+        AND p."projectType" = 'cause'
+      GROUP BY 
+        p.id, s.name, u.name, u."walletAddress", o.label,
+         s.id, s.name, s.symbol, s.description
+      ORDER BY p."creationDate" DESC
+      OFFSET $2
+      LIMIT $3
+    `;
+
+    const countQuery = `
+      SELECT COUNT(*) FROM project p
+      WHERE 
+        p."adminUserId" = $1
+        AND p."projectType" = 'cause'
+    `;
+
+    try {
+      await AppDataSource.initialize();
+
+      const [projects, countResult] = await Promise.all([
+        AppDataSource.getDataSource().query(rawQuery, [userId, skip, take]),
+        AppDataSource.getDataSource().query(countQuery, [userId]),
+      ]);
+
+      const causeIds = projects.map(p => p.id);
+
+      const causeProjects = await AppDataSource.getDataSource().query(
+        `
+        SELECT 
+          cp."causeId",
+          cp.id as "causeProjectId",
+          cp."amountReceived",
+          cp."amountReceivedUsdValue",
+          cp."isIncluded",
+          cp."userRemoved",
+          p.id AS "projectId",
+          p.title,
+          p.verified,
+          p."isGivbackEligible",
+          jsonb_build_object(
+            'id', ps.id,
+            'name', ps.name
+          ) AS status,
+          COALESCE(json_agg(DISTINCT jsonb_build_object(
+            'id', addr.id,
+            'address', addr.address,
+            'networkId', addr."networkId",
+            'chainType', addr."chainType"
+          )) FILTER (WHERE addr.id IS NOT NULL), '[]') AS addresses
+        FROM cause_project cp
+        INNER JOIN project p ON cp."projectId" = p.id
+        LEFT JOIN project_status ps ON ps.id = p."statusId"
+        LEFT JOIN project_address addr ON addr."projectId" = p.id
+        WHERE cp."causeId" = ANY($1)
+        GROUP BY cp."causeId", cp.id, cp."amountReceived", cp."amountReceivedUsdValue", p.id, ps.id, ps.name
+      `,
+        [causeIds],
+      );
+
+      // Group causeProjects by causeId
+      const grouped = causeProjects.reduce((acc: any, row: any) => {
+        if (!acc[row.causeId]) acc[row.causeId] = [];
+        acc[row.causeId].push({
+          id: row.causeProjectId,
+          amountReceived: row.amountReceived,
+          amountReceivedUsdValue: row.amountReceivedUsdValue,
+          isIncluded: row.isIncluded,
+          userRemoved: row.userRemoved,
+          project: {
+            id: row.projectId,
+            title: row.title,
+            verified: row.verified,
+            isGivbackEligible: row.isGivbackEligible,
+            status: row.status,
+            addresses: row.addresses,
+          },
+        });
+        return acc;
+      }, {});
+
+      // Enrich original projects with causeProjects
+      const enrichedProjects = projects.map((p: any) => ({
+        ...p,
+        causeProjects: grouped[p.id] || [],
+      }));
+
+      return {
+        projects: enrichedProjects,
+        totalCount: parseInt(countResult[0].count, 10),
+      };
+    } catch (err) {
+      logger.error('Error fetching causesByUserId:', err);
+      throw new Error('Unable to fetch causes for user');
     }
   }
 }
