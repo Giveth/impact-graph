@@ -4,7 +4,7 @@ import {
   ProjStatus,
   CauseProject,
 } from '../entities/project';
-import { User, publicSelectionFields } from '../entities/user';
+import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { ChainType } from '../types/network';
@@ -31,29 +31,10 @@ export enum SortDirection {
 export const findCauseById = async (id: number): Promise<Cause | null> => {
   return Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.adminUser', 'adminUser')
-    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-    .leftJoinAndSelect('causeProjects.project', 'project')
     .leftJoinAndSelect('cause.status', 'status')
     .leftJoinAndSelect('cause.categories', 'categories')
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
     .where('cause.id = :id', { id })
-    .andWhere('lower(cause.projectType) = lower(:projectType)', {
-      projectType: 'cause',
-    })
-    .getOne();
-};
-
-export const findCauseByCauseId = async (
-  causeId: number,
-): Promise<Cause | null> => {
-  return Cause.createQueryBuilder('cause')
-    .leftJoinAndSelect('cause.adminUser', 'adminUser')
-    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-    .leftJoinAndSelect('causeProjects.project', 'project')
-    .leftJoinAndSelect('cause.status', 'status')
-    .leftJoinAndSelect('cause.categories', 'categories')
-    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-    .where('cause.id = :causeId', { causeId })
     .andWhere('lower(cause.projectType) = lower(:projectType)', {
       projectType: 'cause',
     })
@@ -149,27 +130,27 @@ export const createCause = async (
   );
 
   // Return the cause with all relations
-  const result = await Cause.createQueryBuilder('cause')
-    .leftJoinAndSelect('cause.adminUser', 'adminUser')
-    .leftJoinAndSelect('cause.status', 'status')
-    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-    .leftJoinAndSelect('causeProjects.project', 'project')
-    .leftJoinAndSelect('cause.categories', 'categories')
-    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-    .where('cause.id = :id', { id: savedCause.id })
-    .getOne();
+  // const result = await Cause.createQueryBuilder('cause')
+  //   .leftJoinAndSelect('cause.adminUser', 'adminUser')
+  //   .leftJoinAndSelect('cause.status', 'status')
+  //   .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
+  //   .leftJoinAndSelect('causeProjects.project', 'project')
+  //   .leftJoinAndSelect('cause.categories', 'categories')
+  //   .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+  //   .where('cause.id = :id', { id: savedCause.id })
+  //   .getOne();
 
-  if (!result) {
-    throw new Error('Failed to retrieve created cause');
-  }
+  // if (!result) {
+  //   throw new Error('Failed to retrieve created cause');
+  // }
 
-  result.causeProjects = await loadCauseProjects(result);
+  // result.causeProjects = await loadCauseProjects(result);
 
-  return result;
+  return savedCause;
 };
 
 export const activateCause = async (causeId: number): Promise<Cause> => {
-  const cause = await findCauseByCauseId(causeId);
+  const cause = await findCauseById(causeId);
   if (!cause) {
     throw new Error(i18n.__(translationErrorMessagesKeys.CAUSE_NOT_FOUND));
   }
@@ -185,7 +166,7 @@ export const activateCause = async (causeId: number): Promise<Cause> => {
 };
 
 export const deactivateCause = async (causeId: number): Promise<Cause> => {
-  const cause = await findCauseByCauseId(causeId);
+  const cause = await findCauseById(causeId);
   if (!cause) {
     throw new Error(i18n.__(translationErrorMessagesKeys.CAUSE_NOT_FOUND));
   }
@@ -269,55 +250,55 @@ export const validateTransactionHash = async (
   return true;
 };
 
-export const loadCauseProjects = async (
-  cause: Cause,
-  userRemoved: boolean | undefined = undefined,
-): Promise<CauseProject[] | []> => {
-  if (cause.projectType.toLowerCase() === 'project') {
-    return [];
-  }
+// export const loadCauseProjects = async (
+//   cause: Cause,
+//   userRemoved: boolean | undefined = undefined,
+// ): Promise<CauseProject[] | []> => {
+//   if (cause.projectType.toLowerCase() === 'project') {
+//     return [];
+//   }
 
-  const baseQuery = await CauseProject.createQueryBuilder('causeProject')
-    .leftJoinAndSelect('causeProject.project', 'project')
-    .leftJoinAndSelect('project.status', 'status')
-    .leftJoinAndSelect('project.addresses', 'addresses')
-    .leftJoinAndSelect(
-      'project.socialProfiles',
-      'socialProfiles',
-      'socialProfiles.projectId = project.id',
-    )
-    .leftJoinAndSelect(
-      'project.socialMedia',
-      'socialMedia',
-      'socialMedia.projectId = project.id',
-    )
-    .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-    .leftJoinAndSelect('project.projectPower', 'projectPower')
-    .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
-    .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
-    .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
-    .leftJoinAndSelect(
-      'project.categories',
-      'categories',
-      'categories.isActive = :isActive',
-      { isActive: true },
-    )
-    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-    .leftJoinAndSelect('project.organization', 'organization')
-    .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-    .leftJoin('project.adminUser', 'user')
-    .addSelect(publicSelectionFields)
-    .where('causeProject.causeId = :causeId', { causeId: cause.id });
+//   const baseQuery = await CauseProject.createQueryBuilder('causeProject')
+//     .leftJoinAndSelect('causeProject.project', 'project')
+//     .leftJoinAndSelect('project.status', 'status')
+//     .leftJoinAndSelect('project.addresses', 'addresses')
+//     .leftJoinAndSelect(
+//       'project.socialProfiles',
+//       'socialProfiles',
+//       'socialProfiles.projectId = project.id',
+//     )
+//     .leftJoinAndSelect(
+//       'project.socialMedia',
+//       'socialMedia',
+//       'socialMedia.projectId = project.id',
+//     )
+//     .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+//     .leftJoinAndSelect('project.projectPower', 'projectPower')
+//     .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
+//     .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+//     .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+//     .leftJoinAndSelect(
+//       'project.categories',
+//       'categories',
+//       'categories.isActive = :isActive',
+//       { isActive: true },
+//     )
+//     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+//     .leftJoinAndSelect('project.organization', 'organization')
+//     .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+//     .leftJoin('project.adminUser', 'user')
+//     .addSelect(publicSelectionFields)
+//     .where('causeProject.causeId = :causeId', { causeId: cause.id });
 
-  if (userRemoved !== undefined) {
-    baseQuery.andWhere('causeProject.userRemoved = :userRemoved', {
-      userRemoved,
-    });
-  }
+//   if (userRemoved !== undefined) {
+//     baseQuery.andWhere('causeProject.userRemoved = :userRemoved', {
+//       userRemoved,
+//     });
+//   }
 
-  const causeProjects = await baseQuery.getMany();
-  return causeProjects;
-};
+//   const causeProjects = await baseQuery.getMany();
+//   return causeProjects;
+// };
 
 export const findAllCauses = async (
   limit?: number,
@@ -342,11 +323,7 @@ export const findAllCauses = async (
       { isActive: true },
     )
     .leftJoinAndSelect('projectCategories.mainCategory', 'projectMainCategory')
-    .leftJoinAndSelect('project.addresses', 'addresses')
     .leftJoinAndSelect('project.socialMedia', 'socialMedia')
-    .leftJoinAndSelect('project.projectPower', 'projectPower')
-    .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
-    .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
     .where('lower(cause.projectType) = lower(:projectType)', {
       projectType: 'cause',
     });
