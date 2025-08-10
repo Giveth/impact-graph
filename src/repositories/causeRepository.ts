@@ -31,29 +31,10 @@ export enum SortDirection {
 export const findCauseById = async (id: number): Promise<Cause | null> => {
   return Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.adminUser', 'adminUser')
-    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-    .leftJoinAndSelect('causeProjects.project', 'project')
     .leftJoinAndSelect('cause.status', 'status')
     .leftJoinAndSelect('cause.categories', 'categories')
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
     .where('cause.id = :id', { id })
-    .andWhere('lower(cause.projectType) = lower(:projectType)', {
-      projectType: 'cause',
-    })
-    .getOne();
-};
-
-export const findCauseByCauseId = async (
-  causeId: number,
-): Promise<Cause | null> => {
-  return Cause.createQueryBuilder('cause')
-    .leftJoinAndSelect('cause.adminUser', 'adminUser')
-    .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-    .leftJoinAndSelect('causeProjects.project', 'project')
-    .leftJoinAndSelect('cause.status', 'status')
-    .leftJoinAndSelect('cause.categories', 'categories')
-    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-    .where('cause.id = :causeId', { causeId })
     .andWhere('lower(cause.projectType) = lower(:projectType)', {
       projectType: 'cause',
     })
@@ -169,7 +150,7 @@ export const createCause = async (
 };
 
 export const activateCause = async (causeId: number): Promise<Cause> => {
-  const cause = await findCauseByCauseId(causeId);
+  const cause = await findCauseById(causeId);
   if (!cause) {
     throw new Error(i18n.__(translationErrorMessagesKeys.CAUSE_NOT_FOUND));
   }
@@ -185,7 +166,7 @@ export const activateCause = async (causeId: number): Promise<Cause> => {
 };
 
 export const deactivateCause = async (causeId: number): Promise<Cause> => {
-  const cause = await findCauseByCauseId(causeId);
+  const cause = await findCauseById(causeId);
   if (!cause) {
     throw new Error(i18n.__(translationErrorMessagesKeys.CAUSE_NOT_FOUND));
   }
