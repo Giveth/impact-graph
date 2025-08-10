@@ -467,13 +467,7 @@ export class Project extends BaseEntity {
   // causeProjects?: CauseProject[];
 
   @Field(_type => [CauseProject], { nullable: true })
-  async causeProjects(userRemoved?: boolean): Promise<CauseProject[] | []> {
-    if (this.projectType.toLowerCase() === 'project') {
-      return [];
-    }
-
-    return this.causeProjects(userRemoved);
-  }
+  causeProjects?: CauseProject[];
 
   @Field(_type => [Project], { nullable: true })
   async projects(): Promise<Project[] | []> {
@@ -840,12 +834,15 @@ export class Cause extends Project {
   projectType: string = 'cause';
 
   @Field(_type => [CauseProject], { nullable: true })
-  async causeProjects(userRemoved?: boolean): Promise<CauseProject[] | []> {
+  causeProjects?: CauseProject[];
+
+  // Internal method for loading cause projects with filtering
+  async loadCauseProjects(userRemoved?: boolean): Promise<CauseProject[] | []> {
     if (this.projectType.toLowerCase() === 'project') {
       return [];
     }
 
-    const baseQuery = await CauseProject.createQueryBuilder('causeProject')
+    const baseQuery = CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')

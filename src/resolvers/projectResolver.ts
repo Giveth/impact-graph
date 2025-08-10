@@ -936,11 +936,10 @@ export class ProjectResolver {
     const project = await query.getOne();
 
     if (project?.projectType === 'cause') {
-      await project.causeProjects(userRemoved);
-      //   project.causeProjects = await loadCauseProjects(
-      //     project as Cause,
-      //     userRemoved,
-      //   );
+      // Load and filter causeProjects based on userRemoved parameter
+      project.causeProjects = await (project as Cause).loadCauseProjects(
+        userRemoved,
+      );
     }
 
     canUserVisitProject(project, user?.userId);
@@ -1081,11 +1080,9 @@ export class ProjectResolver {
     canUserVisitProject(project, user?.userId);
 
     if (project?.projectType === 'cause') {
-      await project.causeProjects(userRemoved);
-      // project.causeProjects = await loadCauseProjects(
-      //   project as Cause,
-      //   userRemoved,
-      // );
+      project.causeProjects = await (project as Cause).loadCauseProjects(
+        userRemoved,
+      );
     }
 
     if (fields.verificationFormStatus) {
