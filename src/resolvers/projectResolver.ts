@@ -1969,11 +1969,11 @@ export class ProjectResolver {
       .skip(skip)
       .getManyAndCount();
 
-    // for (const project of projects) {
-    //   if (project.projectType === 'cause') {
-    //     project.causeProjects = await loadCauseProjects(project);
-    //   }
-    // }
+    for (const project of projects) {
+      if (project.projectType === 'cause') {
+        project.causeProjects = await (project as Cause).loadCauseProjects();
+      }
+    }
 
     return {
       projects,
