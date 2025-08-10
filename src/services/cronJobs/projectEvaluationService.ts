@@ -7,8 +7,8 @@ import { Cause } from '../../entities/project';
 import { erc20ABI } from '../../assets/erc20ABI';
 import { getProvider } from '../../provider';
 
-const tpolTokenAddress = '0xc7B1807822160a8C5b6c9EaF5C584aAD0972deeC'; // GIV token address for production
-const givTokenAddress = '0xc20CAf8deE81059ec0c8E5971b2AF7347eC131f4'; // TPOL token address for staging
+const givTokenAddress = '0xc7B1807822160a8C5b6c9EaF5C584aAD0972deeC'; // GIV token address for production
+const tpolTokenAddress = '0xc20CAf8deE81059ec0c8E5971b2AF7347eC131f4'; // TPOL token address for staging
 
 // Cron expression for how often to run the evaluation
 const cronJobTime =

@@ -3,7 +3,6 @@ import { User } from '../entities/user';
 import { Project, Cause, ReviewStatus, ProjStatus } from '../entities/project';
 import {
   findCauseById,
-  findCauseByCauseId,
   findCausesByOwnerId,
   findCausesByProjectIds,
   createCause,
@@ -143,7 +142,7 @@ describe('causeRepository test cases', async () => {
 
   describe('findCauseByCauseId test cases', () => {
     it('should find cause by causeId with relations', async () => {
-      const foundCause = await findCauseByCauseId(testCause.id);
+      const foundCause = await findCauseById(testCause.id);
 
       assert.isOk(foundCause);
       assert.equal(foundCause?.id, testCause.id);
@@ -161,7 +160,7 @@ describe('causeRepository test cases', async () => {
     });
 
     it('should return null when cause not found', async () => {
-      const foundCause = await findCauseByCauseId(999999);
+      const foundCause = await findCauseById(999999);
       assert.isNull(foundCause);
     });
   });

@@ -462,8 +462,11 @@ export class Project extends BaseEntity {
   projectType: string = 'project';
 
   // Many-to-many relationship with causes through CauseProject junction table
+  // @Field(_type => [CauseProject], { nullable: true })
+  // @OneToMany(_type => CauseProject, causeProject => causeProject.project)
+  // causeProjects?: CauseProject[];
+
   @Field(_type => [CauseProject], { nullable: true })
-  @OneToMany(_type => CauseProject, causeProject => causeProject.project)
   causeProjects?: CauseProject[];
 
   @Field(_type => [Project], { nullable: true })
@@ -580,10 +583,10 @@ export class Project extends BaseEntity {
     }
   }
 
-  @Field(_type => [CauseProject], { nullable: true })
-  async loadCauseProjects(): Promise<CauseProject[] | []> {
-    return [];
-  }
+  // @Field(_type => [CauseProject], { nullable: true })
+  // async loadCauseProjects(): Promise<CauseProject[] | []> {
+  //   return [];
+  // }
 
   @BeforeUpdate()
   async updateProjectDescriptionSummary() {
@@ -817,9 +820,9 @@ export class Cause extends Project {
   totalDonated?: number;
 
   // Many-to-many relationship with projects through CauseProject junction table
-  @Field(_type => [CauseProject], { nullable: true })
-  @OneToMany(_type => CauseProject, causeProject => causeProject.cause)
-  causeProjects?: CauseProject[];
+  // @Field(_type => [CauseProject], { nullable: true })
+  // @OneToMany(_type => CauseProject, causeProject => causeProject.cause)
+  // causeProjects?: CauseProject[];
 
   @Field(_type => Int, { nullable: true })
   @Column({ type: 'integer', default: 0, nullable: true })
@@ -831,45 +834,35 @@ export class Cause extends Project {
   projectType: string = 'cause';
 
   @Field(_type => [CauseProject], { nullable: true })
-  async loadCauseProjects(): Promise<CauseProject[] | []> {
+  causeProjects?: CauseProject[];
+
+  // Internal method for loading cause projects with filtering
+  async loadCauseProjects(userRemoved?: boolean): Promise<CauseProject[] | []> {
     if (this.projectType.toLowerCase() === 'project') {
       return [];
     }
 
-    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+    const baseQuery = CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect(
-        'project.socialProfiles',
-        'socialProfiles',
-        'socialProfiles.projectId = project.id',
-      )
-      .leftJoinAndSelect(
-        'project.socialMedia',
-        'socialMedia',
-        'socialMedia.projectId = project.id',
-      )
-      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-      .leftJoinAndSelect('project.projectPower', 'projectPower')
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
-      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
-      .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-      .leftJoin('project.adminUser', 'user')
-      .where('causeProject.causeId = :causeId', { causeId: this.id })
-      .getMany();
+      .leftJoinAndSelect('project.adminUser', 'user')
+      .where('causeProject.causeId = :causeId', { causeId: this.id });
+
+    if (userRemoved !== undefined) {
+      baseQuery.andWhere('causeProject.userRemoved = :userRemoved', {
+        userRemoved,
+      });
+    }
+
+    const causeProjects = await baseQuery.getMany();
+
     return causeProjects;
   }
 
+  // TODO: merge this with causeProjects
   // Virtual field to get projects directly
   @Field(_type => [Project], { nullable: true })
   async projects(): Promise<Project[] | []> {
@@ -880,26 +873,16 @@ export class Cause extends Project {
     const causeProjects = await CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect(
-        'project.socialProfiles',
-        'socialProfiles',
-        'socialProfiles.projectId = project.id',
-      )
       .leftJoinAndSelect(
         'project.socialMedia',
         'socialMedia',
         'socialMedia.projectId = project.id',
       )
-      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-      .leftJoinAndSelect('project.projectPower', 'projectPower')
-      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
       .leftJoinAndSelect(
         'project.projectUpdates',
         'projectUpdates',
         'projectUpdates.projectId = project.id',
       )
-      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
       .leftJoinAndSelect(
         'project.categories',
         'categories',
@@ -907,9 +890,6 @@ export class Cause extends Project {
         { isActive: true },
       )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-      .leftJoinAndSelect('project.adminUser', 'adminUser')
       .where('causeProject.causeId = :causeId', { causeId: this.id })
       .getMany();
     return causeProjects.map(cp => cp.project);
@@ -924,7 +904,7 @@ export class CauseProject extends BaseEntity {
   id: number;
 
   @Field(_type => Cause, { nullable: true })
-  @ManyToOne(_type => Cause, cause => cause.causeProjects)
+  @ManyToOne(_type => Cause)
   @JoinColumn()
   cause: Cause;
 
@@ -933,7 +913,7 @@ export class CauseProject extends BaseEntity {
   causeId: number;
 
   @Field(_type => Project, { nullable: true })
-  @ManyToOne(_type => Project, project => project.causeProjects)
+  @ManyToOne(_type => Project)
   @JoinColumn()
   project: Project;
 

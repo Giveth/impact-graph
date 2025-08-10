@@ -30,7 +30,7 @@ import {
   validateTransactionHash,
   CauseSortField,
   SortDirection,
-  loadCauseProjects,
+  // loadCauseProjects,
   validateCauseTitleForEdit,
 } from '../repositories/causeRepository';
 import { verifyTransaction } from '../utils/transactionVerification';
@@ -179,9 +179,9 @@ export class CauseResolver {
   async cause(@Arg('id') id: number): Promise<Cause | null> {
     try {
       const cause = await findCauseById(id);
-      if (cause) {
-        cause.causeProjects = await loadCauseProjects(cause);
-      }
+      // if (cause) {
+      //   cause.causeProjects = await loadCauseProjects(cause);
+      // }
       return cause || null;
     } catch (e) {
       SentryLogger.captureException(e);
@@ -200,9 +200,9 @@ export class CauseResolver {
         return null;
       }
       const cause = await findCauseById(causeFindId.id);
-      if (cause) {
-        cause.causeProjects = await loadCauseProjects(cause);
-      }
+      // if (cause) {
+      //   cause.causeProjects = await loadCauseProjects(cause);
+      // }
       return cause || null;
     } catch (e) {
       SentryLogger.captureException(e);
@@ -430,7 +430,7 @@ export class CauseResolver {
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
     });
-    project.causeProjects = await loadCauseProjects(project);
+    // project.causeProjects = await loadCauseProjects(project);
 
     // Edit emails
     // await getNotificationAdapter().projectEdited({ project });
