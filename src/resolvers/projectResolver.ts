@@ -118,7 +118,7 @@ import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
 } from '../repositories/projectSocialMediaRepository';
-import { loadCauseProjects } from '../repositories/causeRepository';
+// import { loadCauseProjects } from '../repositories/causeRepository';
 
 const projectUpdatsCacheDuration = 1000 * 60 * 60;
 
@@ -873,8 +873,8 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
     @Info() info: GraphQLResolveInfo,
-    @Arg('userRemoved', _type => Boolean, { nullable: true })
-    userRemoved?: boolean,
+    // @Arg('userRemoved', _type => Boolean, { nullable: true })
+    // userRemoved?: boolean,
   ) {
     const fields = graphqlFields(info);
 
@@ -935,12 +935,12 @@ export class ProjectResolver {
 
     const project = await query.getOne();
 
-    if (project?.projectType === 'cause') {
-      project.causeProjects = await loadCauseProjects(
-        project as Cause,
-        userRemoved,
-      );
-    }
+    // if (project?.projectType === 'cause') {
+    //   project.causeProjects = await loadCauseProjects(
+    //     project as Cause,
+    //     userRemoved,
+    //   );
+    // }
 
     canUserVisitProject(project, user?.userId);
 
@@ -963,8 +963,8 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
     @Info() info: GraphQLResolveInfo,
-    @Arg('userRemoved', _type => Boolean, { nullable: true })
-    userRemoved?: boolean,
+    // @Arg('userRemoved', _type => Boolean, { nullable: true })
+    // userRemoved?: boolean,
   ) {
     const minimalProject = await findProjectIdBySlug(slug);
     if (!minimalProject) {
@@ -1079,12 +1079,12 @@ export class ProjectResolver {
     const project = await query.getOne();
     canUserVisitProject(project, user?.userId);
 
-    if (project?.projectType === 'cause') {
-      project.causeProjects = await loadCauseProjects(
-        project as Cause,
-        userRemoved,
-      );
-    }
+    // if (project?.projectType === 'cause') {
+    //   project.causeProjects = await loadCauseProjects(
+    //     project as Cause,
+    //     userRemoved,
+    //   );
+    // }
 
     if (fields.verificationFormStatus) {
       const verificationForm = await getVerificationFormStatusByProjectId(
@@ -1970,11 +1970,11 @@ export class ProjectResolver {
       .skip(skip)
       .getManyAndCount();
 
-    for (const project of projects) {
-      if (project.projectType === 'cause') {
-        project.causeProjects = await loadCauseProjects(project);
-      }
-    }
+    // for (const project of projects) {
+    //   if (project.projectType === 'cause') {
+    //     project.causeProjects = await loadCauseProjects(project);
+    //   }
+    // }
 
     return {
       projects,
