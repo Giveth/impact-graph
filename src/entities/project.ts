@@ -467,8 +467,12 @@ export class Project extends BaseEntity {
   // causeProjects?: CauseProject[];
 
   @Field(_type => [CauseProject], { nullable: true })
-  async causeProjects(): Promise<CauseProject[] | []> {
-    return [];
+  async causeProjects(userRemoved?: boolean): Promise<CauseProject[] | []> {
+    if (this.projectType.toLowerCase() === 'project') {
+      return [];
+    }
+
+    return this.causeProjects(userRemoved);
   }
 
   @Field(_type => [Project], { nullable: true })
@@ -836,20 +840,28 @@ export class Cause extends Project {
   projectType: string = 'cause';
 
   @Field(_type => [CauseProject], { nullable: true })
-  async causeProjects(): Promise<CauseProject[] | []> {
+  async causeProjects(userRemoved?: boolean): Promise<CauseProject[] | []> {
     if (this.projectType.toLowerCase() === 'project') {
       return [];
     }
 
-    const causeProjects = await CauseProject.createQueryBuilder('causeProject')
+    const baseQuery = await CauseProject.createQueryBuilder('causeProject')
       .leftJoinAndSelect('causeProject.project', 'project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.adminUser', 'user')
-      .where('causeProject.causeId = :causeId', { causeId: this.id })
-      .getMany();
+      .where('causeProject.causeId = :causeId', { causeId: this.id });
+
+    if (userRemoved !== undefined) {
+      baseQuery.andWhere('causeProject.userRemoved = :userRemoved', {
+        userRemoved,
+      });
+    }
+
+    const causeProjects = await baseQuery.getMany();
+
     return causeProjects;
   }
 

@@ -873,8 +873,8 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
     @Info() info: GraphQLResolveInfo,
-    // @Arg('userRemoved', _type => Boolean, { nullable: true })
-    // userRemoved?: boolean,
+    @Arg('userRemoved', _type => Boolean, { nullable: true })
+    userRemoved?: boolean,
   ) {
     const fields = graphqlFields(info);
 
@@ -935,12 +935,13 @@ export class ProjectResolver {
 
     const project = await query.getOne();
 
-    // if (project?.projectType === 'cause') {
-    //   project.causeProjects = await loadCauseProjects(
-    //     project as Cause,
-    //     userRemoved,
-    //   );
-    // }
+    if (project?.projectType === 'cause') {
+      await project.causeProjects(userRemoved);
+      //   project.causeProjects = await loadCauseProjects(
+      //     project as Cause,
+      //     userRemoved,
+      //   );
+    }
 
     canUserVisitProject(project, user?.userId);
 
@@ -963,8 +964,8 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
     @Info() info: GraphQLResolveInfo,
-    // @Arg('userRemoved', _type => Boolean, { nullable: true })
-    // userRemoved?: boolean,
+    @Arg('userRemoved', _type => Boolean, { nullable: true })
+    userRemoved?: boolean,
   ) {
     const minimalProject = await findProjectIdBySlug(slug);
     if (!minimalProject) {
@@ -1079,12 +1080,13 @@ export class ProjectResolver {
     const project = await query.getOne();
     canUserVisitProject(project, user?.userId);
 
-    // if (project?.projectType === 'cause') {
-    //   project.causeProjects = await loadCauseProjects(
-    //     project as Cause,
-    //     userRemoved,
-    //   );
-    // }
+    if (project?.projectType === 'cause') {
+      await project.causeProjects(userRemoved);
+      // project.causeProjects = await loadCauseProjects(
+      //   project as Cause,
+      //   userRemoved,
+      // );
+    }
 
     if (fields.verificationFormStatus) {
       const verificationForm = await getVerificationFormStatusByProjectId(
