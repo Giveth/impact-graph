@@ -895,7 +895,7 @@ export class CauseProject extends BaseEntity {
   id: number;
 
   @Field(_type => Cause, { nullable: true })
-  @ManyToOne(_type => Cause, cause => cause.causeProjects)
+  @ManyToOne(_type => Cause)
   @JoinColumn()
   cause: Cause;
 
@@ -904,7 +904,7 @@ export class CauseProject extends BaseEntity {
   causeId: number;
 
   @Field(_type => Project, { nullable: true })
-  @ManyToOne(_type => Project, project => project.causeProjects)
+  @ManyToOne(_type => Project)
   @JoinColumn()
   project: Project;
 
