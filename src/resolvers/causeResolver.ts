@@ -741,6 +741,8 @@ export class CauseResolver {
           cp.id as "causeProjectId",
           cp."amountReceived",
           cp."amountReceivedUsdValue",
+          cp."isIncluded",
+          cp."userRemoved",
           p.id AS "projectId",
           p.title,
           p.verified,
@@ -772,6 +774,8 @@ export class CauseResolver {
           id: row.causeProjectId,
           amountReceived: row.amountReceived,
           amountReceivedUsdValue: row.amountReceivedUsdValue,
+          isIncluded: row.isIncluded,
+          userRemoved: row.userRemoved,
           project: {
             id: row.projectId,
             title: row.title,
