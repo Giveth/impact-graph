@@ -131,7 +131,6 @@
         "test:draftDonationRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/draftDonationRepository.test.ts",
         "test:reactionRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/reactionRepository.test.ts",
         "test:campaignRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/campaignRepository.test.ts",
-        "test:causeRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/causeRepository.test.ts",
         "test:socialProfileRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/socialProfileRepository.test.ts",
         "test:projectVerificationRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/projectVerificationRepository.test.ts",
         "test:qfRoundRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/qfRoundRepository.test.ts",
