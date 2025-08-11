@@ -467,6 +467,7 @@ export class Project extends BaseEntity {
   // causeProjects?: CauseProject[];
 
   @Field(_type => [CauseProject], { nullable: true })
+  @OneToMany(_type => CauseProject, causeProject => causeProject.project)
   causeProjects?: CauseProject[];
 
   @Field(_type => [Project], { nullable: true })
@@ -834,6 +835,7 @@ export class Cause extends Project {
   projectType: string = 'cause';
 
   @Field(_type => [CauseProject], { nullable: true })
+  @OneToMany(_type => CauseProject, causeProject => causeProject.cause)
   causeProjects?: CauseProject[];
 
   // Internal method for loading cause projects with filtering
