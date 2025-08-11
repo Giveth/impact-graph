@@ -2749,21 +2749,6 @@ export const fetchRecurringDonationsByDateQuery = `
   }
 `;
 
-// GraphQL query for fetching all users' basic data
-export const allUsersBasicDataQuery = `
-  query ($limit: Int, $skip: Int) {
-    allUsersBasicData(limit: $limit, skip: $skip) {
-      users {
-        firstName
-        lastName
-        name
-        walletAddress
-      }
-      totalCount
-    }
-  }
-`;
-
 export const getLastSitemapUrlQuery = `
   query {
     getLastSitemap {

@@ -17,7 +17,6 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import {
-  allUsersBasicDataQuery,
   refreshUserScores,
   updateUser,
   userByAddress,
@@ -36,7 +35,6 @@ describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
 describe('refreshUserScores() test cases', refreshUserScoresTestCases);
 describe('userEmailVerification() test cases', userEmailVerification);
-describe('allUsersBasicData() test cases', allUsersBasicData);
 describe('isValidEmail() test cases', isValidEmailTestCases);
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
@@ -1176,85 +1174,6 @@ function userEmailVerification() {
         result.data.errors[0].message,
         errorMessages.USER_EMAIL_CODE_NOT_MATCH,
       );
-    });
-  });
-}
-
-function allUsersBasicData() {
-  describe('allUsersBasicData Test Cases', () => {
-    it('should return the default number of users when no limit or skip is provided', async () => {
-      // Create sample users
-      await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-      await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-      // Execute the query
-      const result = await axios.post(graphqlUrl, {
-        query: allUsersBasicDataQuery,
-      });
-
-      // Assertions
-      const { users, totalCount } = result.data.data.allUsersBasicData;
-      assert.isArray(users, 'Users should be an array');
-      assert.isTrue(users.length > 0, 'Should return at least one user');
-      assert.isNumber(totalCount, 'Total count should be a number');
-    });
-
-    it('should return a limited number of users when a limit is specified', async () => {
-      // Create sample users
-      await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-      await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-      // Execute the query with a limit
-      const result = await axios.post(graphqlUrl, {
-        query: allUsersBasicDataQuery,
-        variables: { limit: 1 },
-      });
-
-      // Assertions
-      const { users } = result.data.data.allUsersBasicData;
-      assert.isArray(users, 'Users should be an array');
-      assert.equal(users.length, 1, 'Should return only one user');
-    });
-
-    it('should skip the specified number of users', async () => {
-      await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-      await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-      // Execute the query with skip
-      const result = await axios.post(graphqlUrl, {
-        query: allUsersBasicDataQuery,
-        variables: { skip: 1, limit: 1 },
-      });
-
-      // Assertions
-      const { users } = result.data.data.allUsersBasicData;
-      assert.isArray(users, 'Users should be an array');
-      assert.equal(users.length, 1, 'Should return only one user');
-    });
-
-    it('should not include sensitive fields like email in the response', async () => {
-      // Execute the query
-      const result = await axios.post(graphqlUrl, {
-        query: allUsersBasicDataQuery,
-        variables: { skip: 0, limit: 10 },
-      });
-
-      // Assertions
-      const { users } = result.data.data.allUsersBasicData;
-      assert.isArray(users, 'Users should be an array');
-      assert.isTrue(users.length > 0, 'Should return at least one user');
-
-      // If any users exist, ensure email and password is not part of the response
-      if (users.length > 0) {
-        assert.isUndefined(
-          users[0].email,
-          'Email should not be included in the response',
-        );
-        assert.isUndefined(
-          users[0].password,
-          'Password should not be included in the response',
-        );
-      }
     });
   });
 }
