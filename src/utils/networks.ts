@@ -1,6 +1,11 @@
 import { ethers } from 'ethers';
 import { PublicKey } from '@solana/web3.js';
 import { StrKey } from '@stellar/stellar-sdk';
+import {
+  Address,
+  ByronAddress,
+  RewardAddress,
+} from '@emurgo/cardano-serialization-lib-nodejs';
 import { ChainType } from '../types/network';
 import networksConfig from './networksConfig';
 
@@ -22,6 +27,26 @@ export const isEvmAddress = (address: string): boolean => {
 export const isStellarAddress = (address: string): boolean =>
   StrKey.isValidEd25519PublicKey(address.trim());
 
+export const isCardanoAddress = (address: string): boolean => {
+  // Try Shelley-era bech32
+  try {
+    const shelleyAddr = Address.from_bech32(address);
+    // Disallow staking/reward addresses (stake1..., stake_test1...)
+    if (RewardAddress.from_address(shelleyAddr)) return false;
+    return true;
+  } catch {
+    // Not bech32 → maybe Byron-era base58
+  }
+
+  // Try Byron-era base58 (Ae2..., DdzFF...)
+  try {
+    ByronAddress.from_base58(address);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const detectAddressChainType = (
   address: string,
 ): ChainType | undefined => {
@@ -32,6 +57,8 @@ export const detectAddressChainType = (
       return ChainType.EVM;
     case isStellarAddress(address):
       return ChainType.STELLAR;
+    case isCardanoAddress(address):
+      return ChainType.CARDANO;
     default:
       return undefined;
   }
