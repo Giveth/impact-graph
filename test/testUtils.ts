@@ -1,7 +1,13 @@
+import { randomBytes } from 'crypto';
 import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import { Keypair } from '@solana/web3.js';
 import { Keypair as StellarKeypair } from '@stellar/stellar-sdk';
+import {
+  Ed25519KeyHash,
+  EnterpriseAddress,
+  Credential,
+} from '@emurgo/cardano-serialization-lib-nodejs';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
@@ -2106,6 +2112,16 @@ export function generateRandomEtheriumAddress(): string {
 
 export function generateRandomSolanaAddress(): string {
   return Keypair.generate().publicKey.toString();
+}
+
+export function generateRandomCardanoAddress(): string {
+  const keyHashBytes = new Uint8Array(randomBytes(28));
+  const keyHash = Ed25519KeyHash.from_bytes(keyHashBytes);
+  const paymentCred = Credential.from_keyhash(keyHash);
+  const addr = EnterpriseAddress.new(NETWORK_IDS.CARDANO_MAINNET, paymentCred)
+    .to_address()
+    .to_bech32();
+  return addr;
 }
 
 export function generateRandomStellarAddress(): string {
