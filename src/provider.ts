@@ -34,6 +34,10 @@ export const NETWORK_IDS = {
   SOLANA_MAINNET: 101,
   SOLANA_TESTNET: 102,
   SOLANA_DEVNET: 103,
+
+  // Cardano (Blockfrost uses projectId not numeric chain id, but we map one for consistency)
+  CARDANO_MAINNET: 3000,
+  CARDANO_PREPROD: 3001,
 };
 
 export const superTokensToToken = {
@@ -259,6 +263,9 @@ export const NETWORKS_IDS_TO_NAME = {
   101: 'SOLANA_MAINNET',
   102: 'SOLANA_TESTNET',
   103: 'SOLANA_DEVNET',
+
+  3000: 'CARDANO_MAINNET',
+  3001: 'CARDANO_PREPROD',
 };
 
 const NETWORK_NAMES = {
@@ -283,6 +290,9 @@ const NETWORK_NAMES = {
   ZKEVM_MAINNET: 'ZKEVM Mainnet',
 
   STELLAR_MAINNET: 'Stellar Mainnet',
+
+  CARDANO_MAINNET: 'Cardano Mainnet',
+  CARDANO_PREPROD: 'Cardano Preprod',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -305,6 +315,9 @@ const NETWORK_NATIVE_TOKENS = {
   ZKEVM_MAINNET: 'ETH',
   ZKEVM_CARDONA: 'ETH',
   STELLAR_MAINNET: 'XLM',
+
+  CARDANO_MAINNET: 'ADA',
+  CARDANO_PREPROD: 'ADA',
 };
 
 const networkNativeTokensList = [
@@ -402,6 +415,16 @@ const networkNativeTokensList = [
     networkName: NETWORK_NAMES.STELLAR_MAINNET,
     networkId: NETWORK_IDS.STELLAR_MAINNET,
     nativeToken: NETWORK_NATIVE_TOKENS.STELLAR_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.CARDANO_MAINNET,
+    networkId: NETWORK_IDS.CARDANO_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.CARDANO_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.CARDANO_PREPROD,
+    networkId: NETWORK_IDS.CARDANO_PREPROD,
+    nativeToken: NETWORK_NATIVE_TOKENS.CARDANO_PREPROD,
   },
 ];
 

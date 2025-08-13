@@ -5,6 +5,7 @@ import { getStellarTransactionInfoFromNetwork } from './stellar/transactionServi
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { getProvider, NETWORK_IDS } from '../../provider';
+import { getCardanoTransactionInfoFromNetwork } from './cardano/transactionService';
 
 export interface NetworkTransactionInfo {
   hash: string;
@@ -179,7 +180,11 @@ export async function getTransactionInfoFromNetwork(
     return getStellarTransactionInfoFromNetwork(input);
   }
 
-  // If chain is not Solana, it's EVM for sure
+  if (input.chainType === ChainType.CARDANO) {
+    return getCardanoTransactionInfoFromNetwork(input);
+  }
+
+  // If chain is non of the above, it's EVM for sure
   return getEvmTransactionInfoFromNetwork(input);
 }
 
