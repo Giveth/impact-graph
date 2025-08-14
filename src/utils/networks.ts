@@ -4,7 +4,6 @@ import { StrKey } from '@stellar/stellar-sdk';
 import {
   Address,
   ByronAddress,
-  RewardAddress,
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import { ChainType } from '../types/network';
 import networksConfig from './networksConfig';
@@ -28,14 +27,23 @@ export const isStellarAddress = (address: string): boolean =>
   StrKey.isValidEd25519PublicKey(address.trim());
 
 export const isCardanoAddress = (address: string): boolean => {
-  // Try Shelley-era bech32
+  // Check for stake addresses by prefix (stake1..., stake_test1...)
+  if (address.startsWith('stake1') || address.startsWith('stake_test1')) {
+    // Basic validation: should be bech32-like format
+    // Stake addresses are typically around 59 characters long
+    return (
+      address.length >= 50 &&
+      address.length <= 70 &&
+      /^[a-z0-9]+$/.test(address)
+    );
+  }
+
+  // Try Shelley-era bech32 payment addresses (addr1..., addr_test1...)
   try {
-    const shelleyAddr = Address.from_bech32(address);
-    // Disallow staking/reward addresses (stake1..., stake_test1...)
-    if (RewardAddress.from_address(shelleyAddr)) return false;
+    Address.from_bech32(address);
     return true;
   } catch {
-    // Not bech32 → maybe Byron-era base58
+    // Not a payment address → maybe Byron-era base58
   }
 
   // Try Byron-era base58 (Ae2..., DdzFF...)

@@ -23,10 +23,10 @@ describe('networks - ' + detectAddressChainType.name, () => {
     assert.equal(detectAddressChainType(addr), ChainType.CARDANO);
   });
 
-  it('rejects Cardano reward (stake) address', () => {
+  it('detects Cardano reward (stake) address', () => {
     const stakeAddr =
       'stake1u9g0kz4j7npu4tne3f7w2x9y0r6z5sqh8f0m0x0k4d3l2xq6jgewm';
-    assert.isFalse(isCardanoAddress(stakeAddr));
+    assert.isTrue(isCardanoAddress(stakeAddr));
   });
 
   it('rejects obviously invalid Cardano-like string', () => {
