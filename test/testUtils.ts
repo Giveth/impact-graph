@@ -2132,6 +2132,10 @@ export function generateRandomEvmTxHash(): string {
   return `0x${generateHexNumber(64)}`;
 }
 
+export function generateRandomCardanoTxHash(): string {
+  return generateHexNumber(64);
+}
+
 export function generateRandomStellarTxHash(): string {
   return generateRandomAlphanumeric(64);
 }

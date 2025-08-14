@@ -15,6 +15,8 @@ import {
   generateUserIdLessAccessToken,
   generateRandomSolanaAddress,
   generateRandomSolanaTxHash,
+  generateRandomCardanoTxHash,
+  generateRandomCardanoAddress,
   deleteProjectDirectlyFromDb,
 } from '../../test/testUtils';
 import { errorMessages } from '../utils/errorMessages';
@@ -1635,6 +1637,206 @@ function createDonationTestCases() {
     assert.equal(donation?.transactionId, transactionId);
     assert.equal(donation?.transactionNetworkId, getDefaultSolanaChainId());
     assert.equal(donation?.chainType, ChainType.SOLANA);
+  });
+
+  it('should create a cardano donation successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    await project.save();
+
+    const user = await User.create({
+      walletAddress: generateRandomCardanoAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const transactionId = generateRandomCardanoTxHash();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.CARDANO_MAINNET,
+          chainType: ChainType.CARDANO,
+          transactionId,
+          nonce: 1,
+          amount: 50,
+          token: 'ADA',
+          tokenAddress:
+            '1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.equal(donation?.transactionId, transactionId);
+    assert.equal(donation?.transactionNetworkId, NETWORK_IDS.CARDANO_MAINNET);
+    assert.equal(donation?.chainType, ChainType.CARDANO);
+    assert.equal(donation?.currency, 'ADA');
+  });
+
+  it('should create a cardano donation on testnet successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    await project.save();
+
+    const user = await User.create({
+      walletAddress: generateRandomCardanoAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const transactionId = generateRandomCardanoTxHash();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.CARDANO_PREPROD,
+          chainType: ChainType.CARDANO,
+          transactionId,
+          nonce: 1,
+          amount: 25,
+          token: 'ADA',
+          tokenAddress:
+            '1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.equal(donation?.transactionId, transactionId);
+    assert.equal(donation?.transactionNetworkId, NETWORK_IDS.CARDANO_PREPROD);
+    assert.equal(donation?.chainType, ChainType.CARDANO);
+    assert.equal(donation?.currency, 'ADA');
+  });
+
+  it('should throw exception when chainType is CARDANO but send EVM transaction ID', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomCardanoAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const evmTransactionId = generateRandomEvmTxHash(); // EVM tx hash with 0x prefix
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.CARDANO_MAINNET,
+          transactionId: evmTransactionId,
+          chainType: ChainType.CARDANO,
+          tokenAddress:
+            '1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab',
+          nonce: 11,
+          amount: 10,
+          token: 'ADA',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.INVALID_TRANSACTION_ID,
+    );
+  });
+
+  it('should throw exception when chainType is CARDANO but send invalid token address', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomCardanoAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.CARDANO_MAINNET,
+          transactionId: generateRandomCardanoTxHash(),
+          chainType: ChainType.CARDANO,
+          // Invalid token address (too short)
+          tokenAddress: 'invalid_token_address',
+          nonce: 11,
+          amount: 10,
+          token: 'ADA',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.INVALID_TOKEN_ADDRESS,
+    );
+  });
+
+  it('should throw exception when chainType is EVM but send CARDANO transaction ID', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomCardanoTxHash(), // Cardano tx hash without 0x prefix
+          chainType: ChainType.EVM,
+          tokenAddress: generateRandomEtheriumAddress(),
+          nonce: 11,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.INVALID_TRANSACTION_ID,
+    );
   });
 
   it('should create a donation in an active qfRound when qfround has network eligiblity on XDAI', async () => {

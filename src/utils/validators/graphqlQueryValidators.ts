@@ -20,10 +20,14 @@ const resourcePerDateRegex = new RegExp(
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const solanaWalletAddressRegex = /^[A-Za-z0-9]{43,44}$/;
 const stellarWalletAddressRegex = /^[A-Za-z0-9]{56}$/;
+const cardanoWalletAddressRegex =
+  /^(addr1|addr_test1|stake1|stake_test1|Ae2|DdzFF)[a-zA-Z0-9]+$/;
 const solanaProgramIdRegex =
   /^(11111111111111111111111111111111|[1-9A-HJ-NP-Za-km-z]{43,44})$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
 const solanaTxRegex = /^[A-Za-z0-9]{86,88}$/; // TODO: Is this enough? We are using the signature to fetch transactions
+const cardanoTxRegex = /^[a-fA-F0-9]{64}$/; // Cardano transaction hash (64 hex chars without 0x prefix)
+const cardanoTokenRegex = /^([a-fA-F0-9]{56,120}|asset1[a-z0-9]{38})$/; // Cardano asset ID format (policy ID + asset name) or asset fingerprint
 // const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
 // const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/;
 
@@ -101,10 +105,51 @@ export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
   transactionId: Joi.when('safeTransactionId', {
     is: Joi.any().empty(),
-    then: Joi.alternatives().try(
-      Joi.string().required().pattern(txHashRegex, 'EVM transaction IDs'),
-      Joi.string().required().pattern(solanaTxRegex, 'Solana Transaction ID'),
-    ),
+    then: Joi.when('chainType', {
+      switch: [
+        {
+          is: ChainType.SOLANA,
+          then: Joi.string()
+            .required()
+            .pattern(solanaTxRegex)
+            .messages({
+              'string.pattern.base': i18n.__(
+                translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+              ),
+            }),
+        },
+        {
+          is: ChainType.CARDANO,
+          then: Joi.string()
+            .required()
+            .pattern(cardanoTxRegex)
+            .messages({
+              'string.pattern.base': i18n.__(
+                translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+              ),
+            }),
+        },
+        {
+          is: ChainType.EVM,
+          then: Joi.string()
+            .required()
+            .pattern(txHashRegex)
+            .messages({
+              'string.pattern.base': i18n.__(
+                translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+              ),
+            }),
+        },
+      ],
+      otherwise: Joi.string()
+        .required()
+        .pattern(txHashRegex)
+        .messages({
+          'string.pattern.base': i18n.__(
+            translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+          ),
+        }),
+    }),
     otherwise: Joi.string()
       .allow(null, '')
       .pattern(txHashRegex, 'EVM transaction IDs')
@@ -118,8 +163,20 @@ export const createDonationQueryValidator = Joi.object({
     .required()
     .valid(...Object.values(NETWORK_IDS)),
   tokenAddress: Joi.when('chainType', {
-    is: ChainType.SOLANA,
-    then: Joi.string().pattern(solanaProgramIdRegex),
+    switch: [
+      {
+        is: ChainType.SOLANA,
+        then: Joi.string().pattern(solanaProgramIdRegex),
+      },
+      {
+        is: ChainType.CARDANO,
+        then: Joi.string().pattern(cardanoTokenRegex),
+      },
+      {
+        is: ChainType.EVM,
+        then: Joi.string().pattern(ethereumWalletAddressRegex),
+      },
+    ],
     otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
   }).messages({
     'string.pattern.base': i18n.__(
@@ -163,6 +220,10 @@ export const createDraftDonationQueryValidator = Joi.object({
       {
         is: ChainType.STELLAR,
         then: Joi.string().pattern(stellarWalletAddressRegex),
+      },
+      {
+        is: ChainType.CARDANO,
+        then: Joi.string().pattern(cardanoTokenRegex),
       },
       {
         is: ChainType.EVM,
@@ -263,6 +324,7 @@ const managingFundsValidator = Joi.object({
         Joi.string().required().pattern(ethereumWalletAddressRegex),
         Joi.string().required().pattern(solanaWalletAddressRegex),
         Joi.string().required().pattern(stellarWalletAddressRegex),
+        Joi.string().required().pattern(cardanoWalletAddressRegex),
       ),
       memo: Joi.string().allow('', null).max(24),
       networkId: Joi.number()?.valid(
@@ -288,9 +350,16 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.ETC,
         NETWORK_IDS.MORDOR_ETC_TESTNET,
         NETWORK_IDS.STELLAR_MAINNET,
+        NETWORK_IDS.CARDANO_MAINNET,
+        NETWORK_IDS.CARDANO_PREPROD,
       ),
       chainType: Joi.string()
-        .valid(ChainType.EVM, ChainType.SOLANA, ChainType.STELLAR)
+        .valid(
+          ChainType.EVM,
+          ChainType.SOLANA,
+          ChainType.STELLAR,
+          ChainType.CARDANO,
+        )
         .default(ChainType.EVM),
     }),
   ),
