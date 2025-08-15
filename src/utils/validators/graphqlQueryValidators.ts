@@ -104,8 +104,15 @@ const swapTransactionValidator = Joi.object({
 export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
   transactionId: Joi.when('safeTransactionId', {
-    is: Joi.any().empty(),
-    then: Joi.when('chainType', {
+    is: Joi.exist(),
+    then: Joi.string()
+      .allow(null, '')
+      .messages({
+        'string.pattern.base': i18n.__(
+          translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+        ),
+      }),
+    otherwise: Joi.when('chainType', {
       switch: [
         {
           is: ChainType.SOLANA,
@@ -150,14 +157,6 @@ export const createDonationQueryValidator = Joi.object({
           ),
         }),
     }),
-    otherwise: Joi.string()
-      .allow(null, '')
-      .pattern(txHashRegex, 'EVM transaction IDs')
-      .messages({
-        'string.pattern.base': i18n.__(
-          translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-        ),
-      }),
   }),
   transactionNetworkId: Joi.number()
     .required()
