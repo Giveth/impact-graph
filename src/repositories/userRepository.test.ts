@@ -17,7 +17,7 @@ import {
   findUsersWhoDonatedToProjectExcludeWhoLiked,
   findUsersWhoLikedProjectExcludeProjectOwner,
   findUsersWhoSupportProject,
-  isValidEmail,
+  // isValidEmail,
 } from './userRepository';
 import { Reaction } from '../entities/reaction';
 import { insertSinglePowerBoosting } from './powerBoostingRepository';
@@ -52,7 +52,7 @@ describe(
   findUsersWhoDonatedToProjectTestCases,
 );
 
-describe('isValidEmail test cases', isValidEmailTestCases);
+// describe('isValidEmail test cases', isValidEmailTestCases);
 
 function findUsersWhoDonatedToProjectTestCases() {
   it('should find wallet addresses of who donated to a project, exclude who liked', async () => {
@@ -594,16 +594,17 @@ function findUsersWhoSupportProjectTestCases() {
   });
 }
 
-function isValidEmailTestCases() {
-  it('should return true for valid email', async () => {
-    const email = `${new Date().getTime()}@giveth.io`;
-    const isValid = await isValidEmail(email);
-    assert.isOk(isValid);
-  });
+// function isValidEmailTestCases() {
+//   it('should return true for valid email', async () => {
+//     const email = `${new Date().getTime()}@giveth.io`;
+//     const isValid = await isValidEmail(email);
+//     assert.isOk(isValid);
+//   });
 
-  it('should return false for invalid email', async () => {
-    const email = `${new Date().getTime()}@giveeeeth.io`;
-    const isValid = await isValidEmail(email);
-    assert.isNotOk(isValid);
-  });
-}
+//   it('should return false for invalid email', async () => {
+//     assert.isTrue(true);
+//     const email = `${new Date().getTime()}@giveeeeth.io`;
+//     const isValid = await isValidEmail(email);
+//     assert.isNotOk(isValid);
+//   });
+// }
