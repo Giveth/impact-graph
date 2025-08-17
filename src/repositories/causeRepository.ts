@@ -314,7 +314,9 @@ export const findAllCauses = async (
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
     .leftJoinAndSelect('causeProjects.project', 'project')
     .leftJoinAndSelect('cause.status', 'status')
+    .leftJoinAndSelect('cause.projectPower', 'projectPower')
     .leftJoinAndSelect('cause.categories', 'categories')
+    .leftJoinAndSelect('project.projectPower', 'projectPower')
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
     .leftJoinAndSelect(
       'project.categories',

@@ -898,6 +898,9 @@ export class ProjectResolver {
     if (fields.organization) {
       query = query.leftJoinAndSelect('project.organization', 'organization');
     }
+    if (fields.projectPower) {
+      query = query.leftJoinAndSelect('project.projectPower', 'projectPower');
+    }
     if (fields.addresses) {
       query = query.leftJoinAndSelect('project.addresses', 'addresses');
     }
