@@ -4,7 +4,7 @@ import {
   ProjStatus,
   CauseProject,
 } from '../entities/project';
-import { User } from '../entities/user';
+import { publicSelectionFields, User } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { ChainType } from '../types/network';
@@ -250,55 +250,50 @@ export const validateTransactionHash = async (
   return true;
 };
 
-// export const loadCauseProjects = async (
-//   cause: Cause,
-//   userRemoved: boolean | undefined = undefined,
-// ): Promise<CauseProject[] | []> => {
-//   if (cause.projectType.toLowerCase() === 'project') {
-//     return [];
-//   }
+export const loadCauseProjects = async (
+  cause: Cause,
+  userRemoved: boolean | undefined = undefined,
+): Promise<CauseProject[] | []> => {
+  if (cause.projectType.toLowerCase() === 'project') {
+    return [];
+  }
 
-//   const baseQuery = await CauseProject.createQueryBuilder('causeProject')
-//     .leftJoinAndSelect('causeProject.project', 'project')
-//     .leftJoinAndSelect('project.status', 'status')
-//     .leftJoinAndSelect('project.addresses', 'addresses')
-//     .leftJoinAndSelect(
-//       'project.socialProfiles',
-//       'socialProfiles',
-//       'socialProfiles.projectId = project.id',
-//     )
-//     .leftJoinAndSelect(
-//       'project.socialMedia',
-//       'socialMedia',
-//       'socialMedia.projectId = project.id',
-//     )
-//     .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-//     .leftJoinAndSelect('project.projectPower', 'projectPower')
-//     .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
-//     .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
-//     .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
-//     .leftJoinAndSelect(
-//       'project.categories',
-//       'categories',
-//       'categories.isActive = :isActive',
-//       { isActive: true },
-//     )
-//     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-//     .leftJoinAndSelect('project.organization', 'organization')
-//     .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-//     .leftJoin('project.adminUser', 'user')
-//     .addSelect(publicSelectionFields)
-//     .where('causeProject.causeId = :causeId', { causeId: cause.id });
+  const baseQuery = await CauseProject.createQueryBuilder('causeProject')
+    .leftJoinAndSelect('causeProject.project', 'project')
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect(
+      'project.socialProfiles',
+      'socialProfiles',
+      'socialProfiles.projectId = project.id',
+    )
+    .leftJoinAndSelect(
+      'project.socialMedia',
+      'socialMedia',
+      'socialMedia.projectId = project.id',
+    )
+    .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+    .leftJoinAndSelect('project.projectPower', 'projectPower')
+    .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+    .leftJoinAndSelect(
+      'project.categories',
+      'projectCategories',
+      'projectCategories.isActive = :isActive',
+      { isActive: true },
+    )
+    .leftJoinAndSelect('projectCategories.mainCategory', 'projectMainCategory')
+    .leftJoinAndSelect('project.adminUser', 'adminUser')
+    .addSelect(publicSelectionFields)
+    .where('causeProject.causeId = :causeId', { causeId: cause.id });
 
-//   if (userRemoved !== undefined) {
-//     baseQuery.andWhere('causeProject.userRemoved = :userRemoved', {
-//       userRemoved,
-//     });
-//   }
+  if (userRemoved !== undefined) {
+    baseQuery.andWhere('causeProject.userRemoved = :userRemoved', {
+      userRemoved,
+    });
+  }
 
-//   const causeProjects = await baseQuery.getMany();
-//   return causeProjects;
-// };
+  const causeProjects = await baseQuery.getMany();
+  return causeProjects;
+};
 
 export const findAllCauses = async (
   limit?: number,
@@ -372,5 +367,12 @@ export const findAllCauses = async (
     queryBuilder.skip(offset);
   }
 
-  return queryBuilder.getMany();
+  const causes = await queryBuilder.getMany();
+
+  // Second query: Load related data separately
+  for (const cause of causes) {
+    cause.causeProjects = await loadCauseProjects(cause);
+  }
+
+  return causes;
 };
