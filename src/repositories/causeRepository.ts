@@ -271,7 +271,6 @@ export const loadCauseProjects = async (
       'socialMedia',
       'socialMedia.projectId = project.id',
     )
-    .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
     .leftJoinAndSelect('project.projectPower', 'projectPower')
     .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
     .leftJoinAndSelect(
