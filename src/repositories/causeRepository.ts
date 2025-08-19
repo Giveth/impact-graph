@@ -4,7 +4,6 @@ import {
   ProjStatus,
   CauseProject,
 } from '../entities/project';
-import { publicSelectionFields, User } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { ChainType } from '../types/network';
@@ -14,6 +13,7 @@ import {
   findProjectRecipientAddressByProjectId,
 } from './projectAddressRepository';
 import { getSimilarTitleInProjectsRegex } from '../utils/validators/projectValidator';
+import { User } from '../entities/user';
 
 export enum CauseSortField {
   GIVPOWER = 'givPower',
@@ -258,7 +258,7 @@ export const loadCauseProjects = async (
     return [];
   }
 
-  const baseQuery = await CauseProject.createQueryBuilder('causeProject')
+  const baseQuery = CauseProject.createQueryBuilder('causeProject')
     .leftJoinAndSelect('causeProject.project', 'project')
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect(
@@ -281,7 +281,6 @@ export const loadCauseProjects = async (
     )
     .leftJoinAndSelect('projectCategories.mainCategory', 'projectMainCategory')
     .leftJoinAndSelect('project.adminUser', 'adminUser')
-    .addSelect(publicSelectionFields)
     .where('causeProject.causeId = :causeId', { causeId: cause.id });
 
   if (userRemoved !== undefined) {
@@ -306,19 +305,9 @@ export const findAllCauses = async (
   const queryBuilder = Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.adminUser', 'adminUser')
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-    .leftJoinAndSelect('causeProjects.project', 'project')
     .leftJoinAndSelect('cause.status', 'status')
     .leftJoinAndSelect('cause.categories', 'categories')
-    .leftJoinAndSelect('project.projectPower', 'projectPower')
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-    .leftJoinAndSelect(
-      'project.categories',
-      'projectCategories',
-      'projectCategories.isActive = :isActive',
-      { isActive: true },
-    )
-    .leftJoinAndSelect('projectCategories.mainCategory', 'projectMainCategory')
-    .leftJoinAndSelect('project.socialMedia', 'socialMedia')
     .where('lower(cause.projectType) = lower(:projectType)', {
       projectType: 'cause',
     });
