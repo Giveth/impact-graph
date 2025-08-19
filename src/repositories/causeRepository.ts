@@ -14,6 +14,7 @@ import {
 } from './projectAddressRepository';
 import { getSimilarTitleInProjectsRegex } from '../utils/validators/projectValidator';
 import { User } from '../entities/user';
+import { ProjectPowerView } from '../views/projectPowerView';
 
 export enum CauseSortField {
   GIVPOWER = 'givPower',
@@ -271,7 +272,6 @@ export const loadCauseProjects = async (
       'socialMedia',
       'socialMedia.projectId = project.id',
     )
-    .leftJoinAndSelect('project.projectPower', 'projectPower')
     .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
     .leftJoinAndSelect(
       'project.categories',
@@ -290,6 +290,31 @@ export const loadCauseProjects = async (
   }
 
   const causeProjects = await baseQuery.getMany();
+
+  // Load projectPower separately to avoid 3-level deep join issue
+  // Collect all project IDs that need projectPower data
+  const projectIds = causeProjects
+    .filter(cp => cp.project && cp.project.id)
+    .map(cp => cp.project.id);
+
+  if (projectIds.length > 0) {
+    // Load all projectPower data in a single query
+    const projectPowers = await ProjectPowerView.find({
+      where: projectIds.map(id => ({ projectId: id })),
+    });
+
+    // Create a map for efficient lookup
+    const powerMap = new Map(projectPowers.map(pp => [pp.projectId, pp]));
+
+    // Assign projectPower to each project
+    causeProjects.forEach(causeProject => {
+      if (causeProject.project && causeProject.project.id) {
+        causeProject.project.projectPower =
+          powerMap.get(causeProject.project.id) || undefined;
+      }
+    });
+  }
+
   return causeProjects;
 };
 
