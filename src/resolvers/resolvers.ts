@@ -20,6 +20,7 @@ import { ProjectUserInstantPowerViewResolver } from './instantPowerResolver';
 import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
 import { RecurringDonationResolver } from './recurringDonationResolver';
 import { DraftDonationResolver } from './draftDonationResolver';
+import { CardanoDonationResolver } from './cardanoDonationResolver';
 import { OnboardingFormResolver } from './onboardingFormResolver';
 import { SitemapUrlResolver } from './sitemapUrlResolver';
 import { CauseResolver } from './causeResolver';
@@ -37,6 +38,7 @@ export const getResolvers = (): Function[] => {
     CategoryResolver,
     DonationResolver,
     DraftDonationResolver,
+    CardanoDonationResolver,
     ReactionResolver,
     ProjectVerificationFormResolver,
     SocialProfilesResolver,
