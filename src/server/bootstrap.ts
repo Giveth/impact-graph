@@ -26,7 +26,6 @@ import SentryLogger from '../sentryLogger';
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
 import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
-import { webhookHandler } from '../services/transak/webhookHandler';
 
 import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
 import { redis } from '../redis';
@@ -37,7 +36,7 @@ import {
   setI18nLocaleForRequest,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { apiGivRouter } from '../routers/apiGivRoutes';
+// import { apiGivRouter } from '../routers/apiGivRoutes';
 import { authorizationHandler } from '../services/authorizationServices';
 import {
   oauth2CallbacksRouter,
@@ -50,7 +49,6 @@ import {
 } from '../repositories/dbCronRepository';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
-import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 import { AppDataSource, CronDataSource } from '../orm';
 import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
@@ -284,7 +282,7 @@ export async function bootstrap() {
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
     app.use(bodyParserJson);
-    app.use('/apigive', apiGivRouter);
+    // app.use('/apigive', apiGivRouter);
     app.use(SOCIAL_PROFILES_PREFIX, oauth2CallbacksRouter);
     app.post(
       '/stripe-webhook',
@@ -294,8 +292,6 @@ export async function bootstrap() {
     app.get('/health', (_req, res) => {
       res.send('Hi every thing seems ok');
     });
-    app.post('/fiat_webhook', onramperWebhookHandler);
-    app.post('/transak_webhook', webhookHandler);
 
     // Route to handle SSE connections
     app.get('/events', (_req: Request, res: Response) => {
