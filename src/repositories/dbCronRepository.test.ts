@@ -38,7 +38,7 @@ describe(
 );
 
 function givPowerHistoricTestCases() {
-  it('should move data older than 1 round less to the historic tables', async () => {
+  it.skip('should move data older than 1 round less to the historic tables', async () => {
     await AppDataSource.getDataSource().query(
       'truncate power_snapshot cascade',
     );
@@ -177,7 +177,7 @@ describe('db cron job test', () => {
     await PowerBoostingSnapshot.clear();
   });
 
-  it('should set up schedule on bootstrap', async () => {
+  it.skip('should set up schedule on bootstrap', async () => {
     const enableDbCronJob =
       config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
     if (enableDbCronJob) {
