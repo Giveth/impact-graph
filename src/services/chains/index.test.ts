@@ -618,7 +618,7 @@ function getTransactionDetailTestCases() {
 
   it('should return transaction detail for OP token transfer on optimistic', async () => {
     // https://explorer.optimism.io/tx/0x465f7b5abe28d046666c538a4532ab71d9a49d2683ab33bc521732cc489ea7c6
-    const amount = 0.5;
+    const amount = 9;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x465f7b5abe28d046666c538a4532ab71d9a49d2683ab33bc521732cc489ea7c6',
@@ -635,17 +635,17 @@ function getTransactionDetailTestCases() {
   });
 
   it('should return transaction detail for normal transfer on optimistic', async () => {
-    // https://explorer.optimism.io/tx/0xe699eebb2fe6c7a3dfacb4a5c4adc8faf06d7b5b68933cd3ac3e908ca9720df5
-    const amount = 0.000035;
+    // https://explorer.optimism.io/tx/0x46a441e7867f67163602ea7787da1120a6f6eca7719bbffda7e21d5abcb8b338
+    const amount = 0.02;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
-        '0xe699eebb2fe6c7a3dfacb4a5c4adc8faf06d7b5b68933cd3ac3e908ca9720df5',
+        '0x46a441e7867f67163602ea7787da1120a6f6eca7719bbffda7e21d5abcb8b338',
       symbol: 'ETH',
       networkId: NETWORK_IDS.OPTIMISTIC,
-      fromAddress: '0x0E9B063789909565CEdA1Fba162474405A151E66',
-      toAddress: '0x6e8873085530406995170Da467010565968C7C62',
+      fromAddress: '0xe803AAd78e6eAbCde6f820D2C64cF83402Eddbe2',
+      toAddress: '0x4E8356170111dEb9408f8bc98C9a395c0bF330Fb',
       amount,
-      timestamp: 1753635461,
+      timestamp: 1750940881,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
