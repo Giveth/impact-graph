@@ -617,20 +617,20 @@ function getTransactionDetailTestCases() {
   // });
 
   it('should return transaction detail for OP token transfer on optimistic', async () => {
-    // https://explorer.optimism.io/tx/0x41a9b19b1ae4651ac3e5c1f9ccf2ff275e3c405729860b6aa41515478929ab62
+    // https://explorer.optimism.io/tx/0x465f7b5abe28d046666c538a4532ab71d9a49d2683ab33bc521732cc489ea7c6
     const amount = 0.5;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
-        '0x78de32144f12f5ab000b0be3f17c13b9125c9cf631c501bb834981700c962ca5',
-      symbol: 'USDT',
+        '0x465f7b5abe28d046666c538a4532ab71d9a49d2683ab33bc521732cc489ea7c6',
+      symbol: 'OP',
       networkId: NETWORK_IDS.OPTIMISTIC,
-      fromAddress: '0x29EE09Bd0f7f41EcD083Ad2708Df17691065790B',
+      fromAddress: '0x220a6CB04d48CA2c33735E94DF78c17F8B0F7C9F',
       toAddress: '0x4E8356170111dEb9408f8bc98C9a395c0bF330Fb',
       amount,
-      timestamp: 1751711717,
+      timestamp: 1751067581,
     });
     assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'USDT');
+    assert.equal(transactionInfo.currency, 'OP');
     assert.equal(transactionInfo.amount, amount);
   });
 
