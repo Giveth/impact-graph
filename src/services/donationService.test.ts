@@ -353,7 +353,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     const transactionInfo = {
       txHash:
         '0xe699eebb2fe6c7a3dfacb4a5c4adc8faf06d7b5b68933cd3ac3e908ca9720df5',
-      currency: 'WETH',
+      currency: 'ETH',
       networkId: NETWORK_IDS.OPTIMISTIC,
       fromAddress: '0x0E9B063789909565CEdA1Fba162474405A151E66',
       toAddress: '0x6e8873085530406995170Da467010565968C7C62',

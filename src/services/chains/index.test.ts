@@ -622,7 +622,7 @@ function getTransactionDetailTestCases() {
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x78de32144f12f5ab000b0be3f17c13b9125c9cf631c501bb834981700c962ca5',
-      symbol: 'OP',
+      symbol: 'DAI',
       networkId: NETWORK_IDS.OPTIMISTIC,
       fromAddress: '0xCd0ffDFD36aE66110706F68c3DDe6926d2366737',
       toAddress: '0x6e8873085530406995170Da467010565968C7C62',
@@ -640,7 +640,7 @@ function getTransactionDetailTestCases() {
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0xe699eebb2fe6c7a3dfacb4a5c4adc8faf06d7b5b68933cd3ac3e908ca9720df5',
-      symbol: 'WETH',
+      symbol: 'ETH',
       networkId: NETWORK_IDS.OPTIMISTIC,
       fromAddress: '0x0E9B063789909565CEdA1Fba162474405A151E66',
       toAddress: '0x6e8873085530406995170Da467010565968C7C62',
