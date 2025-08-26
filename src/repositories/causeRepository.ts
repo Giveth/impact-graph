@@ -4,7 +4,6 @@ import {
   ProjStatus,
   CauseProject,
 } from '../entities/project';
-import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { ChainType } from '../types/network';
@@ -14,6 +13,8 @@ import {
   findProjectRecipientAddressByProjectId,
 } from './projectAddressRepository';
 import { getSimilarTitleInProjectsRegex } from '../utils/validators/projectValidator';
+import { User } from '../entities/user';
+import { ProjectPowerView } from '../views/projectPowerView';
 
 export enum CauseSortField {
   GIVPOWER = 'givPower',
@@ -250,55 +251,72 @@ export const validateTransactionHash = async (
   return true;
 };
 
-// export const loadCauseProjects = async (
-//   cause: Cause,
-//   userRemoved: boolean | undefined = undefined,
-// ): Promise<CauseProject[] | []> => {
-//   if (cause.projectType.toLowerCase() === 'project') {
-//     return [];
-//   }
+export const loadCauseProjects = async (
+  cause: Cause,
+  userRemoved: boolean | undefined = undefined,
+): Promise<CauseProject[] | []> => {
+  if (cause.projectType.toLowerCase() === 'project') {
+    return [];
+  }
 
-//   const baseQuery = await CauseProject.createQueryBuilder('causeProject')
-//     .leftJoinAndSelect('causeProject.project', 'project')
-//     .leftJoinAndSelect('project.status', 'status')
-//     .leftJoinAndSelect('project.addresses', 'addresses')
-//     .leftJoinAndSelect(
-//       'project.socialProfiles',
-//       'socialProfiles',
-//       'socialProfiles.projectId = project.id',
-//     )
-//     .leftJoinAndSelect(
-//       'project.socialMedia',
-//       'socialMedia',
-//       'socialMedia.projectId = project.id',
-//     )
-//     .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
-//     .leftJoinAndSelect('project.projectPower', 'projectPower')
-//     .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
-//     .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
-//     .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
-//     .leftJoinAndSelect(
-//       'project.categories',
-//       'categories',
-//       'categories.isActive = :isActive',
-//       { isActive: true },
-//     )
-//     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-//     .leftJoinAndSelect('project.organization', 'organization')
-//     .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-//     .leftJoin('project.adminUser', 'user')
-//     .addSelect(publicSelectionFields)
-//     .where('causeProject.causeId = :causeId', { causeId: cause.id });
+  const baseQuery = CauseProject.createQueryBuilder('causeProject')
+    .leftJoinAndSelect('causeProject.project', 'project')
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect(
+      'project.socialProfiles',
+      'socialProfiles',
+      'socialProfiles.projectId = project.id',
+    )
+    .leftJoinAndSelect(
+      'project.socialMedia',
+      'socialMedia',
+      'socialMedia.projectId = project.id',
+    )
+    .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+    .leftJoinAndSelect(
+      'project.categories',
+      'projectCategories',
+      'projectCategories.isActive = :isActive',
+      { isActive: true },
+    )
+    .leftJoinAndSelect('projectCategories.mainCategory', 'projectMainCategory')
+    .leftJoinAndSelect('project.adminUser', 'adminUser')
+    .where('causeProject.causeId = :causeId', { causeId: cause.id });
 
-//   if (userRemoved !== undefined) {
-//     baseQuery.andWhere('causeProject.userRemoved = :userRemoved', {
-//       userRemoved,
-//     });
-//   }
+  if (userRemoved !== undefined) {
+    baseQuery.andWhere('causeProject.userRemoved = :userRemoved', {
+      userRemoved,
+    });
+  }
 
-//   const causeProjects = await baseQuery.getMany();
-//   return causeProjects;
-// };
+  const causeProjects = await baseQuery.getMany();
+
+  // Load projectPower separately to avoid 3-level deep join issue
+  // Collect all project IDs that need projectPower data
+  const projectIds = causeProjects
+    .filter(cp => cp.project && cp.project.id)
+    .map(cp => cp.project.id);
+
+  if (projectIds.length > 0) {
+    // Load all projectPower data in a single query
+    const projectPowers = await ProjectPowerView.find({
+      where: projectIds.map(id => ({ projectId: id })),
+    });
+
+    // Create a map for efficient lookup
+    const powerMap = new Map(projectPowers.map(pp => [pp.projectId, pp]));
+
+    // Assign projectPower to each project
+    causeProjects.forEach(causeProject => {
+      if (causeProject.project && causeProject.project.id) {
+        causeProject.project.projectPower =
+          powerMap.get(causeProject.project.id) || undefined;
+      }
+    });
+  }
+
+  return causeProjects;
+};
 
 export const findAllCauses = async (
   limit?: number,
@@ -312,18 +330,9 @@ export const findAllCauses = async (
   const queryBuilder = Cause.createQueryBuilder('cause')
     .leftJoinAndSelect('cause.adminUser', 'adminUser')
     .leftJoinAndSelect('cause.causeProjects', 'causeProjects')
-    .leftJoinAndSelect('causeProjects.project', 'project')
     .leftJoinAndSelect('cause.status', 'status')
     .leftJoinAndSelect('cause.categories', 'categories')
     .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-    .leftJoinAndSelect(
-      'project.categories',
-      'projectCategories',
-      'projectCategories.isActive = :isActive',
-      { isActive: true },
-    )
-    .leftJoinAndSelect('projectCategories.mainCategory', 'projectMainCategory')
-    .leftJoinAndSelect('project.socialMedia', 'socialMedia')
     .where('lower(cause.projectType) = lower(:projectType)', {
       projectType: 'cause',
     });
@@ -371,5 +380,12 @@ export const findAllCauses = async (
     queryBuilder.skip(offset);
   }
 
-  return queryBuilder.getMany();
+  const causes = await queryBuilder.getMany();
+
+  // Second query: Load related data separately
+  for (const cause of causes) {
+    cause.causeProjects = await loadCauseProjects(cause);
+  }
+
+  return causes;
 };
