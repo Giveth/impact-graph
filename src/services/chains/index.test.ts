@@ -617,17 +617,17 @@ function getTransactionDetailTestCases() {
   // });
 
   it('should return transaction detail for OP token transfer on optimistic', async () => {
-    // https://optimistic.etherscan.io/tx/0xf11be189d967831bb8a76656882eeeac944a799bd222acbd556f2156fdc02db4
-    const amount = 0.453549908802477308;
+    // https://explorer.optimism.io/tx/0x78de32144f12f5ab000b0be3f17c13b9125c9cf631c501bb834981700c962ca5
+    const amount = 0.45;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
-        '0xf11be189d967831bb8a76656882eeeac944a799bd222acbd556f2156fdc02db4',
+        '0x78de32144f12f5ab000b0be3f17c13b9125c9cf631c501bb834981700c962ca5',
       symbol: 'OP',
       networkId: NETWORK_IDS.OPTIMISTIC,
-      fromAddress: '0xbd928f6016b73066d9ad28351a4708174f18ae99',
-      toAddress: '0xa01cf08937103a30e06a5c3b4477f9243a4cbef1',
+      fromAddress: '0xCd0ffDFD36aE66110706F68c3DDe6926d2366737',
+      toAddress: '0x6e8873085530406995170Da467010565968C7C62',
       amount,
-      timestamp: 1679384460,
+      timestamp: 1753644637,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'OP');
@@ -635,20 +635,20 @@ function getTransactionDetailTestCases() {
   });
 
   it('should return transaction detail for normal transfer on optimistic', async () => {
-    // https://optimistic.etherscan.io/tx/0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7
-    const amount = 0.001;
+    // https://explorer.optimism.io/tx/0xe699eebb2fe6c7a3dfacb4a5c4adc8faf06d7b5b68933cd3ac3e908ca9720df5
+    const amount = 0.000035;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
-        '0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7',
-      symbol: 'ETH',
+        '0xe699eebb2fe6c7a3dfacb4a5c4adc8faf06d7b5b68933cd3ac3e908ca9720df5',
+      symbol: 'WETH',
       networkId: NETWORK_IDS.OPTIMISTIC,
-      fromAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
-      toAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
+      fromAddress: '0x0E9B063789909565CEdA1Fba162474405A151E66',
+      toAddress: '0x6e8873085530406995170Da467010565968C7C62',
       amount,
-      timestamp: 1679484540,
+      timestamp: 1753635461,
     });
     assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.currency, 'WETH');
     assert.equal(transactionInfo.amount, amount);
   });
 
