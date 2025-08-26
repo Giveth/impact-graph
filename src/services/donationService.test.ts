@@ -346,19 +346,19 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
   //   assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
   // });
   it('should verify a Optimistic donation', async () => {
-    // https://optimistic.etherscan.io/tx/0xe699eebb2fe6c7a3dfacb4a5c4adc8faf06d7b5b68933cd3ac3e908ca9720df5
+    // https://explorer.optimism.io/tx/0x92ee6c020a91bacf47b1e2d74863632c9a3ee21d093da3cf11c3812a88d5cd5f
 
-    const amount = 0.000035;
+    const amount = 0.00198;
 
     const transactionInfo = {
       txHash:
-        '0xe699eebb2fe6c7a3dfacb4a5c4adc8faf06d7b5b68933cd3ac3e908ca9720df5',
+        '0x92ee6c020a91bacf47b1e2d74863632c9a3ee21d093da3cf11c3812a88d5cd5f',
       currency: 'ETH',
       networkId: NETWORK_IDS.OPTIMISTIC,
-      fromAddress: '0x0E9B063789909565CEdA1Fba162474405A151E66',
-      toAddress: '0x6e8873085530406995170Da467010565968C7C62',
+      fromAddress: '0xC3F01f6e61C0CedBa21b6E22Ea5A005E7b5ECE03',
+      toAddress: '0x4E8356170111dEb9408f8bc98C9a395c0bF330Fb',
       amount,
-      timestamp: 1753635461 * 1000,
+      timestamp: 1747499465 * 1000,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
