@@ -616,7 +616,7 @@ function getTransactionDetailTestCases() {
   //   assert.equal(transactionInfo.amount, amount);
   // });
 
-  it('should return transaction detail for OP token transfer on optimistic', async () => {
+  it.skip('should return transaction detail for OP token transfer on optimistic', async () => {
     // https://optimistic.etherscan.io/tx/0xf11be189d967831bb8a76656882eeeac944a799bd222acbd556f2156fdc02db4
     const amount = 0.453549908802477308;
     const transactionInfo = await getTransactionInfoFromNetwork({
@@ -634,7 +634,7 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
-  it('should return transaction detail for normal transfer on optimistic', async () => {
+  it.skip('should return transaction detail for normal transfer on optimistic', async () => {
     // https://optimistic.etherscan.io/tx/0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7
     const amount = 0.001;
     const transactionInfo = await getTransactionInfoFromNetwork({

@@ -171,7 +171,6 @@ export const SwapTransactionTab = {
         },
       },
     },
-
     actions: {
       new: {
         isAccessible: ({ currentAdmin }) =>
