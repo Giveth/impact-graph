@@ -705,6 +705,30 @@ export const donationTab = {
           edit: false,
         },
       },
+      isSwap: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+        },
+      },
+      swapTransactionId: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+        },
+      },
+      swapTransaction: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+        },
+      },
       priceUsd: {
         isVisible: {
           list: false,
