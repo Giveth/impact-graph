@@ -502,6 +502,13 @@ const broadcastNotificationPermissions = {
   // Add more roles here as needed
 };
 
+const swapTransactionPermissions = {
+  [UserRole.ADMIN]: {
+    list: true,
+    show: true,
+  },
+};
+
 const projectFraudPermissions = {
   [UserRole.ADMIN]: {
     list: true,
@@ -793,6 +800,17 @@ export const canAccessCampaignAction = ({ currentAdmin }, action: string) => {
     currentAdmin,
     action,
     resourcePermissions: campaignPermissions,
+  });
+};
+
+export const canAccessSwapTransactionAction = (
+  { currentAdmin },
+  action: string,
+) => {
+  return hasAccessToResource({
+    currentAdmin,
+    action,
+    resourcePermissions: swapTransactionPermissions,
   });
 };
 
