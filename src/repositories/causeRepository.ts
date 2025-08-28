@@ -1,3 +1,4 @@
+import { In } from 'typeorm';
 import {
   Cause,
   ReviewStatus,
@@ -15,6 +16,7 @@ import {
 import { getSimilarTitleInProjectsRegex } from '../utils/validators/projectValidator';
 import { User } from '../entities/user';
 import { ProjectPowerView } from '../views/projectPowerView';
+import { getPowerRound } from './powerRoundRepository';
 
 export enum CauseSortField {
   GIVPOWER = 'givPower',
@@ -298,9 +300,16 @@ export const loadCauseProjects = async (
     .map(cp => cp.project.id);
 
   if (projectIds.length > 0) {
-    // Load all projectPower data in a single query
+    // Get current power round
+    const currentRound = await getPowerRound();
+    const round = currentRound?.round || 1;
+
+    // Load all projectPower data in a single query for the current round
     const projectPowers = await ProjectPowerView.find({
-      where: projectIds.map(id => ({ projectId: id })),
+      where: {
+        projectId: In(projectIds),
+        round: round,
+      },
     });
 
     // Create a map for efficient lookup
