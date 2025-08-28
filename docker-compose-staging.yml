@@ -1,24 +1,108 @@
 version: '3.3'
 
 services:
-  impact-graph:
-    #see https://github.com/docker/build-push-action/tree/releases/v1#tag_with_ref
-
-    # is sometime you want to rollback you can change the tag manually in server( not commit to git)
-    # from master to your desired commit hash and the run command:
-    # 1. docker-compose -f docker-compose-staging.yml pull
-    # 2. docker-compose -f docker-compose-staging.yml down
-    # 3. docker-compose -f docker-compose-staging.yml up -d
+  # Multiple GraphQL API instances (for load balancing)
+  impact-graph-graphql-1:
     image: ghcr.io/giveth/impact-graph:staging
     command: npm run start:docker:server
     environment:
       - ENVIRONMENT=staging
-      - LOG_PATH=/usr/src/app/logs/impact-graph.log
+      - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-1.log
+      - ENABLE_GRAPHQL=true
+      - ENABLE_CRONJOBS=false
     restart: always
     volumes:
-      # You should have a production.env file in the config folder
-      # We should bind config in two path, I think because running migrations(ts) needs one and running
-      # application(js) read from another path, if we change migrations two run them as js files then we need just on binding
+      - type: bind
+        source: ./config
+        target: /usr/src/app/config
+      - type: bind
+        source: ./config
+        target: /usr/src/app/build/config
+      - type: bind
+        source: ./logs
+        target: /usr/src/app/logs
+    ports:
+      - "4001:4000"
+    depends_on:
+      - redis-giveth
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  impact-graph-graphql-2:
+    image: ghcr.io/giveth/impact-graph:staging
+    command: npm run start:docker:server
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-2.log
+      - ENABLE_GRAPHQL=true
+      - ENABLE_CRONJOBS=false
+    restart: always
+    volumes:
+      - type: bind
+        source: ./config
+        target: /usr/src/app/config
+      - type: bind
+        source: ./config
+        target: /usr/src/app/build/config
+      - type: bind
+        source: ./logs
+        target: /usr/src/app/logs
+    ports:
+      - "4002:4000"
+    depends_on:
+      - redis-giveth
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  impact-graph-graphql-3:
+    image: ghcr.io/giveth/impact-graph:staging
+    command: npm run start:docker:server
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-3.log
+      - ENABLE_GRAPHQL=true
+      - ENABLE_CRONJOBS=false
+    restart: always
+    volumes:
+      - type: bind
+        source: ./config
+        target: /usr/src/app/config
+      - type: bind
+        source: ./config
+        target: /usr/src/app/build/config
+      - type: bind
+        source: ./logs
+        target: /usr/src/app/logs
+    ports:
+      - "4003:4000"
+    depends_on:
+      - redis-giveth
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Background jobs instance (dedicated for cronjobs only)
+  impact-graph-jobs:
+    image: ghcr.io/giveth/impact-graph:staging
+    command: npm run start:docker:server
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_PATH=/usr/src/app/logs/impact-graph-jobs.log
+      - ENABLE_GRAPHQL=false
+      - ENABLE_CRONJOBS=true
+    restart: always
+    volumes:
       - type: bind
         source: ./config
         target: /usr/src/app/config
@@ -32,6 +116,12 @@ services:
       - "4000:4000"
     depends_on:
       - redis-giveth
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   redis-giveth:
     # it's better to not using the latest tag, maybe latest tag have some breaking changes
