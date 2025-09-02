@@ -64,6 +64,7 @@ import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
 import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
 import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
+import { findQfRoundById } from '../repositories/qfRoundRepository';
 import { detectAddressChainType } from '../utils/networks';
 import { ChainType } from '../types/network';
 import { getAppropriateNetworkId } from '../services/chains';
@@ -855,6 +856,7 @@ export class DonationResolver {
     relevantDonationTxHash?: string,
     @Arg('swapData', { nullable: true }) swapData?: SwapTransactionInput,
     @Arg('fromTokenAmount', { nullable: true }) fromTokenAmount?: number,
+    @Arg('roundId', { nullable: true }) roundId?: number,
   ): Promise<number> {
     const logData = {
       amount,
@@ -871,6 +873,7 @@ export class DonationResolver {
       swapData,
       isSwap: !!swapData,
       fromTokenAmount,
+      roundId,
     };
     logger.debug(
       'createDonation() resolver has been called with this data',
@@ -904,6 +907,7 @@ export class DonationResolver {
         useDonationBox,
         relevantDonationTxHash,
         fromTokenAmount,
+        roundId,
       };
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
@@ -935,6 +939,29 @@ export class DonationResolver {
           ),
         );
       }
+
+      // Validate QF round if provided
+      if (roundId) {
+        const qfRound = await findQfRoundById(roundId);
+        if (!qfRound) {
+          throw new Error('QF round not found');
+        }
+        if (!qfRound.isActive) {
+          throw new Error('QF round is not active');
+        }
+        const now = new Date();
+        if (now < qfRound.beginDate || now > qfRound.endDate) {
+          throw new Error('QF round is not currently active');
+        }
+        // Check if project is in the QF round
+        const projectInQfRound = project.qfRounds?.some(
+          qr => qr.id === roundId,
+        );
+        if (!projectInQfRound) {
+          throw new Error('Project is not part of the specified QF round');
+        }
+      }
+
       const ownProject = project.adminUserId === donorUser.id;
       if (ownProject) {
         throw new Error("Donor can't donate to his/her own project.");
@@ -1073,13 +1100,22 @@ export class DonationResolver {
           logger.error('get chainvine wallet address error', e);
         }
       }
-      const activeQfRoundForProject =
-        await relatedActiveQfRoundForProject(projectId);
-      if (
-        activeQfRoundForProject &&
-        activeQfRoundForProject.isEligibleNetwork(networkId)
-      ) {
-        donation.qfRound = activeQfRoundForProject;
+      // Set QF round - use provided roundId if available, otherwise auto-select
+      if (roundId) {
+        const qfRound = await findQfRoundById(roundId);
+        if (qfRound) {
+          donation.qfRound = qfRound;
+        }
+      } else {
+        // Auto-select active QF round for project (existing behavior)
+        const activeQfRoundForProject =
+          await relatedActiveQfRoundForProject(projectId);
+        if (
+          activeQfRoundForProject &&
+          activeQfRoundForProject.isEligibleNetwork(networkId)
+        ) {
+          donation.qfRound = activeQfRoundForProject;
+        }
       }
       if (draftDonationEnabled && draftDonationId) {
         const draftDonation = await DraftDonation.findOne({
