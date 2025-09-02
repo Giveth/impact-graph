@@ -189,6 +189,7 @@ export class Donation extends BaseEntity {
   @ManyToOne(_type => QfRound, { eager: true })
   qfRound: QfRound;
 
+  @Field({ nullable: true })
   @RelationId((donation: Donation) => donation.qfRound)
   @Column({ nullable: true })
   qfRoundId: number;

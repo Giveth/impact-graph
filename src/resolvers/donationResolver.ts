@@ -21,7 +21,7 @@ import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { ApolloContext } from '../types/ApolloContext';
 import { Project, ProjStatus } from '../entities/project';
 import { Token } from '../entities/token';
-import { publicSelectionFields, User } from '../entities/user';
+import { publicSelectionFields } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
@@ -277,7 +277,7 @@ class SwapTransactionInput {
   metadata?: Record<string, any>;
 }
 
-@Resolver(_of => User)
+@Resolver(_of => Donation)
 export class DonationResolver {
   private readonly donationRepository: Repository<Donation>;
 
