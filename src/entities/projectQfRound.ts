@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType, Float, Int } from 'type-graphql';
 import {
   PrimaryColumn,
   Entity,
@@ -6,6 +6,7 @@ import {
   BaseEntity,
   CreateDateColumn,
   UpdateDateColumn,
+  Column,
 } from 'typeorm';
 import { Project } from './project';
 import { QfRound } from './qfRound';
@@ -26,6 +27,14 @@ export class ProjectQfRound extends BaseEntity {
 
   @ManyToOne(_type => QfRound, qfRound => qfRound.projectQfRoundRelations)
   qfRound: QfRound;
+
+  @Field(_type => Float, { nullable: true })
+  @Column({ type: 'float', nullable: true, default: 0 })
+  sumDonationValueUsd: number;
+
+  @Field(_type => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true, default: 0 })
+  countUniqueDonors: number;
 
   @CreateDateColumn()
   createdAt: Date;
