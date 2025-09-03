@@ -349,7 +349,7 @@ function qfSmartSelectSuccessTestCases() {
     });
 
     assert.isOk(result.data.data);
-    assert.isNull(result.data.errors);
+    assert.isUndefined(result.data.errors);
 
     const selectedRound = result.data.data.qfSmartSelect;
 
@@ -374,7 +374,7 @@ function qfSmartSelectSuccessTestCases() {
     });
 
     assert.isOk(result.data.data);
-    assert.isNull(result.data.errors);
+    assert.isUndefined(result.data.errors);
 
     const selectedRound = result.data.data.qfSmartSelect;
 
