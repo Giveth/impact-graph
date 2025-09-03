@@ -45,6 +45,24 @@ export const scoreUserAddressMutation = `
   }
 `;
 
+export const qfSmartSelectQuery = `
+  query (
+    $networkId: Int!
+    $projectId: Int!
+  ) {
+    qfSmartSelect(
+      networkId: $networkId
+      projectId: $projectId
+    ) {
+      id
+      name
+      matchingPoolAmount
+      eligibleNetworks
+      allocatedFundUSD
+    }
+  }
+`;
+
 export const createDraftDonationMutation = `
   mutation (
     $networkId: Float!

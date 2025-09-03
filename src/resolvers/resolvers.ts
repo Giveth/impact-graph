@@ -14,7 +14,7 @@ import { GivPowerTestingResolver } from './givPowerTestingResolver';
 import { ProjectPowerResolver } from './projectPowerResolver';
 import { CampaignResolver } from './campaignResolver';
 import { ChainvineResolver } from './chainvineResolver';
-import { QfRoundResolver } from './qfRoundResolver';
+import { QfRoundResolver, QfSmartSelectResolver } from './qfRoundResolver';
 import { QfRoundHistoryResolver } from './qfRoundHistoryResolver';
 import { ProjectUserInstantPowerViewResolver } from './instantPowerResolver';
 import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
@@ -50,6 +50,7 @@ export const getResolvers = (): Function[] => {
 
     CampaignResolver,
     QfRoundResolver,
+    QfSmartSelectResolver,
     QfRoundHistoryResolver,
 
     AnchorContractAddressResolver,

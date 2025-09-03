@@ -350,3 +350,74 @@ export const retrieveActiveQfRoundUserMBDScore = async (
     return null;
   }
 };
+
+/**
+ * Find all active QF rounds for a project
+ *
+ * @param projectId - The ID of the project
+ * @returns An array of active QF rounds
+ */
+export async function findActiveQfRoundsForProject(
+  projectId: number,
+): Promise<QfRound[]> {
+  return QfRound.createQueryBuilder('qfRound')
+    .innerJoin('qfRound.projects', 'project')
+    .where('qfRound.isActive = :isActive', { isActive: true })
+    .andWhere('project.id = :projectId', { projectId })
+    .getMany();
+}
+
+/**
+ * Pick the best QF round for a project
+ *
+ * @param rounds - The array of QF rounds
+ * @param networkId - The network ID
+ * @returns
+ */
+export function pickBestQfRound(rounds: QfRound[], networkId: number): QfRound {
+  const matches = rounds.filter(
+    r =>
+      Array.isArray(r.eligibleNetworks) &&
+      r.eligibleNetworks.includes(networkId),
+  );
+
+  if (matches.length === 0) {
+    throw new Error('no eligible qf rounds');
+  }
+
+  // 0)Return first one is there is only one
+  if (matches.length === 1) return matches[0];
+
+  // 1) highest allocatedFundUSD
+  const maxUsd = Math.max(...matches.map(r => Number(r.allocatedFundUSD ?? 0)));
+  let tied = matches.filter(r => Number(r.allocatedFundUSD ?? 0) === maxUsd);
+
+  // 2) closest endDate that is >= now (if none >= now, use soonest endDate anyway)
+  if (tied.length > 1) {
+    const now = Date.now();
+    const future = tied.filter(
+      r => new Date(r.endDate as any).getTime() >= now,
+    );
+    const pool = future.length ? future : tied;
+
+    pool.sort(
+      (a, b) =>
+        new Date(a.endDate as any).getTime() -
+        new Date(b.endDate as any).getTime(),
+    );
+    const bestEnd = new Date(pool[0].endDate as any).getTime();
+    tied = pool.filter(r => new Date(r.endDate as any).getTime() === bestEnd);
+
+    // TODO: MISSING PRIORITY LOGIC
+
+    // 3) highest priority = LOWEST integer wins
+    // if (tied.length > 1) {
+    //   tied.sort(
+    //     (a: any, b: any) =>
+    //       Number(a.priority ?? 99999) - Number(b.priority ?? 99999),
+    //   );
+    // }
+  }
+
+  return tied[0];
+}

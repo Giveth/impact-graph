@@ -18,15 +18,18 @@ import {
   fetchQFArchivedRounds,
   qfRoundStatsQuery,
   scoreUserAddressMutation,
+  qfSmartSelectQuery,
 } from '../../test/graphqlQueries';
 import { generateRandomString } from '../utils/utils';
 import { OrderDirection } from './projectResolver';
 import { QfArchivedRoundsSortType } from '../repositories/qfRoundRepository';
+import { NETWORK_IDS } from '../provider';
 
 describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);
 describe('Fetch qfRoundStats test cases', fetchQfRoundStatesTestCases);
 describe('Fetch archivedQFRounds test cases', fetchArchivedQFRoundsTestCases);
 describe('update scoreUserAddress test cases', scoreUserAddressTestCases);
+describe('qfSmartSelect test cases', qfSmartSelectTestCases);
 
 function scoreUserAddressTestCases() {
   it('should score the address with new model mocks score', async () => {
@@ -271,5 +274,184 @@ function fetchEstimatedMatchingTestCases() {
     //   qfRound.allocatedFund,
     // );
     // assert.isTrue(secondProjectMatch! > firstProjectMatch!);
+  });
+}
+
+function qfSmartSelectTestCases() {
+  describe('qfSmartSelect successful selection', qfSmartSelectSuccessTestCases);
+  describe('qfSmartSelect error handling', qfSmartSelectErrorTestCases);
+}
+
+function qfSmartSelectSuccessTestCases() {
+  let project: Project;
+  let qfRound1: QfRound;
+  let qfRound2: QfRound;
+
+  beforeEach(async () => {
+    // Deactivate all existing QF rounds
+    await QfRound.update({}, { isActive: false });
+
+    // Create a test project
+    project = await saveProjectDirectlyToDb(createProjectData());
+
+    // Create QF Round 1 with lower allocated fund
+    qfRound1 = QfRound.create({
+      isActive: true,
+      name: 'QF Round 1',
+      slug: generateRandomString(10),
+      allocatedFund: 50000,
+      allocatedFundUSD: 50000,
+      minimumPassportScore: 8,
+      eligibleNetworks: [NETWORK_IDS.MAIN_NET, NETWORK_IDS.XDAI],
+      beginDate: new Date(),
+      endDate: moment().add(30, 'days').toDate(),
+    });
+    await qfRound1.save();
+
+    // Create QF Round 2 with higher allocated fund (should be selected)
+    qfRound2 = QfRound.create({
+      isActive: true,
+      name: 'QF Round 2',
+      slug: generateRandomString(10),
+      allocatedFund: 100000,
+      allocatedFundUSD: 100000,
+      minimumPassportScore: 8,
+      eligibleNetworks: [NETWORK_IDS.MAIN_NET, NETWORK_IDS.ARBITRUM_MAINNET],
+      beginDate: new Date(),
+      endDate: moment().add(20, 'days').toDate(),
+    });
+    await qfRound2.save();
+
+    // Associate project with both QF rounds
+    project.qfRounds = [qfRound1, qfRound2];
+    await project.save();
+  });
+
+  afterEach(async () => {
+    // Clean up - deactivate test QF rounds
+    if (qfRound1) {
+      qfRound1.isActive = false;
+      await qfRound1.save();
+    }
+    if (qfRound2) {
+      qfRound2.isActive = false;
+      await qfRound2.save();
+    }
+  });
+
+  it('should select the QF round with highest allocatedFundUSD for eligible network', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: qfSmartSelectQuery,
+      variables: {
+        networkId: NETWORK_IDS.MAIN_NET, // Both rounds support this network
+        projectId: project.id,
+      },
+    });
+
+    assert.isOk(result.data.data);
+    assert.isNull(result.data.errors);
+
+    const selectedRound = result.data.data.qfSmartSelect;
+
+    // Should select qfRound2 because it has higher allocatedFundUSD
+    assert.equal(selectedRound.id, qfRound2.id);
+    assert.equal(selectedRound.name, 'QF Round 2');
+    assert.equal(selectedRound.matchingPoolAmount, 100000);
+    assert.equal(selectedRound.allocatedFundUSD, 100000);
+    assert.deepEqual(selectedRound.eligibleNetworks, [
+      NETWORK_IDS.MAIN_NET,
+      NETWORK_IDS.ARBITRUM_MAINNET,
+    ]);
+  });
+
+  it('should select the only eligible QF round for specific network', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: qfSmartSelectQuery,
+      variables: {
+        networkId: NETWORK_IDS.XDAI, // Only qfRound1 supports this network
+        projectId: project.id,
+      },
+    });
+
+    assert.isOk(result.data.data);
+    assert.isNull(result.data.errors);
+
+    const selectedRound = result.data.data.qfSmartSelect;
+
+    // Should select qfRound1 because it's the only one supporting XDAI
+    assert.equal(selectedRound.id, qfRound1.id);
+    assert.equal(selectedRound.name, 'QF Round 1');
+    assert.equal(selectedRound.matchingPoolAmount, 50000);
+    assert.equal(selectedRound.allocatedFundUSD, 50000);
+    assert.deepEqual(selectedRound.eligibleNetworks, [
+      NETWORK_IDS.MAIN_NET,
+      NETWORK_IDS.XDAI,
+    ]);
+  });
+}
+
+function qfSmartSelectErrorTestCases() {
+  let project: Project;
+
+  beforeEach(async () => {
+    // Deactivate all existing QF rounds
+    await QfRound.update({}, { isActive: false });
+
+    // Create a test project
+    project = await saveProjectDirectlyToDb(createProjectData());
+  });
+
+  it('should throw error when no eligible QF rounds exist for project', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: qfSmartSelectQuery,
+      variables: {
+        networkId: NETWORK_IDS.MAIN_NET,
+        projectId: project.id,
+      },
+    });
+
+    assert.isOk(result.data.errors);
+    assert.isNull(result.data.data);
+
+    const error = result.data.errors[0];
+    assert.equal(error.message, 'no eligible qf rounds');
+    assert.deepEqual(error.path, ['qfSmartSelect']);
+  });
+
+  it('should throw error when project is not in any active QF rounds', async () => {
+    // Create an active QF round but don't associate it with the project
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Unassociated QF Round',
+      slug: generateRandomString(10),
+      allocatedFund: 100000,
+      allocatedFundUSD: 100000,
+      minimumPassportScore: 8,
+      eligibleNetworks: [NETWORK_IDS.MAIN_NET],
+      beginDate: new Date(),
+      endDate: moment().add(30, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    try {
+      const result = await axios.post(graphqlUrl, {
+        query: qfSmartSelectQuery,
+        variables: {
+          networkId: NETWORK_IDS.MAIN_NET,
+          projectId: project.id,
+        },
+      });
+
+      assert.isOk(result.data.errors);
+      assert.isNull(result.data.data);
+
+      const error = result.data.errors[0];
+      assert.equal(error.message, 'no eligible qf rounds');
+      assert.deepEqual(error.path, ['qfSmartSelect']);
+    } finally {
+      // Clean up
+      qfRound.isActive = false;
+      await qfRound.save();
+    }
   });
 }
