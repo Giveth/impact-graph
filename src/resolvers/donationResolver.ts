@@ -953,6 +953,9 @@ export class DonationResolver {
         if (now < qfRound.beginDate || now > qfRound.endDate) {
           throw new Error('QF round is not currently active');
         }
+        if (!qfRound.isEligibleNetwork(networkId)) {
+          throw new Error('QF round is not eligible for this network');
+        }
         // Check if project is in the QF round
         const projectInQfRound = project.qfRounds?.some(
           qr => qr.id === roundId,

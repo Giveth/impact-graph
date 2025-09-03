@@ -4070,6 +4070,191 @@ function createDonationTestCases() {
     await autoQfRound.save();
     await specificQfRound.save();
   });
+
+  it('should fail to create donation when QF round is not eligible for the network', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    // Create QF round that only allows XDAI network (100)
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+      eligibleNetworks: [NETWORK_IDS.XDAI], // Only XDAI is eligible
+    }).save();
+
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+
+    // Try to create donation on MAIN_NET (1) which is not eligible
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET, // Not eligible network
+          transactionId: generateRandomEvmTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'ETH',
+          roundId: qfRound.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(saveDonationResponse.data.errors);
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      'QF round is not eligible for this network',
+    );
+
+    // Clean up
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
+  it('should create donation successfully when QF round is eligible for the network', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    // Create QF round that allows MAIN_NET (1) and XDAI (100)
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+      eligibleNetworks: [NETWORK_IDS.MAIN_NET, NETWORK_IDS.XDAI], // Both networks are eligible
+    }).save();
+
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+
+    // Create donation on MAIN_NET (1) which is eligible
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET, // Eligible network
+          transactionId: generateRandomEvmTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'ETH',
+          roundId: qfRound.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.isNotNull(donation);
+    assert.equal(donation?.qfRoundId, qfRound.id);
+    assert.equal(donation?.transactionNetworkId, NETWORK_IDS.MAIN_NET);
+
+    // Clean up
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
+  it('should create donation successfully when QF round has no eligible networks (allows all)', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    // Create QF round with no eligible networks (empty array means all networks are allowed)
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+      eligibleNetworks: [], // Empty array means all networks are eligible
+    }).save();
+
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+
+    // Create donation on OPTIMISTIC (10) which should be allowed since no restrictions
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.OPTIMISTIC, // Should be allowed
+          transactionId: generateRandomEvmTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'ETH',
+          roundId: qfRound.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.isNotNull(donation);
+    assert.equal(donation?.qfRoundId, qfRound.id);
+    assert.equal(donation?.transactionNetworkId, NETWORK_IDS.OPTIMISTIC);
+
+    // Clean up
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
 }
 
 function donationsFromWalletsTestCases() {
