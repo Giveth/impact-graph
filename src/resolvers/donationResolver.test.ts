@@ -3744,7 +3744,7 @@ function createDonationTestCases() {
     await qfRound.save();
   });
 
-  it('should throw error when roundId does not exist', async () => {
+  it('should create donation without QF round when roundId does not exist', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -3774,14 +3774,23 @@ function createDonationTestCases() {
       },
     );
 
-    assert.isOk(saveDonationResponse.data.errors);
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+
+    assert.isNotNull(donation);
+    // Should not be assigned to QF round due to validation error
+    assert.isNull(donation?.qfRoundId);
     assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      'QF round not found',
+      donation?.qfRoundErrorMessage,
+      'QF round not found - excluded from QF round',
     );
   });
 
-  it('should throw error when QF round is not active', async () => {
+  it('should create donation without QF round when QF round is not active', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
       isActive: false, // Inactive QF round
@@ -3825,14 +3834,23 @@ function createDonationTestCases() {
       },
     );
 
-    assert.isOk(saveDonationResponse.data.errors);
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+
+    assert.isNotNull(donation);
+    // Should not be assigned to QF round due to validation error
+    assert.isNull(donation?.qfRoundId);
     assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      'QF round is not active',
+      donation?.qfRoundErrorMessage,
+      'QF round is not active - excluded from QF round',
     );
   });
 
-  it('should throw error when QF round is outside date range', async () => {
+  it('should create donation without QF round when QF round is outside date range', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
       isActive: true,
@@ -3876,14 +3894,23 @@ function createDonationTestCases() {
       },
     );
 
-    assert.isOk(saveDonationResponse.data.errors);
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+
+    assert.isNotNull(donation);
+    // Should not be assigned to QF round due to validation error
+    assert.isNull(donation?.qfRoundId);
     assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      'QF round is not currently active',
+      donation?.qfRoundErrorMessage,
+      'QF round is not currently active - excluded from QF round',
     );
   });
 
-  it('should throw error when project is not part of the QF round', async () => {
+  it('should create donation without QF round when project is not part of the QF round', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
       isActive: true,
@@ -3925,10 +3952,19 @@ function createDonationTestCases() {
       },
     );
 
-    assert.isOk(saveDonationResponse.data.errors);
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+
+    assert.isNotNull(donation);
+    // Should not be assigned to QF round due to validation error
+    assert.isNull(donation?.qfRoundId);
     assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      'Project is not part of the specified QF round',
+      donation?.qfRoundErrorMessage,
+      'Project is not part of the specified QF round - excluded from QF round',
     );
 
     // Clean up
@@ -4071,7 +4107,7 @@ function createDonationTestCases() {
     await specificQfRound.save();
   });
 
-  it('should fail to create donation when QF round is not eligible for the network', async () => {
+  it('should create donation without QF round when QF round is not eligible for the network', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
 
     // Create QF round that only allows XDAI network (100)
@@ -4119,10 +4155,19 @@ function createDonationTestCases() {
       },
     );
 
-    assert.isOk(saveDonationResponse.data.errors);
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+
+    assert.isNotNull(donation);
+    // Should not be assigned to QF round due to validation error
+    assert.isNull(donation?.qfRoundId);
     assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      'QF round is not eligible for this network',
+      donation?.qfRoundErrorMessage,
+      'QF round is not eligible for this network - excluded from QF round',
     );
 
     // Clean up

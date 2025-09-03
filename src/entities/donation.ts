@@ -103,6 +103,10 @@ export class Donation extends BaseEntity {
   @Column('text', { nullable: true })
   verifyErrorMessage: string;
 
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  qfRoundErrorMessage: string;
+
   @Field()
   @Column('boolean', { default: false })
   speedup: boolean;

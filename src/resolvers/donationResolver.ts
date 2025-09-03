@@ -940,28 +940,34 @@ export class DonationResolver {
         );
       }
 
-      // Validate QF round if provided
+      // Validate QF round if provided - don't throw errors, just exclude from QF round
+      let qfRoundValidationError: string | undefined;
       if (roundId) {
         const qfRound = await findQfRoundById(roundId);
         if (!qfRound) {
-          throw new Error('QF round not found');
-        }
-        if (!qfRound.isActive) {
-          throw new Error('QF round is not active');
-        }
-        const now = new Date();
-        if (now < qfRound.beginDate || now > qfRound.endDate) {
-          throw new Error('QF round is not currently active');
-        }
-        if (!qfRound.isEligibleNetwork(networkId)) {
-          throw new Error('QF round is not eligible for this network');
-        }
-        // Check if project is in the QF round
-        const projectInQfRound = project.qfRounds?.some(
-          qr => qr.id === roundId,
-        );
-        if (!projectInQfRound) {
-          throw new Error('Project is not part of the specified QF round');
+          qfRoundValidationError =
+            'QF round not found - excluded from QF round';
+        } else if (!qfRound.isActive) {
+          qfRoundValidationError =
+            'QF round is not active - excluded from QF round';
+        } else {
+          const now = new Date();
+          if (now < qfRound.beginDate || now > qfRound.endDate) {
+            qfRoundValidationError =
+              'QF round is not currently active - excluded from QF round';
+          } else if (!qfRound.isEligibleNetwork(networkId)) {
+            qfRoundValidationError =
+              'QF round is not eligible for this network - excluded from QF round';
+          } else {
+            // Check if project is in the QF round
+            const projectInQfRound = project.qfRounds?.some(
+              qr => qr.id === roundId,
+            );
+            if (!projectInQfRound) {
+              qfRoundValidationError =
+                'Project is not part of the specified QF round - excluded from QF round';
+            }
+          }
         }
       }
 
@@ -1105,9 +1111,14 @@ export class DonationResolver {
       }
       // Set QF round - use provided roundId if available, otherwise auto-select
       if (roundId) {
-        const qfRound = await findQfRoundById(roundId);
-        if (qfRound) {
-          donation.qfRound = qfRound;
+        if (qfRoundValidationError) {
+          // Don't assign QF round if validation failed
+          donation.qfRoundErrorMessage = qfRoundValidationError;
+        } else {
+          const qfRound = await findQfRoundById(roundId);
+          if (qfRound) {
+            donation.qfRound = qfRound;
+          }
         }
       } else {
         // Auto-select active QF round for project (existing behavior)
