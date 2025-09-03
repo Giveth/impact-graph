@@ -202,7 +202,9 @@ export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
 };
 
 export const findQfRoundById = async (id: number): Promise<QfRound | null> => {
-  return QfRound.createQueryBuilder('qf_round').where(`id = ${id}`).getOne();
+  return QfRound.createQueryBuilder('qf_round')
+    .where('qf_round.id = :id', { id })
+    .getOne();
 };
 
 export const findQfRoundBySlug = async (

@@ -13,6 +13,7 @@ export const createDonationMutation = `
     $safeTransactionId: String
     $swapData: SwapTransactionInput
     $fromTokenAmount: Float
+    $roundId: Float
   ) {
     createDonation(
       transactionId: $transactionId
@@ -28,6 +29,7 @@ export const createDonationMutation = `
       safeTransactionId: $safeTransactionId
       swapData: $swapData
       fromTokenAmount: $fromTokenAmount
+      roundId: $roundId
     )
   }
 `;
@@ -793,6 +795,12 @@ export const fetchAllDonationsQuery = `
         anonymous
         valueUsd
         amount
+        qfRoundId
+        qfRound {
+          id
+          name
+          slug
+        }
         recurringDonation{
           id
           txHash
@@ -856,7 +864,8 @@ export const fetchDonationsByUserIdQuery = `
         project {
           id
         }
-       qfRound {
+        qfRoundId
+        qfRound {
           id
           name
           isActive
