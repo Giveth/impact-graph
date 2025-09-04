@@ -346,6 +346,14 @@ export class CauseResolver {
       );
     }
 
+    // Validate that none of the projects are of type 'cause'
+    const projectsOfTypeCause = projects.filter(p => p.projectType === 'cause');
+    if (projectsOfTypeCause.length > 0) {
+      throw new Error(
+        'Cannot add causes to a cause. Only regular projects can be added to causes.',
+      );
+    }
+
     // Get existing cause-project relationships
     const existingCauseProjects = await CauseProject.find({
       where: { causeId: project.id },
@@ -494,6 +502,16 @@ export class CauseResolver {
       if (projects.length !== projectIds.length) {
         throw new Error(
           i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_IDS),
+        );
+      }
+
+      // Validate that none of the projects are of type 'cause'
+      const projectsOfTypeCause = projects.filter(
+        p => p.projectType === 'cause',
+      );
+      if (projectsOfTypeCause.length > 0) {
+        throw new Error(
+          'Cannot add causes to a cause. Only regular projects can be added to causes.',
         );
       }
 
