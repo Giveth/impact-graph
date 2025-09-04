@@ -22,6 +22,8 @@ import {
   QfArchivedRoundsSortType,
   getQfRoundStats,
   getQfRoundTotalSqrtRootSumSquared,
+  findActiveQfRoundsForProject,
+  pickBestQfRound,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 import { OrderDirection } from './projectResolver';
@@ -214,6 +216,49 @@ export class QfRoundResolver {
       allDonationsUsdValue: totalDonationUsd,
       matchingPool: qfRound.allocatedFund,
       qfRound,
+    };
+  }
+}
+
+@ObjectType()
+export class QfSmartSelectResult {
+  @Field(() => Int)
+  id!: number;
+
+  @Field()
+  name!: string;
+
+  @Field()
+  matchingPoolAmount!: number;
+
+  @Field(() => [Int])
+  eligibleNetworks!: number[];
+
+  @Field({ nullable: true })
+  allocatedFundUSD?: number;
+}
+
+@Service()
+@Resolver()
+export class QfSmartSelectResolver {
+  @Query(() => QfSmartSelectResult)
+  async qfSmartSelect(
+    @Arg('networkId', () => Int) networkId: number,
+    @Arg('projectId', () => Int) projectId: number,
+  ): Promise<QfSmartSelectResult> {
+    const activeRounds = await findActiveQfRoundsForProject(projectId);
+    if (!activeRounds.length) {
+      throw new Error('no eligible qf rounds'); // no active rounds at all for this project
+    }
+
+    const chosen = pickBestQfRound(activeRounds, networkId);
+
+    return {
+      id: chosen.id,
+      name: chosen.name ?? chosen.title ?? '',
+      matchingPoolAmount: Number(chosen.allocatedFund ?? 0),
+      eligibleNetworks: chosen.eligibleNetworks ?? [],
+      allocatedFundUSD: chosen.allocatedFundUSD ?? undefined,
     };
   }
 }
