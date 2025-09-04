@@ -30,6 +30,10 @@ import { logger } from '../utils/logger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore';
 import { findUserByWalletAddress } from '../repositories/userRepository';
+import {
+  selectQfRoundForProject,
+  QfRoundSmartSelectError,
+} from '../services/qfRoundSmartSelectService';
 
 @ObjectType()
 export class QfRoundStatsResponse {
@@ -59,6 +63,24 @@ export class ExpectedMatchingResponse {
 
   @Field()
   matchingPool: number;
+}
+
+@ObjectType()
+export class QfRoundSmartSelectResponse {
+  @Field(_type => Int)
+  qfRoundId: number;
+
+  @Field()
+  qfRoundName: string;
+
+  @Field(_type => Number)
+  matchingPoolAmount: number;
+
+  @Field(_type => [Int])
+  eligibleNetworks: number[];
+
+  @Field(_type => Number, { nullable: true })
+  allocatedFundUSD: number;
 }
 
 @InputType()
@@ -215,5 +237,20 @@ export class QfRoundResolver {
       matchingPool: qfRound.allocatedFund,
       qfRound,
     };
+  }
+
+  @Query(() => QfRoundSmartSelectResponse, { nullable: true })
+  async qfRoundSmartSelect(
+    @Arg('networkId') networkId: number,
+    @Arg('projectId') projectId: number,
+  ): Promise<QfRoundSmartSelectResponse | null> {
+    try {
+      return await selectQfRoundForProject(networkId, projectId);
+    } catch (error) {
+      if (error instanceof QfRoundSmartSelectError) {
+        throw new Error(error.message);
+      }
+      throw error;
+    }
   }
 }

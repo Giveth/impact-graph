@@ -130,6 +130,10 @@ export class QfRound extends BaseEntity {
   @Column({ nullable: true })
   clusterMatchingSyncAt?: Date;
 
+  @Field(_type => Int, { nullable: true })
+  @Column({ nullable: true, default: 0 })
+  priority: number;
+
   @UpdateDateColumn()
   updatedAt: Date;
 
