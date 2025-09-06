@@ -198,7 +198,11 @@ export const getActiveCausesWithProjects = async () => {
       if (!existingProject) {
         causeData.projects.push({
           id: row.projectId,
-          powerRank: row.project_power_rank || null,
+          powerRank:
+            row.project_power_rank !== null &&
+            row.project_power_rank !== undefined
+              ? row.project_power_rank
+              : null,
           totalPower: row.project_total_power || 0,
         });
       }
