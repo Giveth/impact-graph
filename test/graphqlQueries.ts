@@ -3109,3 +3109,21 @@ export const causeProjectsQuery = `
     }
   }
 `;
+
+export const qfRoundSmartSelectQuery = `
+  query qfRoundSmartSelect(
+    $networkId: Int!
+    $projectId: Int!
+  ) {
+    qfRoundSmartSelect(
+      networkId: $networkId
+      projectId: $projectId
+    ) {
+      qfRoundId
+      qfRoundName
+      matchingPoolAmount
+      eligibleNetworks
+      allocatedFundUSD
+    }
+  }
+`;

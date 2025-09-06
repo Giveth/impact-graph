@@ -13,6 +13,10 @@ import { updateDraftDonationStatus } from '../../repositories/draftDonationRepos
 import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter';
 import { findUserById } from '../../repositories/userRepository';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
+import {
+  selectQfRoundForProject,
+  QfRoundSmartSelectError,
+} from '../qfRoundSmartSelectService';
 import { QfRound } from '../../entities/qfRound';
 import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
 import { notifyClients } from '../sse/sse';
@@ -142,17 +146,41 @@ export async function checkTransactions(
         // Retrieve donor object
         const donor = await findUserById(donation.userId);
 
-        // Check if there is an active QF round for the project and check if the token is eligible for the network
-        const activeQfRoundForProject = await relatedActiveQfRoundForProject(
-          project.id,
-        );
-
+        // Use smart select logic to find the best QF round for this project and network
         let qfRound: QfRound | undefined;
-        if (
-          activeQfRoundForProject &&
-          activeQfRoundForProject.isEligibleNetwork(token.networkId)
-        ) {
-          qfRound = activeQfRoundForProject;
+        try {
+          const smartSelectedQfRound = await selectQfRoundForProject(
+            token.networkId,
+            project.id,
+          );
+
+          // Find the actual QfRound entity to assign to the donation
+          qfRound =
+            (await QfRound.findOneBy({
+              id: smartSelectedQfRound.qfRoundId,
+            })) || undefined;
+        } catch (error) {
+          // If smart select fails (no eligible QF rounds), fall back to the old logic
+          if (error instanceof QfRoundSmartSelectError) {
+            logger.debug(
+              `Smart select failed for QR donation, falling back to old logic: ${error.message}`,
+              {
+                projectId: project.id,
+                networkId: token.networkId,
+                draftDonationId: donation.id,
+              },
+            );
+
+            const activeQfRoundForProject =
+              await relatedActiveQfRoundForProject(project.id);
+
+            if (
+              activeQfRoundForProject &&
+              activeQfRoundForProject.isEligibleNetwork(token.networkId)
+            ) {
+              qfRound = activeQfRoundForProject;
+            }
+          }
         }
 
         const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
