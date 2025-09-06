@@ -240,16 +240,18 @@ export class QfRoundResolver {
   }
 
   @Query(() => QfRoundSmartSelectResponse, { nullable: true })
-  async qfRoundSmartSelect(
-    @Arg('networkId') networkId: number,
-    @Arg('projectId') projectId: number,
+  public async qfRoundSmartSelect(
+    @Arg('networkId', () => Int) networkId: number,
+    @Arg('projectId', () => Int) projectId: number,
   ): Promise<QfRoundSmartSelectResponse | null> {
+    logger.info('qfRoundSmartSelect called with:', { networkId, projectId });
     try {
       return await selectQfRoundForProject(networkId, projectId);
     } catch (error) {
       if (error instanceof QfRoundSmartSelectError) {
         throw new Error(error.message);
       }
+      logger.error('Error in qfRoundSmartSelect:', error);
       throw error;
     }
   }

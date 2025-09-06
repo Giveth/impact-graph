@@ -3111,7 +3111,7 @@ export const causeProjectsQuery = `
 `;
 
 export const qfRoundSmartSelectQuery = `
-  query (
+  query qfRoundSmartSelect(
     $networkId: Int!
     $projectId: Int!
   ) {
