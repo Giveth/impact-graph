@@ -103,6 +103,10 @@ export class Donation extends BaseEntity {
   @Column('text', { nullable: true })
   verifyErrorMessage: string;
 
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  qfRoundErrorMessage: string;
+
   @Field()
   @Column('boolean', { default: false })
   speedup: boolean;
@@ -189,6 +193,7 @@ export class Donation extends BaseEntity {
   @ManyToOne(_type => QfRound, { eager: true })
   qfRound: QfRound;
 
+  @Field({ nullable: true })
   @RelationId((donation: Donation) => donation.qfRound)
   @Column({ nullable: true })
   qfRoundId: number;

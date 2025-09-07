@@ -6,6 +6,7 @@ import { logger } from '../../utils/logger';
 import { Cause } from '../../entities/project';
 import { erc20ABI } from '../../assets/erc20ABI';
 import { getProvider } from '../../provider';
+import { getBottomRank } from '../../repositories/projectPowerViewRepository';
 
 const givTokenAddress = '0xc7B1807822160a8C5b6c9EaF5C584aAD0972deeC'; // GIV token address for production
 const tpolTokenAddress = '0xc20CAf8deE81059ec0c8E5971b2AF7347eC131f4'; // TPOL token address for staging
@@ -82,11 +83,11 @@ export const evaluateAllCauses = async () => {
   logger.debug('evaluateAllCauses() has been called');
 
   try {
-    // Get active causes with their projects
+    // Get active causes with their projects and power ranks
     const causesData = await getActiveCausesWithProjects();
-    logger.debug('Active causes to evaluate', causesData.length);
+    logger.debug('Active causes to evaluate', causesData.causes.length);
 
-    if (causesData.length === 0) {
+    if (causesData.causes.length === 0) {
       logger.debug('No active causes found for evaluation');
       return;
     }
@@ -100,7 +101,7 @@ export const evaluateAllCauses = async () => {
 
 export const getActiveCausesWithProjects = async () => {
   try {
-    // Raw query to get active causes with their included projects and categories
+    // Raw query to get active causes with their included projects, categories, and power ranks
     const rawResults = await Cause.query(`
       SELECT 
         c.id AS cause_id,
@@ -108,6 +109,8 @@ export const getActiveCausesWithProjects = async () => {
         c.description AS cause_description,
         ca.address AS cause_address,
         cp."projectId",
+        ppv."powerRank" AS project_power_rank,
+        ppv."totalPower" AS project_total_power,
         -- Aggregate all category-related info into a single JSON array
         JSON_AGG(
           -- Create a JSON object for each category
@@ -126,6 +129,7 @@ export const getActiveCausesWithProjects = async () => {
         LEFT JOIN project_categories_category pcc ON c.id = pcc."projectId"
         LEFT JOIN category cat ON pcc."categoryId" = cat.id
         LEFT JOIN main_category mc ON cat."mainCategoryId" = mc.id
+        LEFT JOIN project_power_view ppv ON p.id = ppv."projectId"
       WHERE 
         c."projectType" = 'cause'
         AND c."statusId" = 5
@@ -138,7 +142,9 @@ export const getActiveCausesWithProjects = async () => {
       GROUP BY 
         c.id,
         cp."projectId",
-        ca.address 
+        ca.address,
+        ppv."powerRank",
+        ppv."totalPower"
       ORDER BY 
         c.id, 
         cp."projectId";
@@ -146,6 +152,9 @@ export const getActiveCausesWithProjects = async () => {
 
     // Get provider for balance checking
     const provider = await getProvider(137); // Polygon network
+
+    // Get the highest power rank in the system
+    const highestPowerRank = await getBottomRank();
 
     // Group results by cause and check balances
     const causesMap = new Map();
@@ -176,15 +185,26 @@ export const getActiveCausesWithProjects = async () => {
             description: row.cause_description || '',
             categories: [],
           },
-          projectIds: [],
+          projects: [],
         });
       }
 
       const causeData = causesMap.get(causeId);
 
-      // Add project ID if not already added
-      if (!causeData.projectIds.includes(row.projectId)) {
-        causeData.projectIds.push(row.projectId);
+      // Add project with power rank if not already added
+      const existingProject = causeData.projects.find(
+        p => p.id === row.projectId,
+      );
+      if (!existingProject) {
+        causeData.projects.push({
+          id: row.projectId,
+          powerRank:
+            row.project_power_rank !== null &&
+            row.project_power_rank !== undefined
+              ? row.project_power_rank
+              : null,
+          totalPower: row.project_total_power || 0,
+        });
       }
 
       // Add category if it exists and not already added
@@ -206,29 +226,40 @@ export const getActiveCausesWithProjects = async () => {
 
     // Convert map to array and filter out causes with no projects
     const causesWithProjects = Array.from(causesMap.values()).filter(
-      cause => cause.projectIds.length > 0,
+      cause => cause.projects.length > 0,
     );
 
-    logger.debug('Found active causes with projects and balances', {
-      totalCauses: causesWithProjects.length,
-    });
+    // Add the highest power rank to the response
+    const response = {
+      causes: causesWithProjects,
+      highestPowerRank: highestPowerRank,
+    };
 
-    return causesWithProjects;
+    logger.debug(
+      'Found active causes with projects, balances, and power ranks',
+      {
+        totalCauses: causesWithProjects.length,
+        highestPowerRank: highestPowerRank,
+      },
+    );
+
+    return response;
   } catch (error) {
     logger.error('Error fetching active causes with projects:', error);
     throw error;
   }
 };
 
-const sendEvaluationRequest = async (causes: any[]) => {
+const sendEvaluationRequest = async (causesData: any) => {
   try {
     const requestBody = {
-      causes,
+      ...causesData,
     };
 
     logger.debug('Sending evaluation request to service', {
       url: `${evaluationServiceUrl}/evaluate/causes`,
-      causeCount: causes.length,
+      causeCount: causesData.causes.length,
+      highestPowerRank: causesData.highestPowerRank,
     });
 
     // Fire and forget - don't wait for response

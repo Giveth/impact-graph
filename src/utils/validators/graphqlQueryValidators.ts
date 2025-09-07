@@ -203,6 +203,7 @@ export const createDonationQueryValidator = Joi.object({
   relevantDonationTxHash: Joi.string().allow(null, ''),
   swapData: swapTransactionValidator.allow(null, ''),
   fromTokenAmount: Joi.number().greater(0).allow(null),
+  roundId: Joi.number().integer().min(1).allow(null),
 });
 
 export const createDraftDonationQueryValidator = Joi.object({
