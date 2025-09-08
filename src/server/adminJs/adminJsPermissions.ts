@@ -573,6 +573,43 @@ const sybilPermissions = {
   // Add more roles here as needed
 };
 
+const projectQfRoundPermissions = {
+  [UserRole.ADMIN]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+    bulkDelete: true,
+  },
+  [UserRole.OPERATOR]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+  },
+  [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+  },
+  [UserRole.QF_MANAGER]: {
+    list: true,
+    show: true,
+    new: true,
+    edit: true,
+    delete: true,
+  },
+  // Add more roles here as needed
+};
+
 // will be modified later on
 const recurringDonationPermissions = {
   [UserRole.ADMIN]: {
@@ -841,5 +878,16 @@ export const canAccessRecurringDonationAction = (
     currentAdmin,
     action,
     resourcePermissions: recurringDonationPermissions,
+  });
+};
+
+export const canAccessProjectQfRoundAction = (
+  { currentAdmin },
+  action: string,
+) => {
+  return hasAccessToResource({
+    currentAdmin,
+    action,
+    resourcePermissions: projectQfRoundPermissions,
   });
 };

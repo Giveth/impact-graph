@@ -298,6 +298,13 @@ export const deactivateExpiredQfRounds = async (): Promise<void> => {
   );
 };
 
+export const countActiveQfRounds = async (): Promise<number> => {
+  const result = await QfRound.createQueryBuilder('qfRound')
+    .where('qfRound.isActive = :isActive', { isActive: true })
+    .getCount();
+  return result;
+};
+
 export const getRelatedProjectsOfQfRound = async (
   qfRoundId: number,
 ): Promise<{ slug: string; name: string; id: number }[]> => {
