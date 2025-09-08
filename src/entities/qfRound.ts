@@ -141,13 +141,7 @@ export class QfRound extends BaseEntity {
   projects: Project[];
 
   @Field(_type => [ProjectQfRound], { nullable: true })
-  @OneToMany(
-    _type => ProjectQfRound,
-    projectQfRound => projectQfRound.qfRound,
-    {
-      nullable: true,
-    },
-  )
+  @OneToMany(_type => ProjectQfRound, projectQfRound => projectQfRound.qfRound)
   projectQfRoundRelations: ProjectQfRound[];
 
   @OneToMany(_type => Donation, donation => donation.qfRound)
