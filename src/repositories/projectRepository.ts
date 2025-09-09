@@ -25,6 +25,7 @@ import { Reaction } from '../entities/reaction';
 import { SocialProfile } from '../entities/socialProfile';
 import { PreviousRoundRank } from '../entities/previousRoundRank';
 import { ORGANIZATION_LABELS } from '../entities/organization';
+import { ProjectQfRound } from '../entities/projectQfRound';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -647,8 +648,44 @@ export const removeProjectAndRelatedEntities = async (
     .where('projectId = :projectId', { projectId })
     .execute();
 
+  await ProjectQfRound.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
   await Project.createQueryBuilder()
     .delete()
     .where('id = :id', { id: projectId })
     .execute();
+};
+
+export const findQfRoundProjects = async (
+  qfRoundId: number,
+): Promise<Project[]> => {
+  return Project.createQueryBuilder('project')
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect('project.organization', 'organization')
+    .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoinAndSelect('project.qfRounds', 'qfRounds')
+    .leftJoin('project.adminUser', 'user')
+    .addSelect(publicSelectionFields)
+    .leftJoin('project.projectPower', 'projectPower')
+    .addSelect(['projectPower.totalPower', 'projectPower.powerRank'])
+    .leftJoin('project.projectInstantPower', 'projectInstantPower')
+    .addSelect([
+      'projectInstantPower.totalPower',
+      'projectInstantPower.powerRank',
+    ])
+    .innerJoinAndSelect(
+      'project.qfRounds',
+      'qf_rounds',
+      'qf_rounds.id = :qfRoundId',
+      { qfRoundId },
+    )
+    .where('project.statusId = :statusId', { statusId: ProjStatus.active })
+    .andWhere('project.reviewStatus = :reviewStatus', {
+      reviewStatus: ReviewStatus.Listed,
+    })
+    .orderBy('project.creationDate', 'DESC')
+    .getMany();
 };
