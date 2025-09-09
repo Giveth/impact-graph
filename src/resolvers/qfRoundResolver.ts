@@ -30,6 +30,10 @@ import { logger } from '../utils/logger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore';
 import { findUserByWalletAddress } from '../repositories/userRepository';
+import {
+  selectQfRoundForProject,
+  QfRoundSmartSelectError,
+} from '../services/qfRoundSmartSelectService';
 
 @ObjectType()
 export class QfRoundStatsResponse {
@@ -59,6 +63,33 @@ export class ExpectedMatchingResponse {
 
   @Field()
   matchingPool: number;
+}
+
+@ObjectType()
+export class QfRoundSmartSelectResponse {
+  @Field(_type => Int)
+  qfRoundId: number;
+
+  @Field()
+  qfRoundName: string;
+
+  @Field(_type => Number)
+  matchingPoolAmount: number;
+
+  @Field(_type => [Int])
+  eligibleNetworks: number[];
+
+  @Field(_type => Number, { nullable: true })
+  allocatedFundUSD: number;
+
+  @Field(_type => Number, { nullable: true })
+  projectUsdAmountRaised: number;
+
+  @Field(_type => Number, { nullable: true })
+  uniqueDonors: number;
+
+  @Field(_type => Number, { nullable: true })
+  donationsCount: number;
 }
 
 @InputType()
@@ -215,5 +246,22 @@ export class QfRoundResolver {
       matchingPool: qfRound.allocatedFund,
       qfRound,
     };
+  }
+
+  @Query(() => QfRoundSmartSelectResponse, { nullable: true })
+  public async qfRoundSmartSelect(
+    @Arg('networkId', () => Int) networkId: number,
+    @Arg('projectId', () => Int) projectId: number,
+  ): Promise<QfRoundSmartSelectResponse | null> {
+    logger.info('qfRoundSmartSelect called with:', { networkId, projectId });
+    try {
+      return await selectQfRoundForProject(networkId, projectId);
+    } catch (error) {
+      if (error instanceof QfRoundSmartSelectError) {
+        throw new Error(error.message);
+      }
+      logger.error('Error in qfRoundSmartSelect:', error);
+      throw error;
+    }
   }
 }

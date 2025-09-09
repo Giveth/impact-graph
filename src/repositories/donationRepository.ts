@@ -668,7 +668,11 @@ export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
 export async function getProjectQfRoundStats(params: {
   projectId: number;
   qfRound: QfRound;
-}): Promise<{ uniqueDonorsCount: number; sumValueUsd: number }> {
+}): Promise<{
+  uniqueDonorsCount: number;
+  sumValueUsd: number;
+  donationsCount: number;
+}> {
   const { projectId, qfRound } = params;
   const { id: qfRoundId, beginDate, endDate } = qfRound;
   const result = await Donation.createQueryBuilder('donation')
@@ -677,6 +681,7 @@ export async function getProjectQfRoundStats(params: {
       'uniqueDonors',
     )
     .addSelect('COALESCE(SUM(donation.valueUsd), 0)', 'totalDonationValueUsd')
+    .addSelect('COALESCE(COUNT(donation.id), 0)', 'donationsCount')
     .where('donation.qfRoundId = :qfRoundId', { qfRoundId })
     .andWhere('donation.projectId = :projectId', { projectId })
     .andWhere('donation.status = :status', { status: 'verified' })
@@ -689,6 +694,7 @@ export async function getProjectQfRoundStats(params: {
   return {
     uniqueDonorsCount: parseInt(result.uniqueDonors, 10) || 0,
     sumValueUsd: parseFloat(result.totalDonationValueUsd) || 0,
+    donationsCount: parseInt(result.donationsCount, 10) || 0,
   };
 }
 
