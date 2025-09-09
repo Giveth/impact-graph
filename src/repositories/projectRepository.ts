@@ -1,4 +1,5 @@
 import { SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { AppDataSource } from '../orm';
 import {
   Cause,
   FilterField,
@@ -646,6 +647,12 @@ export const removeProjectAndRelatedEntities = async (
     .delete()
     .where('projectId = :projectId', { projectId })
     .execute();
+
+  // Delete from junction table for many-to-many relationships
+  await AppDataSource.getDataSource().query(
+    'DELETE FROM project_qf_rounds_qf_round WHERE "projectId" = $1',
+    [projectId],
+  );
 
   await Project.createQueryBuilder()
     .delete()
