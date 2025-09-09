@@ -436,7 +436,19 @@ export const qfRoundTab = {
             record = await qfRound.save();
           } catch (error) {
             logger.error('Error creating QF Round:', error);
-            message = error.message || 'Error creating QF Round';
+
+            // Handle specific slug duplicate error
+            if (
+              error.message &&
+              error.message.includes(
+                'duplicate key value violates unique constraint',
+              )
+            ) {
+              message =
+                'A QF Round with this slug already exists. Please use a different slug.';
+            } else {
+              message = error.message || 'Error creating QF Round';
+            }
             type = 'danger';
           }
 
@@ -514,12 +526,32 @@ export const qfRoundTab = {
             // Update the record
             const qfRound = await findQfRoundById(Number(request.payload.id));
             if (qfRound) {
-              Object.assign(qfRound, request.payload);
+              // Create a copy of payload without slug to avoid duplicate slug issues
+              const { slug, ...updatePayload } = request.payload;
+
+              // Only update slug if it's different from the existing one
+              if (slug && slug !== qfRound.slug) {
+                updatePayload.slug = slug;
+              }
+
+              Object.assign(qfRound, updatePayload);
               await qfRound.save();
             }
           } catch (error) {
             logger.error('Error updating QF Round:', error);
-            message = error.message || 'Error updating QF Round';
+
+            // Handle specific slug duplicate error
+            if (
+              error.message &&
+              error.message.includes(
+                'duplicate key value violates unique constraint',
+              )
+            ) {
+              message =
+                'A QF Round with this slug already exists. Please use a different slug.';
+            } else {
+              message = error.message || 'Error updating QF Round';
+            }
             type = 'danger';
           }
 
