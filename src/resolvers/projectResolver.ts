@@ -7,6 +7,8 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Float,
+  ID,
   Info,
   InputType,
   Int,
@@ -48,6 +50,9 @@ import { ApolloContext } from '../types/ApolloContext';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
 import SentryLogger from '../sentryLogger';
+import { ProjectAddress } from '../entities/projectAddress';
+import { QfRound } from '../entities/qfRound';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import {
   errorMessages,
   i18n,
@@ -111,8 +116,12 @@ import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
-import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import {
+  findActiveQfRound,
+  getQfRoundStats,
+} from '../repositories/qfRoundRepository';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
+import { findQfRoundProjects } from '../repositories/projectRepository';
 import { getAppropriateNetworkId } from '../services/chains';
 import {
   addBulkProjectSocialMedia,
@@ -154,6 +163,96 @@ class TopProjects {
 class ProjectUpdatesResponse {
   @Field(_type => [ProjectUpdate])
   projectUpdates: ProjectUpdate[];
+}
+
+@ObjectType()
+class QfRoundStats {
+  @Field(_type => Int)
+  roundId: number;
+
+  @Field(_type => Float)
+  totalRaisedInRound: number;
+
+  @Field(_type => Int)
+  totalDonorsInRound: number;
+}
+
+@ObjectType()
+class QfProject {
+  @Field(_type => ID)
+  projectId: number;
+
+  @Field()
+  title: string;
+
+  @Field({ nullable: true })
+  descriptionSummary?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field({ nullable: true })
+  image?: string;
+
+  @Field(_type => Float)
+  totalRaisedUsd: number;
+
+  @Field()
+  verified: boolean;
+
+  @Field()
+  isGivbacksEligible: boolean;
+
+  @Field({ nullable: true })
+  slug?: string;
+
+  @Field(_type => User, { nullable: true })
+  admin: User;
+
+  @Field(_type => ProjectStatus)
+  status: ProjectStatus;
+
+  @Field()
+  reviewStatus: string;
+
+  @Field()
+  projectType: string;
+
+  @Field(_type => ProjectInstantPowerView, { nullable: true })
+  projectInstantPower?: ProjectInstantPowerView;
+
+  @Field({ nullable: true })
+  updatedAt?: Date;
+
+  @Field({ nullable: true })
+  creationDate?: Date;
+
+  @Field({ nullable: true })
+  latestUpdateCreationDate?: Date;
+
+  @Field(_type => Organization, { nullable: true })
+  organization?: Organization;
+
+  @Field(_type => Int, { nullable: true })
+  activeProjectsCount?: number;
+
+  @Field(_type => [ProjectAddress], { nullable: true })
+  addresses?: ProjectAddress[];
+
+  @Field(_type => [QfRound], { nullable: true })
+  qfRounds?: QfRound[];
+
+  @Field(_type => QfRoundStats, { nullable: true })
+  qfRoundStats?: QfRoundStats;
+}
+
+@ObjectType()
+class QfProjectsResponse {
+  @Field(_type => [QfProject])
+  projects: QfProject[];
+
+  @Field(_type => Int)
+  totalCount: number;
 }
 
 export enum OrderDirection {
@@ -2428,5 +2527,66 @@ export class ProjectResolver {
     }
 
     return true;
+  }
+
+  @Query(_returns => QfProjectsResponse)
+  async qfProjects(
+    @Arg('qfRoundId', _type => Int) qfRoundId: number,
+  ): Promise<QfProjectsResponse> {
+    try {
+      const projects = await findQfRoundProjects(qfRoundId);
+
+      // Compute round-wide stats once (applies to all projects)
+      const anyRound = projects[0]?.qfRounds?.find(qr => qr.id === qfRoundId);
+      const commonStats = anyRound
+        ? await getQfRoundStats(anyRound)
+        : undefined;
+
+      // Transform projects to QfProject format
+      const qfProjects: QfProject[] = projects.map(project => {
+        const qfRoundStats = commonStats
+          ? {
+              roundId: qfRoundId,
+              totalRaisedInRound: commonStats.totalDonationUsd,
+              totalDonorsInRound: commonStats.uniqueDonors,
+              // donationsCount: commonStats.donationsCount, // if added to type
+            }
+          : undefined;
+
+        return {
+          projectId: project.id,
+          title: project.title,
+          descriptionSummary: project.descriptionSummary,
+          description: project.description,
+          image: project.image,
+          totalRaisedUsd: project.totalDonations,
+          verified: project.verified,
+          isGivbacksEligible: project.isGivbackEligible,
+          slug: project.slug,
+          admin: project.adminUser,
+          status: project.status,
+          reviewStatus: project.reviewStatus,
+          projectType: project.projectType,
+          projectInstantPower: project.projectInstantPower,
+          updatedAt: project.updatedAt,
+          creationDate: project.creationDate,
+          latestUpdateCreationDate: project.latestUpdateCreationDate,
+          organization: project.organization,
+          activeProjectsCount: project.activeProjectsCount,
+          addresses: project.addresses,
+          qfRounds: project.qfRounds,
+          qfRoundStats,
+        };
+      });
+
+      return {
+        projects: qfProjects,
+        totalCount: qfProjects.length,
+      };
+    } catch (error) {
+      logger.error('projectResolver.qfProjects() error', error);
+      SentryLogger.captureException(error);
+      throw error;
+    }
   }
 }

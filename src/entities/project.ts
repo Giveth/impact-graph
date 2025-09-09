@@ -43,6 +43,7 @@ import { Category } from './category';
 import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
+import { ProjectQfRound } from './projectQfRound';
 import {
   findActiveQfRound,
   getProjectDonationsSqrtRootSum,
@@ -236,6 +237,10 @@ export class Project extends BaseEntity {
   })
   @JoinTable()
   qfRounds: QfRound[];
+
+  @Field(_type => [ProjectQfRound], { nullable: true })
+  @OneToMany(_type => ProjectQfRound, projectQfRound => projectQfRound.project)
+  projectQfRoundRelations: ProjectQfRound[];
 
   @Field(_type => Float, { nullable: true })
   @Column('float', { nullable: true })

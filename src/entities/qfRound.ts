@@ -18,6 +18,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Project } from './project';
+import { ProjectQfRound } from './projectQfRound';
 import { Donation } from './donation';
 
 export enum QfStrategyEnum {
@@ -142,6 +143,10 @@ export class QfRound extends BaseEntity {
 
   @ManyToMany(_type => Project, project => project.qfRounds)
   projects: Project[];
+
+  @Field(_type => [ProjectQfRound], { nullable: true })
+  @OneToMany(_type => ProjectQfRound, projectQfRound => projectQfRound.qfRound)
+  projectQfRoundRelations: ProjectQfRound[];
 
   @OneToMany(_type => Donation, donation => donation.qfRound)
   donations: Donation[];

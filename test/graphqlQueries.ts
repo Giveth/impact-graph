@@ -1822,6 +1822,62 @@ export const getProjectsAcceptTokensQuery = `
   }
 `;
 
+export const qfProjectsQuery = `
+  query($qfRoundId: Int!) {
+    qfProjects(qfRoundId: $qfRoundId) {
+      projects {
+        projectId
+        title
+        descriptionSummary
+        description
+        image
+        totalRaisedUsd
+        verified
+        isGivbacksEligible
+        slug
+        admin {
+          id
+          name
+          walletAddress
+        }
+        status {
+          id
+          name
+        }
+        reviewStatus
+        projectType
+        projectInstantPower {
+          totalPower
+          powerRank
+        }
+        updatedAt
+        creationDate
+        latestUpdateCreationDate
+        organization {
+          id
+          name
+        }
+        activeProjectsCount
+        addresses {
+          address
+          networkId
+        }
+        qfRounds {
+          id
+          slug
+          isActive
+        }
+        qfRoundStats {
+          roundId
+          totalRaisedInRound
+          totalDonorsInRound
+        }
+      }
+      totalCount
+    }
+  }
+`;
+
 export const getCauseAcceptTokensQuery = `
   query(
       $causeId: Float!,
