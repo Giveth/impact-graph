@@ -523,20 +523,40 @@ export const qfRoundTab = {
             await handleBannerBgImage(request.payload);
             await validateQfRound(request.payload);
 
-            // Update the record
-            const qfRound = await findQfRoundById(Number(request.payload.id));
-            if (qfRound) {
-              // Create a copy of payload without slug to avoid duplicate slug issues
-              const { slug, ...updatePayload } = request.payload;
+            // Update the record directly
+            const qfRoundId = Number(request.payload.id);
+            const { slug, ...updatePayload } = request.payload;
 
-              // Only update slug if it's different from the existing one
-              if (slug && slug !== qfRound.slug) {
-                updatePayload.slug = slug;
+            // Process array fields properly (AdminJS sends them as indexed properties)
+            const processedPayload: any = {};
+
+            Object.keys(updatePayload).forEach(key => {
+              if (key.startsWith('eligibleNetworks.')) {
+                // Handle eligibleNetworks array
+                if (!processedPayload.eligibleNetworks) {
+                  processedPayload.eligibleNetworks = [];
+                }
+                const index = parseInt(key.split('.')[1]);
+                processedPayload.eligibleNetworks[index] = updatePayload[key];
+              } else if (key.startsWith('sponsorsImgs.')) {
+                // Handle sponsorsImgs array
+                if (!processedPayload.sponsorsImgs) {
+                  processedPayload.sponsorsImgs = [];
+                }
+                const index = parseInt(key.split('.')[1]);
+                processedPayload.sponsorsImgs[index] = updatePayload[key];
+              } else {
+                processedPayload[key] = updatePayload[key];
               }
+            });
 
-              Object.assign(qfRound, updatePayload);
-              await qfRound.save();
+            // Only include slug if it's actually different
+            const qfRound = await findQfRoundById(qfRoundId);
+            if (qfRound && slug && slug !== qfRound.slug) {
+              processedPayload.slug = slug;
             }
+
+            await QfRound.update(qfRoundId, processedPayload);
           } catch (error) {
             logger.error('Error updating QF Round:', error);
 
