@@ -6037,7 +6037,7 @@ function qfProjectsTestCases() {
       title: 'QF Project 1',
       slug: `qf-project-1-${timestamp}`,
       adminUserId: user1.id,
-      statusId: 5, // ProjStatus.active
+      statusId: ProjStatus.active,
       reviewStatus: ReviewStatus.Listed,
       verified: true,
       isGivbackEligible: true,
@@ -6050,7 +6050,7 @@ function qfProjectsTestCases() {
       title: 'QF Project 2',
       slug: `qf-project-2-${timestamp}`,
       adminUserId: user2.id,
-      statusId: 5, // ProjStatus.active
+      statusId: ProjStatus.active,
       reviewStatus: ReviewStatus.Listed,
       verified: false,
       isGivbackEligible: true,

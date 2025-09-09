@@ -56,7 +56,7 @@ import { QfRound } from '../entities/qfRound';
 import { Reaction } from '../entities/reaction';
 import { SocialProfile } from '../entities/socialProfile';
 import { ProjectSocialMediaType } from '../types/projectSocialMediaType';
-import { ReviewStatus } from '../entities/project';
+import { ReviewStatus, ProjStatus } from '../entities/project';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -742,7 +742,7 @@ function findQfRoundProjectsTestCases() {
       title: 'Active Project',
       slug: `active-project-${timestamp}`,
       adminUserId: user.id,
-      statusId: 5, // ProjStatus.active
+      statusId: ProjStatus.active,
       reviewStatus: ReviewStatus.Listed,
     });
     activeProject.qfRounds = [qfRound];
@@ -754,7 +754,7 @@ function findQfRoundProjectsTestCases() {
       title: 'Cancelled Project',
       slug: `cancelled-project-${timestamp}`,
       adminUserId: user.id,
-      statusId: 7, // ProjStatus.cancelled
+      statusId: ProjStatus.cancelled,
       reviewStatus: ReviewStatus.Listed,
     });
     cancelledProject.qfRounds = [qfRound];
@@ -766,7 +766,7 @@ function findQfRoundProjectsTestCases() {
       title: 'Not Reviewed Project',
       slug: `not-reviewed-project-${timestamp}`,
       adminUserId: user.id,
-      statusId: 5, // ProjStatus.active
+      statusId: ProjStatus.active,
       reviewStatus: ReviewStatus.NotReviewed,
     });
     notReviewedProject.qfRounds = [qfRound];

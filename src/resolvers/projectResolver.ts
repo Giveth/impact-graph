@@ -2536,48 +2536,48 @@ export class ProjectResolver {
     try {
       const projects = await findQfRoundProjects(qfRoundId);
 
+      // Compute round-wide stats once (applies to all projects)
+      const anyRound = projects[0]?.qfRounds?.find(qr => qr.id === qfRoundId);
+      const commonStats = anyRound
+        ? await getQfRoundStats(anyRound)
+        : undefined;
+
       // Transform projects to QfProject format
-      const qfProjects: QfProject[] = await Promise.all(
-        projects.map(async project => {
-          // Get QF round stats for this specific round
-          const qfRound = project.qfRounds?.find(qr => qr.id === qfRoundId);
-          let qfRoundStats: QfRoundStats | undefined;
-
-          if (qfRound) {
-            const stats = await getQfRoundStats(qfRound);
-            qfRoundStats = {
+      const qfProjects: QfProject[] = projects.map(project => {
+        const qfRoundStats = commonStats
+          ? {
               roundId: qfRoundId,
-              totalRaisedInRound: stats.totalDonationUsd,
-              totalDonorsInRound: stats.uniqueDonors,
-            };
-          }
+              totalRaisedInRound: commonStats.totalDonationUsd,
+              totalDonorsInRound: commonStats.uniqueDonors,
+              // donationsCount: commonStats.donationsCount, // if added to type
+            }
+          : undefined;
 
-          return {
-            projectId: project.id,
-            title: project.title,
-            descriptionSummary: project.descriptionSummary,
-            description: project.description,
-            image: project.image,
-            totalRaisedUsd: project.totalDonations,
-            verified: project.verified,
-            isGivbacksEligible: project.isGivbackEligible,
-            slug: project.slug,
-            admin: project.adminUser,
-            status: project.status,
-            reviewStatus: project.reviewStatus,
-            projectType: project.projectType,
-            projectInstantPower: project.projectInstantPower,
-            updatedAt: project.updatedAt,
-            creationDate: project.creationDate,
-            latestUpdateCreationDate: project.latestUpdateCreationDate,
-            organization: project.organization,
-            activeProjectsCount: project.activeProjectsCount,
-            addresses: project.addresses,
-            qfRounds: project.qfRounds,
-            qfRoundStats,
-          };
-        }),
-      );
+        return {
+          projectId: project.id,
+          title: project.title,
+          descriptionSummary: project.descriptionSummary,
+          description: project.description,
+          image: project.image,
+          totalRaisedUsd: project.totalDonations,
+          verified: project.verified,
+          isGivbacksEligible: project.isGivbackEligible,
+          slug: project.slug,
+          admin: project.adminUser,
+          status: project.status,
+          reviewStatus: project.reviewStatus,
+          projectType: project.projectType,
+          projectInstantPower: project.projectInstantPower,
+          updatedAt: project.updatedAt,
+          creationDate: project.creationDate,
+          latestUpdateCreationDate: project.latestUpdateCreationDate,
+          organization: project.organization,
+          activeProjectsCount: project.activeProjectsCount,
+          addresses: project.addresses,
+          qfRounds: project.qfRounds,
+          qfRoundStats,
+        };
+      });
 
       return {
         projects: qfProjects,

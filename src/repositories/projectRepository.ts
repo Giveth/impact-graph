@@ -666,7 +666,6 @@ export const findQfRoundProjects = async (
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.organization', 'organization')
     .leftJoinAndSelect('project.addresses', 'addresses')
-    .leftJoinAndSelect('project.qfRounds', 'qfRounds')
     .leftJoin('project.adminUser', 'user')
     .addSelect(publicSelectionFields)
     .leftJoin('project.projectPower', 'projectPower')
@@ -678,10 +677,11 @@ export const findQfRoundProjects = async (
     ])
     .innerJoinAndSelect(
       'project.qfRounds',
-      'qf_rounds',
-      'qf_rounds.id = :qfRoundId',
+      'qfRounds',
+      'qfRounds.id = :qfRoundId',
       { qfRoundId },
     )
+    .distinct(true)
     .where('project.statusId = :statusId', { statusId: ProjStatus.active })
     .andWhere('project.reviewStatus = :reviewStatus', {
       reviewStatus: ReviewStatus.Listed,
