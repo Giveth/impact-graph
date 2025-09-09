@@ -1,4 +1,5 @@
 import { QfRound } from '../entities/qfRound';
+import { getProjectQfRoundStats } from '../repositories/donationRepository';
 
 export interface QfRoundSmartSelectResult {
   qfRoundId: number;
@@ -6,6 +7,9 @@ export interface QfRoundSmartSelectResult {
   matchingPoolAmount: number;
   eligibleNetworks: number[];
   allocatedFundUSD: number;
+  projectUsdAmountRaised: number;
+  uniqueDonors: number;
+  donationsCount: number;
 }
 
 export class QfRoundSmartSelectError extends Error {
@@ -55,12 +59,22 @@ export async function selectQfRoundForProject(
 
   if (eligibleQfRounds.length === 1) {
     const qfRound = eligibleQfRounds[0];
+
+    // Get project-specific stats for this qf round
+    const projectStats = await getProjectQfRoundStats({
+      projectId,
+      qfRound,
+    });
+
     return {
       qfRoundId: qfRound.id,
       qfRoundName: qfRound.name || qfRound.title || 'Unnamed QF Round',
       matchingPoolAmount: qfRound.allocatedFund,
       eligibleNetworks: qfRound.eligibleNetworks,
       allocatedFundUSD: qfRound.allocatedFundUSD,
+      projectUsdAmountRaised: projectStats.sumValueUsd,
+      uniqueDonors: projectStats.uniqueDonorsCount,
+      donationsCount: projectStats.donationsCount,
     };
   }
 
@@ -99,6 +113,13 @@ export async function selectQfRoundForProject(
   });
 
   const selectedQfRound = sortedQfRounds[0];
+
+  // Get project-specific stats for the selected qf round
+  const projectStats = await getProjectQfRoundStats({
+    projectId,
+    qfRound: selectedQfRound,
+  });
+
   return {
     qfRoundId: selectedQfRound.id,
     qfRoundName:
@@ -106,5 +127,8 @@ export async function selectQfRoundForProject(
     matchingPoolAmount: selectedQfRound.allocatedFund,
     eligibleNetworks: selectedQfRound.eligibleNetworks,
     allocatedFundUSD: selectedQfRound.allocatedFundUSD,
+    projectUsdAmountRaised: projectStats.sumValueUsd,
+    uniqueDonors: projectStats.uniqueDonorsCount,
+    donationsCount: projectStats.donationsCount,
   };
 }

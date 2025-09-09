@@ -13,7 +13,9 @@ import {
 } from '../../test/testUtils';
 import { Project } from '../entities/project';
 import { QfRound } from '../entities/qfRound';
+import { User } from '../entities/user';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
+import { removeProjectAndRelatedEntities } from '../repositories/projectRepository';
 import {
   fetchQFArchivedRounds,
   qfRoundStatsQuery,
@@ -281,10 +283,16 @@ function qfRoundSmartSelectTestCases() {
   let qfRound1: QfRound;
   let qfRound2: QfRound;
   let qfRound3: QfRound;
+  let user: User;
+  let user2: User;
 
   beforeEach(async () => {
     // Deactivate all existing QF rounds
     await QfRound.update({}, { isActive: false });
+
+    // Create test users
+    user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     // Create a test project
     project = await saveProjectDirectlyToDb({
@@ -295,7 +303,12 @@ function qfRoundSmartSelectTestCases() {
   });
 
   afterEach(async () => {
-    // Cleanup: deactivate all QF rounds
+    // Cleanup: Remove project and all related entities
+    if (project) {
+      await removeProjectAndRelatedEntities(project.id);
+    }
+
+    // Cleanup: Deactivate all QF rounds created by tests
     if (qfRound1) {
       qfRound1.isActive = false;
       await qfRound1.save();
@@ -307,6 +320,14 @@ function qfRoundSmartSelectTestCases() {
     if (qfRound3) {
       qfRound3.isActive = false;
       await qfRound3.save();
+    }
+
+    // Cleanup: Remove users
+    if (user) {
+      await User.remove(user);
+    }
+    if (user2) {
+      await User.remove(user2);
     }
   });
 
@@ -353,6 +374,10 @@ function qfRoundSmartSelectTestCases() {
       result.data.data.qfRoundSmartSelect.eligibleNetworks,
       [1, 137],
     );
+    // Test new qfRoundStats fields
+    assert.isNumber(result.data.data.qfRoundSmartSelect.projectUsdAmountRaised);
+    assert.isNumber(result.data.data.qfRoundSmartSelect.uniqueDonors);
+    assert.isNumber(result.data.data.qfRoundSmartSelect.donationsCount);
   });
 
   it('should throw error when no active QF rounds exist for the project', async () => {
@@ -828,5 +853,81 @@ function qfRoundSmartSelectTestCases() {
       result.data.data.qfRoundSmartSelect.qfRoundName,
       'Higher Fund Earlier End Lower Priority',
     );
+  });
+
+  it('should return correct qfRoundStats data when project has donations', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Test QF Round with Donations',
+      allocatedFund: 100000,
+      allocatedFundUSD: 50000,
+      minimumPassportScore: 8,
+      slug: `${new Date().getTime()}-donations`,
+      beginDate: new Date(),
+      endDate: moment().add(30, 'days').toDate(),
+      eligibleNetworks: [1],
+      priority: 1,
+    });
+    await qfRound.save();
+
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    // Create some test donations for this project and QF round
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: 'verified',
+        valueUsd: 100,
+        qfRoundId: qfRound.id,
+      }),
+      user.id,
+      project.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: 'verified',
+        valueUsd: 200,
+        qfRoundId: qfRound.id,
+      }),
+      user.id,
+      project.id,
+    );
+
+    // Create a donation from a different user
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: 'verified',
+        valueUsd: 50,
+        qfRoundId: qfRound.id,
+      }),
+      user2.id,
+      project.id,
+    );
+
+    const result = await axios.post(graphqlUrl, {
+      query: qfRoundSmartSelectQuery,
+      variables: {
+        networkId: 1,
+        projectId: project.id,
+      },
+    });
+
+    assert.isOk(result);
+    assert.isOk(result.data.data.qfRoundSmartSelect);
+    assert.equal(result.data.data.qfRoundSmartSelect.qfRoundId, qfRound.id);
+    assert.equal(
+      result.data.data.qfRoundSmartSelect.qfRoundName,
+      'Test QF Round with Donations',
+    );
+
+    // Test qfRoundStats fields
+    assert.equal(
+      result.data.data.qfRoundSmartSelect.projectUsdAmountRaised,
+      350,
+    ); // 100 + 200 + 50
+    assert.equal(result.data.data.qfRoundSmartSelect.uniqueDonors, 2); // 2 unique users
+    assert.equal(result.data.data.qfRoundSmartSelect.donationsCount, 3); // 3 donations
   });
 }

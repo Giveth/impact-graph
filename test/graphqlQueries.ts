@@ -3124,6 +3124,9 @@ export const qfRoundSmartSelectQuery = `
       matchingPoolAmount
       eligibleNetworks
       allocatedFundUSD
+      projectUsdAmountRaised
+      uniqueDonors
+      donationsCount
     }
   }
 `;

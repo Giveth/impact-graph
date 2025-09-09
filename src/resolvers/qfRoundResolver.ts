@@ -81,6 +81,15 @@ export class QfRoundSmartSelectResponse {
 
   @Field(_type => Number, { nullable: true })
   allocatedFundUSD: number;
+
+  @Field(_type => Number, { nullable: true })
+  projectUsdAmountRaised: number;
+
+  @Field(_type => Number, { nullable: true })
+  uniqueDonors: number;
+
+  @Field(_type => Number, { nullable: true })
+  donationsCount: number;
 }
 
 @InputType()
