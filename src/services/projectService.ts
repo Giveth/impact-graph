@@ -1,9 +1,10 @@
 import { Project } from '../entities/project';
+import { ProjectQfRound } from '../entities/projectQfRound';
 import {
   countUniqueDonorsAndSumDonationValueUsd,
   getProjectQfRoundStats,
 } from '../repositories/donationRepository';
-import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import { findQfRoundById } from '../repositories/qfRoundRepository';
 
 export const getAppropriateSlug = async (
   slugBase: string,
@@ -27,8 +28,15 @@ export const getAppropriateSlug = async (
   return slug;
 };
 
-export const updateProjectStatistics = async (projectId: number) => {
-  const activeQfRound = await findActiveQfRound();
+export const updateProjectStatistics = async (
+  projectId: number,
+  qfRoundId?: number,
+) => {
+  let activeQfRound;
+  if (qfRoundId) {
+    activeQfRound = await findQfRoundById(qfRoundId);
+  }
+
   let sumDonationValueUsdForActiveQfRound = 0,
     countUniqueDonorsForActiveQfRound = 0;
   if (activeQfRound) {
@@ -43,13 +51,38 @@ export const updateProjectStatistics = async (projectId: number) => {
   const { totalDonations, uniqueDonors } =
     await countUniqueDonorsAndSumDonationValueUsd(projectId);
 
+  // Update Project entity with overall stats
   await Project.update(projectId, {
     totalDonations,
     countUniqueDonors: uniqueDonors,
+    totalRaised: totalDonations,
     sumDonationValueUsdForActiveQfRound,
     countUniqueDonorsForActiveQfRound,
-    totalRaised: totalDonations,
   });
+
+  // Update or create ProjectQfRound entity with QF round specific stats
+  if (activeQfRound) {
+    const existingProjectQfRound = await ProjectQfRound.findOne({
+      where: {
+        projectId,
+        qfRoundId: activeQfRound.id,
+      },
+    });
+
+    if (existingProjectQfRound) {
+      // Update existing record
+      await ProjectQfRound.update(
+        {
+          projectId,
+          qfRoundId: activeQfRound.id,
+        },
+        {
+          sumDonationValueUsd: sumDonationValueUsdForActiveQfRound,
+          countUniqueDonors: countUniqueDonorsForActiveQfRound,
+        },
+      );
+    }
+  }
 };
 
 // Current Formula: will be changed possibly in the future

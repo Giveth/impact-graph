@@ -776,12 +776,6 @@ export const projectsTab = {
       updatedAt: {
         isVisible: { list: false, filter: false, show: true, edit: false },
       },
-      sumDonationValueUsdForActiveQfRound: {
-        isVisible: { list: false, filter: false, show: true, edit: false },
-      },
-      countUniqueDonorsForActiveQfRound: {
-        isVisible: { list: false, filter: false, show: true, edit: false },
-      },
       countUniqueDonors: {
         isVisible: { list: false, filter: false, show: true, edit: false },
       },
