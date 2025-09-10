@@ -89,6 +89,7 @@ import {
   filterProjectsQuery,
   findProjectById,
   findProjectIdBySlug,
+  findQfRoundProjects,
   removeProjectAndRelatedEntities,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
@@ -121,7 +122,6 @@ import {
   getQfRoundStats,
 } from '../repositories/qfRoundRepository';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
-import { findQfRoundProjects } from '../repositories/projectRepository';
 import { getAppropriateNetworkId } from '../services/chains';
 import {
   addBulkProjectSocialMedia,
@@ -379,6 +379,34 @@ class GetProjectsArgs {
   projectType?: string;
 }
 
+@Service()
+@ArgsType()
+class QfProjectsArgs {
+  @Field(_type => Int, { defaultValue: 0, nullable: true })
+  @Min(0)
+  skip: number;
+
+  @Field(_type => Int, { defaultValue: 10, nullable: true })
+  @Min(0)
+  @Max(50)
+  limit: number;
+
+  @Field(_type => String, { nullable: true })
+  searchTerm: string;
+
+  @Field(_type => [FilterField], {
+    nullable: true,
+    defaultValue: [],
+  })
+  filters: FilterField[];
+
+  @Field(_type => SortingField, {
+    nullable: true,
+    defaultValue: SortingField.QualityScore,
+  })
+  sortingBy: SortingField;
+}
+
 @ObjectType()
 class ImageResponse {
   @Field(_type => String)
@@ -608,6 +636,17 @@ export class ProjectResolver {
         case FilterField.AcceptGiv:
           // only giving Blocks do not accept Giv
           return query.andWhere(`project.${filter} IS NULL`);
+        case FilterField.Verified:
+          return query.andWhere('project.verified = :verified', {
+            verified: true,
+          });
+        case FilterField.IsGivbackEligible:
+          return query.andWhere(
+            'project.isGivbackEligible = :isGivbackEligible',
+            {
+              isGivbackEligible: true,
+            },
+          );
         case FilterField.Endaoment:
           return query.andWhere('organization.label = :label', {
             label: ORGANIZATION_LABELS.ENDAOMENT,
@@ -2532,9 +2571,19 @@ export class ProjectResolver {
   @Query(_returns => QfProjectsResponse)
   async qfProjects(
     @Arg('qfRoundId', _type => Int) qfRoundId: number,
+    @Args() args: QfProjectsArgs,
+    @Ctx() _ctx: ApolloContext,
   ): Promise<QfProjectsResponse> {
+    const { limit, skip, searchTerm, filters, sortingBy } = args;
     try {
-      const projects = await findQfRoundProjects(qfRoundId);
+      // Use the specialized QF round projects function for proper QF-specific sorting
+      const [projects, totalCount] = await findQfRoundProjects(qfRoundId, {
+        limit,
+        skip,
+        searchTerm,
+        filters,
+        sortingBy,
+      });
 
       // Compute round-wide stats once (applies to all projects)
       const anyRound = projects[0]?.qfRounds?.find(qr => qr.id === qfRoundId);
@@ -2581,7 +2630,7 @@ export class ProjectResolver {
 
       return {
         projects: qfProjects,
-        totalCount: qfProjects.length,
+        totalCount,
       };
     } catch (error) {
       logger.error('projectResolver.qfProjects() error', error);
