@@ -382,11 +382,11 @@ class GetProjectsArgs {
 @Service()
 @ArgsType()
 class QfProjectsArgs {
-  @Field(_type => Int, { defaultValue: 0, nullable: true })
+  @Field(_type => Int, { defaultValue: 0 })
   @Min(0)
   skip: number;
 
-  @Field(_type => Int, { defaultValue: 10, nullable: true })
+  @Field(_type => Int, { defaultValue: 10 })
   @Min(0)
   @Max(50)
   limit: number;
