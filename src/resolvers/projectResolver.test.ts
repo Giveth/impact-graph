@@ -197,6 +197,11 @@ describe(
 
 describe('qfProjects test cases --->', qfProjectsTestCases);
 
+describe(
+  'Project Resolver QfRounds Priority Sorting test cases --->',
+  projectResolverQfRoundsPrioritySortingTestCases,
+);
+
 function projectsPerDateTestCases() {
   it('should projects created in a time range', async () => {
     await saveProjectDirectlyToDb({
@@ -6469,5 +6474,347 @@ function qfProjectsTestCases() {
     await removeProjectAndRelatedEntities(project3.id);
     await QfRound.delete({ id: qfRound.id });
     await User.delete({ id: In([user1.id, user2.id, user3.id]) });
+  });
+}
+
+function projectResolverQfRoundsPrioritySortingTestCases() {
+  let project: Project;
+  let qfRound1: QfRound;
+  let qfRound2: QfRound;
+  let qfRound3: QfRound;
+
+  beforeEach(async () => {
+    // Clean up existing data
+    await QfRound.query('DELETE FROM project_qf_rounds_qf_round');
+    await QfRound.delete({});
+
+    // Create test project
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    project = await saveProjectDirectlyToDb(createProjectData(), user);
+
+    // Create test qfRounds with different priorities and end dates
+    const now = new Date();
+    qfRound1 = QfRound.create({
+      isActive: false,
+      name: 'Project Round 1',
+      slug: generateRandomString(10),
+      allocatedFund: 1000,
+      minimumPassportScore: 8,
+      beginDate: now,
+      endDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+      priority: 3,
+    });
+    await qfRound1.save();
+
+    qfRound2 = QfRound.create({
+      isActive: false,
+      name: 'Project Round 2',
+      slug: generateRandomString(10),
+      allocatedFund: 2000,
+      minimumPassportScore: 8,
+      beginDate: now,
+      endDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
+      priority: 5,
+    });
+    await qfRound2.save();
+
+    qfRound3 = QfRound.create({
+      isActive: false,
+      name: 'Project Round 3',
+      slug: generateRandomString(10),
+      allocatedFund: 3000,
+      minimumPassportScore: 8,
+      beginDate: now,
+      endDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      priority: 5,
+    });
+    await qfRound3.save();
+
+    // Associate qfRounds with project
+    project.qfRounds = [qfRound1, qfRound2, qfRound3];
+    await project.save();
+  });
+
+  it('should return projectById with qfRounds sorted by priority', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        qfRoundsSortBy: 'priority',
+      },
+    });
+
+    assert.isOk(result.data.data.projectById);
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isArray(result.data.data.projectById.qfRounds);
+    assert.equal(result.data.data.projectById.qfRounds.length, 3);
+
+    // Should be sorted by priority DESC, then by endDate ASC
+    assert.equal(
+      result.data.data.projectById.qfRounds[0].id,
+      qfRound2.id.toString(),
+    ); // priority 5, endDate closest
+    assert.equal(
+      result.data.data.projectById.qfRounds[1].id,
+      qfRound3.id.toString(),
+    ); // priority 5, endDate further
+    assert.equal(
+      result.data.data.projectById.qfRounds[2].id,
+      qfRound1.id.toString(),
+    ); // priority 3
+  });
+
+  it('should return projectById with qfRounds in default order when no sorting specified', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+      },
+    });
+
+    assert.isOk(result.data.data.projectById);
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isArray(result.data.data.projectById.qfRounds);
+    assert.equal(result.data.data.projectById.qfRounds.length, 3);
+
+    // Should be in default order (no specific sorting applied)
+    const qfRoundIds = result.data.data.projectById.qfRounds.map(r => r.id);
+    assert.include(qfRoundIds, qfRound1.id.toString());
+    assert.include(qfRoundIds, qfRound2.id.toString());
+    assert.include(qfRoundIds, qfRound3.id.toString());
+  });
+
+  it('should return projectBySlug with qfRounds sorted by priority', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectBySlugQuery,
+      variables: {
+        slug: project.slug,
+        qfRoundsSortBy: 'priority',
+      },
+    });
+
+    assert.isOk(result.data.data.projectBySlug);
+    assert.equal(result.data.data.projectBySlug.id, project.id);
+    assert.isArray(result.data.data.projectBySlug.qfRounds);
+    assert.equal(result.data.data.projectBySlug.qfRounds.length, 3);
+
+    // Should be sorted by priority DESC, then by endDate ASC
+    assert.equal(
+      result.data.data.projectBySlug.qfRounds[0].id,
+      qfRound2.id.toString(),
+    ); // priority 5, endDate closest
+    assert.equal(
+      result.data.data.projectBySlug.qfRounds[1].id,
+      qfRound3.id.toString(),
+    ); // priority 5, endDate further
+    assert.equal(
+      result.data.data.projectBySlug.qfRounds[2].id,
+      qfRound1.id.toString(),
+    ); // priority 3
+  });
+
+  it('should return projectBySlug with qfRounds in default order when no sorting specified', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectBySlugQuery,
+      variables: {
+        slug: project.slug,
+      },
+    });
+
+    assert.isOk(result.data.data.projectBySlug);
+    assert.equal(result.data.data.projectBySlug.id, project.id);
+    assert.isArray(result.data.data.projectBySlug.qfRounds);
+    assert.equal(result.data.data.projectBySlug.qfRounds.length, 3);
+
+    // Should be in default order (no specific sorting applied)
+    const qfRoundIds = result.data.data.projectBySlug.qfRounds.map(r => r.id);
+    assert.include(qfRoundIds, qfRound1.id.toString());
+    assert.include(qfRoundIds, qfRound2.id.toString());
+    assert.include(qfRoundIds, qfRound3.id.toString());
+  });
+
+  it('should handle project with no qfRounds', async () => {
+    // Create a project without qfRounds
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const projectWithoutQfRounds = await saveProjectDirectlyToDb(
+      createProjectData(),
+      user,
+    );
+
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: projectWithoutQfRounds.id,
+        qfRoundsSortBy: 'priority',
+      },
+    });
+
+    assert.isOk(result.data.data.projectById);
+    assert.equal(result.data.data.projectById.id, projectWithoutQfRounds.id);
+    assert.isArray(result.data.data.projectById.qfRounds);
+    assert.equal(result.data.data.projectById.qfRounds.length, 0);
+  });
+
+  it('should handle invalid qfRoundsSortBy parameter gracefully', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        qfRoundsSortBy: 'invalid_sort',
+      },
+    });
+
+    assert.isOk(result.data.data.projectById);
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isArray(result.data.data.projectById.qfRounds);
+    assert.equal(result.data.data.projectById.qfRounds.length, 3);
+
+    // Should fall back to default behavior when invalid sort is provided
+    const qfRoundIds = result.data.data.projectById.qfRounds.map(r => r.id);
+    assert.include(qfRoundIds, qfRound1.id.toString());
+    assert.include(qfRoundIds, qfRound2.id.toString());
+    assert.include(qfRoundIds, qfRound3.id.toString());
+  });
+
+  it('should handle projectById with qfRounds sorted by priority when qfRoundsSortBy is priority', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        qfRoundsSortBy: 'priority',
+      },
+    });
+
+    assert.isOk(result.data.data.projectById);
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isArray(result.data.data.projectById.qfRounds);
+    assert.equal(result.data.data.projectById.qfRounds.length, 3);
+
+    // Should be sorted by priority DESC, then by endDate ASC
+    assert.equal(
+      result.data.data.projectById.qfRounds[0].id,
+      qfRound2.id.toString(),
+    ); // priority 5, endDate closest
+    assert.equal(
+      result.data.data.projectById.qfRounds[1].id,
+      qfRound3.id.toString(),
+    ); // priority 5, endDate further
+    assert.equal(
+      result.data.data.projectById.qfRounds[2].id,
+      qfRound1.id.toString(),
+    ); // priority 3
+  });
+
+  it('should handle projectById with qfRounds in default order when qfRoundsSortBy is not priority', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        qfRoundsSortBy: 'roundId',
+      },
+    });
+
+    assert.isOk(result.data.data.projectById);
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isArray(result.data.data.projectById.qfRounds);
+    assert.equal(result.data.data.projectById.qfRounds.length, 3);
+
+    // Should be in default order (no specific sorting applied)
+    const qfRoundIds = result.data.data.projectById.qfRounds.map(r => r.id);
+    assert.include(qfRoundIds, qfRound1.id.toString());
+    assert.include(qfRoundIds, qfRound2.id.toString());
+    assert.include(qfRoundIds, qfRound3.id.toString());
+  });
+
+  it('should handle projectBySlug with qfRounds sorted by priority when qfRoundsSortBy is priority', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectBySlugQuery,
+      variables: {
+        slug: project.slug,
+        qfRoundsSortBy: 'priority',
+      },
+    });
+
+    assert.isOk(result.data.data.projectBySlug);
+    assert.equal(result.data.data.projectBySlug.id, project.id);
+    assert.isArray(result.data.data.projectBySlug.qfRounds);
+    assert.equal(result.data.data.projectBySlug.qfRounds.length, 3);
+
+    // Should be sorted by priority DESC, then by endDate ASC
+    assert.equal(
+      result.data.data.projectBySlug.qfRounds[0].id,
+      qfRound2.id.toString(),
+    ); // priority 5, endDate closest
+    assert.equal(
+      result.data.data.projectBySlug.qfRounds[1].id,
+      qfRound3.id.toString(),
+    ); // priority 5, endDate further
+    assert.equal(
+      result.data.data.projectBySlug.qfRounds[2].id,
+      qfRound1.id.toString(),
+    ); // priority 3
+  });
+
+  it('should handle projectBySlug with qfRounds in default order when qfRoundsSortBy is not priority', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectBySlugQuery,
+      variables: {
+        slug: project.slug,
+        qfRoundsSortBy: 'roundId',
+      },
+    });
+
+    assert.isOk(result.data.data.projectBySlug);
+    assert.equal(result.data.data.projectBySlug.id, project.id);
+    assert.isArray(result.data.data.projectBySlug.qfRounds);
+    assert.equal(result.data.data.projectBySlug.qfRounds.length, 3);
+
+    // Should be in default order (no specific sorting applied)
+    const qfRoundIds = result.data.data.projectBySlug.qfRounds.map(r => r.id);
+    assert.include(qfRoundIds, qfRound1.id.toString());
+    assert.include(qfRoundIds, qfRound2.id.toString());
+    assert.include(qfRoundIds, qfRound3.id.toString());
+  });
+
+  it('should handle projectById with qfRounds when qfRoundsSortBy is null', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        qfRoundsSortBy: null,
+      },
+    });
+
+    assert.isOk(result.data.data.projectById);
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isArray(result.data.data.projectById.qfRounds);
+    assert.equal(result.data.data.projectById.qfRounds.length, 3);
+
+    // Should be in default order (no specific sorting applied)
+    const qfRoundIds = result.data.data.projectById.qfRounds.map(r => r.id);
+    assert.include(qfRoundIds, qfRound1.id.toString());
+    assert.include(qfRoundIds, qfRound2.id.toString());
+    assert.include(qfRoundIds, qfRound3.id.toString());
+  });
+
+  it('should handle projectBySlug with qfRounds when qfRoundsSortBy is null', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectBySlugQuery,
+      variables: {
+        slug: project.slug,
+        qfRoundsSortBy: null,
+      },
+    });
+
+    assert.isOk(result.data.data.projectBySlug);
+    assert.equal(result.data.data.projectBySlug.id, project.id);
+    assert.isArray(result.data.data.projectBySlug.qfRounds);
+    assert.equal(result.data.data.projectBySlug.qfRounds.length, 3);
+
+    // Should be in default order (no specific sorting applied)
+    const qfRoundIds = result.data.data.projectBySlug.qfRounds.map(r => r.id);
+    assert.include(qfRoundIds, qfRound1.id.toString());
+    assert.include(qfRoundIds, qfRound2.id.toString());
+    assert.include(qfRoundIds, qfRound3.id.toString());
   });
 }
