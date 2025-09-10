@@ -661,8 +661,23 @@ export const removeProjectAndRelatedEntities = async (
 
 export const findQfRoundProjects = async (
   qfRoundId: number,
-): Promise<Project[]> => {
-  return Project.createQueryBuilder('project')
+  params: {
+    limit?: number;
+    skip?: number;
+    searchTerm?: string;
+    filters?: FilterField[];
+    sortingBy?: SortingField;
+  } = {},
+): Promise<[Project[], number]> => {
+  const {
+    limit = 10,
+    skip = 0,
+    searchTerm,
+    filters = [],
+    sortingBy = SortingField.QualityScore,
+  } = params;
+
+  let query = Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.organization', 'organization')
     .leftJoinAndSelect('project.addresses', 'addresses')
@@ -681,11 +696,58 @@ export const findQfRoundProjects = async (
       'qfRounds.id = :qfRoundId',
       { qfRoundId },
     )
+    .leftJoin(
+      'project.projectQfRoundRelations',
+      'projectQfRound',
+      'projectQfRound.qfRoundId = :qfRoundId',
+      { qfRoundId },
+    )
+    .addSelect([
+      'projectQfRound.sumDonationValueUsd',
+      'projectQfRound.countUniqueDonors',
+    ])
     .distinct(true)
     .where('project.statusId = :statusId', { statusId: ProjStatus.active })
     .andWhere('project.reviewStatus = :reviewStatus', {
       reviewStatus: ReviewStatus.Listed,
-    })
-    .orderBy('project.creationDate', 'DESC')
-    .getMany();
+    });
+
+  // Apply search term
+  if (searchTerm) {
+    query = ProjectResolver.addSearchQuery(query, searchTerm);
+  }
+
+  // Apply filters
+  if (filters && filters.length > 0) {
+    query = ProjectResolver.addFiltersQuery(query, filters);
+  }
+
+  // Apply sorting
+  if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
+    query
+      .orderBy('projectQfRound.sumDonationValueUsd', 'DESC', 'NULLS LAST')
+      .addOrderBy('project.isGivbackEligible', 'DESC')
+      .addOrderBy('project.verified', 'DESC')
+      .addOrderBy('project.creationDate', 'DESC');
+  } else if (sortingBy === SortingField.MostFunded) {
+    query
+      .orderBy('project.totalDonations', 'DESC')
+      .addOrderBy('project.isGivbackEligible', 'DESC')
+      .addOrderBy('project.verified', 'DESC')
+      .addOrderBy('project.creationDate', 'DESC');
+  } else if (sortingBy === SortingField.Newest) {
+    query
+      .orderBy('project.creationDate', 'DESC')
+      .addOrderBy('project.isGivbackEligible', 'DESC')
+      .addOrderBy('project.verified', 'DESC');
+  } else {
+    // Default sorting
+    query
+      .orderBy('projectInstantPower.totalPower', 'DESC', 'NULLS LAST')
+      .addOrderBy('project.isGivbackEligible', 'DESC')
+      .addOrderBy('project.verified', 'DESC')
+      .addOrderBy('project.creationDate', 'DESC');
+  }
+
+  return query.take(limit).skip(skip).getManyAndCount();
 };

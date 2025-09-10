@@ -1823,8 +1823,8 @@ export const getProjectsAcceptTokensQuery = `
 `;
 
 export const qfProjectsQuery = `
-  query($qfRoundId: Int!) {
-    qfProjects(qfRoundId: $qfRoundId) {
+  query($qfRoundId: Int!, $skip: Int, $limit: Int, $searchTerm: String, $filters: [FilterField!], $sortingBy: SortingField) {
+    qfProjects(qfRoundId: $qfRoundId, skip: $skip, limit: $limit, searchTerm: $searchTerm, filters: $filters, sortingBy: $sortingBy) {
       projects {
         projectId
         title
