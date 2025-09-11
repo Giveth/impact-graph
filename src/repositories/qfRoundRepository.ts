@@ -25,13 +25,23 @@ const qfRoundsCacheDuration =
 
 export const findQfRounds = async ({
   slug,
+  sortBy,
 }: {
   slug?: string;
+  sortBy?: string;
 }): Promise<QfRound[]> => {
-  const query = QfRound.createQueryBuilder('qf_round').addOrderBy(
-    'qf_round.id',
-    'DESC',
-  );
+  const query = QfRound.createQueryBuilder('qf_round');
+
+  // Apply sorting based on sortBy parameter
+  if (sortBy === 'priority') {
+    // Priority sorting: highest priority first, then closest endAt date
+    query
+      .addOrderBy('qf_round.priority', 'DESC')
+      .addOrderBy('qf_round.endDate', 'ASC');
+  } else {
+    // Default sorting: by id in descending order
+    query.addOrderBy('qf_round.id', 'DESC');
+  }
   if (slug) {
     query.where('slug = :slug', { slug });
     const res = await query.getOne();
