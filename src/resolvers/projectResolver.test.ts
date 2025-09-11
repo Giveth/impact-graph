@@ -6310,4 +6310,164 @@ function qfProjectsTestCases() {
     await User.delete({ id: In([user1.id, user2.id]) });
     await Donation.delete({ id: In([donation1.id, donation2.id]) });
   });
+
+  it('should support pagination, filtering, and sorting for QF projects', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Test QF Round for Pagination',
+      slug: `test-qf-round-pagination-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    // Create users
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    // Create multiple projects with different characteristics
+    const timestamp = Date.now();
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Verified Project',
+      slug: `verified-project-${timestamp}`,
+      adminUserId: user1.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: true,
+      isGivbackEligible: true,
+      totalDonations: 1000,
+    });
+    project1.qfRounds = [qfRound];
+    await project1.save();
+
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Unverified Project',
+      slug: `unverified-project-${timestamp}`,
+      adminUserId: user2.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: false,
+      isGivbackEligible: false,
+      totalDonations: 500,
+    });
+    project2.qfRounds = [qfRound];
+    await project2.save();
+
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Another Verified Project',
+      slug: `another-verified-project-${timestamp}`,
+      adminUserId: user3.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: true,
+      isGivbackEligible: true,
+      totalDonations: 2000,
+    });
+    project3.qfRounds = [qfRound];
+    await project3.save();
+
+    // Test pagination
+    const paginationResult = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+        skip: 0,
+        limit: 2,
+        searchTerm: null,
+        filters: [],
+        sortingBy: 'QualityScore',
+      },
+    });
+
+    assert.isOk(paginationResult);
+    assert.equal(paginationResult.data.data.qfProjects.projects.length, 2);
+    assert.equal(paginationResult.data.data.qfProjects.totalCount, 3);
+
+    // Test filtering by verified status
+    const filterResult = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+        skip: 0,
+        limit: 10,
+        searchTerm: null,
+        filters: ['Verified'],
+        sortingBy: 'QualityScore',
+      },
+    });
+
+    assert.isOk(filterResult);
+    assert.equal(filterResult.data.data.qfProjects.totalCount, 2);
+    filterResult.data.data.qfProjects.projects.forEach(project => {
+      assert.equal(project.verified, true);
+    });
+
+    // Test search functionality
+    const searchResult = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+        skip: 0,
+        limit: 10,
+        searchTerm: 'Project',
+        filters: [],
+        sortingBy: 'QualityScore',
+      },
+    });
+
+    assert.isOk(searchResult);
+    assert.equal(searchResult.data.data.qfProjects.totalCount, 3);
+    searchResult.data.data.qfProjects.projects.forEach(project => {
+      assert.isTrue(project.title.includes('Project'));
+    });
+
+    // Test sorting by MostFunded
+    const sortResult = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+        skip: 0,
+        limit: 10,
+        searchTerm: null,
+        filters: [],
+        sortingBy: 'MostFunded',
+      },
+    });
+
+    assert.isOk(sortResult);
+    const projects = sortResult.data.data.qfProjects.projects;
+    assert.isTrue(projects[0].totalRaisedUsd >= projects[1].totalRaisedUsd);
+    assert.isTrue(projects[1].totalRaisedUsd >= projects[2].totalRaisedUsd);
+
+    // Test sorting by ActiveQfRoundRaisedFunds (should use specified qfRoundId)
+    const qfSortResult = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+        skip: 0,
+        limit: 10,
+        searchTerm: null,
+        filters: [],
+        sortingBy: 'ActiveQfRoundRaisedFunds',
+      },
+    });
+
+    assert.isOk(qfSortResult);
+    assert.equal(qfSortResult.data.data.qfProjects.totalCount, 3);
+    // The sorting should work with the specified QF round, not just active rounds
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(project1.id);
+    await removeProjectAndRelatedEntities(project2.id);
+    await removeProjectAndRelatedEntities(project3.id);
+    await QfRound.delete({ id: qfRound.id });
+    await User.delete({ id: In([user1.id, user2.id, user3.id]) });
+  });
 }
