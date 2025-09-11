@@ -8,6 +8,7 @@ import {
   ObjectType,
   Query,
   Resolver,
+  registerEnumType,
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
@@ -25,6 +26,15 @@ import {
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 import { OrderDirection } from './projectResolver';
+
+export enum QfRoundsSortType {
+  roundId = 'roundId',
+  priority = 'priority',
+}
+
+registerEnumType(QfRoundsSortType, {
+  name: 'QfRoundsSortType',
+});
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 import { logger } from '../utils/logger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -130,6 +140,12 @@ export class QfRoundsArgs {
 
   @Field(_type => Boolean, { nullable: true })
   activeOnly?: boolean;
+
+  @Field(_type => QfRoundsSortType, {
+    nullable: true,
+    defaultValue: QfRoundsSortType.roundId,
+  })
+  sortBy?: QfRoundsSortType;
 }
 
 @Resolver(_of => User)
@@ -137,13 +153,13 @@ export class QfRoundResolver {
   @Query(_returns => [QfRound], { nullable: true })
   async qfRounds(
     @Args()
-    { slug, activeOnly }: QfRoundsArgs,
+    { slug, activeOnly, sortBy }: QfRoundsArgs,
   ) {
     if (activeOnly) {
       const activeQfRound = await findActiveQfRound();
       return activeQfRound ? [activeQfRound] : [];
     }
-    return findQfRounds({ slug });
+    return findQfRounds({ slug, sortBy });
   }
 
   @Query(_returns => [QFArchivedRounds], { nullable: true })
