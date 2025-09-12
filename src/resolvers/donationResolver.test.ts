@@ -3503,10 +3503,18 @@ function createDonationTestCases() {
   });
 
   it('should create donation with correct QF round when roundId is provided and project is in QF round', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.findOne({
+    const firstUser = await User.findOne({
       where: { id: SEED_DATA.FIRST_USER.id },
     });
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      firstUser!,
+    );
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
 
     // Create a QF round for testing
     const qfRound = await QfRound.create({
