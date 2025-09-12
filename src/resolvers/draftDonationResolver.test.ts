@@ -32,6 +32,7 @@ import {
 } from '../entities/draftRecurringDonation';
 import { ProjectAddress } from '../entities/projectAddress';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { QfRound } from '../entities/qfRound';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 describe(
@@ -158,6 +159,63 @@ function createDraftDonationTestCases() {
       projectId: project.id,
       userId: user.id,
     });
+  });
+
+  it('should create draft donation with roundId', async () => {
+    // Create a QF round for testing
+    const qfRound = await QfRound.create({
+      name: 'Test QF Round',
+      slug: 'test-qf-round',
+      allocatedFund: 1000,
+      minimumPassportScore: 8,
+      beginDate: new Date('2021-09-01'),
+      endDate: new Date('2021-09-30'),
+      isActive: true,
+    }).save();
+
+    const donationDataWithRoundId = {
+      ...donationData,
+      roundId: qfRound.id,
+    };
+
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: donationDataWithRoundId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(saveDonationResponse.data.data.createDraftDonation);
+    const draftDonation = await DraftDonation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDraftDonation,
+      },
+    });
+
+    expect(draftDonation).deep.contain({
+      networkId: NETWORK_IDS.XDAI,
+      chainType: ChainType.EVM,
+      status: DRAFT_DONATION_STATUS.PENDING,
+      toWalletAddress: project.walletAddress!,
+      fromWalletAddress: user.walletAddress!,
+      tokenAddress,
+      currency: 'GIV',
+      anonymous: false,
+      amount: 10,
+      referrerId,
+      projectId: project.id,
+      userId: user.id,
+      qfRoundId: qfRound.id,
+    });
+
+    // Clean up
+    await qfRound.remove();
   });
 
   it('should return the same draft donation id if the same donation is created twice', async () => {

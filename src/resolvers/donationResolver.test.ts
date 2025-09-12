@@ -3502,6 +3502,87 @@ function createDonationTestCases() {
     );
   });
 
+  it('should transfer roundId from draft donation to actual donation when matched', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    // Create a QF round for testing
+    const qfRound = await QfRound.create({
+      name: 'Test QF Round for Draft Matching',
+      slug: 'test-qf-round-draft-matching',
+      allocatedFund: 1000,
+      minimumPassportScore: 8,
+      beginDate: new Date('2021-09-01'),
+      endDate: new Date('2021-09-30'),
+      isActive: true,
+    }).save();
+
+    // Clear all draft donations
+    await DraftDonation.clear();
+
+    // Create draft donation with qfRoundId
+    const draftDonation = await DraftDonation.create({
+      projectId: project.id,
+      fromWalletAddress: user.walletAddress,
+      toWalletAddress: project.walletAddress,
+      networkId: NETWORK_IDS.MAIN_NET,
+      amount: 10,
+      currency: 'GIV',
+      status: DRAFT_DONATION_STATUS.PENDING,
+      qfRoundId: qfRound.id,
+    }).save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET,
+          transactionId: generateRandomEvmTxHash(),
+          anonymous: false,
+          nonce: 3,
+          amount: 10,
+          token: 'GIV',
+          roundId: qfRound.id, // This should match the draft donation's qfRoundId
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+
+    // Verify draft donation was matched
+    const updatedDraftDonation = await DraftDonation.findOne({
+      where: {
+        id: draftDonation.id,
+      },
+    });
+    assert.equal(updatedDraftDonation?.status, DRAFT_DONATION_STATUS.MATCHED);
+    assert.isOk(updatedDraftDonation?.matchedDonationId);
+
+    // Verify the created donation has the correct QF round
+    const createdDonation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+      relations: ['qfRound'],
+    });
+    assert.equal(createdDonation?.qfRoundId, qfRound.id);
+
+    // Clean up
+    await qfRound.remove();
+  });
+
   describe('swap donation test cases', () => {
     it('should create a donation with swap transaction', async () => {
       const project = await saveProjectDirectlyToDb(createProjectData());
