@@ -139,4 +139,8 @@ export class DraftDonation extends BaseEntity {
   @Field(_type => Date)
   @Column({ nullable: true })
   expiresAt?: Date;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  qfRoundId?: number;
 }

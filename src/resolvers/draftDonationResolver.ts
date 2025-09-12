@@ -64,6 +64,7 @@ export class DraftDonationResolver {
     @Arg('isQRDonation', { nullable: true, defaultValue: false })
     isQRDonation?: boolean,
     @Arg('fromTokenAmount', { nullable: true }) fromTokenAmount?: number,
+    @Arg('roundId', { nullable: true }) roundId?: number,
   ): Promise<number> {
     const logData = {
       amount,
@@ -74,6 +75,7 @@ export class DraftDonationResolver {
       projectId,
       referrerId,
       toWalletMemo,
+      roundId,
       userId: ctx?.req?.user?.userId,
     };
     logger.debug(
@@ -140,6 +142,7 @@ export class DraftDonationResolver {
         qrCodeDataUrl,
         isQRDonation,
         fromTokenAmount,
+        roundId,
       };
       try {
         validateWithJoiSchema(
@@ -203,6 +206,7 @@ export class DraftDonationResolver {
           qrCodeDataUrl,
           isQRDonation,
           expiresAt,
+          qfRoundId: roundId,
           createdAt: new Date(),
         })
         .orIgnore()

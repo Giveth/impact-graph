@@ -146,39 +146,57 @@ export async function checkTransactions(
         // Retrieve donor object
         const donor = await findUserById(donation.userId);
 
-        // Use smart select logic to find the best QF round for this project and network
+        // Determine QF round for the donation
         let qfRound: QfRound | undefined;
-        try {
-          const smartSelectedQfRound = await selectQfRoundForProject(
-            token.networkId,
-            project.id,
-          );
 
-          // Find the actual QfRound entity to assign to the donation
+        // First, check if the draft donation has a specific QF round assigned
+        if (donation.qfRoundId) {
           qfRound =
             (await QfRound.findOneBy({
-              id: smartSelectedQfRound.qfRoundId,
+              id: donation.qfRoundId,
             })) || undefined;
-        } catch (error) {
-          // If smart select fails (no eligible QF rounds), fall back to the old logic
-          if (error instanceof QfRoundSmartSelectError) {
+
+          if (qfRound) {
             logger.debug(
-              `Smart select failed for QR donation, falling back to old logic: ${error.message}`,
-              {
-                projectId: project.id,
-                networkId: token.networkId,
-                draftDonationId: donation.id,
-              },
+              `Using QF round ${qfRound.id} from draft donation ${donation.id}`,
+            );
+          }
+        }
+
+        // If no specific QF round or round not found, use smart select logic
+        if (!qfRound) {
+          try {
+            const smartSelectedQfRound = await selectQfRoundForProject(
+              token.networkId,
+              project.id,
             );
 
-            const activeQfRoundForProject =
-              await relatedActiveQfRoundForProject(project.id);
+            // Find the actual QfRound entity to assign to the donation
+            qfRound =
+              (await QfRound.findOneBy({
+                id: smartSelectedQfRound.qfRoundId,
+              })) || undefined;
+          } catch (error) {
+            // If smart select fails (no eligible QF rounds), fall back to the old logic
+            if (error instanceof QfRoundSmartSelectError) {
+              logger.debug(
+                `Smart select failed for QR donation, falling back to old logic: ${error.message}`,
+                {
+                  projectId: project.id,
+                  networkId: token.networkId,
+                  draftDonationId: donation.id,
+                },
+              );
 
-            if (
-              activeQfRoundForProject &&
-              activeQfRoundForProject.isEligibleNetwork(token.networkId)
-            ) {
-              qfRound = activeQfRoundForProject;
+              const activeQfRoundForProject =
+                await relatedActiveQfRoundForProject(project.id);
+
+              if (
+                activeQfRoundForProject &&
+                activeQfRoundForProject.isEligibleNetwork(token.networkId)
+              ) {
+                qfRound = activeQfRoundForProject;
+              }
             }
           }
         }

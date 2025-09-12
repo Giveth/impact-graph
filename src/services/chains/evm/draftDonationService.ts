@@ -265,6 +265,7 @@ async function submitMatchedDraftDonation(
     currency,
     projectId,
     referrerId,
+    qfRoundId,
   } = draftDonation;
 
   try {
@@ -291,6 +292,7 @@ async function submitMatchedDraftDonation(
       undefined, // relevantDonationTxHash
       undefined, // swapData
       draftDonation.fromTokenAmount, // fromTokenAmount
+      qfRoundId, // roundId
     );
 
     await Donation.update(Number(donationId), {
