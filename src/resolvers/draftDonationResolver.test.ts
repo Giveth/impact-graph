@@ -165,7 +165,7 @@ function createDraftDonationTestCases() {
     // Create a QF round for testing
     const qfRound = await QfRound.create({
       name: 'Test QF Round',
-      slug: 'test-qf-round',
+      slug: `test-qf-round-${Date.now()}`,
       allocatedFund: 1000,
       minimumPassportScore: 8,
       beginDate: new Date('2021-09-01'),
