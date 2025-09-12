@@ -3521,6 +3521,10 @@ function createDonationTestCases() {
       isActive: true,
     }).save();
 
+    // Add project to QF round
+    project.qfRounds = [qfRound];
+    await project.save();
+
     // Clear all draft donations
     await DraftDonation.clear();
 

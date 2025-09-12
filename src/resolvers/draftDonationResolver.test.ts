@@ -173,6 +173,10 @@ function createDraftDonationTestCases() {
       isActive: true,
     }).save();
 
+    // Add project to QF round
+    project.qfRounds = [qfRound];
+    await project.save();
+
     const donationDataWithRoundId = {
       ...donationData,
       roundId: qfRound.id,
