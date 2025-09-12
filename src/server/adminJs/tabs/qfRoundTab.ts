@@ -151,6 +151,45 @@ async function handleBannerBgImage(payload: {
   }
 }
 
+async function handleBannerFull(payload: {
+  [key: string]: any;
+  bannerFull?: string | { path: string; name: string };
+}) {
+  const bannerFull = payload.bannerFull;
+
+  if (typeof bannerFull == 'object' && bannerFull?.path) {
+    const { path, name } = bannerFull;
+    const result = await pinFile(fs.createReadStream(path), name);
+    payload.bannerFull = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
+  }
+}
+
+async function handleBannerMobile(payload: {
+  [key: string]: any;
+  bannerMobile?: string | { path: string; name: string };
+}) {
+  const bannerMobile = payload.bannerMobile;
+
+  if (typeof bannerMobile == 'object' && bannerMobile?.path) {
+    const { path, name } = bannerMobile;
+    const result = await pinFile(fs.createReadStream(path), name);
+    payload.bannerMobile = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
+  }
+}
+
+async function handleHubCardImage(payload: {
+  [key: string]: any;
+  hubCardImage?: string | { path: string; name: string };
+}) {
+  const hubCardImage = payload.hubCardImage;
+
+  if (typeof hubCardImage == 'object' && hubCardImage?.path) {
+    const { path, name } = hubCardImage;
+    const result = await pinFile(fs.createReadStream(path), name);
+    payload.hubCardImage = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
+  }
+}
+
 async function validateQfRound(payload: {
   id?: string;
   projectIdsList?: string;
@@ -343,6 +382,52 @@ export const qfRoundTab = {
           edit: adminJs.bundle('./components/QFRoundBannerBg'),
         },
       },
+      displaySize: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: true,
+          new: true,
+          edit: true,
+        },
+        type: 'number',
+      },
+      bannerFull: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: true,
+          edit: true,
+        },
+        components: {
+          edit: adminJs.bundle('./components/QFRoundBannerBg'),
+        },
+      },
+      bannerMobile: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: true,
+          edit: true,
+        },
+        components: {
+          edit: adminJs.bundle('./components/QFRoundBannerBg'),
+        },
+      },
+      hubCardImage: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: true,
+          edit: true,
+        },
+        components: {
+          edit: adminJs.bundle('./components/QFRoundBannerBg'),
+        },
+      },
       sponsorsImgs: {
         isVisible: {
           filter: false,
@@ -430,6 +515,9 @@ export const qfRoundTab = {
             // Process the creation
             await handleSponsorsImgs(request.payload);
             await handleBannerBgImage(request.payload);
+            await handleBannerFull(request.payload);
+            await handleBannerMobile(request.payload);
+            await handleHubCardImage(request.payload);
 
             // Create the record
             const qfRound = QfRound.create(request.payload);
@@ -521,6 +609,9 @@ export const qfRoundTab = {
             // Process the update
             await handleSponsorsImgs(request.payload);
             await handleBannerBgImage(request.payload);
+            await handleBannerFull(request.payload);
+            await handleBannerMobile(request.payload);
+            await handleHubCardImage(request.payload);
             await validateQfRound(request.payload);
 
             // Update the record directly
