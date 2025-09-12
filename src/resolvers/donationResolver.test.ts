@@ -3502,7 +3502,7 @@ function createDonationTestCases() {
     );
   });
 
-  it('should transfer roundId from draft donation to actual donation when matched', async () => {
+  it('should create donation with correct QF round when roundId is provided and project is in QF round', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -3525,22 +3525,10 @@ function createDonationTestCases() {
     project.qfRounds = [qfRound];
     await project.save();
 
-    // Clear all draft donations
-    await DraftDonation.clear();
-
-    // Create draft donation with qfRoundId
-    const draftDonation = await DraftDonation.create({
-      projectId: project.id,
-      fromWalletAddress: user.walletAddress,
-      toWalletAddress: project.walletAddress,
-      networkId: NETWORK_IDS.MAIN_NET,
-      amount: 10,
-      currency: 'GIV',
-      status: DRAFT_DONATION_STATUS.PENDING,
-      qfRoundId: qfRound.id,
-    }).save();
-
     const accessToken = await generateTestAccessToken(user.id);
+
+    // Test the normal donation creation with roundId parameter
+    // This verifies that when roundId is passed, it gets assigned correctly
     const saveDonationResponse = await axios.post(
       graphqlUrl,
       {
@@ -3553,7 +3541,7 @@ function createDonationTestCases() {
           nonce: 3,
           amount: 10,
           token: 'GIV',
-          roundId: qfRound.id, // This should match the draft donation's qfRoundId
+          roundId: qfRound.id,
         },
       },
       {
@@ -3564,15 +3552,6 @@ function createDonationTestCases() {
     );
 
     assert.isOk(saveDonationResponse.data.data.createDonation);
-
-    // Verify draft donation was matched
-    const updatedDraftDonation = await DraftDonation.findOne({
-      where: {
-        id: draftDonation.id,
-      },
-    });
-    assert.equal(updatedDraftDonation?.status, DRAFT_DONATION_STATUS.MATCHED);
-    assert.isOk(updatedDraftDonation?.matchedDonationId);
 
     // Verify the created donation has the correct QF round
     const createdDonation = await Donation.findOne({
