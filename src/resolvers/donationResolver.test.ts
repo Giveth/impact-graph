@@ -3564,7 +3564,6 @@ function createDonationTestCases() {
 
     const createdDonation = await Donation.findOne({
       where: { id: donationId },
-      relations: ['qfRound'],
     });
 
     assert.equal(createdDonation?.qfRoundId, qfRound.id);
