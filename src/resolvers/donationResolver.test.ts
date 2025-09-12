@@ -3560,12 +3560,13 @@ function createDonationTestCases() {
     assert.isOk(saveDonationResponse.data.data.createDonation);
 
     // Verify the created donation has the correct QF round
+    const donationId = saveDonationResponse.data.data.createDonation;
+
     const createdDonation = await Donation.findOne({
-      where: {
-        id: saveDonationResponse.data.data.createDonation,
-      },
-      relations: ['qfRound'],
+      where: { id: donationId },
+      relations: ['qfRoundId'],
     });
+
     assert.equal(createdDonation?.qfRoundId, qfRound.id);
 
     // Clean up
