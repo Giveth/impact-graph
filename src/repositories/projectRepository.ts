@@ -26,6 +26,7 @@ import { SocialProfile } from '../entities/socialProfile';
 import { PreviousRoundRank } from '../entities/previousRoundRank';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjectQfRound } from '../entities/projectQfRound';
+import { DraftDonation } from '../entities/draftDonation';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -649,6 +650,11 @@ export const removeProjectAndRelatedEntities = async (
     .execute();
 
   await ProjectQfRound.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await DraftDonation.createQueryBuilder()
     .delete()
     .where('projectId = :projectId', { projectId })
     .execute();
