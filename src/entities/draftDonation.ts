@@ -6,8 +6,11 @@ import {
   BaseEntity,
   Index,
   CreateDateColumn,
+  ManyToOne,
+  RelationId,
 } from 'typeorm';
 import { ChainType } from '../types/network';
+import { QfRound } from './qfRound';
 
 export const DRAFT_DONATION_STATUS = {
   PENDING: 'pending',
@@ -139,4 +142,14 @@ export class DraftDonation extends BaseEntity {
   @Field(_type => Date)
   @Column({ nullable: true })
   expiresAt?: Date;
+
+  @Index()
+  @Field(_type => QfRound, { nullable: true })
+  @ManyToOne(_type => QfRound, { eager: true })
+  qfRound: QfRound;
+
+  @Field({ nullable: true })
+  @RelationId((draftDonation: DraftDonation) => draftDonation.qfRound)
+  @Column({ nullable: true })
+  qfRoundId: number;
 }
