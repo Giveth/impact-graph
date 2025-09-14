@@ -34,6 +34,7 @@ import {
 import { ProjectAddress } from '../entities/projectAddress';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { QfRound } from '../entities/qfRound';
+import { ProjectQfRound } from '../entities/projectQfRound';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 describe(
@@ -249,9 +250,11 @@ function createDraftDonationTestCases() {
       endDate: moment().add(10, 'days').toDate(),
     }).save();
 
-    // Add project to QF round
-    project.qfRounds = [qfRound];
-    await project.save();
+    // Add project to QF round using ProjectQfRound entity
+    await ProjectQfRound.create({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+    }).save();
 
     const draftDonationData = {
       ...donationData,

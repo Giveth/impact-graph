@@ -8,6 +8,7 @@ import {
   CreateDateColumn,
   ManyToOne,
   RelationId,
+  JoinColumn,
 } from 'typeorm';
 import { ChainType } from '../types/network';
 import { QfRound } from './qfRound';
@@ -145,11 +146,11 @@ export class DraftDonation extends BaseEntity {
 
   @Index()
   @Field(_type => QfRound, { nullable: true })
-  @ManyToOne(_type => QfRound, { eager: true })
-  qfRound: QfRound;
+  @ManyToOne(_type => QfRound, { eager: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'qfRoundId' })
+  qfRound?: QfRound;
 
   @Field({ nullable: true })
   @RelationId((draftDonation: DraftDonation) => draftDonation.qfRound)
-  @Column({ nullable: true })
-  qfRoundId: number;
+  qfRoundId?: number;
 }

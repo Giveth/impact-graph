@@ -181,24 +181,36 @@ export class DraftDonationResolver {
       if (roundId) {
         qfRound = await findQfRoundById(roundId);
         if (!qfRound) {
-          throw new Error('QF round not found');
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.QF_ROUND_NOT_FOUND),
+          );
         }
         if (!qfRound.isActive) {
-          throw new Error('QF round is not active');
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.QF_ROUND_NOT_ACTIVE),
+          );
         }
         const now = new Date();
         if (now < qfRound.beginDate || now > qfRound.endDate) {
-          throw new Error('QF round is not currently active');
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.QF_ROUND_NOT_CURRENTLY_ACTIVE),
+          );
         }
         if (!qfRound.isEligibleNetwork(_networkId)) {
-          throw new Error('QF round is not eligible for this network');
+          throw new Error(
+            i18n.__(
+              translationErrorMessagesKeys.QF_ROUND_NOT_ELIGIBLE_FOR_NETWORK,
+            ),
+          );
         }
         // Check if project is in the QF round
         const projectInQfRound = project.qfRounds?.some(
           qr => qr.id === roundId,
         );
         if (!projectInQfRound) {
-          throw new Error('Project is not part of the specified QF round');
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.PROJECT_NOT_PART_OF_QF_ROUND),
+          );
         }
       }
 
@@ -233,7 +245,7 @@ export class DraftDonationResolver {
           isQRDonation,
           expiresAt,
           createdAt: new Date(),
-          qfRoundId: qfRound?.id,
+          qfRound: qfRound ?? undefined,
         })
         .orIgnore()
         .returning('id')

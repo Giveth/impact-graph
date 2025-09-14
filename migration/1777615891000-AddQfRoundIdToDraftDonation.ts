@@ -9,6 +9,7 @@ export class AddQfRoundIdToDraftDonation1757615891000
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const fkName = 'FK_draft_donation_qfRoundId_qf_round_id';
     const table = await queryRunner.getTable('draft_donation');
     const qfRoundIdColumn = table?.findColumnByName('qfRoundId');
 
@@ -21,11 +22,18 @@ export class AddQfRoundIdToDraftDonation1757615891000
           isNullable: true,
         }),
       );
+    }
 
-      // Add foreign key constraint
+    // Ensure foreign key constraint exists (idempotent)
+    const refreshed = await queryRunner.getTable('draft_donation');
+    const hasFk = refreshed?.foreignKeys.some(fk =>
+      fk.columnNames.includes('qfRoundId'),
+    );
+    if (!hasFk) {
       await queryRunner.createForeignKey(
         'draft_donation',
         new TableForeignKey({
+          name: fkName,
           columnNames: ['qfRoundId'],
           referencedColumnNames: ['id'],
           referencedTableName: 'qf_round',
@@ -36,10 +44,12 @@ export class AddQfRoundIdToDraftDonation1757615891000
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    const fkName = 'FK_draft_donation_qfRoundId_qf_round_id';
+
     // Drop foreign key constraint first
     const table = await queryRunner.getTable('draft_donation');
     const foreignKey = table?.foreignKeys.find(
-      fk => fk.columnNames.indexOf('qfRoundId') !== -1,
+      fk => fk.name === fkName || fk.columnNames.indexOf('qfRoundId') !== -1,
     );
     if (foreignKey) {
       await queryRunner.dropForeignKey('draft_donation', foreignKey);
