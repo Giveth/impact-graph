@@ -132,5 +132,10 @@
     "TOKEN_CONTRACT_NOT_CONFIGURED": "Token contract not configured",
     "TRANSACTION_ALREADY_USED": "Transaction hash already used in another cause",
     "EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET": "Expected cause creation fee amount not set in environment variables",
-    "CAUSE_CREATION_FEE_RECIVER_NOT_CONFIGURED": "Cause creation fee reciver not configured in environment variables"
+    "CAUSE_CREATION_FEE_RECIVER_NOT_CONFIGURED": "Cause creation fee reciver not configured in environment variables",
+    "QF_ROUND_NOT_FOUND": "QF round not found",
+    "QF_ROUND_NOT_ACTIVE": "QF round is not active",
+    "QF_ROUND_NOT_CURRENTLY_ACTIVE": "QF round is not currently active",
+    "QF_ROUND_NOT_ELIGIBLE_FOR_NETWORK": "QF round is not eligible for this network",
+    "PROJECT_NOT_PART_OF_QF_ROUND": "Project is not part of the specified QF round"
 }
