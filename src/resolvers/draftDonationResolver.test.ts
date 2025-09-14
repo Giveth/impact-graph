@@ -1,5 +1,6 @@
 import { assert, expect } from 'chai';
 import axios from 'axios';
+import moment from 'moment';
 import {
   generateTestAccessToken,
   graphqlUrl,
@@ -32,6 +33,7 @@ import {
 } from '../entities/draftRecurringDonation';
 import { ProjectAddress } from '../entities/projectAddress';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { QfRound } from '../entities/qfRound';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 describe(
@@ -233,6 +235,59 @@ function createDraftDonationTestCases() {
     expect(saveDonationResponse2.data.data.createDraftDonation).to.be.not.equal(
       saveDonationResponse.data.data.createDraftDonation,
     );
+  });
+
+  it('should create draft donation with roundId parameter', async () => {
+    // First create a QF round
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'Test QF Round for Draft Donation',
+      minimumPassportScore: 8,
+      slug: 'test-qf-round-draft',
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+
+    // Add project to QF round
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    const draftDonationData = {
+      ...donationData,
+      roundId: qfRound.id,
+    };
+
+    const saveDraftDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: draftDonationData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(saveDraftDonationResponse.data.data.createDraftDonation);
+
+    // Verify the draft donation was created with the correct QF round
+    const draftDonation = await DraftDonation.findOne({
+      where: {
+        id: saveDraftDonationResponse.data.data.createDraftDonation,
+      },
+      relations: ['qfRound'],
+    });
+
+    assert.isNotNull(draftDonation);
+    assert.equal(draftDonation?.qfRoundId, qfRound.id);
+    assert.equal(draftDonation?.qfRound?.id, qfRound.id);
+
+    // Clean up
+    qfRound.isActive = false;
+    await qfRound.save();
   });
 }
 
