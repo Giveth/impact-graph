@@ -19,6 +19,7 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import { findQfRoundById } from '../repositories/qfRoundRepository';
 import { DraftRecurringDonation } from '../entities/draftRecurringDonation';
 import {
   findRecurringDonationById,
@@ -64,6 +65,7 @@ export class DraftDonationResolver {
     @Arg('isQRDonation', { nullable: true, defaultValue: false })
     isQRDonation?: boolean,
     @Arg('fromTokenAmount', { nullable: true }) fromTokenAmount?: number,
+    @Arg('roundId', { nullable: true }) roundId?: number,
   ): Promise<number> {
     const logData = {
       amount,
@@ -140,6 +142,7 @@ export class DraftDonationResolver {
         qrCodeDataUrl,
         isQRDonation,
         fromTokenAmount,
+        roundId,
       };
       try {
         validateWithJoiSchema(
@@ -173,6 +176,32 @@ export class DraftDonationResolver {
             ? fromAddress.toUpperCase()
             : fromAddress.toLowerCase();
 
+      // QF Round validation and assignment
+      let qfRound: any = null;
+      if (roundId) {
+        qfRound = await findQfRoundById(roundId);
+        if (!qfRound) {
+          throw new Error('QF round not found');
+        }
+        if (!qfRound.isActive) {
+          throw new Error('QF round is not active');
+        }
+        const now = new Date();
+        if (now < qfRound.beginDate || now > qfRound.endDate) {
+          throw new Error('QF round is not currently active');
+        }
+        if (!qfRound.isEligibleNetwork(_networkId)) {
+          throw new Error('QF round is not eligible for this network');
+        }
+        // Check if project is in the QF round
+        const projectInQfRound = project.qfRounds?.some(
+          qr => qr.id === roundId,
+        );
+        if (!projectInQfRound) {
+          throw new Error('Project is not part of the specified QF round');
+        }
+      }
+
       const expiresAt = isQRDonation
         ? new Date(Date.now() + 15 * 60 * 1000)
         : undefined;
@@ -204,6 +233,7 @@ export class DraftDonationResolver {
           isQRDonation,
           expiresAt,
           createdAt: new Date(),
+          qfRoundId: qfRound?.id,
         })
         .orIgnore()
         .returning('id')
