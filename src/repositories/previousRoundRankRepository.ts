@@ -14,8 +14,11 @@ export const copyProjectRanksToPreviousRoundRankTable = async () => {
   return PreviousRoundRank.query(
     `
            INSERT INTO previous_round_rank ("projectId", round, rank)
-           SELECT project_power_view."projectId", project_power_view.round, project_power_view."powerRank"
-           FROM project_power_view;
+           SELECT DISTINCT project_power_view."projectId", project_power_view.round, project_power_view."powerRank"
+           FROM project_power_view
+           ON CONFLICT (round, "projectId") DO UPDATE SET
+             rank = EXCLUDED.rank,
+             "updatedAt" = NOW();
       `,
   );
 };
