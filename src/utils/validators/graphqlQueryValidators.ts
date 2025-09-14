@@ -250,6 +250,7 @@ export const createDraftDonationQueryValidator = Joi.object({
   qrCodeDataUrl: Joi.string().allow(null, '').pattern(dateURLRegex),
   isQRDonation: Joi.boolean(),
   fromTokenAmount: Joi.number().greater(0).allow(null),
+  roundId: Joi.number().integer().min(1).allow(null),
 });
 
 export const createDraftRecurringDonationQueryValidator = Joi.object({

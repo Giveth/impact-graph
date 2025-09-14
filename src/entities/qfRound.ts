@@ -119,6 +119,22 @@ export class QfRound extends BaseEntity {
   @Column('text', { nullable: true })
   bannerBgImage: string;
 
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  displaySize: number;
+
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  bannerFull: string;
+
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  bannerMobile: string;
+
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  hubCardImage: string;
+
   @Field(_type => [String])
   @Column('text', { array: true, default: [] })
   sponsorsImgs: string[];

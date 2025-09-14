@@ -21,6 +21,7 @@ import {
   qfRoundStatsQuery,
   scoreUserAddressMutation,
   qfRoundSmartSelectQuery,
+  qfRoundsQuery,
 } from '../../test/graphqlQueries';
 import { generateRandomString } from '../utils/utils';
 import { OrderDirection } from './projectResolver';
@@ -31,6 +32,10 @@ describe('Fetch qfRoundStats test cases', fetchQfRoundStatesTestCases);
 describe('Fetch archivedQFRounds test cases', fetchArchivedQFRoundsTestCases);
 describe('update scoreUserAddress test cases', scoreUserAddressTestCases);
 describe('QF Round Smart Select test cases', qfRoundSmartSelectTestCases);
+describe(
+  'QF Rounds Priority Sorting test cases',
+  qfRoundsPrioritySortingTestCases,
+);
 
 function scoreUserAddressTestCases() {
   it('should score the address with new model mocks score', async () => {
@@ -929,5 +934,230 @@ function qfRoundSmartSelectTestCases() {
     ); // 100 + 200 + 50
     assert.equal(result.data.data.qfRoundSmartSelect.uniqueDonors, 2); // 2 unique users
     assert.equal(result.data.data.qfRoundSmartSelect.donationsCount, 3); // 3 donations
+  });
+}
+
+function qfRoundsPrioritySortingTestCases() {
+  let qfRound1: QfRound;
+  let qfRound2: QfRound;
+  let qfRound3: QfRound;
+
+  beforeEach(async () => {
+    // Clear QF round references from donations and delete all QF rounds
+    await QfRound.query('UPDATE donation SET "qfRoundId" = NULL');
+    await QfRound.query('DELETE FROM qf_round_history');
+    await QfRound.query('DELETE FROM project_qf_rounds_qf_round');
+    await QfRound.query('DELETE FROM qf_round');
+
+    // Create test qfRounds with different priorities and end dates
+    const now = new Date();
+    qfRound1 = QfRound.create({
+      isActive: false,
+      name: 'Round 1',
+      slug: generateRandomString(10),
+      allocatedFund: 1000,
+      minimumPassportScore: 8,
+      beginDate: now,
+      endDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+      priority: 3,
+    });
+    await qfRound1.save();
+
+    qfRound2 = QfRound.create({
+      isActive: false,
+      name: 'Round 2',
+      slug: generateRandomString(10),
+      allocatedFund: 2000,
+      minimumPassportScore: 8,
+      beginDate: now,
+      endDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
+      priority: 5,
+    });
+    await qfRound2.save();
+
+    qfRound3 = QfRound.create({
+      isActive: false,
+      name: 'Round 3',
+      slug: generateRandomString(10),
+      allocatedFund: 3000,
+      minimumPassportScore: 8,
+      beginDate: now,
+      endDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      priority: 5, // Same priority as qfRound2
+    });
+    await qfRound3.save();
+  });
+
+  afterEach(async () => {
+    // Clean up the test QF rounds
+    if (qfRound1) {
+      await QfRound.delete({ id: qfRound1.id });
+    }
+    if (qfRound2) {
+      await QfRound.delete({ id: qfRound2.id });
+    }
+    if (qfRound3) {
+      await QfRound.delete({ id: qfRound3.id });
+    }
+  });
+
+  it('should return qfRounds sorted by priority when sortBy is priority', async () => {
+    // Test Priority sorting
+    const result = await axios.post(graphqlUrl, {
+      query: qfRoundsQuery,
+      variables: {
+        sortBy: 'priority',
+      },
+    });
+
+    assert.isArray(result.data.data.qfRounds);
+    assert.equal(result.data.data.qfRounds.length, 3);
+
+    // Should be sorted by priority DESC, then by endDate ASC
+    // qfRound2 and qfRound3 have priority 5, qfRound1 has priority 3
+    // Among priority 5, qfRound2 should come first (endDate is closer)
+    assert.equal(result.data.data.qfRounds[0].id, qfRound2.id); // priority 5, endDate closest
+    assert.equal(result.data.data.qfRounds[1].id, qfRound3.id); // priority 5, endDate further
+    assert.equal(result.data.data.qfRounds[2].id, qfRound1.id); // priority 3
+  });
+
+  it('should return qfRounds sorted by id DESC when no sortBy is provided', async () => {
+    // Test default sorting (by id DESC)
+    const result = await axios.post(graphqlUrl, {
+      query: qfRoundsQuery,
+      variables: {},
+    });
+
+    assert.isArray(result.data.data.qfRounds);
+    assert.equal(result.data.data.qfRounds.length, 3);
+
+    // Should be sorted by id DESC (newest first)
+    assert.equal(result.data.data.qfRounds[0].id, qfRound3.id); // Latest created
+    assert.equal(result.data.data.qfRounds[1].id, qfRound2.id);
+    assert.equal(result.data.data.qfRounds[2].id, qfRound1.id); // Oldest created
+  });
+
+  it('should return qfRounds sorted by id DESC when sortBy is roundId', async () => {
+    // Test explicit roundId sorting (same as default)
+    const result = await axios.post(graphqlUrl, {
+      query: qfRoundsQuery,
+      variables: {
+        sortBy: 'roundId',
+      },
+    });
+
+    assert.isArray(result.data.data.qfRounds);
+    assert.equal(result.data.data.qfRounds.length, 3);
+
+    // Should be sorted by id DESC (newest first)
+    assert.equal(result.data.data.qfRounds[0].id, qfRound3.id); // Latest created
+    assert.equal(result.data.data.qfRounds[1].id, qfRound2.id);
+    assert.equal(result.data.data.qfRounds[2].id, qfRound1.id); // Oldest created
+  });
+
+  it('should handle qfRounds with same priority and same endDate', async () => {
+    // Create additional qfRounds with same priority and endDate
+    const now = new Date();
+    const sameEndDate = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000); // 4 days from now
+
+    const qfRound4 = QfRound.create({
+      isActive: false,
+      name: 'Round 4',
+      slug: generateRandomString(10),
+      allocatedFund: 4000,
+      minimumPassportScore: 8,
+      beginDate: now,
+      endDate: sameEndDate,
+      priority: 5, // Same priority as qfRound2 and qfRound3
+    });
+    await qfRound4.save();
+
+    const qfRound5 = QfRound.create({
+      isActive: false,
+      name: 'Round 5',
+      slug: generateRandomString(10),
+      allocatedFund: 5000,
+      minimumPassportScore: 8,
+      beginDate: now,
+      endDate: sameEndDate, // Same endDate as qfRound4
+      priority: 5, // Same priority
+    });
+    await qfRound5.save();
+
+    try {
+      const result = await axios.post(graphqlUrl, {
+        query: qfRoundsQuery,
+        variables: {
+          sortBy: 'priority',
+        },
+      });
+
+      assert.isArray(result.data.data.qfRounds);
+      assert.equal(result.data.data.qfRounds.length, 5);
+
+      // Should be sorted by priority DESC, then by endDate ASC
+      // All priority 5 rounds should come before priority 3
+      const priority5Rounds = result.data.data.qfRounds.slice(0, 4);
+      const priority3Rounds = result.data.data.qfRounds.slice(4);
+
+      // All priority 5 rounds should have priority 5
+      priority5Rounds.forEach(round => {
+        assert.equal(round.priority, 5);
+      });
+
+      // Priority 3 rounds should have priority 3
+      priority3Rounds.forEach(round => {
+        assert.equal(round.priority, 3);
+      });
+
+      // Among priority 5 rounds, should be sorted by endDate ASC
+      // qfRound2 (3 days), qfRound4 (4 days), qfRound5 (4 days), qfRound3 (7 days)
+      assert.equal(result.data.data.qfRounds[0].id, qfRound2.id.toString()); // 3 days
+      // qfRound4 and qfRound5 have same endDate, so order is not guaranteed
+      const remainingPriority5 = result.data.data.qfRounds.slice(1, 4);
+      const remainingIds = remainingPriority5.map(r => r.id);
+      assert.include(remainingIds, qfRound4.id.toString());
+      assert.include(remainingIds, qfRound5.id.toString());
+      assert.include(remainingIds, qfRound3.id.toString());
+    } finally {
+      // Clean up additional QF rounds
+      await QfRound.delete({ id: qfRound4.id });
+      await QfRound.delete({ id: qfRound5.id });
+    }
+  });
+
+  it('should handle qfRounds with null priority values', async () => {
+    // Create qfRound with null priority
+    const qfRoundNullPriority = QfRound.create({
+      name: 'Round Null Priority',
+      slug: generateRandomString(10),
+      allocatedFund: 6000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+      priority: 0, // Use 0 instead of null for lowest priority
+    });
+    await qfRoundNullPriority.save();
+
+    try {
+      const result = await axios.post(graphqlUrl, {
+        query: qfRoundsQuery,
+        variables: {
+          sortBy: 'priority',
+        },
+      });
+
+      assert.isArray(result.data.data.qfRounds);
+      assert.equal(result.data.data.qfRounds.length, 4); // 3 existing + 1 new
+
+      // Priority 0 should be treated as lowest priority
+      // Should come after all higher priority rounds
+      const lastRound =
+        result.data.data.qfRounds[result.data.data.qfRounds.length - 1];
+      assert.equal(lastRound.id, qfRoundNullPriority.id.toString());
+    } finally {
+      // Clean up additional QF round
+      await QfRound.delete({ id: qfRoundNullPriority.id });
+    }
   });
 }

@@ -1013,6 +1013,8 @@ export class ProjectResolver {
     @Info() info: GraphQLResolveInfo,
     @Arg('userRemoved', _type => Boolean, { nullable: true })
     userRemoved?: boolean,
+    @Arg('qfRoundsSortBy', _type => String, { nullable: true })
+    qfRoundsSortBy?: string,
   ) {
     const fields = graphqlFields(info);
 
@@ -1073,6 +1075,16 @@ export class ProjectResolver {
         user,
       );
     }
+    if (fields.qfRounds) {
+      query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+
+      // Apply Priority sorting if requested
+      if (qfRoundsSortBy === 'priority') {
+        query = query
+          .addOrderBy('qfRounds.priority', 'DESC')
+          .addOrderBy('qfRounds.endDate', 'ASC');
+      }
+    }
 
     const project = await query.getOne();
 
@@ -1106,6 +1118,8 @@ export class ProjectResolver {
     @Info() info: GraphQLResolveInfo,
     @Arg('userRemoved', _type => Boolean, { nullable: true })
     userRemoved?: boolean,
+    @Arg('qfRoundsSortBy', _type => String, { nullable: true })
+    qfRoundsSortBy?: string,
   ) {
     const minimalProject = await findProjectIdBySlug(slug);
     if (!minimalProject) {
@@ -1172,6 +1186,13 @@ export class ProjectResolver {
     }
     if (fields.qfRounds) {
       query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+
+      // Apply Priority sorting if requested
+      if (qfRoundsSortBy === 'priority') {
+        query = query
+          .addOrderBy('qfRounds.priority', 'DESC')
+          .addOrderBy('qfRounds.endDate', 'ASC');
+      }
     }
     if (fields.projectFuturePower) {
       query = query.leftJoinAndSelect(

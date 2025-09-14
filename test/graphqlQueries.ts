@@ -47,6 +47,26 @@ export const scoreUserAddressMutation = `
   }
 `;
 
+export const qfRoundsQuery = `
+  query (
+    $slug: String
+    $activeOnly: Boolean
+    $sortBy: QfRoundsSortType
+  ) {
+    qfRounds(
+      slug: $slug
+      activeOnly: $activeOnly
+      sortBy: $sortBy
+    ) {
+      id
+      name
+      priority
+      endDate
+      isActive
+    }
+  }
+`;
+
 export const createDraftDonationMutation = `
   mutation (
     $networkId: Float!
@@ -63,6 +83,7 @@ export const createDraftDonationMutation = `
     $toWalletMemo: String
     $qrCodeDataUrl: String
     $isQRDonation: Boolean
+    $roundId: Float
   ) {
     createDraftDonation(
       networkId: $networkId
@@ -79,6 +100,7 @@ export const createDraftDonationMutation = `
       toWalletMemo: $toWalletMemo
       qrCodeDataUrl: $qrCodeDataUrl
       isQRDonation: $isQRDonation
+      roundId: $roundId
     )
   }
 `;
@@ -1164,9 +1186,11 @@ export const getQfRoundHistoryQuery = `
 export const fetchProjectBySlugQuery = `
   query (
     $slug: String!
+    $qfRoundsSortBy: String
   ) {
     projectBySlug(
       slug: $slug
+      qfRoundsSortBy: $qfRoundsSortBy
     ) {
       id
       title
@@ -1235,6 +1259,8 @@ export const fetchProjectBySlugQuery = `
       qfRounds {
         id
         name
+        priority
+        endDate
         isActive
       }
       status {
@@ -1748,10 +1774,14 @@ export const projectByIdQuery = `
   query(
       $id: Float!,
       $connectedWalletUserId: Int,
+      $userRemoved: Boolean,
+      $qfRoundsSortBy: String
   ){
     projectById(
      id:$id,
-     connectedWalletUserId: $connectedWalletUserId){
+     connectedWalletUserId: $connectedWalletUserId,
+     userRemoved: $userRemoved,
+     qfRoundsSortBy: $qfRoundsSortBy){
       id
       slug,
       verified
@@ -1792,6 +1822,13 @@ export const projectByIdQuery = `
           banner
           description
         }
+      }
+      qfRounds {
+        id
+        name
+        priority
+        endDate
+        isActive
       }
       adminUser {
         firstName
