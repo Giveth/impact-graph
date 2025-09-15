@@ -83,6 +83,7 @@ export const createDraftDonationMutation = `
     $toWalletMemo: String
     $qrCodeDataUrl: String
     $isQRDonation: Boolean
+    $fromTokenAmount: Float
     $roundId: Float
   ) {
     createDraftDonation(
@@ -100,6 +101,7 @@ export const createDraftDonationMutation = `
       toWalletMemo: $toWalletMemo
       qrCodeDataUrl: $qrCodeDataUrl
       isQRDonation: $isQRDonation
+      fromTokenAmount: $fromTokenAmount
       roundId: $roundId
     )
   }

@@ -7,7 +7,6 @@ import {
   Index,
   CreateDateColumn,
   ManyToOne,
-  RelationId,
   JoinColumn,
 } from 'typeorm';
 import { ChainType } from '../types/network';
@@ -151,6 +150,6 @@ export class DraftDonation extends BaseEntity {
   qfRound?: QfRound;
 
   @Field({ nullable: true })
-  @RelationId((draftDonation: DraftDonation) => draftDonation.qfRound)
+  @Column({ nullable: true })
   qfRoundId?: number;
 }

@@ -245,7 +245,7 @@ export class DraftDonationResolver {
           isQRDonation,
           expiresAt,
           createdAt: new Date(),
-          qfRound: qfRound ?? undefined,
+          qfRoundId: qfRound?.id,
         })
         .orIgnore()
         .returning('id')
