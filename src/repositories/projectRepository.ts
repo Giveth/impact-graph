@@ -212,16 +212,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     );
   }
 
-  // Join with ProjectQfRound for QF round specific sorting and stats
-  if (isFilterByQF || sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
-    query.leftJoin(
-      'project.projectQfRoundRelations',
-      'projectQfRound',
-      'projectQfRound.qfRoundId = :qfRoundId',
-      { qfRoundId: activeQfRoundId },
-    );
-  }
-
   switch (sortingBy) {
     case SortingField.MostNumberOfProjects:
       query.orderBy('project.activeProjectsCount', OrderDirection.DESC);
@@ -273,7 +263,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
 
       if (isFilterByQF) {
         query.addOrderBy(
-          'projectQfRound.sumDonationValueUsd',
+          'project.sumDonationValueUsdForActiveQfRound',
           OrderDirection.DESC,
           'NULLS LAST',
         );
@@ -286,7 +276,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       if (activeQfRoundId) {
         query
           .orderBy(
-            'projectQfRound.sumDonationValueUsd',
+            'project.sumDonationValueUsdForActiveQfRound',
             OrderDirection.DESC,
             'NULLS LAST',
           )
@@ -718,16 +708,6 @@ export const findQfRoundProjects = async (
       'qfRounds.id = :qfRoundId',
       { qfRoundId },
     )
-    .leftJoin(
-      'project.projectQfRoundRelations',
-      'projectQfRound',
-      'projectQfRound.qfRoundId = :qfRoundId',
-      { qfRoundId },
-    )
-    .addSelect([
-      'projectQfRound.sumDonationValueUsd',
-      'projectQfRound.countUniqueDonors',
-    ])
     .distinct(true)
     .where('project.statusId = :statusId', { statusId: ProjStatus.active })
     .andWhere('project.reviewStatus = :reviewStatus', {
