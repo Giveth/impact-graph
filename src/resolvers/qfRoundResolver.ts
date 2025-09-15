@@ -23,6 +23,7 @@ import {
   QfArchivedRoundsSortType,
   getQfRoundStats,
   getQfRoundTotalSqrtRootSumSquared,
+  findActiveQfRounds,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 import { OrderDirection } from './projectResolver';
@@ -156,8 +157,8 @@ export class QfRoundResolver {
     { slug, activeOnly, sortBy }: QfRoundsArgs,
   ) {
     if (activeOnly) {
-      const activeQfRound = await findActiveQfRound();
-      return activeQfRound ? [activeQfRound] : [];
+      const activeQfRounds = await findActiveQfRounds();
+      return activeQfRounds ? activeQfRounds : [];
     }
     return findQfRounds({ slug, sortBy });
   }

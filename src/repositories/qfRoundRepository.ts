@@ -70,6 +70,9 @@ export class QFArchivedRounds {
   @Field(_type => String, { nullable: true })
   name: string;
 
+  @Field(_type => String, { nullable: true })
+  description: string;
+
   @Field(_type => String)
   slug: string;
 
@@ -102,6 +105,15 @@ export class QFArchivedRounds {
 
   @Field(_type => Boolean)
   isDataAnalysisDone: boolean;
+
+  @Field(_type => String, { nullable: true })
+  bannerBgImage: string;
+
+  @Field(_type => String, { nullable: true })
+  bannerFull: string;
+
+  @Field(_type => String, { nullable: true })
+  bannerMobile: string;
 }
 
 export const findArchivedQfRounds = async (
@@ -123,6 +135,7 @@ export const findArchivedQfRounds = async (
     .select('qfRound.id', 'id')
     .addSelect('qfRound.name', 'name')
     .addSelect('qfRound.slug', 'slug')
+    .addSelect('qfRound.description', 'description')
     .addSelect('qfRound.isActive', 'isActive')
     .addSelect('qfRound.endDate', 'endDate')
     .addSelect('qfRound.eligibleNetworks', 'eligibleNetworks')
@@ -131,6 +144,9 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
     .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')
     .addSelect('qfRound.beginDate', 'beginDate')
+    .addSelect('qfRound.bannerBgImage', 'bannerBgImage')
+    .addSelect('qfRound.bannerFull', 'bannerFull')
+    .addSelect('qfRound.bannerMobile', 'bannerMobile')
     .addSelect(
       qb =>
         qb
@@ -184,6 +200,17 @@ export const findActiveQfRound = async (
     return query.getOne();
   }
   return query.cache('findActiveQfRound', qfRoundsCacheDuration).getOne();
+};
+
+export const findActiveQfRounds = async (
+  noCache?: boolean,
+): Promise<QfRound[] | null> => {
+  const query =
+    QfRound.createQueryBuilder('qfRound').where('"isActive" = true');
+  if (noCache) {
+    return query.getMany();
+  }
+  return query.cache('findActiveQfRound', qfRoundsCacheDuration).getMany();
 };
 
 export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
