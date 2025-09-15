@@ -391,6 +391,10 @@ export const qfRoundTab = {
           edit: true,
         },
         type: 'number',
+        availableValues: [
+          { value: 0, label: 'Standard' },
+          { value: 1, label: 'Large' },
+        ],
       },
       bannerFull: {
         isVisible: {
@@ -401,7 +405,7 @@ export const qfRoundTab = {
           edit: true,
         },
         components: {
-          edit: adminJs.bundle('./components/QFRoundBannerBg'),
+          edit: adminJs.bundle('./components/QFRoundBannerFull'),
         },
       },
       bannerMobile: {
@@ -413,7 +417,7 @@ export const qfRoundTab = {
           edit: true,
         },
         components: {
-          edit: adminJs.bundle('./components/QFRoundBannerBg'),
+          edit: adminJs.bundle('./components/QFRoundBannerMobile'),
         },
       },
       hubCardImage: {
@@ -425,7 +429,7 @@ export const qfRoundTab = {
           edit: true,
         },
         components: {
-          edit: adminJs.bundle('./components/QFRoundBannerBg'),
+          edit: adminJs.bundle('./components/QFRoundHubCardImage'),
         },
       },
       sponsorsImgs: {
