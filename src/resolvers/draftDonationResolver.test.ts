@@ -388,9 +388,23 @@ function createDraftDonationTestCases() {
     assert.equal(createdDonation?.amount, donationData.amount);
     assert.equal(createdDonation?.currency, donationData.token);
 
-    // Clean up
-    qfRound.isActive = false;
-    await qfRound.save();
+    // Clean up - delete all created data
+    if (createdDonation) {
+      await Donation.remove(createdDonation);
+    }
+
+    if (draftDonation) {
+      await DraftDonation.remove(draftDonation);
+    }
+
+    // Remove project from QF round
+    await ProjectQfRound.delete({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+    });
+
+    // Delete the QF round
+    await QfRound.remove(qfRound);
   });
 }
 
