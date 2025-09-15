@@ -1134,7 +1134,7 @@ export class DonationResolver {
       if (draftDonationEnabled && draftDonationId) {
         const draftDonation = await DraftDonation.findOne({
           where: { id: draftDonationId, status: DRAFT_DONATION_STATUS.MATCHED },
-          select: ['matchedDonationId'],
+          select: ['id', 'matchedDonationId', 'createdAt'],
         });
         if (draftDonation?.createdAt) {
           // Because if we dont set it donation createdAt might be later than tx.time and that will make a problem on verifying donation
