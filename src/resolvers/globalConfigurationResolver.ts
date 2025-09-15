@@ -19,13 +19,19 @@ export class GlobalConfigurationResolver {
       'GLOBAL_MINIMUM_MBD_SCORE',
     ]);
 
+    const parseNumericValue = (value: string | null): number | null => {
+      if (!value) return null;
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? null : parsed;
+    };
+
     return {
-      globalMinimumPassportScore: configs.GLOBAL_MINIMUM_PASSPORT_SCORE
-        ? parseFloat(configs.GLOBAL_MINIMUM_PASSPORT_SCORE)
-        : null,
-      globalMinimumMBDScore: configs.GLOBAL_MINIMUM_MBD_SCORE
-        ? parseFloat(configs.GLOBAL_MINIMUM_MBD_SCORE)
-        : null,
+      globalMinimumPassportScore: parseNumericValue(
+        configs.GLOBAL_MINIMUM_PASSPORT_SCORE,
+      ),
+      globalMinimumMBDScore: parseNumericValue(
+        configs.GLOBAL_MINIMUM_MBD_SCORE,
+      ),
     };
   }
 }

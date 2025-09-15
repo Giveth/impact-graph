@@ -12,13 +12,19 @@ export const getGlobalScoreSettings =
       'GLOBAL_MINIMUM_MBD_SCORE',
     ]);
 
+    const parseNumericValue = (value: string | null): number | null => {
+      if (!value) return null;
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? null : parsed;
+    };
+
     return {
-      globalMinimumPassportScore: configs.GLOBAL_MINIMUM_PASSPORT_SCORE
-        ? parseFloat(configs.GLOBAL_MINIMUM_PASSPORT_SCORE)
-        : null,
-      globalMinimumMBDScore: configs.GLOBAL_MINIMUM_MBD_SCORE
-        ? parseFloat(configs.GLOBAL_MINIMUM_MBD_SCORE)
-        : null,
+      globalMinimumPassportScore: parseNumericValue(
+        configs.GLOBAL_MINIMUM_PASSPORT_SCORE,
+      ),
+      globalMinimumMBDScore: parseNumericValue(
+        configs.GLOBAL_MINIMUM_MBD_SCORE,
+      ),
     };
   };
 
@@ -27,19 +33,33 @@ export const getEffectiveMinimumPassportScore = async (
 ): Promise<number> => {
   const globalSettings = await getGlobalScoreSettings();
 
-  // Use global setting if available, otherwise fall back to QF round setting
-  return globalSettings.globalMinimumPassportScore !== null
-    ? globalSettings.globalMinimumPassportScore
-    : qfRoundMinimumPassportScore;
+  // Use the higher of global setting or QF round setting
+  if (
+    globalSettings.globalMinimumPassportScore !== null &&
+    !isNaN(globalSettings.globalMinimumPassportScore)
+  ) {
+    return Math.max(
+      qfRoundMinimumPassportScore,
+      globalSettings.globalMinimumPassportScore,
+    );
+  }
+  return qfRoundMinimumPassportScore;
 };
 
 export const getEffectiveMinimumMBDScore = async (
-  qfRoundMinMBDScore: number | null,
-): Promise<number | null> => {
+  qfRoundMinimumMBDScore: number,
+): Promise<number> => {
   const globalSettings = await getGlobalScoreSettings();
 
-  // Use global setting if available, otherwise fall back to QF round setting
-  return globalSettings.globalMinimumMBDScore !== null
-    ? globalSettings.globalMinimumMBDScore
-    : qfRoundMinMBDScore;
+  // Use the higher of global setting or QF round setting
+  if (
+    globalSettings.globalMinimumMBDScore !== null &&
+    !isNaN(globalSettings.globalMinimumMBDScore)
+  ) {
+    return Math.max(
+      qfRoundMinimumMBDScore,
+      globalSettings.globalMinimumMBDScore,
+    );
+  }
+  return qfRoundMinimumMBDScore;
 };

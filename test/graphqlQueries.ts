@@ -3223,3 +3223,12 @@ export const qfRoundSmartSelectQuery = `
     }
   }
 `;
+
+export const globalScoreSettingsQuery = `
+  query {
+    globalScoreSettings {
+      globalMinimumPassportScore
+      globalMinimumMBDScore
+    }
+  }
+`;
