@@ -696,22 +696,18 @@ export const findQfRoundProjects = async (
       'projectInstantPower.totalPower',
       'projectInstantPower.powerRank',
     ])
+    .leftJoinAndSelect(
+      'project.projectQfRoundRelations',
+      'projectQfRound',
+      'projectQfRound.qfRoundId = :qfRoundId AND projectQfRound.projectId = project.id',
+      { qfRoundId },
+    )
     .innerJoinAndSelect(
       'project.qfRounds',
       'qfRounds',
       'qfRounds.id = :qfRoundId',
       { qfRoundId },
     )
-    .leftJoin(
-      'project.projectQfRoundRelations',
-      'projectQfRound',
-      'projectQfRound.qfRoundId = :qfRoundId',
-      { qfRoundId },
-    )
-    .addSelect([
-      'projectQfRound.sumDonationValueUsd',
-      'projectQfRound.countUniqueDonors',
-    ])
     .distinct(true)
     .where('project.statusId = :statusId', { statusId: ProjStatus.active })
     .andWhere('project.reviewStatus = :reviewStatus', {
