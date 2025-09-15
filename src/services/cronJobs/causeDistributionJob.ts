@@ -195,7 +195,7 @@ export const scheduleCauseDistributionJob = (): void => {
 
   const cronJobTime =
     (config.get('CAUSE_DISTRIBUTION_CRONJOB_EXPRESSION') as string) ||
-    '0 */3 * * *'; // every 3 hours
+    '0 */3 * * *'; // every 3 hours at the 0th minute
 
   cron.schedule(cronJobTime, async () => {
     try {
