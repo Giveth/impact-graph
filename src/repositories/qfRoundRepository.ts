@@ -267,6 +267,16 @@ export const getQfRoundTotalSqrtRootSumSquared = async (qfRoundId: number) => {
   return result ? result.totalSqrtRootSumSquared : 0;
 };
 
+export async function getQfRoundTotalSqrtRootSumSquaredInAllQfRounds(
+  qfRoundId: number,
+): Promise<{ projectId: number; qfRoundId: number; sqrtRootSum: number }[]> {
+  const result = await ProjectEstimatedMatchingView.createQueryBuilder()
+    .select('"qfRoundId", "sqrtRootSum"')
+    .where('"qfRoundId" = :qfRoundId', { qfRoundId })
+    .getRawMany();
+  return result;
+}
+
 export async function getProjectDonationsSqrtRootSum(
   projectId: number,
   qfRoundId: number,
@@ -283,6 +293,16 @@ export async function getProjectDonationsSqrtRootSum(
     )
     .getRawOne();
   return result ? result.sqrtRootSum : 0;
+}
+
+export async function getProjectDonationsSqrtRootSumInAllQfRounds(
+  projectId: number,
+): Promise<{ projectId: number; qfRoundId: number; sqrtRootSum: number }[]> {
+  const result = await ProjectEstimatedMatchingView.createQueryBuilder()
+    .select('"projectId", "qfRoundId", "sqrtRootSum"')
+    .where('"projectId" = :projectId', { projectId })
+    .getRawMany();
+  return result;
 }
 
 export const getQfRoundStats = async (
