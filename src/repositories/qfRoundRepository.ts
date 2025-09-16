@@ -39,8 +39,11 @@ export const findQfRounds = async ({
       .addOrderBy('qf_round.priority', 'DESC')
       .addOrderBy('qf_round.endDate', 'ASC');
   } else {
-    // Default sorting: by id in descending order
-    query.addOrderBy('qf_round.id', 'DESC');
+    // Default sorting: displaySize DESC first, then by priority ASC, then by endDate ASC
+    query
+      .addOrderBy('qf_round.displaySize', 'DESC')
+      .addOrderBy('qf_round.priority', 'ASC')
+      .addOrderBy('qf_round.endDate', 'ASC');
   }
   if (slug) {
     query.where('slug = :slug', { slug });
