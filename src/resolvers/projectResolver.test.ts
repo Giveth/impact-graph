@@ -6232,10 +6232,7 @@ function qfProjectsTestCases() {
     assert.isOk(result.data.data.qfProjects);
     assert.equal(result.data.data.qfProjects.totalCount, 1);
     assert.equal(result.data.data.qfProjects.projects.length, 1);
-    assert.equal(
-      result.data.data.qfProjects.projects[0].projectId,
-      activeProject.id,
-    );
+    assert.equal(result.data.data.qfProjects.projects[0].id, activeProject.id);
 
     // Cleanup
     await removeProjectAndRelatedEntities(activeProject.id);

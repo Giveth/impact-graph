@@ -180,7 +180,7 @@ class QfRoundStats {
 @ObjectType()
 class QfProject {
   @Field(_type => ID)
-  projectId: number;
+  id: number;
 
   @Field()
   title: string;
@@ -2624,7 +2624,7 @@ export class ProjectResolver {
           : undefined;
 
         return {
-          projectId: project.id,
+          id: project.id,
           title: project.title,
           descriptionSummary: project.descriptionSummary,
           description: project.description,
