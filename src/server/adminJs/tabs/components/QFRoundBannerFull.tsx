@@ -30,7 +30,7 @@ const ImageUploadCard = props => {
   };
 
   const handleCardClick = () => {
-    const fileInput = document.getElementById('fileInput');
+    const fileInput = document.getElementById('bannerFullFileInput');
     fileInput?.click();
   };
 
@@ -75,7 +75,7 @@ const ImageUploadCard = props => {
         <FileInput
           type="file"
           accept="image/*"
-          id="fileInput"
+          id="bannerFullFileInput"
           onChange={handleImageChange}
         />
       </CardContainer>
