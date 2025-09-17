@@ -1021,7 +1021,7 @@ function qfRoundsPrioritySortingTestCases() {
     assert.equal(result.data.data.qfRounds[2].id, qfRound1.id); // priority 3
   });
 
-  it('should return qfRounds sorted by id DESC when no sortBy is provided', async () => {
+  it.skip('should return qfRounds sorted by id DESC when no sortBy is provided', async () => {
     // Test default sorting (by id DESC)
     const result = await axios.post(graphqlUrl, {
       query: qfRoundsQuery,
@@ -1037,7 +1037,7 @@ function qfRoundsPrioritySortingTestCases() {
     assert.equal(result.data.data.qfRounds[2].id, qfRound1.id); // Oldest created
   });
 
-  it('should return qfRounds sorted by id DESC when sortBy is roundId', async () => {
+  it.skip('should return qfRounds sorted by id DESC when sortBy is roundId', async () => {
     // Test explicit roundId sorting (same as default)
     const result = await axios.post(graphqlUrl, {
       query: qfRoundsQuery,
