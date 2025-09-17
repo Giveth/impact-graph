@@ -34,6 +34,7 @@ import { AnchorContractAddressTab } from './tabs/anchorContractAddressTab';
 import { projectSocialMediaTab } from './tabs/projectSocialMediaTab';
 import { SwapTransactionTab } from './tabs/swapTransactionTab';
 import { projectQfRoundsTab } from './tabs/projectQfRoundsTab';
+import { globalConfigurationTab } from './tabs/globalConfigurationTab';
 // use redis for session data instead of in-memory storage
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const RedisStore = require('connect-redis').default;
@@ -157,6 +158,7 @@ const getResources = async (): Promise<AdminJsResources> => {
     AnchorContractAddressTab,
     projectSocialMediaTab,
     SwapTransactionTab,
+    globalConfigurationTab,
   ];
 
   const loggingHook = async (response, request, context) => {
