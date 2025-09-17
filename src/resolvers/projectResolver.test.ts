@@ -3933,6 +3933,71 @@ function projectByIdTestCases() {
       errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
+
+  it('should filter qfRounds by activeOnly when activeOnly is true', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const timestamp = Date.now();
+
+    // Create active and inactive qfRounds with unique slugs
+    const activeQfRound = await QfRound.create({
+      name: 'Active Round',
+      slug: `active-round-${timestamp}`,
+      isActive: true,
+      allocatedFund: 1000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+
+    const inactiveQfRound = await QfRound.create({
+      name: 'Inactive Round',
+      slug: `inactive-round-${timestamp}`,
+      isActive: false,
+      allocatedFund: 2000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+
+    // Associate both qfRounds with the project
+    project.qfRounds = [activeQfRound, inactiveQfRound];
+    await project.save();
+
+    // Test without activeOnly filter - should return both rounds
+    const resultAll = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+      },
+    });
+
+    assert.equal(resultAll.data.data.projectById.qfRounds.length, 2);
+
+    // Test with activeOnly=true - should return only active round
+    const resultActiveOnly = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        activeOnly: true,
+      },
+    });
+
+    assert.equal(resultActiveOnly.data.data.projectById.qfRounds.length, 1);
+    assert.equal(
+      resultActiveOnly.data.data.projectById.qfRounds[0].id,
+      activeQfRound.id.toString(),
+    );
+    assert.equal(
+      resultActiveOnly.data.data.projectById.qfRounds[0].isActive,
+      true,
+    );
+
+    // Clean up - first remove the relationships, then delete the qfRounds
+    project.qfRounds = [];
+    await project.save();
+    await QfRound.delete({ id: activeQfRound.id });
+    await QfRound.delete({ id: inactiveQfRound.id });
+  });
 }
 
 function walletAddressIsPurpleListedTestCases() {
@@ -5235,6 +5300,75 @@ function projectBySlugTestCases() {
 
     const project = result.data.data.projectBySlug;
     assert.equal(project.projectInstantPower.totalPower, 11000);
+  });
+
+  it('should filter qfRounds by activeOnly when activeOnly is true', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const timestamp = Date.now();
+
+    // Create active and inactive qfRounds with unique slugs
+    const activeQfRound = await QfRound.create({
+      name: 'Active Round',
+      slug: `active-round-slug-${timestamp}`,
+      isActive: true,
+      allocatedFund: 1000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+
+    const inactiveQfRound = await QfRound.create({
+      name: 'Inactive Round',
+      slug: `inactive-round-slug-${timestamp}`,
+      isActive: false,
+      allocatedFund: 2000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+
+    // Associate both qfRounds with the project
+    project.qfRounds = [activeQfRound, inactiveQfRound];
+    await project.save();
+
+    // Test without activeOnly filter - should return both rounds
+    const resultAll = await axios.post(graphqlUrl, {
+      query: fetchProjectBySlugQuery,
+      variables: {
+        slug: project.slug,
+      },
+    });
+
+    assert.equal(resultAll.data.data.projectBySlug.qfRounds.length, 2);
+
+    // Test with activeOnly=true - should return only active round
+    const resultActiveOnly = await axios.post(graphqlUrl, {
+      query: fetchProjectBySlugQuery,
+      variables: {
+        slug: project.slug,
+        activeOnly: true,
+      },
+    });
+
+    assert.equal(resultActiveOnly.data.data.projectBySlug.qfRounds.length, 1);
+    assert.equal(
+      resultActiveOnly.data.data.projectBySlug.qfRounds[0].id,
+      activeQfRound.id.toString(),
+    );
+    assert.equal(
+      resultActiveOnly.data.data.projectBySlug.qfRounds[0].isActive,
+      true,
+    );
+
+    // Clean up - first remove the relationships, then delete the qfRounds
+    project.qfRounds = [];
+    await project.save();
+    await QfRound.delete({ id: activeQfRound.id });
+    await QfRound.delete({ id: inactiveQfRound.id });
   });
 }
 

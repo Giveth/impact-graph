@@ -1189,10 +1189,12 @@ export const fetchProjectBySlugQuery = `
   query (
     $slug: String!
     $qfRoundsSortBy: String
+    $activeOnly: Boolean
   ) {
     projectBySlug(
       slug: $slug
       qfRoundsSortBy: $qfRoundsSortBy
+      activeOnly: $activeOnly
     ) {
       id
       title
@@ -1777,13 +1779,15 @@ export const projectByIdQuery = `
       $id: Float!,
       $connectedWalletUserId: Int,
       $userRemoved: Boolean,
-      $qfRoundsSortBy: String
+      $qfRoundsSortBy: String,
+      $activeOnly: Boolean
   ){
     projectById(
      id:$id,
      connectedWalletUserId: $connectedWalletUserId,
      userRemoved: $userRemoved,
-     qfRoundsSortBy: $qfRoundsSortBy){
+     qfRoundsSortBy: $qfRoundsSortBy,
+     activeOnly: $activeOnly){
       id
       slug,
       verified

@@ -1015,6 +1015,8 @@ export class ProjectResolver {
     userRemoved?: boolean,
     @Arg('qfRoundsSortBy', _type => String, { nullable: true })
     qfRoundsSortBy?: string,
+    @Arg('activeOnly', _type => Boolean, { nullable: true })
+    activeOnly?: boolean,
   ) {
     const fields = graphqlFields(info);
 
@@ -1078,6 +1080,13 @@ export class ProjectResolver {
     if (fields.qfRounds) {
       query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
 
+      // Apply activeOnly filtering if requested
+      if (activeOnly) {
+        query = query.andWhere('qfRounds.isActive = :isActive', {
+          isActive: true,
+        });
+      }
+
       // Apply Priority sorting if requested
       if (qfRoundsSortBy === 'priority') {
         query = query
@@ -1120,6 +1129,8 @@ export class ProjectResolver {
     userRemoved?: boolean,
     @Arg('qfRoundsSortBy', _type => String, { nullable: true })
     qfRoundsSortBy?: string,
+    @Arg('activeOnly', _type => Boolean, { nullable: true })
+    activeOnly?: boolean,
   ) {
     const minimalProject = await findProjectIdBySlug(slug);
     if (!minimalProject) {
@@ -1186,6 +1197,13 @@ export class ProjectResolver {
     }
     if (fields.qfRounds) {
       query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+
+      // Apply activeOnly filtering if requested
+      if (activeOnly) {
+        query = query.andWhere('qfRounds.isActive = :isActive', {
+          isActive: true,
+        });
+      }
 
       // Apply Priority sorting if requested
       if (qfRoundsSortBy === 'priority') {
