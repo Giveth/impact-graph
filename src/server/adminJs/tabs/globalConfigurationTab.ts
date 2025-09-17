@@ -49,11 +49,11 @@ export const globalConfigurationTab = {
     actions: {
       delete: {
         isVisible: false,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction({ currentAdmin }, ResourceActions.DELETE),
+        isAccessible: () => false,
       },
       bulkDelete: {
         isVisible: false,
+        isAccessible: () => false,
       },
       new: {
         isAccessible: ({ currentAdmin }) =>

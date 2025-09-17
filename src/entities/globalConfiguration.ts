@@ -21,15 +21,15 @@ export class GlobalConfiguration extends BaseEntity {
 
   @Field(_type => String, { nullable: true })
   @Column('text', { nullable: true })
-  value: string;
+  value: string | null;
 
   @Field(_type => String, { nullable: true })
   @Column('text', { nullable: true })
-  description: string;
+  description: string | null;
 
   @Field(_type => String, { nullable: true })
   @Column('text', { nullable: true })
-  type: string; // 'number', 'string', 'boolean', etc.
+  type: string | null; // 'number', 'string', 'boolean', etc.
 
   @Field(_type => Boolean)
   @Column({ default: true })

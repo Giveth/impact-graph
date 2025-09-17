@@ -7,7 +7,7 @@ export const getGlobalConfigurationValue = async (
   const globalConfig = await GlobalConfiguration.findOne({
     where: { key, isActive: true },
   });
-  return globalConfig?.value || null;
+  return globalConfig?.value ?? null;
 };
 
 export const getGlobalConfigurationValues = async (
@@ -20,7 +20,7 @@ export const getGlobalConfigurationValues = async (
   const result: Record<string, string | null> = {};
   keys.forEach(key => {
     const config = configs.find(c => c.key === key);
-    result[key] = config?.value || null;
+    result[key] = config?.value ?? null;
   });
 
   return result;

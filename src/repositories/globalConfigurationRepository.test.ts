@@ -40,6 +40,17 @@ describe('GlobalConfigurationRepository', () => {
       const result = await getGlobalConfigurationValue('TEST_KEY');
       expect(result).to.equal('test_value');
     });
+
+    it('should return "0" when value is the string "0"', async () => {
+      await GlobalConfiguration.create({
+        key: 'ZERO_KEY',
+        value: '0',
+        isActive: true,
+      }).save();
+
+      const result = await getGlobalConfigurationValue('ZERO_KEY');
+      expect(result).to.equal('0');
+    });
   });
 
   describe('getGlobalConfigurationValues', () => {
