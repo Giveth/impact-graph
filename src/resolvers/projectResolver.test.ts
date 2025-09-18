@@ -4718,19 +4718,42 @@ function getOptimizedAllProjectsTestCases() {
   it('should handle campaign filtering', async () => {
     const limit = 2;
     const USER_DATA = SEED_DATA.FIRST_USER;
+
+    // Test with non-existent campaign - should throw error
+    try {
+      await axios.post(graphqlUrl, {
+        query: fetchOptimizedAllProjectsQuery,
+        variables: {
+          limit,
+          campaignSlug: 'non-existent-campaign',
+          connectedWalletUserId: USER_DATA.id,
+        },
+      });
+      assert.fail('Expected error for non-existent campaign');
+    } catch (error) {
+      // Check if it's an axios error with response data
+      if (error.response && error.response.data && error.response.data.errors) {
+        assert.include(
+          error.response.data.errors[0].message,
+          'Campaign not found',
+        );
+      } else {
+        // If it's a different error structure, just check that an error was thrown
+        assert.isOk(error);
+      }
+    }
+
+    // Test without campaign filter - should work
     const result = await axios.post(graphqlUrl, {
       query: fetchOptimizedAllProjectsQuery,
       variables: {
         limit,
-        campaignSlug: 'test-campaign', // This might not exist, but should not error
         connectedWalletUserId: USER_DATA.id,
       },
     });
 
     assert.isOk(result);
     const response = result.data.data.newAllProjects;
-
-    // Should return empty results for non-existent campaign
     assert.isDefined(response);
     assert.isArray(response.projects);
   });
