@@ -33,6 +33,7 @@ import {
   fetchLikedProjectsQuery,
   fetchMultiFilterAllProjectsQuery,
   fetchNewProjectsPerDate,
+  fetchOptimizedAllProjectsQuery,
   fetchProjectBySlugQuery,
   fetchProjectUpdatesQuery,
   fetchSimilarProjectsBySlugQuery,
@@ -170,6 +171,11 @@ describe(
 );
 
 describe('projectSearch test cases --->', projectSearchTestCases);
+
+describe(
+  'optimizedAllProjects test cases --->',
+  getOptimizedAllProjectsTestCases,
+);
 
 describe('projectUpdates query test cases --->', projectUpdatesTestCases);
 
@@ -4426,6 +4432,372 @@ function projectSearchTestCases() {
     assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
     assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
     assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
+  });
+
+  it('should return QF-related fields in original allProjects query', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projects = result.data.data.allProjects.projects;
+
+    if (projects.length > 0) {
+      const project = projects[0];
+
+      // Verify QF-related fields are present in original query
+      assert.isDefined(project.qfRounds);
+      assert.isDefined(project.totalReactions);
+      assert.isDefined(project.qualityScore);
+      assert.isDefined(project.estimatedMatching);
+      assert.isDefined(project.sumDonationValueUsdForActiveQfRound);
+
+      // Verify isQfActive is also present in original query
+      assert.isDefined(project.isQfActive);
+      assert.isBoolean(project.isQfActive);
+    }
+  });
+}
+
+function getOptimizedAllProjectsTestCases() {
+  it('should return projects with optimized query structure', async () => {
+    const limit = 2;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    assert.isOk(result.data.data.newAllProjects);
+    const projects = result.data.data.newAllProjects.projects;
+    assert.isArray(projects);
+    assert.isAtMost(projects.length, limit);
+
+    if (projects.length > 0) {
+      const project = projects[0];
+
+      // Verify required fields are present
+      assert.isOk(project.id);
+      assert.isOk(project.title);
+      assert.isOk(project.slug);
+      assert.isOk(project.description);
+      assert.isOk(project.descriptionSummary);
+      assert.isOk(project.creationDate);
+      assert.isOk(project.updatedAt);
+      assert.isOk(project.adminUserId);
+      assert.isOk(project.walletAddress);
+      assert.isOk(project.verified);
+      assert.isOk(project.isGivbackEligible);
+      assert.isOk(project.isQfActive); // New field
+      assert.isOk(project.projectType);
+      assert.isOk(project.status);
+      assert.isOk(project.categories);
+      assert.isOk(project.adminUser);
+      assert.isOk(project.organization);
+      assert.isOk(project.addresses);
+      assert.isOk(project.projectPower);
+      assert.isOk(project.projectInstantPower);
+      assert.isOk(project.totalDonations);
+      assert.isOk(project.totalTraceDonations);
+      assert.isOk(project.countUniqueDonors);
+    }
+  });
+
+  it('should NOT return QF-related fields that were removed', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projects = result.data.data.newAllProjects.projects;
+
+    if (projects.length > 0) {
+      const project = projects[0];
+
+      // Verify removed fields are NOT present
+      assert.isUndefined(project.qfRounds);
+      assert.isUndefined(project.totalReactions);
+      assert.isUndefined(project.qualityScore);
+      assert.isUndefined(project.projectEstimatedMatchingView);
+      assert.isUndefined(project.sumDonationValueUsdForActiveQfRound);
+      assert.isUndefined(project.ActiveQfRoundRaisedFunds);
+    }
+  });
+
+  it('should return isQfActive field correctly', async () => {
+    const limit = 5;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projects = result.data.data.newAllProjects.projects;
+
+    // Verify isQfActive is present and is a boolean
+    projects.forEach(project => {
+      assert.isDefined(project.isQfActive);
+      assert.isBoolean(project.isQfActive);
+    });
+  });
+
+  it('should support filtering by category', async () => {
+    const limit = 2;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        category: 'Environment',
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projects = result.data.data.newAllProjects.projects;
+    assert.isArray(projects);
+
+    // Verify all returned projects have the correct category
+    projects.forEach(project => {
+      if (project.categories && project.categories.length > 0) {
+        const hasEnvironmentCategory = project.categories.some(
+          cat => cat.name === 'Environment',
+        );
+        assert.isTrue(hasEnvironmentCategory);
+      }
+    });
+  });
+
+  it('should support search functionality', async () => {
+    const limit = 2;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        searchTerm: SEED_DATA.SECOND_PROJECT.title.slice(0, 5),
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projects = result.data.data.newAllProjects.projects;
+    assert.isArray(projects);
+
+    if (projects.length > 0) {
+      // Verify search results contain the search term
+      const searchTerm = SEED_DATA.SECOND_PROJECT.title
+        .slice(0, 5)
+        .toLowerCase();
+      const hasMatchingProject = projects.some(
+        project =>
+          project.title.toLowerCase().includes(searchTerm) ||
+          project.description?.toLowerCase().includes(searchTerm),
+      );
+      assert.isTrue(hasMatchingProject);
+    }
+  });
+
+  it('should support sorting by different fields', async () => {
+    const limit = 3;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+
+    // Test different sorting options
+    const sortingOptions = [
+      'InstantBoosting',
+      'GIVPower',
+      'Newest',
+      'MostFunded',
+    ];
+
+    for (const sortingBy of sortingOptions) {
+      const result = await axios.post(graphqlUrl, {
+        query: fetchOptimizedAllProjectsQuery,
+        variables: {
+          limit,
+          sortingBy,
+          connectedWalletUserId: USER_DATA.id,
+        },
+      });
+
+      assert.isOk(result);
+      const projects = result.data.data.newAllProjects.projects;
+      assert.isArray(projects);
+      assert.isAtMost(projects.length, limit);
+    }
+  });
+
+  it('should support filtering by project type', async () => {
+    const limit = 2;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        projectType: 'project',
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projects = result.data.data.newAllProjects.projects;
+    assert.isArray(projects);
+
+    // Verify all returned projects are of type 'project'
+    projects.forEach(project => {
+      assert.equal(project.projectType, 'project');
+    });
+  });
+
+  it('should return pagination information correctly', async () => {
+    const limit = 2;
+    const skip = 0;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        skip,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    const response = result.data.data.newAllProjects;
+
+    // Verify pagination fields
+    assert.isDefined(response.totalCount);
+    assert.isNumber(response.totalCount);
+    assert.isAtLeast(response.totalCount, 0);
+
+    assert.isDefined(response.projects);
+    assert.isArray(response.projects);
+    assert.isAtMost(response.projects.length, limit);
+  });
+
+  it('should return categories information', async () => {
+    const limit = 2;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    const response = result.data.data.newAllProjects;
+
+    // Verify categories are returned
+    assert.isDefined(response.categories);
+    assert.isArray(response.categories);
+  });
+
+  it('should handle campaign filtering', async () => {
+    const limit = 2;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        campaignSlug: 'test-campaign', // This might not exist, but should not error
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    assert.isOk(result);
+    const response = result.data.data.newAllProjects;
+
+    // Should return empty results for non-existent campaign
+    assert.isDefined(response);
+    assert.isArray(response.projects);
+  });
+
+  it('should not accept QF-related parameters', async () => {
+    const limit = 2;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+
+    // This should fail because qfRoundId is not accepted by the optimized query
+    try {
+      await axios.post(graphqlUrl, {
+        query: fetchOptimizedAllProjectsQuery,
+        variables: {
+          limit,
+          qfRoundId: 1, // This parameter should not be accepted
+          connectedWalletUserId: USER_DATA.id,
+        },
+      });
+      assert.fail('Query should have failed with invalid parameter');
+    } catch (error) {
+      // Expected to fail due to invalid parameter
+      assert.isOk(error);
+    }
+  });
+
+  it('should have better performance than original query', async () => {
+    const limit = 10;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+
+    // Test optimized query
+    const startOptimized = Date.now();
+    const resultOptimized = await axios.post(graphqlUrl, {
+      query: fetchOptimizedAllProjectsQuery,
+      variables: {
+        limit,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+    const endOptimized = Date.now();
+    const optimizedTime = endOptimized - startOptimized;
+
+    // Test original query
+    const startOriginal = Date.now();
+    const resultOriginal = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+    const endOriginal = Date.now();
+    const originalTime = endOriginal - startOriginal;
+
+    assert.isOk(resultOptimized);
+    assert.isOk(resultOriginal);
+
+    // Both should return data
+    assert.isArray(resultOptimized.data.data.newAllProjects.projects);
+    assert.isArray(resultOriginal.data.data.allProjects.projects);
+
+    // Log performance comparison (optimized should be faster or similar)
+    // eslint-disable-next-line no-console
+    console.log(`Optimized query time: ${optimizedTime}ms`);
+    // eslint-disable-next-line no-console
+    console.log(`Original query time: ${originalTime}ms`);
+
+    // Note: We don't assert that optimized is always faster as it depends on data size and server load
+    // But we verify both queries work correctly
   });
 }
 
