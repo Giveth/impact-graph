@@ -141,8 +141,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'projectPower.totalPower',
       'projectPower.powerRank',
       'projectPower.round',
-    ])
-    .addSelect(['project.totalReactions', 'project.qualityScore']);
+    ]);
 
   if (includeUnlisted) {
     query = query.where(`project.statusId = ${ProjStatus.active}`);
@@ -204,7 +203,14 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
-  // Removed EstimatedMatching sorting as it's no longer supported
+  if (isFilterByQF && sortingBy === SortingField.EstimatedMatching) {
+    query.leftJoin(
+      'project.projectEstimatedMatchingView',
+      'projectEstimatedMatchingView',
+      'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
+      { qfRoundId: activeQfRoundId },
+    );
+  }
 
   switch (sortingBy) {
     case SortingField.MostNumberOfProjects:
@@ -266,8 +272,31 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       }
       query.addOrderBy('project.totalReactions', OrderDirection.DESC);
       break;
-    // Removed ActiveQfRoundRaisedFunds sorting as it's no longer supported
-    // Removed EstimatedMatching sorting as it's no longer supported
+    case SortingField.ActiveQfRoundRaisedFunds:
+      if (activeQfRoundId) {
+        query
+          .orderBy(
+            'project.sumDonationValueUsdForActiveQfRound',
+            OrderDirection.DESC,
+            'NULLS LAST',
+          )
+          .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
+          .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
+      }
+      break;
+    case SortingField.EstimatedMatching:
+      if (activeQfRoundId) {
+        query
+          .addSelect('projectEstimatedMatchingView.sqrtRootSum')
+          .orderBy(
+            'projectEstimatedMatchingView.sqrtRootSum',
+            OrderDirection.DESC,
+            'NULLS LAST',
+          )
+          .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
+          .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
+      }
+      break;
     case SortingField.BestMatch:
       break;
     default:
@@ -797,7 +826,7 @@ export const findQfRoundProjects = async (
     skip = 0,
     searchTerm,
     filters = [],
-    sortingBy = SortingField.InstantBoosting, // Changed from QualityScore as it's deprecated
+    sortingBy = SortingField.QualityScore,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -842,8 +871,13 @@ export const findQfRoundProjects = async (
   }
 
   // Apply sorting
-  // Removed ActiveQfRoundRaisedFunds sorting as it's no longer supported
-  if (sortingBy === SortingField.MostFunded) {
+  if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
+    query
+      .orderBy('projectQfRound.sumDonationValueUsd', 'DESC', 'NULLS LAST')
+      .addOrderBy('project.isGivbackEligible', 'DESC')
+      .addOrderBy('project.verified', 'DESC')
+      .addOrderBy('project.creationDate', 'DESC');
+  } else if (sortingBy === SortingField.MostFunded) {
     query
       .orderBy('project.totalDonations', 'DESC')
       .addOrderBy('project.isGivbackEligible', 'DESC')

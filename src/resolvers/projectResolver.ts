@@ -357,7 +357,7 @@ class GetProjectsArgs {
 
   @Field(_type => SortingField, {
     nullable: true,
-    defaultValue: SortingField.InstantBoosting,
+    defaultValue: SortingField.QualityScore,
   })
   sortingBy: SortingField;
 
@@ -473,7 +473,7 @@ class QfProjectsArgs {
 
   @Field(_type => SortingField, {
     nullable: true,
-    defaultValue: SortingField.InstantBoosting,
+    defaultValue: SortingField.QualityScore,
   })
   sortingBy: SortingField;
 }
