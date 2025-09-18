@@ -83,9 +83,17 @@ const options = {
   size: Number(process.env.PROJECT_FILTERS_THREADS_POOL_SIZE || 4),
 };
 
+// Service feature toggles - default to true for backwards compatibility
+const isGraphqlEnabled = process.env.ENABLE_GRAPHQL !== 'false';
+const isCronjobsEnabled = process.env.ENABLE_CRONJOBS !== 'false';
+
 export async function bootstrap() {
   try {
     logger.debug('bootstrap() has been called', new Date());
+    logger.debug('Service configuration:', {
+      graphqlEnabled: isGraphqlEnabled,
+      cronjobsEnabled: isCronjobsEnabled,
+    });
 
     logger.debug('bootstrap() before AppDataSource.initialize()', new Date());
     await AppDataSource.initialize();
@@ -113,72 +121,82 @@ export async function bootstrap() {
       }
     }
 
-    const schema = await createSchema();
+    let schema;
+    let apolloServer;
+    let projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>>;
 
-    // instantiate pool once and pass as context
-    const projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>> =
-      Pool(
+    // Only initialize GraphQL components if GraphQL is enabled
+    if (isGraphqlEnabled) {
+      schema = await createSchema();
+
+      // instantiate pool once and pass as context
+      projectsFiltersThreadPool = Pool(
         () => spawn(new Worker('../workers/projectsResolverWorker')),
         options,
       );
 
-    const apolloServerPlugins = [
-      process.env.DISABLE_APOLLO_PLAYGROUND !== 'true'
-        ? ApolloServerPluginLandingPageGraphQLPlayground({
-            endpoint: '/graphql',
-          })
-        : ApolloServerPluginLandingPageDisabled(),
-    ];
+      const apolloServerPlugins = [
+        process.env.DISABLE_APOLLO_PLAYGROUND !== 'true'
+          ? ApolloServerPluginLandingPageGraphQLPlayground({
+              endpoint: '/graphql',
+            })
+          : ApolloServerPluginLandingPageDisabled(),
+      ];
 
-    if (process.env.APOLLO_GRAPH_REF) {
-      apolloServerPlugins.push(ApolloServerPluginSchemaReporting());
+      if (process.env.APOLLO_GRAPH_REF) {
+        apolloServerPlugins.push(ApolloServerPluginSchemaReporting());
+      }
+
+      // Create GraphQL server
+      apolloServer = new ApolloServer<ApolloContext>({
+        schema,
+        csrfPrevention: false, // TODO: Prevent CSRF attack
+        formatError: (formattedError, _err) => {
+          const err = _err as Error;
+          /**
+           * @see {@link https://www.apollographql.com/docs/apollo-server/data/errors/#for-client-responses}
+           */
+          // Don't give the specific errors to the client.
+
+          if (
+            err?.message?.includes(process.env.TYPEORM_DATABASE_HOST as string)
+          ) {
+            logger.error('DB connection error', err);
+            SentryLogger.captureException(err);
+            return new Error(
+              i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
+            );
+          } else if (err?.message?.startsWith('connect ECONNREFUSED')) {
+            // It could be error connecting DB, Redis, ...
+            logger.error('Apollo server client error', err);
+            SentryLogger.captureException(err);
+            return new Error(
+              i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
+            );
+          }
+          // Return a different error message
+          if (
+            formattedError?.extensions?.code ===
+            ApolloServerErrorCode.GRAPHQL_VALIDATION_FAILED
+          ) {
+            return {
+              ...formattedError,
+              message: `Your query doesn't match the schema. Try double-checking it!`,
+            };
+          }
+
+          // Otherwise return the formatted error. This error can also
+          // be manipulated in other ways, as long as it's returned.
+          return formattedError;
+        },
+        plugins: apolloServerPlugins,
+        introspection: true,
+      });
+
+      logger.debug('bootstrap() before apolloServer.start()', new Date());
+      await apolloServer.start();
+      logger.debug('bootstrap() after apolloServer.start()', new Date());
     }
-
-    // Create GraphQL server
-    const apolloServer = new ApolloServer<ApolloContext>({
-      schema,
-      csrfPrevention: false, // TODO: Prevent CSRF attack
-      formatError: (formattedError, _err) => {
-        const err = _err as Error;
-        /**
-         * @see {@link https://www.apollographql.com/docs/apollo-server/data/errors/#for-client-responses}
-         */
-        // Don't give the specific errors to the client.
-
-        if (
-          err?.message?.includes(process.env.TYPEORM_DATABASE_HOST as string)
-        ) {
-          logger.error('DB connection error', err);
-          SentryLogger.captureException(err);
-          return new Error(
-            i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
-          );
-        } else if (err?.message?.startsWith('connect ECONNREFUSED')) {
-          // It could be error connecting DB, Redis, ...
-          logger.error('Apollo server client error', err);
-          SentryLogger.captureException(err);
-          return new Error(
-            i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
-          );
-        }
-        // Return a different error message
-        if (
-          formattedError?.extensions?.code ===
-          ApolloServerErrorCode.GRAPHQL_VALIDATION_FAILED
-        ) {
-          return {
-            ...formattedError,
-            message: `Your query doesn't match the schema. Try double-checking it!`,
-          };
-        }
-
-        // Otherwise return the formatted error. This error can also
-        // be manipulated in other ways, as long as it's returned.
-        return formattedError;
-      },
-      plugins: apolloServerPlugins,
-      introspection: true,
-    });
 
     // Express Server
     const app = express();
@@ -223,62 +241,70 @@ export async function bootstrap() {
       app.use(limiter);
     }
 
-    app.use(
-      '/graphql',
-      json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
-      }),
-    );
-    app.use(
-      '/graphql',
-      graphqlUploadExpress({
-        maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
-        maxFiles: 10,
-      }),
-    );
+    // Only set up GraphQL endpoints if GraphQL is enabled
+    if (isGraphqlEnabled && apolloServer) {
+      app.use(
+        '/graphql',
+        json({
+          limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
+        }),
+      );
+      app.use(
+        '/graphql',
+        graphqlUploadExpress({
+          maxFileSize:
+            (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
+          maxFiles: 10,
+        }),
+      );
 
-    logger.debug('bootstrap() before apolloServer.start()', new Date());
-    await apolloServer.start();
-    logger.debug('bootstrap() after apolloServer.start()', new Date());
-
-    app.use(
-      '/graphql',
-      expressMiddleware<ApolloContext>(apolloServer, {
-        context: async ({ req }) => {
-          let token: string = '';
-          let user;
-          let auth;
-          try {
-            if (req) {
-              const { headers } = req;
-              const authVersion = headers.authversion || '1';
-              if (headers.authorization) {
-                token = headers.authorization.split(' ')[1].toString();
-                user = await authorizationHandler(authVersion as string, token);
+      app.use(
+        '/graphql',
+        expressMiddleware<ApolloContext>(apolloServer, {
+          context: async ({ req }) => {
+            let token: string = '';
+            let user;
+            let auth;
+            try {
+              if (req) {
+                const { headers } = req;
+                const authVersion = headers.authversion || '1';
+                if (headers.authorization) {
+                  token = headers.authorization.split(' ')[1].toString();
+                  user = await authorizationHandler(
+                    authVersion as string,
+                    token,
+                  );
+                }
               }
+            } catch (error) {
+              SentryLogger.captureException(
+                `Error: ${error} for token ${token}`,
+              );
+              logger.error(
+                `Error: ${error} for token ${token} authVersion ${
+                  req?.headers?.authversion || '1'
+                }`,
+              );
+              auth = {
+                token,
+                error,
+              };
             }
-          } catch (error) {
-            SentryLogger.captureException(`Error: ${error} for token ${token}`);
-            logger.error(
-              `Error: ${error} for token ${token} authVersion ${
-                req?.headers?.authversion || '1'
-              }`,
-            );
-            auth = {
-              token,
-              error,
-            };
-          }
 
-          const apolloContext: ApolloContext = {
-            projectsFiltersThreadPool,
-            req: { user, auth },
-            expressReq: req, // Include Express request object for IP checking
-          };
-          return apolloContext;
-        },
-      }),
-    );
+            const apolloContext: ApolloContext = {
+              projectsFiltersThreadPool,
+              req: { user, auth },
+              expressReq: req, // Include Express request object for IP checking
+            };
+            return apolloContext;
+          },
+        }),
+      );
+    } else {
+      logger.info('GraphQL endpoint disabled - ENABLE_GRAPHQL is set to false');
+    }
+
     // AdminJs!
     app.use(adminJsRootPath, await getAdminJsRouter());
     app.use(bodyParserJson);
@@ -289,8 +315,63 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       handleStripeWebhook,
     );
-    app.get('/health', (_req, res) => {
-      res.send('Hi every thing seems ok');
+
+    // Enhanced health check endpoint
+    app.get('/health', async (_req, res) => {
+      try {
+        const healthStatus = {
+          status: 'ok',
+          timestamp: new Date().toISOString(),
+          services: {
+            graphql: {
+              enabled: isGraphqlEnabled,
+              status: isGraphqlEnabled ? 'running' : 'disabled',
+            },
+            cronjobs: {
+              enabled: isCronjobsEnabled,
+              status: isCronjobsEnabled ? 'running' : 'disabled',
+            },
+            database: {
+              status: 'connected',
+            },
+            redis: {
+              status: 'connected',
+            },
+          },
+          version: process.env.npm_package_version || 'unknown',
+          environment:
+            process.env.ENVIRONMENT || process.env.NODE_ENV || 'unknown',
+          uptime: process.uptime(),
+        };
+
+        // Basic database connectivity check
+        try {
+          await AppDataSource.getDataSource().query('SELECT 1');
+          healthStatus.services.database.status = 'connected';
+        } catch (error) {
+          healthStatus.services.database.status = 'disconnected';
+          healthStatus.status = 'degraded';
+        }
+
+        // Basic Redis connectivity check
+        try {
+          await redis.ping();
+          healthStatus.services.redis.status = 'connected';
+        } catch (error) {
+          healthStatus.services.redis.status = 'disconnected';
+          healthStatus.status = 'degraded';
+        }
+
+        const statusCode = healthStatus.status === 'ok' ? 200 : 503;
+        res.status(statusCode).json(healthStatus);
+      } catch (error) {
+        logger.error('Health check failed:', error);
+        res.status(503).json({
+          status: 'error',
+          timestamp: new Date().toISOString(),
+          error: 'Health check failed',
+        });
+      }
     });
 
     // Route to handle SSE connections
@@ -303,8 +384,14 @@ export async function bootstrap() {
     await new Promise<void>((resolve, reject) => {
       httpServer
         .listen({ port: 4000 }, () => {
+          logger.debug(`🚀 Server is running on port 4000`);
+          if (isGraphqlEnabled) {
+            logger.debug(
+              `📊 GraphQL Playground available at http://127.0.0.1:4000/graphql`,
+            );
+          }
           logger.debug(
-            `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
+            `🩺 Health check available at http://127.0.0.1:4000/health`,
           );
           performPostStartTasks();
           resolve(); // Resolve the Promise once the server is successfully listening
@@ -323,7 +410,7 @@ export async function bootstrap() {
 
     const enableDbCronJob =
       config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
-    if (enableDbCronJob) {
+    if (enableDbCronJob && isCronjobsEnabled) {
       try {
         const scheduleExpression = config.get(
           'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
@@ -464,7 +551,9 @@ export async function bootstrap() {
     } catch (e) {
       logger.fatal('continueDbSetup() error', e);
     }
-    await initializeCronJobs();
+    if (isCronjobsEnabled) {
+      await initializeCronJobs();
+    }
   }
 }
 
