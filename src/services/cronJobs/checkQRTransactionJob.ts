@@ -149,16 +149,54 @@ export async function checkTransactions(
         // Use QF round from draft donation if available, otherwise fall back to smart select
         let qfRound: QfRound | undefined;
         if (donation.qfRoundId) {
-          // Use the QF round specified in the draft donation
+          // Use the QF round specified in the draft donation - this should always be respected
           const foundQfRound = await QfRound.findOneBy({
             id: donation.qfRoundId,
           });
           if (foundQfRound) {
             qfRound = foundQfRound;
-          } else {
             logger.debug(
-              `QF round with ID ${donation.qfRoundId} not found for QR donation ID ${donation.id}`,
+              `Using QF round ID ${donation.qfRoundId} from draft donation for QR donation ID ${donation.id}`,
             );
+          } else {
+            logger.warn(
+              `QF round with ID ${donation.qfRoundId} not found for QR donation ID ${donation.id}, falling back to smart select`,
+            );
+            // Only fall back to smart select if the specified QF round doesn't exist
+            try {
+              const smartSelectedQfRound = await selectQfRoundForProject(
+                token.networkId,
+                project.id,
+              );
+
+              // Find the actual QfRound entity to assign to the donation
+              qfRound =
+                (await QfRound.findOneBy({
+                  id: smartSelectedQfRound.qfRoundId,
+                })) || undefined;
+            } catch (error) {
+              // If smart select fails (no eligible QF rounds), fall back to the old logic
+              if (error instanceof QfRoundSmartSelectError) {
+                logger.debug(
+                  `Smart select failed for QR donation, falling back to old logic: ${error.message}`,
+                  {
+                    projectId: project.id,
+                    networkId: token.networkId,
+                    draftDonationId: donation.id,
+                  },
+                );
+
+                const activeQfRoundForProject =
+                  await relatedActiveQfRoundForProject(project.id);
+
+                if (
+                  activeQfRoundForProject &&
+                  activeQfRoundForProject.isEligibleNetwork(token.networkId)
+                ) {
+                  qfRound = activeQfRoundForProject;
+                }
+              }
+            }
           }
         } else {
           // Fall back to smart select logic if no QF round specified in draft donation
