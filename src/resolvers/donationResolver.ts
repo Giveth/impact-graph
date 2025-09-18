@@ -1115,11 +1115,14 @@ export class DonationResolver {
       if (draftDonationEnabled && draftDonationId) {
         // First check if this is a draft donation and get its QF round ID
         const draftDonation = await DraftDonation.findOne({
-          where: { id: draftDonationId, status: DRAFT_DONATION_STATUS.MATCHED },
-          select: ['id', 'matchedDonationId', 'createdAt', 'qfRoundId'],
+          where: { id: draftDonationId },
+          select: ['id', 'status', 'matchedDonationId', 'qfRoundId'],
         });
 
-        if (draftDonation?.matchedDonationId) {
+        if (
+          draftDonation?.status === DRAFT_DONATION_STATUS.MATCHED &&
+          draftDonation.matchedDonationId
+        ) {
           return draftDonation.matchedDonationId;
         }
 
