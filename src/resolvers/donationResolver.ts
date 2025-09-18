@@ -1109,13 +1109,45 @@ export class DonationResolver {
           logger.error('get chainvine wallet address error', e);
         }
       }
-      // Set QF round - use provided roundId if available, otherwise auto-select
-      if (roundId) {
+      // Set QF round - prioritize draft donation QF round ID, then provided roundId, then auto-select
+      let qfRoundIdToUse: number | undefined;
+
+      if (draftDonationEnabled && draftDonationId) {
+        // First check if this is a draft donation and get its QF round ID
+        const draftDonation = await DraftDonation.findOne({
+          where: { id: draftDonationId },
+          select: ['id', 'status', 'matchedDonationId', 'qfRoundId'],
+        });
+
+        if (
+          draftDonation?.status === DRAFT_DONATION_STATUS.MATCHED &&
+          draftDonation.matchedDonationId
+        ) {
+          return draftDonation.matchedDonationId;
+        }
+
+        // Use QF round ID from draft donation if available
+        if (draftDonation?.qfRoundId) {
+          qfRoundIdToUse = draftDonation.qfRoundId;
+          logger.debug(
+            `Using QF round ID ${qfRoundIdToUse} from draft donation ${draftDonationId}`,
+          );
+        }
+      }
+
+      // If no draft donation QF round ID, use provided roundId
+      if (!qfRoundIdToUse && roundId) {
+        qfRoundIdToUse = roundId;
+        logger.debug(`Using provided QF round ID ${qfRoundIdToUse}`);
+      }
+
+      // Set QF round based on the determined ID
+      if (qfRoundIdToUse) {
         if (qfRoundValidationError) {
           // Don't assign QF round if validation failed
           donation.qfRoundErrorMessage = qfRoundValidationError;
         } else {
-          const qfRound = await findQfRoundById(roundId);
+          const qfRound = await findQfRoundById(qfRoundIdToUse);
           if (qfRound) {
             donation.qfRound = qfRound;
           }
@@ -1129,20 +1161,9 @@ export class DonationResolver {
           activeQfRoundForProject.isEligibleNetwork(networkId)
         ) {
           donation.qfRound = activeQfRoundForProject;
-        }
-      }
-      if (draftDonationEnabled && draftDonationId) {
-        const draftDonation = await DraftDonation.findOne({
-          where: { id: draftDonationId, status: DRAFT_DONATION_STATUS.MATCHED },
-          select: ['id', 'matchedDonationId', 'createdAt'],
-        });
-        if (draftDonation?.createdAt) {
-          // Because if we dont set it donation createdAt might be later than tx.time and that will make a problem on verifying donation
-          // and would fail it
-          donation.createdAt = draftDonation?.createdAt;
-        }
-        if (draftDonation?.matchedDonationId) {
-          return draftDonation.matchedDonationId;
+          logger.debug(
+            `Auto-selected QF round ID ${activeQfRoundForProject.id} for project ${projectId}`,
+          );
         }
       }
       await donation.save();
