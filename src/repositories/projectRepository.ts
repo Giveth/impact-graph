@@ -216,7 +216,9 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.MostFunded:
       query.orderBy('project.totalDonations', OrderDirection.DESC);
       break;
-    // Removed MostLiked sorting as totalReactions is deprecated
+    case SortingField.MostLiked:
+      query.orderBy('project.totalReactions', OrderDirection.DESC);
+      break;
     case SortingField.Newest:
       query.orderBy('project.creationDate', OrderDirection.DESC);
       break;
@@ -230,7 +232,9 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.Oldest:
       query.orderBy('project.creationDate', OrderDirection.ASC);
       break;
-    // Removed QualityScore sorting as qualityScore is deprecated
+    case SortingField.QualityScore:
+      query.orderBy('project.qualityScore', OrderDirection.DESC);
+      break;
     case SortingField.GIVPower:
       query
         .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
@@ -260,7 +264,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       } else {
         query.addOrderBy('project.totalDonations', OrderDirection.DESC);
       }
-      // Removed totalReactions ordering as it's deprecated
+      query.addOrderBy('project.totalReactions', OrderDirection.DESC);
       break;
     // Removed ActiveQfRoundRaisedFunds sorting as it's no longer supported
     // Removed EstimatedMatching sorting as it's no longer supported
