@@ -45,11 +45,11 @@ import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
 import { ProjectQfRound } from './projectQfRound';
 import {
-  findActiveQfRound,
-  getProjectDonationsSqrtRootSum,
-  getQfRoundTotalSqrtRootSumSquared,
+  findActiveQfRounds,
+  getProjectDonationsSqrtRootSumInAllQfRounds,
+  getQfRoundTotalSqrtRootSumSquaredInAllQfRounds,
 } from '../repositories/qfRoundRepository';
-import { EstimatedMatching } from '../types/qfTypes';
+import { EstimatedMatchingByQfRound } from '../types/qfTypes';
 import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
@@ -530,29 +530,51 @@ export class Project extends BaseEntity {
   }
 
   // In your main class
-  @Field(_type => EstimatedMatching, { nullable: true })
-  async estimatedMatching(): Promise<EstimatedMatching | null> {
-    const activeQfRound = await findActiveQfRound();
-    if (!activeQfRound) {
+  @Field(_type => [EstimatedMatchingByQfRound], { nullable: true })
+  async estimatedMatching(): Promise<EstimatedMatchingByQfRound[] | null> {
+    const activeQfRounds = await findActiveQfRounds();
+    if (!activeQfRounds || activeQfRounds.length === 0) {
       return null;
     }
-    const matchingPool = activeQfRound.allocatedFund;
 
-    const projectDonationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
-      this.id,
-      activeQfRound.id,
+    const qfRoundIds = activeQfRounds.map(round => round.id);
+
+    // Get project donations sqrt root sum for all active QF rounds
+    const projectDonationsData =
+      await getProjectDonationsSqrtRootSumInAllQfRounds(this.id, qfRoundIds);
+
+    // Get total sqrt root sum squared for all active QF rounds
+    const allProjectsSumData =
+      await getQfRoundTotalSqrtRootSumSquaredInAllQfRounds(qfRoundIds);
+
+    // Create a map for quick lookup of allProjectsSum by qfRoundId
+    const allProjectsSumMap = new Map(
+      allProjectsSumData.map(item => [
+        item.qfRoundId,
+        item.totalSqrtRootSumSquared,
+      ]),
     );
 
-    const allProjectsSum = await getQfRoundTotalSqrtRootSumSquared(
-      activeQfRound.id,
+    // Create a map for quick lookup of matching pools by qfRoundId
+    const matchingPoolMap = new Map(
+      activeQfRounds.map(round => [round.id, round.allocatedFund]),
     );
 
-    // Facilitate migration in frontend return empty values for now
-    return {
-      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum,
-      allProjectsSum: allProjectsSum,
-      matchingPool,
-    };
+    // Group and return data by QF round
+    return qfRoundIds.map(qfRoundId => {
+      const projectData = projectDonationsData.find(
+        item => item.qfRoundId === qfRoundId,
+      );
+      const allProjectsSum = allProjectsSumMap.get(qfRoundId) || 0;
+      const matchingPool = matchingPoolMap.get(qfRoundId) || 0;
+
+      return {
+        qfRoundId,
+        projectDonationsSqrtRootSum: projectData?.sqrtRootSum || 0,
+        allProjectsSum,
+        matchingPool,
+      };
+    });
   }
 
   // Status 7 is deleted status
