@@ -14,7 +14,7 @@ import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import {
-  findActiveQfRound,
+  findActiveQfRounds,
   findQfRounds,
   findArchivedQfRounds,
   findQfRoundBySlug,
@@ -23,7 +23,7 @@ import {
   QfArchivedRoundsSortType,
   getQfRoundStats,
   getQfRoundTotalSqrtRootSumSquared,
-  findActiveQfRounds,
+  findActiveQfRound,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 import { OrderDirection } from './projectResolver';
@@ -177,34 +177,37 @@ export class QfRoundResolver {
   ): Promise<User | undefined> {
     try {
       const user = await findUserByWalletAddress(address.toLowerCase());
-      const activeQfRound = await findActiveQfRound();
-      if (!user || !activeQfRound) return;
+      const activeQfRounds = await findActiveQfRounds();
+      if (!user || !activeQfRounds || activeQfRounds.length === 0) return;
 
       const userScore = await getGitcoinAdapter().getUserAnalysisScore(
         address.toLowerCase(),
       );
 
-      const existingRecord = await UserQfRoundModelScore.createQueryBuilder(
-        'userQfRoundModelScore',
-      )
-        .where('"userId" = :userId', { userId: user.id })
-        .andWhere('"qfRoundId" = :qfRoundId', {
-          qfRoundId: activeQfRound.id,
-        })
-        .getOne();
+      // Update user score for all active QF rounds
+      for (const activeQfRound of activeQfRounds) {
+        const existingRecord = await UserQfRoundModelScore.createQueryBuilder(
+          'userQfRoundModelScore',
+        )
+          .where('"userId" = :userId', { userId: user.id })
+          .andWhere('"qfRoundId" = :qfRoundId', {
+            qfRoundId: activeQfRound.id,
+          })
+          .getOne();
 
-      if (existingRecord) {
-        UserQfRoundModelScore.update(
-          { id: existingRecord.id },
-          { score: userScore },
-        );
-      } else {
-        const userQfRoundScore = UserQfRoundModelScore.create({
-          userId: user.id,
-          qfRoundId: activeQfRound.id,
-          score: userScore,
-        });
-        await userQfRoundScore.save();
+        if (existingRecord) {
+          await UserQfRoundModelScore.update(
+            { id: existingRecord.id },
+            { score: userScore },
+          );
+        } else {
+          const userQfRoundScore = UserQfRoundModelScore.create({
+            userId: user.id,
+            qfRoundId: activeQfRound.id,
+            score: userScore,
+          });
+          await userQfRoundScore.save();
+        }
       }
 
       user.activeQFMBDScore = userScore;
