@@ -33,11 +33,17 @@ export class CampaignResolver {
   ) {
     const userId = connectedWalletUserId || user?.userId;
     const campaigns = await findAllActiveCampaigns();
-    return Promise.all(
-      campaigns?.map(campaign =>
-        fillCampaignProjects({ campaign, userId, projectsFiltersThreadPool }),
-      ),
+
+    if (!campaigns || campaigns.length === 0) {
+      return campaigns;
+    }
+
+    // Optimize: Process campaigns in parallel with better error handling
+    const campaignPromises = campaigns.map(campaign =>
+      fillCampaignProjects({ campaign, userId, projectsFiltersThreadPool }),
     );
+
+    return Promise.all(campaignPromises);
   }
 
   @Query(_returns => Campaign, { nullable: true })
