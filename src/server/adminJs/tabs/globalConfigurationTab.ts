@@ -1,49 +1,33 @@
+import adminJs from 'adminjs';
 import { GlobalConfiguration } from '../../../entities/globalConfiguration';
 import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
+import { setGlobalConfigurationValue } from '../../../repositories/globalConfigurationRepository';
 
 export const globalConfigurationTab = {
   resource: GlobalConfiguration,
   options: {
     properties: {
+      // Hide all standard properties and use custom component instead
       key: {
-        isVisible: true,
-        isRequired: true,
+        isVisible: false,
       },
       value: {
-        isVisible: true,
-        isRequired: true,
+        isVisible: false,
       },
       description: {
-        isVisible: true,
+        isVisible: false,
       },
       type: {
-        isVisible: true,
-        availableValues: [
-          { value: 'number', label: 'Number' },
-          { value: 'string', label: 'String' },
-          { value: 'boolean', label: 'Boolean' },
-        ],
+        isVisible: false,
       },
       isActive: {
-        isVisible: true,
+        isVisible: false,
       },
       createdAt: {
-        type: 'string',
-        isVisible: {
-          list: true,
-          edit: false,
-          filter: false,
-          show: true,
-        },
+        isVisible: false,
       },
       updatedAt: {
-        type: 'string',
-        isVisible: {
-          list: true,
-          edit: false,
-          filter: false,
-          show: true,
-        },
+        isVisible: false,
       },
     },
     actions: {
@@ -56,16 +40,72 @@ export const globalConfigurationTab = {
         isAccessible: () => false,
       },
       new: {
-        isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction({ currentAdmin }, ResourceActions.NEW),
+        isVisible: false,
+        isAccessible: () => false,
       },
       edit: {
-        isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
+        isVisible: false,
+        isAccessible: () => false,
       },
       show: {
+        isVisible: false,
+        isAccessible: () => false,
+      },
+      list: {
+        isVisible: true,
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.SHOW),
+        component: adminJs.bundle('./components/GlobalConfigComponent'),
+      },
+      updateGlobalConfigs: {
+        actionType: 'resource',
+        isVisible: false, // Hidden from UI, only accessible via API
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
+        handler: async (request, _response, _context) => {
+          try {
+            const { minimumPassportScore, minimumMBDScore } = request.payload;
+
+            // Update passport score if provided
+            if (
+              minimumPassportScore !== null &&
+              minimumPassportScore !== undefined
+            ) {
+              await setGlobalConfigurationValue(
+                'GLOBAL_MINIMUM_PASSPORT_SCORE',
+                minimumPassportScore.toString(),
+                'Global minimum passport score required for all QF rounds',
+                'number',
+              );
+            }
+
+            // Update MBD score if provided
+            if (minimumMBDScore !== null && minimumMBDScore !== undefined) {
+              await setGlobalConfigurationValue(
+                'GLOBAL_MINIMUM_MBD_SCORE',
+                minimumMBDScore.toString(),
+                'Global minimum MBD score required for all QF rounds',
+                'number',
+              );
+            }
+
+            return {
+              record: {},
+              notice: {
+                message: 'Global configuration updated successfully',
+                type: 'success',
+              },
+            };
+          } catch (error) {
+            return {
+              record: {},
+              notice: {
+                message: `Failed to update global configuration: ${error.message}`,
+                type: 'error',
+              },
+            };
+          }
+        },
       },
     },
   },
