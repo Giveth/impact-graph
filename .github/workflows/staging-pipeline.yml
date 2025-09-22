@@ -183,7 +183,109 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
-            docker-compose pull impact-graph
-            docker-compose stop impact-graph
-            docker-compose up -d impact-graph
             docker image prune -a --force
+            docker-compose pull
+  
+  rollout-deploy-1:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /giveth-all
+            ## Update each backend service one by one
+            ## First Deployment
+            docker compose rm -fs impact-graph-ql1
+            docker compose rm -fs impact-graph-job
+            docker compose up --force-recreate -d impact-graph-ql1
+            docker compose up --force-recreate -d impact-graph-job
+
+            # Wait for impact-graph-ql1 to be healthy (timeout after 5 minutes)
+            echo "Waiting for impact-graph-ql1 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" impact-graph-ql1)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql1 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for impact-graph-ql1 to become healthy"
+                exit 1
+            fi
+            # Check if impact-graph-ql1 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' impact-graph-ql1)" != "\"healthy\"" ]; then
+                echo "impact-graph-ql1 is not healthy, stopping deployment"
+                exit 1
+            fi
+            # Check if impact-graph-job is running
+            if [ "$(docker inspect --format='{{json .State.Status}}' impact-graph-job)" != "\"running\"" ]; then
+                echo "impact-graph-job is not running, stopping deployment"
+                exit 1
+            fi
+            echo "First deployment phase completed successfully"
+            
+  rollout-deploy-2:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /giveth-all
+            ## Update each backend service one by one
+            ## First Deployment
+            docker compose rm -fs impact-graph-ql2
+            docker compose up --force-recreate -d impact-graph-ql2
+
+            # Wait for impact-graph-ql2 to be healthy (timeout after 5 minutes)
+            echo "Waiting for impact-graph-ql2 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" impact-graph-ql2)" == "\"healthy\"" ]; do echo "Waiting for impact-graph-ql2 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for impact-graph-ql2 to become healthy"
+                exit 1
+            fi
+            # Check if impact-graph-ql2 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' impact-graph-ql2)" != "\"healthy\"" ]; then
+                echo "impact-graph-ql2 is not healthy, stopping deployment"
+                exit 1
+            fi
+            echo "Second deployment phase completed successfully"
+            
+  rollout-deploy-3:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /giveth-all
+            ## Update each backend service one by one
+            ## First Deployment
+            docker compose rm -fs impact-graph-ql3
+            docker compose up --force-recreate -d impact-graph-ql3
+
+            # Wait for impact-graph-ql3 to be healthy (timeout after 5 minutes)
+            echo "Waiting for impact-graph-ql3 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" impact-graph-ql3)" == "\"healthy\"" ]; do echo "Waiting for impact-graph-ql3 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for impact-graph-ql3 to become healthy"
+                exit 1
+            fi
+            # Check if impact-graph-ql3 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' impact-graph-ql3)" != "\"healthy\"" ]; then
+                echo "impact-graph-ql3 is not healthy, stopping deployment"
+                exit 1
+            fi
+            echo "Third deployment phase completed successfully"
+            echo "Full deployment completed successfully"
