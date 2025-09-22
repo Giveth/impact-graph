@@ -144,11 +144,16 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     ]);
 
   if (includeUnlisted) {
-    query = query.where(`project.statusId = ${ProjStatus.active}`);
+    query = query.where(`project.statusId = :statusId`, {
+      statusId: ProjStatus.active,
+    });
   } else {
     query = query.where(
-      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-      { reviewStatus: ReviewStatus.Listed },
+      `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+      {
+        statusId: ProjStatus.active,
+        reviewStatus: ReviewStatus.Listed,
+      },
     );
   }
 
@@ -242,13 +247,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       query.orderBy('project.qualityScore', OrderDirection.DESC);
       break;
     case SortingField.GIVPower:
+      // Optimize: Use COALESCE to handle NULL values in sorting
       query
         .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
         .addOrderBy('project.verified', 'DESC') // Secondary sorting condition
         .addOrderBy(
-          'projectPower.totalPower',
+          'COALESCE(projectPower.totalPower, 0)',
           OrderDirection.DESC,
-          'NULLS LAST',
         );
       break;
     case SortingField.InstantBoosting: // This is our default sorting
@@ -720,9 +725,9 @@ export const findQfRoundProjects = async (
       .addOrderBy('project.isGivbackEligible', 'DESC')
       .addOrderBy('project.verified', 'DESC');
   } else {
-    // Default sorting
+    // Default sorting - Optimize: Use COALESCE for better NULL handling
     query
-      .orderBy('projectInstantPower.totalPower', 'DESC', 'NULLS LAST')
+      .orderBy('COALESCE(projectInstantPower.totalPower, 0)', 'DESC')
       .addOrderBy('project.isGivbackEligible', 'DESC')
       .addOrderBy('project.verified', 'DESC')
       .addOrderBy('project.creationDate', 'DESC');

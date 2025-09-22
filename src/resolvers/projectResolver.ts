@@ -529,8 +529,11 @@ export class ProjectResolver {
       .addSelect(publicSelectionFields)
       .where('project.id != :id', { id: currentProject?.id })
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       );
 
     // if loggedIn get his reactions
@@ -735,8 +738,9 @@ export class ProjectResolver {
                         FROM project_address
                         WHERE "isRecipient" = true AND 
                         "projectId" = project.id AND
-                        "networkId" IN (${networkIds.join(', ')}) 
+                        "networkId" IN (:...networkIds) 
                       )`,
+              { networkIds },
             );
           }
           if (acceptFundOnSolanaSeen) {
@@ -746,7 +750,7 @@ export class ProjectResolver {
                         FROM project_address
                         WHERE "isRecipient" = true AND 
                         "projectId" = project.id AND
-                        "chainType" = '${ChainType.SOLANA}'
+                        "chainType" = :solanaChainType
                       )`,
             );
           }
@@ -757,12 +761,23 @@ export class ProjectResolver {
                         FROM project_address
                         WHERE "isRecipient" = true AND 
                         "projectId" = project.id AND
-                        "chainType" = '${ChainType.STELLAR}'
+                        "chainType" = :stellarChainType
                       )`,
             );
           }
         }),
       );
+
+      // Add parameters for the query
+      if (networkIds.length > 0) {
+        query.setParameter('networkIds', networkIds);
+      }
+      if (acceptFundOnSolanaSeen) {
+        query.setParameter('solanaChainType', ChainType.SOLANA);
+      }
+      if (acceptFundOnStellarSeen) {
+        query.setParameter('stellarChainType', ChainType.STELLAR);
+      }
     }
     return query;
   }
@@ -830,8 +845,11 @@ export class ProjectResolver {
   ): Promise<TopProjects> {
     const query = Project.createQueryBuilder('project')
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       )
       .innerJoinAndSelect('project.featuredUpdate', 'featuredUpdate')
       .leftJoinAndSelect('project.status', 'status')
@@ -983,8 +1001,11 @@ export class ProjectResolver {
     query = ProjectResolver.addCategoryQuery(query, category);
     query = query
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       )
       .orderBy(`project.${field}`, direction)
       .limit(skip)
@@ -2136,8 +2157,11 @@ export class ProjectResolver {
 
     if (userId !== user?.userId) {
       query = query.andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       );
     }
 
@@ -2187,8 +2211,11 @@ export class ProjectResolver {
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       )
       .andWhere('project.slug IN (:...slugs)', { slugs });
 
@@ -2388,8 +2415,11 @@ export class ProjectResolver {
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       );
 
     // if user viewing viewedUser liked projects has any liked

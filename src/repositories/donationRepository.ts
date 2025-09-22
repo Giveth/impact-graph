@@ -200,16 +200,19 @@ export const donationsTotalAmountPerDateRange = async (
     .select(`COALESCE(SUM(donation."valueUsd"), 0)`, 'sum')
     .where(`donation.status = 'verified'`);
 
+  // Optimize: Use parameterized queries instead of string interpolation
   if (fromDate) {
-    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+    query.andWhere(`donation."createdAt" >= :fromDate`, { fromDate });
   }
 
   if (toDate) {
-    query.andWhere(`donation."createdAt" <= '${toDate}'`);
+    query.andWhere(`donation."createdAt" <= :toDate`, { toDate });
   }
 
   if (networkId) {
-    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
+    query.andWhere(`donation."transactionNetworkId" = :networkId`, {
+      networkId,
+    });
   }
 
   if (onlyVerified) {
