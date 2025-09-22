@@ -39,10 +39,10 @@ export const findQfRounds = async ({
       .addOrderBy('qf_round.priority', 'DESC')
       .addOrderBy('qf_round.endDate', 'ASC');
   } else {
-    // Default sorting: displaySize DESC first, then by priority ASC, then by endDate ASC
+    // Default sorting: displaySize DESC NULLS LAST, priority DESC NULLS LAST, endDate ASC
     query
-      .addOrderBy('qf_round.displaySize', 'DESC')
-      .addOrderBy('qf_round.priority', 'ASC')
+      .addOrderBy('qf_round.displaySize', 'DESC', 'NULLS LAST')
+      .addOrderBy('qf_round.priority', 'DESC', 'NULLS LAST')
       .addOrderBy('qf_round.endDate', 'ASC');
   }
   if (slug) {
