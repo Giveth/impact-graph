@@ -198,7 +198,7 @@ jobs:
           key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /giveth-all
+            cd giveth-all
             ## Update each backend service one by one
             ## First Deployment
             docker-compose rm -fs impact-graph-ql1
@@ -237,7 +237,7 @@ jobs:
           key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /giveth-all
+            cd giveth-all
             ## Update each backend service one by one
             ## First Deployment
             docker-compose rm -fs impact-graph-ql2
@@ -269,7 +269,7 @@ jobs:
           key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /giveth-all
+            cd giveth-all
             ## Update each backend service one by one
             ## First Deployment
             docker-compose rm -fs impact-graph-ql3
@@ -302,7 +302,7 @@ jobs:
           key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /giveth-all
+            cd giveth-all
             ## Update each backend service one by one
             ## Fourth Deployment
             docker-compose rm -fs impact-graph-ql4
