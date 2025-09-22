@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { withTheme } from 'styled-components';
 import {
   Box,
   Button,
@@ -188,4 +189,4 @@ const GlobalConfigComponent = () => {
   );
 };
 
-export default GlobalConfigComponent;
+export default withTheme(GlobalConfigComponent);

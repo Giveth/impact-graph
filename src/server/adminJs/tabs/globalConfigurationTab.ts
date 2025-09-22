@@ -1,4 +1,3 @@
-import adminJs from 'adminjs';
 import { GlobalConfiguration } from '../../../entities/globalConfiguration';
 import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
 import { setGlobalConfigurationValue } from '../../../repositories/globalConfigurationRepository';
@@ -7,15 +6,25 @@ export const globalConfigurationTab = {
   resource: GlobalConfiguration,
   options: {
     properties: {
-      // Hide all standard properties and use custom component instead
+      // Show key and value with inline editing
       key: {
-        isVisible: false,
+        isVisible: true,
+        isTitle: true,
+        isSortable: true,
       },
       value: {
-        isVisible: false,
+        isVisible: true,
+        isEditable: true,
+        type: 'number',
+        props: {
+          step: 0.1,
+          min: 0,
+          max: 1,
+        },
       },
       description: {
-        isVisible: false,
+        isVisible: true,
+        isEditable: false,
       },
       type: {
         isVisible: false,
@@ -44,8 +53,9 @@ export const globalConfigurationTab = {
         isAccessible: () => false,
       },
       edit: {
-        isVisible: false,
-        isAccessible: () => false,
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
       },
       show: {
         isVisible: false,
@@ -55,7 +65,6 @@ export const globalConfigurationTab = {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.SHOW),
-        component: adminJs.bundle('./components/GlobalConfigComponent'),
       },
       updateGlobalConfigs: {
         actionType: 'resource',
