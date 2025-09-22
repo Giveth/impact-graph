@@ -1078,17 +1078,13 @@ export class ProjectResolver {
       );
     }
     if (fields.qfRounds) {
+      query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+
+      // Apply activeOnly filtering if requested
       if (activeOnly) {
-        // Only join active QF rounds - project will still be returned with qfRounds: []
-        query = query.leftJoinAndSelect(
-          'project.qfRounds',
-          'qfRounds',
-          'qfRounds.isActive = :isActive',
-          { isActive: true },
-        );
-      } else {
-        // Join all QF rounds
-        query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+        query = query.andWhere('qfRounds.isActive = :isActive', {
+          isActive: true,
+        });
       }
 
       // Apply Priority sorting if requested
@@ -1200,17 +1196,13 @@ export class ProjectResolver {
       );
     }
     if (fields.qfRounds) {
+      query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+
+      // Apply activeOnly filtering if requested
       if (activeOnly) {
-        // Only join active QF rounds - project will still be returned with qfRounds: []
-        query = query.leftJoinAndSelect(
-          'project.qfRounds',
-          'qfRounds',
-          'qfRounds.isActive = :isActive',
-          { isActive: true },
-        );
-      } else {
-        // Join all QF rounds
-        query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+        query = query.andWhere('qfRounds.isActive = :isActive', {
+          isActive: true,
+        });
       }
 
       // Apply Priority sorting if requested
