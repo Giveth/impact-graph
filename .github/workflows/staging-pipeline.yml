@@ -201,10 +201,10 @@ jobs:
             cd /giveth-all
             ## Update each backend service one by one
             ## First Deployment
-            docker compose rm -fs impact-graph-ql1
-            docker compose rm -fs impact-graph-job
-            docker compose up --force-recreate -d impact-graph-ql1
-            docker compose up --force-recreate -d impact-graph-job
+            docker-compose rm -fs impact-graph-ql1
+            docker-compose rm -fs impact-graph-job
+            docker-compose up --force-recreate -d impact-graph-ql1
+            docker-compose up --force-recreate -d impact-graph-job
 
             # Wait for impact-graph-ql1 to be healthy (timeout after 5 minutes)
             echo "Waiting for impact-graph-ql1 to become healthy..."
@@ -240,8 +240,8 @@ jobs:
             cd /giveth-all
             ## Update each backend service one by one
             ## First Deployment
-            docker compose rm -fs impact-graph-ql2
-            docker compose up --force-recreate -d impact-graph-ql2
+            docker-compose rm -fs impact-graph-ql2
+            docker-compose up --force-recreate -d impact-graph-ql2
 
             # Wait for impact-graph-ql2 to be healthy (timeout after 5 minutes)
             echo "Waiting for impact-graph-ql2 to become healthy..."
@@ -272,8 +272,8 @@ jobs:
             cd /giveth-all
             ## Update each backend service one by one
             ## First Deployment
-            docker compose rm -fs impact-graph-ql3
-            docker compose up --force-recreate -d impact-graph-ql3
+            docker-compose rm -fs impact-graph-ql3
+            docker-compose up --force-recreate -d impact-graph-ql3
 
             # Wait for impact-graph-ql3 to be healthy (timeout after 5 minutes)
             echo "Waiting for impact-graph-ql3 to become healthy..."
@@ -305,8 +305,8 @@ jobs:
             cd /giveth-all
             ## Update each backend service one by one
             ## Fourth Deployment
-            docker compose rm -fs impact-graph-ql4
-            docker compose up --force-recreate -d impact-graph-ql4
+            docker-compose rm -fs impact-graph-ql4
+            docker-compose up --force-recreate -d impact-graph-ql4
 
             # Wait for impact-graph-ql4 to be healthy (timeout after 5 minutes)
             echo "Waiting for impact-graph-ql4 to become healthy..."
