@@ -239,7 +239,7 @@ jobs:
           script: |
             cd /giveth-all
             ## Update each backend service one by one
-            ## First Deployment
+            ## Second Deployment
             docker compose rm -fs impact-graph-ql2
             docker compose up --force-recreate -d impact-graph-ql2
 
@@ -271,7 +271,7 @@ jobs:
           script: |
             cd /giveth-all
             ## Update each backend service one by one
-            ## First Deployment
+            ## Third Deployment
             docker compose rm -fs impact-graph-ql3
             docker compose up --force-recreate -d impact-graph-ql3
 
@@ -304,7 +304,7 @@ jobs:
           script: |
             cd /giveth-all
             ## Update each backend service one by one
-            ## First Deployment
+            ## Fourth Deployment
             docker compose rm -fs impact-graph-ql4
             docker compose up --force-recreate -d impact-graph-ql4
 
