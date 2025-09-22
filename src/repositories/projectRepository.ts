@@ -362,17 +362,6 @@ export const findProjectIdBySlug = (slug: string): Promise<Project | null> => {
     .getOne();
 };
 
-export const findProjectBySlugWithoutAnyJoin = (
-  slug: string,
-): Promise<Project | null> => {
-  // check current slug and previous slugs
-  return Project.createQueryBuilder('project')
-    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-      slug,
-    })
-    .getOne();
-};
-
 export const verifyMultipleProjects = async (params: {
   verified: boolean;
   projectsIds: string[] | number[];
@@ -453,18 +442,6 @@ export const findProjectByWalletAddressAndNetwork = async (
     .andWhere(`address."networkId" = :network`, { network })
     .leftJoinAndSelect('project.status', 'status')
     .getOne();
-};
-
-export const userIsOwnerOfProject = async (
-  viewerUserId: number,
-  slug: string,
-): Promise<boolean> => {
-  return (
-    await Project.query(
-      `SELECT EXISTS(SELECT * FROM project WHERE "adminUserId" = $1 AND slug = $2)`,
-      [viewerUserId, slug],
-    )
-  )[0].exists;
 };
 
 export const totalProjectsPerDate = async (
