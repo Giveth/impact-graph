@@ -193,9 +193,9 @@ jobs:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          host: ${{ secrets.STAGING_HOST_ALL }}
+          username: ${{ secrets.STAGING_USERNAME_ALL }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd /giveth-all
@@ -232,9 +232,9 @@ jobs:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          host: ${{ secrets.STAGING_HOST_ALL }}
+          username: ${{ secrets.STAGING_USERNAME_ALL }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd /giveth-all
@@ -264,9 +264,9 @@ jobs:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          host: ${{ secrets.STAGING_HOST_ALL }}
+          username: ${{ secrets.STAGING_USERNAME_ALL }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd /giveth-all
@@ -288,4 +288,40 @@ jobs:
                 exit 1
             fi
             echo "Third deployment phase completed successfully"
+<<<<<<< Updated upstream
+=======
+            echo "Full deployment completed successfully"
+
+  rollout-deploy-4:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST_ALL }}
+          username: ${{ secrets.STAGING_USERNAME_ALL }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /giveth-all
+            ## Update each backend service one by one
+            ## Fourth Deployment
+            docker compose rm -fs impact-graph-ql4
+            docker compose up --force-recreate -d impact-graph-ql4
+
+            # Wait for impact-graph-ql4 to be healthy (timeout after 5 minutes)
+            echo "Waiting for impact-graph-ql4 to become healthy..."
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" impact-graph-ql4)" == "\"healthy\"" ]; do echo "Waiting for impact-graph-ql4 to be healthy..."; sleep 5; done'
+            if [ $? -eq 124 ]; then
+                echo "Timeout waiting for impact-graph-ql4 to become healthy"
+                exit 1
+            fi
+            # Check if impact-graph-ql4 is healthy
+            if [ "$(docker inspect --format='{{json .State.Health.Status}}' impact-graph-ql4)" != "\"healthy\"" ]; then
+                echo "impact-graph-ql4 is not healthy, stopping deployment"
+                exit 1
+            fi
+            echo "Fourth deployment phase completed successfully"
+>>>>>>> Stashed changes
             echo "Full deployment completed successfully"
