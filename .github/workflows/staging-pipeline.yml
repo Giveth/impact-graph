@@ -184,7 +184,7 @@ jobs:
           script: |
             cd giveth-all
             docker image prune -a --force
-            docker-compose pull
+            docker-compose pull impact-graph-ql1
   
   rollout-deploy-1:
     needs: deploy
