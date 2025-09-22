@@ -288,8 +288,6 @@ jobs:
                 exit 1
             fi
             echo "Third deployment phase completed successfully"
-<<<<<<< Updated upstream
-=======
             echo "Full deployment completed successfully"
 
   rollout-deploy-4:
@@ -323,5 +321,4 @@ jobs:
                 exit 1
             fi
             echo "Fourth deployment phase completed successfully"
->>>>>>> Stashed changes
             echo "Full deployment completed successfully"
