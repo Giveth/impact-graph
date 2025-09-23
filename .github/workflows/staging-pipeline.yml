@@ -202,13 +202,13 @@ jobs:
             ## Update each backend service one by one
             ## First Deployment
             docker-compose rm -fs impact-graph-ql1
-            docker-compose rm -fs impact-graph-job
+            docker-compose rm -fs impact-graph-jobs
             docker-compose up --force-recreate -d impact-graph-ql1
-            docker-compose up --force-recreate -d impact-graph-job
+            docker-compose up --force-recreate -d impact-graph-jobs
 
             # Wait for impact-graph-ql1 to be healthy (timeout after 5 minutes)
             echo "Waiting for impact-graph-ql1 to become healthy..."
-            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" impact-graph-ql1)" == "\"healthy\"" ]; do echo "Waiting for qacc-be-graph-ql1 to be healthy..."; sleep 5; done'
+            timeout 300 bash -c 'until [ "$(docker inspect --format="{{json .State.Health.Status}}" impact-graph-ql1)" == "\"healthy\"" ]; do echo "Waiting for impact-graph-ql1 to be healthy..."; sleep 5; done'
             if [ $? -eq 124 ]; then
                 echo "Timeout waiting for impact-graph-ql1 to become healthy"
                 exit 1
@@ -219,8 +219,8 @@ jobs:
                 exit 1
             fi
             # Check if impact-graph-job is running
-            if [ "$(docker inspect --format='{{json .State.Status}}' impact-graph-job)" != "\"running\"" ]; then
-                echo "impact-graph-job is not running, stopping deployment"
+            if [ "$(docker inspect --format='{{json .State.Status}}' impact-graph-jobs)" != "\"running\"" ]; then
+                echo "impact-graph-jobs is not running, stopping deployment"
                 exit 1
             fi
             echo "First deployment phase completed successfully"
