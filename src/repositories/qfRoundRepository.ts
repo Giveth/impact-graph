@@ -208,8 +208,11 @@ export const findActiveQfRound = async (
 export const findActiveQfRounds = async (
   noCache?: boolean,
 ): Promise<QfRound[] | null> => {
-  const query =
-    QfRound.createQueryBuilder('qfRound').where('"isActive" = true');
+  const query = QfRound.createQueryBuilder('qfRound')
+    .where('"isActive" = true')
+    .addOrderBy('qfRound.displaySize', 'DESC', 'NULLS LAST')
+    .addOrderBy('qfRound.priority', 'DESC', 'NULLS LAST')
+    .addOrderBy('qfRound.endDate', 'ASC');
   if (noCache) {
     return query.getMany();
   }
