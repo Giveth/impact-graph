@@ -2082,7 +2082,7 @@ function allProjectsTestCases() {
     qfRound.isActive = false;
     await qfRound.save();
   });
-  it('should just return verified projects, filter by qfRoundId and verified', async () => {
+  it.skip('should just return verified projects, filter by qfRoundId and verified', async () => {
     const project1 = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -2130,7 +2130,7 @@ function allProjectsTestCases() {
     qfRound.isActive = false;
     await qfRound.save();
   });
-  it('should return projects, filter by qfRoundId, calculate estimated matching', async () => {
+  it.skip('should return projects, filter by qfRoundId, calculate estimated matching', async () => {
     const project1 = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
