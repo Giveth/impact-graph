@@ -54,6 +54,11 @@ export const getAllProjectsRelatedToActiveCampaigns = async (): Promise<{
   return projectCampaignCache || {};
 };
 
+export const clearProjectCampaignCache = async (): Promise<void> => {
+  const { redis } = await import('../redis');
+  await redis.del(PROJECT_CAMPAIGN_CACHE_REDIS_KEY);
+};
+
 export const cacheProjectCampaigns = async (): Promise<void> => {
   try {
     logger.debug('cacheProjectCampaigns() has been called');

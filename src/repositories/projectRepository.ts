@@ -201,10 +201,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   query = ProjectResolver.addFiltersQuery(query, filters);
   if (slugArray && slugArray.length > 0) {
     // This is used for getting projects that manually has been set to campaigns
-    // TODO this doesnt query slug in project.slugHistory, but we should add it later
-    query.andWhere(`project.slug IN (:...slugs)`, {
-      slugs: slugArray,
-    });
+    // Check both current slug and slug history
+    query.andWhere(
+      `(project.slug IN (:...slugs) OR project.slugHistory && :slugs)`,
+      {
+        slugs: slugArray,
+      },
+    );
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 

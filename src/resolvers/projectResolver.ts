@@ -1240,18 +1240,12 @@ export class ProjectResolver {
       );
     }
     if (fields.campaigns) {
-      const campaignSlugs = (await getAllProjectsRelatedToActiveCampaigns())[
-        minimalProject.id
-      ];
+      // Use a simpler approach: join all active campaigns and filter in application layer
       query = query.leftJoinAndMapMany(
         'project.campaigns',
         Campaign,
         'campaigns',
-        '((campaigns."relatedProjectsSlugs" && ARRAY[:slug]::text[] OR campaigns."relatedProjectsSlugs" && project."slugHistory") AND campaigns."isActive" = TRUE) OR (campaigns.slug = ANY(:campaignSlugs))',
-        {
-          slug,
-          campaignSlugs,
-        },
+        'campaigns."isActive" = TRUE',
       );
     }
     if (fields.adminUser) {
@@ -1279,6 +1273,20 @@ export class ProjectResolver {
 
     const project = await query.getOne();
     canUserVisitProject(project, user?.userId);
+
+    // Filter campaigns if they were requested
+    if (fields.campaigns && project) {
+      const projectCampaignCache =
+        await getAllProjectsRelatedToActiveCampaigns();
+      const campaignSlugs = projectCampaignCache[minimalProject.id] || [];
+
+      // Filter campaigns to only include those that are in the cached relationship
+      if (project.campaigns) {
+        project.campaigns = project.campaigns.filter(campaign => {
+          return campaignSlugs.includes(campaign.slug);
+        });
+      }
+    }
 
     if (project?.projectType === 'cause') {
       project.causeProjects = await (project as Cause).loadCauseProjects(
