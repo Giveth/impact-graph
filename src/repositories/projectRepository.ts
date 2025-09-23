@@ -698,8 +698,8 @@ export const findQfRoundProjects = async (
     ])
     .leftJoinAndSelect(
       'project.projectQfRoundRelations',
-      'projectQfRound',
-      'projectQfRound.qfRoundId = :qfRoundId AND projectQfRound.projectId = project.id',
+      'projectQfRoundRelations',
+      'projectQfRoundRelations.qfRoundId = :qfRoundId AND projectQfRoundRelations.projectId = project.id',
       { qfRoundId },
     )
     .innerJoinAndSelect(
@@ -727,7 +727,11 @@ export const findQfRoundProjects = async (
   // Apply sorting
   if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
     query
-      .orderBy('projectQfRound.sumDonationValueUsd', 'DESC', 'NULLS LAST')
+      .orderBy(
+        'projectQfRoundRelations.sumDonationValueUsd',
+        'DESC',
+        'NULLS LAST',
+      )
       .addOrderBy('project.isGivbackEligible', 'DESC')
       .addOrderBy('project.verified', 'DESC')
       .addOrderBy('project.creationDate', 'DESC');

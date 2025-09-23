@@ -2664,6 +2664,7 @@ export class ProjectResolver {
           reviewStatus: project.reviewStatus,
           projectType: project.projectType,
           projectInstantPower: project.projectInstantPower,
+          projectQfRoundRelations: project.projectQfRoundRelations,
           updatedAt: project.updatedAt,
           creationDate: project.creationDate,
           latestUpdateCreationDate: project.latestUpdateCreationDate,
