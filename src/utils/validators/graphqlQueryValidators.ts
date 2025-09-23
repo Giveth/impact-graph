@@ -117,7 +117,7 @@ export const createDonationQueryValidator = Joi.object({
         {
           is: ChainType.SOLANA,
           then: Joi.string()
-            .required()
+            .allow(null, '')
             .pattern(solanaTxRegex)
             .messages({
               'string.pattern.base': i18n.__(
@@ -128,7 +128,7 @@ export const createDonationQueryValidator = Joi.object({
         {
           is: ChainType.CARDANO,
           then: Joi.string()
-            .required()
+            .allow(null, '')
             .pattern(cardanoTxRegex)
             .messages({
               'string.pattern.base': i18n.__(
@@ -139,7 +139,7 @@ export const createDonationQueryValidator = Joi.object({
         {
           is: ChainType.EVM,
           then: Joi.string()
-            .required()
+            .allow(null, '')
             .pattern(txHashRegex)
             .messages({
               'string.pattern.base': i18n.__(
@@ -149,7 +149,7 @@ export const createDonationQueryValidator = Joi.object({
         },
       ],
       otherwise: Joi.string()
-        .required()
+        .allow(null, '')
         .pattern(txHashRegex)
         .messages({
           'string.pattern.base': i18n.__(
