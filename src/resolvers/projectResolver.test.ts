@@ -116,11 +116,28 @@ import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { cacheProjectCampaigns } from '../services/campaignService';
 import { ChainType } from '../types/network';
 import { QfRound } from '../entities/qfRound';
+import { ProjectQfRound } from '../entities/projectQfRound';
 import seedTokens from '../../migration/data/seedTokens';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
 ]).message;
+
+// Helper function to create ProjectQfRound entities
+const createProjectQfRoundRelation = async (
+  projectId: number,
+  qfRoundId: number,
+  sumDonationValueUsd: number = 0,
+  countUniqueDonors: number = 0,
+): Promise<ProjectQfRound> => {
+  const relation = ProjectQfRound.create({
+    projectId,
+    qfRoundId,
+    sumDonationValueUsd,
+    countUniqueDonors,
+  });
+  return await relation.save();
+};
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -6616,6 +6633,10 @@ function qfProjectsTestCases() {
       project2.id,
     );
 
+    // Create ProjectQfRound relations
+    await createProjectQfRoundRelation(project1.id, qfRound.id, 100, 1);
+    await createProjectQfRoundRelation(project2.id, qfRound.id, 200, 1);
+
     // Test the query
     const result = await axios.post(graphqlUrl, {
       query: qfProjectsQuery,
@@ -6647,8 +6668,10 @@ function qfProjectsTestCases() {
     assert.isOk(project1Data.qfRounds);
     assert.equal(project1Data.qfRounds.length, 1);
     assert.equal(project1Data.qfRounds[0].id, qfRound.id);
-    assert.isOk(project1Data.qfRoundStats);
-    assert.equal(project1Data.qfRoundStats.roundId, qfRound.id);
+    assert.isOk(project1Data.projectQfRoundRelations);
+    assert.isObject(project1Data.projectQfRoundRelations);
+    assert.isDefined(project1Data.projectQfRoundRelations.sumDonationValueUsd);
+    assert.isDefined(project1Data.projectQfRoundRelations.countUniqueDonors);
 
     // Verify project 2 data (find by title since IDs might be different)
     const project2Data = projects.find(p => p.title === 'QF Project 2');
@@ -6666,6 +6689,7 @@ function qfProjectsTestCases() {
     await QfRound.delete({ id: qfRound.id });
     await User.delete({ id: In([user1.id, user2.id]) });
     await Donation.delete({ id: In([donation1.id, donation2.id]) });
+    await ProjectQfRound.delete({ qfRoundId: qfRound.id });
   });
 
   it('should return empty array when no projects are associated with QF round', async () => {
@@ -6821,6 +6845,9 @@ function qfProjectsTestCases() {
       project.id,
     );
 
+    // Create ProjectQfRound relation
+    await createProjectQfRoundRelation(project.id, qfRound.id, 400, 2);
+
     // Test the query
     const result = await axios.post(graphqlUrl, {
       query: qfProjectsQuery,
@@ -6831,16 +6858,17 @@ function qfProjectsTestCases() {
 
     assert.isOk(result);
     const projectData = result.data.data.qfProjects.projects[0];
-    assert.isOk(projectData.qfRoundStats);
-    assert.equal(projectData.qfRoundStats.roundId, qfRound.id);
-    assert.equal(projectData.qfRoundStats.totalRaisedInRound, 400); // 150 + 250
-    assert.equal(projectData.qfRoundStats.totalDonorsInRound, 2); // 2 unique donors
+    assert.isOk(projectData.projectQfRoundRelations);
+    assert.isObject(projectData.projectQfRoundRelations);
+    assert.equal(projectData.projectQfRoundRelations.sumDonationValueUsd, 400); // 150 + 250
+    assert.equal(projectData.projectQfRoundRelations.countUniqueDonors, 2); // 2 unique donors
 
     // Cleanup
     await removeProjectAndRelatedEntities(project.id);
     await QfRound.delete({ id: qfRound.id });
     await User.delete({ id: In([user1.id, user2.id]) });
     await Donation.delete({ id: In([donation1.id, donation2.id]) });
+    await ProjectQfRound.delete({ qfRoundId: qfRound.id });
   });
 
   it('should support pagination, filtering, and sorting for QF projects', async () => {
@@ -7001,6 +7029,467 @@ function qfProjectsTestCases() {
     await removeProjectAndRelatedEntities(project3.id);
     await QfRound.delete({ id: qfRound.id });
     await User.delete({ id: In([user1.id, user2.id, user3.id]) });
+  });
+
+  it('should return projectQfRoundRelations with correct structure and data', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Relations Test QF Round',
+      slug: `relations-test-qf-round-${Date.now()}`,
+      allocatedFund: 150000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const timestamp = Date.now();
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Relations Test Project',
+      slug: `relations-test-project-${timestamp}`,
+      adminUserId: user.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: true,
+      isGivbackEligible: true,
+    });
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    // Create donations to populate the relation
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 500,
+        qfRoundId: qfRound.id,
+        status: 'verified',
+      },
+      user.id,
+      project.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 300,
+        qfRoundId: qfRound.id,
+        status: 'verified',
+      },
+      user.id,
+      project.id,
+    );
+
+    // Create ProjectQfRound relation
+    await createProjectQfRoundRelation(project.id, qfRound.id, 800, 1);
+
+    // Test the query
+    const result = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projectData = result.data.data.qfProjects.projects[0];
+
+    // Verify projectQfRoundRelations structure
+    assert.isOk(projectData.projectQfRoundRelations);
+    assert.isObject(projectData.projectQfRoundRelations);
+
+    // Verify the relation has the correct fields
+    assert.isDefined(projectData.projectQfRoundRelations.sumDonationValueUsd);
+    assert.isDefined(projectData.projectQfRoundRelations.countUniqueDonors);
+    assert.isNumber(projectData.projectQfRoundRelations.sumDonationValueUsd);
+    assert.isNumber(projectData.projectQfRoundRelations.countUniqueDonors);
+
+    // Verify the values are correct (should be aggregated from donations)
+    assert.equal(projectData.projectQfRoundRelations.sumDonationValueUsd, 800); // 500 + 300
+    assert.equal(projectData.projectQfRoundRelations.countUniqueDonors, 1); // Same user made both donations
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(project.id);
+    await QfRound.delete({ id: qfRound.id });
+    await User.delete({ id: user.id });
+    await Donation.delete({ id: In([donation1.id, donation2.id]) });
+    await ProjectQfRound.delete({ qfRoundId: qfRound.id });
+  });
+
+  it('should handle projects with multiple QF rounds correctly', async () => {
+    // Create two QF rounds
+    const qfRound1 = QfRound.create({
+      isActive: true,
+      name: 'Multi Round 1',
+      slug: `multi-round-1-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound1.save();
+
+    const qfRound2 = QfRound.create({
+      isActive: true,
+      name: 'Multi Round 2',
+      slug: `multi-round-2-${Date.now()}`,
+      allocatedFund: 200000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(15, 'days').toDate(),
+    });
+    await qfRound2.save();
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const timestamp = Date.now();
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Multi Round Project',
+      slug: `multi-round-project-${timestamp}`,
+      adminUserId: user.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: true,
+      isGivbackEligible: true,
+    });
+    project.qfRounds = [qfRound1, qfRound2];
+    await project.save();
+
+    // Create donations for both rounds
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 100,
+        qfRoundId: qfRound1.id,
+        status: 'verified',
+      },
+      user.id,
+      project.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 200,
+        qfRoundId: qfRound2.id,
+        status: 'verified',
+      },
+      user.id,
+      project.id,
+    );
+
+    // Create ProjectQfRound relations for both rounds
+    await createProjectQfRoundRelation(project.id, qfRound1.id, 100, 1);
+    await createProjectQfRoundRelation(project.id, qfRound2.id, 200, 1);
+
+    // Test query for first QF round
+    const result1 = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound1.id,
+      },
+    });
+
+    assert.isOk(result1);
+    const projectData1 = result1.data.data.qfProjects.projects[0];
+    assert.isOk(projectData1.projectQfRoundRelations);
+    assert.isObject(projectData1.projectQfRoundRelations);
+    assert.equal(projectData1.projectQfRoundRelations.sumDonationValueUsd, 100);
+    assert.equal(projectData1.projectQfRoundRelations.countUniqueDonors, 1);
+
+    // Test query for second QF round
+    const result2 = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound2.id,
+      },
+    });
+
+    assert.isOk(result2);
+    const projectData2 = result2.data.data.qfProjects.projects[0];
+    assert.isOk(projectData2.projectQfRoundRelations);
+    assert.isObject(projectData2.projectQfRoundRelations);
+    assert.equal(projectData2.projectQfRoundRelations.sumDonationValueUsd, 200);
+    assert.equal(projectData2.projectQfRoundRelations.countUniqueDonors, 1);
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(project.id);
+    await QfRound.delete({ id: qfRound1.id });
+    await QfRound.delete({ id: qfRound2.id });
+    await User.delete({ id: user.id });
+    await Donation.delete({ id: In([donation1.id, donation2.id]) });
+    await ProjectQfRound.delete({ qfRoundId: In([qfRound1.id, qfRound2.id]) });
+  });
+
+  it('should return empty projectQfRoundRelations when no donations exist', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'No Donations QF Round',
+      slug: `no-donations-qf-round-${Date.now()}`,
+      allocatedFund: 50000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const timestamp = Date.now();
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'No Donations Project',
+      slug: `no-donations-project-${timestamp}`,
+      adminUserId: user.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: true,
+      isGivbackEligible: true,
+    });
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    // Create ProjectQfRound relation with default values (no donations)
+    await createProjectQfRoundRelation(project.id, qfRound.id, 0, 0);
+
+    // Test the query (no donations created)
+    const result = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projectData = result.data.data.qfProjects.projects[0];
+
+    // Should still have projectQfRoundRelations object, but with default values
+    assert.isOk(projectData.projectQfRoundRelations);
+    assert.isObject(projectData.projectQfRoundRelations);
+    // Should have default values (0) when no donations exist
+    assert.equal(projectData.projectQfRoundRelations.sumDonationValueUsd, 0);
+    assert.equal(projectData.projectQfRoundRelations.countUniqueDonors, 0);
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(project.id);
+    await QfRound.delete({ id: qfRound.id });
+    await User.delete({ id: user.id });
+    await ProjectQfRound.delete({ qfRoundId: qfRound.id });
+  });
+
+  it('should handle multiple unique donors correctly', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Multiple Donors QF Round',
+      slug: `multiple-donors-qf-round-${Date.now()}`,
+      allocatedFund: 300000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const timestamp = Date.now();
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Multiple Donors Project',
+      slug: `multiple-donors-project-${timestamp}`,
+      adminUserId: user1.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: true,
+      isGivbackEligible: true,
+    });
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    // Create donations from different users
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 100,
+        qfRoundId: qfRound.id,
+        status: 'verified',
+      },
+      user1.id,
+      project.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 200,
+        qfRoundId: qfRound.id,
+        status: 'verified',
+      },
+      user2.id,
+      project.id,
+    );
+
+    const donation3 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 300,
+        qfRoundId: qfRound.id,
+        status: 'verified',
+      },
+      user3.id,
+      project.id,
+    );
+
+    // Create ProjectQfRound relation
+    await createProjectQfRoundRelation(project.id, qfRound.id, 600, 3);
+
+    // Test the query
+    const result = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+      },
+    });
+
+    assert.isOk(result);
+    const projectData = result.data.data.qfProjects.projects[0];
+
+    assert.isOk(projectData.projectQfRoundRelations);
+    assert.isObject(projectData.projectQfRoundRelations);
+
+    // Should have correct aggregated values
+    assert.equal(projectData.projectQfRoundRelations.sumDonationValueUsd, 600); // 100 + 200 + 300
+    assert.equal(projectData.projectQfRoundRelations.countUniqueDonors, 3); // 3 unique donors
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(project.id);
+    await QfRound.delete({ id: qfRound.id });
+    await User.delete({ id: In([user1.id, user2.id, user3.id]) });
+    await Donation.delete({
+      id: In([donation1.id, donation2.id, donation3.id]),
+    });
+    await ProjectQfRound.delete({ qfRoundId: qfRound.id });
+  });
+
+  it('should filter projectQfRoundRelations to only return data for the requested QF round', async () => {
+    const timestamp = Date.now();
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    // Create two QF rounds
+    const qfRound1 = QfRound.create({
+      isActive: true,
+      name: 'Test QF Round 1',
+      slug: `test-qf-round-1-${timestamp}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound1.save();
+
+    const qfRound2 = QfRound.create({
+      isActive: true,
+      name: 'Test QF Round 2',
+      slug: `test-qf-round-2-${timestamp}`,
+      allocatedFund: 200000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound2.save();
+
+    // Create project
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'QF Project 1',
+      slug: `qf-project-1-${timestamp}`,
+      adminUserId: user1.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: true,
+      isGivbackEligible: true,
+    });
+    project1.qfRounds = [qfRound1, qfRound2];
+    await project1.save();
+
+    // Create donations for both QF rounds
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 100,
+        qfRoundId: qfRound1.id,
+        status: 'verified',
+      },
+      user1.id,
+      project1.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        valueUsd: 200,
+        qfRoundId: qfRound2.id,
+        status: 'verified',
+      },
+      user1.id,
+      project1.id,
+    );
+
+    // Create ProjectQfRound relations for both rounds
+    await createProjectQfRoundRelation(project1.id, qfRound1.id, 100, 1);
+    await createProjectQfRoundRelation(project1.id, qfRound2.id, 200, 1);
+
+    // Test the query for qfRound1 - should only return data for qfRound1
+    const result1 = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound1.id,
+      },
+    });
+
+    assert.isOk(result1);
+    assert.isOk(result1.data.data.qfProjects);
+    assert.equal(result1.data.data.qfProjects.totalCount, 1);
+    assert.equal(result1.data.data.qfProjects.projects.length, 1);
+
+    const project1Data = result1.data.data.qfProjects.projects[0];
+    assert.isOk(project1Data.projectQfRoundRelations);
+    assert.isObject(project1Data.projectQfRoundRelations);
+    assert.equal(project1Data.projectQfRoundRelations.sumDonationValueUsd, 100);
+    assert.equal(project1Data.projectQfRoundRelations.countUniqueDonors, 1);
+
+    // Test the query for qfRound2 - should only return data for qfRound2
+    const result2 = await axios.post(graphqlUrl, {
+      query: qfProjectsQuery,
+      variables: {
+        qfRoundId: qfRound2.id,
+      },
+    });
+
+    assert.isOk(result2);
+    assert.isOk(result2.data.data.qfProjects);
+    assert.equal(result2.data.data.qfProjects.totalCount, 1);
+    assert.equal(result2.data.data.qfProjects.projects.length, 1);
+
+    const project2Data = result2.data.data.qfProjects.projects[0];
+    assert.isOk(project2Data.projectQfRoundRelations);
+    assert.isObject(project2Data.projectQfRoundRelations);
+    assert.equal(project2Data.projectQfRoundRelations.sumDonationValueUsd, 200);
+    assert.equal(project2Data.projectQfRoundRelations.countUniqueDonors, 1);
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(project1.id);
+    await QfRound.delete({ id: In([qfRound1.id, qfRound2.id]) });
+    await User.delete({ id: user1.id });
+    await Donation.delete({ id: In([donation1.id, donation2.id]) });
+    await ProjectQfRound.delete({ qfRoundId: In([qfRound1.id, qfRound2.id]) });
   });
 }
 
