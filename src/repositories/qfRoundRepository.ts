@@ -208,8 +208,11 @@ export const findActiveQfRound = async (
 export const findActiveQfRounds = async (
   noCache?: boolean,
 ): Promise<QfRound[] | null> => {
-  const query =
-    QfRound.createQueryBuilder('qfRound').where('"isActive" = true');
+  const query = QfRound.createQueryBuilder('qfRound')
+    .where('"isActive" = true')
+    .addOrderBy('qfRound.displaySize', 'DESC', 'NULLS LAST')
+    .addOrderBy('qfRound.priority', 'DESC', 'NULLS LAST')
+    .addOrderBy('qfRound.endDate', 'ASC');
   if (noCache) {
     return query.getMany();
   }
@@ -267,6 +270,27 @@ export const getQfRoundTotalSqrtRootSumSquared = async (qfRoundId: number) => {
   return result ? result.totalSqrtRootSumSquared : 0;
 };
 
+export const getQfRoundTotalSqrtRootSumSquaredInAllQfRounds = async (
+  qfRoundIds: number[],
+): Promise<{ qfRoundId: number; totalSqrtRootSumSquared: number }[]> => {
+  if (qfRoundIds.length === 0) return [];
+
+  const result = await ProjectEstimatedMatchingView.createQueryBuilder()
+    .select('"qfRoundId", SUM("sqrtRootSumSquared")', 'totalSqrtRootSumSquared')
+    .where('"qfRoundId" IN (:...qfRoundIds)', { qfRoundIds })
+    .groupBy('"qfRoundId"')
+    .cache(
+      'getDonationsTotalSqrtRootSumSquaredAll_' + qfRoundIds.join('_'),
+      qfRoundEstimatedMatchingParamsCacheDuration || 600000,
+    )
+    .getRawMany();
+
+  return result.map(row => ({
+    qfRoundId: row.qfRoundId,
+    totalSqrtRootSumSquared: row.totalSqrtRootSumSquared || 0,
+  }));
+};
+
 export async function getProjectDonationsSqrtRootSum(
   projectId: number,
   qfRoundId: number,
@@ -283,6 +307,30 @@ export async function getProjectDonationsSqrtRootSum(
     )
     .getRawOne();
   return result ? result.sqrtRootSum : 0;
+}
+
+export async function getProjectDonationsSqrtRootSumInAllQfRounds(
+  projectId: number,
+  qfRoundIds: number[],
+): Promise<{ projectId: number; qfRoundId: number; sqrtRootSum: number }[]> {
+  if (qfRoundIds.length === 0) return [];
+
+  const result = await ProjectEstimatedMatchingView.createQueryBuilder()
+    .select('"projectId", "qfRoundId", "sqrtRootSum"')
+    .where('"projectId" = :projectId AND "qfRoundId" IN (:...qfRoundIds)', {
+      projectId,
+      qfRoundIds,
+    })
+    .cache(
+      'projectDonationsSqrtRootSumAll_' +
+        projectId +
+        '_' +
+        qfRoundIds.join('_'),
+      qfRoundEstimatedMatchingParamsCacheDuration || 600000,
+    )
+    .getRawMany();
+
+  return result;
 }
 
 export const getQfRoundStats = async (

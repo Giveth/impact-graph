@@ -87,6 +87,7 @@ import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput'
 import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
+  filterProjectsQueryOptimized,
   findProjectById,
   findProjectIdBySlug,
   findQfRoundProjects,
@@ -371,6 +372,76 @@ class GetProjectsArgs {
 
   @Field(_type => String, { nullable: true })
   qfRoundSlug?: string;
+
+  @Field({ nullable: true })
+  includeUnlisted?: boolean;
+
+  @Field(_type => String, { nullable: true, defaultValue: 'project' })
+  projectType?: string;
+}
+
+@Service()
+@ArgsType()
+class GetOptimizedProjectsArgs {
+  @Field(_type => Int, { defaultValue: 0 })
+  @Min(0)
+  skip: number;
+
+  @Field(_type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  limit: number;
+
+  @Field(_type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  take: number;
+
+  @Field(_type => OrderBy, {
+    defaultValue: {
+      field: OrderField.GIVPower,
+      direction: OrderDirection.DESC,
+    },
+  })
+  orderBy: OrderBy;
+
+  @Field(_type => String, { nullable: true })
+  searchTerm: string;
+
+  @Field({ nullable: true })
+  category: string;
+
+  @Field({ nullable: true })
+  mainCategory: string;
+
+  @Field(_type => FilterBy, {
+    nullable: true,
+    defaultValue: { field: null, value: null },
+  })
+  filterBy: FilterBy;
+
+  @Field(_type => [FilterField], {
+    nullable: true,
+    defaultValue: [],
+  })
+  filters: FilterField[];
+
+  @Field(_type => String, {
+    nullable: true,
+  })
+  campaignSlug: string;
+
+  @Field(_type => SortingField, {
+    nullable: true,
+    defaultValue: SortingField.InstantBoosting,
+  })
+  sortingBy: SortingField;
+
+  @Field({ nullable: true })
+  admin?: number;
+
+  @Field(_type => Int, { nullable: true })
+  connectedWalletUserId?: number;
 
   @Field({ nullable: true })
   includeUnlisted?: boolean;
@@ -876,6 +947,7 @@ export class ProjectResolver {
 
   @Query(_returns => AllProjects)
   async allProjects(
+    // Original query - kept unchanged for backward compatibility
     @Args()
     {
       limit,
@@ -930,6 +1002,90 @@ export class ProjectResolver {
     }
 
     const projectsQuery = filterProjectsQuery(filterQueryParams);
+
+    projectsFiltersThreadPool.completed();
+    const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
+      hasher =>
+        hasher.hashProjectFilters({
+          ...filterQueryParams,
+          suffix: 'pq',
+        }),
+    );
+
+    const categoriesResolver = Category.find({
+      cache: projectFiltersCacheDuration,
+    });
+
+    // eslint-disable-next-line prefer-const
+    [projects, totalCount] = await projectsQuery
+      .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
+      .getManyAndCount();
+
+    const userId = connectedWalletUserId || user?.userId;
+    if (projects.length > 0 && userId) {
+      const userReactions = await findUserReactionsByProjectIds(
+        userId,
+        projects.map(project => project.id),
+      );
+
+      if (userReactions.length > 0) {
+        projects = await projectsFiltersThreadPool.queue(merger =>
+          merger.mergeUserReactionsToProjects(projects, userReactions),
+        );
+      }
+    }
+
+    const categories = await categoriesResolver;
+
+    return { projects, totalCount, categories, campaign };
+  }
+
+  @Query(_returns => AllProjects)
+  async newAllProjects(
+    // Optimized query for Multi QF feature - will replace allProjects after FE migration
+    @Args()
+    {
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      connectedWalletUserId,
+      campaignSlug,
+      includeUnlisted,
+      projectType,
+    }: GetOptimizedProjectsArgs,
+    @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
+  ): Promise<AllProjects> {
+    let projects: Project[];
+    let totalCount: number;
+
+    // Removed activeQfRoundId logic as it's not needed for optimized query
+
+    const filterQueryParams: FilterProjectQueryInputParams = {
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      // Removed QF-related parameters as they're not needed for optimized query
+      includeUnlisted,
+      projectType,
+    };
+    let campaign;
+    if (campaignSlug) {
+      campaign = await findCampaignBySlug(campaignSlug);
+      if (!campaign) {
+        throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
+      }
+      filterQueryParams.slugArray = campaign.relatedProjectsSlugs;
+    }
+
+    const projectsQuery = filterProjectsQueryOptimized(filterQueryParams);
 
     projectsFiltersThreadPool.completed();
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
@@ -2664,6 +2820,7 @@ export class ProjectResolver {
           reviewStatus: project.reviewStatus,
           projectType: project.projectType,
           projectInstantPower: project.projectInstantPower,
+          projectQfRoundRelations: project.projectQfRoundRelations,
           updatedAt: project.updatedAt,
           creationDate: project.creationDate,
           latestUpdateCreationDate: project.latestUpdateCreationDate,
