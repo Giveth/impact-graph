@@ -2019,10 +2019,9 @@ export const qfProjectsQuery = `
           slug
           isActive
         }
-        qfRoundStats {
-          roundId
-          totalRaisedInRound
-          totalDonorsInRound
+        projectQfRoundRelations {
+          sumDonationValueUsd
+          countUniqueDonors
         }
       }
       totalCount

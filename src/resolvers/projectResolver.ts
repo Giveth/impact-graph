@@ -118,10 +118,7 @@ import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
-import {
-  findActiveQfRound,
-  getQfRoundStats,
-} from '../repositories/qfRoundRepository';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 import { getAppropriateNetworkId } from '../services/chains';
 import {
@@ -167,15 +164,12 @@ class ProjectUpdatesResponse {
 }
 
 @ObjectType()
-class QfRoundStats {
-  @Field(_type => Int)
-  roundId: number;
+class projectQfRoundRelations {
+  @Field(_type => Float, { nullable: true })
+  sumDonationValueUsd?: number;
 
-  @Field(_type => Float)
-  totalRaisedInRound: number;
-
-  @Field(_type => Int)
-  totalDonorsInRound: number;
+  @Field(_type => Int, { nullable: true })
+  countUniqueDonors?: number;
 }
 
 @ObjectType()
@@ -243,8 +237,8 @@ class QfProject {
   @Field(_type => [QfRound], { nullable: true })
   qfRounds?: QfRound[];
 
-  @Field(_type => QfRoundStats, { nullable: true })
-  qfRoundStats?: QfRoundStats;
+  @Field(_type => [projectQfRoundRelations], { nullable: true })
+  projectQfRoundRelations?: projectQfRoundRelations[];
 }
 
 @ObjectType()
@@ -2788,22 +2782,14 @@ export class ProjectResolver {
         sortingBy,
       });
 
-      // Compute round-wide stats once (applies to all projects)
-      const anyRound = projects[0]?.qfRounds?.find(qr => qr.id === qfRoundId);
-      const commonStats = anyRound
-        ? await getQfRoundStats(anyRound)
-        : undefined;
-
       // Transform projects to QfProject format
       const qfProjects: QfProject[] = projects.map(project => {
-        const qfRoundStats = commonStats
-          ? {
-              roundId: qfRoundId,
-              totalRaisedInRound: commonStats.totalDonationUsd,
-              totalDonorsInRound: commonStats.uniqueDonors,
-              // donationsCount: commonStats.donationsCount, // if added to type
-            }
-          : undefined;
+        const projectQfRoundRelations = project.projectQfRoundRelations?.map(
+          relation => ({
+            sumDonationValueUsd: relation.sumDonationValueUsd,
+            countUniqueDonors: relation.countUniqueDonors,
+          }),
+        );
 
         return {
           id: project.id,
@@ -2820,7 +2806,7 @@ export class ProjectResolver {
           reviewStatus: project.reviewStatus,
           projectType: project.projectType,
           projectInstantPower: project.projectInstantPower,
-          projectQfRoundRelations: project.projectQfRoundRelations,
+          projectQfRoundRelations,
           updatedAt: project.updatedAt,
           creationDate: project.creationDate,
           latestUpdateCreationDate: project.latestUpdateCreationDate,
@@ -2828,7 +2814,6 @@ export class ProjectResolver {
           activeProjectsCount: project.activeProjectsCount,
           addresses: project.addresses,
           qfRounds: project.qfRounds,
-          qfRoundStats,
         };
       });
 
