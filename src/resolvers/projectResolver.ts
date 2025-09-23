@@ -237,8 +237,8 @@ class QfProject {
   @Field(_type => [QfRound], { nullable: true })
   qfRounds?: QfRound[];
 
-  @Field(_type => [projectQfRoundRelations], { nullable: true })
-  projectQfRoundRelations?: projectQfRoundRelations[];
+  @Field(_type => projectQfRoundRelations, { nullable: true })
+  projectQfRoundRelations?: projectQfRoundRelations;
 }
 
 @ObjectType()
@@ -2784,12 +2784,18 @@ export class ProjectResolver {
 
       // Transform projects to QfProject format
       const qfProjects: QfProject[] = projects.map(project => {
-        const projectQfRoundRelations = project.projectQfRoundRelations?.map(
-          relation => ({
-            sumDonationValueUsd: relation.sumDonationValueUsd,
-            countUniqueDonors: relation.countUniqueDonors,
-          }),
+        // Find the matching QF round relation
+        const matchingRelation = project.projectQfRoundRelations?.find(
+          relation => relation.qfRoundId === qfRoundId,
         );
+
+        // Extract donation data if relation exists
+        const projectQfRoundRelations = matchingRelation
+          ? {
+              sumDonationValueUsd: matchingRelation.sumDonationValueUsd,
+              countUniqueDonors: matchingRelation.countUniqueDonors,
+            }
+          : undefined;
 
         return {
           id: project.id,
