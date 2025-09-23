@@ -1112,6 +1112,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         sumDonationValueUsdForActiveQfRound
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
+        isQfActive
         estimatedMatching{
            projectDonationsSqrtRootSum
            allProjectsSum
@@ -1136,6 +1137,114 @@ export const expectedMatchingFormulaQuery = `
       projectDonationsSqrtRootSum
       otherProjectsSum
       matchingPool
+    }
+  }
+`;
+
+export const fetchOptimizedAllProjectsQuery = `
+  query (
+    $limit: Int
+    $skip: Int
+    $sortingBy: SortingField
+    $filters: [FilterField!]
+    $searchTerm: String
+    $category: String
+    $mainCategory: String
+    $campaignSlug: String
+    $connectedWalletUserId: Int
+    $projectType: String
+  ) {
+    newAllProjects(
+      limit: $limit
+      skip: $skip
+      sortingBy: $sortingBy
+      filters: $filters
+      searchTerm: $searchTerm
+      category: $category
+      campaignSlug: $campaignSlug
+      mainCategory: $mainCategory
+      connectedWalletUserId: $connectedWalletUserId
+      projectType: $projectType
+    ) {
+      campaign{
+        slug
+        title
+      }
+      
+      projects {
+        id
+        title
+        projectType
+        balance
+        image
+        slug
+        description
+        descriptionSummary
+        creationDate
+        updatedAt
+        adminUserId
+        walletAddress
+        activeProjectsCount
+        impactLocation
+        verified
+        isGivbackEligible
+        isQfActive
+        traceCampaignId
+        listed
+        reviewStatus
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        categories {
+          name
+          mainCategory {
+            title
+            slug
+            banner
+            description
+          }
+        }
+        reaction {
+          id
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
+        organization {
+          name
+          label
+          supportCustomTokens
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
+          chainType
+        }
+        projectPower {
+          totalPower
+          powerRank
+          round
+        }
+        projectInstantPower {
+          totalPower
+          powerRank
+        }
+        totalDonations
+        totalTraceDonations
+        countUniqueDonors
+      }
+      totalCount
+      categories {
+        name
+      }
     }
   }
 `;

@@ -667,6 +667,23 @@ export class Project extends BaseEntity {
   @Field(_type => Float, { nullable: true })
   @Column('float', { default: 0, nullable: true })
   ownerTotalEarnedUsdValue?: number;
+
+  @Field(_type => Boolean, { nullable: true })
+  async isQfActive(): Promise<boolean> {
+    const maxActiveRounds = parseInt(process.env.MAX_ACTIVE_ROUNDS || '10');
+
+    // Get the most recent QF rounds for this project, limited by MAX_ACTIVE_ROUNDS
+    const qfRounds = await QfRound.createQueryBuilder('qfRound')
+      .innerJoin('qfRound.projects', 'project', 'project.id = :projectId', {
+        projectId: this.id,
+      })
+      .orderBy('qfRound.id', 'DESC')
+      .limit(maxActiveRounds)
+      .getMany();
+
+    // Check if any of these rounds are active
+    return qfRounds.some(round => round.isActive);
+  }
 }
 
 @Entity()
