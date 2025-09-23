@@ -202,7 +202,7 @@ jobs:
             ## Update each backend service one by one
             ## First Deployment (images were pulled earlier)
             docker-compose up -d --no-deps --force-recreate impact-graph-ql1
-            docker-compose up -d --no-deps --force-recreate impact-graph-job
+            docker-compose up -d --no-deps --force-recreate impact-graph-jobs
             echo "First deployment phase triggered. Deep health checks deferred to verify-health job."
             
   rollout-deploy-2:
@@ -299,10 +299,10 @@ jobs:
               fi
             done
 
-            echo "Checking impact-graph-job is running ..."
-            job_status=$(docker inspect --format='{{json .State.Status}}' impact-graph-job 2>/dev/null || echo '""')
+            echo "Checking impact-graph-jobs is running ..."
+            job_status=$(docker inspect --format='{{json .State.Status}}' impact-graph-jobs 2>/dev/null || echo '""')
             if [ "$job_status" != "\"running\"" ]; then
-              echo "::error::impact-graph-job is not running (status: $job_status)"
+              echo "::error::impact-graph-jobs is not running (status: $job_status)"
               exit 1
             fi
             echo "All services healthy."
