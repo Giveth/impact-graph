@@ -14,15 +14,18 @@ import {
   findQfRoundById,
   findQfRoundBySlug,
   findQfRounds,
+  findArchivedQfRounds,
   getExpiredActiveQfRounds,
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalSqrtRootSumSquared,
   getQfRoundStats,
   findUsersWithoutMBDScoreInActiveAround,
+  QfArchivedRoundsSortType,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { getProjectQfRoundStats } from './donationRepository';
+import { OrderDirection } from '../resolvers/projectResolver';
 
 describe(
   'getProjectDonationsSqrtRootSum test cases',
@@ -48,6 +51,7 @@ describe(
 describe('findQfRoundById test cases', findQfRoundByIdTestCases);
 describe('findQfRoundBySlug test cases', findQfRoundBySlugTestCases);
 describe('findQfRounds test cases', findQfRoundsTestCases);
+describe('findArchivedQfRounds test cases', findArchivedQfRoundsTestCases);
 
 function findUsersWithoutMBDScoreInActiveAroundTestCases() {
   it('should find users without score that donated in the round', async () => {
@@ -770,5 +774,334 @@ function findQfRoundsTestCases() {
       result.map(r => r.id),
       sortedByIds,
     );
+  });
+}
+
+function findArchivedQfRoundsTestCases() {
+  let testQfRounds: QfRound[] = [];
+
+  beforeEach(async () => {
+    // Clean up any existing test data
+    await QfRound.delete({});
+    testQfRounds = [];
+  });
+
+  afterEach(async () => {
+    // Clean up test data
+    for (const round of testQfRounds) {
+      await QfRound.delete({ id: round.id });
+    }
+  });
+
+  it('should return archived QF rounds with proper pagination', async () => {
+    // Create multiple archived QF rounds with different data
+    const roundsData = [
+      {
+        name: 'Round 1',
+        slug: 'round-1',
+        allocatedFund: 10000,
+        beginDate: new Date('2023-01-01'),
+        endDate: new Date('2023-01-31'),
+        priority: 1,
+      },
+      {
+        name: 'Round 2',
+        slug: 'round-2',
+        allocatedFund: 20000,
+        beginDate: new Date('2023-02-01'),
+        endDate: new Date('2023-02-28'),
+        priority: 2,
+      },
+      {
+        name: 'Round 3',
+        slug: 'round-3',
+        allocatedFund: 15000,
+        beginDate: new Date('2023-03-01'),
+        endDate: new Date('2023-03-31'),
+        priority: 3,
+      },
+      {
+        name: 'Round 4',
+        slug: 'round-4',
+        allocatedFund: 5000,
+        beginDate: new Date('2023-04-01'),
+        endDate: new Date('2023-04-30'),
+        priority: 4,
+      },
+      {
+        name: 'Round 5',
+        slug: 'round-5',
+        allocatedFund: 25000,
+        beginDate: new Date('2023-05-01'),
+        endDate: new Date('2023-05-31'),
+        priority: 5,
+      },
+    ];
+
+    // Create archived QF rounds
+    for (const data of roundsData) {
+      const qfRound = QfRound.create({
+        ...data,
+        isActive: false,
+        minimumPassportScore: 8,
+        description: `Description for ${data.name}`,
+        eligibleNetworks: [1, 100],
+        isDataAnalysisDone: true,
+        allocatedFundUSD: data.allocatedFund * 1.5,
+        allocatedTokenSymbol: 'USDC',
+        bannerBgImage: 'bg.jpg',
+        bannerFull: 'full.jpg',
+        bannerMobile: 'mobile.jpg',
+      });
+      await qfRound.save();
+      testQfRounds.push(qfRound);
+    }
+
+    // Test pagination with limit and skip
+    const firstPage = await findArchivedQfRounds(2, 0, {
+      field: QfArchivedRoundsSortType.beginDate,
+      direction: OrderDirection.ASC,
+    });
+
+    assert.isArray(firstPage);
+    assert.equal(firstPage.length, 2);
+    assert.equal(firstPage[0].name, 'Round 1'); // First by beginDate ASC
+    assert.equal(firstPage[1].name, 'Round 2');
+
+    const secondPage = await findArchivedQfRounds(2, 2, {
+      field: QfArchivedRoundsSortType.beginDate,
+      direction: OrderDirection.ASC,
+    });
+
+    assert.isArray(secondPage);
+    assert.equal(secondPage.length, 2);
+    assert.equal(secondPage[0].name, 'Round 3');
+    assert.equal(secondPage[1].name, 'Round 4');
+
+    const thirdPage = await findArchivedQfRounds(2, 4, {
+      field: QfArchivedRoundsSortType.beginDate,
+      direction: OrderDirection.ASC,
+    });
+
+    assert.isArray(thirdPage);
+    assert.equal(thirdPage.length, 1);
+    assert.equal(thirdPage[0].name, 'Round 5');
+  });
+
+  it('should handle sorting by different fields with stable pagination', async () => {
+    // Create QF rounds with same allocatedFund to test deterministic tiebreaker
+    const roundsData = [
+      {
+        name: 'Round A',
+        slug: 'round-a',
+        allocatedFund: 10000,
+        beginDate: new Date('2023-01-01'),
+        endDate: new Date('2023-01-31'),
+        priority: 1,
+      },
+      {
+        name: 'Round B',
+        slug: 'round-b',
+        allocatedFund: 10000, // Same allocatedFund
+        beginDate: new Date('2023-02-01'),
+        endDate: new Date('2023-02-28'),
+        priority: 2,
+      },
+      {
+        name: 'Round C',
+        slug: 'round-c',
+        allocatedFund: 10000, // Same allocatedFund
+        beginDate: new Date('2023-03-01'),
+        endDate: new Date('2023-03-31'),
+        priority: 3,
+      },
+    ];
+
+    for (const data of roundsData) {
+      const qfRound = QfRound.create({
+        ...data,
+        isActive: false,
+        minimumPassportScore: 8,
+        description: `Description for ${data.name}`,
+        eligibleNetworks: [1, 100],
+        isDataAnalysisDone: true,
+        allocatedFundUSD: data.allocatedFund * 1.5,
+        allocatedTokenSymbol: 'USDC',
+      });
+      await qfRound.save();
+      testQfRounds.push(qfRound);
+    }
+
+    // Test sorting by allocatedFund with deterministic tiebreaker
+    const result = await findArchivedQfRounds(10, 0, {
+      field: QfArchivedRoundsSortType.allocatedFund,
+      direction: OrderDirection.DESC,
+    });
+
+    assert.isArray(result);
+    assert.equal(result.length, 3);
+
+    // All should have same allocatedFund, but should be ordered by id ASC (deterministic tiebreaker)
+    assert.equal(result[0].allocatedFund, 10000);
+    assert.equal(result[1].allocatedFund, 10000);
+    assert.equal(result[2].allocatedFund, 10000);
+
+    // Verify deterministic ordering by id
+    assert.isTrue(result[0].id < result[1].id);
+    assert.isTrue(result[1].id < result[2].id);
+  });
+
+  it('should handle empty result set gracefully', async () => {
+    // Ensure no archived rounds exist
+    await QfRound.delete({ isActive: false });
+
+    const result = await findArchivedQfRounds(10, 0, {
+      field: QfArchivedRoundsSortType.beginDate,
+      direction: OrderDirection.ASC,
+    });
+
+    assert.isArray(result);
+    assert.equal(result.length, 0);
+  });
+
+  it('should handle large skip values gracefully', async () => {
+    // Create one archived round
+    const qfRound = QfRound.create({
+      name: 'Single Round',
+      slug: 'single-round',
+      allocatedFund: 10000,
+      beginDate: new Date('2023-01-01'),
+      endDate: new Date('2023-01-31'),
+      isActive: false,
+      minimumPassportScore: 8,
+      description: 'Single round description',
+      eligibleNetworks: [1, 100],
+      isDataAnalysisDone: true,
+    });
+    await qfRound.save();
+    testQfRounds.push(qfRound);
+
+    // Try to skip more than available records
+    const result = await findArchivedQfRounds(10, 100, {
+      field: QfArchivedRoundsSortType.beginDate,
+      direction: OrderDirection.ASC,
+    });
+
+    assert.isArray(result);
+    assert.equal(result.length, 0);
+  });
+
+  it('should maintain consistent ordering across multiple pagination calls', async () => {
+    // Create multiple rounds
+    const roundsData = Array.from({ length: 10 }, (_, i) => ({
+      name: `Round ${i + 1}`,
+      slug: `round-${i + 1}`,
+      allocatedFund: 10000 + i * 1000,
+      beginDate: new Date(`2023-${String(i + 1).padStart(2, '0')}-01`),
+      endDate: new Date(`2023-${String(i + 1).padStart(2, '0')}-28`),
+      priority: i + 1,
+    }));
+
+    for (const data of roundsData) {
+      const qfRound = QfRound.create({
+        ...data,
+        isActive: false,
+        minimumPassportScore: 8,
+        description: `Description for ${data.name}`,
+        eligibleNetworks: [1, 100],
+        isDataAnalysisDone: true,
+      });
+      await qfRound.save();
+      testQfRounds.push(qfRound);
+    }
+
+    // Get all results in one call
+    const allResults = await findArchivedQfRounds(20, 0, {
+      field: QfArchivedRoundsSortType.allocatedFund,
+      direction: OrderDirection.DESC,
+    });
+
+    // Get results in pages
+    const page1 = await findArchivedQfRounds(3, 0, {
+      field: QfArchivedRoundsSortType.allocatedFund,
+      direction: OrderDirection.DESC,
+    });
+    const page2 = await findArchivedQfRounds(3, 3, {
+      field: QfArchivedRoundsSortType.allocatedFund,
+      direction: OrderDirection.DESC,
+    });
+    const page3 = await findArchivedQfRounds(3, 6, {
+      field: QfArchivedRoundsSortType.allocatedFund,
+      direction: OrderDirection.DESC,
+    });
+
+    // Verify pagination results match the full result
+    assert.equal(allResults.length, 10);
+    assert.equal(page1.length, 3);
+    assert.equal(page2.length, 3);
+    assert.equal(page3.length, 3);
+
+    // Verify ordering consistency
+    const paginatedResults = [...page1, ...page2, ...page3];
+    for (let i = 0; i < paginatedResults.length; i++) {
+      assert.equal(paginatedResults[i].id, allResults[i].id);
+      assert.equal(paginatedResults[i].name, allResults[i].name);
+    }
+  });
+
+  it('should handle different sorting directions correctly', async () => {
+    // Create rounds with different allocatedFund values
+    const roundsData = [
+      {
+        name: 'Low Fund',
+        allocatedFund: 1000,
+        beginDate: new Date('2023-01-01'),
+      },
+      {
+        name: 'High Fund',
+        allocatedFund: 50000,
+        beginDate: new Date('2023-02-01'),
+      },
+      {
+        name: 'Mid Fund',
+        allocatedFund: 25000,
+        beginDate: new Date('2023-03-01'),
+      },
+    ];
+
+    for (const data of roundsData) {
+      const qfRound = QfRound.create({
+        ...data,
+        slug: data.name.toLowerCase().replace(' ', '-'),
+        endDate: new Date(data.beginDate.getTime() + 30 * 24 * 60 * 60 * 1000),
+        isActive: false,
+        minimumPassportScore: 8,
+        description: `Description for ${data.name}`,
+        eligibleNetworks: [1, 100],
+        isDataAnalysisDone: true,
+      });
+      await qfRound.save();
+      testQfRounds.push(qfRound);
+    }
+
+    // Test ASC sorting
+    const ascResult = await findArchivedQfRounds(10, 0, {
+      field: QfArchivedRoundsSortType.allocatedFund,
+      direction: OrderDirection.ASC,
+    });
+
+    assert.equal(ascResult[0].name, 'Low Fund');
+    assert.equal(ascResult[1].name, 'Mid Fund');
+    assert.equal(ascResult[2].name, 'High Fund');
+
+    // Test DESC sorting
+    const descResult = await findArchivedQfRounds(10, 0, {
+      field: QfArchivedRoundsSortType.allocatedFund,
+      direction: OrderDirection.DESC,
+    });
+
+    assert.equal(descResult[0].name, 'High Fund');
+    assert.equal(descResult[1].name, 'Mid Fund');
+    assert.equal(descResult[2].name, 'Low Fund');
   });
 }
