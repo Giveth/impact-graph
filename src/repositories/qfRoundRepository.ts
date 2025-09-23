@@ -190,8 +190,8 @@ export const findArchivedQfRounds = async (
           .andWhere('projectFraud.id IS NULL'),
       'uniqueDonors',
     )
-    .groupBy('qfRound.id')
     .orderBy(fieldMap[field], direction, 'NULLS LAST')
+    .addOrderBy('qfRound.id', 'ASC')
     .limit(limit)
     .offset(skip)
     .getRawMany();

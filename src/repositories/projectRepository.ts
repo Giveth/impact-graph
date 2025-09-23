@@ -247,13 +247,14 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       query.orderBy('project.qualityScore', OrderDirection.DESC);
       break;
     case SortingField.GIVPower:
-      // Optimize: Use COALESCE to handle NULL values in sorting
+      // Use projectPower.totalPower with NULLS LAST for better NULL handling
       query
         .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
         .addOrderBy('project.verified', 'DESC') // Secondary sorting condition
         .addOrderBy(
-          'COALESCE(projectPower.totalPower, 0)',
+          'projectPower.totalPower',
           OrderDirection.DESC,
+          'NULLS LAST',
         );
       break;
     case SortingField.InstantBoosting: // This is our default sorting
@@ -305,8 +306,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.BestMatch:
       break;
     default:
+      // Default sorting - use projectPower since it's always available
       query
-        .addOrderBy('projectInstantPower.totalPower', OrderDirection.DESC)
+        .addOrderBy(
+          'projectPower.totalPower',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        )
         .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
         .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
       break;
@@ -725,9 +731,9 @@ export const findQfRoundProjects = async (
       .addOrderBy('project.isGivbackEligible', 'DESC')
       .addOrderBy('project.verified', 'DESC');
   } else {
-    // Default sorting - Optimize: Use COALESCE for better NULL handling
+    // Default sorting - Use projectInstantPower.totalPower with NULLS LAST
     query
-      .orderBy('COALESCE(projectInstantPower.totalPower, 0)', 'DESC')
+      .orderBy('projectInstantPower.totalPower', 'DESC', 'NULLS LAST')
       .addOrderBy('project.isGivbackEligible', 'DESC')
       .addOrderBy('project.verified', 'DESC')
       .addOrderBy('project.creationDate', 'DESC');
