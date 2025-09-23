@@ -121,10 +121,7 @@ import {
   findActiveQfRound,
   getQfRoundStats,
 } from '../repositories/qfRoundRepository';
-import {
-  getAllProjectsRelatedToActiveCampaigns,
-  cacheProjectCampaigns,
-} from '../services/campaignService';
+import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 import { getAppropriateNetworkId } from '../services/chains';
 import {
   addBulkProjectSocialMedia,
@@ -1243,15 +1240,18 @@ export class ProjectResolver {
       );
     }
     if (fields.campaigns) {
-      // Always refresh the cache to ensure we have the latest campaign data
-      await cacheProjectCampaigns();
-
-      // Use a simpler approach: join campaigns and filter in the application layer
+      const campaignSlugs = (await getAllProjectsRelatedToActiveCampaigns())[
+        minimalProject.id
+      ];
       query = query.leftJoinAndMapMany(
         'project.campaigns',
         Campaign,
         'campaigns',
-        'campaigns."isActive" = TRUE',
+        '((campaigns."relatedProjectsSlugs" && ARRAY[:slug]::text[] OR campaigns."relatedProjectsSlugs" && project."slugHistory") AND campaigns."isActive" = TRUE) OR (campaigns.slug = ANY(:campaignSlugs))',
+        {
+          slug,
+          campaignSlugs,
+        },
       );
     }
     if (fields.adminUser) {
@@ -1279,20 +1279,6 @@ export class ProjectResolver {
 
     const project = await query.getOne();
     canUserVisitProject(project, user?.userId);
-
-    // Filter campaigns if they were requested
-    if (fields.campaigns && project) {
-      const projectCampaignCache =
-        await getAllProjectsRelatedToActiveCampaigns();
-      const campaignSlugs = projectCampaignCache[project.id] || [];
-
-      // Filter campaigns to only include those that are in the cached relationship
-      if (project.campaigns) {
-        project.campaigns = project.campaigns.filter(campaign => {
-          return campaignSlugs.includes(campaign.slug);
-        });
-      }
-    }
 
     if (project?.projectType === 'cause') {
       project.causeProjects = await (project as Cause).loadCauseProjects(
