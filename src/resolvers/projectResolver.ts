@@ -1187,6 +1187,12 @@ export class ProjectResolver {
         )
         .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
     }
+    if (fields.projectQfRoundRelations) {
+      query = query.leftJoinAndSelect(
+        'project.projectQfRoundRelations',
+        'projectQfRoundRelations',
+      );
+    }
     if (fields.organization) {
       query = query.leftJoinAndSelect('project.organization', 'organization');
     }
@@ -1369,6 +1375,12 @@ export class ProjectResolver {
           .addOrderBy('qfRounds.priority', 'DESC')
           .addOrderBy('qfRounds.endDate', 'ASC');
       }
+    }
+    if (fields.projectQfRoundRelations) {
+      query = query.leftJoinAndSelect(
+        'project.projectQfRoundRelations',
+        'projectQfRoundRelations',
+      );
     }
     if (fields.projectFuturePower) {
       query = query.leftJoinAndSelect(
