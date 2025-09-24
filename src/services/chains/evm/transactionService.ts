@@ -260,6 +260,21 @@ async function getTransactionDetailForNormalTransfer(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId } = input;
+
+  // Validate txHash is not null or empty
+  if (!txHash || txHash.trim() === '') {
+    logger.error('Invalid transaction hash provided for normal transfer', {
+      txHash,
+      symbol,
+      networkId,
+    });
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+      ),
+    );
+  }
+
   logger.debug(
     'NODE RPC request count - getTransactionDetailForNormalTransfer  provider.getTransaction txHash:',
     input.txHash,
@@ -329,6 +344,21 @@ async function getTransactionDetailForTokenTransfer(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId, isSwap } = input;
+
+  // Validate txHash is not null or empty
+  if (!txHash || txHash.trim() === '') {
+    logger.error('Invalid transaction hash provided', {
+      txHash,
+      symbol,
+      networkId,
+    });
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+      ),
+    );
+  }
+
   const token = await findTokenByNetworkAndSymbol(networkId, symbol);
   const provider = getProvider(networkId);
   logger.debug(
@@ -337,7 +367,7 @@ async function getTransactionDetailForTokenTransfer(
   );
   const transaction = await provider.getTransaction(txHash);
   let transactionTokenAddress = transaction.to?.toLowerCase();
-  let transactionTo: string;
+  let transactionTo: string | undefined;
 
   logger.debug(
     'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransactionReceipt txHash:',
@@ -404,7 +434,36 @@ async function getTransactionDetailForTokenTransfer(
   );
 
   if (receipt && !input.safeTxHash && input.txHash) {
-    transactionTo = transactionToAddress;
+    // If ABI decoding failed, try to extract from logs
+    if (!transactionToAddress || amount === 0) {
+      logger.debug('ABI decoding failed, trying to extract from logs', {
+        txHash,
+        transactionData,
+        decodedLogs,
+      });
+
+      // Look for Transfer events in the logs
+      const transferEvents = decodedLogs.filter(
+        log =>
+          log.name === 'Transfer' &&
+          log.address?.toLowerCase() === token.address.toLowerCase(),
+      );
+
+      if (transferEvents.length > 0) {
+        const transferEvent = transferEvents[0];
+        const events = transferEvent.events;
+        if (events && events.length >= 3) {
+          transactionTo = events[1]?.value?.toLowerCase();
+          amount = normalizeAmount(events[2]?.value, token.decimals);
+          logger.debug('Successfully extracted from logs', {
+            transactionTo,
+            amount,
+          });
+        }
+      }
+    } else {
+      transactionTo = transactionToAddress;
+    }
   }
 
   if (receipt && input.safeTxHash && input.txHash) {
@@ -428,11 +487,27 @@ async function getTransactionDetailForTokenTransfer(
   const block = await getProvider(networkId).getBlock(
     transaction.blockNumber as number,
   );
+
+  // Safety check to ensure transactionTo is defined
+  if (!transactionTo) {
+    logger.error('Failed to extract transaction recipient address', {
+      txHash,
+      transactionData,
+      decodedLogs,
+      transactionToAddress,
+    });
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+      ),
+    );
+  }
+
   return {
     from: transactionFrom,
     timestamp: block.timestamp as number,
     hash: txHash,
-    to: transactionTo!,
+    to: transactionTo,
     amount,
     currency: symbol,
   };
