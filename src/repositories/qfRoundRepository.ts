@@ -10,6 +10,7 @@ import { Sybil } from '../entities/sybil';
 import { ProjectFraud } from '../entities/projectFraud';
 import config from '../config';
 import { logger } from '../utils/logger';
+import { redis } from '../redis';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -198,7 +199,7 @@ export const findActiveQfRound = async (
   noCache?: boolean,
 ): Promise<QfRound | null> => {
   const query =
-    QfRound.createQueryBuilder('qfRound').where('"isActive" = true');
+    QfRound.createQueryBuilder('qf_round').where('"isActive" = true');
   if (noCache) {
     return query.getOne();
   }
@@ -208,15 +209,65 @@ export const findActiveQfRound = async (
 export const findActiveQfRounds = async (
   noCache?: boolean,
 ): Promise<QfRound[] | null> => {
-  const query = QfRound.createQueryBuilder('qfRound')
-    .where('"isActive" = true')
-    .addOrderBy('qfRound.displaySize', 'DESC', 'NULLS LAST')
-    .addOrderBy('qfRound.priority', 'ASC', 'NULLS LAST')
-    .addOrderBy('qfRound.endDate', 'ASC');
+  // Use raw SQL to ensure exact matching with your working query
+  const rawSQL = `
+    SELECT * FROM "public"."qf_round" 
+    WHERE "isActive" = true 
+    ORDER BY "displaySize" DESC NULLS LAST, "priority" ASC NULLS LAST, "endDate" ASC
+  `;
+
+  let results;
+  const cacheKey = 'findActiveQfRounds';
+
   if (noCache) {
-    return query.getMany();
+    // Direct query without cache
+    results = await AppDataSource.getDataSource().query(rawSQL);
+  } else {
+    // Check Redis cache first
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      results = JSON.parse(cached);
+    } else {
+      // Query database and cache result
+      results = await AppDataSource.getDataSource().query(rawSQL);
+      await redis.setex(
+        cacheKey,
+        Math.floor(qfRoundsCacheDuration / 1000),
+        JSON.stringify(results),
+      );
+    }
   }
-  return query.cache('findActiveQfRound', qfRoundsCacheDuration).getMany();
+
+  // Use TypeORM's entity manager for proper entity creation
+  const entityManager = AppDataSource.getDataSource().manager;
+  const qfRounds = results.map((row: any) => {
+    // Create entity through TypeORM's entity manager
+    const qfRound = entityManager.create(QfRound, {
+      ...row,
+      // Ensure proper type conversion for dates
+      beginDate: new Date(row.beginDate),
+      endDate: new Date(row.endDate),
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+      clusterMatchingSyncAt: row.clusterMatchingSyncAt
+        ? new Date(row.clusterMatchingSyncAt)
+        : null,
+      // Ensure arrays are properly parsed
+      eligibleNetworks: Array.isArray(row.eligibleNetworks)
+        ? row.eligibleNetworks
+        : row.eligibleNetworks
+          ? JSON.parse(row.eligibleNetworks)
+          : [],
+      sponsorsImgs: Array.isArray(row.sponsorsImgs)
+        ? row.sponsorsImgs
+        : row.sponsorsImgs
+          ? JSON.parse(row.sponsorsImgs)
+          : [],
+    });
+    return qfRound;
+  });
+
+  return qfRounds;
 };
 
 export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
