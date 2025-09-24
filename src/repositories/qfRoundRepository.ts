@@ -42,7 +42,7 @@ export const findQfRounds = async ({
     // Default sorting: displaySize DESC NULLS LAST, priority DESC NULLS LAST, endDate ASC
     query
       .addOrderBy('qf_round.displaySize', 'DESC', 'NULLS LAST')
-      .addOrderBy('qf_round.priority', 'DESC', 'NULLS LAST')
+      .addOrderBy('qf_round.priority', 'ASC', 'NULLS LAST')
       .addOrderBy('qf_round.endDate', 'ASC');
   }
   if (slug) {
@@ -211,7 +211,7 @@ export const findActiveQfRounds = async (
   const query = QfRound.createQueryBuilder('qfRound')
     .where('"isActive" = true')
     .addOrderBy('qfRound.displaySize', 'DESC', 'NULLS LAST')
-    .addOrderBy('qfRound.priority', 'DESC', 'NULLS LAST')
+    .addOrderBy('qfRound.priority', 'ASC', 'NULLS LAST')
     .addOrderBy('qfRound.endDate', 'ASC');
   if (noCache) {
     return query.getMany();
