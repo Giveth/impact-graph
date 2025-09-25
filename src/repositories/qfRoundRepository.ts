@@ -10,7 +10,6 @@ import { Sybil } from '../entities/sybil';
 import { ProjectFraud } from '../entities/projectFraud';
 import config from '../config';
 import { logger } from '../utils/logger';
-import { redis } from '../redis';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -207,36 +206,16 @@ export const findActiveQfRound = async (
 };
 
 export const findActiveQfRounds = async (
-  noCache?: boolean,
+  _noCache?: boolean,
 ): Promise<QfRound[]> => {
-  // Use raw SQL to ensure exact matching with your working query
+  // Use raw SQL query without any caching
   const rawSQL = `
     SELECT * FROM "public"."qf_round" 
     WHERE "isActive" = true 
     ORDER BY "displaySize" DESC NULLS LAST, "priority" ASC NULLS LAST, "endDate" ASC
   `;
 
-  let results;
-  const cacheKey = 'findActiveQfRounds';
-
-  if (noCache) {
-    // Direct query without cache
-    results = await AppDataSource.getDataSource().query(rawSQL);
-  } else {
-    // Check Redis cache first
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      results = JSON.parse(cached);
-    } else {
-      // Query database and cache result
-      results = await AppDataSource.getDataSource().query(rawSQL);
-      await redis.setex(
-        cacheKey,
-        Math.floor(qfRoundsCacheDuration / 1000),
-        JSON.stringify(results),
-      );
-    }
-  }
+  const results = await AppDataSource.getDataSource().query(rawSQL);
 
   // Use TypeORM's entity manager for proper entity creation
   const entityManager = AppDataSource.getDataSource().manager;
