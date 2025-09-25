@@ -3,6 +3,102 @@ import {
   canAccessProjectQfRoundAction,
   ResourceActions,
 } from '../adminJsPermissions';
+import {
+  AdminJsRequestInterface,
+  AdminJsContextInterface,
+} from '../adminJs-types';
+import { logger } from '../../../utils/logger';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import { getRedirectUrl } from '../adminJsUtils';
+
+const deleteProjectQfRound = async (
+  request: AdminJsRequestInterface,
+  response,
+  context: AdminJsContextInterface,
+) => {
+  const { record, currentAdmin, resource, h } = context;
+  let message = 'Project QF Round deleted successfully';
+  let type = 'success';
+
+  try {
+    // Get the record ID from request params
+    const recordId = request.params?.recordId;
+
+    logger.debug('Deleting ProjectQfRound:', {
+      recordId,
+      recordParams: record.params,
+      adminUserId: currentAdmin.id,
+    });
+
+    // Extract projectId and qfRoundId from record params
+    const projectId = record.params?.projectId;
+    const qfRoundId = record.params?.qfRoundId;
+
+    logger.info('Record data:', {
+      recordId,
+      projectId,
+      qfRoundId,
+      allParams: record.params,
+    });
+
+    if (!projectId || !qfRoundId) {
+      throw new Error('Missing projectId or qfRoundId in record params');
+    }
+
+    // Delete using the composite primary key (projectId and qfRoundId)
+    const deleteResult = await ProjectQfRound.delete({
+      projectId: projectId,
+      qfRoundId: qfRoundId,
+    });
+
+    logger.info('ProjectQfRound deleted successfully:', {
+      projectId,
+      qfRoundId,
+      deleteResult,
+      adminUserId: currentAdmin.id,
+    });
+  } catch (error) {
+    logger.error('Error deleting ProjectQfRound:', {
+      error: error.message,
+      recordParams: record.params,
+      adminUserId: currentAdmin.id,
+    });
+    message = 'Failed to delete Project QF Round: ' + error.message;
+    type = 'error';
+  }
+
+  // Create a proper RecordJSON object for the response
+  const recordJson: RecordJSON = {
+    baseError: null,
+    id: record.id,
+    title: '',
+    bulkActions: [],
+    errors: {},
+    params: record.params || {},
+    populated: record.populated || {},
+    recordActions: [],
+  };
+
+  // Get redirect URL to the list view using AdminJS helper
+  const redirectUrl = h.resourceUrl({
+    resourceId: resource._decorated?.id() || resource.id(),
+  });
+
+  logger.info('Delete handler response:', {
+    redirectUrl,
+    message,
+    type,
+  });
+
+  return {
+    record: recordJson,
+    redirectUrl,
+    notice: {
+      message,
+      type,
+    },
+  };
+};
 
 export const projectQfRoundsTab = {
   resource: ProjectQfRound,
@@ -18,6 +114,7 @@ export const projectQfRoundsTab = {
       },
       delete: {
         isVisible: true,
+        handler: deleteProjectQfRound,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectQfRoundAction(
             { currentAdmin },
