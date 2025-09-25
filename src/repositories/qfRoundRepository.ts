@@ -208,7 +208,7 @@ export const findActiveQfRound = async (
 
 export const findActiveQfRounds = async (
   noCache?: boolean,
-): Promise<QfRound[] | null> => {
+): Promise<QfRound[]> => {
   // Use raw SQL to ensure exact matching with your working query
   const rawSQL = `
     SELECT * FROM "public"."qf_round" 
@@ -267,7 +267,7 @@ export const findActiveQfRounds = async (
     return qfRound;
   });
 
-  return qfRounds;
+  return qfRounds || [];
 };
 
 export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
