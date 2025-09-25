@@ -265,7 +265,7 @@ export const createIdrissTwitterDonation = async (
     await updateUserTotalDonated(donation.userId);
 
     // After updating price we update totalDonations
-    await updateProjectStatistics(donation.projectId);
+    await updateProjectStatistics(donation.projectId, donation?.qfRoundId);
     await updateUserTotalReceived(
       project?.adminUserId || project?.adminUser?.id,
     );

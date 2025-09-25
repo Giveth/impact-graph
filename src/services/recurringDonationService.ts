@@ -294,7 +294,7 @@ export const createRelatedDonationsToStream = async (
       await updateUserTotalDonated(donation.userId);
 
       // After updating price we update totalDonations
-      await updateProjectStatistics(donation.projectId);
+      await updateProjectStatistics(donation.projectId, donation?.qfRoundId);
       await updateUserTotalReceived(project!.adminUser.id);
     } catch (e) {
       logger.error(
