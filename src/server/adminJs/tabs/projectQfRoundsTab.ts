@@ -1,3 +1,4 @@
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { ProjectQfRound } from '../../../entities/projectQfRound';
 import {
   canAccessProjectQfRoundAction,
@@ -8,8 +9,6 @@ import {
   AdminJsContextInterface,
 } from '../adminJs-types';
 import { logger } from '../../../utils/logger';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
-import { getRedirectUrl } from '../adminJsUtils';
 
 const deleteProjectQfRound = async (
   request: AdminJsRequestInterface,
