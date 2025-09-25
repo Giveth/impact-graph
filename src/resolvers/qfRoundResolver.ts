@@ -158,7 +158,7 @@ export class QfRoundResolver {
   ) {
     if (activeOnly) {
       const activeQfRounds = await findActiveQfRounds();
-      return activeQfRounds ? activeQfRounds : [];
+      return activeQfRounds;
     }
     return findQfRounds({ slug, sortBy });
   }

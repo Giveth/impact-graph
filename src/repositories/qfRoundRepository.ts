@@ -198,7 +198,7 @@ export const findActiveQfRound = async (
   noCache?: boolean,
 ): Promise<QfRound | null> => {
   const query =
-    QfRound.createQueryBuilder('qfRound').where('"isActive" = true');
+    QfRound.createQueryBuilder('qf_round').where('"isActive" = true');
   if (noCache) {
     return query.getOne();
   }
@@ -206,17 +206,47 @@ export const findActiveQfRound = async (
 };
 
 export const findActiveQfRounds = async (
-  noCache?: boolean,
-): Promise<QfRound[] | null> => {
-  const query = QfRound.createQueryBuilder('qfRound')
-    .where('"isActive" = true')
-    .addOrderBy('qfRound.displaySize', 'DESC', 'NULLS LAST')
-    .addOrderBy('qfRound.priority', 'ASC', 'NULLS LAST')
-    .addOrderBy('qfRound.endDate', 'ASC');
-  if (noCache) {
-    return query.getMany();
-  }
-  return query.cache('findActiveQfRound', qfRoundsCacheDuration).getMany();
+  _noCache?: boolean,
+): Promise<QfRound[]> => {
+  // Use raw SQL query without any caching
+  const rawSQL = `
+    SELECT * FROM "public"."qf_round" 
+    WHERE "isActive" = true 
+    ORDER BY "displaySize" DESC NULLS LAST, "priority" ASC NULLS LAST, "endDate" ASC
+  `;
+
+  const results = await AppDataSource.getDataSource().query(rawSQL);
+
+  // Use TypeORM's entity manager for proper entity creation
+  const entityManager = AppDataSource.getDataSource().manager;
+  const qfRounds = results.map((row: any) => {
+    // Create entity through TypeORM's entity manager
+    const qfRound = entityManager.create(QfRound, {
+      ...row,
+      // Ensure proper type conversion for dates
+      beginDate: new Date(row.beginDate),
+      endDate: new Date(row.endDate),
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+      clusterMatchingSyncAt: row.clusterMatchingSyncAt
+        ? new Date(row.clusterMatchingSyncAt)
+        : null,
+      // Ensure arrays are properly parsed
+      eligibleNetworks: Array.isArray(row.eligibleNetworks)
+        ? row.eligibleNetworks
+        : row.eligibleNetworks
+          ? JSON.parse(row.eligibleNetworks)
+          : [],
+      sponsorsImgs: Array.isArray(row.sponsorsImgs)
+        ? row.sponsorsImgs
+        : row.sponsorsImgs
+          ? JSON.parse(row.sponsorsImgs)
+          : [],
+    });
+    return qfRound;
+  });
+
+  return qfRounds || [];
 };
 
 export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
