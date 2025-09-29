@@ -2869,7 +2869,6 @@ export class ProjectResolver {
           organization: project.organization,
           activeProjectsCount: project.activeProjectsCount,
           addresses: project.addresses,
-          qfRounds: project.qfRounds,
         };
       });
 
