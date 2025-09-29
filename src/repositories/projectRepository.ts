@@ -144,11 +144,16 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     ]);
 
   if (includeUnlisted) {
-    query = query.where(`project.statusId = ${ProjStatus.active}`);
+    query = query.where(`project.statusId = :statusId`, {
+      statusId: ProjStatus.active,
+    });
   } else {
     query = query.where(
-      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-      { reviewStatus: ReviewStatus.Listed },
+      `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+      {
+        statusId: ProjStatus.active,
+        reviewStatus: ReviewStatus.Listed,
+      },
     );
   }
 
@@ -196,10 +201,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   query = ProjectResolver.addFiltersQuery(query, filters);
   if (slugArray && slugArray.length > 0) {
     // This is used for getting projects that manually has been set to campaigns
-    // TODO this doesnt query slug in project.slugHistory, but we should add it later
-    query.andWhere(`project.slug IN (:...slugs)`, {
-      slugs: slugArray,
-    });
+    // Check both current slug and slug history
+    query.andWhere(
+      `(project.slug IN (:...slugs) OR project.slugHistory && :slugs)`,
+      {
+        slugs: slugArray,
+      },
+    );
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
@@ -242,6 +250,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       query.orderBy('project.qualityScore', OrderDirection.DESC);
       break;
     case SortingField.GIVPower:
+      // Use projectPower.totalPower with NULLS LAST for better NULL handling
       query
         .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
         .addOrderBy('project.verified', 'DESC') // Secondary sorting condition
@@ -300,8 +309,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.BestMatch:
       break;
     default:
+      // Default sorting - use projectPower since it's always available
       query
-        .addOrderBy('projectInstantPower.totalPower', OrderDirection.DESC)
+        .addOrderBy(
+          'projectPower.totalPower',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        )
         .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
         .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
       break;
@@ -508,17 +522,6 @@ export const findProjectIdBySlug = (slug: string): Promise<Project | null> => {
     .getOne();
 };
 
-export const findProjectBySlugWithoutAnyJoin = (
-  slug: string,
-): Promise<Project | null> => {
-  // check current slug and previous slugs
-  return Project.createQueryBuilder('project')
-    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-      slug,
-    })
-    .getOne();
-};
-
 export const verifyMultipleProjects = async (params: {
   verified: boolean;
   projectsIds: string[] | number[];
@@ -599,18 +602,6 @@ export const findProjectByWalletAddressAndNetwork = async (
     .andWhere(`address."networkId" = :network`, { network })
     .leftJoinAndSelect('project.status', 'status')
     .getOne();
-};
-
-export const userIsOwnerOfProject = async (
-  viewerUserId: number,
-  slug: string,
-): Promise<boolean> => {
-  return (
-    await Project.query(
-      `SELECT EXISTS(SELECT * FROM project WHERE "adminUserId" = $1 AND slug = $2)`,
-      [viewerUserId, slug],
-    )
-  )[0].exists;
 };
 
 export const totalProjectsPerDate = async (
@@ -893,7 +884,7 @@ export const findQfRoundProjects = async (
       .addOrderBy('project.isGivbackEligible', 'DESC')
       .addOrderBy('project.verified', 'DESC');
   } else {
-    // Default sorting
+    // Default sorting - Use projectInstantPower.totalPower with NULLS LAST
     query
       .orderBy('projectInstantPower.totalPower', 'DESC', 'NULLS LAST')
       .addOrderBy('project.isGivbackEligible', 'DESC')

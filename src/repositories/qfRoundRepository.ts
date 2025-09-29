@@ -180,18 +180,22 @@ export const findArchivedQfRounds = async (
           )
           .where('donation.qfRoundId = qfRound.id')
           .andWhere('donation.status = :status', { status: 'verified' })
-          .andWhere('user.passportScore >= qfRound.minimumPassportScore')
-          .andWhere('sybil.id IS NULL')
-          .andWhere('projectFraud.id IS NULL')
           .andWhere(
             'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
-          ),
+          )
+          .andWhere(
+            '(user.passportScore >= qfRound.minimumPassportScore OR user.passportScore IS NULL)',
+          )
+          .andWhere('sybil.id IS NULL')
+          .andWhere('projectFraud.id IS NULL'),
       'uniqueDonors',
     )
-    .groupBy('qfRound.id')
     .orderBy(fieldMap[field], direction, 'NULLS LAST')
+    .addOrderBy('qfRound.id', 'ASC')
+    .limit(limit)
+    .offset(skip)
     .getRawMany();
-  return fullRounds.slice(skip, skip + limit);
+  return fullRounds;
 };
 
 export const findActiveQfRound = async (

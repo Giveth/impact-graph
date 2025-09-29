@@ -359,10 +359,10 @@ export class DonationResolver {
         ]);
 
       if (fromDate) {
-        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+        query.andWhere(`donation."createdAt" >= :fromDate`, { fromDate });
       }
       if (toDate) {
-        query.andWhere(`donation."createdAt" <= '${toDate}'`);
+        query.andWhere(`donation."createdAt" <= :toDate`, { toDate });
       }
       return await query.getMany();
     } catch (e) {
@@ -398,19 +398,23 @@ export class DonationResolver {
         .groupBy('mainCategory.id, mainCategory.title');
 
       if (fromDate && toDate) {
-        query.where(`donations."createdAt" >= '${fromDate}'`);
-        query.andWhere(`donations."createdAt" <= '${toDate}'`);
+        query.where(`donations."createdAt" >= :fromDate`, { fromDate });
+        query.andWhere(`donations."createdAt" <= :toDate`, { toDate });
       } else if (fromDate && !toDate) {
-        query.where(`donations."createdAt" >= '${fromDate}'`);
+        query.where(`donations."createdAt" >= :fromDate`, { fromDate });
       } else if (!fromDate && toDate) {
-        query.where(`donations."createdAt" <= '${toDate}'`);
+        query.where(`donations."createdAt" <= :toDate`, { toDate });
       }
 
       if (networkId) {
         if (fromDate || toDate) {
-          query.andWhere(`donations."transactionNetworkId" = ${networkId}`);
+          query.andWhere(`donations."transactionNetworkId" = :networkId`, {
+            networkId,
+          });
         } else {
-          query.where(`donations."transactionNetworkId" = ${networkId}`);
+          query.where(`donations."transactionNetworkId" = :networkId`, {
+            networkId,
+          });
         }
       }
 

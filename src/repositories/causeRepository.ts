@@ -14,7 +14,6 @@ import {
 } from './projectAddressRepository';
 import { getSimilarTitleInProjectsRegex } from '../utils/validators/projectValidator';
 import { User } from '../entities/user';
-import { ProjectPowerView } from '../views/projectPowerView';
 
 export enum CauseSortField {
   GIVPOWER = 'givPower',
@@ -291,30 +290,6 @@ export const loadCauseProjects = async (
 
   const causeProjects = await baseQuery.getMany();
 
-  // Load projectPower separately to avoid 3-level deep join issue
-  // Collect all project IDs that need projectPower data
-  const projectIds = causeProjects
-    .filter(cp => cp.project && cp.project.id)
-    .map(cp => cp.project.id);
-
-  if (projectIds.length > 0) {
-    // Load all projectPower data in a single query
-    const projectPowers = await ProjectPowerView.find({
-      where: projectIds.map(id => ({ projectId: id })),
-    });
-
-    // Create a map for efficient lookup
-    const powerMap = new Map(projectPowers.map(pp => [pp.projectId, pp]));
-
-    // Assign projectPower to each project
-    causeProjects.forEach(causeProject => {
-      if (causeProject.project && causeProject.project.id) {
-        causeProject.project.projectPower =
-          powerMap.get(causeProject.project.id) || undefined;
-      }
-    });
-  }
-
   return causeProjects;
 };
 
@@ -382,9 +357,52 @@ export const findAllCauses = async (
 
   const causes = await queryBuilder.getMany();
 
-  // Second query: Load related data separately
-  for (const cause of causes) {
-    cause.causeProjects = await loadCauseProjects(cause);
+  // Optimize: Batch load cause projects to avoid N+1 queries
+  if (causes.length > 0) {
+    const causeIds = causes.map(cause => cause.id);
+    const allCauseProjects = await CauseProject.createQueryBuilder(
+      'causeProject',
+    )
+      .leftJoinAndSelect('causeProject.project', 'project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect(
+        'project.socialProfiles',
+        'socialProfiles',
+        'socialProfiles.projectId = project.id',
+      )
+      .leftJoinAndSelect(
+        'project.socialMedia',
+        'socialMedia',
+        'socialMedia.projectId = project.id',
+      )
+      .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
+      .leftJoinAndSelect(
+        'project.categories',
+        'projectCategories',
+        'projectCategories.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'projectCategories.mainCategory',
+        'projectMainCategory',
+      )
+      .leftJoinAndSelect('project.adminUser', 'adminUser')
+      .where('causeProject.causeId IN (:...causeIds)', { causeIds })
+      .getMany();
+
+    // Group cause projects by cause ID
+    const causeProjectsMap = new Map<number, CauseProject[]>();
+    allCauseProjects.forEach(causeProject => {
+      if (!causeProjectsMap.has(causeProject.causeId)) {
+        causeProjectsMap.set(causeProject.causeId, []);
+      }
+      causeProjectsMap.get(causeProject.causeId)!.push(causeProject);
+    });
+
+    // Assign cause projects to each cause
+    causes.forEach(cause => {
+      cause.causeProjects = causeProjectsMap.get(cause.id) || [];
+    });
   }
 
   return causes;

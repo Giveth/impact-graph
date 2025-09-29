@@ -57,17 +57,6 @@ export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
 
 // example 110356996 returns just one transaction
 // for bigger block ranges run multiple times with additional endBlock param in tippingContract.queryFilter()
-export const getLatestBlockNumberFromDonations = async (): Promise<number> => {
-  const latestDonation = await Donation.createQueryBuilder('donation')
-    .select('MAX(donation.blockNumber)', 'maxBlock')
-    .where('donation.isExternal = true')
-    .getRawOne();
-
-  return (
-    latestDonation?.maxBlock ||
-    Number(process.env.IDRISS_STARTING_BLOCKNUMBER || 110356996)
-  );
-};
 
 export const isTransactionHashStored = async (
   transactionHash: string,
@@ -211,16 +200,19 @@ export const donationsTotalAmountPerDateRange = async (
     .select(`COALESCE(SUM(donation."valueUsd"), 0)`, 'sum')
     .where(`donation.status = 'verified'`);
 
+  // Optimize: Use parameterized queries instead of string interpolation
   if (fromDate) {
-    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+    query.andWhere(`donation."createdAt" >= :fromDate`, { fromDate });
   }
 
   if (toDate) {
-    query.andWhere(`donation."createdAt" <= '${toDate}'`);
+    query.andWhere(`donation."createdAt" <= :toDate`, { toDate });
   }
 
   if (networkId) {
-    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
+    query.andWhere(`donation."transactionNetworkId" = :networkId`, {
+      networkId,
+    });
   }
 
   if (onlyVerified) {
@@ -266,16 +258,19 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
     .where(`donation.status = 'verified'`)
     .andWhere('donation."valueUsd" IS NOT NULL');
 
+  // Optimize: Use parameterized queries instead of string interpolation
   if (fromDate) {
-    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+    query.andWhere(`donation."createdAt" >= :fromDate`, { fromDate });
   }
 
   if (toDate) {
-    query.andWhere(`donation."createdAt" <= '${toDate}'`);
+    query.andWhere(`donation."createdAt" <= :toDate`, { toDate });
   }
 
   if (networkId) {
-    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
+    query.andWhere(`donation."transactionNetworkId" = :networkId`, {
+      networkId,
+    });
   }
 
   if (onlyVerified) {
@@ -320,16 +315,19 @@ export const donationsNumberPerDateRange = async (
     .select(`COALESCE(COUNT(donation.id), 0)`, 'count')
     .where(`donation.status = 'verified'`);
 
+  // Optimize: Use parameterized queries instead of string interpolation
   if (fromDate) {
-    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+    query.andWhere(`donation."createdAt" >= :fromDate`, { fromDate });
   }
 
   if (toDate) {
-    query.andWhere(`donation."createdAt" <= '${toDate}'`);
+    query.andWhere(`donation."createdAt" <= :toDate`, { toDate });
   }
 
   if (networkId) {
-    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
+    query.andWhere(`donation."transactionNetworkId" = :networkId`, {
+      networkId,
+    });
   }
 
   if (onlyVerified) {
@@ -565,21 +563,6 @@ export const donorsCountPerDateByMonthAndYear = async (
   return await query.getRawMany();
 };
 
-export const findStableCoinDonationsWithoutPrice = async (): Promise<
-  Donation[]
-> => {
-  return await Donation.createQueryBuilder('donation')
-    .leftJoin(
-      'token',
-      'token',
-      'donation.currency = token.symbol AND donation.transactionNetworkId = token.networkId',
-    )
-    .leftJoin('donation.project', 'project')
-    .select('project.adminUserId')
-    .where('token.isStableCoin = true')
-    .andWhere('donation.valueUsd IS NULL')
-    .getMany();
-};
 export const getRecentDonations = async (take: number): Promise<Donation[]> => {
   return await Donation.createQueryBuilder('donation')
     .leftJoin('donation.user', 'user')
