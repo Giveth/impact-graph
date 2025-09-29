@@ -1,54 +1,54 @@
-import { SelectQueryBuilder } from 'typeorm';
 import { ActionContext } from 'adminjs';
 import moment from 'moment';
+import { SelectQueryBuilder } from 'typeorm';
+import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
 import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
 } from '../../../entities/donation';
-import {
-  canAccessDonationAction,
-  canAccessQfRoundHistoryAction,
-  ResourceActions,
-} from '../adminJsPermissions';
-import {
-  AdminJsContextInterface,
-  AdminJsRequestInterface,
-  AdminJsDonationsQuery,
-  donationHeaders,
-} from '../adminJs-types';
-import { messages } from '../../../utils/messages';
-import { logger } from '../../../utils/logger';
-import {
-  findEvmTransactionByHash,
-  getCsvAirdropTransactions,
-  getGnosisSafeTransactions,
-} from '../../../services/chains/evm/transactionService';
-import {
-  i18n,
-  translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
 import { Project } from '../../../entities/project';
-import { calculateGivbackFactor } from '../../../services/givbackService';
-import { findUserByWalletAddress } from '../../../repositories/userRepository';
-import {
-  updateUserTotalDonated,
-  updateUserTotalReceived,
-} from '../../../services/userService';
+import { Token } from '../../../entities/token';
 import { NETWORK_IDS } from '../../../provider';
-import {
-  initExportSpreadsheet,
-  addDonationsSheetToSpreadsheet,
-} from '../../../services/googleSheets';
-import { extractAdminJsReferrerUrlParams } from '../adminJs';
+import { findUserByWalletAddress } from '../../../repositories/userRepository';
 import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../../../services/chains';
+import {
+  findEvmTransactionByHash,
+  getCsvAirdropTransactions,
+  getGnosisSafeTransactions,
+} from '../../../services/chains/evm/transactionService';
+import { calculateGivbackFactor } from '../../../services/givbackService';
+import {
+  addDonationsSheetToSpreadsheet,
+  initExportSpreadsheet,
+} from '../../../services/googleSheets';
 import { updateProjectStatistics } from '../../../services/projectService';
-import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
-import { Token } from '../../../entities/token';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../../../services/userService';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../../utils/errorMessages';
+import { logger } from '../../../utils/logger';
+import { messages } from '../../../utils/messages';
+import { extractAdminJsReferrerUrlParams } from '../adminJs';
+import {
+  AdminJsContextInterface,
+  AdminJsDonationsQuery,
+  AdminJsRequestInterface,
+  donationHeaders,
+} from '../adminJs-types';
+import {
+  canAccessDonationAction,
+  canAccessQfRoundHistoryAction,
+  ResourceActions,
+} from '../adminJsPermissions';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -448,7 +448,7 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       qfRoundId: {
@@ -472,7 +472,7 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: true,
-          show: true,
+          show: false,
           edit: false,
           new: false,
         },
@@ -482,7 +482,7 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: false,
-          show: true,
+          show: false,
           edit: false,
           new: false,
         },
@@ -492,7 +492,7 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: false,
-          show: true,
+          show: false,
           edit: false,
           new: false,
         },
@@ -521,8 +521,8 @@ export const donationTab = {
       referrerWallet: {
         isVisible: {
           list: false,
-          filter: true,
-          show: true,
+          filter: false,
+          show: false,
           edit: false,
           new: false,
         },
@@ -531,7 +531,7 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: false,
-          show: true,
+          show: false,
           edit: false,
           new: false,
         },
@@ -575,11 +575,17 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       tokenAddress: {
-        isVisible: false,
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: true,
+        },
       },
       fromWalletAddress: {
         isVisible: {
@@ -587,7 +593,7 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       toWalletAddress: {
@@ -596,7 +602,7 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       amount: {
@@ -656,7 +662,7 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       currency: {
@@ -665,7 +671,7 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       transactionNetworkId: {
@@ -688,7 +694,7 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       txType: {
@@ -745,7 +751,7 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       isReferrerGivbackEligible: {
@@ -770,7 +776,71 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: false,
-          show: true,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      // Fields removed from create form
+      blockNumber: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      origin: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      recurringDonationId: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      virtualPeriodStart: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      virtualPeriodEnd: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      relevantDonationTxHash: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      importDate: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
           edit: false,
           new: false,
         },
