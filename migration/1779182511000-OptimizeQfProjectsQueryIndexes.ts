@@ -73,7 +73,7 @@ export class OptimizeQfProjectsQueryIndexes1779182511000
     // Index for organization table optimization
     await queryRunner.query(`
       CREATE INDEX IF NOT EXISTS "idx_organization_id_covering" 
-      ON "organization" ("id", "name", "label", "description", "url", "logo", "website", "organizationType")
+      ON "organization" ("id", "name", "label", "website", "supportCustomTokens")
     `);
 
     // Index for project_status table optimization
