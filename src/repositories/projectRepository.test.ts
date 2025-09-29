@@ -656,6 +656,9 @@ function findQfRoundProjectsTestCases() {
       assert.isOk(project1Data.status);
       assert.isOk(project1Data.organization);
       assert.isOk(project1Data.addresses);
+      assert.isOk(project1Data.qfRounds);
+      assert.equal(project1Data.qfRounds.length, 1);
+      assert.equal(project1Data.qfRounds[0].id, qfRound.id);
     }
 
     // Verify project 2 data
