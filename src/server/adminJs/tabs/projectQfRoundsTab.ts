@@ -29,30 +29,26 @@ const deleteProjectQfRound = async (
       adminUserId: currentAdmin.id,
     });
 
-    // Extract projectId and qfRoundId from record params
-    const projectId = record.params?.projectId;
-    const qfRoundId = record.params?.qfRoundId;
+    // Extract the id from record params
+    const id = record.params?.id;
 
     logger.info('Record data:', {
       recordId,
-      projectId,
-      qfRoundId,
+      id,
       allParams: record.params,
     });
 
-    if (!projectId || !qfRoundId) {
-      throw new Error('Missing projectId or qfRoundId in record params');
+    if (!id) {
+      throw new Error('Missing id in record params');
     }
 
-    // Delete using the composite primary key (projectId and qfRoundId)
+    // Delete using the new auto-incrementing primary key
     const deleteResult = await ProjectQfRound.delete({
-      projectId: projectId,
-      qfRoundId: qfRoundId,
+      id: id,
     });
 
     logger.info('ProjectQfRound deleted successfully:', {
-      projectId,
-      qfRoundId,
+      id,
       deleteResult,
       adminUserId: currentAdmin.id,
     });
@@ -140,6 +136,15 @@ export const projectQfRoundsTab = {
       },
     },
     properties: {
+      id: {
+        isVisible: {
+          list: true,
+          filter: true,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
       projectId: {
         isVisible: {
           list: true,

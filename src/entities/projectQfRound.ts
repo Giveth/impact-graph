@@ -1,12 +1,13 @@
 import { Field, ID, ObjectType, Float, Int } from 'type-graphql';
 import {
   PrimaryColumn,
+  Column,
   Entity,
   ManyToOne,
   BaseEntity,
   CreateDateColumn,
   UpdateDateColumn,
-  Column,
+  Index,
 } from 'typeorm';
 import { Project } from './project';
 import { QfRound } from './qfRound';
@@ -14,6 +15,11 @@ import { QfRound } from './qfRound';
 @Entity('project_qf_rounds_qf_round')
 @ObjectType()
 export class ProjectQfRound extends BaseEntity {
+  @Field(_type => ID)
+  @Column({ generated: 'increment' })
+  @Index()
+  id: number;
+
   @Field(_type => ID)
   @PrimaryColumn()
   projectId: number;
