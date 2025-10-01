@@ -18,6 +18,7 @@ export class ProjectQfRound extends BaseEntity {
   @Field(_type => ID)
   @Column({ generated: 'increment' })
   @Index()
+  @PrimaryColumn()
   id: number;
 
   @Field(_type => ID)
