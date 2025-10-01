@@ -182,6 +182,7 @@ export const projectQfRoundsTab = {
         },
       },
       createdAt: {
+        type: 'datetime',
         isVisible: {
           list: false,
           filter: false,
@@ -189,14 +190,21 @@ export const projectQfRoundsTab = {
           edit: false,
           new: false,
         },
+        props: {
+          step: 1,
+        },
       },
       updatedAt: {
+        type: 'datetime',
         isVisible: {
           list: false,
           filter: false,
           show: true,
           edit: false,
           new: false,
+        },
+        props: {
+          step: 1,
         },
       },
     },
