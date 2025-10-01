@@ -323,9 +323,17 @@ export const qfRoundTab = {
       },
       beginDate: {
         isVisible: true,
+        type: 'datetime',
+        props: {
+          step: 1,
+        },
       },
       endDate: {
         isVisible: true,
+        type: 'datetime',
+        props: {
+          step: 1,
+        },
       },
       allocatedFund: {
         isVisible: true,
@@ -445,21 +453,27 @@ export const qfRoundTab = {
         },
       },
       createdAt: {
-        type: 'string',
+        type: 'datetime',
         isVisible: {
           list: true,
           edit: false,
           filter: false,
           show: true,
         },
+        props: {
+          step: 1,
+        },
       },
       updatedAt: {
-        type: 'string',
+        type: 'datetime',
         isVisible: {
           list: true,
           edit: false,
           filter: false,
           show: true,
+        },
+        props: {
+          step: 1,
         },
       },
     },
