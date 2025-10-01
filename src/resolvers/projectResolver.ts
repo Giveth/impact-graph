@@ -2832,45 +2832,28 @@ export class ProjectResolver {
         sortingBy,
       });
 
-      // Transform projects to QfProject format
+      // Map projects to QfProject format
       const qfProjects: QfProject[] = projects.map(project => {
-        // Find the matching QF round relation
-        const matchingRelation = project.projectQfRoundRelations?.find(
-          relation => relation.qfRoundId === qfRoundId,
-        );
-
-        // Extract donation data if relation exists
-        const projectQfRoundRelations = matchingRelation
-          ? {
-              sumDonationValueUsd: matchingRelation.sumDonationValueUsd,
-              countUniqueDonors: matchingRelation.countUniqueDonors,
-            }
-          : undefined;
+        // Get the projectQfRoundRelations for this specific QF round
+        const projectQfRoundRelation = project.projectQfRoundRelations?.[0];
 
         return {
-          id: project.id,
-          title: project.title,
-          descriptionSummary: project.descriptionSummary,
-          description: project.description,
-          image: project.image,
+          ...project,
           totalRaisedUsd: project.totalDonations,
-          verified: project.verified,
           isGivbacksEligible: project.isGivbackEligible,
-          slug: project.slug,
           admin: project.adminUser,
-          status: project.status,
-          reviewStatus: project.reviewStatus,
-          projectType: project.projectType,
-          projectInstantPower: project.projectInstantPower,
-          projectQfRoundRelations,
-          updatedAt: project.updatedAt,
-          creationDate: project.creationDate,
-          latestUpdateCreationDate: project.latestUpdateCreationDate,
-          organization: project.organization,
-          activeProjectsCount: project.activeProjectsCount,
-          addresses: project.addresses,
-          qfRounds: project.qfRounds,
-        };
+          projectQfRoundRelations: projectQfRoundRelation
+            ? {
+                sumDonationValueUsd:
+                  projectQfRoundRelation.sumDonationValueUsd || 0,
+                countUniqueDonors:
+                  projectQfRoundRelation.countUniqueDonors || 0,
+              }
+            : {
+                sumDonationValueUsd: 0,
+                countUniqueDonors: 0,
+              },
+        } as QfProject;
       });
 
       return {
