@@ -47,6 +47,7 @@ export class AddIdToProjectQfRound1779182511001 implements MigrationInterface {
     }
 
     // Also try to drop the standard constraint names that might exist
+    // Use a more robust approach to handle constraint dropping
     const possibleConstraints = [
       'PK_046d515dee2988817725ec75ebf',
       'project_qf_rounds_qf_round_pkey',
@@ -55,12 +56,24 @@ export class AddIdToProjectQfRound1779182511001 implements MigrationInterface {
 
     for (const constraintName of possibleConstraints) {
       try {
-        await queryRunner.query(`
-          ALTER TABLE "project_qf_rounds_qf_round" 
-          DROP CONSTRAINT IF EXISTS "${constraintName}"
+        // First check if constraint exists before trying to drop it
+        const constraintExists = await queryRunner.query(`
+          SELECT 1 FROM pg_constraint 
+          WHERE conname = '${constraintName}' 
+          AND conrelid = (
+            SELECT oid FROM pg_class WHERE relname = 'project_qf_rounds_qf_round'
+          )
         `);
+
+        if (constraintExists && constraintExists.length > 0) {
+          await queryRunner.query(`
+            ALTER TABLE "project_qf_rounds_qf_round" 
+            DROP CONSTRAINT "${constraintName}"
+          `);
+        }
       } catch (error) {
         // Ignore errors for constraints that don't exist
+        logger.error(`Error handling constraint ${constraintName}:`, error);
       }
     }
 
