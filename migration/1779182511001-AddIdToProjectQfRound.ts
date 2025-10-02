@@ -224,7 +224,7 @@ export class AddIdToProjectQfRound1779182511001 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Drop the indexes first
+    // Drop indexes
     await queryRunner.query(`
       DROP INDEX IF EXISTS "IDX_project_qf_rounds_projectId"
     `);
@@ -233,9 +233,9 @@ export class AddIdToProjectQfRound1779182511001 implements MigrationInterface {
       DROP INDEX IF EXISTS "IDX_project_qf_rounds_qfRoundId"
     `);
 
-    // Drop the unique constraint
+    // Drop unique constraint
     await queryRunner.query(`
-      ALTER TABLE IF EXISTS "project_qf_rounds_qf_round" 
+      ALTER TABLE "project_qf_rounds_qf_round" 
       DROP CONSTRAINT IF EXISTS "UQ_project_qf_rounds_composite"
     `);
 
@@ -273,13 +273,13 @@ export class AddIdToProjectQfRound1779182511001 implements MigrationInterface {
 
     // Drop the id column
     await queryRunner.query(`
-      ALTER TABLE IF EXISTS "project_qf_rounds_qf_round" 
+      ALTER TABLE "project_qf_rounds_qf_round" 
       DROP COLUMN IF EXISTS "id"
     `);
 
-    // Restore the composite primary key
+    // Restore composite primary key
     await queryRunner.query(`
-      ALTER TABLE IF EXISTS "project_qf_rounds_qf_round" 
+      ALTER TABLE "project_qf_rounds_qf_round" 
       ADD CONSTRAINT "PK_project_qf_rounds_qf_round" 
       PRIMARY KEY ("projectId", "qfRoundId")
     `);
