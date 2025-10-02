@@ -5,7 +5,9 @@ export class AddIdToProjectQfRound1779182511001 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // First, check if the table exists and get the current primary key constraint name
-    const tableExists = await queryRunner.hasTable('project_qf_rounds_qf_round');
+    const tableExists = await queryRunner.hasTable(
+      'project_qf_rounds_qf_round',
+    );
     if (!tableExists) {
       throw new Error('Table project_qf_rounds_qf_round does not exist');
     }
@@ -18,13 +20,44 @@ export class AddIdToProjectQfRound1779182511001 implements MigrationInterface {
       AND constraint_type = 'PRIMARY KEY'
     `);
 
-    const primaryKeyName = primaryKeyQuery[0]?.constraint_name || 'PK_project_qf_rounds_qf_round';
+    const primaryKeyName = primaryKeyQuery[0]?.constraint_name;
 
-    // Drop the existing composite primary key
-    await queryRunner.query(`
-      ALTER TABLE "project_qf_rounds_qf_round" 
-      DROP CONSTRAINT "${primaryKeyName}"
-    `);
+    // Drop the existing composite primary key if it exists
+    if (primaryKeyName) {
+      try {
+        await queryRunner.query(`
+          ALTER TABLE "project_qf_rounds_qf_round" 
+          DROP CONSTRAINT "${primaryKeyName}"
+        `);
+      } catch (error) {
+        console.log(
+          `Failed to drop constraint ${primaryKeyName}, trying alternative approach...`,
+        );
+        // Try with IF EXISTS as fallback
+        await queryRunner.query(`
+          ALTER TABLE "project_qf_rounds_qf_round" 
+          DROP CONSTRAINT IF EXISTS "${primaryKeyName}"
+        `);
+      }
+    } else {
+      // Fallback: try to drop with constraint detection
+      const constraintQuery = await queryRunner.query(`
+        SELECT conname 
+        FROM pg_constraint 
+        WHERE conrelid = (
+          SELECT oid 
+          FROM pg_class 
+          WHERE relname = 'project_qf_rounds_qf_round'
+        ) AND contype = 'p'
+      `);
+
+      if (constraintQuery[0]?.conname) {
+        await queryRunner.query(`
+          ALTER TABLE "project_qf_rounds_qf_round" 
+          DROP CONSTRAINT "${constraintQuery[0].conname}"
+        `);
+      }
+    }
 
     // Add the new id column as auto-incrementing primary key
     await queryRunner.query(`
@@ -78,10 +111,24 @@ export class AddIdToProjectQfRound1779182511001 implements MigrationInterface {
     const primaryKeyName = primaryKeyQuery[0]?.constraint_name;
 
     if (primaryKeyName) {
-      // Drop the id primary key constraint
+      try {
+        // Drop the id primary key constraint
+        await queryRunner.query(`
+          ALTER TABLE "project_qf_rounds_qf_round" 
+          DROP CONSTRAINT "${primaryKeyName}"
+        `);
+      } catch (error) {
+        // Fallback with IF EXISTS
+        await queryRunner.query(`
+          ALTER TABLE "project_qf_rounds_qf_round" 
+          DROP CONSTRAINT IF EXISTS "${primaryKeyName}"
+        `);
+      }
+    } else {
+      // Fallback: drop all possible primary key constraints
       await queryRunner.query(`
-        ALTER TABLE IF EXISTS "project_qf_rounds_qf_round" 
-        DROP CONSTRAINT "${primaryKeyName}"
+        ALTER TABLE "project_qf_rounds_qf_round" 
+        DROP CONSTRAINT IF EXISTS "UQ_project_qf_rounds_qf_round"
       `);
     }
 
