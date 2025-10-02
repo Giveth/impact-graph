@@ -1375,6 +1375,10 @@ export const fetchProjectBySlugQuery = `
         priority
         endDate
         isActive
+        projectQfRoundRelations {
+          sumDonationValueUsd
+          countUniqueDonors
+        }
       }
       status {
         id
