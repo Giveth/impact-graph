@@ -345,6 +345,7 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
   //   assert.isTrue(updateDonation.segmentNotified);
   //   assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
   // });
+
   it('should verify a Optimistic donation', async () => {
     // https://explorer.optimism.io/tx/0x92ee6c020a91bacf47b1e2d74863632c9a3ee21d093da3cf11c3812a88d5cd5f
 

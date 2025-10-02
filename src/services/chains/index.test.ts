@@ -637,6 +637,7 @@ function getTransactionDetailTestCases() {
   it('should return transaction detail for normal transfer on optimistic', async () => {
     // https://explorer.optimism.io/tx/0x46a441e7867f67163602ea7787da1120a6f6eca7719bbffda7e21d5abcb8b338
     const amount = 0.02;
+
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x46a441e7867f67163602ea7787da1120a6f6eca7719bbffda7e21d5abcb8b338',
