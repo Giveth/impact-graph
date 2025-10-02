@@ -8,6 +8,7 @@ import {
 import {
   assertThrowsAsync,
   createProjectData,
+  generateRandomCardanoAddress,
   generateRandomEtheriumAddress,
   generateRandomSolanaAddress,
   saveProjectDirectlyToDb,
@@ -163,6 +164,13 @@ function validateProjectWalletAddressTestCases() {
     );
     assert.isTrue(valid);
   });
+
+  it('should return true for valid address - Cardano', async () => {
+    const valid = await validateProjectWalletAddress(
+      generateRandomCardanoAddress(),
+    );
+    assert.isTrue(valid);
+  });
 }
 function isWalletAddressValidTestCases() {
   it('should return true for valid address', () => {
@@ -191,6 +199,14 @@ function isWalletAddressValidTestCases() {
       isWalletAddressValid(
         'ALuY9D3XDhNgJvKQavNcLS6qZ9oGP4mUWRvnerWXxgML',
         ChainType.EVM,
+      ),
+    );
+  });
+  it('should return true for valid Cardano address', () => {
+    assert.isTrue(
+      isWalletAddressValid(
+        'addr1vyqsqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpq3jed',
+        ChainType.CARDANO,
       ),
     );
   });

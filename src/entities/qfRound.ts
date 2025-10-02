@@ -18,6 +18,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Project } from './project';
+import { ProjectQfRound } from './projectQfRound';
 import { Donation } from './donation';
 
 export enum QfStrategyEnum {
@@ -118,6 +119,22 @@ export class QfRound extends BaseEntity {
   @Column('text', { nullable: true })
   bannerBgImage: string;
 
+  @Field(_type => Number, { nullable: true })
+  @Column({ nullable: true })
+  displaySize: number;
+
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  bannerFull: string;
+
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  bannerMobile: string;
+
+  @Field(_type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  hubCardImage: string;
+
   @Field(_type => [String])
   @Column('text', { array: true, default: [] })
   sponsorsImgs: string[];
@@ -130,6 +147,10 @@ export class QfRound extends BaseEntity {
   @Column({ nullable: true })
   clusterMatchingSyncAt?: Date;
 
+  @Field(_type => Int, { nullable: true })
+  @Column({ nullable: true, default: 0 })
+  priority: number;
+
   @UpdateDateColumn()
   updatedAt: Date;
 
@@ -138,6 +159,10 @@ export class QfRound extends BaseEntity {
 
   @ManyToMany(_type => Project, project => project.qfRounds)
   projects: Project[];
+
+  @Field(_type => [ProjectQfRound], { nullable: true })
+  @OneToMany(_type => ProjectQfRound, projectQfRound => projectQfRound.qfRound)
+  projectQfRoundRelations: ProjectQfRound[];
 
   @OneToMany(_type => Donation, donation => donation.qfRound)
   donations: Donation[];

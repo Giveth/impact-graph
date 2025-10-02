@@ -8,12 +8,13 @@ import {
   ObjectType,
   Query,
   Resolver,
+  registerEnumType,
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import {
-  findActiveQfRound,
+  findActiveQfRounds,
   findQfRounds,
   findArchivedQfRounds,
   findQfRoundBySlug,
@@ -22,14 +23,28 @@ import {
   QfArchivedRoundsSortType,
   getQfRoundStats,
   getQfRoundTotalSqrtRootSumSquared,
+  findActiveQfRound,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 import { OrderDirection } from './projectResolver';
+
+export enum QfRoundsSortType {
+  roundId = 'roundId',
+  priority = 'priority',
+}
+
+registerEnumType(QfRoundsSortType, {
+  name: 'QfRoundsSortType',
+});
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 import { logger } from '../utils/logger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { UserQfRoundModelScore } from '../entities/userQfRoundModelScore';
 import { findUserByWalletAddress } from '../repositories/userRepository';
+import {
+  selectQfRoundForProject,
+  QfRoundSmartSelectError,
+} from '../services/qfRoundSmartSelectService';
 
 @ObjectType()
 export class QfRoundStatsResponse {
@@ -59,6 +74,33 @@ export class ExpectedMatchingResponse {
 
   @Field()
   matchingPool: number;
+}
+
+@ObjectType()
+export class QfRoundSmartSelectResponse {
+  @Field(_type => Int)
+  qfRoundId: number;
+
+  @Field()
+  qfRoundName: string;
+
+  @Field(_type => Number)
+  matchingPoolAmount: number;
+
+  @Field(_type => [Int])
+  eligibleNetworks: number[];
+
+  @Field(_type => Number, { nullable: true })
+  allocatedFundUSD: number;
+
+  @Field(_type => Number, { nullable: true })
+  projectUsdAmountRaised: number;
+
+  @Field(_type => Number, { nullable: true })
+  uniqueDonors: number;
+
+  @Field(_type => Number, { nullable: true })
+  donationsCount: number;
 }
 
 @InputType()
@@ -99,6 +141,12 @@ export class QfRoundsArgs {
 
   @Field(_type => Boolean, { nullable: true })
   activeOnly?: boolean;
+
+  @Field(_type => QfRoundsSortType, {
+    nullable: true,
+    defaultValue: QfRoundsSortType.roundId,
+  })
+  sortBy?: QfRoundsSortType;
 }
 
 @Resolver(_of => User)
@@ -106,13 +154,13 @@ export class QfRoundResolver {
   @Query(_returns => [QfRound], { nullable: true })
   async qfRounds(
     @Args()
-    { slug, activeOnly }: QfRoundsArgs,
+    { slug, activeOnly, sortBy }: QfRoundsArgs,
   ) {
     if (activeOnly) {
-      const activeQfRound = await findActiveQfRound();
-      return activeQfRound ? [activeQfRound] : [];
+      const activeQfRounds = await findActiveQfRounds();
+      return activeQfRounds;
     }
-    return findQfRounds({ slug });
+    return findQfRounds({ slug, sortBy });
   }
 
   @Query(_returns => [QFArchivedRounds], { nullable: true })
@@ -129,34 +177,37 @@ export class QfRoundResolver {
   ): Promise<User | undefined> {
     try {
       const user = await findUserByWalletAddress(address.toLowerCase());
-      const activeQfRound = await findActiveQfRound();
-      if (!user || !activeQfRound) return;
+      const activeQfRounds = await findActiveQfRounds();
+      if (!user || !activeQfRounds || activeQfRounds.length === 0) return;
 
       const userScore = await getGitcoinAdapter().getUserAnalysisScore(
         address.toLowerCase(),
       );
 
-      const existingRecord = await UserQfRoundModelScore.createQueryBuilder(
-        'userQfRoundModelScore',
-      )
-        .where('"userId" = :userId', { userId: user.id })
-        .andWhere('"qfRoundId" = :qfRoundId', {
-          qfRoundId: activeQfRound.id,
-        })
-        .getOne();
+      // Update user score for all active QF rounds
+      for (const activeQfRound of activeQfRounds) {
+        const existingRecord = await UserQfRoundModelScore.createQueryBuilder(
+          'userQfRoundModelScore',
+        )
+          .where('"userId" = :userId', { userId: user.id })
+          .andWhere('"qfRoundId" = :qfRoundId', {
+            qfRoundId: activeQfRound.id,
+          })
+          .getOne();
 
-      if (existingRecord) {
-        UserQfRoundModelScore.update(
-          { id: existingRecord.id },
-          { score: userScore },
-        );
-      } else {
-        const userQfRoundScore = UserQfRoundModelScore.create({
-          userId: user.id,
-          qfRoundId: activeQfRound.id,
-          score: userScore,
-        });
-        await userQfRoundScore.save();
+        if (existingRecord) {
+          await UserQfRoundModelScore.update(
+            { id: existingRecord.id },
+            { score: userScore },
+          );
+        } else {
+          const userQfRoundScore = UserQfRoundModelScore.create({
+            userId: user.id,
+            qfRoundId: activeQfRound.id,
+            score: userScore,
+          });
+          await userQfRoundScore.save();
+        }
       }
 
       user.activeQFMBDScore = userScore;
@@ -215,5 +266,22 @@ export class QfRoundResolver {
       matchingPool: qfRound.allocatedFund,
       qfRound,
     };
+  }
+
+  @Query(() => QfRoundSmartSelectResponse, { nullable: true })
+  public async qfRoundSmartSelect(
+    @Arg('networkId', () => Int) networkId: number,
+    @Arg('projectId', () => Int) projectId: number,
+  ): Promise<QfRoundSmartSelectResponse | null> {
+    logger.info('qfRoundSmartSelect called with:', { networkId, projectId });
+    try {
+      return await selectQfRoundForProject(networkId, projectId);
+    } catch (error) {
+      if (error instanceof QfRoundSmartSelectError) {
+        throw new Error(error.message);
+      }
+      logger.error('Error in qfRoundSmartSelect:', error);
+      throw error;
+    }
   }
 }

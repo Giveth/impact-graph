@@ -25,6 +25,8 @@ import { Reaction } from '../entities/reaction';
 import { SocialProfile } from '../entities/socialProfile';
 import { PreviousRoundRank } from '../entities/previousRoundRank';
 import { ORGANIZATION_LABELS } from '../entities/organization';
+import { ProjectQfRound } from '../entities/projectQfRound';
+import { DraftDonation } from '../entities/draftDonation';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -142,11 +144,16 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     ]);
 
   if (includeUnlisted) {
-    query = query.where(`project.statusId = ${ProjStatus.active}`);
+    query = query.where(`project.statusId = :statusId`, {
+      statusId: ProjStatus.active,
+    });
   } else {
     query = query.where(
-      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-      { reviewStatus: ReviewStatus.Listed },
+      `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+      {
+        statusId: ProjStatus.active,
+        reviewStatus: ReviewStatus.Listed,
+      },
     );
   }
 
@@ -194,10 +201,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   query = ProjectResolver.addFiltersQuery(query, filters);
   if (slugArray && slugArray.length > 0) {
     // This is used for getting projects that manually has been set to campaigns
-    // TODO this doesnt query slug in project.slugHistory, but we should add it later
-    query.andWhere(`project.slug IN (:...slugs)`, {
-      slugs: slugArray,
-    });
+    // Check both current slug and slug history
+    query.andWhere(
+      `(project.slug IN (:...slugs) OR project.slugHistory && :slugs)`,
+      {
+        slugs: slugArray,
+      },
+    );
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
@@ -240,6 +250,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       query.orderBy('project.qualityScore', OrderDirection.DESC);
       break;
     case SortingField.GIVPower:
+      // Use projectPower.totalPower with NULLS LAST for better NULL handling
       query
         .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
         .addOrderBy('project.verified', 'DESC') // Secondary sorting condition
@@ -298,10 +309,161 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.BestMatch:
       break;
     default:
+      // Default sorting - use projectPower since it's always available
       query
-        .addOrderBy('projectInstantPower.totalPower', OrderDirection.DESC)
+        .addOrderBy(
+          'projectPower.totalPower',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        )
         .addOrderBy('project.isGivbackEligible', 'DESC') // Primary sorting condition
         .addOrderBy('project.verified', 'DESC'); // Secondary sorting condition
+      break;
+  }
+
+  return query.take(limit).skip(skip);
+};
+
+// Optimized query for Multi QF feature - removes QF-related fields and calculations
+export const filterProjectsQueryOptimized = (
+  params: FilterProjectQueryInputParams,
+) => {
+  const {
+    limit,
+    skip,
+    searchTerm,
+    category,
+    mainCategory,
+    filters,
+    sortingBy,
+    slugArray,
+    includeUnlisted,
+    projectType,
+  } = params;
+
+  // Convert projectType to lowercase to ensure consistent filtering
+  const normalizedProjectType = projectType?.toLowerCase() || 'project';
+
+  let queryBuilderBase: SelectQueryBuilder<Project | Cause>;
+  // Need to change entity to prevent Project type being set wrongly
+  if (normalizedProjectType === 'cause') {
+    queryBuilderBase = Cause.createQueryBuilder('project');
+  } else {
+    queryBuilderBase = Project.createQueryBuilder('project');
+  }
+
+  let query = queryBuilderBase
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoinAndSelect('project.organization', 'organization')
+    // Removed qfRounds join as it's no longer needed
+    .innerJoin('project.adminUser', 'user')
+    .addSelect(publicSelectionFields) // aliased selection
+    .leftJoinAndSelect(
+      'project.categories',
+      'categories',
+      'categories.isActive = :isActive',
+      { isActive: true },
+    )
+    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+    .leftJoin('project.projectPower', 'projectPower')
+    .addSelect([
+      'projectPower.totalPower',
+      'projectPower.powerRank',
+      'projectPower.round',
+    ]);
+
+  if (includeUnlisted) {
+    query = query.where(`project.statusId = ${ProjStatus.active}`);
+  } else {
+    query = query.where(
+      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+      { reviewStatus: ReviewStatus.Listed },
+    );
+  }
+
+  // Filter by projectType
+  if (
+    normalizedProjectType &&
+    (normalizedProjectType === 'cause' || normalizedProjectType === 'project')
+  ) {
+    query = query.andWhere('project.projectType = :projectType', {
+      projectType: normalizedProjectType,
+    });
+  }
+
+  // Removed QF-related filtering logic
+  // Removed qfRoundId, qfRoundSlug, and activeQfRoundId filtering
+
+  // Always include projectInstantPower for optimized query
+  query = query
+    .leftJoin('project.projectInstantPower', 'projectInstantPower')
+    .addSelect([
+      'projectInstantPower.totalPower',
+      'projectInstantPower.powerRank',
+    ]);
+
+  // Filters
+  query = ProjectResolver.addCategoryQuery(query, category);
+  query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
+  query = ProjectResolver.addSearchQuery(query, searchTerm);
+  query = ProjectResolver.addFiltersQuery(query, filters);
+  if (slugArray && slugArray.length > 0) {
+    query.andWhere(`project.slug IN (:...slugs)`, {
+      slugs: slugArray,
+    });
+  }
+
+  // Simplified sorting - removed QF-related sorting options
+  switch (sortingBy) {
+    case SortingField.MostNumberOfProjects:
+      query.orderBy('project.activeProjectsCount', OrderDirection.DESC);
+      break;
+    case SortingField.LeastNumberOfProjects:
+      query.orderBy('project.activeProjectsCount', OrderDirection.ASC);
+      break;
+    case SortingField.MostFunded:
+      query.orderBy('project.totalDonations', OrderDirection.DESC);
+      break;
+    case SortingField.Newest:
+      query.orderBy('project.creationDate', OrderDirection.DESC);
+      break;
+    case SortingField.RecentlyUpdated:
+      query
+        .orderBy('project.updatedAt', OrderDirection.DESC)
+        .andWhere('organization.label != :label', {
+          label: ORGANIZATION_LABELS.ENDAOMENT,
+        });
+      break;
+    case SortingField.Oldest:
+      query.orderBy('project.creationDate', OrderDirection.ASC);
+      break;
+    case SortingField.GIVPower:
+      query
+        .addOrderBy('project.isGivbackEligible', 'DESC')
+        .addOrderBy('project.verified', 'DESC')
+        .addOrderBy(
+          'projectPower.totalPower',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        );
+      break;
+    case SortingField.InstantBoosting: // Default sorting
+      query
+        .addOrderBy(
+          'projectInstantPower.totalPower',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        )
+        .addOrderBy('project.isGivbackEligible', 'DESC')
+        .addOrderBy('project.verified', 'DESC')
+        .addOrderBy('project.totalDonations', OrderDirection.DESC);
+      break;
+    default:
+      query
+        .addOrderBy('projectInstantPower.totalPower', OrderDirection.DESC)
+        .addOrderBy('project.isGivbackEligible', 'DESC')
+        .addOrderBy('project.verified', 'DESC');
       break;
   }
 
@@ -354,17 +516,6 @@ export const findProjectIdBySlug = (slug: string): Promise<Project | null> => {
   // check current slug and previous slugs
   return Project.createQueryBuilder('project')
     .select('project.id')
-    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-      slug,
-    })
-    .getOne();
-};
-
-export const findProjectBySlugWithoutAnyJoin = (
-  slug: string,
-): Promise<Project | null> => {
-  // check current slug and previous slugs
-  return Project.createQueryBuilder('project')
     .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
       slug,
     })
@@ -451,18 +602,6 @@ export const findProjectByWalletAddressAndNetwork = async (
     .andWhere(`address."networkId" = :network`, { network })
     .leftJoinAndSelect('project.status', 'status')
     .getOne();
-};
-
-export const userIsOwnerOfProject = async (
-  viewerUserId: number,
-  slug: string,
-): Promise<boolean> => {
-  return (
-    await Project.query(
-      `SELECT EXISTS(SELECT * FROM project WHERE "adminUserId" = $1 AND slug = $2)`,
-      [viewerUserId, slug],
-    )
-  )[0].exists;
 };
 
 export const totalProjectsPerDate = async (
@@ -647,8 +786,111 @@ export const removeProjectAndRelatedEntities = async (
     .where('projectId = :projectId', { projectId })
     .execute();
 
+  await ProjectQfRound.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
+  await DraftDonation.createQueryBuilder()
+    .delete()
+    .where('projectId = :projectId', { projectId })
+    .execute();
+
   await Project.createQueryBuilder()
     .delete()
     .where('id = :id', { id: projectId })
     .execute();
+};
+
+export const findQfRoundProjects = async (
+  qfRoundId: number,
+  params: {
+    limit?: number;
+    skip?: number;
+    searchTerm?: string;
+    filters?: FilterField[];
+    sortingBy?: SortingField;
+  } = {},
+): Promise<[Project[], number]> => {
+  const {
+    limit = 10,
+    skip = 0,
+    searchTerm,
+    filters = [],
+    sortingBy = SortingField.QualityScore,
+  } = params;
+
+  let query = Project.createQueryBuilder('project')
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect('project.organization', 'organization')
+    .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoin('project.adminUser', 'user')
+    .addSelect(publicSelectionFields)
+    .leftJoin('project.projectPower', 'projectPower')
+    .addSelect(['projectPower.totalPower', 'projectPower.powerRank'])
+    .leftJoin('project.projectInstantPower', 'projectInstantPower')
+    .addSelect([
+      'projectInstantPower.totalPower',
+      'projectInstantPower.powerRank',
+    ])
+    .leftJoinAndSelect(
+      'project.projectQfRoundRelations',
+      'projectQfRoundRelations',
+      'projectQfRoundRelations.qfRoundId = :qfRoundId AND projectQfRoundRelations.projectId = project.id',
+      { qfRoundId },
+    )
+    .innerJoinAndSelect(
+      'project.qfRounds',
+      'qfRounds',
+      'qfRounds.id = :qfRoundId',
+      { qfRoundId },
+    )
+    .distinct(true)
+    .where('project.statusId = :statusId', { statusId: ProjStatus.active })
+    .andWhere('project.reviewStatus = :reviewStatus', {
+      reviewStatus: ReviewStatus.Listed,
+    });
+
+  // Apply search term
+  if (searchTerm) {
+    query = ProjectResolver.addSearchQuery(query, searchTerm);
+  }
+
+  // Apply filters
+  if (filters && filters.length > 0) {
+    query = ProjectResolver.addFiltersQuery(query, filters);
+  }
+
+  // Apply sorting
+  if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
+    query
+      .orderBy(
+        'projectQfRoundRelations.sumDonationValueUsd',
+        'DESC',
+        'NULLS LAST',
+      )
+      .addOrderBy('project.isGivbackEligible', 'DESC')
+      .addOrderBy('project.verified', 'DESC')
+      .addOrderBy('project.creationDate', 'DESC');
+  } else if (sortingBy === SortingField.MostFunded) {
+    query
+      .orderBy('project.totalDonations', 'DESC')
+      .addOrderBy('project.isGivbackEligible', 'DESC')
+      .addOrderBy('project.verified', 'DESC')
+      .addOrderBy('project.creationDate', 'DESC');
+  } else if (sortingBy === SortingField.Newest) {
+    query
+      .orderBy('project.creationDate', 'DESC')
+      .addOrderBy('project.isGivbackEligible', 'DESC')
+      .addOrderBy('project.verified', 'DESC');
+  } else {
+    // Default sorting - Use projectInstantPower.totalPower with NULLS LAST
+    query
+      .orderBy('projectInstantPower.totalPower', 'DESC', 'NULLS LAST')
+      .addOrderBy('project.isGivbackEligible', 'DESC')
+      .addOrderBy('project.verified', 'DESC')
+      .addOrderBy('project.creationDate', 'DESC');
+  }
+
+  return query.take(limit).skip(skip).getManyAndCount();
 };

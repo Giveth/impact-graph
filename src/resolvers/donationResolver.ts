@@ -21,7 +21,7 @@ import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { ApolloContext } from '../types/ApolloContext';
 import { Project, ProjStatus } from '../entities/project';
 import { Token } from '../entities/token';
-import { publicSelectionFields, User } from '../entities/user';
+import { publicSelectionFields } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
@@ -64,6 +64,7 @@ import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
 import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
 import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
+import { findQfRoundById } from '../repositories/qfRoundRepository';
 import { detectAddressChainType } from '../utils/networks';
 import { ChainType } from '../types/network';
 import { getAppropriateNetworkId } from '../services/chains';
@@ -276,7 +277,7 @@ class SwapTransactionInput {
   metadata?: Record<string, any>;
 }
 
-@Resolver(_of => User)
+@Resolver(_of => Donation)
 export class DonationResolver {
   private readonly donationRepository: Repository<Donation>;
 
@@ -358,10 +359,10 @@ export class DonationResolver {
         ]);
 
       if (fromDate) {
-        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+        query.andWhere(`donation."createdAt" >= :fromDate`, { fromDate });
       }
       if (toDate) {
-        query.andWhere(`donation."createdAt" <= '${toDate}'`);
+        query.andWhere(`donation."createdAt" <= :toDate`, { toDate });
       }
       return await query.getMany();
     } catch (e) {
@@ -397,19 +398,23 @@ export class DonationResolver {
         .groupBy('mainCategory.id, mainCategory.title');
 
       if (fromDate && toDate) {
-        query.where(`donations."createdAt" >= '${fromDate}'`);
-        query.andWhere(`donations."createdAt" <= '${toDate}'`);
+        query.where(`donations."createdAt" >= :fromDate`, { fromDate });
+        query.andWhere(`donations."createdAt" <= :toDate`, { toDate });
       } else if (fromDate && !toDate) {
-        query.where(`donations."createdAt" >= '${fromDate}'`);
+        query.where(`donations."createdAt" >= :fromDate`, { fromDate });
       } else if (!fromDate && toDate) {
-        query.where(`donations."createdAt" <= '${toDate}'`);
+        query.where(`donations."createdAt" <= :toDate`, { toDate });
       }
 
       if (networkId) {
         if (fromDate || toDate) {
-          query.andWhere(`donations."transactionNetworkId" = ${networkId}`);
+          query.andWhere(`donations."transactionNetworkId" = :networkId`, {
+            networkId,
+          });
         } else {
-          query.where(`donations."transactionNetworkId" = ${networkId}`);
+          query.where(`donations."transactionNetworkId" = :networkId`, {
+            networkId,
+          });
         }
       }
 
@@ -855,6 +860,7 @@ export class DonationResolver {
     relevantDonationTxHash?: string,
     @Arg('swapData', { nullable: true }) swapData?: SwapTransactionInput,
     @Arg('fromTokenAmount', { nullable: true }) fromTokenAmount?: number,
+    @Arg('roundId', { nullable: true }) roundId?: number,
   ): Promise<number> {
     const logData = {
       amount,
@@ -871,6 +877,7 @@ export class DonationResolver {
       swapData,
       isSwap: !!swapData,
       fromTokenAmount,
+      roundId,
     };
     logger.debug(
       'createDonation() resolver has been called with this data',
@@ -904,6 +911,7 @@ export class DonationResolver {
         useDonationBox,
         relevantDonationTxHash,
         fromTokenAmount,
+        roundId,
       };
       try {
         validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
@@ -935,6 +943,38 @@ export class DonationResolver {
           ),
         );
       }
+
+      // Validate QF round if provided - don't throw errors, just exclude from QF round
+      let qfRoundValidationError: string | undefined;
+      if (roundId) {
+        const qfRound = await findQfRoundById(roundId);
+        if (!qfRound) {
+          qfRoundValidationError =
+            'QF round not found - excluded from QF round';
+        } else if (!qfRound.isActive) {
+          qfRoundValidationError =
+            'QF round is not active - excluded from QF round';
+        } else {
+          const now = new Date();
+          if (now < qfRound.beginDate || now > qfRound.endDate) {
+            qfRoundValidationError =
+              'QF round is not currently active - excluded from QF round';
+          } else if (!qfRound.isEligibleNetwork(networkId)) {
+            qfRoundValidationError =
+              'QF round is not eligible for this network - excluded from QF round';
+          } else {
+            // Check if project is in the QF round
+            const projectInQfRound = project.qfRounds?.some(
+              qr => qr.id === roundId,
+            );
+            if (!projectInQfRound) {
+              qfRoundValidationError =
+                'Project is not part of the specified QF round - excluded from QF round';
+            }
+          }
+        }
+      }
+
       const ownProject = project.adminUserId === donorUser.id;
       if (ownProject) {
         throw new Error("Donor can't donate to his/her own project.");
@@ -1073,26 +1113,61 @@ export class DonationResolver {
           logger.error('get chainvine wallet address error', e);
         }
       }
-      const activeQfRoundForProject =
-        await relatedActiveQfRoundForProject(projectId);
-      if (
-        activeQfRoundForProject &&
-        activeQfRoundForProject.isEligibleNetwork(networkId)
-      ) {
-        donation.qfRound = activeQfRoundForProject;
-      }
+      // Set QF round - prioritize draft donation QF round ID, then provided roundId, then auto-select
+      let qfRoundIdToUse: number | undefined;
+
       if (draftDonationEnabled && draftDonationId) {
+        // First check if this is a draft donation and get its QF round ID
         const draftDonation = await DraftDonation.findOne({
-          where: { id: draftDonationId, status: DRAFT_DONATION_STATUS.MATCHED },
-          select: ['matchedDonationId'],
+          where: { id: draftDonationId },
+          select: ['id', 'status', 'matchedDonationId', 'qfRoundId'],
         });
-        if (draftDonation?.createdAt) {
-          // Because if we dont set it donation createdAt might be later than tx.time and that will make a problem on verifying donation
-          // and would fail it
-          donation.createdAt = draftDonation?.createdAt;
-        }
-        if (draftDonation?.matchedDonationId) {
+
+        if (
+          draftDonation?.status === DRAFT_DONATION_STATUS.MATCHED &&
+          draftDonation.matchedDonationId
+        ) {
           return draftDonation.matchedDonationId;
+        }
+
+        // Use QF round ID from draft donation if available
+        if (draftDonation?.qfRoundId) {
+          qfRoundIdToUse = draftDonation.qfRoundId;
+          logger.debug(
+            `Using QF round ID ${qfRoundIdToUse} from draft donation ${draftDonationId}`,
+          );
+        }
+      }
+
+      // If no draft donation QF round ID, use provided roundId
+      if (!qfRoundIdToUse && roundId) {
+        qfRoundIdToUse = roundId;
+        logger.debug(`Using provided QF round ID ${qfRoundIdToUse}`);
+      }
+
+      // Set QF round based on the determined ID
+      if (qfRoundIdToUse) {
+        if (qfRoundValidationError) {
+          // Don't assign QF round if validation failed
+          donation.qfRoundErrorMessage = qfRoundValidationError;
+        } else {
+          const qfRound = await findQfRoundById(qfRoundIdToUse);
+          if (qfRound) {
+            donation.qfRound = qfRound;
+          }
+        }
+      } else {
+        // Auto-select active QF round for project (existing behavior)
+        const activeQfRoundForProject =
+          await relatedActiveQfRoundForProject(projectId);
+        if (
+          activeQfRoundForProject &&
+          activeQfRoundForProject.isEligibleNetwork(networkId)
+        ) {
+          donation.qfRound = activeQfRoundForProject;
+          logger.debug(
+            `Auto-selected QF round ID ${activeQfRoundForProject.id} for project ${projectId}`,
+          );
         }
       }
       await donation.save();

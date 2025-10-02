@@ -156,7 +156,7 @@ export const createDonation = async (
         donation.user = donor;
       }
       await donation.save();
-      await updateProjectStatistics(project.id);
+      await updateProjectStatistics(project.id, donation?.qfRoundId);
       await updateUserTotalReceived(project.adminUserId);
       if (donor) {
         await updateUserTotalDonated(donor.id);

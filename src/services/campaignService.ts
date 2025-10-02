@@ -54,6 +54,11 @@ export const getAllProjectsRelatedToActiveCampaigns = async (): Promise<{
   return projectCampaignCache || {};
 };
 
+export const clearProjectCampaignCache = async (): Promise<void> => {
+  const { redis } = await import('../redis');
+  await redis.del(PROJECT_CAMPAIGN_CACHE_REDIS_KEY);
+};
+
 export const cacheProjectCampaigns = async (): Promise<void> => {
   try {
     logger.debug('cacheProjectCampaigns() has been called');
@@ -123,15 +128,18 @@ export const fillCampaignProjects = async (params: {
     );
   }
 
+  // Optimize: Only fetch user reactions if user is logged in and there are projects
   if (userId && projects.length > 0) {
     const userReactions = await findUserReactionsByProjectIds(
       userId,
       projects.map(project => project.id),
     );
+    // Create a Map for O(1) lookup instead of O(n) find operation
+    const reactionMap = new Map(
+      userReactions.map(reaction => [reaction.projectId, reaction]),
+    );
     projects = projects.map(project => {
-      project.reaction = userReactions.find(
-        reaction => reaction.projectId === project.id,
-      );
+      project.reaction = reactionMap.get(project.id);
       return project;
     });
   }

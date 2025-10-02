@@ -29,6 +29,8 @@ import { errorMessages } from '../../../utils/errorMessages';
 import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 import { pinFile } from '../../../middleware/pinataUtils';
 import { AppDataSource } from '../../../ormconfig';
+import { countActiveQfRounds } from '../../../repositories/qfRoundRepository';
+import config from '../../../config';
 
 let initialProjectIds: number[] = [];
 
@@ -149,6 +151,45 @@ async function handleBannerBgImage(payload: {
   }
 }
 
+async function handleBannerFull(payload: {
+  [key: string]: any;
+  bannerFull?: string | { path: string; name: string };
+}) {
+  const bannerFull = payload.bannerFull;
+
+  if (typeof bannerFull == 'object' && bannerFull?.path) {
+    const { path, name } = bannerFull;
+    const result = await pinFile(fs.createReadStream(path), name);
+    payload.bannerFull = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
+  }
+}
+
+async function handleBannerMobile(payload: {
+  [key: string]: any;
+  bannerMobile?: string | { path: string; name: string };
+}) {
+  const bannerMobile = payload.bannerMobile;
+
+  if (typeof bannerMobile == 'object' && bannerMobile?.path) {
+    const { path, name } = bannerMobile;
+    const result = await pinFile(fs.createReadStream(path), name);
+    payload.bannerMobile = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
+  }
+}
+
+async function handleHubCardImage(payload: {
+  [key: string]: any;
+  hubCardImage?: string | { path: string; name: string };
+}) {
+  const hubCardImage = payload.hubCardImage;
+
+  if (typeof hubCardImage == 'object' && hubCardImage?.path) {
+    const { path, name } = hubCardImage;
+    const result = await pinFile(fs.createReadStream(path), name);
+    payload.hubCardImage = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${result.IpfsHash}`;
+  }
+}
+
 async function validateQfRound(payload: {
   id?: string;
   projectIdsList?: string;
@@ -158,6 +199,8 @@ async function validateQfRound(payload: {
   isDataAnalysisDone?: boolean;
 }) {
   if (!payload.id) return;
+
+  logger.debug('validateQfRound called with payload:', payload);
 
   const qfRoundId = Number(payload.id);
   const qfRound = await findQfRoundById(qfRoundId);
@@ -176,7 +219,10 @@ async function validateQfRound(payload: {
     id => !currentProjectIds.includes(id),
   );
 
-  if (isQfRoundHasEnded({ endDate: qfRound.endDate })) {
+  // Use the new endDate from payload if provided, otherwise use the existing one
+  const effectiveEndDate = payload.endDate || qfRound.endDate;
+
+  if (isQfRoundHasEnded({ endDate: effectiveEndDate })) {
     // When qf round is ended we should not be able to edit begin date and end date
     // https://github.com/Giveth/giveth-dapps-v2/issues/3864
     payload.endDate = qfRound.endDate;
@@ -277,9 +323,17 @@ export const qfRoundTab = {
       },
       beginDate: {
         isVisible: true,
+        type: 'datetime',
+        props: {
+          step: 1,
+        },
       },
       endDate: {
         isVisible: true,
+        type: 'datetime',
+        props: {
+          step: 1,
+        },
       },
       allocatedFund: {
         isVisible: true,
@@ -336,6 +390,56 @@ export const qfRoundTab = {
           edit: adminJs.bundle('./components/QFRoundBannerBg'),
         },
       },
+      displaySize: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: true,
+          new: true,
+          edit: true,
+        },
+        type: 'number',
+        availableValues: [
+          { value: 0, label: 'Standard' },
+          { value: 1, label: 'Large' },
+        ],
+      },
+      bannerFull: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: true,
+          edit: true,
+        },
+        components: {
+          edit: adminJs.bundle('./components/QFRoundBannerFull'),
+        },
+      },
+      bannerMobile: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: true,
+          edit: true,
+        },
+        components: {
+          edit: adminJs.bundle('./components/QFRoundBannerMobile'),
+        },
+      },
+      hubCardImage: {
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: true,
+          edit: true,
+        },
+        components: {
+          edit: adminJs.bundle('./components/QFRoundHubCardImage'),
+        },
+      },
       sponsorsImgs: {
         isVisible: {
           filter: false,
@@ -349,21 +453,27 @@ export const qfRoundTab = {
         },
       },
       createdAt: {
-        type: 'string',
+        type: 'datetime',
         isVisible: {
           list: true,
           edit: false,
           filter: false,
           show: true,
         },
+        props: {
+          step: 1,
+        },
       },
       updatedAt: {
-        type: 'string',
+        type: 'datetime',
         isVisible: {
           list: true,
           edit: false,
           filter: false,
           show: true,
+        },
+        props: {
+          step: 1,
         },
       },
     },
@@ -380,7 +490,83 @@ export const qfRoundTab = {
       new: {
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.NEW),
-        after: refreshMaterializedViews,
+        handler: async (
+          request: AdminJsRequestInterface,
+          _response,
+          _context: AdminJsContextInterface,
+        ) => {
+          let message = 'QF Round created successfully';
+          let type = 'success';
+          let record;
+
+          try {
+            // Check max active rounds limit before processing
+            if (request.payload.isActive === true) {
+              const maxActiveRounds =
+                parseInt(config.get('MAX_ACTIVE_ROUNDS') as string) || 10;
+              const currentActiveRounds = await countActiveQfRounds();
+
+              logger.debug('New QF Round activation check:', {
+                currentActiveRounds,
+                maxActiveRounds,
+                payloadIsActive: request.payload.isActive,
+              });
+
+              if (currentActiveRounds >= maxActiveRounds) {
+                logger.error('Max active rounds limit exceeded in new:', {
+                  currentActiveRounds,
+                  maxActiveRounds,
+                });
+
+                // Return error response with redirect
+                return {
+                  record: {},
+                  redirectUrl: '/admin/resources/QfRound',
+                  notice: {
+                    message: `Maximum active rounds limit (${maxActiveRounds}) has been reached. Cannot create more active QF rounds.`,
+                    type: 'danger',
+                  },
+                };
+              }
+            }
+
+            // Process the creation
+            await handleSponsorsImgs(request.payload);
+            await handleBannerBgImage(request.payload);
+            await handleBannerFull(request.payload);
+            await handleBannerMobile(request.payload);
+            await handleHubCardImage(request.payload);
+
+            // Create the record
+            const qfRound = QfRound.create(request.payload);
+            record = await qfRound.save();
+          } catch (error) {
+            logger.error('Error creating QF Round:', error);
+
+            // Handle specific slug duplicate error
+            if (
+              error.message &&
+              error.message.includes(
+                'duplicate key value violates unique constraint',
+              )
+            ) {
+              message =
+                'A QF Round with this slug already exists. Please use a different slug.';
+            } else {
+              message = error.message || 'Error creating QF Round';
+            }
+            type = 'danger';
+          }
+
+          return {
+            record: record || {},
+            redirectUrl: '/admin/resources/QfRound',
+            notice: {
+              message,
+              type,
+            },
+          };
+        },
       },
       show: {
         isAccessible: ({ currentAdmin }) =>
@@ -390,18 +576,123 @@ export const qfRoundTab = {
       edit: {
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
-        before: async (
+        handler: async (
           request: AdminJsRequestInterface,
-          _response,
-          _context: AdminJsContextInterface,
+          response,
+          context: AdminJsContextInterface,
         ) => {
-          // https://docs.adminjs.co/basics/action#using-before-and-after-hooks
-          await handleSponsorsImgs(request.payload);
-          await handleBannerBgImage(request.payload);
-          await validateQfRound(request.payload);
-          return request;
+          const { record, currentAdmin } = context;
+          let message = 'QF Round updated successfully';
+          let type = 'success';
+
+          try {
+            // Check max active rounds limit before processing
+            if (request.payload.isActive === true) {
+              const qfRoundId = Number(request.payload.id);
+              const qfRound = await findQfRoundById(qfRoundId);
+
+              if (qfRound && qfRound.isActive !== true) {
+                const maxActiveRounds =
+                  parseInt(config.get('MAX_ACTIVE_ROUNDS') as string) || 10;
+                const currentActiveRounds = await countActiveQfRounds();
+
+                logger.debug('Edit QF Round activation check:', {
+                  qfRoundId,
+                  currentActiveRounds,
+                  maxActiveRounds,
+                  payloadIsActive: request.payload.isActive,
+                  qfRoundIsActive: qfRound.isActive,
+                });
+
+                if (currentActiveRounds >= maxActiveRounds) {
+                  logger.error('Max active rounds limit exceeded in edit:', {
+                    currentActiveRounds,
+                    maxActiveRounds,
+                    qfRoundId,
+                  });
+
+                  // Return error response with redirect
+                  return {
+                    record: record.toJSON(currentAdmin),
+                    redirectUrl: '/admin/resources/QfRound',
+                    notice: {
+                      message: `Maximum active rounds limit (${maxActiveRounds}) has been reached. Cannot activate more QF rounds.`,
+                      type: 'danger',
+                    },
+                  };
+                }
+              }
+            }
+
+            // Process the update
+            await handleSponsorsImgs(request.payload);
+            await handleBannerBgImage(request.payload);
+            await handleBannerFull(request.payload);
+            await handleBannerMobile(request.payload);
+            await handleHubCardImage(request.payload);
+            await validateQfRound(request.payload);
+
+            // Update the record directly
+            const qfRoundId = Number(request.payload.id);
+            const { slug, ...updatePayload } = request.payload;
+
+            // Process array fields properly (AdminJS sends them as indexed properties)
+            const processedPayload: any = {};
+
+            Object.keys(updatePayload).forEach(key => {
+              if (key.startsWith('eligibleNetworks.')) {
+                // Handle eligibleNetworks array
+                if (!processedPayload.eligibleNetworks) {
+                  processedPayload.eligibleNetworks = [];
+                }
+                const index = parseInt(key.split('.')[1]);
+                processedPayload.eligibleNetworks[index] = updatePayload[key];
+              } else if (key.startsWith('sponsorsImgs.')) {
+                // Handle sponsorsImgs array
+                if (!processedPayload.sponsorsImgs) {
+                  processedPayload.sponsorsImgs = [];
+                }
+                const index = parseInt(key.split('.')[1]);
+                processedPayload.sponsorsImgs[index] = updatePayload[key];
+              } else {
+                processedPayload[key] = updatePayload[key];
+              }
+            });
+
+            // Only include slug if it's actually different
+            const qfRound = await findQfRoundById(qfRoundId);
+            if (qfRound && slug && slug !== qfRound.slug) {
+              processedPayload.slug = slug;
+            }
+
+            await QfRound.update(qfRoundId, processedPayload);
+          } catch (error) {
+            logger.error('Error updating QF Round:', error);
+
+            // Handle specific slug duplicate error
+            if (
+              error.message &&
+              error.message.includes(
+                'duplicate key value violates unique constraint',
+              )
+            ) {
+              message =
+                'A QF Round with this slug already exists. Please use a different slug.';
+            } else {
+              message = error.message || 'Error updating QF Round';
+            }
+            type = 'danger';
+          }
+
+          return {
+            record: record.toJSON(currentAdmin),
+            redirectUrl: '/admin/resources/QfRound',
+            notice: {
+              message,
+              type,
+            },
+          };
         },
-        after: refreshMaterializedViews,
       },
 
       returnAllDonationData: {

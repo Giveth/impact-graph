@@ -13,6 +13,7 @@ export const createDonationMutation = `
     $safeTransactionId: String
     $swapData: SwapTransactionInput
     $fromTokenAmount: Float
+    $roundId: Float
   ) {
     createDonation(
       transactionId: $transactionId
@@ -28,6 +29,7 @@ export const createDonationMutation = `
       safeTransactionId: $safeTransactionId
       swapData: $swapData
       fromTokenAmount: $fromTokenAmount
+      roundId: $roundId
     )
   }
 `;
@@ -41,6 +43,26 @@ export const scoreUserAddressMutation = `
     ) {
       id
       activeQFMBDScore
+    }
+  }
+`;
+
+export const qfRoundsQuery = `
+  query (
+    $slug: String
+    $activeOnly: Boolean
+    $sortBy: QfRoundsSortType
+  ) {
+    qfRounds(
+      slug: $slug
+      activeOnly: $activeOnly
+      sortBy: $sortBy
+    ) {
+      id
+      name
+      priority
+      endDate
+      isActive
     }
   }
 `;
@@ -61,6 +83,8 @@ export const createDraftDonationMutation = `
     $toWalletMemo: String
     $qrCodeDataUrl: String
     $isQRDonation: Boolean
+    $fromTokenAmount: Float
+    $roundId: Float
   ) {
     createDraftDonation(
       networkId: $networkId
@@ -77,6 +101,8 @@ export const createDraftDonationMutation = `
       toWalletMemo: $toWalletMemo
       qrCodeDataUrl: $qrCodeDataUrl
       isQRDonation: $isQRDonation
+      fromTokenAmount: $fromTokenAmount
+      roundId: $roundId
     )
   }
 `;
@@ -793,6 +819,12 @@ export const fetchAllDonationsQuery = `
         anonymous
         valueUsd
         amount
+        qfRoundId
+        qfRound {
+          id
+          name
+          slug
+        }
         recurringDonation{
           id
           txHash
@@ -856,7 +888,8 @@ export const fetchDonationsByUserIdQuery = `
         project {
           id
         }
-       qfRound {
+        qfRoundId
+        qfRound {
           id
           name
           isActive
@@ -1079,6 +1112,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         sumDonationValueUsdForActiveQfRound
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
+        isQfActive
         estimatedMatching{
            projectDonationsSqrtRootSum
            allProjectsSum
@@ -1103,6 +1137,114 @@ export const expectedMatchingFormulaQuery = `
       projectDonationsSqrtRootSum
       otherProjectsSum
       matchingPool
+    }
+  }
+`;
+
+export const fetchOptimizedAllProjectsQuery = `
+  query (
+    $limit: Int
+    $skip: Int
+    $sortingBy: SortingField
+    $filters: [FilterField!]
+    $searchTerm: String
+    $category: String
+    $mainCategory: String
+    $campaignSlug: String
+    $connectedWalletUserId: Int
+    $projectType: String
+  ) {
+    newAllProjects(
+      limit: $limit
+      skip: $skip
+      sortingBy: $sortingBy
+      filters: $filters
+      searchTerm: $searchTerm
+      category: $category
+      campaignSlug: $campaignSlug
+      mainCategory: $mainCategory
+      connectedWalletUserId: $connectedWalletUserId
+      projectType: $projectType
+    ) {
+      campaign{
+        slug
+        title
+      }
+      
+      projects {
+        id
+        title
+        projectType
+        balance
+        image
+        slug
+        description
+        descriptionSummary
+        creationDate
+        updatedAt
+        adminUserId
+        walletAddress
+        activeProjectsCount
+        impactLocation
+        verified
+        isGivbackEligible
+        isQfActive
+        traceCampaignId
+        listed
+        reviewStatus
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        categories {
+          name
+          mainCategory {
+            title
+            slug
+            banner
+            description
+          }
+        }
+        reaction {
+          id
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
+        organization {
+          name
+          label
+          supportCustomTokens
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
+          chainType
+        }
+        projectPower {
+          totalPower
+          powerRank
+          round
+        }
+        projectInstantPower {
+          totalPower
+          powerRank
+        }
+        totalDonations
+        totalTraceDonations
+        countUniqueDonors
+      }
+      totalCount
+      categories {
+        name
+      }
     }
   }
 `;
@@ -1155,9 +1297,13 @@ export const getQfRoundHistoryQuery = `
 export const fetchProjectBySlugQuery = `
   query (
     $slug: String!
+    $qfRoundsSortBy: String
+    $activeOnly: Boolean
   ) {
     projectBySlug(
       slug: $slug
+      qfRoundsSortBy: $qfRoundsSortBy
+      activeOnly: $activeOnly
     ) {
       id
       title
@@ -1226,6 +1372,8 @@ export const fetchProjectBySlugQuery = `
       qfRounds {
         id
         name
+        priority
+        endDate
         isActive
       }
       status {
@@ -1739,10 +1887,16 @@ export const projectByIdQuery = `
   query(
       $id: Float!,
       $connectedWalletUserId: Int,
+      $userRemoved: Boolean,
+      $qfRoundsSortBy: String,
+      $activeOnly: Boolean
   ){
     projectById(
      id:$id,
-     connectedWalletUserId: $connectedWalletUserId){
+     connectedWalletUserId: $connectedWalletUserId,
+     userRemoved: $userRemoved,
+     qfRoundsSortBy: $qfRoundsSortBy,
+     activeOnly: $activeOnly){
       id
       slug,
       verified
@@ -1784,6 +1938,13 @@ export const projectByIdQuery = `
           description
         }
       }
+      qfRounds {
+        id
+        name
+        priority
+        endDate
+        isActive
+      }
       adminUser {
         firstName
         email
@@ -1809,6 +1970,61 @@ export const getProjectsAcceptTokensQuery = `
       decimals
       mainnetAddress
       name
+    }
+  }
+`;
+
+export const qfProjectsQuery = `
+  query($qfRoundId: Int!, $skip: Int, $limit: Int, $searchTerm: String, $filters: [FilterField!], $sortingBy: SortingField) {
+    qfProjects(qfRoundId: $qfRoundId, skip: $skip, limit: $limit, searchTerm: $searchTerm, filters: $filters, sortingBy: $sortingBy) {
+      projects {
+        id
+        title
+        descriptionSummary
+        description
+        image
+        totalRaisedUsd
+        verified
+        isGivbacksEligible
+        slug
+        admin {
+          id
+          name
+          walletAddress
+        }
+        status {
+          id
+          name
+        }
+        reviewStatus
+        projectType
+        projectInstantPower {
+          totalPower
+          powerRank
+        }
+        updatedAt
+        creationDate
+        latestUpdateCreationDate
+        organization {
+          id
+          name
+        }
+        activeProjectsCount
+        addresses {
+          address
+          networkId
+        }
+        qfRounds {
+          id
+          slug
+          isActive
+        }
+        projectQfRoundRelations {
+          sumDonationValueUsd
+          countUniqueDonors
+        }
+      }
+      totalCount
     }
   }
 `;
@@ -3097,6 +3313,36 @@ export const causeProjectsQuery = `
         title
         description
       }
+    }
+  }
+`;
+
+export const qfRoundSmartSelectQuery = `
+  query qfRoundSmartSelect(
+    $networkId: Int!
+    $projectId: Int!
+  ) {
+    qfRoundSmartSelect(
+      networkId: $networkId
+      projectId: $projectId
+    ) {
+      qfRoundId
+      qfRoundName
+      matchingPoolAmount
+      eligibleNetworks
+      allocatedFundUSD
+      projectUsdAmountRaised
+      uniqueDonors
+      donationsCount
+    }
+  }
+`;
+
+export const globalScoreSettingsQuery = `
+  query {
+    globalScoreSettings {
+      globalMinimumPassportScore
+      globalMinimumMBDScore
     }
   }
 `;

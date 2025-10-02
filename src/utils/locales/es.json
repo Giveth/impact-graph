@@ -121,5 +121,10 @@
     "TOKEN_CONTRACT_NOT_CONFIGURED": "Contrato de token no configurado",
     "TRANSACTION_ALREADY_USED": "El hash de la transacción ya se ha utilizado en otra causa",
     "EXPECTED_CAUSE_CREATION_FEE_AMOUNT_NOT_SET": "El monto esperado de la creación de causa no está configurado en las variables de entorno",
-    "CAUSE_CREATION_FEE_RECIVER_NOT_CONFIGURED": "El receptor de la creación de causa no está configurado en las variables de entorno"
+    "CAUSE_CREATION_FEE_RECIVER_NOT_CONFIGURED": "El receptor de la creación de causa no está configurado en las variables de entorno",
+    "QF_ROUND_NOT_FOUND": "Ronda QF no encontrada",
+    "QF_ROUND_NOT_ACTIVE": "La ronda QF no está activa",
+    "QF_ROUND_NOT_CURRENTLY_ACTIVE": "La ronda QF no está actualmente activa",
+    "QF_ROUND_NOT_ELIGIBLE_FOR_NETWORK": "La ronda QF no es elegible para esta red",
+    "PROJECT_NOT_PART_OF_QF_ROUND": "El proyecto no es parte de la ronda QF especificada"
 }

@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import moment from 'moment';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -20,6 +21,9 @@ import {
 } from '../entities/recurringDonation';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
+import { QfRound } from '../entities/qfRound';
+import { Token } from '../entities/token';
+import { ProjectQfRound } from '../entities/projectQfRound';
 
 describe(
   'createRelatedDonationsToStream test cases',
@@ -29,6 +33,11 @@ describe(
 describe(
   'updateRecurringDonationStatusWithNetwork test cases',
   updateRecurringDonationStatusWithNetworkTestCases,
+);
+
+describe(
+  'QF Smart Select with Recurring Donations test cases',
+  qfSmartSelectTestCases,
 );
 
 function updateRecurringDonationStatusWithNetworkTestCases() {
@@ -324,5 +333,394 @@ function createRelatedDonationsToStreamTestCases() {
     assert.equal(donations.length, 4);
     assert.equal(true, true); // its not saving the recurring donation Id, saving as null
     // add more tests, define criteria for verified
+  });
+}
+
+function qfSmartSelectTestCases() {
+  describe('Integration with createRelatedDonationsToStream', () => {
+    it('should create mini-donations with correct QF round when smart select succeeds', async () => {
+      // Set environment to use mock adapter
+      const originalSuperFluidAdapter = process.env.SUPER_FLUID_ADAPTER;
+      process.env.SUPER_FLUID_ADAPTER = 'mock';
+
+      try {
+        const projectOwner = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+        const project = await saveProjectDirectlyToDb(
+          createProjectData(),
+          projectOwner,
+        );
+
+        const contractCreator = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+
+        const donor = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+
+        // Create anchor contract
+        const anchorContractAddress = await addNewAnchorAddress({
+          project,
+          owner: projectOwner,
+          creator: contractCreator,
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+          txHash: generateRandomEvmTxHash(),
+        });
+
+        // Find or create DAI token for the test
+        let daiToken = await Token.findOne({
+          where: {
+            symbol: 'DAI',
+            networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+          },
+        });
+
+        if (!daiToken) {
+          daiToken = await Token.create({
+            symbol: 'DAI',
+            name: 'Dai Stablecoin',
+            address: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
+            networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+            isGivbackEligible: true,
+            decimals: 18,
+          }).save();
+        }
+
+        // Create QF round
+        const qfRound = await QfRound.create({
+          isActive: true,
+          name: 'Test QF Round',
+          allocatedFund: 100000,
+          allocatedFundUSD: 50000,
+          minimumPassportScore: 8,
+          slug: `${new Date().getTime()}-1`,
+          beginDate: new Date(),
+          endDate: moment().add(30, 'days').toDate(),
+          eligibleNetworks: [NETWORK_IDS.OPTIMISM_SEPOLIA],
+          priority: 1,
+        }).save();
+
+        project.qfRounds = [qfRound];
+        await project.save();
+
+        // Create recurring donation
+        const recurringDonation = await saveRecurringDonationDirectlyToDb({
+          donationData: {
+            donorId: donor.id,
+            projectId: project.id,
+            anchorContractAddressId: anchorContractAddress.id,
+            flowRate: '1000000000000000000', // 1 token per second
+            currency: 'DAIx', // Use DAIx to match mock adapter
+            status: RECURRING_DONATION_STATUS.ACTIVE,
+            networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+          },
+        });
+
+        // Get the recurring donation with relations
+        const recurringDonationWithRelations = await findRecurringDonationById(
+          recurringDonation.id,
+        );
+
+        // Call the function
+        await createRelatedDonationsToStream(recurringDonationWithRelations!);
+
+        // Verify that donations were created with the correct QF round
+        const donations = await Donation.find({
+          where: {
+            recurringDonationId: recurringDonation.id,
+          },
+        });
+
+        assert.equal(donations.length, 4); // Mock adapter returns 4 virtual periods
+        const donation = donations[0];
+        assert.equal(donation.qfRoundId, qfRound.id);
+        assert.equal(donation.projectId, project.id);
+        assert.equal(donation.currency, 'DAI');
+
+        // Cleanup
+        await Donation.delete({ recurringDonationId: recurringDonation.id });
+        await RecurringDonation.delete({ id: recurringDonation.id });
+        await AnchorContractAddress.delete({ id: anchorContractAddress.id });
+        qfRound.isActive = false;
+        await qfRound.save();
+      } finally {
+        // Restore original environment
+        if (originalSuperFluidAdapter) {
+          process.env.SUPER_FLUID_ADAPTER = originalSuperFluidAdapter;
+        } else {
+          delete process.env.SUPER_FLUID_ADAPTER;
+        }
+      }
+    });
+
+    it('should fall back to old logic when smart select fails (no eligible QF rounds)', async () => {
+      // Set environment to use mock adapter
+      const originalSuperFluidAdapter = process.env.SUPER_FLUID_ADAPTER;
+      process.env.SUPER_FLUID_ADAPTER = 'mock';
+
+      try {
+        const projectOwner = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+        const project = await saveProjectDirectlyToDb(
+          createProjectData(),
+          projectOwner,
+        );
+
+        const contractCreator = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+
+        const donor = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+
+        // Create anchor contract
+        const anchorContractAddress = await addNewAnchorAddress({
+          project,
+          owner: projectOwner,
+          creator: contractCreator,
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+          txHash: generateRandomEvmTxHash(),
+        });
+
+        // Find or create DAI token for the test
+        let daiToken = await Token.findOne({
+          where: {
+            symbol: 'DAI',
+            networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+          },
+        });
+
+        if (!daiToken) {
+          daiToken = await Token.create({
+            symbol: 'DAI',
+            name: 'Dai Stablecoin',
+            address: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
+            networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+            isGivbackEligible: true,
+            decimals: 18,
+          }).save();
+        }
+
+        // Create QF round that's not eligible for the network
+        const qfRound = await QfRound.create({
+          isActive: true,
+          name: 'Ineligible QF Round',
+          allocatedFund: 100000,
+          allocatedFundUSD: 50000,
+          minimumPassportScore: 8,
+          slug: `${new Date().getTime()}-1`,
+          beginDate: new Date(),
+          endDate: moment().add(30, 'days').toDate(),
+          eligibleNetworks: [NETWORK_IDS.MAIN_NET], // Different network
+          priority: 1,
+        }).save();
+
+        project.qfRounds = [qfRound];
+        await project.save();
+
+        // Create recurring donation
+        const recurringDonation = await saveRecurringDonationDirectlyToDb({
+          donationData: {
+            donorId: donor.id,
+            projectId: project.id,
+            anchorContractAddressId: anchorContractAddress.id,
+            flowRate: '1000000000000000000', // 1 token per second
+            currency: 'DAIx', // Use DAIx to match mock adapter
+            status: RECURRING_DONATION_STATUS.ACTIVE,
+            networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+          },
+        });
+
+        // Get the recurring donation with relations
+        const recurringDonationWithRelations = await findRecurringDonationById(
+          recurringDonation.id,
+        );
+
+        // Call the function
+        await createRelatedDonationsToStream(recurringDonationWithRelations!);
+
+        // Verify that donations were created but without QF round (fallback to old logic)
+        const donations = await Donation.find({
+          where: {
+            recurringDonationId: recurringDonation.id,
+          },
+        });
+
+        assert.equal(donations.length, 4); // Mock adapter returns 4 virtual periods
+        const donation = donations[0];
+        assert.equal(donation.qfRoundId, null); // Should be null due to fallback
+        assert.equal(donation.projectId, project.id);
+        assert.equal(donation.currency, 'DAI');
+
+        // Cleanup
+        await Donation.delete({ recurringDonationId: recurringDonation.id });
+        await RecurringDonation.delete({ id: recurringDonation.id });
+        await AnchorContractAddress.delete({ id: anchorContractAddress.id });
+        qfRound.isActive = false;
+        await qfRound.save();
+      } finally {
+        // Restore original environment
+        if (originalSuperFluidAdapter) {
+          process.env.SUPER_FLUID_ADAPTER = originalSuperFluidAdapter;
+        } else {
+          delete process.env.SUPER_FLUID_ADAPTER;
+        }
+      }
+    });
+
+    it('should create mini-donations with highest priority QF round when multiple rounds are active', async () => {
+      // Set environment to use mock adapter
+      const originalSuperFluidAdapter = process.env.SUPER_FLUID_ADAPTER;
+      process.env.SUPER_FLUID_ADAPTER = 'mock';
+
+      try {
+        const projectOwner = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+        const project = await saveProjectDirectlyToDb(
+          createProjectData(),
+          projectOwner,
+        );
+
+        const contractCreator = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+
+        const donor = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+
+        // Create anchor contract
+        const anchorContractAddress = await addNewAnchorAddress({
+          project,
+          owner: projectOwner,
+          creator: contractCreator,
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+          txHash: generateRandomEvmTxHash(),
+        });
+
+        // Find or create DAI token for the test
+        let daiToken = await Token.findOne({
+          where: {
+            symbol: 'DAI',
+            networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+          },
+        });
+
+        if (!daiToken) {
+          daiToken = await Token.create({
+            symbol: 'DAI',
+            name: 'Dai Stablecoin',
+            address: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
+            networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+            isGivbackEligible: true,
+            decimals: 18,
+          }).save();
+        }
+
+        // Create multiple QF rounds with different priorities
+        const qfRound1 = await QfRound.create({
+          isActive: true,
+          name: 'Higher Priority QF Round',
+          allocatedFund: 100000,
+          allocatedFundUSD: 50000,
+          minimumPassportScore: 8,
+          slug: `${new Date().getTime()}-1`,
+          beginDate: new Date(),
+          endDate: moment().add(30, 'days').toDate(),
+          eligibleNetworks: [NETWORK_IDS.OPTIMISM_SEPOLIA],
+          priority: 1, // Higher priority (lower number)
+        }).save();
+
+        const qfRound2 = await QfRound.create({
+          isActive: true,
+          name: 'Lower Priority QF Round',
+          allocatedFund: 100000,
+          allocatedFundUSD: 50000, // Same USD amount
+          minimumPassportScore: 8,
+          slug: `${new Date().getTime()}-2`,
+          beginDate: new Date(),
+          endDate: moment().add(30, 'days').toDate(),
+          eligibleNetworks: [NETWORK_IDS.OPTIMISM_SEPOLIA],
+          priority: 2, // Lower priority (higher number)
+        }).save();
+
+        // Associate QF rounds with the project through the junction table
+        project.qfRounds = [qfRound1, qfRound2];
+        await project.save();
+
+        // Also create explicit ProjectQfRound relations to ensure database consistency
+        await ProjectQfRound.create({
+          projectId: project.id,
+          qfRoundId: qfRound1.id,
+          sumDonationValueUsd: 0,
+          countUniqueDonors: 0,
+        }).save();
+
+        await ProjectQfRound.create({
+          projectId: project.id,
+          qfRoundId: qfRound2.id,
+          sumDonationValueUsd: 0,
+          countUniqueDonors: 0,
+        }).save();
+
+        // Create recurring donation
+        const recurringDonation = await saveRecurringDonationDirectlyToDb({
+          donationData: {
+            donorId: donor.id,
+            projectId: project.id,
+            anchorContractAddressId: anchorContractAddress.id,
+            flowRate: '1000000000000000000', // 1 token per second
+            currency: 'DAIx', // Use DAIx to match mock adapter
+            status: RECURRING_DONATION_STATUS.ACTIVE,
+            networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+          },
+        });
+
+        // Get the recurring donation with relations
+        const recurringDonationWithRelations = await findRecurringDonationById(
+          recurringDonation.id,
+        );
+
+        // Call the function
+        await createRelatedDonationsToStream(recurringDonationWithRelations!);
+
+        // Verify that donations were created with the higher priority QF round
+        const donations = await Donation.find({
+          where: {
+            recurringDonationId: recurringDonation.id,
+          },
+        });
+
+        assert.equal(donations.length, 4); // Mock adapter returns 4 virtual periods
+        const donation = donations[0];
+        assert.equal(donation.qfRoundId, qfRound1.id); // Should select qfRound1 (higher priority)
+        assert.equal(donation.projectId, project.id);
+        assert.equal(donation.currency, 'DAI');
+
+        // Cleanup
+        await Donation.delete({ recurringDonationId: recurringDonation.id });
+        await RecurringDonation.delete({ id: recurringDonation.id });
+        await AnchorContractAddress.delete({ id: anchorContractAddress.id });
+        qfRound1.isActive = false;
+        qfRound2.isActive = false;
+        await qfRound1.save();
+        await qfRound2.save();
+      } finally {
+        // Restore original environment
+        if (originalSuperFluidAdapter) {
+          process.env.SUPER_FLUID_ADAPTER = originalSuperFluidAdapter;
+        } else {
+          delete process.env.SUPER_FLUID_ADAPTER;
+        }
+      }
+    });
   });
 }

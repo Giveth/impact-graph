@@ -174,7 +174,7 @@ export const updateDonationByTransakData = async (
     }
   }
   await donation.save();
-  await updateProjectStatistics(donation.projectId);
+  await updateProjectStatistics(donation.projectId, donation?.qfRoundId);
   await updateUserTotalDonated(donation.userId);
   await updateUserTotalReceived(donation.project?.adminUserId);
   await refreshProjectEstimatedMatchingView();
@@ -279,7 +279,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
 
     // ONLY verified donations should be accumulated
     // After updating, recalculate user and project total donations
-    await updateProjectStatistics(donation.projectId);
+    await updateProjectStatistics(donation.projectId, donation?.qfRoundId);
     await updateUserTotalDonated(donation.userId);
     await updateUserTotalReceived(donation.project.adminUserId);
 

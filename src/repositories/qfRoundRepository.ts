@@ -25,13 +25,26 @@ const qfRoundsCacheDuration =
 
 export const findQfRounds = async ({
   slug,
+  sortBy,
 }: {
   slug?: string;
+  sortBy?: string;
 }): Promise<QfRound[]> => {
-  const query = QfRound.createQueryBuilder('qf_round').addOrderBy(
-    'qf_round.id',
-    'DESC',
-  );
+  const query = QfRound.createQueryBuilder('qf_round');
+
+  // Apply sorting based on sortBy parameter
+  if (sortBy === 'priority') {
+    // Priority sorting: highest priority first, then closest endAt date
+    query
+      .addOrderBy('qf_round.priority', 'DESC')
+      .addOrderBy('qf_round.endDate', 'ASC');
+  } else {
+    // Default sorting: displaySize DESC NULLS LAST, priority DESC NULLS LAST, endDate ASC
+    query
+      .addOrderBy('qf_round.displaySize', 'DESC', 'NULLS LAST')
+      .addOrderBy('qf_round.priority', 'ASC', 'NULLS LAST')
+      .addOrderBy('qf_round.endDate', 'ASC');
+  }
   if (slug) {
     query.where('slug = :slug', { slug });
     const res = await query.getOne();
@@ -59,6 +72,9 @@ export class QFArchivedRounds {
 
   @Field(_type => String, { nullable: true })
   name: string;
+
+  @Field(_type => String, { nullable: true })
+  description: string;
 
   @Field(_type => String)
   slug: string;
@@ -92,6 +108,15 @@ export class QFArchivedRounds {
 
   @Field(_type => Boolean)
   isDataAnalysisDone: boolean;
+
+  @Field(_type => String, { nullable: true })
+  bannerBgImage: string;
+
+  @Field(_type => String, { nullable: true })
+  bannerFull: string;
+
+  @Field(_type => String, { nullable: true })
+  bannerMobile: string;
 }
 
 export const findArchivedQfRounds = async (
@@ -113,6 +138,7 @@ export const findArchivedQfRounds = async (
     .select('qfRound.id', 'id')
     .addSelect('qfRound.name', 'name')
     .addSelect('qfRound.slug', 'slug')
+    .addSelect('qfRound.description', 'description')
     .addSelect('qfRound.isActive', 'isActive')
     .addSelect('qfRound.endDate', 'endDate')
     .addSelect('qfRound.eligibleNetworks', 'eligibleNetworks')
@@ -121,6 +147,9 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.allocatedFundUSD', 'allocatedFundUSD')
     .addSelect('qfRound.allocatedTokenSymbol', 'allocatedTokenSymbol')
     .addSelect('qfRound.beginDate', 'beginDate')
+    .addSelect('qfRound.bannerBgImage', 'bannerBgImage')
+    .addSelect('qfRound.bannerFull', 'bannerFull')
+    .addSelect('qfRound.bannerMobile', 'bannerMobile')
     .addSelect(
       qb =>
         qb
@@ -151,29 +180,77 @@ export const findArchivedQfRounds = async (
           )
           .where('donation.qfRoundId = qfRound.id')
           .andWhere('donation.status = :status', { status: 'verified' })
-          .andWhere('user.passportScore >= qfRound.minimumPassportScore')
-          .andWhere('sybil.id IS NULL')
-          .andWhere('projectFraud.id IS NULL')
           .andWhere(
             'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
-          ),
+          )
+          .andWhere(
+            '(user.passportScore >= qfRound.minimumPassportScore OR user.passportScore IS NULL)',
+          )
+          .andWhere('sybil.id IS NULL')
+          .andWhere('projectFraud.id IS NULL'),
       'uniqueDonors',
     )
-    .groupBy('qfRound.id')
     .orderBy(fieldMap[field], direction, 'NULLS LAST')
+    .addOrderBy('qfRound.id', 'ASC')
+    .limit(limit)
+    .offset(skip)
     .getRawMany();
-  return fullRounds.slice(skip, skip + limit);
+  return fullRounds;
 };
 
 export const findActiveQfRound = async (
   noCache?: boolean,
 ): Promise<QfRound | null> => {
   const query =
-    QfRound.createQueryBuilder('qfRound').where('"isActive" = true');
+    QfRound.createQueryBuilder('qf_round').where('"isActive" = true');
   if (noCache) {
     return query.getOne();
   }
   return query.cache('findActiveQfRound', qfRoundsCacheDuration).getOne();
+};
+
+export const findActiveQfRounds = async (
+  _noCache?: boolean,
+): Promise<QfRound[]> => {
+  // Use raw SQL query without any caching
+  const rawSQL = `
+    SELECT * FROM "public"."qf_round" 
+    WHERE "isActive" = true 
+    ORDER BY "displaySize" DESC NULLS LAST, "priority" ASC NULLS LAST, "endDate" ASC
+  `;
+
+  const results = await AppDataSource.getDataSource().query(rawSQL);
+
+  // Use TypeORM's entity manager for proper entity creation
+  const entityManager = AppDataSource.getDataSource().manager;
+  const qfRounds = results.map((row: any) => {
+    // Create entity through TypeORM's entity manager
+    const qfRound = entityManager.create(QfRound, {
+      ...row,
+      // Ensure proper type conversion for dates
+      beginDate: new Date(row.beginDate),
+      endDate: new Date(row.endDate),
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+      clusterMatchingSyncAt: row.clusterMatchingSyncAt
+        ? new Date(row.clusterMatchingSyncAt)
+        : null,
+      // Ensure arrays are properly parsed
+      eligibleNetworks: Array.isArray(row.eligibleNetworks)
+        ? row.eligibleNetworks
+        : row.eligibleNetworks
+          ? JSON.parse(row.eligibleNetworks)
+          : [],
+      sponsorsImgs: Array.isArray(row.sponsorsImgs)
+        ? row.sponsorsImgs
+        : row.sponsorsImgs
+          ? JSON.parse(row.sponsorsImgs)
+          : [],
+    });
+    return qfRound;
+  });
+
+  return qfRounds || [];
 };
 
 export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
@@ -202,7 +279,9 @@ export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
 };
 
 export const findQfRoundById = async (id: number): Promise<QfRound | null> => {
-  return QfRound.createQueryBuilder('qf_round').where(`id = ${id}`).getOne();
+  return QfRound.createQueryBuilder('qf_round')
+    .where('qf_round.id = :id', { id })
+    .getOne();
 };
 
 export const findQfRoundBySlug = async (
@@ -225,6 +304,27 @@ export const getQfRoundTotalSqrtRootSumSquared = async (qfRoundId: number) => {
   return result ? result.totalSqrtRootSumSquared : 0;
 };
 
+export const getQfRoundTotalSqrtRootSumSquaredInAllQfRounds = async (
+  qfRoundIds: number[],
+): Promise<{ qfRoundId: number; totalSqrtRootSumSquared: number }[]> => {
+  if (qfRoundIds.length === 0) return [];
+
+  const result = await ProjectEstimatedMatchingView.createQueryBuilder()
+    .select('"qfRoundId", SUM("sqrtRootSumSquared")', 'totalSqrtRootSumSquared')
+    .where('"qfRoundId" IN (:...qfRoundIds)', { qfRoundIds })
+    .groupBy('"qfRoundId"')
+    .cache(
+      'getDonationsTotalSqrtRootSumSquaredAll_' + qfRoundIds.join('_'),
+      qfRoundEstimatedMatchingParamsCacheDuration || 600000,
+    )
+    .getRawMany();
+
+  return result.map(row => ({
+    qfRoundId: row.qfRoundId,
+    totalSqrtRootSumSquared: row.totalSqrtRootSumSquared || 0,
+  }));
+};
+
 export async function getProjectDonationsSqrtRootSum(
   projectId: number,
   qfRoundId: number,
@@ -241,6 +341,30 @@ export async function getProjectDonationsSqrtRootSum(
     )
     .getRawOne();
   return result ? result.sqrtRootSum : 0;
+}
+
+export async function getProjectDonationsSqrtRootSumInAllQfRounds(
+  projectId: number,
+  qfRoundIds: number[],
+): Promise<{ projectId: number; qfRoundId: number; sqrtRootSum: number }[]> {
+  if (qfRoundIds.length === 0) return [];
+
+  const result = await ProjectEstimatedMatchingView.createQueryBuilder()
+    .select('"projectId", "qfRoundId", "sqrtRootSum"')
+    .where('"projectId" = :projectId AND "qfRoundId" IN (:...qfRoundIds)', {
+      projectId,
+      qfRoundIds,
+    })
+    .cache(
+      'projectDonationsSqrtRootSumAll_' +
+        projectId +
+        '_' +
+        qfRoundIds.join('_'),
+      qfRoundEstimatedMatchingParamsCacheDuration || 600000,
+    )
+    .getRawMany();
+
+  return result;
 }
 
 export const getQfRoundStats = async (
@@ -294,6 +418,13 @@ export const deactivateExpiredQfRounds = async (): Promise<void> => {
   `,
     [now],
   );
+};
+
+export const countActiveQfRounds = async (): Promise<number> => {
+  const result = await QfRound.createQueryBuilder('qfRound')
+    .where('qfRound.isActive = :isActive', { isActive: true })
+    .getCount();
+  return result;
 };
 
 export const getRelatedProjectsOfQfRound = async (

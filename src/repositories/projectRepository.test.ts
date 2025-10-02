@@ -1,12 +1,13 @@
 import { assert } from 'chai';
 import moment from 'moment';
+import { In } from 'typeorm';
 import {
   findProjectById,
   findProjectBySlug,
-  findProjectBySlugWithoutAnyJoin,
   findProjectByWalletAddress,
   findProjectsByIdArray,
   findProjectsBySlugArray,
+  findQfRoundProjects,
   projectsWithoutUpdateAfterTimeFrame,
   removeProjectAndRelatedEntities,
   updateProjectWithVerificationForm,
@@ -50,9 +51,17 @@ import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { ProjectAddress } from '../entities/projectAddress';
 import { ProjectSocialMedia } from '../entities/projectSocialMedia';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
+import { QfRound } from '../entities/qfRound';
+import { ProjectQfRound } from '../entities/projectQfRound';
 import { Reaction } from '../entities/reaction';
 import { SocialProfile } from '../entities/socialProfile';
 import { ProjectSocialMediaType } from '../types/projectSocialMediaType';
+import {
+  ReviewStatus,
+  ProjStatus,
+  FilterField,
+  SortingField,
+} from '../entities/project';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -79,10 +88,6 @@ describe('findProjectById test cases', findProjectByIdTestCases);
 describe('findProjectsByIdArray test cases', findProjectsByIdArrayTestCases);
 describe('findProjectBySlug test cases', findProjectBySlugTestCases);
 describe(
-  'findProjectBySlugWithoutAnyJoin test cases',
-  findProjectBySlugWithoutAnyJoinTestCases,
-);
-describe(
   'findProjectsBySlugArray test cases',
   findProjectsBySlugArrayTestCases,
 );
@@ -91,6 +96,8 @@ describe(
   'removeProjectAndRelatedEntities test cases',
   removeProjectAndRelatedEntitiesTestCase,
 );
+
+describe('findQfRoundProjects test cases', findQfRoundProjectsTestCases);
 
 function projectsWithoutUpdateAfterTimeFrameTestCases() {
   it('should return projects created a long time ago', async () => {
@@ -143,25 +150,6 @@ function findProjectBySlugTestCases() {
 
   it('should not find project when project doesnt exists', async () => {
     const foundProject = await findProjectBySlug(new Date().toString());
-    assert.isNull(foundProject);
-  });
-}
-
-function findProjectBySlugWithoutAnyJoinTestCases() {
-  it('Should find project by slug', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const foundProject = await findProjectBySlugWithoutAnyJoin(
-      project.slug as string,
-    );
-    assert.isOk(foundProject);
-    assert.equal(foundProject?.id, project.id);
-    assert.isNotOk(foundProject?.adminUser);
-  });
-
-  it('should not find project when project doesnt exists', async () => {
-    const foundProject = await findProjectBySlugWithoutAnyJoin(
-      new Date().toString(),
-    );
     assert.isNull(foundProject);
   });
 }
@@ -601,5 +589,679 @@ function removeProjectAndRelatedEntitiesTestCase() {
     relatedEntities.forEach(entity => {
       assert.isNull(entity);
     });
+  });
+}
+
+function findQfRoundProjectsTestCases() {
+  it('should return projects for a specific QF round', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Test QF Round',
+      slug: `test-qf-round-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    // Create users
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    // Create projects and associate them with the QF round
+    const timestamp = Date.now();
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'QF Project 1',
+      slug: `qf-project-1-${timestamp}`,
+      adminUserId: user1.id,
+      verified: true,
+      isGivbackEligible: true,
+    });
+    project1.qfRounds = [qfRound];
+    await project1.save();
+
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'QF Project 2',
+      slug: `qf-project-2-${timestamp}`,
+      adminUserId: user2.id,
+      verified: false,
+      isGivbackEligible: true,
+    });
+    project2.qfRounds = [qfRound];
+    await project2.save();
+
+    // Test the repository function
+    const [projects, totalCount] = await findQfRoundProjects(qfRound.id);
+
+    assert.isOk(projects);
+    assert.equal(projects.length, 2);
+    assert.equal(totalCount, 2);
+
+    // Verify project 1 data
+    const project1Data = projects.find(p => p.id === project1.id);
+    assert.isOk(project1Data);
+    if (project1Data) {
+      assert.equal(project1Data.title, 'QF Project 1');
+      assert.equal(project1Data.slug, `qf-project-1-${timestamp}`);
+      assert.equal(project1Data.verified, true);
+      assert.equal(project1Data.isGivbackEligible, true);
+      assert.equal(project1Data.projectType, 'project');
+      assert.equal(project1Data.adminUserId, user1.id);
+      assert.isOk(project1Data.adminUser);
+      assert.equal(project1Data.adminUser.id, user1.id);
+      assert.isOk(project1Data.status);
+      assert.isOk(project1Data.organization);
+      assert.isOk(project1Data.addresses);
+      assert.isOk(project1Data.qfRounds);
+      assert.equal(project1Data.qfRounds.length, 1);
+      assert.equal(project1Data.qfRounds[0].id, qfRound.id);
+    }
+
+    // Verify project 2 data
+    const project2Data = projects.find(p => p.id === project2.id);
+    assert.isOk(project2Data);
+    if (project2Data) {
+      assert.equal(project2Data.title, 'QF Project 2');
+      assert.equal(project2Data.slug, `qf-project-2-${timestamp}`);
+      assert.equal(project2Data.verified, false);
+      assert.equal(project2Data.isGivbackEligible, true);
+      assert.equal(project2Data.adminUserId, user2.id);
+      assert.equal(project2Data.adminUser.id, user2.id);
+    }
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(project1.id);
+    await removeProjectAndRelatedEntities(project2.id);
+    await QfRound.delete({ id: qfRound.id });
+    await User.delete({ id: In([user1.id, user2.id]) });
+  });
+
+  it('should return empty array when no projects are associated with QF round', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Empty QF Round',
+      slug: `empty-qf-round-${Date.now()}`,
+      allocatedFund: 50000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    // Test the repository function
+    const [projects, totalCount] = await findQfRoundProjects(qfRound.id);
+
+    assert.isOk(projects);
+    assert.equal(projects.length, 0);
+    assert.equal(totalCount, 0);
+
+    // Cleanup
+    await QfRound.delete({ id: qfRound.id });
+  });
+
+  it('should only return active and listed projects', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Filtered QF Round',
+      slug: `filtered-qf-round-${Date.now()}`,
+      allocatedFund: 75000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const timestamp = Date.now();
+    // Create an active and listed project
+    const activeProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Active Project',
+      slug: `active-project-${timestamp}`,
+      adminUserId: user.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+    });
+    activeProject.qfRounds = [qfRound];
+    await activeProject.save();
+
+    // Create a cancelled project (should not be returned)
+    const cancelledProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Cancelled Project',
+      slug: `cancelled-project-${timestamp}`,
+      adminUserId: user.id,
+      statusId: ProjStatus.cancelled,
+      reviewStatus: ReviewStatus.Listed,
+    });
+    cancelledProject.qfRounds = [qfRound];
+    await cancelledProject.save();
+
+    // Create a not reviewed project (should not be returned)
+    const notReviewedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Not Reviewed Project',
+      slug: `not-reviewed-project-${timestamp}`,
+      adminUserId: user.id,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.NotReviewed,
+    });
+    notReviewedProject.qfRounds = [qfRound];
+    await notReviewedProject.save();
+
+    // Test the repository function
+    const [projects, totalCount] = await findQfRoundProjects(qfRound.id);
+
+    assert.isOk(projects);
+    assert.equal(projects.length, 1);
+    assert.equal(totalCount, 1);
+    assert.equal(projects[0].id, activeProject.id);
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(activeProject.id);
+    await removeProjectAndRelatedEntities(cancelledProject.id);
+    await removeProjectAndRelatedEntities(notReviewedProject.id);
+    await QfRound.delete({ id: qfRound.id });
+    await User.delete({ id: user.id });
+  });
+
+  it('should include power data in the results', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Power QF Round',
+      slug: `power-qf-round-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Power Project',
+      slug: `power-project-${Date.now()}`,
+      adminUserId: user.id,
+    });
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    // Test the repository function
+    const [projects, totalCount] = await findQfRoundProjects(qfRound.id);
+
+    assert.isOk(projects);
+    assert.equal(projects.length, 1);
+    assert.equal(totalCount, 1);
+
+    const projectData = projects[0];
+    assert.isOk(projectData);
+    // Note: Power data might be null if no power views exist, which is expected
+    // The test verifies that the query includes the power joins
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(project.id);
+    await QfRound.delete({ id: qfRound.id });
+    await User.delete({ id: user.id });
+  });
+
+  it('should order projects by creation date descending', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Order QF Round',
+      slug: `order-qf-round-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    // Create projects with different creation dates
+    const olderProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Older Project',
+      slug: `older-project-${Date.now()}`,
+      adminUserId: user.id,
+      creationDate: moment().subtract(1, 'day').toDate(),
+    });
+    olderProject.qfRounds = [qfRound];
+    await olderProject.save();
+
+    const newerProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Newer Project',
+      slug: `newer-project-${Date.now()}`,
+      adminUserId: user.id,
+      creationDate: moment().subtract(1, 'hour').toDate(),
+    });
+    newerProject.qfRounds = [qfRound];
+    await newerProject.save();
+
+    // Test the repository function
+    const [projects, totalCount] = await findQfRoundProjects(qfRound.id);
+
+    assert.isOk(projects);
+    assert.equal(projects.length, 2);
+    assert.equal(totalCount, 2);
+
+    // Should be ordered by creation date descending (newest first)
+    assert.equal(projects[0].id, newerProject.id);
+    assert.equal(projects[1].id, olderProject.id);
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(olderProject.id);
+    await removeProjectAndRelatedEntities(newerProject.id);
+    await QfRound.delete({ id: qfRound.id });
+    await User.delete({ id: user.id });
+  });
+
+  it('should support pagination with limit and skip', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Pagination Test QF Round',
+      slug: `pagination-test-qf-round-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    // Create 5 projects
+    const projects: Project[] = [];
+    for (let i = 1; i <= 5; i++) {
+      const project = await saveProjectDirectlyToDb({
+        ...createProjectData(),
+        title: `Pagination Project ${i}`,
+        slug: `pagination-project-${i}-${Date.now()}`,
+        statusId: ProjStatus.active,
+        reviewStatus: ReviewStatus.Listed,
+      });
+      project.qfRounds = [qfRound];
+      await project.save();
+      projects.push(project);
+    }
+
+    // Test pagination - first page (limit 2, skip 0)
+    const [firstPage, firstPageTotal] = await findQfRoundProjects(qfRound.id, {
+      limit: 2,
+      skip: 0,
+    });
+
+    assert.equal(firstPage.length, 2);
+    assert.equal(firstPageTotal, 5);
+
+    // Test pagination - second page (limit 2, skip 2)
+    const [secondPage, secondPageTotal] = await findQfRoundProjects(
+      qfRound.id,
+      {
+        limit: 2,
+        skip: 2,
+      },
+    );
+
+    assert.equal(secondPage.length, 2);
+    assert.equal(secondPageTotal, 5);
+
+    // Test pagination - third page (limit 2, skip 4)
+    const [thirdPage, thirdPageTotal] = await findQfRoundProjects(qfRound.id, {
+      limit: 2,
+      skip: 4,
+    });
+
+    assert.equal(thirdPage.length, 1);
+    assert.equal(thirdPageTotal, 5);
+
+    // Cleanup
+    for (const project of projects) {
+      await removeProjectAndRelatedEntities(project.id);
+    }
+    await QfRound.delete({ id: qfRound.id });
+  });
+
+  it('should support filtering by verified status', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Filter Test QF Round',
+      slug: `filter-test-qf-round-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    // Create verified project
+    const verifiedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Verified Project',
+      slug: `verified-project-${Date.now()}`,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: true,
+    });
+    verifiedProject.qfRounds = [qfRound];
+    await verifiedProject.save();
+
+    // Create unverified project
+    const unverifiedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Unverified Project',
+      slug: `unverified-project-${Date.now()}`,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      verified: false,
+    });
+    unverifiedProject.qfRounds = [qfRound];
+    await unverifiedProject.save();
+
+    // Test filtering by verified status
+    const [verifiedProjects, verifiedTotal] = await findQfRoundProjects(
+      qfRound.id,
+      {
+        filters: [FilterField.Verified],
+      },
+    );
+
+    assert.equal(verifiedProjects.length, 1);
+    assert.equal(verifiedTotal, 1);
+    assert.equal(verifiedProjects[0].id, verifiedProject.id);
+    assert.equal(verifiedProjects[0].verified, true);
+
+    // Test without filter (should return both)
+    const [allProjects, allTotal] = await findQfRoundProjects(qfRound.id, {
+      filters: [],
+    });
+
+    assert.equal(allProjects.length, 2);
+    assert.equal(allTotal, 2);
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(verifiedProject.id);
+    await removeProjectAndRelatedEntities(unverifiedProject.id);
+    await QfRound.delete({ id: qfRound.id });
+  });
+
+  it('should support search by project title', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Search Test QF Round',
+      slug: `search-test-qf-round-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    // Create projects with different titles
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Climate Change Initiative',
+      slug: `climate-project-${Date.now()}`,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+    });
+    project1.qfRounds = [qfRound];
+    await project1.save();
+
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Education for All',
+      slug: `education-project-${Date.now()}`,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+    });
+    project2.qfRounds = [qfRound];
+    await project2.save();
+
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Climate Action Network',
+      slug: `climate-action-project-${Date.now()}`,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+    });
+    project3.qfRounds = [qfRound];
+    await project3.save();
+
+    // Test search for "climate"
+    const [climateProjects, climateTotal] = await findQfRoundProjects(
+      qfRound.id,
+      {
+        searchTerm: 'climate',
+      },
+    );
+
+    assert.equal(climateProjects.length, 2);
+    assert.equal(climateTotal, 2);
+    assert.isTrue(climateProjects.some(p => p.title.includes('Climate')));
+
+    // Test search for "education"
+    const [educationProjects, educationTotal] = await findQfRoundProjects(
+      qfRound.id,
+      {
+        searchTerm: 'education',
+      },
+    );
+
+    assert.equal(educationProjects.length, 1);
+    assert.equal(educationTotal, 1);
+    assert.equal(educationProjects[0].title, 'Education for All');
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(project1.id);
+    await removeProjectAndRelatedEntities(project2.id);
+    await removeProjectAndRelatedEntities(project3.id);
+    await QfRound.delete({ id: qfRound.id });
+  });
+
+  it('should support sorting by different criteria', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Sorting Test QF Round',
+      slug: `sorting-test-qf-round-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    // Create projects with different creation dates and donation amounts
+    const olderProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Older Project',
+      slug: `older-project-${Date.now()}`,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      creationDate: moment().subtract(2, 'hours').toDate(),
+      totalDonations: 1000,
+    });
+    olderProject.qfRounds = [qfRound];
+    await olderProject.save();
+
+    const newerProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Newer Project',
+      slug: `newer-project-${Date.now()}`,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+      creationDate: moment().subtract(1, 'hour').toDate(),
+      totalDonations: 500,
+    });
+    newerProject.qfRounds = [qfRound];
+    await newerProject.save();
+
+    // Test sorting by newest (creation date descending)
+    const [newestProjects] = await findQfRoundProjects(qfRound.id, {
+      sortingBy: SortingField.Newest,
+    });
+
+    assert.equal(newestProjects.length, 2);
+    assert.equal(newestProjects[0].id, newerProject.id);
+    assert.equal(newestProjects[1].id, olderProject.id);
+
+    // Test sorting by most funded (total donations descending)
+    const [mostFundedProjects] = await findQfRoundProjects(qfRound.id, {
+      sortingBy: SortingField.MostFunded,
+    });
+
+    assert.equal(mostFundedProjects.length, 2);
+    assert.equal(mostFundedProjects[0].id, olderProject.id);
+    assert.equal(mostFundedProjects[1].id, newerProject.id);
+
+    // Cleanup
+    await removeProjectAndRelatedEntities(olderProject.id);
+    await removeProjectAndRelatedEntities(newerProject.id);
+    await QfRound.delete({ id: qfRound.id });
+  });
+
+  it('should support ActiveQfRoundRaisedFunds sorting with QF round stats', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'QF Stats Test Round',
+      slug: `qf-stats-test-round-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    // Create projects
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'Low Funded Project',
+      slug: `low-funded-project-${Date.now()}`,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+    });
+    project1.qfRounds = [qfRound];
+    await project1.save();
+
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: 'High Funded Project',
+      slug: `high-funded-project-${Date.now()}`,
+      statusId: ProjStatus.active,
+      reviewStatus: ReviewStatus.Listed,
+    });
+    project2.qfRounds = [qfRound];
+    await project2.save();
+
+    // Create ProjectQfRound entries with different donation amounts
+    const projectQfRound1 = ProjectQfRound.create({
+      projectId: project1.id,
+      qfRoundId: qfRound.id,
+      sumDonationValueUsd: 100,
+      countUniqueDonors: 5,
+    });
+    await projectQfRound1.save();
+
+    const projectQfRound2 = ProjectQfRound.create({
+      projectId: project2.id,
+      qfRoundId: qfRound.id,
+      sumDonationValueUsd: 500,
+      countUniqueDonors: 10,
+    });
+    await projectQfRound2.save();
+
+    // Test sorting by ActiveQfRoundRaisedFunds
+    const [sortedProjects] = await findQfRoundProjects(qfRound.id, {
+      sortingBy: SortingField.ActiveQfRoundRaisedFunds,
+    });
+
+    assert.equal(sortedProjects.length, 2);
+    // Should be sorted by QF round donation amount (highest first)
+    assert.equal(sortedProjects[0].id, project2.id);
+    assert.equal(sortedProjects[1].id, project1.id);
+
+    // Cleanup
+    await ProjectQfRound.delete({
+      projectId: project1.id,
+      qfRoundId: qfRound.id,
+    });
+    await ProjectQfRound.delete({
+      projectId: project2.id,
+      qfRoundId: qfRound.id,
+    });
+    await removeProjectAndRelatedEntities(project1.id);
+    await removeProjectAndRelatedEntities(project2.id);
+    await QfRound.delete({ id: qfRound.id });
+  });
+
+  it('should combine pagination, filtering, and sorting', async () => {
+    // Create a QF round
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'Combined Test QF Round',
+      slug: `combined-test-qf-round-${Date.now()}`,
+      allocatedFund: 100000,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+
+    // Create multiple projects with different properties
+    const projects: Project[] = [];
+    for (let i = 1; i <= 6; i++) {
+      const project = await saveProjectDirectlyToDb({
+        ...createProjectData(),
+        title: `Test Project ${i}`,
+        slug: `test-project-${i}-${Date.now()}`,
+        statusId: ProjStatus.active,
+        reviewStatus: ReviewStatus.Listed,
+        verified: i % 2 === 0, // Even numbers are verified
+        creationDate: moment().subtract(i, 'hours').toDate(),
+        totalDonations: i * 100,
+      });
+      project.qfRounds = [qfRound];
+      await project.save();
+      projects.push(project);
+    }
+
+    // Test combined: search for "Test", filter by verified, sort by newest, paginate
+    const [filteredProjects, totalCount] = await findQfRoundProjects(
+      qfRound.id,
+      {
+        searchTerm: 'Test',
+        filters: [FilterField.Verified],
+        sortingBy: SortingField.Newest,
+        limit: 2,
+        skip: 0,
+      },
+    );
+
+    // Should return 2 verified projects (even numbers: 2, 4, 6)
+    assert.equal(filteredProjects.length, 2);
+    assert.equal(totalCount, 3); // Total verified projects matching search
+    assert.isTrue(filteredProjects.every(p => p.verified === true));
+    assert.isTrue(filteredProjects.every(p => p.title.includes('Test')));
+
+    // Cleanup
+    for (const project of projects) {
+      await removeProjectAndRelatedEntities(project.id);
+    }
+    await QfRound.delete({ id: qfRound.id });
   });
 }

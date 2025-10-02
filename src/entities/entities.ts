@@ -55,6 +55,8 @@ import { ProjectGivbackRankView } from './ProjectGivbackRankView';
 import { EstimatedClusterMatching } from './estimatedClusterMatching';
 import { SitemapUrl } from './sitemapUrl';
 import { SwapTransaction } from './swapTransaction';
+import { ProjectQfRound } from './projectQfRound';
+import { GlobalConfiguration } from './globalConfiguration';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -62,6 +64,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     User,
     ReferredEvent,
     Project,
+    ProjectQfRound,
 
     BankAccount,
     StripeTransaction,
@@ -131,5 +134,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
 
     Cause,
     CauseProject,
+    GlobalConfiguration,
   ];
 };

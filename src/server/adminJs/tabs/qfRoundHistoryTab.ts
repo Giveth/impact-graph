@@ -125,21 +125,27 @@ export const qfRoundHistoryTab = {
       },
 
       createdAt: {
-        type: 'string',
+        type: 'datetime',
         isVisible: {
           list: true,
           edit: false,
           filter: false,
           show: true,
         },
+        props: {
+          step: 1,
+        },
       },
       updatedAt: {
-        type: 'string',
+        type: 'datetime',
         isVisible: {
           list: true,
           edit: false,
           filter: false,
           show: true,
+        },
+        props: {
+          step: 1,
         },
       },
     },

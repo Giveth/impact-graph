@@ -1,5 +1,6 @@
 import { assert, expect } from 'chai';
 import axios from 'axios';
+import moment from 'moment';
 import {
   generateTestAccessToken,
   graphqlUrl,
@@ -17,6 +18,7 @@ import {
   createDraftRecurringDonationMutation,
   markDraftDonationAsFailedDateMutation,
   renewDraftDonationExpirationDateMutation,
+  createDonationMutation,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -26,12 +28,15 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import { Donation } from '../entities/donation';
 import {
   DRAFT_RECURRING_DONATION_STATUS,
   DraftRecurringDonation,
 } from '../entities/draftRecurringDonation';
 import { ProjectAddress } from '../entities/projectAddress';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { QfRound } from '../entities/qfRound';
+import { ProjectQfRound } from '../entities/projectQfRound';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 describe(
@@ -233,6 +238,173 @@ function createDraftDonationTestCases() {
     expect(saveDonationResponse2.data.data.createDraftDonation).to.be.not.equal(
       saveDonationResponse.data.data.createDraftDonation,
     );
+  });
+
+  it('should create draft donation with roundId parameter', async () => {
+    // First create a QF round
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'Test QF Round for Draft Donation',
+      minimumPassportScore: 8,
+      slug: 'test-qf-round-draft',
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+
+    // Add project to QF round using ProjectQfRound entity
+    await ProjectQfRound.create({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+    }).save();
+
+    const draftDonationData = {
+      ...donationData,
+      roundId: qfRound.id,
+    };
+
+    const saveDraftDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: draftDonationData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(saveDraftDonationResponse.data.data.createDraftDonation);
+
+    // Verify the draft donation was created with the correct QF round
+    const draftDonation = await DraftDonation.findOne({
+      where: {
+        id: saveDraftDonationResponse.data.data.createDraftDonation,
+      },
+      relations: ['qfRound'],
+    });
+
+    assert.isNotNull(draftDonation);
+    assert.equal(draftDonation?.qfRoundId, qfRound.id);
+    assert.equal(draftDonation?.qfRound?.id, qfRound.id);
+
+    // Clean up
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
+  it('should create donation from draft donation with QF round ID', async () => {
+    // First create a QF round
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'Test QF Round for Draft to Donation',
+      minimumPassportScore: 8,
+      slug: 'test-qf-round-draft-to-donation',
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+
+    // Add project to QF round using ProjectQfRound entity
+    await ProjectQfRound.create({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+    }).save();
+
+    // Create a draft donation with QF round ID
+    const draftDonationData = {
+      ...donationData,
+      roundId: qfRound.id,
+      fromTokenAmount: 10, // Set fromTokenAmount to match the amount
+    };
+
+    const saveDraftDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: draftDonationData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(saveDraftDonationResponse.data.data.createDraftDonation);
+    const draftDonationId =
+      saveDraftDonationResponse.data.data.createDraftDonation;
+
+    // Verify the draft donation was created with the correct QF round
+    const draftDonation = await DraftDonation.findOne({
+      where: { id: draftDonationId },
+    });
+
+    assert.isNotNull(draftDonation);
+    assert.equal(draftDonation?.qfRoundId, qfRound.id);
+
+    // Now create a donation using the GraphQL mutation with the QF round ID
+    const createDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          amount: draftDonation!.amount,
+          transactionId: generateRandomEvmTxHash(),
+          transactionNetworkId: draftDonation!.networkId,
+          tokenAddress: draftDonation!.tokenAddress,
+          anonymous: draftDonation!.anonymous,
+          token: draftDonation!.currency,
+          projectId: draftDonation!.projectId,
+          nonce: 1,
+          transakId: '',
+          referrerId: draftDonation!.referrerId,
+          fromTokenAmount: draftDonation!.fromTokenAmount,
+          roundId: draftDonation!.qfRoundId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(createDonationResponse.data.data.createDonation);
+
+    // Check if a donation was created
+    const createdDonation = await Donation.findOne({
+      where: {
+        projectId: project.id,
+        userId: user.id,
+      },
+      order: { createdAt: 'DESC' },
+    });
+
+    assert.isNotNull(createdDonation);
+    assert.equal(createdDonation?.qfRoundId, qfRound.id);
+    assert.equal(createdDonation?.amount, donationData.amount);
+    assert.equal(createdDonation?.currency, donationData.token);
+
+    // Clean up - delete all created data
+    if (createdDonation) {
+      await Donation.remove(createdDonation);
+    }
+
+    if (draftDonation) {
+      await DraftDonation.remove(draftDonation);
+    }
+
+    // Remove project from QF round
+    await ProjectQfRound.delete({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+    });
+
+    // Delete the QF round
+    await QfRound.remove(qfRound);
   });
 }
 

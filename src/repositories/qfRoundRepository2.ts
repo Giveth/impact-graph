@@ -30,22 +30,6 @@ export const relateManyProjectsToQfRound = async (params: {
       ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;
     `;
 
-    const qfRoundProjects = await Project.createQueryBuilder('project')
-      .leftJoin('project.qfRounds', 'qfRound')
-      .where('qfRound.id = :qfRoundId', { qfRoundId: params.qfRound.id })
-      .getMany();
-    if (qfRoundProjects.length > 0) {
-      const newAddedProjectIds = params.projectIds.filter(
-        projectId => !qfRoundProjects.find(project => project.id === projectId),
-      );
-      if (newAddedProjectIds.length > 0) {
-        await Project.update(newAddedProjectIds, {
-          countUniqueDonorsForActiveQfRound: 0,
-          sumDonationValueUsdForActiveQfRound: 0,
-        });
-      }
-    }
-
     orttoPeople = projects.map(project =>
       getOrttoPersonAttributes({
         firstName: project?.adminUser?.firstName,

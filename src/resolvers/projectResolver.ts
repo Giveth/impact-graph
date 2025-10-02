@@ -7,6 +7,8 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Float,
+  ID,
   Info,
   InputType,
   Int,
@@ -48,6 +50,9 @@ import { ApolloContext } from '../types/ApolloContext';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
 import SentryLogger from '../sentryLogger';
+import { ProjectAddress } from '../entities/projectAddress';
+import { QfRound } from '../entities/qfRound';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import {
   errorMessages,
   i18n,
@@ -82,8 +87,10 @@ import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput'
 import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
+  filterProjectsQueryOptimized,
   findProjectById,
   findProjectIdBySlug,
+  findQfRoundProjects,
   removeProjectAndRelatedEntities,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
@@ -154,6 +161,93 @@ class TopProjects {
 class ProjectUpdatesResponse {
   @Field(_type => [ProjectUpdate])
   projectUpdates: ProjectUpdate[];
+}
+
+@ObjectType()
+class projectQfRoundRelations {
+  @Field(_type => Float, { nullable: true })
+  sumDonationValueUsd?: number;
+
+  @Field(_type => Int, { nullable: true })
+  countUniqueDonors?: number;
+}
+
+@ObjectType()
+class QfProject {
+  @Field(_type => ID)
+  id: number;
+
+  @Field()
+  title: string;
+
+  @Field({ nullable: true })
+  descriptionSummary?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field({ nullable: true })
+  image?: string;
+
+  @Field(_type => Float)
+  totalRaisedUsd: number;
+
+  @Field()
+  verified: boolean;
+
+  @Field()
+  isGivbacksEligible: boolean;
+
+  @Field({ nullable: true })
+  slug?: string;
+
+  @Field(_type => User, { nullable: true })
+  admin: User;
+
+  @Field(_type => ProjectStatus)
+  status: ProjectStatus;
+
+  @Field()
+  reviewStatus: string;
+
+  @Field()
+  projectType: string;
+
+  @Field(_type => ProjectInstantPowerView, { nullable: true })
+  projectInstantPower?: ProjectInstantPowerView;
+
+  @Field({ nullable: true })
+  updatedAt?: Date;
+
+  @Field({ nullable: true })
+  creationDate?: Date;
+
+  @Field({ nullable: true })
+  latestUpdateCreationDate?: Date;
+
+  @Field(_type => Organization, { nullable: true })
+  organization?: Organization;
+
+  @Field(_type => Int, { nullable: true })
+  activeProjectsCount?: number;
+
+  @Field(_type => [ProjectAddress], { nullable: true })
+  addresses?: ProjectAddress[];
+
+  @Field(_type => [QfRound], { nullable: true })
+  qfRounds?: QfRound[];
+
+  @Field(_type => projectQfRoundRelations, { nullable: true })
+  projectQfRoundRelations?: projectQfRoundRelations;
+}
+
+@ObjectType()
+class QfProjectsResponse {
+  @Field(_type => [QfProject])
+  projects: QfProject[];
+
+  @Field(_type => Int)
+  totalCount: number;
 }
 
 export enum OrderDirection {
@@ -280,6 +374,104 @@ class GetProjectsArgs {
   projectType?: string;
 }
 
+@Service()
+@ArgsType()
+class GetOptimizedProjectsArgs {
+  @Field(_type => Int, { defaultValue: 0 })
+  @Min(0)
+  skip: number;
+
+  @Field(_type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  limit: number;
+
+  @Field(_type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  take: number;
+
+  @Field(_type => OrderBy, {
+    defaultValue: {
+      field: OrderField.GIVPower,
+      direction: OrderDirection.DESC,
+    },
+  })
+  orderBy: OrderBy;
+
+  @Field(_type => String, { nullable: true })
+  searchTerm: string;
+
+  @Field({ nullable: true })
+  category: string;
+
+  @Field({ nullable: true })
+  mainCategory: string;
+
+  @Field(_type => FilterBy, {
+    nullable: true,
+    defaultValue: { field: null, value: null },
+  })
+  filterBy: FilterBy;
+
+  @Field(_type => [FilterField], {
+    nullable: true,
+    defaultValue: [],
+  })
+  filters: FilterField[];
+
+  @Field(_type => String, {
+    nullable: true,
+  })
+  campaignSlug: string;
+
+  @Field(_type => SortingField, {
+    nullable: true,
+    defaultValue: SortingField.InstantBoosting,
+  })
+  sortingBy: SortingField;
+
+  @Field({ nullable: true })
+  admin?: number;
+
+  @Field(_type => Int, { nullable: true })
+  connectedWalletUserId?: number;
+
+  @Field({ nullable: true })
+  includeUnlisted?: boolean;
+
+  @Field(_type => String, { nullable: true, defaultValue: 'project' })
+  projectType?: string;
+}
+
+@Service()
+@ArgsType()
+class QfProjectsArgs {
+  @Field(_type => Int, { defaultValue: 0 })
+  @Min(0)
+  skip: number;
+
+  @Field(_type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  limit: number;
+
+  @Field(_type => String, { nullable: true })
+  searchTerm: string;
+
+  @Field(_type => [FilterField], {
+    nullable: true,
+    defaultValue: [],
+  })
+  filters: FilterField[];
+
+  @Field(_type => SortingField, {
+    nullable: true,
+    defaultValue: SortingField.QualityScore,
+  })
+  sortingBy: SortingField;
+}
+
 @ObjectType()
 class ImageResponse {
   @Field(_type => String)
@@ -402,8 +594,11 @@ export class ProjectResolver {
       .addSelect(publicSelectionFields)
       .where('project.id != :id', { id: currentProject?.id })
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       );
 
     // if loggedIn get his reactions
@@ -509,6 +704,17 @@ export class ProjectResolver {
         case FilterField.AcceptGiv:
           // only giving Blocks do not accept Giv
           return query.andWhere(`project.${filter} IS NULL`);
+        case FilterField.Verified:
+          return query.andWhere('project.verified = :verified', {
+            verified: true,
+          });
+        case FilterField.IsGivbackEligible:
+          return query.andWhere(
+            'project.isGivbackEligible = :isGivbackEligible',
+            {
+              isGivbackEligible: true,
+            },
+          );
         case FilterField.Endaoment:
           return query.andWhere('organization.label = :label', {
             label: ORGANIZATION_LABELS.ENDAOMENT,
@@ -597,8 +803,9 @@ export class ProjectResolver {
                         FROM project_address
                         WHERE "isRecipient" = true AND 
                         "projectId" = project.id AND
-                        "networkId" IN (${networkIds.join(', ')}) 
+                        "networkId" IN (:...networkIds) 
                       )`,
+              { networkIds },
             );
           }
           if (acceptFundOnSolanaSeen) {
@@ -608,7 +815,7 @@ export class ProjectResolver {
                         FROM project_address
                         WHERE "isRecipient" = true AND 
                         "projectId" = project.id AND
-                        "chainType" = '${ChainType.SOLANA}'
+                        "chainType" = :solanaChainType
                       )`,
             );
           }
@@ -619,12 +826,23 @@ export class ProjectResolver {
                         FROM project_address
                         WHERE "isRecipient" = true AND 
                         "projectId" = project.id AND
-                        "chainType" = '${ChainType.STELLAR}'
+                        "chainType" = :stellarChainType
                       )`,
             );
           }
         }),
       );
+
+      // Add parameters for the query
+      if (networkIds.length > 0) {
+        query.setParameter('networkIds', networkIds);
+      }
+      if (acceptFundOnSolanaSeen) {
+        query.setParameter('solanaChainType', ChainType.SOLANA);
+      }
+      if (acceptFundOnStellarSeen) {
+        query.setParameter('stellarChainType', ChainType.STELLAR);
+      }
     }
     return query;
   }
@@ -692,8 +910,11 @@ export class ProjectResolver {
   ): Promise<TopProjects> {
     const query = Project.createQueryBuilder('project')
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       )
       .innerJoinAndSelect('project.featuredUpdate', 'featuredUpdate')
       .leftJoinAndSelect('project.status', 'status')
@@ -738,6 +959,7 @@ export class ProjectResolver {
 
   @Query(_returns => AllProjects)
   async allProjects(
+    // Original query - kept unchanged for backward compatibility
     @Args()
     {
       limit,
@@ -830,6 +1052,90 @@ export class ProjectResolver {
     return { projects, totalCount, categories, campaign };
   }
 
+  @Query(_returns => AllProjects)
+  async newAllProjects(
+    // Optimized query for Multi QF feature - will replace allProjects after FE migration
+    @Args()
+    {
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      connectedWalletUserId,
+      campaignSlug,
+      includeUnlisted,
+      projectType,
+    }: GetOptimizedProjectsArgs,
+    @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
+  ): Promise<AllProjects> {
+    let projects: Project[];
+    let totalCount: number;
+
+    // Removed activeQfRoundId logic as it's not needed for optimized query
+
+    const filterQueryParams: FilterProjectQueryInputParams = {
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      // Removed QF-related parameters as they're not needed for optimized query
+      includeUnlisted,
+      projectType,
+    };
+    let campaign;
+    if (campaignSlug) {
+      campaign = await findCampaignBySlug(campaignSlug);
+      if (!campaign) {
+        throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
+      }
+      filterQueryParams.slugArray = campaign.relatedProjectsSlugs;
+    }
+
+    const projectsQuery = filterProjectsQueryOptimized(filterQueryParams);
+
+    projectsFiltersThreadPool.completed();
+    const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
+      hasher =>
+        hasher.hashProjectFilters({
+          ...filterQueryParams,
+          suffix: 'pq',
+        }),
+    );
+
+    const categoriesResolver = Category.find({
+      cache: projectFiltersCacheDuration,
+    });
+
+    // eslint-disable-next-line prefer-const
+    [projects, totalCount] = await projectsQuery
+      .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
+      .getManyAndCount();
+
+    const userId = connectedWalletUserId || user?.userId;
+    if (projects.length > 0 && userId) {
+      const userReactions = await findUserReactionsByProjectIds(
+        userId,
+        projects.map(project => project.id),
+      );
+
+      if (userReactions.length > 0) {
+        projects = await projectsFiltersThreadPool.queue(merger =>
+          merger.mergeUserReactionsToProjects(projects, userReactions),
+        );
+      }
+    }
+
+    const categories = await categoriesResolver;
+
+    return { projects, totalCount, categories, campaign };
+  }
+
   @Query(_returns => TopProjects)
   async topProjects(
     @Args()
@@ -845,8 +1151,11 @@ export class ProjectResolver {
     query = ProjectResolver.addCategoryQuery(query, category);
     query = query
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       )
       .orderBy(`project.${field}`, direction)
       .limit(skip)
@@ -875,6 +1184,10 @@ export class ProjectResolver {
     @Info() info: GraphQLResolveInfo,
     @Arg('userRemoved', _type => Boolean, { nullable: true })
     userRemoved?: boolean,
+    @Arg('qfRoundsSortBy', _type => String, { nullable: true })
+    qfRoundsSortBy?: string,
+    @Arg('activeOnly', _type => Boolean, { nullable: true })
+    activeOnly?: boolean,
   ) {
     const fields = graphqlFields(info);
 
@@ -894,6 +1207,12 @@ export class ProjectResolver {
           { isActive: true },
         )
         .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
+    }
+    if (fields.projectQfRoundRelations) {
+      query = query.leftJoinAndSelect(
+        'project.projectQfRoundRelations',
+        'projectQfRoundRelations',
+      );
     }
     if (fields.organization) {
       query = query.leftJoinAndSelect('project.organization', 'organization');
@@ -935,6 +1254,27 @@ export class ProjectResolver {
         user,
       );
     }
+    if (fields.qfRounds) {
+      if (activeOnly) {
+        // Only join active QF rounds - project will still be returned with qfRounds: []
+        query = query.leftJoinAndSelect(
+          'project.qfRounds',
+          'qfRounds',
+          'qfRounds.isActive = :isActive',
+          { isActive: true },
+        );
+      } else {
+        // Join all QF rounds
+        query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+      }
+
+      // Apply Priority sorting if requested
+      if (qfRoundsSortBy === 'priority') {
+        query = query
+          .addOrderBy('qfRounds.priority', 'DESC')
+          .addOrderBy('qfRounds.endDate', 'ASC');
+      }
+    }
 
     const project = await query.getOne();
 
@@ -968,6 +1308,10 @@ export class ProjectResolver {
     @Info() info: GraphQLResolveInfo,
     @Arg('userRemoved', _type => Boolean, { nullable: true })
     userRemoved?: boolean,
+    @Arg('qfRoundsSortBy', _type => String, { nullable: true })
+    qfRoundsSortBy?: string,
+    @Arg('activeOnly', _type => Boolean, { nullable: true })
+    activeOnly?: boolean,
   ) {
     const minimalProject = await findProjectIdBySlug(slug);
     if (!minimalProject) {
@@ -1033,7 +1377,31 @@ export class ProjectResolver {
       );
     }
     if (fields.qfRounds) {
-      query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+      if (activeOnly) {
+        // Only join active QF rounds - project will still be returned with qfRounds: []
+        query = query.leftJoinAndSelect(
+          'project.qfRounds',
+          'qfRounds',
+          'qfRounds.isActive = :isActive',
+          { isActive: true },
+        );
+      } else {
+        // Join all QF rounds
+        query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
+      }
+
+      // Apply Priority sorting if requested
+      if (qfRoundsSortBy === 'priority') {
+        query = query
+          .addOrderBy('qfRounds.priority', 'DESC')
+          .addOrderBy('qfRounds.endDate', 'ASC');
+      }
+    }
+    if (fields.projectQfRoundRelations) {
+      query = query.leftJoinAndSelect(
+        'project.projectQfRoundRelations',
+        'projectQfRoundRelations',
+      );
     }
     if (fields.projectFuturePower) {
       query = query.leftJoinAndSelect(
@@ -1042,18 +1410,12 @@ export class ProjectResolver {
       );
     }
     if (fields.campaigns) {
-      const campaignSlugs = (await getAllProjectsRelatedToActiveCampaigns())[
-        minimalProject.id
-      ];
+      // Use a simpler approach: join all active campaigns and filter in application layer
       query = query.leftJoinAndMapMany(
         'project.campaigns',
         Campaign,
         'campaigns',
-        '((campaigns."relatedProjectsSlugs" && ARRAY[:slug]::text[] OR campaigns."relatedProjectsSlugs" && project."slugHistory") AND campaigns."isActive" = TRUE) OR (campaigns.slug = ANY(:campaignSlugs))',
-        {
-          slug,
-          campaignSlugs,
-        },
+        'campaigns."isActive" = TRUE',
       );
     }
     if (fields.adminUser) {
@@ -1081,6 +1443,20 @@ export class ProjectResolver {
 
     const project = await query.getOne();
     canUserVisitProject(project, user?.userId);
+
+    // Filter campaigns if they were requested
+    if (fields.campaigns && project) {
+      const projectCampaignCache =
+        await getAllProjectsRelatedToActiveCampaigns();
+      const campaignSlugs = projectCampaignCache[minimalProject.id] || [];
+
+      // Filter campaigns to only include those that are in the cached relationship
+      if (project.campaigns) {
+        project.campaigns = project.campaigns.filter(campaign => {
+          return campaignSlugs.includes(campaign.slug);
+        });
+      }
+    }
 
     if (project?.projectType === 'cause') {
       project.causeProjects = await (project as Cause).loadCauseProjects(
@@ -1959,8 +2335,11 @@ export class ProjectResolver {
 
     if (userId !== user?.userId) {
       query = query.andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       );
     }
 
@@ -2010,8 +2389,11 @@ export class ProjectResolver {
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       )
       .andWhere('project.slug IN (:...slugs)', { slugs });
 
@@ -2211,8 +2593,11 @@ export class ProjectResolver {
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
-        { reviewStatus: ReviewStatus.Listed },
+        `project.statusId = :statusId AND project.reviewStatus = :reviewStatus`,
+        {
+          statusId: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       );
 
     // if user viewing viewedUser liked projects has any liked
@@ -2428,5 +2813,57 @@ export class ProjectResolver {
     }
 
     return true;
+  }
+
+  @Query(_returns => QfProjectsResponse)
+  async qfProjects(
+    @Arg('qfRoundId', _type => Int) qfRoundId: number,
+    @Args() args: QfProjectsArgs,
+    @Ctx() _ctx: ApolloContext,
+  ): Promise<QfProjectsResponse> {
+    const { limit, skip, searchTerm, filters, sortingBy } = args;
+    try {
+      // Use the specialized QF round projects function for proper QF-specific sorting
+      const [projects, totalCount] = await findQfRoundProjects(qfRoundId, {
+        limit,
+        skip,
+        searchTerm,
+        filters,
+        sortingBy,
+      });
+
+      // Map projects to QfProject format
+      const qfProjects: QfProject[] = projects.map(project => {
+        // Get the projectQfRoundRelations for this specific QF round
+        const projectQfRoundRelation = project.projectQfRoundRelations?.[0];
+
+        return {
+          ...project,
+          totalRaisedUsd: project.totalDonations,
+          isGivbacksEligible: project.isGivbackEligible,
+          admin: project.adminUser,
+          projectQfRoundRelations: projectQfRoundRelation
+            ? {
+                sumDonationValueUsd:
+                  projectQfRoundRelation.sumDonationValueUsd || 0,
+                countUniqueDonors:
+                  projectQfRoundRelation.countUniqueDonors || 0,
+              }
+            : {
+                sumDonationValueUsd: 0,
+                countUniqueDonors: 0,
+              },
+        } as QfProject;
+      });
+
+      return {
+        projects: qfProjects,
+        totalCount,
+      };
+    } catch (error) {
+      logger.error('projectResolver.qfProjects() error', error);
+      SentryLogger.captureException(error);
+      throw error;
+    }
   }
 }
