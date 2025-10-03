@@ -9,8 +9,35 @@ on:
       - master
 
 jobs:
+  run-linters:
+    name: Run linters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20.11.0
+
+      # ESLint and Prettier must be in `package.json`
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          eslint: true
+          #prettier: true
+          continue_on_error: true
+
   test:
     runs-on: ubuntu-latest
+    needs: run-linters
     services:
       # Label used to access the service container
       redis:
@@ -42,7 +69,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Configure AWS credentials
@@ -75,7 +102,7 @@ jobs:
         run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-db/db_backup.sql
 
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v5
         with:
           node-version: 20.11.0
 
@@ -88,9 +115,8 @@ jobs:
       - name: Run build
         run: npm run build
 
-#       It keeps failing, comment it to test it's our code problem or the production dump on AWS
-#      - name: Run migrations
-#        run: npm run db:migrate:run:test
+      - name: Run migrations
+        run: npm run db:migrate:run:test
 
       - name: Run tests
         run: npm run test
@@ -129,7 +155,7 @@ jobs:
       packages: write
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Login to GitHub Container Registry
@@ -138,7 +164,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          no-cache: true  
+          no-cache: true
           repository: giveth/impact-graph
           tags: |
             ghcr.io/giveth/impact-graph:latest
@@ -158,7 +184,126 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
-            docker compose pull impact-graph
-            docker compose stop impact-graph
-            docker compose up -d impact-graph
-            docker image prune -a --force
+            # Pull the relevant images once; rollout jobs will reuse them
+            docker pull ghcr.io/giveth/impact-graph:master
+
+  rollout-deploy-1:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST_ALL }}
+          username: ${{ secrets.PROD_USERNAME_ALL }}
+          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd giveth-all
+            ## Update each backend service one by one
+            ## First Deployment (images were pulled earlier)
+            docker-compose up -d --no-deps --force-recreate impact-graph-ql1
+            docker-compose up -d --no-deps --force-recreate impact-graph-jobs
+            echo "First deployment phase triggered. Deep health checks deferred to verify-health job."
+
+  rollout-deploy-2:
+    needs: rollout-deploy-1
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST_ALL }}
+          username: ${{ secrets.PROD_USERNAME_ALL }}
+          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd giveth-all
+            ## Update each backend service one by one
+            ## Second Deployment (images were pulled earlier)
+            docker-compose up -d --no-deps --force-recreate impact-graph-ql2
+            echo "Second deployment phase triggered. Health checks deferred to verify-health job."
+
+  rollout-deploy-3:
+    needs: rollout-deploy-2
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST_ALL }}
+          username: ${{ secrets.PROD_USERNAME_ALL }}
+          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd giveth-all
+            ## Update each backend service one by one
+            ## Third Deployment (images were pulled earlier)
+            docker-compose up -d --no-deps --force-recreate impact-graph-ql3
+            echo "Third deployment phase triggered. Health checks deferred to verify-health job."
+
+  rollout-deploy-4:
+    needs: rollout-deploy-3
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST_ALL }}
+          username: ${{ secrets.PROD_USERNAME_ALL }}
+          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd giveth-all
+            ## Update each backend service one by one
+            ## Fourth Deployment (images were pulled earlier)
+            docker-compose up -d --no-deps --force-recreate impact-graph-ql4
+            echo "Fourth deployment phase triggered. Health checks deferred to verify-health job."
+
+  verify-health:
+    needs:
+      - rollout-deploy-1
+      - rollout-deploy-2
+      - rollout-deploy-3
+      - rollout-deploy-4
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for services to stabilize
+        run: sleep 180
+      - name: SSH and Verify Health
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST_ALL }}
+          username: ${{ secrets.PROD_USERNAME_ALL }}
+          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd giveth-all
+            services=("impact-graph-ql1" "impact-graph-ql2" "impact-graph-ql3" "impact-graph-ql4")
+            for svc in "${services[@]}"; do
+              echo "Checking health for $svc ..."
+              ok=0
+              for i in {1..12}; do
+                status=$(docker inspect --format='{{json .State.Health.Status}}' "$svc" 2>/dev/null || echo '""')
+                if [ "$status" = "\"healthy\"" ]; then
+                  echo "$svc is healthy"
+                  ok=1
+                  break
+                fi
+                echo "Current health: $status; waiting..."
+                sleep 10
+              done
+              if [ $ok -ne 1 ]; then
+                echo "::error::$svc did not reach healthy status"
+                exit 1
+              fi
+            done
+
+            echo "Checking impact-graph-jobs is running ..."
+            job_status=$(docker inspect --format='{{json .State.Status}}' impact-graph-jobs 2>/dev/null || echo '""')
+            if [ "$job_status" != "\"running\"" ]; then
+              echo "::error::impact-graph-jobs is not running (status: $job_status)"
+              exit 1
+            fi
+            echo "All services healthy."
