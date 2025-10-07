@@ -21,6 +21,7 @@ import {
   getQfRoundStats,
   findUsersWithoutMBDScoreInActiveAround,
   QfArchivedRoundsSortType,
+  findProjectQfRounds,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
@@ -52,6 +53,7 @@ describe('findQfRoundById test cases', findQfRoundByIdTestCases);
 describe('findQfRoundBySlug test cases', findQfRoundBySlugTestCases);
 describe('findQfRounds test cases', findQfRoundsTestCases);
 describe('findArchivedQfRounds test cases', findArchivedQfRoundsTestCases);
+describe('findProjectQfRounds test cases', findProjectQfRoundsTestCases);
 
 function findUsersWithoutMBDScoreInActiveAroundTestCases() {
   it('should find users without score that donated in the round', async () => {
@@ -1106,5 +1108,60 @@ function findArchivedQfRoundsTestCases() {
     assert.equal(descResult[0].name, 'High Fund');
     assert.equal(descResult[1].name, 'Mid Fund');
     assert.equal(descResult[2].name, 'Low Fund');
+  });
+}
+
+function findProjectQfRoundsTestCases() {
+  it('should return project QF rounds sorted by priority when sortBy is priority', async () => {
+    // Add two qf rounds with different priorities
+    const qfRound1 = await QfRound.create({
+      isActive: true,
+      name: 'Higher Priority QF Round',
+      slug: 'higher-priority-qf-round',
+      allocatedFund: 100000,
+      allocatedFundUSD: 50000,
+      beginDate: new Date(),
+      endDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000),
+      minimumPassportScore: 8,
+      description: `Description for Higher Priority QF Round`,
+      eligibleNetworks: [1, 100],
+      isDataAnalysisDone: true,
+      priority: 1,
+    });
+    const qfRound2 = await QfRound.create({
+      isActive: true,
+      name: 'Lower Priority QF Round',
+      slug: 'lower-priority-qf-round',
+      allocatedFund: 100000,
+      allocatedFundUSD: 50000,
+      beginDate: new Date(),
+      endDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000),
+      minimumPassportScore: 8,
+      description: `Description for Lower Priority QF Round`,
+      eligibleNetworks: [1, 100],
+      isDataAnalysisDone: true,
+      priority: 2,
+    });
+    await qfRound1.save();
+    await qfRound2.save();
+
+    // Add project to qf rounds
+    const walletAddress = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+    });
+    project.qfRounds = [qfRound1, qfRound2];
+    await project.save();
+
+    const result = await findProjectQfRounds(project.id, {
+      sortBy: 'priority',
+    });
+
+    assert.isArray(result);
+    assert.equal(result.length, 2);
+    assert.equal(result[0].id, qfRound1.id);
+    assert.equal(result[1].id, qfRound2.id);
   });
 }
