@@ -611,7 +611,7 @@ export const donationTab = {
           filter: false,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       priceEth: {
@@ -814,6 +814,15 @@ export const donationTab = {
           list: false,
           filter: false,
           show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      fromTokenAmount: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
           edit: false,
           new: false,
         },
