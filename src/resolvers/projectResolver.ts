@@ -1208,12 +1208,6 @@ export class ProjectResolver {
         )
         .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
     }
-    if (fields.projectQfRoundRelations) {
-      query = query.leftJoinAndSelect(
-        'project.projectQfRoundRelations',
-        'projectQfRoundRelations',
-      );
-    }
     if (fields.organization) {
       query = query.leftJoinAndSelect('project.organization', 'organization');
     }
@@ -1390,27 +1384,12 @@ export class ProjectResolver {
         query = query.leftJoinAndSelect('project.qfRounds', 'qfRounds');
       }
 
-      // Also join projectQfRoundRelations for each qfRound if qfRounds is requested
-      // This ensures that nested projectQfRoundRelations field has access to the data
-      // Only include relations that have actual donation data (sumDonationValueUsd > 0 or countUniqueDonors > 0)
-      query = query.leftJoinAndSelect(
-        'qfRounds.projectQfRoundRelations',
-        'qfRoundProjectRelations',
-        '(qfRoundProjectRelations.sumDonationValueUsd > 0 OR qfRoundProjectRelations.countUniqueDonors > 0)',
-      );
-
       // Apply Priority sorting if requested
       if (qfRoundsSortBy === 'priority') {
         query = query
           .addOrderBy('qfRounds.priority', 'DESC')
           .addOrderBy('qfRounds.endDate', 'ASC');
       }
-    }
-    if (fields.projectQfRoundRelations) {
-      query = query.leftJoinAndSelect(
-        'project.projectQfRoundRelations',
-        'projectQfRoundRelations',
-      );
     }
     if (fields.projectFuturePower) {
       query = query.leftJoinAndSelect(

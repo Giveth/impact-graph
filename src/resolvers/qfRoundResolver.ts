@@ -3,13 +3,11 @@ import {
   Args,
   ArgsType,
   Field,
-  FieldResolver,
   InputType,
   Int,
   ObjectType,
   Query,
   Resolver,
-  Root,
   registerEnumType,
 } from 'type-graphql';
 import { Service } from 'typedi';
@@ -28,7 +26,6 @@ import {
   findActiveQfRound,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
-import { ProjectQfRound } from '../entities/projectQfRound';
 import { OrderDirection } from './projectResolver';
 
 export enum QfRoundsSortType {
@@ -286,15 +283,5 @@ export class QfRoundResolver {
       logger.error('Error in qfRoundSmartSelect:', error);
       throw error;
     }
-  }
-
-  @FieldResolver(_returns => [ProjectQfRound], { nullable: true })
-  async projectQfRoundRelations(
-    @Root() qfRound: QfRound,
-  ): Promise<ProjectQfRound[] | null> {
-    // Return the projectQfRoundRelations that are already loaded
-    // This field resolver is needed when projectQfRoundRelations is requested
-    // as a nested field within qfRounds in the projectBySlug query
-    return qfRound.projectQfRoundRelations || null;
   }
 }
