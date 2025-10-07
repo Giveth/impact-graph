@@ -68,6 +68,7 @@ export const createDonation = async (
       txType,
       isProjectGivbackEligible,
       segmentNotified,
+      qfRoundId,
     } = request.payload;
     if (!priceUsd) {
       throw new Error('priceUsd is required');
@@ -149,6 +150,7 @@ export const createDonation = async (
         createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
         isTokenEligibleForGivback: true,
+        qfRoundId: qfRoundId ? Number(qfRoundId) : undefined,
       });
       const donor = await findUserByWalletAddress(transactionInfo?.from);
       if (donor) {
@@ -453,12 +455,13 @@ export const donationTab = {
       },
       qfRoundId: {
         type: Number,
+        reference: 'QfRound',
         isVisible: {
           list: false,
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       nonce: {
