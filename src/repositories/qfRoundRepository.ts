@@ -253,6 +253,41 @@ export const findActiveQfRounds = async (
   return qfRounds || [];
 };
 
+export const findProjectQfRounds = async (
+  projectId: number,
+  params: {
+    activeOnly?: boolean;
+    sortBy?: string;
+  } = {},
+): Promise<QfRound[]> => {
+  const { activeOnly = false, sortBy } = params;
+
+  let query = QfRound.createQueryBuilder('qfRound')
+    .innerJoin('qfRound.projects', 'project', 'project.id = :projectId', {
+      projectId,
+    })
+    .leftJoinAndSelect(
+      'qfRound.projectQfRoundRelations',
+      'projectQfRoundRelations',
+      'projectQfRoundRelations.projectId = :projectId',
+      { projectId },
+    );
+
+  // Apply active filter
+  if (activeOnly) {
+    query = query.andWhere('qfRound.isActive = :isActive', { isActive: true });
+  }
+
+  // Apply sorting
+  if (sortBy === 'priority') {
+    query.addOrderBy('qfRound.priority', 'ASC');
+  } else {
+    query.addOrderBy('qfRound.endDate', 'ASC');
+  }
+
+  return query.getMany();
+};
+
 export const findUsersWithoutMBDScoreInActiveAround = async (): Promise<
   number[]
 > => {
