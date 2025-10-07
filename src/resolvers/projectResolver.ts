@@ -1391,6 +1391,12 @@ export class ProjectResolver {
           .addOrderBy('qfRounds.endDate', 'ASC');
       }
     }
+    if (fields.projectQfRoundRelations) {
+      query = query.leftJoinAndSelect(
+        'project.projectQfRoundRelations',
+        'projectQfRoundRelations',
+      );
+    }
     if (fields.projectFuturePower) {
       query = query.leftJoinAndSelect(
         'project.projectFuturePower',
