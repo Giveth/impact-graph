@@ -609,6 +609,7 @@ export const donationTab = {
         },
       },
       amount: {
+        type: 'number',
         isVisible: {
           list: false,
           filter: false,
@@ -616,6 +617,9 @@ export const donationTab = {
           edit: false,
           new: true,
         },
+      },
+      distributedFundQfRoundId: {
+        isVisible: false,
       },
       priceEth: {
         isVisible: false,
