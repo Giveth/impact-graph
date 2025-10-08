@@ -7,28 +7,24 @@ import {
   BaseEntity,
   CreateDateColumn,
   UpdateDateColumn,
-  Index,
-  Unique,
+  PrimaryColumn,
 } from 'typeorm';
 import { Project } from './project';
 import { QfRound } from './qfRound';
 
 @Entity('project_qf_rounds_qf_round')
 @ObjectType()
-@Unique(['projectId', 'qfRoundId'])
 export class ProjectQfRound extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
   @Field(_type => ID)
-  @Column()
-  @Index()
+  @PrimaryColumn()
   projectId: number;
 
   @Field(_type => ID)
-  @Column()
-  @Index()
+  @PrimaryColumn()
   qfRoundId: number;
 
   @ManyToOne(_type => Project, project => project.projectQfRoundRelations)
