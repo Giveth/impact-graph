@@ -75,10 +75,22 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
       !priceUsd ||
       !chainType
     ) {
+      const errors: Record<string, { message: string }> = {};
+      if (!txHash) errors.transactionId = { message: 'txHash is required' };
+      if (!transactionNetworkId)
+        errors.transactionNetworkId = {
+          message: 'transactionNetworkId is required',
+        };
+      if (!currency) errors.currency = { message: 'currency is required' };
+      if (!priceUsd) errors.priceUsd = { message: 'priceUsd is required' };
+      if (!chainType) errors.chainType = { message: 'chainType is required' };
       return {
-        record: {},
+        record: {
+          params: request?.payload || {},
+          errors,
+        },
         notice: {
-          message: `${!txHash ? 'txHash' : !transactionNetworkId ? 'transactionNetworkId' : !currency ? 'currency' : !priceUsd ? 'priceUsd' : !chainType ? 'chainType' : ''} is required`,
+          message: 'Please fix the highlighted fields',
           type: 'danger',
         },
       };
@@ -95,7 +107,12 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
     });
     if (existingTx) {
       return {
-        record: {},
+        record: {
+          params: request?.payload || {},
+          errors: {
+            transactionId: { message: 'Transaction already exists' },
+          },
+        },
         notice: {
           message: 'Transaction already exists',
           type: 'danger',
@@ -119,7 +136,12 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
       } as TransactionDetailInput);
       if (!txInfo) {
         return {
-          record: {},
+          record: {
+            params: request?.payload || {},
+            errors: {
+              transactionId: { message: 'Transaction not found on blockchain' },
+            },
+          },
           notice: {
             message: 'Transaction not found on blockchain',
             type: 'danger',
@@ -143,7 +165,9 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
       if (!project) {
         if (transactions.length === 1) {
           return {
-            record: {},
+            record: {
+              params: request?.payload || {},
+            },
             notice: {
               message: 'Project not found',
               type: 'danger',
@@ -174,7 +198,15 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
       let isTokenEligibleForGivback = false;
       if (isCustomToken && !project.organization.supportCustomTokens) {
         return {
-          record: {},
+          record: {
+            params: request?.payload || {},
+            errors: {
+              currency: {
+                message:
+                  'Token not found on DB and project organization does not support custom tokens',
+              },
+            },
+          },
           notice: {
             message:
               'Token not found on DB and project organization does not support custom tokens',
@@ -188,7 +220,15 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
         });
         if (!acceptsToken && !project.organization.supportCustomTokens) {
           return {
-            record: {},
+            record: {
+              params: request?.payload || {},
+              errors: {
+                currency: {
+                  message:
+                    'Token not acceptable for project and project organization does not support custom tokens',
+                },
+              },
+            },
             notice: {
               message:
                 'Token not acceptable for project and project organization does not support custom tokens',
@@ -246,9 +286,21 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
     logger.error('create donation error', e.message);
   }
 
+  if (type === 'success') {
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      record: {},
+      notice: {
+        message,
+        type,
+      },
+    };
+  }
+
   return {
-    redirectUrl: '/admin/resources/Donation',
-    record: {},
+    record: {
+      params: (request as any)?.payload || {},
+    },
     notice: {
       message,
       type,
