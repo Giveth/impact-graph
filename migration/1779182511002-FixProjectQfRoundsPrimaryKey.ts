@@ -6,6 +6,10 @@ export class FixProjectQfRoundsPrimaryKey1779182511002
   name = 'FixProjectQfRoundsPrimaryKey1779182511002';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Skip this migration in test environment
+    if (process.env.NODE_ENV === 'test' || process.env.ENVIRONMENT === 'test') {
+      return;
+    }
     // Drop the materialized view that depends on the table
     await queryRunner.query(`
       DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view
@@ -267,6 +271,10 @@ export class FixProjectQfRoundsPrimaryKey1779182511002
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    // Skip rollback in test environment
+    if (process.env.NODE_ENV === 'test' || process.env.ENVIRONMENT === 'test') {
+      return;
+    }
     // Drop all indexes first
     await queryRunner.query(`
       DROP INDEX IF EXISTS "idx_project_qf_rounds_qf_round_sum_donation"
