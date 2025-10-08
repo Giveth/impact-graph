@@ -5,18 +5,18 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../../../test/testUtils';
-import { NETWORK_IDS } from '../../../provider';
 import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
 } from '../../../entities/donation';
+import { Project } from '../../../entities/project';
+import { User } from '../../../entities/user';
+import { NETWORK_IDS } from '../../../provider';
 import {
   createDonation,
   FillPricesForDonationsWithoutPrice,
 } from './donationTab';
-import { User } from '../../../entities/user';
-import { Project } from '../../../entities/project';
 
 describe('createDonation() test cases', createDonationTestCases);
 describe('updateDonationPrice() test cases', updateDonationPriceTestCases);
@@ -99,25 +99,18 @@ function createDonationTestCases() {
       ...createProjectData(),
       walletAddress: sixthProjectAddress,
     });
-    await createDonation(
-      {
-        query: {
-          recordIds: '',
-        },
-        payload: {
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: txHash,
-          priceUsd: ethPrice,
-          txType: 'csvAirDrop',
-          segmentNotified: true,
-        },
+    await createDonation({
+      query: {
+        recordIds: '',
       },
-      {
-        send: () => {
-          //
-        },
+      payload: {
+        transactionNetworkId: NETWORK_IDS.XDAI,
+        transactionId: txHash,
+        priceUsd: ethPrice,
+        txType: 'csvAirDrop',
+        segmentNotified: true,
       },
-    );
+    });
 
     const firstDonation = await Donation.findOne({
       where: {
@@ -207,26 +200,19 @@ function createDonationTestCases() {
       ...createProjectData(),
       walletAddress: firstProjectAddress,
     });
-    await createDonation(
-      {
-        query: {
-          recordIds: '',
-        },
-        payload: {
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: txHash,
-          priceUsd: tokenPrice,
-          txType: 'gnosisSafe',
-          segmentNotified: true,
-          isProjectGivbackEligible: true,
-        },
+    await createDonation({
+      query: {
+        recordIds: '',
       },
-      {
-        send: () => {
-          //
-        },
+      payload: {
+        transactionNetworkId: NETWORK_IDS.XDAI,
+        transactionId: txHash,
+        priceUsd: tokenPrice,
+        txType: 'gnosisSafe',
+        segmentNotified: true,
+        isProjectGivbackEligible: true,
       },
-    );
+    });
 
     const firstDonation = await Donation.findOne({
       where: {
