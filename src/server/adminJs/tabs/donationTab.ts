@@ -614,7 +614,7 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
           new: true,
         },
       },
