@@ -13,7 +13,7 @@ import {
 import { Project } from './project';
 import { QfRound } from './qfRound';
 
-@Entity('project_qf_rounds_qf_round')
+@Entity('project_qf_rounds_qf_round', { synchronize: false })
 @ObjectType()
 @Unique(['projectId', 'qfRoundId']) // Ensure uniqueness of the composite key
 export class ProjectQfRound extends BaseEntity {
