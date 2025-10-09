@@ -24,6 +24,7 @@ import {
   getQfRoundStats,
   getQfRoundTotalSqrtRootSumSquared,
   findActiveQfRound,
+  findProjectQfRounds,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 import { OrderDirection } from './projectResolver';
@@ -149,7 +150,7 @@ export class QfRoundsArgs {
   sortBy?: QfRoundsSortType;
 }
 
-@Resolver(_of => User)
+@Resolver(_of => QfRound)
 export class QfRoundResolver {
   @Query(_returns => [QfRound], { nullable: true })
   async qfRounds(
@@ -281,6 +282,24 @@ export class QfRoundResolver {
         throw new Error(error.message);
       }
       logger.error('Error in qfRoundSmartSelect:', error);
+      throw error;
+    }
+  }
+
+  @Query(_returns => [QfRound], { nullable: true })
+  async projectQfRounds(
+    @Arg('projectId', _type => Int) projectId: number,
+    @Arg('activeOnly', _type => Boolean, { nullable: true })
+    activeOnly?: boolean,
+    @Arg('sortBy', _type => String, { nullable: true }) sortBy?: string,
+  ): Promise<QfRound[] | null> {
+    try {
+      return await findProjectQfRounds(projectId, {
+        activeOnly,
+        sortBy,
+      });
+    } catch (error) {
+      logger.error('Error in projectQfRounds query:', error);
       throw error;
     }
   }

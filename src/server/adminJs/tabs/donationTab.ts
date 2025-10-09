@@ -1,62 +1,59 @@
-import { SelectQueryBuilder } from 'typeorm';
 import { ActionContext } from 'adminjs';
 import moment from 'moment';
+import { ILike, SelectQueryBuilder } from 'typeorm';
+import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
 import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
 } from '../../../entities/donation';
-import {
-  canAccessDonationAction,
-  canAccessQfRoundHistoryAction,
-  ResourceActions,
-} from '../adminJsPermissions';
-import {
-  AdminJsContextInterface,
-  AdminJsRequestInterface,
-  AdminJsDonationsQuery,
-  donationHeaders,
-} from '../adminJs-types';
-import { messages } from '../../../utils/messages';
-import { logger } from '../../../utils/logger';
-import {
-  findEvmTransactionByHash,
-  getCsvAirdropTransactions,
-  getGnosisSafeTransactions,
-} from '../../../services/chains/evm/transactionService';
-import {
-  i18n,
-  translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
 import { Project } from '../../../entities/project';
-import { calculateGivbackFactor } from '../../../services/givbackService';
-import { findUserByWalletAddress } from '../../../repositories/userRepository';
-import {
-  updateUserTotalDonated,
-  updateUserTotalReceived,
-} from '../../../services/userService';
+import { Token } from '../../../entities/token';
 import { NETWORK_IDS } from '../../../provider';
-import {
-  initExportSpreadsheet,
-  addDonationsSheetToSpreadsheet,
-} from '../../../services/googleSheets';
-import { extractAdminJsReferrerUrlParams } from '../adminJs';
+import { findUserByWalletAddress } from '../../../repositories/userRepository';
 import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../../../services/chains';
+import {
+  findEvmTransactionByHash,
+  getCsvAirdropTransactions,
+  getGnosisSafeTransactions,
+} from '../../../services/chains/evm/transactionService';
+import { isTokenAcceptableForProject } from '../../../services/donationService';
+import { calculateGivbackFactor } from '../../../services/givbackService';
+import {
+  addDonationsSheetToSpreadsheet,
+  initExportSpreadsheet,
+} from '../../../services/googleSheets';
 import { updateProjectStatistics } from '../../../services/projectService';
-import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
-import { Token } from '../../../entities/token';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../../../services/userService';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../../utils/errorMessages';
+import { logger } from '../../../utils/logger';
+import { messages } from '../../../utils/messages';
+import { extractAdminJsReferrerUrlParams } from '../adminJs';
+import {
+  AdminJsContextInterface,
+  AdminJsDonationsQuery,
+  AdminJsRequestInterface,
+  donationHeaders,
+} from '../adminJs-types';
+import {
+  canAccessDonationAction,
+  canAccessQfRoundHistoryAction,
+  ResourceActions,
+} from '../adminJsPermissions';
 
-export const createDonation = async (
-  request: AdminJsRequestInterface,
-  response,
-) => {
+export const createDonation = async (request: AdminJsRequestInterface) => {
   let message = messages.DONATION_CREATED_SUCCESSFULLY;
   const donations: Donation[] = [];
-
   let type = 'success';
   try {
     logger.debug('create donation ', request.payload);
@@ -66,15 +63,62 @@ export const createDonation = async (
       currency,
       priceUsd,
       txType,
-      isProjectGivbackEligible,
       segmentNotified,
-    } = request.payload;
-    if (!priceUsd) {
-      throw new Error('priceUsd is required');
+      qfRoundId,
+      anonymous,
+      chainType,
+    } = request?.payload || {};
+    if (
+      !txHash ||
+      !transactionNetworkId ||
+      !currency ||
+      !priceUsd ||
+      !chainType
+    ) {
+      const errors: Record<string, { message: string }> = {};
+      if (!txHash) errors.transactionId = { message: 'txHash is required' };
+      if (!transactionNetworkId)
+        errors.transactionNetworkId = {
+          message: 'transactionNetworkId is required',
+        };
+      if (!currency) errors.currency = { message: 'currency is required' };
+      if (!priceUsd) errors.priceUsd = { message: 'priceUsd is required' };
+      if (!chainType) errors.chainType = { message: 'chainType is required' };
+      return {
+        record: {
+          params: request?.payload || {},
+          errors,
+        },
+        notice: {
+          message: 'Please fix the highlighted fields',
+          type: 'danger',
+        },
+      };
     }
     const networkId = Number(transactionNetworkId);
     let transactions: NetworkTransactionInfo[] = [];
     let donationType;
+
+    const existingTx = await Donation.findOne({
+      where: {
+        transactionNetworkId: networkId,
+        transactionId: ILike(txHash),
+      },
+    });
+    if (existingTx) {
+      return {
+        record: {
+          params: request?.payload || {},
+          errors: {
+            transactionId: { message: 'Transaction already exists' },
+          },
+        },
+        notice: {
+          message: 'Transaction already exists',
+          type: 'danger',
+        },
+      };
+    }
 
     if (txType === 'csvAirDrop') {
       // transactions = await getDisperseTransactions(txHash, networkId);
@@ -85,18 +129,24 @@ export const createDonation = async (
       transactions = await getGnosisSafeTransactions(txHash, networkId);
       donationType = DONATION_TYPES.GNOSIS_SAFE;
     } else {
-      if (!currency) {
-        throw new Error(
-          i18n.__(translationErrorMessagesKeys.INVALID_TOKEN_SYMBOL),
-        );
-      }
       const txInfo = await findEvmTransactionByHash({
         networkId,
         txHash,
         symbol: currency,
       } as TransactionDetailInput);
       if (!txInfo) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
+        return {
+          record: {
+            params: request?.payload || {},
+            errors: {
+              transactionId: { message: 'Transaction not found on blockchain' },
+            },
+          },
+          notice: {
+            message: 'Transaction not found on blockchain',
+            type: 'danger',
+          },
+        };
       }
       transactions.push(txInfo);
     }
@@ -109,9 +159,21 @@ export const createDonation = async (
         .where(`lower("walletAddress")=lower(:address)`, {
           address: transactionInfo?.to,
         })
+        .leftJoinAndSelect('project.organization', 'organization')
         .getOne();
 
       if (!project) {
+        if (transactions.length === 1) {
+          return {
+            record: {
+              params: request?.payload || {},
+            },
+            notice: {
+              message: 'Project not found',
+              type: 'danger',
+            },
+          };
+        }
         logger.error(
           'Creating donation by adminJs, csv airdrop error ' +
             i18n.__(
@@ -126,6 +188,57 @@ export const createDonation = async (
         continue;
       }
 
+      const tokenInDb = await Token.findOne({
+        where: {
+          networkId,
+          symbol: transactionInfo?.currency,
+        },
+      });
+      const isCustomToken = !tokenInDb;
+      let isTokenEligibleForGivback = false;
+      if (isCustomToken && !project.organization.supportCustomTokens) {
+        return {
+          record: {
+            params: request?.payload || {},
+            errors: {
+              currency: {
+                message:
+                  'Token not found on DB and project organization does not support custom tokens',
+              },
+            },
+          },
+          notice: {
+            message:
+              'Token not found on DB and project organization does not support custom tokens',
+            type: 'danger',
+          },
+        };
+      } else if (tokenInDb) {
+        const acceptsToken = await isTokenAcceptableForProject({
+          projectId: project.id,
+          tokenId: tokenInDb.id,
+        });
+        if (!acceptsToken && !project.organization.supportCustomTokens) {
+          return {
+            record: {
+              params: request?.payload || {},
+              errors: {
+                currency: {
+                  message:
+                    'Token not acceptable for project and project organization does not support custom tokens',
+                },
+              },
+            },
+            notice: {
+              message:
+                'Token not acceptable for project and project organization does not support custom tokens',
+              type: 'danger',
+            },
+          };
+        }
+        isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
+      }
+
       const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
         await calculateGivbackFactor(project.id);
       const donation = Donation.create({
@@ -133,6 +246,7 @@ export const createDonation = async (
         projectRank,
         bottomRankInRound,
         powerRound,
+        chainType,
         fromWalletAddress: transactionInfo?.from,
         toWalletAddress: transactionInfo?.to,
         transactionId: txHash,
@@ -144,11 +258,12 @@ export const createDonation = async (
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
-        isProjectGivbackEligible,
+        isProjectGivbackEligible: project.isGivbackEligible,
         donationType,
         createdAt: new Date(transactionInfo?.timestamp * 1000),
-        anonymous: true,
-        isTokenEligibleForGivback: true,
+        anonymous,
+        isTokenEligibleForGivback,
+        qfRoundId: qfRoundId ? Number(qfRoundId) : undefined,
       });
       const donor = await findUserByWalletAddress(transactionInfo?.from);
       if (donor) {
@@ -162,26 +277,34 @@ export const createDonation = async (
         await updateUserTotalDonated(donor.id);
       }
       donations.push(donation);
-
+      message = `Donation has been created successfully, ID: ${donation.id}`;
       logger.debug('Donation has been created successfully', donation.id);
     }
   } catch (e) {
-    message = e.message;
+    message = e.message || JSON.stringify(e);
     type = 'danger';
     logger.error('create donation error', e.message);
   }
 
-  response.send({
-    redirectUrl: '/admin/resources/Donation',
-    record: {},
+  if (type === 'success') {
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      record: {},
+      notice: {
+        message,
+        type,
+      },
+    };
+  }
+
+  return {
+    record: {
+      params: (request as any)?.payload || {},
+    },
     notice: {
       message,
       type,
     },
-  });
-
-  return {
-    record: donations,
   };
 };
 
@@ -448,17 +571,18 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       qfRoundId: {
         type: Number,
+        reference: 'QfRound',
         isVisible: {
           list: false,
           filter: true,
           show: true,
-          edit: false,
-          new: false,
+          edit: true,
+          new: true,
         },
       },
       nonce: {
@@ -472,7 +596,7 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: true,
-          show: true,
+          show: false,
           edit: false,
           new: false,
         },
@@ -482,7 +606,7 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: false,
-          show: true,
+          show: false,
           edit: false,
           new: false,
         },
@@ -492,7 +616,7 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: false,
-          show: true,
+          show: false,
           edit: false,
           new: false,
         },
@@ -521,8 +645,8 @@ export const donationTab = {
       referrerWallet: {
         isVisible: {
           list: false,
-          filter: true,
-          show: true,
+          filter: false,
+          show: false,
           edit: false,
           new: false,
         },
@@ -531,7 +655,7 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: false,
-          show: true,
+          show: false,
           edit: false,
           new: false,
         },
@@ -565,8 +689,8 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: false,
-          new: false,
+          edit: true,
+          new: true,
         },
       },
       userId: {
@@ -575,11 +699,17 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       tokenAddress: {
-        isVisible: false,
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: true,
+        },
       },
       fromWalletAddress: {
         isVisible: {
@@ -587,7 +717,7 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       toWalletAddress: {
@@ -596,10 +726,11 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       amount: {
+        type: 'number',
         isVisible: {
           list: false,
           filter: false,
@@ -607,6 +738,9 @@ export const donationTab = {
           edit: false,
           new: false,
         },
+      },
+      distributedFundQfRoundId: {
+        isVisible: false,
       },
       priceEth: {
         isVisible: false,
@@ -619,7 +753,7 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: true,
+          edit: false,
           new: false,
         },
       },
@@ -628,7 +762,7 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: true,
+          edit: false,
           new: false,
         },
       },
@@ -637,7 +771,7 @@ export const donationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: true,
+          edit: false,
           new: false,
         },
         availableValues: [
@@ -656,7 +790,7 @@ export const donationTab = {
           filter: true,
           show: true,
           edit: false,
-          new: false,
+          new: true,
         },
       },
       currency: {
@@ -664,8 +798,8 @@ export const donationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: false,
-          new: false,
+          edit: true,
+          new: true,
         },
       },
       transactionNetworkId: {
@@ -687,8 +821,8 @@ export const donationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: false,
-          new: false,
+          edit: true,
+          new: true,
         },
       },
       txType: {
@@ -744,8 +878,8 @@ export const donationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: false,
-          new: false,
+          edit: true,
+          new: true,
         },
       },
       isReferrerGivbackEligible: {
@@ -770,7 +904,80 @@ export const donationTab = {
         isVisible: {
           list: false,
           filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      // Fields removed from create form
+      blockNumber: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      origin: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      recurringDonationId: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      virtualPeriodStart: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      fromTokenAmount: {
+        isVisible: {
+          list: false,
+          filter: false,
           show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      virtualPeriodEnd: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      relevantDonationTxHash: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+          new: false,
+        },
+      },
+      importDate: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
           edit: false,
           new: false,
         },
