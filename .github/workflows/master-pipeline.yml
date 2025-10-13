@@ -186,7 +186,7 @@ jobs:
           script: |
             cd giveth-all
             # Pull the relevant images once; rollout jobs will reuse them
-            docker pull ghcr.io/giveth/impact-graph:master
+            docker-compose pull
 
   rollout-deploy-1:
     needs: deploy
@@ -308,3 +308,4 @@ jobs:
               exit 1
             fi
             echo "All services healthy."
+            docker images prune -f
