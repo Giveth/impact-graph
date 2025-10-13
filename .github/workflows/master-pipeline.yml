@@ -185,7 +185,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
-            docker-compose pull
+            docker compose pull
 
   rollout-deploy-1:
     needs: deploy
