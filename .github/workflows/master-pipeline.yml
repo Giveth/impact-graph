@@ -185,7 +185,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
-            # Pull the relevant images once; rollout jobs will reuse them
             docker-compose pull
 
   rollout-deploy-1:
