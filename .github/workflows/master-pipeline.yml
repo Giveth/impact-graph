@@ -163,11 +163,12 @@ jobs:
       - name: Build image and push to GitHub Packages
         uses: docker/build-push-action@v6
         with:
+          context: .
+          file: ./Dockerfile
           push: true
+          pull: true
           no-cache: true
-          repository: giveth/impact-graph
           tags: |
-            ghcr.io/giveth/impact-graph:latest
             ghcr.io/giveth/impact-graph:master
             ghcr.io/giveth/impact-graph:${{ github.sha }}
 
