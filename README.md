@@ -11,7 +11,7 @@ Impact Graph is a GraphQL server designed to enable rapid development of serverl
 Impact Graph serves as the backend for Giveth's donation platform, providing a robust API for managing projects, donations, user accounts, and various features related to the Giveth ecosystem.
 
 ### Key Features
-- **Project Management**: Create, update, and manage charitable projects
+- **Project Management**: Create, Update, and Manage charitable projects
 - **User Authentication**: Multiple authentication strategies including JWT and OAuth
 - **Donation Processing**: Handle and verify donations on multiple blockchain networks
 - **Power Boosting**: GIVpower allocation system for project ranking
