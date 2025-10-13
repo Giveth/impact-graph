@@ -308,4 +308,4 @@ jobs:
               exit 1
             fi
             echo "All services healthy."
-            docker images prune -f
+            docker image prune -f
