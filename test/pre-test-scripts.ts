@@ -564,7 +564,81 @@ before(async () => {
   try {
     logger.debug('Clear Redis: ', await redis.flushall());
 
+    // Pre-cleanup: Drop problematic tables that might have wrong constraint names
+    // This MUST happen before TypeORM initialization to avoid sync conflicts
+    try {
+      const { Client } = await import('pg');
+      const config = await import('../src/config');
+      const client = new Client({
+        database: config.default.get('TYPEORM_DATABASE_NAME') as string,
+        user: config.default.get('TYPEORM_DATABASE_USER') as string,
+        password: config.default.get('TYPEORM_DATABASE_PASSWORD') as string,
+        port: config.default.get('TYPEORM_DATABASE_PORT') as number,
+        host: config.default.get('TYPEORM_DATABASE_HOST') as string,
+      });
+      await client.connect();
+      await client.query('DROP TABLE IF EXISTS project_qf_round CASCADE');
+      await client.query(
+        'DROP TABLE IF EXISTS project_qf_rounds_qf_round CASCADE',
+      );
+      await client.end();
+    } catch (e) {
+      // Ignore errors if tables don't exist or connection fails
+      logger.debug('Pre-cleanup error (ignoring):', e.message);
+    }
+
     await bootstrap();
+
+    // Fix project_qf_round table structure (since ProjectQfRound entity has synchronize: false)
+    // @JoinTable creates a table with composite PK, but explicit entity expects id PK + extra columns
+    try {
+      const queryRunner = AppDataSource.getDataSource().createQueryRunner();
+
+      // Drop composite primary key and add id column as new primary key
+      const pkConstraints = await queryRunner.query(`
+        SELECT constraint_name 
+        FROM information_schema.table_constraints 
+        WHERE table_name = 'project_qf_round' AND constraint_type = 'PRIMARY KEY'
+      `);
+
+      if (pkConstraints?.length > 0) {
+        await queryRunner.query(`
+          ALTER TABLE project_qf_round DROP CONSTRAINT "${pkConstraints[0].constraint_name}"
+        `);
+      }
+
+      await queryRunner.query(`
+        ALTER TABLE project_qf_round ADD COLUMN "id" SERIAL PRIMARY KEY
+      `);
+
+      await queryRunner.query(`
+        ALTER TABLE project_qf_round 
+        ADD CONSTRAINT "UQ_project_qf_round_project_round" UNIQUE ("projectId", "qfRoundId")
+      `);
+
+      // Add extra columns needed by ProjectQfRound entity
+      const columns = [
+        '"sumDonationValueUsd" DOUBLE PRECISION DEFAULT 0',
+        '"countUniqueDonors" INTEGER DEFAULT 0',
+        '"createdAt" TIMESTAMP NOT NULL DEFAULT now()',
+        '"updatedAt" TIMESTAMP NOT NULL DEFAULT now()',
+      ];
+
+      for (const colDef of columns) {
+        try {
+          await queryRunner.query(
+            `ALTER TABLE project_qf_round ADD COLUMN ${colDef}`,
+          );
+        } catch (e: any) {
+          // Ignore if column already exists
+          if (!e.message?.includes('already exists')) throw e;
+        }
+      }
+
+      await queryRunner.release();
+    } catch (e: any) {
+      logger.debug('Error fixing table structure:', e.message);
+    }
 
     // Fix discriminator metadata issue with TableInheritance
     AppDataSource.getDataSource().entityMetadatas.forEach(metadata => {
