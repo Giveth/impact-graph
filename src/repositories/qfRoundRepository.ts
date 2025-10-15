@@ -468,7 +468,7 @@ export const getRelatedProjectsOfQfRound = async (
   const query = `
     SELECT "p"."slug", "p"."title" , p.id
     FROM "project" "p"
-    INNER JOIN "project_qf_rounds_qf_round" "qp" ON "qp"."projectId" = "p"."id"
+    INNER JOIN "project_qf_round" "qp" ON "qp"."projectId" = "p"."id"
     WHERE "qp"."qfRoundId" = ${qfRoundId}
   `;
 

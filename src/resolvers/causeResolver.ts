@@ -704,7 +704,7 @@ export class CauseResolver {
       LEFT JOIN project_status s ON s.id = p."statusId"
       LEFT JOIN organization o ON o.id = p."organizationId"
       LEFT JOIN project_address a ON a."projectId" = p.id
-      LEFT JOIN project_qf_rounds_qf_round qrp ON qrp."projectId" = p.id
+      LEFT JOIN project_qf_round qrp ON qrp."projectId" = p.id
       LEFT JOIN qf_round q ON q.id = qrp."qfRoundId"
       WHERE 
         p."adminUserId" = $1

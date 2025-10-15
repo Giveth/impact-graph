@@ -22,7 +22,7 @@ export const relateManyProjectsToQfRound = async (params: {
   );
   if (params.add) {
     query = `
-      INSERT INTO project_qf_rounds_qf_round ("projectId", "qfRoundId")
+      INSERT INTO project_qf_round ("projectId", "qfRoundId")
       SELECT v.projectId, v.qfRoundId
       FROM (VALUES ${values}) AS v(projectId, qfRoundId)
       WHERE EXISTS (SELECT 1 FROM project p WHERE p.id = v.projectId)
@@ -42,7 +42,7 @@ export const relateManyProjectsToQfRound = async (params: {
   } else {
     const projectIds = params.projectIds.join(',');
     query = `
-      DELETE FROM project_qf_rounds_qf_round
+      DELETE FROM project_qf_round
       WHERE "qfRoundId" = ${params.qfRound.id}
         AND "projectId" IN (${projectIds});`;
 

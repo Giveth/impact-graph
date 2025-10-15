@@ -7545,7 +7545,7 @@ function projectResolverQfRoundsPrioritySortingTestCases() {
     // Clean up existing data
     await QfRound.query('UPDATE donation SET "qfRoundId" = NULL');
     await QfRound.query('DELETE FROM qf_round_history');
-    await QfRound.query('DELETE FROM project_qf_rounds_qf_round');
+    await QfRound.query('DELETE FROM project_qf_round');
     await QfRound.delete({});
 
     // Create test project

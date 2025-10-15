@@ -946,7 +946,7 @@ function qfRoundsPrioritySortingTestCases() {
     // Clear QF round references from donations and delete all QF rounds
     await QfRound.query('UPDATE donation SET "qfRoundId" = NULL');
     await QfRound.query('DELETE FROM qf_round_history');
-    await QfRound.query('DELETE FROM project_qf_rounds_qf_round');
+    await QfRound.query('DELETE FROM project_qf_round');
     await QfRound.query('DELETE FROM qf_round');
 
     // Create test qfRounds with different priorities and end dates
