@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType, Float, Int } from 'type-graphql';
 import {
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   Column,
   Entity,
   ManyToOne,
@@ -8,24 +8,27 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  Unique,
 } from 'typeorm';
 import { Project } from './project';
 import { QfRound } from './qfRound';
 
-@Entity('project_qf_rounds_qf_round')
+@Entity('project_qf_round')
 @ObjectType()
+@Unique(['projectId', 'qfRoundId'])
 export class ProjectQfRound extends BaseEntity {
   @Field(_type => ID)
-  @Column({ generated: 'increment' })
-  @Index()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Field(_type => ID)
-  @PrimaryColumn()
+  @Column()
+  @Index()
   projectId: number;
 
   @Field(_type => ID)
-  @PrimaryColumn()
+  @Column()
+  @Index()
   qfRoundId: number;
 
   @ManyToOne(_type => Project, project => project.projectQfRoundRelations)
