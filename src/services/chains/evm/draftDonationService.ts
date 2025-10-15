@@ -291,7 +291,7 @@ async function submitMatchedDraftDonation(
       undefined, // useDonationBox
       undefined, // relevantDonationTxHash
       undefined, // swapData
-      draftDonation.fromTokenAmount, // fromTokenAmount
+      draftDonation.fromTokenAmount || undefined, // fromTokenAmount - convert 0 to null
       qfRoundId, // roundId
     );
 
