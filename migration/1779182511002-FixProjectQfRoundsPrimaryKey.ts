@@ -25,12 +25,20 @@ export class FixProjectQfRoundsPrimaryKey1779182511002
       )
     `);
 
-    // Copy all data from the old table to the temp table
+    // Copy all data from the old table to the temp table, removing any duplicates
+    // In case of duplicates, keep the row with the highest sumDonationValueUsd
     await queryRunner.query(`
       INSERT INTO "project_qf_rounds_qf_round_temp" 
       ("projectId", "qfRoundId", "sumDonationValueUsd", "countUniqueDonors", "createdAt", "updatedAt")
-      SELECT "projectId", "qfRoundId", "sumDonationValueUsd", "countUniqueDonors", "createdAt", "updatedAt"
+      SELECT DISTINCT ON ("projectId", "qfRoundId") 
+        "projectId", 
+        "qfRoundId", 
+        "sumDonationValueUsd", 
+        "countUniqueDonors", 
+        "createdAt", 
+        "updatedAt"
       FROM "project_qf_rounds_qf_round"
+      ORDER BY "projectId", "qfRoundId", "sumDonationValueUsd" DESC NULLS LAST, "createdAt" DESC
     `);
 
     // Drop the old table
@@ -65,6 +73,13 @@ export class FixProjectQfRoundsPrimaryKey1779182511002
       FOREIGN KEY ("qfRoundId") 
       REFERENCES "qf_round"("id") 
       ON DELETE CASCADE
+    `);
+
+    // Add unique constraint on projectId and qfRoundId combination
+    await queryRunner.query(`
+      ALTER TABLE "project_qf_rounds_qf_round" 
+      ADD CONSTRAINT "UQ_c93fbec0f33bf068a04ecad6940" 
+      UNIQUE ("projectId", "qfRoundId")
     `);
 
     // Recreate all indexes from the optimization migration
@@ -282,6 +297,12 @@ export class FixProjectQfRoundsPrimaryKey1779182511002
 
     await queryRunner.query(`
       DROP INDEX IF EXISTS "IDX_project_qf_rounds_id"
+    `);
+
+    // Drop unique constraint
+    await queryRunner.query(`
+      ALTER TABLE "project_qf_rounds_qf_round" 
+      DROP CONSTRAINT IF EXISTS "UQ_c93fbec0f33bf068a04ecad6940"
     `);
 
     // Drop foreign key constraints
