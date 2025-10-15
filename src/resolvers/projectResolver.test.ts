@@ -133,13 +133,29 @@ const createProjectQfRoundRelation = async (
   sumDonationValueUsd: number = 0,
   countUniqueDonors: number = 0,
 ): Promise<ProjectQfRound> => {
-  const relation = ProjectQfRound.create({
-    projectId,
-    qfRoundId,
-    sumDonationValueUsd,
-    countUniqueDonors,
+  // Check if relation already exists (might have been created by @ManyToMany)
+  let relation = await ProjectQfRound.findOne({
+    where: {
+      projectId,
+      qfRoundId,
+    },
   });
-  return await relation.save();
+
+  if (relation) {
+    // Update existing relation
+    relation.sumDonationValueUsd = sumDonationValueUsd;
+    relation.countUniqueDonors = countUniqueDonors;
+    return await relation.save();
+  } else {
+    // Create new relation
+    relation = ProjectQfRound.create({
+      projectId,
+      qfRoundId,
+      sumDonationValueUsd,
+      countUniqueDonors,
+    });
+    return await relation.save();
+  }
 };
 
 describe('createProject test cases --->', createProjectTestCases);
@@ -6791,6 +6807,7 @@ function qfProjectsTestCases() {
     });
     activeProject.qfRounds = [qfRound];
     await activeProject.save();
+    await createProjectQfRoundRelation(activeProject.id, qfRound.id, 0, 0);
 
     // Create a cancelled project (should not be returned)
     const cancelledProject = await saveProjectDirectlyToDb({
@@ -6803,6 +6820,7 @@ function qfProjectsTestCases() {
     });
     cancelledProject.qfRounds = [qfRound];
     await cancelledProject.save();
+    await createProjectQfRoundRelation(cancelledProject.id, qfRound.id, 0, 0);
 
     // Create a not reviewed project (should not be returned)
     const notReviewedProject = await saveProjectDirectlyToDb({
@@ -6815,6 +6833,7 @@ function qfProjectsTestCases() {
     });
     notReviewedProject.qfRounds = [qfRound];
     await notReviewedProject.save();
+    await createProjectQfRoundRelation(notReviewedProject.id, qfRound.id, 0, 0);
 
     // Test the query
     const result = await axios.post(graphqlUrl, {
@@ -6946,6 +6965,7 @@ function qfProjectsTestCases() {
     });
     project1.qfRounds = [qfRound];
     await project1.save();
+    await createProjectQfRoundRelation(project1.id, qfRound.id, 0, 0);
 
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -6960,6 +6980,7 @@ function qfProjectsTestCases() {
     });
     project2.qfRounds = [qfRound];
     await project2.save();
+    await createProjectQfRoundRelation(project2.id, qfRound.id, 0, 0);
 
     const project3 = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -6974,6 +6995,7 @@ function qfProjectsTestCases() {
     });
     project3.qfRounds = [qfRound];
     await project3.save();
+    await createProjectQfRoundRelation(project3.id, qfRound.id, 0, 0);
 
     // Test pagination
     const paginationResult = await axios.post(graphqlUrl, {

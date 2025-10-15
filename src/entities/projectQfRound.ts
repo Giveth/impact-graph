@@ -13,9 +13,9 @@ import {
 import { Project } from './project';
 import { QfRound } from './qfRound';
 
-@Entity('project_qf_round', { synchronize: false })
+@Entity('project_qf_rounds_qf_round')
 @ObjectType()
-@Unique('UQ_project_qf_round_project_round', ['projectId', 'qfRoundId'])
+@Unique(['projectId', 'qfRoundId'])
 export class ProjectQfRound extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()
