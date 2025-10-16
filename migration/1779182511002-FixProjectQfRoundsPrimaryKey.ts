@@ -6,9 +6,39 @@ export class FixProjectQfRoundsPrimaryKey1779182511002
   name = 'FixProjectQfRoundsPrimaryKey1779182511002';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Check if migration already completed by checking the primary key structure
+    const pkCheck = await queryRunner.query(`
+      SELECT constraint_name 
+      FROM information_schema.table_constraints 
+      WHERE table_name = 'project_qf_rounds_qf_round' 
+      AND constraint_type = 'PRIMARY KEY'
+      AND constraint_name = 'PK_project_qf_rounds_qf_round'
+    `);
+
+    // Check if the primary key is on 'id' column (migration already done)
+    if (pkCheck && pkCheck.length > 0) {
+      const columnCheck = await queryRunner.query(`
+        SELECT column_name 
+        FROM information_schema.key_column_usage 
+        WHERE constraint_name = 'PK_project_qf_rounds_qf_round'
+        AND table_name = 'project_qf_rounds_qf_round'
+        AND column_name = 'id'
+      `);
+
+      if (columnCheck && columnCheck.length > 0) {
+        // Migration already completed - primary key is already on id column
+        return;
+      }
+    }
+
     // Drop the materialized view that depends on the table
     await queryRunner.query(`
       DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view
+    `);
+
+    // Drop temp table if it exists from previous failed run
+    await queryRunner.query(`
+      DROP TABLE IF EXISTS "project_qf_rounds_qf_round_temp"
     `);
 
     // Create temporary table with only id as primary key
@@ -25,17 +55,29 @@ export class FixProjectQfRoundsPrimaryKey1779182511002
       )
     `);
 
-    // Copy all data from the old table to the temp table
-    await queryRunner.query(`
-      INSERT INTO "project_qf_rounds_qf_round_temp" 
-      ("projectId", "qfRoundId", "sumDonationValueUsd", "countUniqueDonors", "createdAt", "updatedAt")
-      SELECT "projectId", "qfRoundId", "sumDonationValueUsd", "countUniqueDonors", "createdAt", "updatedAt"
-      FROM "project_qf_rounds_qf_round"
+    // Check if the original table exists before copying
+    const tableExists = await queryRunner.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'project_qf_rounds_qf_round'
+      ) as exists
     `);
 
-    // Drop the old table
+    if (tableExists[0]?.exists) {
+      // Copy all data from the old table to the temp table
+      await queryRunner.query(`
+        INSERT INTO "project_qf_rounds_qf_round_temp" 
+        ("projectId", "qfRoundId", "sumDonationValueUsd", "countUniqueDonors", "createdAt", "updatedAt")
+        SELECT "projectId", "qfRoundId", "sumDonationValueUsd", "countUniqueDonors", "createdAt", "updatedAt"
+        FROM "project_qf_rounds_qf_round"
+      `);
+    } else {
+      // Original table does not exist, skipping data copy
+    }
+
+    // Drop the old table if it exists
     await queryRunner.query(`
-      DROP TABLE "project_qf_rounds_qf_round"
+      DROP TABLE IF EXISTS "project_qf_rounds_qf_round"
     `);
 
     // Rename the temp table to the original name
