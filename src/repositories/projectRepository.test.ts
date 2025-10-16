@@ -1168,15 +1168,25 @@ function findQfRoundProjectsTestCases() {
     project2.qfRounds = [qfRound];
     await project2.save();
 
-    // Update ProjectQfRound entries with different donation amounts
-    await ProjectQfRound.update(
-      { projectId: project1.id, qfRoundId: qfRound.id },
-      { sumDonationValueUsd: 100, countUniqueDonors: 5 },
+    // Upsert ProjectQfRound entries with different donation amounts
+    await ProjectQfRound.upsert(
+      {
+        projectId: project1.id,
+        qfRoundId: qfRound.id,
+        sumDonationValueUsd: 100,
+        countUniqueDonors: 5,
+      },
+      ['projectId', 'qfRoundId'],
     );
 
-    await ProjectQfRound.update(
-      { projectId: project2.id, qfRoundId: qfRound.id },
-      { sumDonationValueUsd: 500, countUniqueDonors: 10 },
+    await ProjectQfRound.upsert(
+      {
+        projectId: project2.id,
+        qfRoundId: qfRound.id,
+        sumDonationValueUsd: 500,
+        countUniqueDonors: 10,
+      },
+      ['projectId', 'qfRoundId'],
     );
 
     // Test sorting by ActiveQfRoundRaisedFunds

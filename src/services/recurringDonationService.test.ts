@@ -656,15 +656,25 @@ function qfSmartSelectTestCases() {
         project.qfRounds = [qfRound1, qfRound2];
         await project.save();
 
-        // Update ProjectQfRound relations to ensure database consistency
-        await ProjectQfRound.update(
-          { projectId: project.id, qfRoundId: qfRound1.id },
-          { sumDonationValueUsd: 0, countUniqueDonors: 0 },
+        // Upsert ProjectQfRound relations to ensure database consistency
+        await ProjectQfRound.upsert(
+          {
+            projectId: project.id,
+            qfRoundId: qfRound1.id,
+            sumDonationValueUsd: 0,
+            countUniqueDonors: 0,
+          },
+          ['projectId', 'qfRoundId'],
         );
 
-        await ProjectQfRound.update(
-          { projectId: project.id, qfRoundId: qfRound2.id },
-          { sumDonationValueUsd: 0, countUniqueDonors: 0 },
+        await ProjectQfRound.upsert(
+          {
+            projectId: project.id,
+            qfRoundId: qfRound2.id,
+            sumDonationValueUsd: 0,
+            countUniqueDonors: 0,
+          },
+          ['projectId', 'qfRoundId'],
         );
 
         // Create recurring donation
