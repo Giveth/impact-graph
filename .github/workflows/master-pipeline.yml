@@ -156,7 +156,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          repository: giveth/impact-graph
           tags: |
             ghcr.io/giveth/impact-graph:latest
             ghcr.io/giveth/impact-graph:master
