@@ -239,7 +239,7 @@
         "build": "rm -rf ./build && tsc && mkdir ./build/config && mkdir ./build/src/server/adminJs/tabs/components && cp -r src/server/adminJs/tabs/components/* ./build/src/server/adminJs/tabs/components/ && mkdir ./build/src/utils/locales && cp -r ./src/utils/locales/* ./build/src/utils/locales/ && cp -r ./src/abi build/src/abi ",
         "dev": "NODE_ENV=development node ./build/src/index.js",
         "production": "NODE_ENV=production node ./build/src/index.js",
-        "start:docker:server": "npm run db:migrate:run:production && npm run production",
+        "start:docker:server": "npm run production",
         "start:docker:locally": "npm run db:migrate:run:local && npm run dev",
         "postinstall": "patch-package"
     },
