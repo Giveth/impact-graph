@@ -260,7 +260,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for services to stabilize
-        run: sleep 60
+        run: sleep 30
       - name: SSH and Verify Health
         uses: appleboy/ssh-action@v1.0.0
         with:
