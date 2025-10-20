@@ -155,9 +155,11 @@ jobs:
       - name: Build image and push to GitHub Packages
         uses: docker/build-push-action@v6
         with:
+          context: .
+          file: ./Dockerfile
           push: true
+          pull: true
           tags: |
-            ghcr.io/giveth/impact-graph:latest
             ghcr.io/giveth/impact-graph:master
             ghcr.io/giveth/impact-graph:${{ github.sha }}
           cache-from: type=gha
@@ -176,8 +178,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
-            # Pull the relevant images once; rollout jobs will reuse them
-            docker pull ghcr.io/giveth/impact-graph:master
+            docker compose pull
 
   rollout-deploy-1:
     needs: deploy
@@ -197,7 +198,7 @@ jobs:
             docker-compose up -d --no-deps --force-recreate impact-graph-ql1
             docker-compose up -d --no-deps --force-recreate impact-graph-jobs
             echo "First deployment phase triggered. Deep health checks deferred to verify-health job."
-            
+
   rollout-deploy-2:
     needs: deploy
     runs-on: ubuntu-latest
@@ -215,7 +216,7 @@ jobs:
             ## Second Deployment (images were pulled earlier)
             docker-compose up -d --no-deps --force-recreate impact-graph-ql2
             echo "Second deployment phase triggered. Health checks deferred to verify-health job."
-            
+
   rollout-deploy-3:
     needs: deploy
     runs-on: ubuntu-latest
@@ -299,3 +300,4 @@ jobs:
               exit 1
             fi
             echo "All services healthy."
+            docker image prune -f

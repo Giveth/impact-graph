@@ -87,6 +87,10 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          fetch-depth: 1
 
       - name: Wait for PostgreSQL to become ready
         run: |
@@ -155,7 +159,10 @@ jobs:
       - name: Build image and push to GitHub Packages
         uses: docker/build-push-action@v6
         with:
+          context: .
+          file: ./Dockerfile
           push: true
+          pull: trues
           tags: |
             ghcr.io/giveth/impact-graph:staging
             ghcr.io/giveth/impact-graph:${{ github.sha }}
@@ -193,12 +200,12 @@ jobs:
             cd giveth-all
             ## Update each backend service one by one
             ## First Deployment (images were pulled earlier)
-            docker-compose up -d --no-deps --force-recreate impact-graph-ql1
-            docker-compose up -d --no-deps --force-recreate impact-graph-jobs
+            docker compose up -d --no-deps --force-recreate impact-graph-ql1
+            docker compose up -d --no-deps --force-recreate impact-graph-jobs
             echo "First deployment phase triggered. Deep health checks deferred to verify-health job."
-            
+
   rollout-deploy-2:
-    needs: deploy
+    needs: rollout-deploy-1
     runs-on: ubuntu-latest
     steps:
       - name: SSH and Redeploy
@@ -212,11 +219,11 @@ jobs:
             cd giveth-all
             ## Update each backend service one by one
             ## Second Deployment (images were pulled earlier)
-            docker-compose up -d --no-deps --force-recreate impact-graph-ql2
+            docker compose up -d --no-deps --force-recreate impact-graph-ql2
             echo "Second deployment phase triggered. Health checks deferred to verify-health job."
-            
+
   rollout-deploy-3:
-    needs: deploy
+    needs: rollout-deploy-2
     runs-on: ubuntu-latest
     steps:
       - name: SSH and Redeploy
@@ -230,11 +237,11 @@ jobs:
             cd giveth-all
             ## Update each backend service one by one
             ## Third Deployment (images were pulled earlier)
-            docker-compose up -d --no-deps --force-recreate impact-graph-ql3
+            docker compose up -d --no-deps --force-recreate impact-graph-ql3
             echo "Third deployment phase triggered. Health checks deferred to verify-health job."
 
   rollout-deploy-4:
-    needs: deploy
+    needs: rollout-deploy-3
     runs-on: ubuntu-latest
     steps:
       - name: SSH and Redeploy
@@ -248,7 +255,7 @@ jobs:
             cd giveth-all
             ## Update each backend service one by one
             ## Fourth Deployment (images were pulled earlier)
-            docker-compose up -d --no-deps --force-recreate impact-graph-ql4
+            docker compose up -d --no-deps --force-recreate impact-graph-ql4
             echo "Fourth deployment phase triggered. Health checks deferred to verify-health job."
 
   verify-health:
@@ -298,3 +305,4 @@ jobs:
               exit 1
             fi
             echo "All services healthy."
+            docker image prune -f
