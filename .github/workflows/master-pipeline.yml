@@ -8,6 +8,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: master-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   run-linters:
     name: Run linters
@@ -17,12 +21,14 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 20.11.0
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       # ESLint and Prettier must be in `package.json`
       - name: Install Node.js dependencies
@@ -38,6 +44,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: run-linters
+    strategy:
+      fail-fast: false
+      matrix:
+        group:
+          - 'src/resolvers/**/*.test.ts'
+          - 'src/repositories/**/*.test.ts'
+          - 'src/services/**/*.test.ts'
+          - 'src/server/**/*.test.ts'
+          - 'src/adapters/**/*.test.ts src/workers/**/*.test.ts src/routers/**/*.test.ts src/utils/**/*.test.ts src/entities/**/*.test.ts migration/tests/*.test.ts'
     services:
       # Label used to access the service container
       redis:
@@ -71,23 +86,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_S3_REGION }}
-
-      - name: Download latest DB backup from S3
-        run: |
-          FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_PROD }}/ | sort | tail -n 1 | awk '{print $4}')
-          aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_PROD }}/$FILENAME /tmp/db_backup.zip
-
-      - name: Unzip DB backup
-        run: |
-          unzip /tmp/db_backup.zip -d /tmp
-          mv /tmp/backups/givethio-db/*.sql /tmp/backups/givethio-db/db_backup.sql
+          fetch-depth: 1
 
       - name: Wait for PostgreSQL to become ready
         run: |
@@ -105,22 +104,16 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 20.11.0
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run eslint
-        run: npm run eslint
-
-      - name: Run build
-        run: npm run build
-
-      - name: Run migrations
-        run: npm run db:migrate:run:test
-
-      - name: Run tests
-        run: npm run test
+      - name: Run tests (shard)
+        run: npx mocha --config ./.mocharc.all-test.json ./test/pre-test-scripts.ts ${{ matrix.group }}
         env:
+          TS_NODE_TRANSPILE_ONLY: '1'
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
@@ -157,19 +150,22 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Login to GitHub Container Registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build image and push to GitHub Packages
         uses: docker/build-push-action@v6
         with:
           push: true
-          no-cache: true
           repository: giveth/impact-graph
           tags: |
             ghcr.io/giveth/impact-graph:latest
             ghcr.io/giveth/impact-graph:master
             ghcr.io/giveth/impact-graph:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     needs: publish
@@ -269,7 +265,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for services to stabilize
-        run: sleep 180
+        run: sleep 60
       - name: SSH and Verify Health
         uses: appleboy/ssh-action@v1.0.0
         with:
