@@ -1,7 +1,5 @@
-import moment from 'moment';
 import { assert } from 'chai';
-import { QfRound } from '../entities/qfRound';
-import { Project } from '../entities/project';
+import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
@@ -10,15 +8,17 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
+import { DONATION_STATUS } from '../entities/donation';
+import { Project } from '../entities/project';
+import { ProjectActualMatchingView } from '../entities/ProjectActualMatchingView';
+import { ProjectFraud } from '../entities/projectFraud';
+import { QfRound } from '../entities/qfRound';
+import { Sybil } from '../entities/sybil';
+import { NETWORK_IDS } from '../provider';
 import {
   refreshProjectActualMatchingView,
   refreshProjectEstimatedMatchingView,
 } from './projectViewsService';
-import { ProjectActualMatchingView } from '../entities/ProjectActualMatchingView';
-import { NETWORK_IDS } from '../provider';
-import { Sybil } from '../entities/sybil';
-import { ProjectFraud } from '../entities/projectFraud';
-import { DONATION_STATUS } from '../entities/donation';
 
 describe('getActualMatchingFund test cases', getActualMatchingFundTests);
 
@@ -96,7 +96,6 @@ function getActualMatchingFundTests() {
     assert.equal(actualMatchingFund?.donationIdsAfterAnalysis.length, 1);
     assert.equal(actualMatchingFund?.allUsdReceived, 100);
     assert.equal(actualMatchingFund?.allUsdReceivedAfterSybilsAnalysis, 100);
-
     // qfRound has 4 networks so we just recipient addresses for those networks
     assert.equal(actualMatchingFund?.networkAddresses?.split(',').length, 4);
   });
