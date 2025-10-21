@@ -94,66 +94,9 @@ jobs:
             docker compose up -d --no-deps --force-recreate impact-graph-jobs
             echo "First deployment phase triggered. Deep health checks deferred to verify-health job."
             
-  rollout-deploy-2:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.STAGING_HOST_ALL }}
-          username: ${{ secrets.STAGING_USERNAME_ALL }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd giveth-all
-            ## Update each backend service one by one
-            ## Second Deployment (images were pulled earlier)
-            docker compose up -d --no-deps --force-recreate impact-graph-ql2
-            echo "Second deployment phase triggered. Health checks deferred to verify-health job."
-            
-  rollout-deploy-3:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.STAGING_HOST_ALL }}
-          username: ${{ secrets.STAGING_USERNAME_ALL }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd giveth-all
-            ## Update each backend service one by one
-            ## Third Deployment (images were pulled earlier)
-            docker compose up -d --no-deps --force-recreate impact-graph-ql3
-            echo "Third deployment phase triggered. Health checks deferred to verify-health job."
-
-  rollout-deploy-4:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.STAGING_HOST_ALL }}
-          username: ${{ secrets.STAGING_USERNAME_ALL }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd giveth-all
-            ## Update each backend service one by one
-            ## Fourth Deployment (images were pulled earlier)
-            docker compose up -d --no-deps --force-recreate impact-graph-ql4
-            echo "Fourth deployment phase triggered. Health checks deferred to verify-health job."
-
   verify-health:
     needs:
       - rollout-deploy-1
-      - rollout-deploy-2
-      - rollout-deploy-3
-      - rollout-deploy-4
     runs-on: ubuntu-latest
     steps:
       - name: Wait for services to stabilize
@@ -168,7 +111,7 @@ jobs:
           script: |
             set -e
             cd giveth-all
-            services=("impact-graph-ql1" "impact-graph-ql2" "impact-graph-ql3" "impact-graph-ql4")
+            services=("impact-graph-ql1")
             for svc in "${services[@]}"; do
               echo "Checking health for $svc ..."
               ok=0
