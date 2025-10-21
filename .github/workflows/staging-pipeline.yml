@@ -100,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for services to stabilize
-        run: sleep 180
+        run: sleep 60
       - name: SSH and Verify Health
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -127,6 +127,16 @@ jobs:
               done
               if [ $ok -ne 1 ]; then
                 echo "::error::$svc did not reach healthy status"
+                echo "==== Diagnostics for $svc ===="
+                docker ps --filter "name=$svc" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" || true
+                echo "-- docker inspect Health --"
+                docker inspect --format='{{json .State.Health}}' "$svc" || true
+                echo "-- docker logs (last 200 lines) --"
+                docker logs --tail 200 "$svc" || true
+                echo "-- container env (subset) --"
+                docker exec "$svc" sh -lc 'echo "REDIS_HOST=$REDIS_HOST REDIS_PORT=$REDIS_PORT ENABLE_GRAPHQL=$ENABLE_GRAPHQL ENVIRONMENT=$ENVIRONMENT NODE_ENV=$NODE_ENV"' || true
+                echo "-- /health response inside container --"
+                docker exec "$svc" node -e "require('http').get('http://127.0.0.1:4000/health',res=>{let d='';res.setEncoding('utf8');res.on('data',c=>d+=c);res.on('end',()=>console.log(d));}).on('error',e=>{console.error('http error:',e.message)})" || true
                 exit 1
               fi
             done
