@@ -10,8 +10,8 @@ describe('authorizationHandler() test cases', authorizationHandlerTestCases);
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 
-const domain = 'localhost';
-const origin = 'https://giveth.io';
+// const domain = 'localhost';
+// const origin = 'https://giveth.io';
 
 function authorizationHandlerTestCases() {
   it('should decode user jwt with current impact graph authorization', async () => {
