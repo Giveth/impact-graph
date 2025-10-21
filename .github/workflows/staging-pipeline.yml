@@ -116,7 +116,13 @@ jobs:
               echo "Checking health for $svc ..."
               ok=0
               for i in {1..12}; do # up to ~2 minutes
-                status=$(docker inspect --format='{{json .State.Health.Status}}' "$svc" 2>/dev/null || echo '""')
+                # Resolve the actual container id/name via compose (service container may not equal service name)
+                cid=$(docker compose ps -q "$svc" | head -n1)
+                if [ -z "$cid" ]; then
+                  # Fallback: try by name
+                  cid="$svc"
+                fi
+                status=$(docker inspect --format='{{json .State.Health.Status}}' "$cid" 2>/dev/null || echo '""')
                 if [ "$status" = "\"healthy\"" ]; then
                   echo "$svc is healthy"
                   ok=1
@@ -128,15 +134,15 @@ jobs:
               if [ $ok -ne 1 ]; then
                 echo "::error::$svc did not reach healthy status"
                 echo "==== Diagnostics for $svc ===="
-                docker ps --filter "name=$svc" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" || true
+                docker ps --filter "id=$cid" --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" || true
                 echo "-- docker inspect Health --"
-                docker inspect --format='{{json .State.Health}}' "$svc" || true
+                docker inspect --format='{{json .State.Health}}' "$cid" || true
                 echo "-- docker logs (last 200 lines) --"
-                docker logs --tail 200 "$svc" || true
+                docker logs --tail 200 "$cid" || true
                 echo "-- container env (subset) --"
-                docker exec "$svc" sh -lc 'echo "REDIS_HOST=$REDIS_HOST REDIS_PORT=$REDIS_PORT ENABLE_GRAPHQL=$ENABLE_GRAPHQL ENVIRONMENT=$ENVIRONMENT NODE_ENV=$NODE_ENV"' || true
+                docker exec "$cid" sh -lc 'echo "REDIS_HOST=$REDIS_HOST REDIS_PORT=$REDIS_PORT ENABLE_GRAPHQL=$ENABLE_GRAPHQL ENVIRONMENT=$ENVIRONMENT NODE_ENV=$NODE_ENV"' || true
                 echo "-- /health response inside container --"
-                docker exec "$svc" node -e "require('http').get('http://127.0.0.1:4000/health',res=>{let d='';res.setEncoding('utf8');res.on('data',c=>d+=c);res.on('end',()=>console.log(d));}).on('error',e=>{console.error('http error:',e.message)})" || true
+                docker exec "$cid" node -e "require('http').get('http://127.0.0.1:4000/health',res=>{let d='';res.setEncoding('utf8');res.on('data',c=>d+=c);res.on('end',()=>console.log(d));}).on('error',e=>{console.error('http error:',e.message)})" || true
                 exit 1
               fi
             done
