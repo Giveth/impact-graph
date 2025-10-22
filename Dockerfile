@@ -21,5 +21,6 @@ RUN npm i -g ts-node
 COPY src ./src
 COPY test ./test
 COPY migration ./migration
+COPY config ./config
 
 RUN npm run build
