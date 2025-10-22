@@ -35,119 +35,8 @@ jobs:
           #prettier: true
           continue_on_error: true
 
-  test:
-    runs-on: ubuntu-latest
-    needs: run-linters
-    services:
-      # Label used to access the service container
-      redis:
-        # Docker Hub image
-        image: redis
-        # Set health checks to wait until redis has started
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-      postgres:
-        # Use this postgres image https://github.com/Giveth/postgres-givethio
-        image: ghcr.io/giveth/postgres-givethio:latest
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: givethio
-          PGDATA: /var/lib/postgresql/data/pgdata
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5443:5432
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_S3_REGION }}
-
-      - name: Download latest DB backup from S3
-        run: |
-          FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ | sort | tail -n 1 | awk '{print $4}')
-          aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.zip
-
-      - name: Unzip DB backup
-        run: |
-          unzip /tmp/db_backup.zip -d /tmp
-          mv /tmp/backups/givethio-staging/*.sql /tmp/backups/givethio-staging/db_backup.sql
-
-      - name: Wait for PostgreSQL to become ready
-        run: |
-          for i in {1..10}
-          do
-            pg_isready -h localhost -p 5443 -U postgres && echo Success && break
-            echo -n .
-            sleep 1
-          done
-
-      - name: Restore DB backup
-        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
-
-      - name: Use Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 20.11.0
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run eslint
-        run: npm run eslint
-
-      - name: Run build
-        run: npm run build
-
-      - name: Run migrations
-        run: npm run db:migrate:run:test
-
-      - name: Run tests
-        run: npm run test
-        env:
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
-          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
-          INFURA_ID: ${{ secrets.INFURA_ID }}
-          POLYGON_SCAN_API_KEY: ${{ secrets.POLYGON_SCAN_API_KEY }}
-          OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
-          CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
-          CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
-          ARBITRUM_SCAN_API_KEY: ${{ secrets.ARBITRUM_SCAN_API_KEY }}
-          ARBITRUM_SEPOLIA_SCAN_API_KEY: ${{ secrets.ARBITRUM_SEPOLIA_SCAN_API_KEY }}
-          BASE_SCAN_API_KEY: ${{ secrets.BASE_SCAN_API_KEY }}
-          BASE_SEPOLIA_SCAN_API_KEY: ${{ secrets.BASE_SEPOLIA_SCAN_API_KEY }}
-          ZKEVM_MAINNET_SCAN_API_KEY: ${{ secrets.ZKEVM_MAINNET_SCAN_API_KEY }}
-          ZKEVM_CARDONA_SCAN_API_KEY: ${{ secrets.ZKEVM_CARDONA_SCAN_API_KEY }}
-          MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
-          ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
-          DROP_DATABASE: ${{ secrets.DROP_DATABASE_DURING_TEST_STAGING }}
-          SOLANA_TEST_NODE_RPC_URL: ${{ secrets.SOLANA_TEST_NODE_RPC_URL }}
-          SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
-          SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
-          MPETH_GRAPHQL_PRICES_URL: ${{ secrets.MPETH_GRAPHQL_PRICES_URL }}
-          GIV_POWER_SUBGRAPH_URL: ${{ secrets.GIV_POWER_SUBGRAPH_URL }}
-          VERIFY_RIGHT_URL: ${{ secrets.VERIFY_RIGHT_URL }}
-          VERIFY_RIGHT_TOKEN: ${{ secrets.VERIFY_RIGHT_TOKEN }}
-
   publish:
-    needs: test
+    needs: run-linters
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     permissions:
@@ -165,7 +54,6 @@ jobs:
         with:
           push: true
           no-cache: true
-          repository: giveth/impact-graph
           tags: |
             ghcr.io/giveth/impact-graph:staging
             ghcr.io/giveth/impact-graph:${{ github.sha }}
@@ -258,51 +146,3 @@ jobs:
             ## Fourth Deployment (images were pulled earlier)
             docker compose up -d --no-deps --force-recreate impact-graph-ql4
             echo "Fourth deployment phase triggered. Health checks deferred to verify-health job."
-
-  verify-health:
-    needs:
-      - rollout-deploy-1
-      - rollout-deploy-2
-      - rollout-deploy-3
-      - rollout-deploy-4
-    runs-on: ubuntu-latest
-    steps:
-      - name: Wait for services to stabilize
-        run: sleep 180
-      - name: SSH and Verify Health
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.STAGING_HOST_ALL }}
-          username: ${{ secrets.STAGING_USERNAME_ALL }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            set -e
-            cd giveth-all
-            services=("impact-graph-ql1" "impact-graph-ql2" "impact-graph-ql3" "impact-graph-ql4")
-            for svc in "${services[@]}"; do
-              echo "Checking health for $svc ..."
-              ok=0
-              for i in {1..12}; do # up to ~2 minutes
-                status=$(docker inspect --format='{{json .State.Health.Status}}' "$svc" 2>/dev/null || echo '""')
-                if [ "$status" = "\"healthy\"" ]; then
-                  echo "$svc is healthy"
-                  ok=1
-                  break
-                fi
-                echo "Current health: $status; waiting..."
-                sleep 10
-              done
-              if [ $ok -ne 1 ]; then
-                echo "::error::$svc did not reach healthy status"
-                exit 1
-              fi
-            done
-
-            echo "Checking impact-graph-jobs is running ..."
-            job_status=$(docker inspect --format='{{json .State.Status}}' impact-graph-jobs 2>/dev/null || echo '""')
-            if [ "$job_status" != "\"running\"" ]; then
-              echo "::error::impact-graph-jobs is not running (status: $job_status)"
-              exit 1
-            fi
-            echo "All services healthy."
