@@ -201,10 +201,10 @@ jobs:
             cd giveth-all
             ## Update each backend service one by one
             ## First Deployment (images were pulled earlier)
-            docker-compose up -d --no-deps --force-recreate impact-graph-ql1
-            docker-compose up -d --no-deps --force-recreate impact-graph-jobs
+            docker compose up -d --no-deps --force-recreate impact-graph-ql1
+            docker compose up -d --no-deps --force-recreate impact-graph-jobs
             echo "First deployment phase triggered. Deep health checks deferred to verify-health job."
-            
+
   rollout-deploy-2:
     needs: deploy
     runs-on: ubuntu-latest
@@ -220,9 +220,9 @@ jobs:
             cd giveth-all
             ## Update each backend service one by one
             ## Second Deployment (images were pulled earlier)
-            docker-compose up -d --no-deps --force-recreate impact-graph-ql2
+            docker compose up -d --no-deps --force-recreate impact-graph-ql2
             echo "Second deployment phase triggered. Health checks deferred to verify-health job."
-            
+
   rollout-deploy-3:
     needs: deploy
     runs-on: ubuntu-latest
@@ -238,7 +238,7 @@ jobs:
             cd giveth-all
             ## Update each backend service one by one
             ## Third Deployment (images were pulled earlier)
-            docker-compose up -d --no-deps --force-recreate impact-graph-ql3
+            docker compose up -d --no-deps --force-recreate impact-graph-ql3
             echo "Third deployment phase triggered. Health checks deferred to verify-health job."
 
   rollout-deploy-4:
@@ -256,7 +256,7 @@ jobs:
             cd giveth-all
             ## Update each backend service one by one
             ## Fourth Deployment (images were pulled earlier)
-            docker-compose up -d --no-deps --force-recreate impact-graph-ql4
+            docker compose up -d --no-deps --force-recreate impact-graph-ql4
             echo "Fourth deployment phase triggered. Health checks deferred to verify-health job."
 
   verify-health:
