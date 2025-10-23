@@ -163,11 +163,12 @@ jobs:
       - name: Build image and push to GitHub Packages
         uses: docker/build-push-action@v6
         with:
+          context: .
+          file: ./Dockerfile
           push: true
+          pull: true
           no-cache: true
-          repository: giveth/impact-graph
           tags: |
-            ghcr.io/giveth/impact-graph:latest
             ghcr.io/giveth/impact-graph:master
             ghcr.io/giveth/impact-graph:${{ github.sha }}
 
@@ -184,8 +185,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
-            # Pull the relevant images once; rollout jobs will reuse them
-            docker pull ghcr.io/giveth/impact-graph:master
+            docker compose pull
 
   rollout-deploy-1:
     needs: deploy
@@ -307,3 +307,4 @@ jobs:
               exit 1
             fi
             echo "All services healthy."
+            docker image prune -f
