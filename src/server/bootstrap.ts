@@ -1,76 +1,76 @@
 // @ts-check
-import http from 'http';
 import path from 'path';
-import { Resource } from '@adminjs/typeorm';
-import { ApolloServer } from '@apollo/server';
-import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
-import { ApolloServerErrorCode } from '@apollo/server/errors';
-import { expressMiddleware } from '@apollo/server/express4';
-import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
-import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
-import bodyParser from 'body-parser';
-import { validate } from 'class-validator';
-import cors from 'cors';
-import express, { json, Request, Response } from 'express';
+import http from 'http';
 import { rateLimit } from 'express-rate-limit';
-import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { RedisStore } from 'rate-limit-redis';
-import { ModuleThread, Pool, spawn, Worker } from 'threads';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
+import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
+import express, { json, Request, Response } from 'express';
 import { Container } from 'typedi';
+import { Resource } from '@adminjs/typeorm';
+import { validate } from 'class-validator';
+import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { DataSource } from 'typeorm';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
 import config from '../config';
-import SentryLogger from '../sentryLogger';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
+import SentryLogger from '../sentryLogger';
 
-import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
+import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 
+import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
 import { redis } from '../redis';
+import { logger } from '../utils/logger';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import {
   i18n,
   setI18nLocaleForRequest,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { logger } from '../utils/logger';
-import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
 // import { apiGivRouter } from '../routers/apiGivRoutes';
-import { AppDataSource, CronDataSource } from '../orm';
+import { authorizationHandler } from '../services/authorizationServices';
+import {
+  oauth2CallbacksRouter,
+  SOCIAL_PROFILES_PREFIX,
+} from '../routers/oauth2Callbacks';
 import {
   dropDbCronExtension,
   schedulePowerBoostingSnapshot,
   schedulePowerSnapshotsHistory,
 } from '../repositories/dbCronRepository';
-import {
-  oauth2CallbacksRouter,
-  SOCIAL_PROFILES_PREFIX,
-} from '../routers/oauth2Callbacks';
-import { authorizationHandler } from '../services/authorizationServices';
-import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
-import { scheduleCauseDistributionJob } from '../services/cronJobs/causeDistributionJob';
-import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
-import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
-import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
-import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
-import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
-import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
-import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
-import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import { runProjectEvaluationCronJob } from '../services/cronJobs/projectEvaluationService';
-import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
-import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
-import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
-import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
-import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
-import { addClient } from '../services/sse/sse';
+import { AppDataSource, CronDataSource } from '../orm';
 import { ApolloContext } from '../types/ApolloContext';
-import { isTestEnv } from '../utils/utils';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
+import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
+import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
+import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { corsOptions } from './cors';
+import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
+import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
+import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
+import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
+import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
+import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
+import { runCheckQRTransactionJob } from '../services/cronJobs/checkQRTransactionJob';
+import { addClient } from '../services/sse/sse';
+import { isTestEnv } from '../utils/utils';
+import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
+import { runCheckAndUpdateEndaomentProject } from '../services/cronJobs/checkAndUpdateEndaomentProject';
+import { runGenerateSitemapOnFrontend } from '../services/cronJobs/generateSitemapOnFrontend';
+import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
+import { runProjectEvaluationCronJob } from '../services/cronJobs/projectEvaluationService';
+import { scheduleCauseDistributionJob } from '../services/cronJobs/causeDistributionJob';
 
 Resource.validate = validate;
 
@@ -321,7 +321,6 @@ export async function bootstrap() {
       try {
         const healthStatus = {
           status: 'ok',
-          name: 'impact-graph',
           timestamp: new Date().toISOString(),
           services: {
             graphql: {
