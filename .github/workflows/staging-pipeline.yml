@@ -34,8 +34,6 @@ jobs:
           eslint: true
           #prettier: true
           continue_on_error: true
-
-  test:
     runs-on: ubuntu-latest
     needs: run-linters
     services:
