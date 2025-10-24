@@ -174,9 +174,9 @@ jobs:
               echo "Checking health for $svc ..."
               ok=0
               for i in {1..12}; do # up to ~2 minutes
-                status=$(docker inspect --format='{{json .State.Health.Status}}' "$svc" 2>/dev/null || echo '""')
-                if [ "$status" = "\"healthy\"" ]; then
-                  echo "$svc is healthy"
+                status=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$svc" 2>/dev/null || echo "")
+                if [ "$status" = "healthy" ] || [ "$status" = "running" ]; then
+                  echo "$svc is $status"
                   ok=1
                   break
                 fi
@@ -184,7 +184,7 @@ jobs:
                 sleep 10
               done
               if [ $ok -ne 1 ]; then
-                echo "::error::$svc did not reach healthy status"
+                echo "::error::$svc did not become healthy or running"
                 exit 1
               fi
             done
