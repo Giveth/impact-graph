@@ -305,7 +305,7 @@ export async function bootstrap() {
       logger.info('GraphQL endpoint disabled - ENABLE_GRAPHQL is set to false');
     }
 
-    // AdminJs!
+    // AdminJs
     app.use(adminJsRootPath, await getAdminJsRouter());
     app.use(bodyParserJson);
     // app.use('/apigive', apiGivRouter);
