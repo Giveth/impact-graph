@@ -255,8 +255,8 @@ Access the admin dashboard at `/admin` with these default credentials (in develo
 Creating an admin user manually:
 
 ```sql
--- First generate the hash with bcrypt
-const bcrypt = require('bcrypt');
+-- First generate the hash with bcryptjs
+const bcrypt = require('bcryptjs');
 bcrypt.hash(
   'yourPassword',
   Number('yourSalt'),

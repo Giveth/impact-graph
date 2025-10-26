@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import config from '../src/config';
-import { generateRandomEtheriumAddress } from '../test/testUtils';
 import { UserRole } from '../src/entities/user';
+import { generateRandomEtheriumAddress } from '../test/testUtils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 export class createSomeTestAdmiUsers1681125863016
   implements MigrationInterface

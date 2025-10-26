@@ -1,7 +1,5 @@
 import { assert } from 'chai';
 import 'mocha';
-import { User, UserRole } from '../entities/user';
-import { DONATION_STATUS } from '../entities/donation';
 import {
   createDonationData,
   createProjectData,
@@ -10,16 +8,18 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
+import { DONATION_STATUS } from '../entities/donation';
+import { ORGANIZATION_LABELS } from '../entities/organization';
+import { User, UserRole } from '../entities/user';
+import { findUserById } from '../repositories/userRepository';
+import { generateRandomString } from '../utils/utils';
 import {
   fetchAdminAndValidatePassword,
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from './userService';
-import { ORGANIZATION_LABELS } from '../entities/organization';
-import { generateRandomString } from '../utils/utils';
-import { findUserById } from '../repositories/userRepository';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 describe(
   'updateUserTotalDonated() test cases',

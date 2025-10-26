@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import config from '../src/config';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 export class createTestAdminUser1672836674875 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {

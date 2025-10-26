@@ -10,10 +10,8 @@ COPY tsconfig.json .
 
 # Combine RUN commands to reduce layers
 RUN apk add --update --no-cache \
-    alpine-sdk \
     git \
-    python3 \
-    chromium --repository=http://dl-cdn.alpinelinux.org/alpine/v3.18/main && \
+    patch && \
     npm ci && \
     npm i -g ts-node
 

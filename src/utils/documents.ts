@@ -1,4 +1,3 @@
-import HTMLToPDF from 'html-pdf-node';
 import { pinFileDataBase64 } from '../middleware/pinataUtils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -19,18 +18,6 @@ export async function generateHTMLDocument(name: string, data: any) {
   );
 
   return Handlebars.compile(raw)(data);
-}
-
-export async function generatePDFDocument(
-  name: string,
-  data: any,
-): Promise<string> {
-  const html = await generateHTMLDocument(name, data);
-  const buf = await HTMLToPDF.generatePdf({ content: html }, { format: 'A4' });
-
-  // fs.writeFileSync("test.pdf", buf)
-
-  return buf.toString('base64');
 }
 
 export async function changeBase64ToIpfsImageInHTML(
