@@ -24,26 +24,21 @@ COPY src ./src
 COPY test ./test
 COPY migration ./migration
 
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
 
 # Production stage
 FROM node:20.11.0-alpine3.18
 
 WORKDIR /usr/src/app
 
-# Copy package files and install only production dependencies
-COPY package*.json ./
-COPY patches ./patches
+ENV NODE_ENV=production
 
-RUN npm ci --omit=dev
+# Add non-root user for security before copying files with ownership
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
-# Copy built files from builder stage
-COPY --from=builder /usr/src/app/build ./build
-COPY migration ./migration
-
-# Add non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
-    chown -R nodejs:nodejs /usr/src/app
+# Copy built files from builder stage (assign ownership to non-root user)
+COPY --from=builder --chown=nodejs:nodejs /usr/src/app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /usr/src/app/build ./build
+COPY --chown=nodejs:nodejs migration ./migration
 
 USER nodejs
