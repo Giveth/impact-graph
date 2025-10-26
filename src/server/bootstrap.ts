@@ -337,9 +337,6 @@ export async function bootstrap() {
             redis: {
               status: 'connected',
             },
-            adminjs: {
-              status: 'running',
-            },
           },
           version: process.env.npm_package_version || 'unknown',
           environment:
