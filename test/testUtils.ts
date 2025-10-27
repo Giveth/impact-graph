@@ -1,49 +1,53 @@
 import { randomBytes } from 'crypto';
-import { assert } from 'chai';
-import * as jwt from 'jsonwebtoken';
-import { Keypair } from '@solana/web3.js';
-import { Keypair as StellarKeypair } from '@stellar/stellar-sdk';
 import {
+  Credential,
   Ed25519KeyHash,
   EnterpriseAddress,
-  Credential,
 } from '@emurgo/cardano-serialization-lib-nodejs';
+import { Keypair } from '@solana/web3.js';
+import { Keypair as StellarKeypair } from '@stellar/stellar-sdk';
+import { assert } from 'chai';
+import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
-import { NETWORK_IDS } from '../src/provider';
-import { User } from '../src/entities/user';
+import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
+import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { Donation, DONATION_STATUS } from '../src/entities/donation';
+import { FeaturedUpdate } from '../src/entities/featuredUpdate';
+import { MainCategory } from '../src/entities/mainCategory';
+import {
+  Organization,
+  ORGANIZATION_LABELS,
+} from '../src/entities/organization';
 import {
   Project,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
 } from '../src/entities/project';
+import { ProjectAddress } from '../src/entities/projectAddress';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import {
-  Organization,
-  ORGANIZATION_LABELS,
-} from '../src/entities/organization';
-import {
-  findUserById,
-  findUserByWalletAddress,
-} from '../src/repositories/userRepository';
+  PROJECT_VERIFICATION_STATUSES,
+  ProjectVerificationForm,
+} from '../src/entities/projectVerificationForm';
+import { RecurringDonation } from '../src/entities/recurringDonation';
+import { User } from '../src/entities/user';
+import { NETWORK_IDS } from '../src/provider';
 import {
   addNewProjectAddress,
   findProjectRecipientAddressByProjectId,
   findRelatedAddressByWalletAddress,
 } from '../src/repositories/projectAddressRepository';
-import {
-  PROJECT_VERIFICATION_STATUSES,
-  ProjectVerificationForm,
-} from '../src/entities/projectVerificationForm';
-import { MainCategory } from '../src/entities/mainCategory';
-import { Category, CATEGORY_NAMES } from '../src/entities/category';
-import { FeaturedUpdate } from '../src/entities/featuredUpdate';
-import { ChainType } from '../src/types/network';
-import { RecurringDonation } from '../src/entities/recurringDonation';
-import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
 import { findProjectById } from '../src/repositories/projectRepository';
-import { ProjectAddress } from '../src/entities/projectAddress';
+import {
+  findUserById,
+  findUserByWalletAddress,
+} from '../src/repositories/userRepository';
+import { ChainType } from '../src/types/network';
+import {
+  generateHexNumber,
+  generateRandomEtheriumAddress,
+} from '../src/utils/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -2106,10 +2110,6 @@ export const saveMainCategoryDirectlyToDb = async (
   }).save();
 };
 
-export function generateRandomEtheriumAddress(): string {
-  return `0x${generateHexNumber(40)}`;
-}
-
 export function generateRandomSolanaAddress(): string {
   return Keypair.generate().publicKey.toString();
 }
@@ -2138,16 +2138,6 @@ export function generateRandomCardanoTxHash(): string {
 
 export function generateRandomStellarTxHash(): string {
   return generateRandomAlphanumeric(64);
-}
-
-export function generateHexNumber(len): string {
-  const hex = '0123456789abcdef';
-  let output = '';
-  /* eslint-disable no-plusplus */
-  for (let i = 0; i < len; i++) {
-    output += hex.charAt(Math.floor(Math.random() * hex.length));
-  }
-  return output;
 }
 
 function generateRandomAlphanumeric(length) {

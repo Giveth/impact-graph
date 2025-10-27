@@ -62,6 +62,9 @@
   "exclude": [
     "./build",
     "node_modules",
-    "src/server/adminJs/tabs/components"
+    "src/server/adminJs/tabs/components",
+    "test",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }

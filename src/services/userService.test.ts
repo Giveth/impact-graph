@@ -3,7 +3,6 @@ import 'mocha';
 import {
   createDonationData,
   createProjectData,
-  generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -12,7 +11,10 @@ import { DONATION_STATUS } from '../entities/donation';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { User, UserRole } from '../entities/user';
 import { findUserById } from '../repositories/userRepository';
-import { generateRandomString } from '../utils/utils';
+import {
+  generateRandomEtheriumAddress,
+  generateRandomString,
+} from '../utils/utils';
 import {
   fetchAdminAndValidatePassword,
   updateUserTotalDonated,

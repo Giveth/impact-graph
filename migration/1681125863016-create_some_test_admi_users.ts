@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import config from '../src/config';
 import { UserRole } from '../src/entities/user';
-import { generateRandomEtheriumAddress } from '../test/testUtils';
+import { generateRandomEtheriumAddress } from '../src/utils/utils';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcryptjs');
 

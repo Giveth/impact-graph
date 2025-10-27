@@ -11,7 +11,9 @@ COPY tsconfig.json .
 # Combine RUN commands to reduce layers
 RUN apk add --update --no-cache \
     git \
-    patch && \
+    patch \
+    python3 \
+    build-base && \
     npm ci && \
     npm i -g ts-node
 
@@ -35,8 +37,8 @@ ENV NODE_ENV=production
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 # Copy built files from builder stage (assign ownership to non-root user)
+COPY --chown=nodejs:nodejs package*.json ./
 COPY --from=builder --chown=nodejs:nodejs /usr/src/app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /usr/src/app/build ./build
-COPY --chown=nodejs:nodejs migration ./migration
 
 USER nodejs
