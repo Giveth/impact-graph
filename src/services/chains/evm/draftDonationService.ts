@@ -266,6 +266,7 @@ async function submitMatchedDraftDonation(
     projectId,
     referrerId,
     qfRoundId,
+    fromTokenAmount,
   } = draftDonation;
 
   try {
@@ -291,7 +292,7 @@ async function submitMatchedDraftDonation(
       undefined, // useDonationBox
       undefined, // relevantDonationTxHash
       undefined, // swapData
-      draftDonation.fromTokenAmount, // fromTokenAmount
+      fromTokenAmount || undefined, // fromTokenAmount if undefined, it will be set to 0
       qfRoundId, // roundId
     );
 
