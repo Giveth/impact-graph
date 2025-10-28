@@ -47,7 +47,7 @@ jobs:
   publish:
     needs: run-linters
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    # if: github.event_name == 'push'
     permissions:
       contents: read      # Read code
       packages: write     # Push to GHCR
