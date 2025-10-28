@@ -1,40 +1,40 @@
-import adminJs, { ActionContext, AdminJSOptions } from 'adminjs';
 import adminJsExpress from '@adminjs/express';
 import { Database, Resource } from '@adminjs/typeorm';
+import adminJs, { ActionContext, AdminJSOptions } from 'adminjs';
 import { IncomingMessage } from 'connect';
-import { User } from '../../entities/user';
 import config from '../../config';
+import { User } from '../../entities/user';
 import { redis } from '../../redis';
-import { logger } from '../../utils/logger';
 import { findUserById } from '../../repositories/userRepository';
 import { fetchAdminAndValidatePassword } from '../../services/userService';
-import { campaignsTab } from './tabs/campaignsTab';
+import { logger } from '../../utils/logger';
+import { AnchorContractAddressTab } from './tabs/anchorContractAddressTab';
 import { broadcastNotificationTab } from './tabs/broadcastNotificationTab';
-import { mainCategoryTab } from './tabs/mainCategoryTab';
+import { campaignsTab } from './tabs/campaignsTab';
 import { categoryTab } from './tabs/categoryTab';
-import { projectsTab } from './tabs/projectsTab';
+import { donationTab } from './tabs/donationTab';
+import { featuredUpdateTab } from './tabs/featuredUpdateTab';
+import { globalConfigurationTab } from './tabs/globalConfigurationTab';
+import { mainCategoryTab } from './tabs/mainCategoryTab';
 import { organizationsTab } from './tabs/organizationsTab';
-import { usersTab } from './tabs/usersTab';
+import { projectAddressTab } from './tabs/projectAddressTab';
+import { ProjectFraudTab } from './tabs/projectFraudTab';
+import { projectQfRoundsTab } from './tabs/projectQfRoundsTab';
+import { projectSocialMediaTab } from './tabs/projectSocialMediaTab';
+import { projectsTab } from './tabs/projectsTab';
 import { projectStatusHistoryTab } from './tabs/projectStatusHistoryTab';
 import { projectStatusReasonTab } from './tabs/projectStatusReasonTab';
-import { projectAddressTab } from './tabs/projectAddressTab';
 import { projectStatusTab } from './tabs/projectStatusTab';
 import { projectUpdateTab } from './tabs/projectUpdateTab';
-import { thirdPartProjectImportTab } from './tabs/thirdPartProjectImportTab';
-import { featuredUpdateTab } from './tabs/featuredUpdateTab';
-import { generateTokenTab } from './tabs/tokenTab';
-import { donationTab } from './tabs/donationTab';
 import { projectVerificationTab } from './tabs/projectVerificationTab';
-import { qfRoundTab } from './tabs/qfRoundTab';
 import { qfRoundHistoryTab } from './tabs/qfRoundHistoryTab';
-import { SybilTab } from './tabs/sybilTab';
-import { ProjectFraudTab } from './tabs/projectFraudTab';
+import { qfRoundTab } from './tabs/qfRoundTab';
 import { RecurringDonationTab } from './tabs/recurringDonationTab';
-import { AnchorContractAddressTab } from './tabs/anchorContractAddressTab';
-import { projectSocialMediaTab } from './tabs/projectSocialMediaTab';
 import { SwapTransactionTab } from './tabs/swapTransactionTab';
-import { projectQfRoundsTab } from './tabs/projectQfRoundsTab';
-import { globalConfigurationTab } from './tabs/globalConfigurationTab';
+import { SybilTab } from './tabs/sybilTab';
+import { thirdPartProjectImportTab } from './tabs/thirdPartProjectImportTab';
+import { generateTokenTab } from './tabs/tokenTab';
+import { usersTab } from './tabs/usersTab';
 
 // use redis for session data instead of in-memory storage
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -71,6 +71,7 @@ export const getAdminJsRouter = async () => {
       secret,
       store: new RedisStore({
         client: redis,
+        prefix: 'adminjs:',
       }),
     },
   );
@@ -101,7 +102,10 @@ export const extractAdminJsReferrerUrlParams = (req: ActionContext) => {
 export const getCurrentAdminJsSession = async (request: IncomingMessage) => {
   const cookieHeader = request.headers.cookie;
   const parsedCookies = cookie.parse(cookieHeader);
-  const sessionStore = new RedisStore({ client: redis });
+  const sessionStore = new RedisStore({
+    client: redis,
+    prefix: 'adminjs:',
+  });
   const unsignedCookie = cookieParser.signedCookie(
     parsedCookies[adminJsCookie],
     secret,

@@ -46,9 +46,12 @@ export class AppDataSource {
         logger: 'advanced-console',
         logging: ['error'],
         cache: {
-          type: 'redis',
+          type: 'ioredis',
           options: {
-            ...redisConfig,
+            host: redisConfig.host,
+            port: redisConfig.port,
+            password: redisConfig.password,
+            family: 4, // Force IPv4
             db: 1, // Query Caching
           },
         },
