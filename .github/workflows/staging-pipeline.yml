@@ -8,21 +8,30 @@ on:
     branches:
       - staging
 
+# Security: Set minimal default permissions for all jobs
+permissions:
+  contents: read  # All jobs can read code, but can't write by default
+
 jobs:
   run-linters:
     name: Run linters
     runs-on: ubuntu-latest
+    permissions:
+      contents: read        # Read code
+      pull-requests: write  # Post lint comments
+      statuses: write      # Update check status
 
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 20.11.0
+          cache: 'npm'
 
       # ESLint and Prettier must be in `package.json`
       - name: Install Node.js dependencies
@@ -40,31 +49,71 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     permissions:
-      contents: read
-      packages: write
+      contents: read      # Read code
+      packages: write     # Push to GHCR
+      id-token: write     # Cosign signing
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+
       - name: Login to GitHub Container Registry
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      # Performance: Build with cache for faster builds
       - name: Build image and push to GitHub Packages
+        id: build
         uses: docker/build-push-action@v6
         with:
+          context: .
           push: true
           tags: |
             ghcr.io/giveth/impact-graph:staging
             ghcr.io/giveth/impact-graph:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+      # Security: Sign container image with Cosign
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign container image
+        run: |
+          cosign sign --yes ghcr.io/giveth/impact-graph:${{ github.sha }}
+
   deploy:
     needs: publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: read      # Read code for actions
+      id-token: write     # Cosign signature verification
     steps:
-      - name: SSH and Redeploy
+      # Security: Verify image signature before deployment
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Verify Image Signature
+        run: |
+          echo "🔐 Verifying image signature..."
+          cosign verify ghcr.io/giveth/impact-graph@${{ needs.publish.outputs.image-digest }} \
+            --certificate-identity "https://github.com/Giveth/impact-graph/.github/workflows/staging-pipeline.yml@refs/heads/staging" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+          echo "✅ Image signature verified successfully! Image is authentic and untampered."
+
+      # Only deploys if signature verification passes
+      - name: SSH and Pull Verified Image
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.STAGING_HOST_ALL }}
@@ -73,12 +122,19 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
-            # Pull the relevant images once; rollout jobs will reuse them
-            docker pull ghcr.io/giveth/impact-graph:staging
+            # Pull the verified image by its immutable SHA
+            docker pull ghcr.io/giveth/impact-graph@${{ needs.publish.outputs.image-digest }}
+            
+            # Export the verified SHA for docker-compose to use
+            echo "IMPACT_GRAPH_IMAGE=ghcr.io/giveth/impact-graph@${{ needs.publish.outputs.image-digest }}" > .env.impact-graph
+            
+            echo "✅ Verified image pulled: ghcr.io/giveth/impact-graph@${{ needs.publish.outputs.image-digest }}"
 
   rollout-deploy-1:
     needs: deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: none      # Minimal - only for actions to work
     steps:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
@@ -89,15 +145,20 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
+            # Load the verified image SHA from environment
+            export $(cat .env.impact-graph | xargs)
+            
             ## Update each backend service one by one
-            ## First Deployment (images were pulled earlier)
+            ## First Deployment - uses IMPACT_GRAPH_IMAGE with verified SHA
             docker compose up -d --no-deps --force-recreate impact-graph-ql1
             docker compose up -d --no-deps --force-recreate impact-graph-jobs
-            echo "First deployment phase triggered. Deep health checks deferred to verify-health job."
+            echo "First deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
   rollout-deploy-2:
     needs: rollout-deploy-1
     runs-on: ubuntu-latest
+    permissions:
+      contents: none      # Minimal - only for actions to work
     steps:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
@@ -108,14 +169,19 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
+            # Load the verified image SHA from environment
+            export $(cat .env.impact-graph | xargs)
+            
             ## Update each backend service one by one
-            ## Second Deployment (images were pulled earlier)
+            ## Second Deployment - uses IMPACT_GRAPH_IMAGE with verified SHA
             docker compose up -d --no-deps --force-recreate impact-graph-ql2
-            echo "Second deployment phase triggered. Health checks deferred to verify-health job."
+            echo "Second deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
   rollout-deploy-3:
     needs: rollout-deploy-2
     runs-on: ubuntu-latest
+    permissions:
+      contents: none      # Minimal - only for actions to work
     steps:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
@@ -126,14 +192,19 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
+            # Load the verified image SHA from environment
+            export $(cat .env.impact-graph | xargs)
+            
             ## Update each backend service one by one
-            ## Third Deployment (images were pulled earlier)
+            ## Third Deployment - uses IMPACT_GRAPH_IMAGE with verified SHA
             docker compose up -d --no-deps --force-recreate impact-graph-ql3
-            echo "Third deployment phase triggered. Health checks deferred to verify-health job."
+            echo "Third deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
   rollout-deploy-4:
     needs: rollout-deploy-3
     runs-on: ubuntu-latest
+    permissions:
+      contents: none      # Minimal - only for actions to work
     steps:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
@@ -144,10 +215,13 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd giveth-all
+            # Load the verified image SHA from environment
+            export $(cat .env.impact-graph | xargs)
+            
             ## Update each backend service one by one
-            ## Fourth Deployment (images were pulled earlier)
+            ## Fourth Deployment - uses IMPACT_GRAPH_IMAGE with verified SHA
             docker compose up -d --no-deps --force-recreate impact-graph-ql4
-            echo "Fourth deployment phase triggered. Health checks deferred to verify-health job."
+            echo "Fourth deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
   verify-health:
     needs:
@@ -156,9 +230,12 @@ jobs:
       - rollout-deploy-3
       - rollout-deploy-4
     runs-on: ubuntu-latest
+    permissions:
+      contents: none      # Minimal - only for actions to work
     steps:
       - name: Wait for services to stabilize
-        run: sleep 180
+        run: sleep 60
+
       - name: SSH and Verify Health
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -170,13 +247,15 @@ jobs:
             set -e
             cd giveth-all
             services=("impact-graph-ql1" "impact-graph-ql2" "impact-graph-ql3" "impact-graph-ql4")
+            
+            echo "=== Final Health Check for All Services ==="
             for svc in "${services[@]}"; do
               echo "Checking health for $svc ..."
               ok=0
               for i in {1..12}; do # up to ~2 minutes
                 status=$(docker inspect --format='{{json .State.Health.Status}}' "$svc" 2>/dev/null || echo '""')
                 if [ "$status" = "\"healthy\"" ]; then
-                  echo "$svc is healthy"
+                  echo "✓ $svc is healthy"
                   ok=1
                   break
                 fi
@@ -185,6 +264,8 @@ jobs:
               done
               if [ $ok -ne 1 ]; then
                 echo "::error::$svc did not reach healthy status"
+                # Get container logs for debugging
+                docker logs --tail 100 "$svc" || true
                 exit 1
               fi
             done
