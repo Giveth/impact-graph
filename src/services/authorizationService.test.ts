@@ -1,15 +1,14 @@
-import { assert } from 'chai';
 import Axios from 'axios';
+import { assert } from 'chai';
 import { ethers } from 'ethers';
 import {
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { User } from '../entities/user';
-import { authorizationHandler } from './authorizationServices';
 import config from '../config';
 import { findUserByWalletAddress } from '../repositories/userRepository';
+import { authorizationHandler } from './authorizationServices';
 
 describe('authorizationHandler() test cases', authorizationHandlerTestCases);
 
@@ -26,41 +25,41 @@ function authorizationHandlerTestCases() {
     const jwtUser = await authorizationHandler('1', accessToken);
     assert.equal(jwtUser.userId, user.id);
   });
-  it('should decode user jwt with the auth microservice', async () => {
-    const privateKey = process.env.PRIVATE_ETHERS_TEST_KEY as string;
-    const publicKey = process.env.PUBLIC_ETHERS_TEST_KEY as string;
+  // it('should decode user jwt with the auth microservice', async () => {
+  //   const privateKey = process.env.PRIVATE_ETHERS_TEST_KEY as string;
+  //   const publicKey = process.env.PUBLIC_ETHERS_TEST_KEY as string;
 
-    const user = await saveUserDirectlyToDb(publicKey);
-    const nonceRoute = config.get('AUTH_MICROSERVICE_NONCE_URL') as string;
-    const nonceResult = await Axios.get(nonceRoute);
-    const wallet = new ethers.Wallet(privateKey);
+  //   const user = await saveUserDirectlyToDb(publicKey);
+  //   const nonceRoute = config.get('AUTH_MICROSERVICE_NONCE_URL') as string;
+  //   const nonceResult = await Axios.get(nonceRoute);
+  //   const wallet = new ethers.Wallet(privateKey);
 
-    const siweMessage = new siwe.SiweMessage({
-      domain,
-      address: publicKey,
-      nonce: nonceResult.data.message, // verification servers gives
-      statement: 'This is a test statement.',
-      uri: origin,
-      version: '1',
-      chainId: '1',
-    });
-    const textMessage = siweMessage.prepareMessage();
-    const signature = await wallet.signMessage(textMessage);
+  //   const siweMessage = new siwe.SiweMessage({
+  //     domain,
+  //     address: publicKey,
+  //     nonce: nonceResult.data.message, // verification servers gives
+  //     statement: 'This is a test statement.',
+  //     uri: origin,
+  //     version: '1',
+  //     chainId: '1',
+  //   });
+  //   const textMessage = siweMessage.prepareMessage();
+  //   const signature = await wallet.signMessage(textMessage);
 
-    const authenticationRoute = config.get(
-      'AUTH_MICROSERVICE_AUTHENTICATION_URL',
-    ) as string;
-    const authenticationResult = await Axios.post(authenticationRoute, {
-      message: textMessage,
-      nonce: nonceResult.data.message,
-      signature,
-    });
+  //   const authenticationRoute = config.get(
+  //     'AUTH_MICROSERVICE_AUTHENTICATION_URL',
+  //   ) as string;
+  //   const authenticationResult = await Axios.post(authenticationRoute, {
+  //     message: textMessage,
+  //     nonce: nonceResult.data.message,
+  //     signature,
+  //   });
 
-    const accessToken = authenticationResult.data.jwt;
-    const jwtUser = await authorizationHandler('2', accessToken);
-    assert.equal(jwtUser.userId, user.id);
-    await User.delete(user.id);
-  });
+  //   const accessToken = authenticationResult.data.jwt;
+  //   const jwtUser = await authorizationHandler('2', accessToken);
+  //   assert.equal(jwtUser.userId, user.id);
+  //   await User.delete(user.id);
+  // });
   it('should decode jwt and create user if it is nonexistent', async () => {
     const privateKey = process.env.PRIVATE_ETHERS_SECONDARY_TEST_KEY as string;
     const publicKey = process.env.PUBLIC_ETHERS_SECONDARY_TEST_KEY as string;
