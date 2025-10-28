@@ -91,7 +91,7 @@ jobs:
 
       - name: Sign container image
         run: |
-          cosign sign --yes ghcr.io/giveth/impact-graph:${{ github.sha }}
+          cosign sign --yes ghcr.io/giveth/impact-graph@${{ steps.build.outputs.digest }}
 
   deploy:
     needs: publish
@@ -108,7 +108,7 @@ jobs:
         run: |
           echo "🔐 Verifying image signature..."
           cosign verify ghcr.io/giveth/impact-graph@${{ needs.publish.outputs.image-digest }} \
-            --certificate-identity "https://github.com/Giveth/impact-graph/.github/workflows/staging-pipeline.yml@refs/heads/staging" \
+            --certificate-identity "${{ github.server_url }}/${{ github.repository }}/.github/workflows/staging-pipeline.yml@${{ github.ref }}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
           echo "✅ Image signature verified successfully! Image is authentic and untampered."
 
