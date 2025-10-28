@@ -1,12 +1,12 @@
 import { convert } from 'html-to-text';
-import slugify from 'slugify';
 import stringify from 'json-stable-stringify';
 import { isEqual } from 'lodash';
+import slugify from 'slugify';
 import { Country } from '../entities/Country';
 import { FilterField, SortingField } from '../entities/project';
 
-import { SUMMARY_LENGTH } from '../constants/summary';
 import config from '../config';
+import { SUMMARY_LENGTH } from '../constants/summary';
 import { ProjectSocialMedia } from '../entities/projectSocialMedia';
 import { ProjectSocialMediaInput } from '../resolvers/types/ProjectVerificationUpdateInput';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -482,3 +482,17 @@ export const generateRandomNumericCode = (digits: number = 6): number => {
   const max = Math.pow(10, digits) - 1;
   return Math.floor(min + Math.random() * (max - min + 1));
 };
+
+export function generateRandomEtheriumAddress(): string {
+  return `0x${generateHexNumber(40)}`;
+}
+
+export function generateHexNumber(len): string {
+  const hex = '0123456789abcdef';
+  let output = '';
+  /* eslint-disable no-plusplus */
+  for (let i = 0; i < len; i++) {
+    output += hex.charAt(Math.floor(Math.random() * hex.length));
+  }
+  return output;
+}

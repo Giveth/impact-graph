@@ -149,7 +149,6 @@ jobs:
   publish:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     permissions:
       contents: read
       packages: write
@@ -169,12 +168,12 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/giveth/impact-graph:staging
             ghcr.io/giveth/impact-graph:${{ github.sha }}
 
   deploy:
     needs: publish
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
