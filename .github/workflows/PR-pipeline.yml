@@ -60,7 +60,7 @@ jobs:
       # Build entire project INCLUDING tests (compile once, use 6 times!)
       - name: Build project and tests
         run: |
-          echo "🔨 Building TypeScript (src + tests) with relaxed strictness..."
+          echo "🔨 Building TypeScript (src + tests)..."
           npm run build:ci
           echo "✅ Build complete"
       
