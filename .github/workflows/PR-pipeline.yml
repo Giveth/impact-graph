@@ -36,7 +36,6 @@ jobs:
           node-version: 22.18.0
           cache: 'npm'
 
-      # ESLint and Prettier must be in `package.json`
       - name: Install Node.js dependencies
         run: npm ci
 
