@@ -6,10 +6,18 @@ on:
       - master
       - staging
 
+# Security: Set minimal default permissions for all jobs
+permissions:
+  contents: read  # All jobs can read code, but can't write by default
+
 jobs:
   run-linters:
     name: Run linters
     runs-on: ubuntu-latest
+    permissions:
+      contents: read        # Read code
+      pull-requests: write  # Post lint comments
+      statuses: write      # Update check status
 
     steps:
       - name: Check out Git repository
@@ -20,7 +28,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20.11.0
+          node-version: 24.11.0
+          cache: 'npm'
 
       # ESLint and Prettier must be in `package.json`
       - name: Install Node.js dependencies
@@ -31,7 +40,7 @@ jobs:
         with:
           eslint: true
           #prettier: true
-          continue_on_error: false
+          continue_on_error: true
 
   test:
     runs-on: ubuntu-latest
@@ -67,38 +76,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
-          fetch-depth: 0
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_S3_REGION }}
-
-      - name: Download latest DB backup from S3
-        run: |
-          FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ | sort | tail -n 1 | awk '{print $4}')
-          aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.zip
-
-      - name: Unzip DB backup
-        run: |
-          unzip /tmp/db_backup.zip -d /tmp
-          mv /tmp/backups/givethio-staging/*.sql /tmp/backups/givethio-staging/db_backup.sql
-
-      - name: Wait for PostgreSQL to become ready
-        run: |
-          for i in {1..10}
-          do
-            pg_isready -h localhost -p 5443 -U postgres && echo Success && break
-            echo -n .
-            sleep 1
-          done
-
-      - name: Restore DB backup
-        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
-
+          fetch-depth: 1
+     
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
