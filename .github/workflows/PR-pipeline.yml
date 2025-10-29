@@ -46,8 +46,20 @@ jobs:
           #prettier: true
           continue_on_error: true
 
-      - name: Build project
-        run: npm run build
+      # Build entire project INCLUDING tests (compile once, use 6 times!)
+      - name: Build project and tests
+        run: |
+          echo "🔨 Building TypeScript (src + tests)..."
+          npm run build
+          echo "✅ Build complete"
+      
+      # Upload compiled code for test jobs to use
+      - name: Upload compiled build
+        uses: actions/upload-artifact@v5
+        with:
+          name: compiled-build
+          path: build/
+          retention-days: 1
 
   test:
     name: Integration Tests - ${{ matrix.test-group-name }}
@@ -197,16 +209,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Performance: Cache compiled TypeScript for faster reruns
-      - name: Cache TypeScript build
-        uses: actions/cache@v4
+      # Performance: Download pre-compiled build from lint-and-build job
+      # (Compiled ONCE, used by all 6 test jobs - much faster!)
+      - name: Download compiled build
+        uses: actions/download-artifact@v6
         with:
-          path: |
-            .tsbuildinfo
-            dist/
-          key: ts-build-${{ hashFiles('src/**/*.ts', 'tsconfig.json') }}
-          restore-keys: |
-            ts-build-
+          name: compiled-build
+          path: build/
 
       # Performance: Check if we have a cached post-migration database state FIRST
       - name: Get migration checksum
@@ -219,7 +228,7 @@ jobs:
 
       - name: Cache post-migration database state
         id: cache-migrated-db
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57  # v4.2.0
+        uses: actions/cache@v4.3.0
         with:
           path: /tmp/migrated_db_dump.sql
           key: migrated-db-${{ steps.date.outputs.week }}-${{ steps.migration-checksum.outputs.checksum }}
@@ -289,22 +298,25 @@ jobs:
             exit 1
           fi
 
-      # Performance: Run tests with optimized Node.js settings
+      # Performance: Run pre-compiled JavaScript tests (much faster!)
       - name: Run tests - ${{ matrix.test-group-name }}
         run: |
           echo "🧪 Running test group: ${{ matrix.test-group-name }}"
           echo "📁 Test pattern: ${{ matrix.test-pattern }}"
+          
+          # Convert TypeScript patterns to JavaScript patterns
+          TEST_PATTERN=$(echo "${{ matrix.test-pattern }}" | sed 's/\.ts/.js/g')
+          echo "📦 Compiled test pattern: $TEST_PATTERN"
+          
+          # Run compiled JavaScript tests (no ts-node overhead!)
           NODE_ENV=test npx mocha \
-            --require ts-node/register \
             --exit \
             --retries 2 \
-            ./test/pre-test-scripts.ts \
-            ${{ matrix.test-pattern }}
+            ./build/test/pre-test-scripts.js \
+            $(echo "$TEST_PATTERN" | sed 's|src/|build/src/|g')
         env:
           # Performance: Optimize Node.js memory for testing
           NODE_OPTIONS: "--max-old-space-size=4096"
-          # Performance: Skip type checking (already done in lint job)
-          TS_NODE_TRANSPILE_ONLY: "1"
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
