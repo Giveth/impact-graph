@@ -1,10 +1,15 @@
-name:  run tests on pull request
+name: run tests on pull request
 
 on:
   pull_request:
     branches:
       - master
       - staging
+
+# Performance: Cancel outdated workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 # Security: Set minimal default permissions for all jobs
 permissions:
@@ -46,13 +51,21 @@ jobs:
         run: npm run build
 
   test:
+    name: Integration Tests
     runs-on: ubuntu-latest
     needs: lint-and-build
+    
+    # Security: Explicit minimal permissions
+    permissions:
+      contents: read        # Read code
+      pull-requests: write  # Comment test results
+      checks: write        # Update check runs
+    
     services:
       # Label used to access the service container
       redis:
-        # Docker Hub image
-        image: redis
+        # Docker Hub image - Security: Consider using specific version tag
+        image: redis:7.4-alpine  # Performance: Alpine is lighter, Security: specific version
         # Set health checks to wait until redis has started
         options: >-
           --health-cmd "redis-cli ping"
@@ -62,7 +75,6 @@ jobs:
         ports:
           - 6379:6379
       postgres:
-        # Use this postgres image https://github.com/Giveth/postgres-givethio
         image: ghcr.io/giveth/postgres-givethio:latest
         env:
           POSTGRES_USER: postgres
@@ -88,16 +100,67 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_S3_REGION }}
+          mask-aws-account-id: true  # Security: Hide account ID in logs
 
+      # Performance: Get current week for cache key (caches DB backup for the week)
+      - name: Get current week
+        id: date
+        run: |
+          # Get ISO week number (e.g., 2025-W44)
+          WEEK=$(date +'%Y-W%V')
+          echo "week=$WEEK" >> $GITHUB_OUTPUT
+          echo "Cache key will be: db-backup-staging-$WEEK"
+
+      # Performance: Cache database backup to avoid repeated downloads
+      # Cache is shared across all runs in the same week (7 days)
+      - name: Cache database backup
+        id: cache-db
+        uses: actions/cache@v4
+        with:
+          path: /tmp/db_backup.zip
+          # Cache key: week-based so all runs same week share cache
+          # Format: db-backup-staging-2025-W44 (changes every Monday)
+          key: db-backup-staging-${{ steps.date.outputs.week }}
+          restore-keys: |
+            db-backup-staging-
+
+      # Only download if cache miss
       - name: Download latest DB backup from S3
+        if: steps.cache-db.outputs.cache-hit != 'true'
         run: |
+          set -e
+          echo "📥 Cache miss - downloading fresh backup from S3..."
           FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ | sort | tail -n 1 | awk '{print $4}')
+          if [ -z "$FILENAME" ]; then
+            echo "Error: No backup file found in S3"
+            exit 1
+          fi
+          echo "Downloading backup: $FILENAME"
           aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.zip
+          echo "✅ Download complete: $(du -h /tmp/db_backup.zip | cut -f1)"
 
-      - name: Unzip DB backup
+      - name: Verify cached backup exists
+        if: steps.cache-db.outputs.cache-hit == 'true'
         run: |
-          unzip /tmp/db_backup.zip -d /tmp
-          mv /tmp/backups/givethio-staging/*.sql /tmp/backups/givethio-staging/db_backup.sql
+          echo "✅ Cache hit! Using cached database backup"
+          echo "Cached file size: $(du -h /tmp/db_backup.zip | cut -f1)"
+          ls -lh /tmp/db_backup.zip
+
+      - name: Unzip and validate DB backup
+        run: |
+          set -e
+          echo "📦 Extracting database backup..."
+          unzip -q /tmp/db_backup.zip -d /tmp
+          
+          # Security: Validate the backup file exists and is readable
+          SQL_FILE=$(find /tmp/backups/givethio-staging/*.sql -type f -print -quit 2>/dev/null)
+          if [ ! -f "$SQL_FILE" ]; then
+            echo "Error: SQL backup file not found"
+            exit 1
+          fi
+          
+          mv "$SQL_FILE" /tmp/backups/givethio-staging/db_backup.sql
+          echo "✅ Database backup prepared: $(du -h /tmp/backups/givethio-staging/db_backup.sql | cut -f1)"
 
       - name: Wait for PostgreSQL to become ready
         run: |
