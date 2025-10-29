@@ -656,20 +656,26 @@ function qfSmartSelectTestCases() {
         project.qfRounds = [qfRound1, qfRound2];
         await project.save();
 
-        // Also create explicit ProjectQfRound relations to ensure database consistency
-        await ProjectQfRound.create({
-          projectId: project.id,
-          qfRoundId: qfRound1.id,
-          sumDonationValueUsd: 0,
-          countUniqueDonors: 0,
-        }).save();
+        // Upsert ProjectQfRound relations to ensure database consistency
+        await ProjectQfRound.upsert(
+          {
+            projectId: project.id,
+            qfRoundId: qfRound1.id,
+            sumDonationValueUsd: 0,
+            countUniqueDonors: 0,
+          },
+          ['projectId', 'qfRoundId'],
+        );
 
-        await ProjectQfRound.create({
-          projectId: project.id,
-          qfRoundId: qfRound2.id,
-          sumDonationValueUsd: 0,
-          countUniqueDonors: 0,
-        }).save();
+        await ProjectQfRound.upsert(
+          {
+            projectId: project.id,
+            qfRoundId: qfRound2.id,
+            sumDonationValueUsd: 0,
+            countUniqueDonors: 0,
+          },
+          ['projectId', 'qfRoundId'],
+        );
 
         // Create recurring donation
         const recurringDonation = await saveRecurringDonationDirectlyToDb({
