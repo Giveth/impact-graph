@@ -237,9 +237,9 @@ jobs:
             --set ON_ERROR_STOP=on < /tmp/migrated_db_dump.sql
           echo "✅ Cached database restored (skipped migrations!)"
 
-      # Performance: Run tests in parallel with optimized Node.js settings
+      # Performance: Run tests with optimized Node.js settings
       - name: Run tests
-        run: npm run test:parallel
+        run: npm run test
         env:
           # Performance: Optimize Node.js memory for testing
           NODE_OPTIONS: "--max-old-space-size=4096"
