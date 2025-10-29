@@ -231,7 +231,7 @@
         "db:migrate:revert:local": "NODE_ENV=development npx typeorm-ts-node-commonjs migration:revert -d ./src/ormconfig.ts",
         "db:migrate:create:local": "NODE_ENV=development npx typeorm-ts-node-commonjs  migration:generate migration/$MIGRATION_NAME -d ./src/ormconfig.ts",
         "db:migrate:run:production": "NODE_ENV=production npx typeorm-ts-node-commonjs migration:run -d ./src/ormconfig.ts",
-        "db:migrate:rever:productiont": "NODE_ENV=production npx typeorm-ts-node-commonjs migration:revert -d ./src/ormconfig.ts",
+        "db:migrate:revert:productiont": "NODE_ENV=production npx typeorm-ts-node-commonjs migration:revert -d ./src/ormconfig.ts",
         "prettify": "prettier --write '**/*.ts*' '**/*.test.ts*'",
         "db:migrate:seedToken:run": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:run",
         "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert",
