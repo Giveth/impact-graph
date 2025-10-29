@@ -1,14 +1,10 @@
 name:  run tests on pull request
 
 on:
-  workflow_dispatch:
   pull_request:
     branches:
-      - develop
       - master
       - staging
-    types:
-      - opened
 
 jobs:
   test:
@@ -42,11 +38,11 @@ jobs:
         ports:
           - 5443:5432
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v5
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v5
         with:
-          node-version: 16.14.2
+          node-version: 24.11.0
       - name: Install dependencies
         run: npm ci
       - name: Run eslint
