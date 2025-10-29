@@ -294,7 +294,7 @@ jobs:
         run: |
           echo "🧪 Running test group: ${{ matrix.test-group-name }}"
           echo "📁 Test pattern: ${{ matrix.test-pattern }}"
-          NODE_ENV=test mocha \
+          NODE_ENV=test npx mocha \
             --require ts-node/register \
             --timeout 90000 \
             --exit \
