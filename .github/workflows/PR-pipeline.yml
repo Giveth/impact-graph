@@ -11,8 +11,8 @@ permissions:
   contents: read  # All jobs can read code, but can't write by default
 
 jobs:
-  run-linters:
-    name: Run linters
+  lint-and-build:
+    name: Lint and Build
     runs-on: ubuntu-latest
     permissions:
       contents: read        # Read code
@@ -26,9 +26,9 @@ jobs:
           fetch-depth: 1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          node-version: 24.11.0
+          node-version: 22.18.0
           cache: 'npm'
 
       # ESLint and Prettier must be in `package.json`
@@ -42,9 +42,12 @@ jobs:
           #prettier: true
           continue_on_error: true
 
+      - name: Build project
+        run: npm run build
+
   test:
     runs-on: ubuntu-latest
-    needs: run-linters
+    needs: lint-and-build
     services:
       # Label used to access the service container
       redis:
@@ -112,15 +115,10 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 22.18.0
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Run eslint
-        run: npm run eslint
-
-      - name: Run build
-        run: npm run build
 
       - name: Run migrations
         run: npm run db:migrate:run:test
