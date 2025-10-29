@@ -50,9 +50,27 @@ jobs:
         run: npm run build
 
   test:
-    name: Integration Tests
+    name: Integration Tests - ${{ matrix.test-group-name }}
     runs-on: ubuntu-latest
     needs: lint-and-build
+    
+    # Performance: Run test groups in parallel
+    strategy:
+      fail-fast: false  # Don't cancel other groups if one fails
+      matrix:
+        include:
+          - test-group-name: "Resolvers"
+            test-pattern: "src/resolvers/**/*.test.ts"
+          - test-group-name: "Repositories"
+            test-pattern: "src/repositories/**/*.test.ts"
+          - test-group-name: "Services"
+            test-pattern: "src/services/**/*.test.ts"
+          - test-group-name: "Server & Routes"
+            test-pattern: "src/server/**/*.test.ts src/routers/**/*.test.ts"
+          - test-group-name: "Entities & Utils"
+            test-pattern: "src/entities/**/*.test.ts src/utils/**/*.test.ts src/adapters/**/*.test.ts"
+          - test-group-name: "Workers & Migrations"
+            test-pattern: "src/workers/**/*.test.ts migration/tests/*.test.ts"
     
     # Security: Explicit minimal permissions
     permissions:
@@ -170,9 +188,6 @@ jobs:
             sleep 1
           done
 
-      - name: Restore DB backup
-        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
-
       - name: Use Node.js
         uses: actions/setup-node@v6
         with:
@@ -193,7 +208,7 @@ jobs:
           restore-keys: |
             ts-build-
 
-      # Performance: Check if we have a cached post-migration database state
+      # Performance: Check if we have a cached post-migration database state FIRST
       - name: Get migration checksum
         id: migration-checksum
         run: |
@@ -210,6 +225,25 @@ jobs:
           key: migrated-db-${{ steps.date.outputs.week }}-${{ steps.migration-checksum.outputs.checksum }}
           restore-keys: |
             migrated-db-${{ steps.date.outputs.week }}-
+
+      # Only restore initial backup if we DON'T have cached migrated DB
+      - name: Restore initial DB backup
+        if: steps.cache-migrated-db.outputs.cache-hit != 'true'
+        run: |
+          echo "📦 Restoring initial database backup (will run migrations after)..."
+          PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio \
+            < /tmp/backups/givethio-staging/db_backup.sql
+          echo "✅ Initial database restored"
+
+      # Restore from cached migrated database if available (SKIP initial restore)
+      - name: Restore cached post-migration database
+        if: steps.cache-migrated-db.outputs.cache-hit == 'true'
+        run: |
+          echo "⚡ Restoring from cached post-migration database..."
+          echo "This database already has migrations applied, skipping initial backup!"
+          PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio \
+            --set ON_ERROR_STOP=on < /tmp/migrated_db_dump.sql
+          echo "✅ Cached database restored (skipped migrations!)"
 
       # Only run migrations if no cached migrated DB
       - name: Run migrations
@@ -242,15 +276,6 @@ jobs:
             echo "⚠️  Warning: Dump is large (${DUMP_SIZE_MB}MB), caching may be slow"
           fi
 
-      # Restore from cached migrated database if available
-      - name: Restore cached post-migration database
-        if: steps.cache-migrated-db.outputs.cache-hit == 'true'
-        run: |
-          echo "⚡ Restoring from cached post-migration database..."
-          PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio \
-            --set ON_ERROR_STOP=on < /tmp/migrated_db_dump.sql
-          echo "✅ Cached database restored (skipped migrations!)"
-
       # Debug: Verify cache file exists before tests
       - name: Verify cache file for saving
         if: steps.cache-migrated-db.outputs.cache-hit != 'true'
@@ -265,8 +290,17 @@ jobs:
           fi
 
       # Performance: Run tests with optimized Node.js settings
-      - name: Run tests
-        run: npm run test
+      - name: Run tests - ${{ matrix.test-group-name }}
+        run: |
+          echo "🧪 Running test group: ${{ matrix.test-group-name }}"
+          echo "📁 Test pattern: ${{ matrix.test-pattern }}"
+          NODE_ENV=test mocha \
+            --require ts-node/register \
+            --timeout 90000 \
+            --exit \
+            --retries 2 \
+            ./test/pre-test-scripts.ts \
+            ${{ matrix.test-pattern }}
         env:
           # Performance: Optimize Node.js memory for testing
           NODE_OPTIONS: "--max-old-space-size=4096"
