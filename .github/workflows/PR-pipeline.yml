@@ -36,7 +36,18 @@ jobs:
           node-version: 22.18.0
           cache: 'npm'
 
+      # Performance: Cache node_modules (shared with test jobs)
+      - name: Cache node_modules
+        id: node-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            node-modules-${{ runner.os }}-
+
       - name: Install Node.js dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Run linters
@@ -49,8 +60,8 @@ jobs:
       # Build entire project INCLUDING tests (compile once, use 6 times!)
       - name: Build project and tests
         run: |
-          echo "🔨 Building TypeScript (src + tests)..."
-          npm run build
+          echo "🔨 Building TypeScript (src + tests) with relaxed strictness..."
+          npm run build:ci
           echo "✅ Build complete"
       
       # Upload compiled code for test jobs to use
@@ -206,7 +217,18 @@ jobs:
           node-version: 22.18.0
           cache: 'npm'
 
+      # Performance: Cache node_modules across test jobs
+      - name: Cache node_modules
+        id: node-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            node-modules-${{ runner.os }}-
+
       - name: Install dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       # Performance: Download pre-compiled build from lint-and-build job

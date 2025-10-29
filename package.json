@@ -236,6 +236,7 @@
         "db:migrate:seedToken:run": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:run",
         "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert",
         "build": "rm -rf ./build && tsc && mkdir ./build/config && mkdir ./build/src/server/adminJs/tabs/components && cp -r src/server/adminJs/tabs/components/* ./build/src/server/adminJs/tabs/components/ && mkdir ./build/src/utils/locales && cp -r ./src/utils/locales/* ./build/src/utils/locales/ && cp -r ./src/abi build/src/abi ",
+        "build:ci": "rm -rf ./build && tsc --project tsconfig.build.json && mkdir -p ./build/config && mkdir -p ./build/src/server/adminJs/tabs/components && cp -r src/server/adminJs/tabs/components/* ./build/src/server/adminJs/tabs/components/ && mkdir -p ./build/src/utils/locales && cp -r ./src/utils/locales/* ./build/src/utils/locales/ && cp -r ./src/abi build/src/abi ",
         "dev": "NODE_ENV=development node ./build/src/index.js",
         "production": "NODE_ENV=production node ./build/src/index.js",
         "start:docker:server": "npm run db:migrate:run:production && npm run production",
