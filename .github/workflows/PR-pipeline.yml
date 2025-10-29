@@ -226,7 +226,21 @@ jobs:
           echo "💾 Creating post-migration database dump for caching..."
           PGPASSWORD=postgres pg_dump -h localhost -p 5443 -U postgres -d givethio \
             --no-owner --no-acl > /tmp/migrated_db_dump.sql
-          echo "✅ Dump created: $(du -h /tmp/migrated_db_dump.sql | cut -f1)"
+          
+          # Verify dump was created and show size
+          if [ ! -f /tmp/migrated_db_dump.sql ]; then
+            echo "❌ ERROR: Dump file was not created!"
+            exit 1
+          fi
+          
+          DUMP_SIZE=$(du -h /tmp/migrated_db_dump.sql | cut -f1)
+          DUMP_SIZE_MB=$(du -m /tmp/migrated_db_dump.sql | cut -f1)
+          echo "✅ Dump created: $DUMP_SIZE ($DUMP_SIZE_MB MB)"
+          
+          # Warn if dump is very large
+          if [ $DUMP_SIZE_MB -gt 2000 ]; then
+            echo "⚠️  Warning: Dump is large (${DUMP_SIZE_MB}MB), caching may be slow"
+          fi
 
       # Restore from cached migrated database if available
       - name: Restore cached post-migration database
@@ -236,6 +250,19 @@ jobs:
           PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio \
             --set ON_ERROR_STOP=on < /tmp/migrated_db_dump.sql
           echo "✅ Cached database restored (skipped migrations!)"
+
+      # Debug: Verify cache file exists before tests
+      - name: Verify cache file for saving
+        if: steps.cache-migrated-db.outputs.cache-hit != 'true'
+        run: |
+          echo "🔍 Verifying dump file exists for caching..."
+          if [ -f /tmp/migrated_db_dump.sql ]; then
+            ls -lh /tmp/migrated_db_dump.sql
+            echo "✅ File exists and will be cached after job completes"
+          else
+            echo "❌ ERROR: Dump file not found! Cache will not be saved!"
+            exit 1
+          fi
 
       # Performance: Run tests with optimized Node.js settings
       - name: Run tests
