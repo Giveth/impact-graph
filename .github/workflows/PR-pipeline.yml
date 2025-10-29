@@ -296,7 +296,6 @@ jobs:
           echo "📁 Test pattern: ${{ matrix.test-pattern }}"
           NODE_ENV=test npx mocha \
             --require ts-node/register \
-            --timeout 90000 \
             --exit \
             --retries 2 \
             ./test/pre-test-scripts.ts \
@@ -304,6 +303,8 @@ jobs:
         env:
           # Performance: Optimize Node.js memory for testing
           NODE_OPTIONS: "--max-old-space-size=4096"
+          # Performance: Skip type checking (already done in lint job)
+          TS_NODE_TRANSPILE_ONLY: "1"
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
