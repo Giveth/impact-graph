@@ -1,0 +1,18 @@
+{
+    "extension": [
+        "ts"
+    ],
+    "spec": [
+        "./test/pre-test-scripts.ts",
+        "./src/**/*.test.ts",
+        "./src/**/**/*.test.ts",
+        "./migration/tests/*.test.ts"
+    ],
+    "exit": true,
+    "require": [
+        "ts-node/register"
+    ],
+    "retries": 2,
+    "parallel": true,
+    "jobs": 4
+}
