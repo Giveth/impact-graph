@@ -1,4 +1,5 @@
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import { ActionResponse } from 'adminjs';
 import { ProjectQfRound } from '../../../entities/projectQfRound';
 import {
   canAccessProjectQfRoundAction,
@@ -9,6 +10,7 @@ import {
   AdminJsContextInterface,
 } from '../adminJs-types';
 import { logger } from '../../../utils/logger';
+import { updateProjectStatistics } from '../../../services/projectService';
 
 const deleteProjectQfRound = async (
   request: AdminJsRequestInterface,
@@ -95,6 +97,52 @@ const deleteProjectQfRound = async (
   };
 };
 
+/**
+ * Update project statistics after ProjectQfRound creation
+ *
+ * MAIN PURPOSE: to update the statistics for a given project and QF round when project ahs been added to a QF round or removed from a QF round
+ *
+ * @param response ActionResponse
+ * @returns Promise<ActionResponse>
+ */
+const afterCreateUpdateStatistics = async (
+  response: ActionResponse,
+): Promise<ActionResponse> => {
+  const record = response.record;
+  if (!record) return response;
+
+  try {
+    const projectId = Number(record.params?.projectId);
+    const qfRoundId = Number(record.params?.qfRoundId);
+
+    if (projectId && qfRoundId) {
+      logger.debug('Updating statistics after ProjectQfRound creation:', {
+        projectId,
+        qfRoundId,
+      });
+
+      // Update statistics for this project-round combination
+      await updateProjectStatistics(projectId, qfRoundId);
+
+      logger.info(
+        'Statistics updated successfully after ProjectQfRound creation:',
+        {
+          projectId,
+          qfRoundId,
+        },
+      );
+    }
+  } catch (error) {
+    logger.error('Error updating statistics after ProjectQfRound creation:', {
+      error: error.message,
+      recordParams: record.params,
+    });
+    // Don't fail the creation, just log the error
+  }
+
+  return response;
+};
+
 export const projectQfRoundsTab = {
   resource: ProjectQfRound,
   options: {
@@ -120,6 +168,7 @@ export const projectQfRoundsTab = {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectQfRoundAction({ currentAdmin }, ResourceActions.NEW),
+        after: afterCreateUpdateStatistics,
       },
       edit: {
         isVisible: true,
