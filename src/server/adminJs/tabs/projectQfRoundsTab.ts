@@ -100,7 +100,7 @@ const deleteProjectQfRound = async (
 /**
  * Update project statistics after ProjectQfRound creation
  *
- * MAIN PURPOSE: to update the statistics for a given project and QF round when project ahs been added to a QF round or removed from a QF round
+  * MAIN PURPOSE: to update the statistics for a given project and QF round when project has been added to a QF round
  *
  * @param response ActionResponse
  * @returns Promise<ActionResponse>
