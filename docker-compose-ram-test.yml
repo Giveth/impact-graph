@@ -1,0 +1,297 @@
+version: "3.9"
+
+services:
+  ## Impact-Graph
+  # Multiple GraphQL API instances (for load balancing)
+  impact-graph-ql1:
+    container_name: impact-graph-ql1
+    image: ${IMPACT_GRAPH_IMAGE:-ghcr.io/giveth/impact-graph:staging}
+    command: npm run start:docker:server
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-1.log
+      - ENABLE_GRAPHQL=true
+      - ENABLE_CRONJOBS=false
+    restart: always
+    volumes:
+      - ./config/impact-graph:/usr/src/app/config:ro
+      - ./config/impact-graph:/usr/src/app/build/config:ro
+      - ./logs/impact-graph:/usr/src/app/logs:rw
+    ports:
+      - "4001:4000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - redis-all
+      - auth
+      - notification-center
+    networks:
+      - giveth
+
+  impact-graph-ql2:
+    container_name: impact-graph-ql2
+    image: ${IMPACT_GRAPH_IMAGE:-ghcr.io/giveth/impact-graph:staging}
+    command: npm run start:docker:server
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-2.log
+      - ENABLE_GRAPHQL=true
+      - ENABLE_CRONJOBS=false
+    restart: always
+    volumes:
+      - ./config/impact-graph:/usr/src/app/config:ro
+      - ./config/impact-graph:/usr/src/app/build/config:ro
+      - ./logs/impact-graph:/usr/src/app/logs:rw
+    ports:
+      - "4002:4000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - redis-all
+      - auth
+      - notification-center
+    networks:
+      - giveth
+
+  impact-graph-ql3:
+    container_name: impact-graph-ql3
+    image: ${IMPACT_GRAPH_IMAGE:-ghcr.io/giveth/impact-graph:staging}
+    command: npm run start:docker:server
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-3.log
+      - ENABLE_GRAPHQL=true
+      - ENABLE_CRONJOBS=false
+    restart: always
+    volumes:
+      - ./config/impact-graph:/usr/src/app/config:ro
+      - ./config/impact-graph:/usr/src/app/build/config:ro
+      - ./logs/impact-graph:/usr/src/app/logs:rw
+    ports:
+      - "4003:4000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - redis-all
+      - auth
+      - notification-center
+    networks:
+      - giveth
+
+  impact-graph-ql4:
+    container_name: impact-graph-ql4
+    image: ${IMPACT_GRAPH_IMAGE:-ghcr.io/giveth/impact-graph:staging}
+    command: npm run start:docker:server
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-3.log
+      - ENABLE_GRAPHQL=true
+      - ENABLE_CRONJOBS=false
+    restart: always
+    volumes:
+      - ./config/impact-graph:/usr/src/app/config:ro
+      - ./config/impact-graph:/usr/src/app/build/config:ro
+      - ./logs/impact-graph:/usr/src/app/logs:rw
+    ports:
+      - "4004:4000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - redis-all
+      - auth
+      - notification-center
+    networks:
+      - giveth
+
+  # Background jobs instance (dedicated for cronjobs only)
+  impact-graph-jobs:
+    container_name: impact-graph-jobs
+    image: ${IMPACT_GRAPH_IMAGE:-ghcr.io/giveth/impact-graph:staging}
+    command: npm run start:docker:server
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_PATH=/usr/src/app/logs/impact-graph-jobs.log
+      - ENABLE_GRAPHQL=false
+      - ENABLE_CRONJOBS=true
+    restart: always
+    volumes:
+      - ./config/impact-graph:/usr/src/app/config:ro
+      - ./config/impact-graph:/usr/src/app/build/config:ro
+      - ./logs/impact-graph:/usr/src/app/logs:rw
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - redis-all
+    networks:
+      - giveth
+
+  #Authentication Service
+  auth:
+    image: ghcr.io/giveth/siweauthmicroservice:staging
+    restart: unless-stopped
+    command: npm run start:server:staging
+    init: true
+    environment:
+      - NODE_ENV=staging
+    networks:
+      - giveth
+    volumes:
+      - ./config/auth:/usr/src/app/dist/config
+      - ./config/auth:/usr/src/app/config
+      - ./logs/auth:/usr/src/app/dist/logs
+    ports:
+      - 3000:3000
+    depends_on:
+      - redis-all
+
+  #Notification-Center
+  notification-center:
+    image: ghcr.io/giveth/notification-center:staging
+    command: npm run start:server:staging
+    restart: unless-stopped
+    init: true
+    environment:
+      - NODE_ENV=staging
+    networks:
+      - giveth
+    volumes:
+      - ./config/notification-center:/usr/src/app/dist/config
+      - ./config/notification-center:/usr/src/app/config
+      - ./logs/notification-center:/usr/src/app/dist/logs
+    ports:
+      - 3040:3040
+    depends_on:
+      - redis-all
+
+  # GivEconomy-Notification-Service
+  givEconomy-notification-service:
+    image: ghcr.io/giveth/giveconomy-notification-service:staging
+    command: npm run start:docker:server
+    environment:
+      - NODE_ENV=staging
+    restart: unless-stopped
+    volumes:
+      - ./config/giveconomy-notification-service:/usr/src/app/config
+      - ./logs/giveconomy-notification-service:/usr/src/app/logs
+      - ./data/giveconomy-notification-service:/usr/src/app/data
+
+  # REDIS
+  redis-all:
+    image: redis:$REDIS_VERSION
+    container_name: redis-all
+    networks:
+      - giveth
+    environment:
+      - REDIS_ALLOW_EMPTY_PASSWORD=yes
+    restart: always
+    volumes:
+      - redis-data:/data
+
+  # Caddy
+  caddy:
+    image: ghcr.io/giveth/giveth-caddy:latest
+    container_name: caddy-reverse-proxy
+    restart: unless-stopped
+    networks:
+      - giveth
+    ports:
+      - 80:80
+      - 443:443
+    env_file:
+      - .env
+    environment:
+      IMPACT_GRAPH_URL: ${IMPACT_GRAPH_URL:-}
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-}
+      NOTIFICATION_CENTER_URL: ${NOTIFICATION_CENTER_URL:-}
+      #      APIGIV_URL = ${APIGIV_URL:-}
+      RESTRICTED_PATHS: ${RESTRICTED_PATHS:-}
+      IP_WHITELIST: ${IP_WHITELIST:-}
+      IG_WHITELIST_RATE_EVENTS: ${IG_WHITELIST_RATE_EVENTS:-}
+      IG_WHITELIST_RATE_INTERVAL: ${IG_WHITELIST_RATE_INTERVAL:-}
+      IG_PUBLIC_RATE_EVENTS: ${IG_PUBLIC_RATE_EVENTS:-}
+      IG_PUBLIC_RATE_INTERVAL: ${IG_PUBLIC_RATE_INTERVAL:-}
+      DOMAIN_WHITELIST: ${DOMAIN_WHITELIST:-}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./packages/frontend/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./logs/caddy:/usr/src/app/
+    depends_on:
+      - impact-graph-ql1
+      - impact-graph-ql2
+      - impact-graph-ql3
+      - impact-graph-ql4
+      - impact-graph-jobs
+      - auth
+      - notification-center
+
+volumes:
+  redis-data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  giveth:
+    driver: bridge
