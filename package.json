@@ -72,7 +72,7 @@
         "twitter-api-sdk": "^1.0.9",
         "type-graphql": "2.0.0-beta.1",
         "typedi": "0.8.0",
-        "typeorm": "^0.3.27"
+        "typeorm": "0.3.20"
     },
     "lint-staged": {
         "*.ts": [
