@@ -46,7 +46,7 @@ services:
   impact-graph-ql2:
     container_name: impact-graph-ql2
     image: ${IMPACT_GRAPH_IMAGE:-ghcr.io/giveth/impact-graph:staging}
-    command: npm run start:docker:server
+    command: npm run production
     init: true
     security_opt:
       - no-new-privileges:true
@@ -83,7 +83,7 @@ services:
   impact-graph-ql3:
     container_name: impact-graph-ql3
     image: ${IMPACT_GRAPH_IMAGE:-ghcr.io/giveth/impact-graph:staging}
-    command: npm run start:docker:server
+    command: npm run production
     init: true
     security_opt:
       - no-new-privileges:true
@@ -120,7 +120,7 @@ services:
   impact-graph-ql4:
     container_name: impact-graph-ql4
     image: ${IMPACT_GRAPH_IMAGE:-ghcr.io/giveth/impact-graph:staging}
-    command: npm run start:docker:server
+    command: npm run production
     init: true
     security_opt:
       - no-new-privileges:true
@@ -158,7 +158,7 @@ services:
   impact-graph-jobs:
     container_name: impact-graph-jobs
     image: ${IMPACT_GRAPH_IMAGE:-ghcr.io/giveth/impact-graph:staging}
-    command: npm run start:docker:server
+    command: npm run production
     init: true
     security_opt:
       - no-new-privileges:true
