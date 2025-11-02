@@ -16,10 +16,15 @@ services:
     tmpfs:
       - /tmp
     environment:
+      - NODE_ENV=production
       - ENVIRONMENT=staging
+      - REDIS_HOST=redis-all
+      - REDIS_PORT=6379
       - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-1.log
       - ENABLE_GRAPHQL=true
       - ENABLE_CRONJOBS=false
+      - HOST=0.0.0.0
+      - PORT=4000
     restart: always
     volumes:
       - ./config/impact-graph:/usr/src/app/config:ro
@@ -55,10 +60,12 @@ services:
       - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-2.log
       - ENABLE_GRAPHQL=true
       - ENABLE_CRONJOBS=false
+      - HOST=0.0.0.0
+      - PORT=4000
     restart: always
     volumes:
       - ./config/impact-graph:/usr/src/app/config:ro
-      - ./config/impact-graph:/usr/src/app/build/config:ro
+      - ./config/impact-graph/production.env:/usr/src/app/build/config/production.env:ro
       - ./logs/impact-graph:/usr/src/app/logs:rw
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
@@ -90,10 +97,12 @@ services:
       - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-3.log
       - ENABLE_GRAPHQL=true
       - ENABLE_CRONJOBS=false
+      - HOST=0.0.0.0
+      - PORT=4000
     restart: always
     volumes:
       - ./config/impact-graph:/usr/src/app/config:ro
-      - ./config/impact-graph:/usr/src/app/build/config:ro
+      - ./config/impact-graph/production.env:/usr/src/app/build/config/production.env:ro
       - ./logs/impact-graph:/usr/src/app/logs:rw
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
@@ -125,10 +134,12 @@ services:
       - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-4.log
       - ENABLE_GRAPHQL=true
       - ENABLE_CRONJOBS=false
+      - HOST=0.0.0.0
+      - PORT=4000
     restart: always
     volumes:
       - ./config/impact-graph:/usr/src/app/config:ro
-      - ./config/impact-graph:/usr/src/app/build/config:ro
+      - ./config/impact-graph/production.env:/usr/src/app/build/config/production.env:ro
       - ./logs/impact-graph:/usr/src/app/logs:rw
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
@@ -157,14 +168,16 @@ services:
     tmpfs:
       - /tmp
     environment:
-      - ENVIRONMENT=staging
+      - NODE_ENV=production
       - LOG_PATH=/usr/src/app/logs/impact-graph-jobs.log
       - ENABLE_GRAPHQL=false
       - ENABLE_CRONJOBS=true
+      - HOST=0.0.0.0
+      - PORT=4000
     restart: always
     volumes:
       - ./config/impact-graph:/usr/src/app/config:ro
-      - ./config/impact-graph:/usr/src/app/build/config:ro
+      - ./config/impact-graph/production.env:/usr/src/app/build/config/production.env:ro
       - ./logs/impact-graph:/usr/src/app/logs:rw
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
@@ -249,7 +262,7 @@ services:
 
   # REDIS
   redis-all:
-    image: redis:$REDIS_VERSION
+    image: ghcr.io/giveth/giveth-redis:latest
     container_name: redis-all
     command: redis-server --requirepass ${REDIS_PASSWORD:-changeme123}
     init: true
