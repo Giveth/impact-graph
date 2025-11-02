@@ -10,8 +10,8 @@ permissions:
   contents: read  # All jobs can read code, but can't write by default
 
 jobs:
-  run-linters:
-    name: Run linters
+  linters-and-build:
+    name: Run linters and build
     runs-on: ubuntu-latest
     permissions:
       contents: read        # Read code
@@ -25,9 +25,9 @@ jobs:
           fetch-depth: 1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          node-version: 20.11.0
+          node-version: 22.18.0
           cache: 'npm'
 
       # ESLint and Prettier must be in `package.json`
@@ -35,14 +35,20 @@ jobs:
         run: npm ci
 
       - name: Run linters
-        uses: wearerequired/lint-action@v2
+        uses: wearerequired/lint-action@v2.3.0
         with:
           eslint: true
           #prettier: true
           continue_on_error: true
 
+      - name: Build project
+        run: |
+          echo "🔨 Building TypeScript..."
+          npm run build
+          echo "✅ Build complete"
+
   publish:
-    needs: run-linters
+    needs: linters-and-build
     runs-on: ubuntu-latest
     permissions:
       contents: read      # Read code
@@ -57,19 +63,19 @@ jobs:
           fetch-depth: 1
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3.11.1
 
       # Performance: Build with cache for faster builds
       - name: Build image and push to GitHub Packages
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v6.18.0
         with:
           context: .
           push: true
@@ -83,7 +89,7 @@ jobs:
 
       # Security: Sign container image with Cosign
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4.0.0
 
       - name: Sign container image
         run: |
@@ -98,7 +104,7 @@ jobs:
     steps:
       # Security: Verify image signature before deployment
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4.0.0
 
       - name: Verify Image Signature
         run: |
@@ -110,7 +116,7 @@ jobs:
 
       # Only deploys if signature verification passes
       - name: SSH and Pull Verified Image
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.STAGING_HOST_ALL }}
           username: ${{ secrets.STAGING_USERNAME_ALL }}
@@ -133,7 +139,7 @@ jobs:
       contents: none      # Minimal - only for actions to work
     steps:
       - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.STAGING_HOST_ALL }}
           username: ${{ secrets.STAGING_USERNAME_ALL }}
@@ -157,7 +163,7 @@ jobs:
       contents: none      # Minimal - only for actions to work
     steps:
       - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.STAGING_HOST_ALL }}
           username: ${{ secrets.STAGING_USERNAME_ALL }}
@@ -180,7 +186,7 @@ jobs:
       contents: none      # Minimal - only for actions to work
     steps:
       - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.STAGING_HOST_ALL }}
           username: ${{ secrets.STAGING_USERNAME_ALL }}
@@ -203,13 +209,14 @@ jobs:
       contents: none      # Minimal - only for actions to work
     steps:
       - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.STAGING_HOST_ALL }}
           username: ${{ secrets.STAGING_USERNAME_ALL }}
           key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            set -e
             cd giveth-all
             # Load the verified image SHA from environment
             export $(cat .env.impact-graph | xargs)
@@ -233,7 +240,7 @@ jobs:
         run: sleep 60
 
       - name: SSH and Verify Health
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.STAGING_HOST_ALL }}
           username: ${{ secrets.STAGING_USERNAME_ALL }}
