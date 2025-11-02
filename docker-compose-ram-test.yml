@@ -128,7 +128,7 @@ services:
       - /tmp
     environment:
       - ENVIRONMENT=staging
-      - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-3.log
+      - LOG_PATH=/usr/src/app/logs/impact-graph-graphql-4.log
       - ENABLE_GRAPHQL=true
       - ENABLE_CRONJOBS=false
     restart: always
@@ -193,14 +193,21 @@ services:
     restart: unless-stopped
     command: npm run start:server:staging
     init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
     environment:
       - NODE_ENV=staging
     networks:
       - giveth
     volumes:
-      - ./config/auth:/usr/src/app/dist/config
-      - ./config/auth:/usr/src/app/config
-      - ./logs/auth:/usr/src/app/dist/logs
+      - ./config/auth:/usr/src/app/dist/config:ro
+      - ./config/auth:/usr/src/app/config:ro
+      - ./logs/auth:/usr/src/app/dist/logs:rw
     ports:
       - 3000:3000
     depends_on:
@@ -212,14 +219,21 @@ services:
     command: npm run start:server:staging
     restart: unless-stopped
     init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
     environment:
       - NODE_ENV=staging
     networks:
       - giveth
     volumes:
-      - ./config/notification-center:/usr/src/app/dist/config
-      - ./config/notification-center:/usr/src/app/config
-      - ./logs/notification-center:/usr/src/app/dist/logs
+      - ./config/notification-center:/usr/src/app/dist/config:ro
+      - ./config/notification-center:/usr/src/app/config:ro
+      - ./logs/notification-center:/usr/src/app/dist/logs:rw
     ports:
       - 3040:3040
     depends_on:
@@ -229,22 +243,38 @@ services:
   givEconomy-notification-service:
     image: ghcr.io/giveth/giveconomy-notification-service:staging
     command: npm run start:docker:server
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
     environment:
       - NODE_ENV=staging
     restart: unless-stopped
     volumes:
-      - ./config/giveconomy-notification-service:/usr/src/app/config
-      - ./logs/giveconomy-notification-service:/usr/src/app/logs
-      - ./data/giveconomy-notification-service:/usr/src/app/data
+      - ./config/giveconomy-notification-service:/usr/src/app/config:ro
+      - ./logs/giveconomy-notification-service:/usr/src/app/logs:rw
+      - ./data/giveconomy-notification-service:/usr/src/app/data:rw
+    networks:
+      - giveth
 
   # REDIS
   redis-all:
     image: redis:$REDIS_VERSION
     container_name: redis-all
+    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme123}
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     networks:
       - giveth
     environment:
-      - REDIS_ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme123}
     restart: always
     volumes:
       - redis-data:/data
@@ -254,6 +284,13 @@ services:
     image: ghcr.io/giveth/giveth-caddy:latest
     container_name: caddy-reverse-proxy
     restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE  # Required for binding to ports 80 and 443
     networks:
       - giveth
     ports:
@@ -276,8 +313,8 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-      - ./packages/frontend/caddy/Caddyfile:/etc/caddy/Caddyfile
-      - ./logs/caddy:/usr/src/app/
+      - ./packages/frontend/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./logs/caddy:/usr/src/app/:rw
     depends_on:
       - impact-graph-ql1
       - impact-graph-ql2
