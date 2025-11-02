@@ -39,7 +39,7 @@ jobs:
       # Performance: Cache node_modules (shared with test jobs)
       - name: Cache node_modules
         id: node-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -51,7 +51,7 @@ jobs:
         run: npm ci
 
       - name: Run linters
-        uses: wearerequired/lint-action@v2
+        uses: wearerequired/lint-action@v2.3.0
         with:
           eslint: true
           #prettier: true
@@ -125,7 +125,7 @@ jobs:
       # Cache is shared across all runs in the same week (7 days)
       - name: Cache database backup
         id: cache-db
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         with:
           path: /tmp/db_backup.zip
           # Cache key: week-based so all runs same week share cache
@@ -188,7 +188,7 @@ jobs:
       # Performance: Cache node_modules (shared with all jobs)
       - name: Cache node_modules
         id: node-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -347,7 +347,7 @@ jobs:
       # Performance: Cache node_modules (shared from lint-and-build)
       - name: Cache node_modules
         id: node-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
