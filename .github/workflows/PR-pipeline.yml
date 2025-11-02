@@ -174,10 +174,18 @@ jobs:
       - name: Wait for PostgreSQL to become ready
         run: |
           for i in {1..10}; do
-            pg_isready -h localhost -p 5443 -U postgres && echo Success && break
+            if pg_isready -h localhost -p 5443 -U postgres; then
+              echo "✅ PostgreSQL is ready"
+              break
+            fi
             echo -n .
             sleep 1
           done
+          # Verify database is actually ready
+          if ! pg_isready -h localhost -p 5443 -U postgres; then
+            echo "❌ PostgreSQL failed to become ready after 10 attempts"
+            exit 1
+          fi
 
       - name: Use Node.js
         uses: actions/setup-node@v6
@@ -221,18 +229,32 @@ jobs:
       - name: Restore initial DB backup
         if: steps.cache-migrated-db.outputs.cache-hit != 'true'
         run: |
+          set -e
           echo "📦 Restoring initial database backup..."
+          set +e
           PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio \
             < /tmp/backups/givethio-staging/db_backup.sql
+          if [ $? -ne 0 ]; then
+            echo "❌ Initial database restore failed"
+            exit 1
+          fi
+          set -e
           echo "✅ Initial database restored"
 
       # Restore from cached migrated database if available (SKIP initial restore)
       - name: Restore cached post-migration database
         if: steps.cache-migrated-db.outputs.cache-hit == 'true'
         run: |
+          set -e
           echo "⚡ Restoring from cached post-migration database..."
+          set +e
           PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio \
             --set ON_ERROR_STOP=on < /tmp/migrated_db_dump.sql
+          if [ $? -ne 0 ]; then
+            echo "❌ Cached database restore failed"
+            exit 1
+          fi
+          set -e
           echo "✅ Cached database restored (skipped migrations!)"
 
       # Only run migrations if no cached migrated DB
