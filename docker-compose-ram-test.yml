@@ -264,6 +264,12 @@ services:
     restart: always
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   # Caddy
   caddy:
