@@ -128,7 +128,7 @@ const afterCreateUpdateStatistics = async (
 
       // Update project user statistics
       const project = await findProjectById(projectId);
-      if (project) {
+      if (project?.adminUser?.id) {
         await updateUserTotalReceived(project.adminUser.id);
       }
 
