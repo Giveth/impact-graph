@@ -11,6 +11,8 @@ import {
 } from '../adminJs-types';
 import { logger } from '../../../utils/logger';
 import { updateProjectStatistics } from '../../../services/projectService';
+import { updateUserTotalReceived } from '../../../services/userService';
+import { findProjectById } from '../../../repositories/projectRepository';
 
 const deleteProjectQfRound = async (
   request: AdminJsRequestInterface,
@@ -98,7 +100,7 @@ const deleteProjectQfRound = async (
 };
 
 /**
- * Update project statistics after ProjectQfRound creation
+ * Update project and project user statistics after ProjectQfRound creation
  *
  * MAIN PURPOSE: to update the statistics for a given project and QF round when project has been added to a QF round
  *
@@ -123,6 +125,12 @@ const afterCreateUpdateStatistics = async (
 
       // Update statistics for this project-round combination
       await updateProjectStatistics(projectId, qfRoundId);
+
+      // Update project user statistics
+      const project = await findProjectById(projectId);
+      if (project) {
+        await updateUserTotalReceived(project.adminUser.id);
+      }
 
       logger.info(
         'Statistics updated successfully after ProjectQfRound creation:',
