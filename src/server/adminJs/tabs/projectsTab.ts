@@ -54,6 +54,8 @@ import { User } from '../../../entities/user';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { Category } from '../../../entities/category';
 import { getRedirectUrl } from '../adminJsUtils';
+import { ProjectVerificationForm } from '../../../entities/projectVerificationForm';
+import { updateUserTotalReceived } from '../../../services/userService';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -1112,6 +1114,7 @@ export const projectsTab = {
           const project = await Project.findOne({
             where: { id: request?.record?.id },
           });
+          const oldProjectAdminUserId = project?.adminUserId;
           if (project) {
             if (request?.record?.params?.adminChanged) {
               const adminUser = await User.findOne({
@@ -1119,6 +1122,24 @@ export const projectsTab = {
               });
               project.adminUser = adminUser!;
               await project.save();
+
+              // Update project verification form owner if it has been changed
+              const projectVerificationForm =
+                await ProjectVerificationForm.findOne({
+                  where: { projectId: project.id },
+                });
+              if (projectVerificationForm) {
+                projectVerificationForm.user = adminUser!;
+                await projectVerificationForm.save();
+              }
+
+              // Update new project user totalDonated and totalReceived
+              await updateUserTotalReceived(project.adminUserId);
+
+              // Update old project user totalDonated and totalReceived
+              if (oldProjectAdminUserId) {
+                await updateUserTotalReceived(oldProjectAdminUserId);
+              }
             }
             // Not required for now
             // Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
