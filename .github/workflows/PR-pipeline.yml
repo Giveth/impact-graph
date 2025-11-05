@@ -392,6 +392,14 @@ jobs:
             echo "✅ Redis is ready!"
           fi
 
+      # Performance: Run database setup once per job (not per test group!)
+      # This runs bootstrap, seeding, and migrations once instead of for each test group
+      - name: Initialize test database (run once per job)
+        run: |
+          echo "🔧 Initializing test database (bootstrap, seed, migrations)..."
+          NODE_ENV=test node ./build/test/pre-test-scripts.js
+          echo "✅ Database initialization complete"
+
       # Performance: Run pre-compiled JavaScript tests (much faster!)
       - name: Run tests - ${{ matrix.test-group-name }}
         run: |
@@ -406,7 +414,6 @@ jobs:
           NODE_ENV=test npx mocha \
             --exit \
             --retries 2 \
-            ./build/test/pre-test-scripts.js \
             $(echo "$TEST_PATTERN" | sed 's|src/|build/src/|g')
         env:
           # Performance: Optimize Node.js memory for testing

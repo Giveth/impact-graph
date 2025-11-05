@@ -1,49 +1,49 @@
-import { bootstrap } from '../src/server/bootstrap';
-import {
-  saveProjectDirectlyToDb,
-  saveDonationDirectlyToDb,
-  SEED_DATA,
-  DONATION_SEED_DATA,
-  REACTION_SEED_DATA,
-  PROJECT_UPDATE_SEED_DATA,
-} from './testUtils';
-import { User } from '../src/entities/user';
+import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
+import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
+import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
+import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
+import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
+import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens';
+import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
+import { EnablePgTrgmExtension1713859866338 } from '../migration/1713859866338-enable_pg_trgm_extension';
+import { AddPgTrgmIndexes1715086559930 } from '../migration/1715086559930-add_pg_trgm_indexes';
+import { ProjectFuturePowerViewV21717643016553 } from '../migration/1717643016553-ProjectFuturePowerView_V2';
+import { ProjectPowerViewV21717643739652 } from '../migration/1717643739652-ProjectPowerView_V2';
+import { ProjectUserInstantPowerViewV21717644442966 } from '../migration/1717644442966-ProjectUserInstantPowerView_V2';
+import { UserProjectPowerViewV21717645768886 } from '../migration/1717645768886-UserProjectPowerView_V2';
+import { ProjectEstimatedMatchingViewV21717646357435 } from '../migration/1717646357435-ProjectEstimatedMatchingView_V2';
+import { ProjectActualMatchingViewV161717646612482 } from '../migration/1717646612482-ProjectActualMatchingView_V16';
+import { LastSnapshotProjectPowerViewV21717648491606 } from '../migration/1717648491606-LastSnapshotProjectPowerView_V2';
+import { ProjectInstantPowerViewV31724223781248 } from '../migration/1724223781248-ProjectInstantPowerViewV3';
+import { ProjectGivbackRankViewV31725260193333 } from '../migration/1725260193333-projectGivbackRankView';
+import { ImplementSingleTableInheritance1750123930818 } from '../migration/1750123930818-implementSingleTableInheritance';
+import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
 import { Category } from '../src/entities/category';
-import { ProjectStatus } from '../src/entities/projectStatus';
-import { Project, ProjectUpdate } from '../src/entities/project';
-import { Reaction } from '../src/entities/reaction';
-import { Token } from '../src/entities/token';
-import { ProjectStatusReason } from '../src/entities/projectStatusReason';
+import { MainCategory } from '../src/entities/mainCategory';
 import {
   Organization,
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
-import { NETWORK_IDS } from '../src/provider';
-import { MainCategory } from '../src/entities/mainCategory';
-import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
-import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
+import { Project, ProjectUpdate } from '../src/entities/project';
+import { ProjectStatus } from '../src/entities/projectStatus';
+import { ProjectStatusReason } from '../src/entities/projectStatusReason';
+import { Reaction } from '../src/entities/reaction';
+import { Token } from '../src/entities/token';
+import { User } from '../src/entities/user';
 import { AppDataSource } from '../src/orm';
-import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
-import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
+import { NETWORK_IDS } from '../src/provider';
 import { redis } from '../src/redis';
-import { logger } from '../src/utils/logger';
-import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens';
-import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
-import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
+import { bootstrap } from '../src/server/bootstrap';
 import { ChainType } from '../src/types/network';
-import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
-import { EnablePgTrgmExtension1713859866338 } from '../migration/1713859866338-enable_pg_trgm_extension';
-import { AddPgTrgmIndexes1715086559930 } from '../migration/1715086559930-add_pg_trgm_indexes';
-import { ProjectPowerViewV21717643739652 } from '../migration/1717643739652-ProjectPowerView_V2';
-import { ProjectEstimatedMatchingViewV21717646357435 } from '../migration/1717646357435-ProjectEstimatedMatchingView_V2';
-import { ProjectActualMatchingViewV161717646612482 } from '../migration/1717646612482-ProjectActualMatchingView_V16';
-import { LastSnapshotProjectPowerViewV21717648491606 } from '../migration/1717648491606-LastSnapshotProjectPowerView_V2';
-import { ProjectFuturePowerViewV21717643016553 } from '../migration/1717643016553-ProjectFuturePowerView_V2';
-import { ProjectUserInstantPowerViewV21717644442966 } from '../migration/1717644442966-ProjectUserInstantPowerView_V2';
-import { UserProjectPowerViewV21717645768886 } from '../migration/1717645768886-UserProjectPowerView_V2';
-import { ProjectGivbackRankViewV31725260193333 } from '../migration/1725260193333-projectGivbackRankView';
-import { ProjectInstantPowerViewV31724223781248 } from '../migration/1724223781248-ProjectInstantPowerViewV3';
-import { ImplementSingleTableInheritance1750123930818 } from '../migration/1750123930818-implementSingleTableInheritance';
+import { logger } from '../src/utils/logger';
+import {
+  DONATION_SEED_DATA,
+  PROJECT_UPDATE_SEED_DATA,
+  REACTION_SEED_DATA,
+  saveDonationDirectlyToDb,
+  saveProjectDirectlyToDb,
+  SEED_DATA,
+} from './testUtils';
 
 async function seedDb() {
   await seedUsers();
@@ -560,7 +560,7 @@ async function runMigrations() {
   }
 }
 
-before(async () => {
+async function setupTestDatabase() {
   try {
     logger.debug('Clear Redis: ', await redis.flushall());
 
@@ -578,7 +578,34 @@ before(async () => {
 
     await seedDb();
     await runMigrations();
-  } catch (e) {
+  } catch (e: any) {
     throw new Error(`Could not setup tests requirements \n${e.message}`);
   }
-});
+}
+
+// Mocha hook - runs when this file is imported by test files
+// Only register the hook if we're running inside Mocha (before is defined)
+if (typeof before !== 'undefined') {
+  before(async () => {
+    await setupTestDatabase();
+  });
+}
+
+// Standalone execution - runs when this file is executed directly
+if (require.main === module) {
+  // eslint-disable-next-line no-console
+  console.log('🔧 Initializing test database...');
+  setupTestDatabase()
+    .then(() => {
+      // eslint-disable-next-line no-console
+      console.log('✅ Test database initialization complete');
+      process.exit(0);
+    })
+    .catch(e => {
+      // eslint-disable-next-line no-console
+      console.error(`❌ Could not setup test database: ${e.message}`);
+      // eslint-disable-next-line no-console
+      console.error(e);
+      process.exit(1);
+    });
+}
