@@ -1571,6 +1571,8 @@ export const updateUser = `
     $lastName: String
     $firstName: String
     $avatar: String
+    $twitterName: String
+    $telegramName: String
     $newUser: Boolean
   ) {
     updateUser(
@@ -1580,6 +1582,8 @@ export const updateUser = `
       firstName: $firstName
       lastName: $lastName
       avatar: $avatar
+      twitterName: $twitterName
+      telegramName: $telegramName
       newUser: $newUser
     )
   }

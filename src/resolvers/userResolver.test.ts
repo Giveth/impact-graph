@@ -854,6 +854,34 @@ function updateUserTestCases() {
     assert.equal(updatedUser?.name, updateUserData.firstName + ' ' + lastName);
     assert.equal(updatedUser?.lastName, lastName);
   });
+
+  it('should update user with twitter and telegram URLs', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const updateUserData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: user.email,
+      twitterName: 'twusername',
+      telegramName: 'tgusername',
+    };
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateUser,
+        variables: updateUserData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isTrue(result.data.data.updateUser);
+    const updatedUser = await User.findOne({ where: { id: user.id } });
+    assert.equal(updatedUser?.twitterName, updateUserData.twitterName);
+    assert.equal(updatedUser?.telegramName, updateUserData.telegramName);
+  });
 }
 
 function userEmailVerification() {

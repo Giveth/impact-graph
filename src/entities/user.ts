@@ -29,6 +29,8 @@ export const publicSelectionFields = [
   'user.firstName',
   'user.lastName',
   'user.url',
+  'user.twitterName',
+  'user.telegramName',
   'user.avatar',
   'user.totalDonated',
   'user.totalReceived',
@@ -119,6 +121,14 @@ export class User extends BaseEntity {
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   url?: string;
+
+  @Field(_type => String, { nullable: true })
+  @Column({ nullable: true })
+  twitterName?: string;
+
+  @Field(_type => String, { nullable: true })
+  @Column({ nullable: true })
+  telegramName?: string;
 
   @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: null })
