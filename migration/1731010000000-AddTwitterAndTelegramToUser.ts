@@ -6,13 +6,13 @@ export class AddTwitterAndTelegramToUser1731010000000
   name = 'AddTwitterAndTelegramToUser1731010000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Add twitter_url column to user table
+    // Add twitterName column to user table
     await queryRunner.query(`
       ALTER TABLE "user" 
       ADD COLUMN "twitterName" character varying
     `);
 
-    // Add telegram_url column to user table
+    // Add telegramName column to user table
     await queryRunner.query(`
       ALTER TABLE "user" 
       ADD COLUMN "telegramName" character varying
