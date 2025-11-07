@@ -210,17 +210,19 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
           } as TransactionDetailInput);
           transactions.push(txInfo);
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           return {
             record: {
               params: request?.payload || {},
               errors: {
                 transactionId: {
-                  message: `Transaction validation failed: ${error.message}`,
+                  message: `Transaction validation failed: ${errorMessage}`,
                 },
               },
             },
             notice: {
-              message: `Transaction validation failed: ${error.message}`,
+              message: `Transaction validation failed: ${errorMessage}`,
               type: 'danger',
             },
           };
