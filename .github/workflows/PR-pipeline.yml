@@ -2,9 +2,6 @@ name: run tests on pull request
 
 on:
   pull_request:
-    branches:
-      - master
-      - staging
 
 # Performance: Cancel outdated workflow runs
 concurrency:
