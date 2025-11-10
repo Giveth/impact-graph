@@ -1,3 +1,5 @@
+import { Max, Min } from 'class-validator';
+import { GraphQLJSON } from 'graphql-scalars';
 import {
   Arg,
   Args,
@@ -13,36 +15,24 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { GraphQLJSON } from 'graphql-scalars';
 import { Service } from 'typedi';
-import { Max, Min } from 'class-validator';
 import { Brackets, In, Repository } from 'typeorm';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
-import { ApolloContext } from '../types/ApolloContext';
+import {
+  DRAFT_DONATION_STATUS,
+  DraftDonation,
+} from '../entities/draftDonation';
+import { MainCategory } from '../entities/mainCategory';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 import { Project, ProjStatus } from '../entities/project';
+import {
+  SWAP_TRANSACTION_STATUS,
+  SwapTransaction,
+} from '../entities/swapTransaction';
 import { Token } from '../entities/token';
 import { publicSelectionFields } from '../entities/user';
-import SentryLogger from '../sentryLogger';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { AppDataSource } from '../orm';
 import { NETWORK_IDS } from '../provider';
-import {
-  getDonationToGivethWithDonationBoxMetrics,
-  isTokenAcceptableForProject,
-  syncDonationStatusWithBlockchainNetwork,
-  updateDonationPricesAndValues,
-} from '../services/donationService';
-import {
-  createDonationQueryValidator,
-  getDonationsQueryValidator,
-  resourcePerDateReportValidator,
-  updateDonationQueryValidator,
-  validateWithJoiSchema,
-} from '../utils/validators/graphqlQueryValidators';
-import { logger } from '../utils/logger';
-import {
-  findUserById,
-  setUserAsReferrer,
-} from '../repositories/userRepository';
 import {
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
@@ -57,30 +47,40 @@ import {
   newDonorsCount,
   newDonorsDonationTotalUsd,
 } from '../repositories/donationRepository';
-import { sleep } from '../utils/utils';
-import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
-import { MainCategory } from '../entities/mainCategory';
-import { findProjectById } from '../repositories/projectRepository';
-import { AppDataSource } from '../orm';
-import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
-import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
-import { findQfRoundById } from '../repositories/qfRoundRepository';
-import { detectAddressChainType } from '../utils/networks';
-import { ChainType } from '../types/network';
-import { getAppropriateNetworkId } from '../services/chains';
 import { markDraftDonationStatusMatched } from '../repositories/draftDonationRepository';
-import {
-  DRAFT_DONATION_STATUS,
-  DraftDonation,
-} from '../entities/draftDonation';
+import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
+import { findProjectById } from '../repositories/projectRepository';
+import { findQfRoundById } from '../repositories/qfRoundRepository';
 import { nonZeroRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
-import { ORGANIZATION_LABELS } from '../entities/organization';
-import { getTokenPrice } from '../services/priceService';
-import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 import {
-  SWAP_TRANSACTION_STATUS,
-  SwapTransaction,
-} from '../entities/swapTransaction';
+  findUserById,
+  setUserAsReferrer,
+} from '../repositories/userRepository';
+import SentryLogger from '../sentryLogger';
+import { getAppropriateNetworkId } from '../services/chains';
+import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
+import {
+  getDonationToGivethWithDonationBoxMetrics,
+  isTokenAcceptableForProject,
+  syncDonationStatusWithBlockchainNetwork,
+  updateDonationPricesAndValues,
+} from '../services/donationService';
+import { getTokenPrice } from '../services/priceService';
+import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
+import { ApolloContext } from '../types/ApolloContext';
+import { ChainType } from '../types/network';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { logger } from '../utils/logger';
+import { detectAddressChainType } from '../utils/networks';
+import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
+import { sleep } from '../utils/utils';
+import {
+  createDonationQueryValidator,
+  getDonationsQueryValidator,
+  resourcePerDateReportValidator,
+  updateDonationQueryValidator,
+  validateWithJoiSchema,
+} from '../utils/validators/graphqlQueryValidators';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
@@ -350,6 +350,7 @@ export class DonationResolver {
         .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project')
         .leftJoinAndSelect('donation.recurringDonation', 'recurringDonation')
+        .leftJoinAndSelect('donation.swapTransaction', 'swapTransaction')
         .leftJoinAndSelect('project.categories', 'categories')
         .leftJoin('project.projectPower', 'projectPower')
         .addSelect([
