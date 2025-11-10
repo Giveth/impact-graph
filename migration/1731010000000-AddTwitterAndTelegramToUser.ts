@@ -20,13 +20,13 @@ export class AddTwitterAndTelegramToUser1731010000000
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Drop telegram_url column
+    // Drop telegramName column
     await queryRunner.query(`
       ALTER TABLE "user" 
       DROP COLUMN IF EXISTS "telegramName"
     `);
 
-    // Drop twitter_url column
+    // Drop twitterName column
     await queryRunner.query(`
       ALTER TABLE "user" 
       DROP COLUMN IF EXISTS "twitterName"
