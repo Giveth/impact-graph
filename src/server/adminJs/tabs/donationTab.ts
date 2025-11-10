@@ -10,9 +10,11 @@ import {
 import { Project } from '../../../entities/project';
 import { Token } from '../../../entities/token';
 import { NETWORK_IDS } from '../../../provider';
+import { findQfRoundById } from '../../../repositories/qfRoundRepository';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
 import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
 import {
+  getTransactionInfoFromNetwork,
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../../../services/chains';
@@ -32,6 +34,7 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../../../services/userService';
+import { ChainType } from '../../../types/network';
 import {
   i18n,
   translationErrorMessagesKeys,
@@ -67,7 +70,14 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
       qfRoundId,
       anonymous,
       chainType,
+      fromWalletAddress,
+      toWalletAddress,
+      amount,
+      timestamp,
+      toWalletMemo,
     } = request?.payload || {};
+
+    // Validate required fields
     if (
       !txHash ||
       !transactionNetworkId ||
@@ -95,6 +105,39 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
         },
       };
     }
+
+    // Validate required fields for non-EVM chains
+    if (chainType !== ChainType.EVM) {
+      const errors: Record<string, { message: string }> = {};
+      if (!fromWalletAddress)
+        errors.fromWalletAddress = {
+          message: 'fromWalletAddress is required for non-EVM chains',
+        };
+      if (!toWalletAddress)
+        errors.toWalletAddress = {
+          message: 'toWalletAddress is required for non-EVM chains',
+        };
+      if (!amount)
+        errors.amount = { message: 'amount is required for non-EVM chains' };
+      if (!timestamp)
+        errors.timestamp = {
+          message: 'timestamp is required for non-EVM chains',
+        };
+
+      if (Object.keys(errors).length > 0) {
+        return {
+          record: {
+            params: request?.payload || {},
+            errors,
+          },
+          notice: {
+            message: 'Please fix the highlighted fields for non-EVM donation',
+            type: 'danger',
+          },
+        };
+      }
+    }
+
     const networkId = Number(transactionNetworkId);
     let transactions: NetworkTransactionInfo[] = [];
     let donationType;
@@ -120,46 +163,100 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
       };
     }
 
+    // Handle different transaction types
     if (txType === 'csvAirDrop') {
-      // transactions = await getDisperseTransactions(txHash, networkId);
       transactions = await getCsvAirdropTransactions(txHash, networkId);
       donationType = DONATION_TYPES.CSV_AIR_DROP;
     } else if (txType === 'gnosisSafe') {
-      // transactions = await getDisperseTransactions(txHash, networkId);
       transactions = await getGnosisSafeTransactions(txHash, networkId);
       donationType = DONATION_TYPES.GNOSIS_SAFE;
     } else {
-      const txInfo = await findEvmTransactionByHash({
-        networkId,
-        txHash,
-        symbol: currency,
-      } as TransactionDetailInput);
-      if (!txInfo) {
+      // Handle both EVM and non-EVM transactions
+      if (chainType === ChainType.EVM) {
+        const txInfo = await findEvmTransactionByHash({
+          networkId,
+          txHash,
+          symbol: currency,
+        } as TransactionDetailInput);
+        if (!txInfo) {
+          return {
+            record: {
+              params: request?.payload || {},
+              errors: {
+                transactionId: {
+                  message: 'Transaction not found on blockchain',
+                },
+              },
+            },
+            notice: {
+              message: 'Transaction not found on blockchain',
+              type: 'danger',
+            },
+          };
+        }
+        transactions.push(txInfo);
+      } else {
+        // Non-EVM chain - validate transaction using appropriate service
+        try {
+          const txInfo = await getTransactionInfoFromNetwork({
+            txHash,
+            symbol: currency,
+            networkId,
+            fromAddress: fromWalletAddress,
+            toAddress: toWalletAddress,
+            amount: Number(amount),
+            timestamp: Number(timestamp),
+            chainType,
+          } as TransactionDetailInput);
+          transactions.push(txInfo);
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          return {
+            record: {
+              params: request?.payload || {},
+              errors: {
+                transactionId: {
+                  message: `Transaction validation failed: ${errorMessage}`,
+                },
+              },
+            },
+            notice: {
+              message: `Transaction validation failed: ${errorMessage}`,
+              type: 'danger',
+            },
+          };
+        }
+      }
+    }
+
+    // Validate QF Round if provided
+    let qfRound: any = null;
+    if (qfRoundId) {
+      qfRound = await findQfRoundById(Number(qfRoundId));
+      if (!qfRound) {
         return {
           record: {
             params: request?.payload || {},
             errors: {
-              transactionId: { message: 'Transaction not found on blockchain' },
+              qfRoundId: { message: 'QF Round not found' },
             },
           },
           notice: {
-            message: 'Transaction not found on blockchain',
+            message: 'QF Round not found',
             type: 'danger',
           },
         };
       }
-      transactions.push(txInfo);
     }
 
     for (const transactionInfo of transactions) {
-      // const project = await Project.findOne({
-      //   walletAddress: transactionInfo?.to,
-      // });
       const project = await Project.createQueryBuilder('project')
         .where(`lower("walletAddress")=lower(:address)`, {
           address: transactionInfo?.to,
         })
         .leftJoinAndSelect('project.organization', 'organization')
+        .leftJoinAndSelect('project.qfRounds', 'qfRounds')
         .getOne();
 
       if (!project) {
@@ -167,6 +264,11 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
           return {
             record: {
               params: request?.payload || {},
+              errors: {
+                toWalletAddress: {
+                  message: 'Project not found',
+                },
+              },
             },
             notice: {
               message: 'Project not found',
@@ -186,6 +288,89 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
           },
         );
         continue;
+      }
+
+      // Validate QF Round conditions
+      if (qfRound) {
+        // a) Check if project is part of the QF round
+        const isProjectInQfRound = project.qfRounds?.some(
+          qr => qr.id === qfRound!.id,
+        );
+        if (!isProjectInQfRound) {
+          return {
+            record: {
+              params: request?.payload || {},
+              errors: {
+                qfRoundId: {
+                  message: 'Project is not part of this QF round',
+                },
+              },
+            },
+            notice: {
+              message: 'Project is not part of this QF round',
+              type: 'danger',
+            },
+          };
+        }
+
+        // b) Check if donation is on QF round eligible network
+        if (!qfRound.isEligibleNetwork(networkId)) {
+          return {
+            record: {
+              params: request?.payload || {},
+              errors: {
+                transactionNetworkId: {
+                  message: `Network ${networkId} is not eligible for this QF round. Eligible networks: ${qfRound.eligibleNetworks.join(', ') || 'all networks'}`,
+                },
+              },
+            },
+            notice: {
+              message: `Network ${networkId} is not eligible for this QF round`,
+              type: 'danger',
+            },
+          };
+        }
+
+        // c) Check if donation timestamp is between QF start and end date
+        const donationDate = new Date(transactionInfo?.timestamp * 1000);
+        if (
+          donationDate < qfRound.beginDate ||
+          donationDate > qfRound.endDate
+        ) {
+          return {
+            record: {
+              params: request?.payload || {},
+              errors: {
+                timestamp: {
+                  message: `Donation timestamp (${donationDate.toISOString()}) is not within QF round period (${qfRound.beginDate.toISOString()} - ${qfRound.endDate.toISOString()})`,
+                },
+              },
+            },
+            notice: {
+              message: 'Donation timestamp is not within QF round period',
+              type: 'danger',
+            },
+          };
+        }
+      }
+
+      // 2. Check if donor is donating to their own project
+      const donor = await findUserByWalletAddress(transactionInfo?.from);
+      if (donor && project.adminUserId === donor.id) {
+        return {
+          record: {
+            params: request?.payload || {},
+            errors: {
+              fromWalletAddress: {
+                message: "Donor can't donate to his/her own project",
+              },
+            },
+          },
+          notice: {
+            message: "Donor can't donate to his/her own project",
+            type: 'danger',
+          },
+        };
       }
 
       const tokenInDb = await Token.findOne({
@@ -264,8 +449,8 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
         anonymous,
         isTokenEligibleForGivback,
         qfRoundId: qfRoundId ? Number(qfRoundId) : undefined,
+        toWalletMemo: toWalletMemo || undefined,
       });
-      const donor = await findUserByWalletAddress(transactionInfo?.from);
       if (donor) {
         donation.anonymous = false;
         donation.user = donor;
@@ -735,9 +920,10 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: false,
-          new: false,
+          edit: true,
+          new: true,
         },
+        description: 'Required for non-EVM chains only',
       },
       distributedFundQfRoundId: {
         isVisible: false,
@@ -806,7 +992,7 @@ export const donationTab = {
         availableValues: [
           { value: NETWORK_IDS.MAIN_NET, label: 'Mainnet' },
           { value: NETWORK_IDS.XDAI, label: 'Xdai' },
-          { value: NETWORK_IDS.SEPOLIA, label: 'sepolia' },
+          { value: NETWORK_IDS.SEPOLIA, label: 'Sepolia' },
           { value: NETWORK_IDS.POLYGON, label: 'Polygon' },
           { value: NETWORK_IDS.CELO, label: 'Celo' },
           { value: NETWORK_IDS.CELO_ALFAJORES, label: 'Alfajores' },
@@ -816,6 +1002,14 @@ export const donationTab = {
           { value: NETWORK_IDS.BASE_SEPOLIA, label: 'Base Sepolia' },
           { value: NETWORK_IDS.ZKEVM_MAINNET, label: 'ZKEVM Mainnet' },
           { value: NETWORK_IDS.ZKEVM_CARDONA, label: 'ZKEVM Cardona' },
+          { value: NETWORK_IDS.OPTIMISTIC, label: 'Optimistic' },
+          { value: NETWORK_IDS.OPTIMISM_SEPOLIA, label: 'Optimism Sepolia' },
+          { value: NETWORK_IDS.STELLAR_MAINNET, label: 'Stellar Mainnet' },
+          { value: NETWORK_IDS.SOLANA_MAINNET, label: 'Solana Mainnet' },
+          { value: NETWORK_IDS.SOLANA_TESTNET, label: 'Solana Testnet' },
+          { value: NETWORK_IDS.SOLANA_DEVNET, label: 'Solana Devnet' },
+          { value: NETWORK_IDS.CARDANO_MAINNET, label: 'Cardano Mainnet' },
+          { value: NETWORK_IDS.CARDANO_PREPROD, label: 'Cardano Preprod' },
         ],
         isVisible: {
           list: true,
@@ -855,6 +1049,14 @@ export const donationTab = {
           edit: false,
         },
       },
+      qfRoundErrorMessage: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: false,
+        },
+      },
       swapTransaction: {
         isVisible: {
           list: false,
@@ -869,9 +1071,46 @@ export const donationTab = {
           filter: false,
           show: true,
           edit: true,
-          new: false,
+          new: true,
         },
         type: 'number',
+      },
+      chainType: {
+        availableValues: [
+          { value: 'EVM', label: 'EVM' },
+          { value: 'SOLANA', label: 'Solana' },
+          { value: 'STELLAR', label: 'Stellar' },
+          { value: 'CARDANO', label: 'Cardano' },
+        ],
+        isVisible: {
+          filter: false,
+          list: true,
+          show: true,
+          new: true,
+          edit: true,
+        },
+      },
+      timestamp: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: false,
+          edit: true,
+          new: true,
+        },
+        type: 'number',
+        description:
+          'Unix timestamp (seconds) - Required for non-EVM chains only',
+      },
+      toWalletMemo: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: true,
+          new: true,
+        },
+        description: 'Optional memo for Stellar transactions',
       },
       transactionId: {
         isVisible: {
