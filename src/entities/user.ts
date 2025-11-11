@@ -29,8 +29,6 @@ export const publicSelectionFields = [
   'user.firstName',
   'user.lastName',
   'user.url',
-  'user.twitterName',
-  'user.telegramName',
   'user.avatar',
   'user.totalDonated',
   'user.totalReceived',
@@ -47,7 +45,6 @@ export const publicSelectionFields = [
 export enum UserRole {
   // Normal users, not admin
   RESTRICTED = 'restricted',
-
   ADMIN = 'admin',
   OPERATOR = 'operator',
   VERIFICATION_FORM_REVIEWER = 'reviewer',
