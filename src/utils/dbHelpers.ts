@@ -1,5 +1,4 @@
 import {
-  DataSource,
   EntityTarget,
   ObjectLiteral,
   Repository,
@@ -27,24 +26,40 @@ import { AppDataSource } from '../orm';
  */
 
 /**
- * Force a SELECT query to use the master database
- * Use this for critical reads that need absolute consistency
+ * Execute a SELECT query on the master database with proper connection cleanup
+ * Use this for critical reads that need absolute consistency (read-after-write scenarios)
  *
  * @example
- * const query = User.createQueryBuilder('user')
- *   .where('user.id = :id', { id: userId });
+ * const user = await queryMaster(
+ *   User.createQueryBuilder('user').where('user.id = :id', { id: userId })
+ * );
  *
- * const user = await useMasterForQuery(query).getOne();
+ * @example
+ * const users = await queryMaster(
+ *   User.createQueryBuilder('user').where('user.isActive = true'),
+ *   'getMany'
+ * );
  */
-export function useMasterForQuery<T extends ObjectLiteral>(
+export async function queryMaster<T extends ObjectLiteral>(
   queryBuilder: SelectQueryBuilder<T>,
-): SelectQueryBuilder<T> {
+  method:
+    | 'getOne'
+    | 'getMany'
+    | 'getRawOne'
+    | 'getRawMany'
+    | 'getCount' = 'getOne',
+): Promise<any> {
   const dataSource = AppDataSource.getDataSource();
+  const queryRunner = dataSource.createQueryRunner('master');
 
-  // Create a query runner explicitly for master connection
-  const masterQueryRunner = dataSource.createQueryRunner('master');
-
-  return queryBuilder.setQueryRunner(masterQueryRunner);
+  try {
+    await queryRunner.connect();
+    const result = await queryBuilder.setQueryRunner(queryRunner)[method]();
+    return result;
+  } finally {
+    // CRITICAL: Always release the query runner to return connection to pool
+    await queryRunner.release();
+  }
 }
 
 /**
@@ -77,26 +92,37 @@ export function getRepository<T extends ObjectLiteral>(
 }
 
 /**
- * Execute a callback with master connection guaranteed
- * Use for read-after-write scenarios
+ * Execute a callback with a master query runner
+ * Properly manages connection lifecycle
+ * Use for read-after-write scenarios or when you need guaranteed master access
  *
  * @example
- * await withMasterConnection(async (masterDataSource) => {
- *   const donation = await createDonation(data);
+ * const donation = await withMasterQueryRunner(async (queryRunner) => {
+ *   // Write operation
+ *   const donation = Donation.create(data);
+ *   await queryRunner.manager.save(donation);
  *
  *   // Read from master immediately after write
- *   const verified = await masterDataSource
- *     .getRepository(Donation)
- *     .findOne({ where: { id: donation.id } });
+ *   const verified = await queryRunner.manager.findOne(Donation, {
+ *     where: { id: donation.id }
+ *   });
  *
  *   return verified;
  * });
  */
-export async function withMasterConnection<T>(
-  callback: (masterDataSource: DataSource) => Promise<T>,
+export async function withMasterQueryRunner<T>(
+  callback: (queryRunner: any) => Promise<T>,
 ): Promise<T> {
-  // AdminDataSource always uses master
-  return await callback(AdminDataSource.getDataSource());
+  const dataSource = AppDataSource.getDataSource();
+  const queryRunner = dataSource.createQueryRunner('master');
+
+  try {
+    await queryRunner.connect();
+    return await callback(queryRunner);
+  } finally {
+    // CRITICAL: Always release the query runner to return connection to pool
+    await queryRunner.release();
+  }
 }
 
 /**

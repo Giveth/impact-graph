@@ -14,16 +14,16 @@
  * 4. AdminDataSource connection
  */
 
-import { AdminDataSource } from './src/adminDataSource';
-import { Project } from './src/entities/project';
-import { User } from './src/entities/user';
-import { AppDataSource, CronDataSource } from './src/orm';
+import { AdminDataSource } from '../src/adminDataSource';
+import { Project } from '../src/entities/project';
+import { User } from '../src/entities/user';
+import { AppDataSource, CronDataSource } from '../src/orm';
 import {
   getMasterRepository,
   getReplicationInfo,
   getRepository,
   hasReadReplicas,
-} from './src/utils/dbHelpers';
+} from '../src/utils/dbHelpers';
 
 async function testReplicationSetup() {
   console.log('\n🔍 Testing Database Replication Setup\n');
