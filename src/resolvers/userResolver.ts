@@ -137,6 +137,8 @@ export class UserResolver {
     @Arg('email', { nullable: true }) email: string,
     @Arg('url', { nullable: true }) url: string,
     @Arg('avatar', { nullable: true }) avatar: string,
+    @Arg('twitterName', { nullable: true }) twitterName: string,
+    @Arg('telegramName', { nullable: true }) telegramName: string,
     @Arg('newUser', { nullable: true }) newUser: boolean,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
@@ -199,6 +201,12 @@ export class UserResolver {
     }
     if (avatar !== undefined) {
       dbUser.avatar = avatar;
+    }
+    if (twitterName !== undefined) {
+      dbUser.twitterName = twitterName;
+    }
+    if (telegramName !== undefined) {
+      dbUser.telegramName = telegramName;
     }
 
     dbUser.name = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim();

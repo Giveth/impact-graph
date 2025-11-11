@@ -1,0 +1,35 @@
+import { MigrationInterface, QueryRunner } from 'typeorm';
+
+export class AddTwitterAndTelegramToUser1731010000000
+  implements MigrationInterface
+{
+  name = 'AddTwitterAndTelegramToUser1731010000000';
+
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // Add twitterName column to user table
+    await queryRunner.query(`
+      ALTER TABLE "user" 
+      ADD COLUMN "twitterName" character varying
+    `);
+
+    // Add telegramName column to user table
+    await queryRunner.query(`
+      ALTER TABLE "user" 
+      ADD COLUMN "telegramName" character varying
+    `);
+  }
+
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    // Drop telegramName column
+    await queryRunner.query(`
+      ALTER TABLE "user" 
+      DROP COLUMN IF EXISTS "telegramName"
+    `);
+
+    // Drop twitterName column
+    await queryRunner.query(`
+      ALTER TABLE "user" 
+      DROP COLUMN IF EXISTS "twitterName"
+    `);
+  }
+}

@@ -45,7 +45,6 @@ export const publicSelectionFields = [
 export enum UserRole {
   // Normal users, not admin
   RESTRICTED = 'restricted',
-
   ADMIN = 'admin',
   OPERATOR = 'operator',
   VERIFICATION_FORM_REVIEWER = 'reviewer',
@@ -119,6 +118,14 @@ export class User extends BaseEntity {
   @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   url?: string;
+
+  @Field(_type => String, { nullable: true })
+  @Column({ nullable: true })
+  twitterName?: string;
+
+  @Field(_type => String, { nullable: true })
+  @Column({ nullable: true })
+  telegramName?: string;
 
   @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: null })
