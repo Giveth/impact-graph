@@ -117,6 +117,9 @@ export class QFArchivedRounds {
 
   @Field(_type => String, { nullable: true })
   bannerMobile: string;
+
+  @Field(_type => String, { nullable: true })
+  hubCardImage: string;
 }
 
 export const findArchivedQfRounds = async (
