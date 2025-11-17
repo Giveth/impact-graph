@@ -235,7 +235,12 @@ export class Project extends BaseEntity {
   @ManyToMany(_type => QfRound, qfRound => qfRound.projects, {
     nullable: true,
   })
-  @JoinTable()
+  @JoinTable({
+    name: 'project_qf_rounds_qf_round',
+    joinColumn: { name: 'projectId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'qfRoundId', referencedColumnName: 'id' },
+    synchronize: false,
+  })
   qfRounds: QfRound[];
 
   @Field(_type => [ProjectQfRound], { nullable: true })

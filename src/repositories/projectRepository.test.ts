@@ -1168,22 +1168,26 @@ function findQfRoundProjectsTestCases() {
     project2.qfRounds = [qfRound];
     await project2.save();
 
-    // Create ProjectQfRound entries with different donation amounts
-    const projectQfRound1 = ProjectQfRound.create({
-      projectId: project1.id,
-      qfRoundId: qfRound.id,
-      sumDonationValueUsd: 100,
-      countUniqueDonors: 5,
-    });
-    await projectQfRound1.save();
+    // Upsert ProjectQfRound entries with different donation amounts
+    await ProjectQfRound.upsert(
+      {
+        projectId: project1.id,
+        qfRoundId: qfRound.id,
+        sumDonationValueUsd: 100,
+        countUniqueDonors: 5,
+      },
+      ['projectId', 'qfRoundId'],
+    );
 
-    const projectQfRound2 = ProjectQfRound.create({
-      projectId: project2.id,
-      qfRoundId: qfRound.id,
-      sumDonationValueUsd: 500,
-      countUniqueDonors: 10,
-    });
-    await projectQfRound2.save();
+    await ProjectQfRound.upsert(
+      {
+        projectId: project2.id,
+        qfRoundId: qfRound.id,
+        sumDonationValueUsd: 500,
+        countUniqueDonors: 10,
+      },
+      ['projectId', 'qfRoundId'],
+    );
 
     // Test sorting by ActiveQfRoundRaisedFunds
     const [sortedProjects] = await findQfRoundProjects(qfRound.id, {
