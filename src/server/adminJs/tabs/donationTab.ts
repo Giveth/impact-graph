@@ -251,13 +251,44 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
     }
 
     for (const transactionInfo of transactions) {
-      const project = await Project.createQueryBuilder('project')
-        .where(`lower("walletAddress")=lower(:address)`, {
-          address: transactionInfo?.to,
-        })
+      const projectQuery = Project.createQueryBuilder('project')
+        .innerJoin('project.addresses', 'projectAddress')
         .leftJoinAndSelect('project.organization', 'organization')
         .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-        .getOne();
+        .where('projectAddress."isRecipient" = true')
+        .andWhere('projectAddress."networkId" = :networkId', { networkId });
+
+      switch (chainType) {
+        case ChainType.SOLANA:
+          projectQuery.andWhere('projectAddress.address = :address', {
+            address: transactionInfo?.to,
+          });
+          break;
+        case ChainType.STELLAR:
+          projectQuery.andWhere(
+            'UPPER(projectAddress.address) = UPPER(:address)',
+            {
+              address: transactionInfo?.to,
+            },
+          );
+          if (toWalletMemo) {
+            projectQuery.andWhere('projectAddress.memo = :memo', {
+              memo: toWalletMemo,
+            });
+          } else {
+            projectQuery.andWhere('projectAddress.memo IS NULL');
+          }
+          break;
+        default:
+          projectQuery.andWhere(
+            'LOWER(projectAddress.address) = LOWER(:address)',
+            {
+              address: transactionInfo?.to,
+            },
+          );
+      }
+
+      const project = await projectQuery.getOne();
 
       if (!project) {
         if (transactions.length === 1) {
@@ -1077,10 +1108,10 @@ export const donationTab = {
       },
       chainType: {
         availableValues: [
-          { value: 'EVM', label: 'EVM' },
-          { value: 'SOLANA', label: 'Solana' },
-          { value: 'STELLAR', label: 'Stellar' },
-          { value: 'CARDANO', label: 'Cardano' },
+          { value: ChainType.EVM, label: 'EVM' },
+          { value: ChainType.SOLANA, label: 'Solana' },
+          { value: ChainType.STELLAR, label: 'Stellar' },
+          { value: ChainType.CARDANO, label: 'Cardano' },
         ],
         isVisible: {
           filter: false,
