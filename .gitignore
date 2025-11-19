@@ -1,6 +1,6 @@
 # node modules
 node_modules
-.env
+*.env
 
 # builded sources
 build
