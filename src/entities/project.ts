@@ -2,13 +2,16 @@ import { Field, Float, ID, ObjectType } from 'type-graphql';
 import {
   AfterInsert,
   AfterUpdate,
-  BeforeUpdate,
-  BeforeInsert,
   BaseEntity,
+  BeforeInsert,
   BeforeRemove,
+  BeforeUpdate,
+  ChildEntity,
   Column,
   Entity,
   Index,
+  JoinColumn,
+  JoinTable,
   LessThan,
   ManyToMany,
   ManyToOne,
@@ -16,44 +19,43 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
-  JoinTable,
-  JoinColumn,
-  ChildEntity,
   TableInheritance,
 } from 'typeorm';
 
 import { Int } from 'type-graphql/dist/scalars/aliases';
-import { Donation } from './donation';
-import { Reaction } from './reaction';
-import { User } from './user';
-import { ProjectStatus } from './projectStatus';
-import { ProjectStatusHistory } from './projectStatusHistory';
-import { ProjectStatusReason } from './projectStatusReason';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { Organization } from './organization';
-import { findUserById } from '../repositories/userRepository';
-import { SocialProfile } from './socialProfile';
-import { ProjectVerificationForm } from './projectVerificationForm';
-import { ProjectAddress } from './projectAddress';
-import { ProjectContacts } from './projectVerificationForm';
-import { ProjectPowerView } from '../views/projectPowerView';
-import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
-import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
-import { Category } from './category';
-import { FeaturedUpdate } from './featuredUpdate';
-import { getHtmlTextSummary } from '../utils/utils';
-import { QfRound } from './qfRound';
-import { ProjectQfRound } from './projectQfRound';
 import {
   findActiveQfRounds,
   getProjectDonationsSqrtRootSumInAllQfRounds,
   getQfRoundTotalSqrtRootSumSquaredInAllQfRounds,
 } from '../repositories/qfRoundRepository';
+import { findUserById } from '../repositories/userRepository';
 import { EstimatedMatchingByQfRound } from '../types/qfTypes';
-import { Campaign } from './campaign';
-import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { getHtmlTextSummary } from '../utils/utils';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
+import { ProjectPowerView } from '../views/projectPowerView';
 import { AnchorContractAddress } from './anchorContractAddress';
+import { Campaign } from './campaign';
+import { Category } from './category';
+import { Donation } from './donation';
+import { FeaturedUpdate } from './featuredUpdate';
+import { Organization } from './organization';
+import { ProjectAddress } from './projectAddress';
+import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
+import { ProjectQfRound } from './projectQfRound';
 import { ProjectSocialMedia } from './projectSocialMedia';
+import { ProjectStatus } from './projectStatus';
+import { ProjectStatusHistory } from './projectStatusHistory';
+import { ProjectStatusReason } from './projectStatusReason';
+import {
+  ProjectContacts,
+  ProjectVerificationForm,
+} from './projectVerificationForm';
+import { QfRound } from './qfRound';
+import { Reaction } from './reaction';
+import { SocialProfile } from './socialProfile';
+import { User } from './user';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -255,6 +257,7 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   stripeAccountId?: string;
 
+  // It's not used anymore, we should remove it, we use projectAddress instead
   @Field({ nullable: true })
   @Column({ unique: true, nullable: true })
   walletAddress?: string;
