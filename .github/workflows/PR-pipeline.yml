@@ -19,6 +19,7 @@ jobs:
     permissions:
       contents: read        # Read code
       pull-requests: write  # Post lint comments
+      checks: write        # Create check runs
       statuses: write      # Update check status
 
     steps:
