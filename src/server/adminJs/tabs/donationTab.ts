@@ -255,8 +255,8 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
         .innerJoinAndSelect('project.addresses', 'projectAddress')
         .leftJoinAndSelect('project.organization', 'organization')
         .leftJoinAndSelect('project.qfRounds', 'qfRounds')
-        .where('projectAddress."isRecipient" = true')
-        .andWhere('projectAddress."networkId" = :networkId', { networkId });
+        .where('projectAddress.isRecipient = true')
+        .andWhere('projectAddress.networkId = :networkId', { networkId });
 
       switch (chainType) {
         case ChainType.SOLANA:
