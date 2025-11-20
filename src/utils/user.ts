@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { logger } from '../utils/logger';
 
-const validateEmailWithRegex = (email: string): boolean => {
+export const validateEmailWithRegex = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
