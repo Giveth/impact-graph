@@ -20,6 +20,7 @@ import { toFixNumber } from '../../services/donationService';
 import { getTokenPrice } from '../../services/priceService';
 import { logger } from '../../utils/logger';
 import { buildTxLink } from '../../utils/networks';
+import { validateEmailWithRegex } from '../../utils/user';
 import { createBasicAuthentication, isProduction } from '../../utils/utils';
 import {
   BroadCastNotificationInputParams,
@@ -165,6 +166,12 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async createOrttoProfile(user: User): Promise<void> {
     try {
       const { id, email, firstName, lastName } = user;
+
+      // Only create Ortto profile if user has an email address
+      if (!email || !validateEmailWithRegex(email)) {
+        return;
+      }
+
       await callSendNotification({
         eventName: NOTIFICATIONS_EVENT_NAMES.CREATE_ORTTO_PROFILE,
         trackId: 'create-ortto-profile-' + user.id,
@@ -179,7 +186,18 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {
-    // TODO we should me this to notification-center, it's not good that we call Ortto directly
+    // TODO we should move this to notification-center, it's not good that we call Ortto directly
+
+    // Only include people with valid email addresses
+    const peopleWithEmail = people.filter(person => {
+      const email = person.fields['str::email'];
+      return email && validateEmailWithRegex(email);
+    });
+
+    if (peopleWithEmail.length === 0) {
+      return;
+    }
+
     const merge_by: string[] = [];
     if (isProduction) {
       merge_by.push('str:cm:user-id');
@@ -188,11 +206,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
     try {
       const data = {
-        people,
+        people: peopleWithEmail,
         async: false,
         merge_by,
       };
-      logger.debug('updateOrttoPeople has been called:', people);
+      logger.debug('updateOrttoPeople has been called:', peopleWithEmail);
       const orttoConfig = {
         method: 'post',
         maxBodyLength: Infinity,
