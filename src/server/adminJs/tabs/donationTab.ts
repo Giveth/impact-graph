@@ -252,7 +252,7 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
 
     for (const transactionInfo of transactions) {
       const projectQuery = Project.createQueryBuilder('project')
-        .innerJoin('project.addresses', 'projectAddress')
+        .innerJoinAndSelect('project.addresses', 'projectAddress')
         .leftJoinAndSelect('project.organization', 'organization')
         .leftJoinAndSelect('project.qfRounds', 'qfRounds')
         .where('projectAddress."isRecipient" = true')
