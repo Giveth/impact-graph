@@ -173,28 +173,50 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
     } else {
       // Handle both EVM and non-EVM transactions
       if (chainType === ChainType.EVM) {
-        const txInfo = await findEvmTransactionByHash({
-          networkId,
-          txHash,
-          symbol: currency,
-        } as TransactionDetailInput);
-        if (!txInfo) {
+        try {
+          const txInfo = await findEvmTransactionByHash({
+            networkId,
+            txHash,
+            symbol: currency,
+          } as TransactionDetailInput);
+          if (!txInfo) {
+            return {
+              record: {
+                params: request?.payload || {},
+                errors: {
+                  transactionId: {
+                    message: 'Transaction not found on blockchain',
+                  },
+                },
+              },
+              notice: {
+                message: 'Transaction not found on blockchain',
+                type: 'danger',
+              },
+            };
+          }
+          transactions.push(txInfo);
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           return {
             record: {
               params: request?.payload || {},
               errors: {
-                transactionId: {
-                  message: 'Transaction not found on blockchain',
+                currency: {
+                  message: `Token not found or chain not supported by project: ${errorMessage}`,
+                },
+                transactionNetworkId: {
+                  message: `Token not found or chain not supported by project: ${errorMessage}`,
                 },
               },
             },
             notice: {
-              message: 'Transaction not found on blockchain',
+              message: `Token not found or chain not supported by project: ${errorMessage}`,
               type: 'danger',
             },
           };
         }
-        transactions.push(txInfo);
       } else {
         // Non-EVM chain - validate transaction using appropriate service
         try {
@@ -932,18 +954,20 @@ export const donationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: false,
+          edit: true,
           new: true,
         },
+        description: 'Required for non-EVM chains only',
       },
       toWalletAddress: {
         isVisible: {
           list: false,
           filter: true,
           show: true,
-          edit: false,
+          edit: true,
           new: true,
         },
+        description: 'Required for non-EVM chains only',
       },
       amount: {
         type: 'number',
@@ -1130,8 +1154,7 @@ export const donationTab = {
           new: true,
         },
         type: 'number',
-        description:
-          'Unix timestamp (seconds) - Required for non-EVM chains only',
+        description: 'Unix Timestamp in seconds non-EVM only',
       },
       toWalletMemo: {
         isVisible: {
