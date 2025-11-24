@@ -186,9 +186,6 @@ export const findArchivedQfRounds = async (
           .andWhere(
             'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
           )
-          .andWhere(
-            '(user.passportScore >= qfRound.minimumPassportScore OR user.passportScore IS NULL)',
-          )
           .andWhere('sybil.id IS NULL')
           .andWhere('projectFraud.id IS NULL'),
       'uniqueDonors',
