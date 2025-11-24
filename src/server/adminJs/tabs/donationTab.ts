@@ -319,12 +319,17 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
               params: request?.payload || {},
               errors: {
                 toWalletAddress: {
-                  message: 'Project not found',
+                  message: `Project not found${toWalletMemo ? ` or wrong memo` : ''}`,
                 },
+                toWalletMemo: toWalletMemo
+                  ? {
+                      message: 'Project not found or wrong memo',
+                    }
+                  : undefined,
               },
             },
             notice: {
-              message: 'Project not found',
+              message: `Project not found${toWalletMemo ? ` or wrong memo` : ''}`,
               type: 'danger',
             },
           };
