@@ -153,6 +153,7 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.bannerBgImage', 'bannerBgImage')
     .addSelect('qfRound.bannerFull', 'bannerFull')
     .addSelect('qfRound.bannerMobile', 'bannerMobile')
+    .addSelect('qfRound.hubCardImage', 'hubCardImage')
     .addSelect(
       qb =>
         qb
