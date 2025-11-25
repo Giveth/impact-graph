@@ -498,7 +498,11 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
         status: DONATION_STATUS.VERIFIED,
         isProjectGivbackEligible: project.isGivbackEligible,
         donationType,
-        createdAt: new Date(transactionInfo?.timestamp * 1000),
+        isQRDonation: chainType === ChainType.STELLAR,
+        createdAt:
+          chainType === ChainType.STELLAR
+            ? new Date(transactionInfo?.timestamp)
+            : new Date(transactionInfo?.timestamp * 1000),
         anonymous,
         isTokenEligibleForGivback,
         qfRoundId: qfRoundId ? Number(qfRoundId) : undefined,
@@ -929,6 +933,15 @@ export const donationTab = {
           show: true,
           edit: true,
           new: true,
+        },
+      },
+      isQRDonation: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
         },
       },
       userId: {
