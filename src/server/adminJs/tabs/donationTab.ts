@@ -293,13 +293,6 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
               address: transactionInfo?.to,
             },
           );
-          if (toWalletMemo) {
-            projectQuery.andWhere('projectAddress.memo = :memo', {
-              memo: toWalletMemo,
-            });
-          } else {
-            projectQuery.andWhere('projectAddress.memo IS NULL');
-          }
           break;
         default:
           projectQuery.andWhere(
@@ -319,17 +312,12 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
               params: request?.payload || {},
               errors: {
                 toWalletAddress: {
-                  message: `Project not found${toWalletMemo ? ` or wrong memo` : ''}`,
+                  message: 'Project not found',
                 },
-                toWalletMemo: toWalletMemo
-                  ? {
-                      message: 'Project not found or wrong memo',
-                    }
-                  : undefined,
               },
             },
             notice: {
-              message: `Project not found${toWalletMemo ? ` or wrong memo` : ''}`,
+              message: 'Project not found',
               type: 'danger',
             },
           };
@@ -346,6 +334,48 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
           },
         );
         continue;
+      }
+
+      // Check memo for Stellar transactions
+      if (chainType === ChainType.STELLAR) {
+        const projectAddress = project.addresses?.find(
+          addr =>
+            addr.isRecipient &&
+            addr.networkId === networkId &&
+            addr.address.toUpperCase() === transactionInfo?.to?.toUpperCase(),
+        );
+
+        const projectMemo = projectAddress?.memo;
+        const memoMatches =
+          (toWalletMemo && projectMemo === toWalletMemo) ||
+          (!toWalletMemo && !projectMemo);
+
+        if (!memoMatches) {
+          if (transactions.length === 1) {
+            return {
+              record: {
+                params: request?.payload || {},
+                errors: {
+                  toWalletMemo: {
+                    message: 'Wrong memo for this project',
+                  },
+                },
+              },
+              notice: {
+                message: 'Wrong memo for this project',
+                type: 'danger',
+              },
+            };
+          }
+          logger.error('Creating donation by adminJs error - Wrong memo', {
+            hash: txHash,
+            toAddress: transactionInfo?.to,
+            networkId,
+            expectedMemo: projectMemo,
+            providedMemo: toWalletMemo,
+          });
+          continue;
+        }
       }
 
       // Validate QF Round conditions
