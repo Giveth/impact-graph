@@ -537,8 +537,24 @@ export const qfRoundTab = {
             await handleBannerMobile(request.payload);
             await handleHubCardImage(request.payload);
 
+            // Process array fields properly (AdminJS sometimes sends them as indexed properties even in NEW)
+            const processedPayload: any = {};
+
+            Object.keys(request.payload).forEach(key => {
+              // Handle eligibleNetworks array
+              if (key.startsWith('eligibleNetworks.')) {
+                if (!processedPayload.eligibleNetworks) {
+                  processedPayload.eligibleNetworks = [];
+                }
+                const index = parseInt(key.split('.')[1]);
+                processedPayload.eligibleNetworks[index] = request.payload[key];
+              } else {
+                processedPayload[key] = request.payload[key];
+              }
+            });
+
             // Create the record
-            const qfRound = QfRound.create(request.payload);
+            const qfRound = QfRound.create(processedPayload);
             record = await qfRound.save();
           } catch (error) {
             logger.error('Error creating QF Round:', error);
