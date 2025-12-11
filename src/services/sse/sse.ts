@@ -1,6 +1,13 @@
 import { Response } from 'express';
+import { Redis } from 'ioredis';
+import { logger } from '../../utils/logger';
+import { redisConfig } from '../../redis';
 
 let clients: Response[] = [];
+
+// Redis Pub/Sub for cross-instance SSE coordination
+const redisSubscriber = new Redis(redisConfig);
+const SSE_CHANNEL = 'sse:notifications';
 
 type TNewDonation = {
   type: 'new-donation';
@@ -18,6 +25,36 @@ type TDraftDonationFailed = {
   };
 };
 
+// Subscribe to Redis notifications and forward to connected clients
+redisSubscriber.subscribe(SSE_CHANNEL, (err, count) => {
+  if (err) {
+    logger.error('SSE: Failed to subscribe to Redis channel', { error: err });
+  } else {
+    logger.debug('SSE: Subscribed to Redis channel', {
+      channel: SSE_CHANNEL,
+      subscriptionCount: count,
+    });
+  }
+});
+
+redisSubscriber.on('message', (channel, message) => {
+  if (channel === SSE_CHANNEL) {
+    logger.debug('SSE: Received message from Redis', {
+      totalLocalClients: clients.length,
+      message,
+    });
+
+    // Broadcast to all clients connected to THIS instance
+    clients.forEach(client => {
+      try {
+        client.write(`data: ${message}\n\n`);
+      } catch (error) {
+        logger.error('SSE: Error writing to client', { error });
+      }
+    });
+  }
+});
+
 // Add a new client to the SSE stream
 export function addClient(res: Response) {
   res.setHeader('Content-Type', 'text/event-stream');
@@ -28,6 +65,7 @@ export function addClient(res: Response) {
   res.flushHeaders();
 
   clients.push(res);
+  logger.debug('SSE: New client connected', { totalClients: clients.length });
 
   // Send a welcome message to the newly connected client
   const data = {
@@ -39,16 +77,57 @@ export function addClient(res: Response) {
   // Remove the client on disconnect
   res.on('close', () => {
     clients = clients.filter(client => client !== res);
+    logger.debug('SSE: Client disconnected', { totalClients: clients.length });
     res.end();
   });
 }
 
 // Notify all connected clients about a new donation
+// This publishes to Redis, which then broadcasts to ALL instances
 export function notifyClients(data: TNewDonation) {
-  clients.forEach(client => client.write(`data: ${JSON.stringify(data)}\n\n`));
+  const message = JSON.stringify(data);
+
+  logger.debug('SSE: notifyClients called - publishing to Redis', {
+    totalLocalClients: clients.length,
+    data,
+  });
+
+  // Publish to Redis - this will be received by ALL instances (including this one)
+  const redisPublisher = new Redis(redisConfig);
+  redisPublisher
+    .publish(SSE_CHANNEL, message)
+    .then(() => {
+      logger.debug('SSE: Published to Redis successfully');
+      redisPublisher.quit();
+    })
+    .catch(error => {
+      logger.error('SSE: Failed to publish to Redis', { error });
+      redisPublisher.quit();
+    });
 }
 
 // Notify all connected clients about a failed donation
+// This publishes to Redis, which then broadcasts to ALL instances
 export function notifyDonationFailed(data: TDraftDonationFailed) {
-  clients.forEach(client => client.write(`data: ${JSON.stringify(data)}\n\n`));
+  const message = JSON.stringify(data);
+
+  logger.debug('SSE: notifyDonationFailed called - publishing to Redis', {
+    totalLocalClients: clients.length,
+    data,
+  });
+
+  // Publish to Redis - this will be received by ALL instances (including this one)
+  const redisPublisher = new Redis(redisConfig);
+  redisPublisher
+    .publish(SSE_CHANNEL, message)
+    .then(() => {
+      logger.debug('SSE: Published failed donation to Redis successfully');
+      redisPublisher.quit();
+    })
+    .catch(error => {
+      logger.error('SSE: Failed to publish failed donation to Redis', {
+        error,
+      });
+      redisPublisher.quit();
+    });
 }
