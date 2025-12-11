@@ -7,6 +7,7 @@ let clients: Response[] = [];
 
 // Redis Pub/Sub for cross-instance SSE coordination
 const redisSubscriber = new Redis(redisConfig);
+const redisPublisher = new Redis(redisConfig);
 const SSE_CHANNEL = 'sse:notifications';
 
 type TNewDonation = {
@@ -45,15 +46,28 @@ redisSubscriber.on('message', (channel, message) => {
     });
 
     // Broadcast to all clients connected to THIS instance
-    clients.forEach(client => {
+    // Filter out dead clients on write failure
+    clients = clients.filter(client => {
       try {
         client.write(`data: ${message}\n\n`);
+        return true;
       } catch (error) {
-        logger.error('SSE: Error writing to client', { error });
+        logger.error('SSE: Error writing to client, removing from list', {
+          error,
+        });
+        return false;
       }
     });
   }
 });
+
+// Helper function to publish messages to Redis
+function publishToRedis(message: string, context: string) {
+  redisPublisher
+    .publish(SSE_CHANNEL, message)
+    .then(() => logger.debug(`SSE: ${context} published successfully`))
+    .catch(error => logger.error(`SSE: Failed to publish ${context}`, { error }));
+}
 
 // Add a new client to the SSE stream
 export function addClient(res: Response) {
@@ -92,18 +106,8 @@ export function notifyClients(data: TNewDonation) {
     data,
   });
 
-  // Publish to Redis - this will be received by ALL instances (including this one)
-  const redisPublisher = new Redis(redisConfig);
-  redisPublisher
-    .publish(SSE_CHANNEL, message)
-    .then(() => {
-      logger.debug('SSE: Published to Redis successfully');
-      redisPublisher.quit();
-    })
-    .catch(error => {
-      logger.error('SSE: Failed to publish to Redis', { error });
-      redisPublisher.quit();
-    });
+  // Publish to Redis using shared connection - this will be received by ALL instances (including this one)
+  publishToRedis(message, 'new-donation');
 }
 
 // Notify all connected clients about a failed donation
@@ -116,18 +120,15 @@ export function notifyDonationFailed(data: TDraftDonationFailed) {
     data,
   });
 
-  // Publish to Redis - this will be received by ALL instances (including this one)
-  const redisPublisher = new Redis(redisConfig);
+  // Publish to Redis using shared connection - this will be received by ALL instances (including this one)
   redisPublisher
     .publish(SSE_CHANNEL, message)
     .then(() => {
       logger.debug('SSE: Published failed donation to Redis successfully');
-      redisPublisher.quit();
     })
     .catch(error => {
       logger.error('SSE: Failed to publish failed donation to Redis', {
         error,
       });
-      redisPublisher.quit();
     });
 }
