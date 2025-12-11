@@ -66,7 +66,9 @@ function publishToRedis(message: string, context: string) {
   redisPublisher
     .publish(SSE_CHANNEL, message)
     .then(() => logger.debug(`SSE: ${context} published successfully`))
-    .catch(error => logger.error(`SSE: Failed to publish ${context}`, { error }));
+    .catch(error =>
+      logger.error(`SSE: Failed to publish ${context}`, { error }),
+    );
 }
 
 // Add a new client to the SSE stream
@@ -121,14 +123,5 @@ export function notifyDonationFailed(data: TDraftDonationFailed) {
   });
 
   // Publish to Redis using shared connection - this will be received by ALL instances (including this one)
-  redisPublisher
-    .publish(SSE_CHANNEL, message)
-    .then(() => {
-      logger.debug('SSE: Published failed donation to Redis successfully');
-    })
-    .catch(error => {
-      logger.error('SSE: Failed to publish failed donation to Redis', {
-        error,
-      });
-    });
+  publishToRedis(message, 'draft-donation-failed');
 }
