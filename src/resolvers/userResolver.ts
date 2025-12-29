@@ -9,31 +9,34 @@ import {
 } from 'type-graphql';
 import { Repository } from 'typeorm';
 
-import { User } from '../entities/user';
-import { AccountVerificationInput } from './types/accountVerificationInput';
-import { ApolloContext } from '../types/ApolloContext';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { validateEmail } from '../utils/validators/commonValidators';
-import {
-  findUserById,
-  findUserByWalletAddress,
-  isValidEmail,
-} from '../repositories/userRepository';
-import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
-import { UserByAddressResponse } from './types/userResolver';
-import { AppDataSource } from '../orm';
 import {
   getGitcoinAdapter,
   getNotificationAdapter,
 } from '../adapters/adaptersFactory';
-import { logger } from '../utils/logger';
-import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
-import { addressHasDonated } from '../repositories/donationRepository';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+import { User } from '../entities/user';
+import { AppDataSource } from '../orm';
+import { redis } from '../redis';
+import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
+import { addressHasDonated } from '../repositories/donationRepository';
+import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
 import { retrieveActiveQfRoundUserMBDScore } from '../repositories/qfRoundRepository';
+import {
+  createUserWithPublicAddress,
+  findUserById,
+  findUserByWalletAddress,
+  isValidEmail,
+} from '../repositories/userRepository';
 import { getLoggedInUser } from '../services/authorizationServices';
-import { generateRandomNumericCode } from '../utils/utils';
+import { syncNewImpactGraphUserToV6Core } from '../services/v6CoreUserSync';
+import { ApolloContext } from '../types/ApolloContext';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { logger } from '../utils/logger';
 import { isSolanaAddress } from '../utils/networks';
+import { generateRandomNumericCode } from '../utils/utils';
+import { validateEmail } from '../utils/validators/commonValidators';
+import { AccountVerificationInput } from './types/accountVerificationInput';
+import { UserByAddressResponse } from './types/userResolver';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -42,6 +45,15 @@ class UserRelatedAddressResponse {
 
   @Field(_type => Boolean, { nullable: false })
   hasDonated: boolean;
+}
+
+@ObjectType()
+class CreateUserByAddressResponse {
+  @Field(_type => User)
+  user: User;
+
+  @Field(_type => Boolean)
+  existing: boolean;
 }
 
 @Resolver(_of => User)
@@ -60,6 +72,67 @@ export class UserResolver {
       hasRelatedProject: await isWalletAddressInPurpleList(address),
       hasDonated: await addressHasDonated(address),
     };
+  }
+
+  /**
+   * Public (no JWT) query to check whether a user exists for a given wallet address.
+   */
+  @Query(_returns => Boolean)
+  async userExistsByAddress(@Arg('address') address: string): Promise<boolean> {
+    const found = await User.createQueryBuilder('user')
+      .select(['user.id'])
+      .where(`LOWER("walletAddress") = :walletAddress`, {
+        walletAddress: address.toLowerCase(),
+      })
+      .getOne();
+    return Boolean(found);
+  }
+
+  /**
+   * Public (no JWT) mutation to create a new user for a given wallet address.
+   * If the user already exists, it returns the existing user and does NOT trigger the webhook.
+   *
+   * After successful creation, it triggers a webhook to v6-core (password in header; values from env vars).
+   */
+  @Mutation(_returns => CreateUserByAddressResponse)
+  async createUserByAddress(
+    @Arg('address') address: string,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<CreateUserByAddressResponse> {
+    // Simple rate limit: 20/day per IP
+    const requesterIp =
+      ctx?.expressReq?.ip ||
+      (ctx?.expressReq?.headers?.['x-forwarded-for'] as string | undefined) ||
+      'unknown';
+    const dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const rateLimitKey = `rl:createUserByAddress:${requesterIp}:${dayKey}`;
+
+    const current = await redis.incr(rateLimitKey);
+    if (current === 1) {
+      // expire in 24h; "per day" approximation
+      await redis.expire(rateLimitKey, 24 * 60 * 60);
+    }
+    if (current > 20) {
+      throw new Error('Rate limit exceeded (20 per day)');
+    }
+
+    const existing = await User.createQueryBuilder('user')
+      .where(`LOWER("walletAddress") = :walletAddress`, {
+        walletAddress: address.toLowerCase(),
+      })
+      .getOne();
+    if (existing) return { user: existing, existing: true };
+
+    const createdUser = await createUserWithPublicAddress(address);
+
+    try {
+      await syncNewImpactGraphUserToV6Core(createdUser);
+    } catch (e) {
+      // Do not fail user creation if the downstream sync fails, but log it for investigation.
+      logger.error('createUserByAddress() v6-core sync failed', e);
+    }
+
+    return { user: createdUser, existing: false };
   }
 
   @Query(_returns => UserByAddressResponse, { nullable: true })
@@ -89,10 +162,18 @@ export class UserResolver {
   ) {
     const includeSensitiveFields =
       user?.walletAddress?.toLowerCase() === address.toLowerCase();
-    const foundUser = await findUserByWalletAddress(
-      address,
-      includeSensitiveFields,
+    const query = User.createQueryBuilder('user').where(
+      `LOWER("walletAddress") = :walletAddress`,
+      {
+        walletAddress: address.toLowerCase(),
+      },
     );
+    if (!includeSensitiveFields) {
+      // keep the same behavior as repository: no sensitive fields when caller isn't the owner
+      const { publicSelectionFields } = await import('../entities/user');
+      query.select(publicSelectionFields);
+    }
+    const foundUser = await query.getOne();
 
     if (!foundUser) return;
 
