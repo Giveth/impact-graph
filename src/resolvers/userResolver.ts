@@ -54,6 +54,9 @@ class CreateUserByAddressResponse {
 
   @Field(_type => Boolean)
   existing: boolean;
+
+  @Field(_type => String, { nullable: true })
+  errorMessage?: string;
 }
 
 @Resolver(_of => User)
@@ -124,15 +127,17 @@ export class UserResolver {
     if (existing) return { user: existing, existing: true };
 
     const createdUser = await createUserWithPublicAddress(address);
+    let errorMessage = '';
 
     try {
       await syncNewImpactGraphUserToV6Core(createdUser);
     } catch (e) {
       // Do not fail user creation if the downstream sync fails, but log it for investigation.
       logger.error('createUserByAddress() v6-core sync failed', e);
+      errorMessage = (e as Error).message || JSON.stringify(e);
     }
 
-    return { user: createdUser, existing: false };
+    return { user: createdUser, existing: false, errorMessage };
   }
 
   @Query(_returns => UserByAddressResponse, { nullable: true })
