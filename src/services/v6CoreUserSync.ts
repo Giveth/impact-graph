@@ -6,7 +6,7 @@ import { logger } from '../utils/logger';
  * Webhook sync: send the newly created Impact-Graph user to v6-core.
  *
  * Env vars:
- * - V6_CORE_USER_SYNC_URL: full URL to the v6-core endpoint
+ * - V6_CORE_USER_SYNC_URL: full URL to the v6-core GraphQL endpoint (typically ends with /graphql)
  * - V6_CORE_USER_SYNC_PASSWORD: shared secret sent in header
  * - V6_CORE_USER_SYNC_PASSWORD_HEADER (optional): header name, default 'x-impact-graph-password'
  */
@@ -26,16 +26,31 @@ export async function syncNewImpactGraphUserToV6Core(
   }
 
   // Send only the minimal payload needed by v6-core.
-  const payload = {
+  const input = {
     id: user.id,
     walletAddress: user.walletAddress,
   };
 
-  await axios.post(url, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-      [headerName]: password,
+  const query = /* GraphQL */ `
+    mutation ImpactGraphUpsertUser($input: ImpactGraphUserWebhookInput!) {
+      impactGraphUpsertUser(input: $input) {
+        id
+      }
+    }
+  `;
+
+  await axios.post(
+    url,
+    {
+      query,
+      variables: { input },
     },
-    timeout: Number(process.env.V6_CORE_USER_SYNC_TIMEOUT_MS || 10_000),
-  });
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        [headerName]: password,
+      },
+      timeout: Number(process.env.V6_CORE_USER_SYNC_TIMEOUT_MS || 10_000),
+    },
+  );
 }
