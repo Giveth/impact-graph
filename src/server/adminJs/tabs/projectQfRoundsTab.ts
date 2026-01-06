@@ -164,13 +164,9 @@ export const projectQfRoundsTab = {
           canAccessProjectQfRoundAction({ currentAdmin }, ResourceActions.SHOW),
       },
       delete: {
-        isVisible: true,
+        isVisible: false, // Disabled - Project QF Rounds are now managed in v6-core admin panel
+        isAccessible: false,
         handler: deleteProjectQfRound,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessProjectQfRoundAction(
-            { currentAdmin },
-            ResourceActions.DELETE,
-          ),
       },
       new: {
         isVisible: false, // Disabled - Project QF Rounds are now managed in v6-core admin panel
