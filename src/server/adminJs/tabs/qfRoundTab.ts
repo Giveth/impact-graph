@@ -480,8 +480,7 @@ export const qfRoundTab = {
     actions: {
       delete: {
         isVisible: false,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction({ currentAdmin }, ResourceActions.DELETE),
+        isAccessible: false, // Disabled - QF Rounds are now managed in v6-core admin panel
         after: refreshMaterializedViews,
       },
       bulkDelete: {
