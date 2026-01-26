@@ -341,6 +341,7 @@ export async function bootstrap() {
         const healthStatus = {
           status: 'ok',
           timestamp: new Date().toISOString(),
+          whitelistHostnames: whitelistHostnames,
           services: {
             graphql: {
               enabled: isGraphqlEnabled,
