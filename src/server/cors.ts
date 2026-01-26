@@ -5,7 +5,7 @@ import { logger } from '../utils/logger';
 // NOTE: CORS check below also allows subdomains of any entry here.
 const staticWhitelistHostnames: string[] = ['base.giveth.io'];
 
-const whitelistHostnames: string[] = Array.from(
+export const whitelistHostnames: string[] = Array.from(
   new Set([
     ...(config.get('HOSTNAME_WHITELIST') as string)
       .split(',')

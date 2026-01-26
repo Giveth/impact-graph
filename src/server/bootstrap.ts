@@ -55,7 +55,7 @@ import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
-import { corsOptions } from './cors';
+import { corsOptions, whitelistHostnames } from './cors';
 import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
 import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
@@ -211,6 +211,28 @@ export async function bootstrap() {
       res.download(filePath);
     });
 
+    // Lightweight "hello world" health check for deploy verification.
+    // Defined BEFORE global CORS middleware so it's always reachable from any origin.
+    app.options('/healthz', cors({ origin: '*', credentials: false }));
+    app.get(
+      '/healthz',
+      cors({ origin: '*', credentials: false }),
+      (_req, res) => {
+        res.status(200).json({
+          ok: true,
+          message: 'hello world',
+          deployMarker: 'cors-base-giveth-io-allowlist-2026-01-26',
+          whitelistHostnames: whitelistHostnames,
+          commit:
+            process.env.RELEASE ||
+            process.env.GIT_SHA ||
+            process.env.VERCEL_GIT_COMMIT_SHA ||
+            process.env.HEROKU_SLUG_COMMIT ||
+            null,
+        });
+      },
+    );
+
     app.use(setI18nLocaleForRequest); // accept-language header
     if (process.env.DISABLE_SERVER_CORS !== 'true') {
       app.use(cors(corsOptions));
@@ -249,14 +271,11 @@ export async function bootstrap() {
           limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
         }),
       );
-      app.use(
-        '/graphql',
-        graphqlUploadExpress({
-          maxFileSize:
-            (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
-          maxFiles: 10,
-        }),
-      );
+      const graphqlUploadMiddleware = graphqlUploadExpress({
+        maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
+        maxFiles: 10,
+      }) as unknown as express.RequestHandler;
+      app.use('/graphql', graphqlUploadMiddleware);
 
       app.use(
         '/graphql',
