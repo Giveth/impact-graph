@@ -21,7 +21,7 @@ import { logger } from '../../../utils/logger';
 import { gnosisSafeL2ABI } from '../../../assets/gnosisSafeL2ABI';
 import { NetworkTransactionInfo, TransactionDetailInput } from '../index';
 import { normalizeAmount } from '../../../utils/utils';
-import { closeTo, ONE_HOUR, validateTransactionWithInputData } from '../index';
+import { ONE_HOUR, validateTransactionWithInputData } from '../index';
 import { ITxInfo } from '../../../types/etherscan';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -138,6 +138,10 @@ const ERC4337_ENTRYPOINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789';
 function isErc4337EntryPointTx(to?: string | null): boolean {
   return Boolean(to && to.toLowerCase() === ERC4337_ENTRYPOINT_ADDRESS);
 }
+
+const closeTo = (a: number, b: number, delta = 0.001) => {
+  return Math.abs(1 - a / b) < delta;
+};
 
 function extractErc20TransferFromReceipt(params: {
   receipt: any;
