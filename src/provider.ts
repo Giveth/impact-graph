@@ -461,6 +461,29 @@ export const getOriginHeader = () => {
   return 'impact-graph-' + SERVICE_NAME || 'unnamed';
 };
 
+// Get fallback RPC URLs for networks that have multiple providers configured
+export function getFallbackProviderUrls(networkId: number): string[] {
+  const fallbackUrls: string[] = [];
+
+  switch (networkId) {
+    case NETWORK_IDS.XDAI:
+      // Add all available Gnosis/xDai RPC endpoints
+      if (process.env.XDAI_NODE_HTTP_URL) {
+        fallbackUrls.push(process.env.XDAI_NODE_HTTP_URL);
+      }
+      if (process.env.XDAI_NODE_HTTP_URL_QUICKNODE) {
+        fallbackUrls.push(process.env.XDAI_NODE_HTTP_URL_QUICKNODE);
+      }
+      // Public fallback endpoints
+      fallbackUrls.push('https://rpc.gnosischain.com');
+      fallbackUrls.push('https://rpc.ankr.com/gnosis');
+      break;
+    // Add more networks with fallback support here as needed
+  }
+
+  return fallbackUrls;
+}
+
 export function getProvider(networkId: number) {
   let url;
   let options;
@@ -474,7 +497,10 @@ export function getProvider(networkId: number) {
       url = process.env.ETC_NODE_HTTP_URL as string;
       break;
     case NETWORK_IDS.XDAI:
-      url = process.env.XDAI_NODE_HTTP_URL as string;
+      url =
+        process.env.XDAI_NODE_HTTP_URL ||
+        process.env.XDAI_NODE_HTTP_URL_QUICKNODE ||
+        'https://rpc.gnosischain.com';
       break;
 
     case NETWORK_IDS.BSC:
@@ -559,6 +585,67 @@ export function getProvider(networkId: number) {
     },
     options,
   );
+}
+
+// Retry an RPC call with automatic fallback to alternate providers
+export async function retryWithFallbackProvider<T>(
+  networkId: number,
+  rpcCall: (provider: ethers.providers.JsonRpcProvider) => Promise<T>,
+  maxRetries = 2,
+): Promise<T> {
+  const fallbackUrls = getFallbackProviderUrls(networkId);
+
+  // If no fallbacks are configured, just use the primary provider
+  if (fallbackUrls.length === 0) {
+    const provider = getProvider(networkId);
+    return await rpcCall(provider);
+  }
+
+  let lastError: Error | undefined;
+
+  // Try each provider URL in sequence
+  for (let i = 0; i < fallbackUrls.length && i < maxRetries; i++) {
+    try {
+      const provider = new ethers.providers.JsonRpcProvider({
+        url: fallbackUrls[i],
+        headers: {
+          Origin: getOriginHeader(),
+        },
+      });
+
+      logger.debug(`Trying RPC provider ${i + 1}/${fallbackUrls.length}`, {
+        networkId,
+        url: fallbackUrls[i],
+      });
+
+      const result = await rpcCall(provider);
+
+      // If successful and not the first provider, log for monitoring
+      if (i > 0) {
+        logger.info(`Successfully used fallback RPC provider #${i + 1}`, {
+          networkId,
+          url: fallbackUrls[i],
+        });
+      }
+
+      return result;
+    } catch (error: any) {
+      lastError = error;
+      logger.warn(`RPC provider ${i + 1}/${fallbackUrls.length} failed`, {
+        networkId,
+        url: fallbackUrls[i],
+        error: error.message,
+        status: error.status,
+      });
+
+      // If this is the last attempt, throw the error
+      if (i === fallbackUrls.length - 1 || i === maxRetries - 1) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError || new Error('All RPC providers failed');
 }
 
 export function getBlockExplorerApiUrl(networkId: number): string {

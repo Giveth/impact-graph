@@ -15,6 +15,7 @@ import {
   getBlockExplorerApiUrl,
   getNetworkNativeToken,
   getProvider,
+  retryWithFallbackProvider,
   NETWORK_IDS,
 } from '../../../provider';
 import { logger } from '../../../utils/logger';
@@ -34,13 +35,15 @@ export async function getEvmTransactionInfoFromNetwork(
 ): Promise<NetworkTransactionInfo> {
   const { networkId, nonce } = input;
 
-  const provider = getProvider(networkId);
   logger.debug(
     'NODE RPC request count - getTransactionInfoFromNetwork  provider.getTransactionCount txHash:',
     input.txHash,
   );
-  const userTransactionsCount = await provider.getTransactionCount(
-    input.fromAddress,
+
+  // Use retry mechanism for getTransactionCount to handle RPC failures
+  const userTransactionsCount = await retryWithFallbackProvider(
+    networkId,
+    async provider => await provider.getTransactionCount(input.fromAddress),
   );
   if (typeof nonce === 'number' && userTransactionsCount <= nonce) {
     logger.debug('getTransactionDetail check nonce', {
