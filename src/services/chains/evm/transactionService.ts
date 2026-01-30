@@ -143,6 +143,92 @@ const closeTo = (a: number, b: number, delta = 0.001) => {
   return Math.abs(1 - a / b) < delta;
 };
 
+async function getInternalTransactionsByTxHash(params: {
+  networkId: number;
+  txHash: string;
+}) {
+  try {
+    const { networkId, txHash } = params;
+    // https://docs.etherscan.io/api-endpoints/accounts#get-internal-transactions-by-transaction-hash
+    const result = await axios.get(getBlockExplorerApiUrl(networkId), {
+      params: {
+        module: 'account',
+        action: 'txlistinternal',
+        txhash: txHash,
+      },
+    });
+
+    if (result?.data?.status === '0') {
+      // "No transactions found" is a common "status=0" for this endpoint; treat it as empty list.
+      if (
+        typeof result?.data?.message === 'string' &&
+        result.data.message.toLowerCase().includes('no transactions found')
+      ) {
+        return [];
+      }
+      throw new Error(
+        result.data?.message ||
+          `Error while fetching internal txs networkId: ${networkId}`,
+      );
+    }
+
+    return Array.isArray(result?.data?.result) ? result.data.result : [];
+  } catch (e) {
+    logger.warn('getInternalTransactionsByTxHash() err', {
+      error: e?.message,
+      networkId: params.networkId,
+      txHash: params.txHash,
+    });
+    return [];
+  }
+}
+
+function extractNativeTransferFromInternalTxs(params: {
+  internalTxs: any[];
+  expectedTo: string;
+  expectedFrom?: string;
+  expectedAmount?: number;
+}): { from: string; to: string; amount: number } | null {
+  const { internalTxs, expectedTo, expectedFrom, expectedAmount } = params;
+  const expectedToLower = expectedTo.toLowerCase();
+  const expectedFromLower = expectedFrom?.toLowerCase();
+
+  const candidates: Array<{ from: string; to: string; amount: number }> = [];
+  for (const itx of internalTxs) {
+    const to = (itx?.to || '').toLowerCase();
+    if (!to || to !== expectedToLower) continue;
+
+    const from = (itx?.from || '').toLowerCase();
+    let amount: number;
+    try {
+      // Etherscan-style internal tx `value` is in wei as a decimal string
+      const wei = ethers.BigNumber.from(itx?.value || '0');
+      amount = Number(ethers.utils.formatEther(wei));
+    } catch {
+      continue;
+    }
+    candidates.push({ from, to, amount });
+  }
+
+  if (candidates.length === 0) return null;
+
+  const scored = candidates
+    .map(c => {
+      const fromMatch = expectedFromLower
+        ? c.from === expectedFromLower
+        : false;
+      const amountMatch =
+        typeof expectedAmount === 'number'
+          ? closeTo(c.amount, expectedAmount)
+          : false;
+      const score = (amountMatch ? 2 : 0) + (fromMatch ? 1 : 0);
+      return { c, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return scored[0].c;
+}
+
 function extractErc20TransferFromReceipt(params: {
   receipt: any;
   tokenAddress: string;
@@ -430,6 +516,32 @@ async function getTransactionDetailForNormalTransfer(
         ),
       );
     }
+  }
+
+  // Account abstraction: native token transfer happens as an internal call from the smart account,
+  // while the outer tx is to the EntryPoint and typically has `value = 0`.
+  if (!input.safeTxHash && isErc4337EntryPointTx(transaction.to)) {
+    const internalTxs = await getInternalTransactionsByTxHash({
+      networkId,
+      txHash,
+    });
+    const internalTransfer = extractNativeTransferFromInternalTxs({
+      internalTxs,
+      expectedTo: input.toAddress,
+      expectedFrom: input.fromAddress,
+      expectedAmount: input.amount,
+    });
+    if (!internalTransfer) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
+        ),
+      );
+    }
+
+    transactionTo = internalTransfer.to;
+    transactionFrom = internalTransfer.from;
+    amount = internalTransfer.amount.toString();
   }
 
   return {
