@@ -1,5 +1,6 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PreviousRoundRank } from '../entities/previousRoundRank';
+import { AppDataSource } from '../orm';
 
 export const deleteAllPreviousRoundRanks = async () => {
   return PreviousRoundRank.query(
@@ -10,17 +11,34 @@ export const deleteAllPreviousRoundRanks = async () => {
 };
 
 export const copyProjectRanksToPreviousRoundRankTable = async () => {
-  await deleteAllPreviousRoundRanks();
-  return PreviousRoundRank.query(
-    `
-           INSERT INTO previous_round_rank ("projectId", round, rank)
-           SELECT DISTINCT project_power_view."projectId", project_power_view.round, project_power_view."powerRank"
-           FROM project_power_view
-           ON CONFLICT (round, "projectId") DO UPDATE SET
-             rank = EXCLUDED.rank,
-             "updatedAt" = NOW();
-      `,
-  );
+  // Use a transaction to prevent deadlocks
+  const queryRunner = AppDataSource.getDataSource().createQueryRunner();
+
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+
+  try {
+    // Delete and insert in a single transaction to prevent deadlocks
+    await queryRunner.query(`
+      DELETE FROM previous_round_rank
+    `);
+
+    await queryRunner.query(`
+      INSERT INTO previous_round_rank ("projectId", round, rank)
+      SELECT DISTINCT project_power_view."projectId", project_power_view.round, project_power_view."powerRank"
+      FROM project_power_view
+      ON CONFLICT (round, "projectId") DO UPDATE SET
+        rank = EXCLUDED.rank,
+        "updatedAt" = NOW()
+    `);
+
+    await queryRunner.commitTransaction();
+  } catch (error) {
+    await queryRunner.rollbackTransaction();
+    throw error;
+  } finally {
+    await queryRunner.release();
+  }
 };
 
 export const projectsThatTheirRanksHaveChanged = async (): Promise<
