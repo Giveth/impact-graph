@@ -64,16 +64,13 @@ import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/s
 import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
-import { corsOptions, whitelistHostnames } from './cors';
-import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
-import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { addClient } from '../services/sse/sse';
 import { ApolloContext } from '../types/ApolloContext';
 import { isTestEnv } from '../utils/utils';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
-import { corsOptions } from './cors';
+import { corsOptions, whitelistHostnames } from './cors';
 
 Resource.validate = validate;
 
