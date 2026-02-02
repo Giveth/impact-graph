@@ -29,50 +29,191 @@ const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 abiDecoder.addABI(gnosisSafeL2ABI);
 
+function txTrace(
+  inputOrCtx:
+    | TransactionDetailInput
+    | {
+        txHash?: string;
+        networkId?: number;
+        fromAddress?: string;
+        toAddress?: string;
+        symbol?: string;
+        amount?: number;
+        nonce?: number;
+        safeTxHash?: string;
+        isSwap?: boolean;
+        importedFromDraftOrBackupService?: boolean;
+      },
+  step: string,
+  extra?: Record<string, any>,
+) {
+  const input = inputOrCtx as any;
+  logger.debug('[tx-trace]', {
+    step,
+    txHash: input?.txHash,
+    networkId: input?.networkId,
+    fromAddress: input?.fromAddress,
+    toAddress: input?.toAddress,
+    symbol: input?.symbol,
+    amount: input?.amount,
+    nonce: input?.nonce,
+    safeTxHash: input?.safeTxHash,
+    isSwap: input?.isSwap,
+    importedFromDraftOrBackupService: input?.importedFromDraftOrBackupService,
+    ...extra,
+  });
+}
+
 export async function getEvmTransactionInfoFromNetwork(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo> {
   const { networkId, nonce } = input;
 
+  txTrace(input, 'getEvmTransactionInfoFromNetwork:enter');
   const provider = getProvider(networkId);
-  logger.debug(
-    'NODE RPC request count - getTransactionInfoFromNetwork  provider.getTransactionCount txHash:',
-    input.txHash,
-  );
-  const userTransactionsCount = await provider.getTransactionCount(
-    input.fromAddress,
-  );
-  if (typeof nonce === 'number' && userTransactionsCount <= nonce) {
-    logger.debug('getTransactionDetail check nonce', {
-      input,
-      userTransactionsCount,
-    });
-    throw new Error(
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
-      ),
-    );
-  }
+
+  // First try resolving directly by txHash. If it's found/mined, we should not block verification
+  // behind nonce-based heuristics (which are EOA-specific and break for smart contract wallets / AA).
+  txTrace(input, 'getEvmTransactionInfoFromNetwork:try_findByHash');
   let transaction: NetworkTransactionInfo | null =
     await findEvmTransactionByHash(input);
+  if (transaction) {
+    txTrace(input, 'getEvmTransactionInfoFromNetwork:foundByHash', {
+      resolvedHash: transaction.hash,
+      resolvedFrom: transaction.from,
+      resolvedTo: transaction.to,
+      resolvedAmount: transaction.amount,
+      resolvedTimestamp: transaction.timestamp,
+    });
+    try {
+      await validateTransactionWithInputData(transaction, input);
+    } catch (e) {
+      txTrace(input, 'getEvmTransactionInfoFromNetwork:validate_failed', {
+        error: e?.message,
+        resolvedHash: transaction.hash,
+        resolvedFrom: transaction.from,
+        resolvedTo: transaction.to,
+        resolvedAmount: transaction.amount,
+        resolvedTimestamp: transaction.timestamp,
+      });
+      throw e;
+    }
+    txTrace(input, 'getEvmTransactionInfoFromNetwork:validate_ok');
+    return transaction;
+  }
+  txTrace(input, 'getEvmTransactionInfoFromNetwork:notFoundByHash');
 
-  if (!transaction && nonce) {
+  // NOTE: For account-abstraction / smart contract wallets, `getTransactionCount(wallet)`
+  // is not meaningful (it stays 0 forever for most contracts). Using it causes donations
+  // to remain "pending" indefinitely when a (EOA) nonce is passed from the client.
+  // We only apply nonce-based "mined yet?" checks for EOAs.
+  let shouldUseNonceChecks = typeof nonce === 'number';
+  txTrace(input, 'getEvmTransactionInfoFromNetwork:nonceChecks:init', {
+    shouldUseNonceChecks,
+  });
+  if (shouldUseNonceChecks) {
+    try {
+      logger.debug(
+        'NODE RPC request count - getTransactionInfoFromNetwork provider.getCode fromAddress:',
+        input.fromAddress,
+      );
+      const code = await provider.getCode(input.fromAddress);
+      shouldUseNonceChecks = code === '0x';
+      txTrace(input, 'getEvmTransactionInfoFromNetwork:nonceChecks:getCode_ok', {
+        code,
+        shouldUseNonceChecks,
+      });
+    } catch (e) {
+      // If `getCode` fails, fall back to legacy behavior for safety
+      logger.warn('getTransactionInfoFromNetwork() getCode failed', {
+        error: e?.message,
+        fromAddress: input.fromAddress,
+        networkId,
+      });
+      shouldUseNonceChecks = typeof nonce === 'number';
+      txTrace(
+        input,
+        'getEvmTransactionInfoFromNetwork:nonceChecks:getCode_failed',
+        {
+          error: e?.message,
+          shouldUseNonceChecks,
+        },
+      );
+    }
+  }
+
+  let userTransactionsCount: number | undefined;
+  if (shouldUseNonceChecks) {
+    logger.debug(
+      'NODE RPC request count - getTransactionInfoFromNetwork provider.getTransactionCount txHash:',
+      input.txHash,
+    );
+    userTransactionsCount = await provider.getTransactionCount(
+      input.fromAddress,
+    );
+    txTrace(
+      input,
+      'getEvmTransactionInfoFromNetwork:nonceChecks:getTransactionCount_ok',
+      {
+        userTransactionsCount,
+        nonce,
+      },
+    );
+    if (typeof nonce === 'number' && userTransactionsCount <= nonce) {
+      logger.debug('getTransactionDetail check nonce', {
+        input,
+        userTransactionsCount,
+      });
+      txTrace(input, 'getEvmTransactionInfoFromNetwork:nonce_not_mined', {
+        userTransactionsCount,
+        nonce,
+      });
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
+        ),
+      );
+    }
+  }
+  if (!transaction && nonce && shouldUseNonceChecks) {
     // if nonce didn't pass, we can not understand whether is speedup or not
+    txTrace(input, 'getEvmTransactionInfoFromNetwork:try_findByNonce');
     transaction = await findEvmTransactionByNonce({
       input,
     });
+    txTrace(input, 'getEvmTransactionInfoFromNetwork:findByNonce_done', {
+      found: Boolean(transaction),
+      resolvedHash: transaction?.hash,
+    });
   }
 
-  if (!transaction && (!nonce || userTransactionsCount > nonce)) {
+  if (
+    !transaction &&
+    (!nonce ||
+      // If we skipped nonce checks (contract wallet), treat it as "nonce used" to avoid false negatives
+      (typeof userTransactionsCount === 'number' &&
+        userTransactionsCount > nonce) ||
+      !shouldUseNonceChecks)
+  ) {
     // in this case we understand that the transaction will not happen anytime, because nonce is used
     // so this is not speedup for sure
     const timeNow = new Date().getTime() / 1000; // in seconds
+    txTrace(input, 'getEvmTransactionInfoFromNetwork:notFound:nonce_used_or_skipped', {
+      nonce,
+      shouldUseNonceChecks,
+      userTransactionsCount,
+      inputTimestamp: input.timestamp,
+      timeNow,
+      ageSeconds: timeNow - input.timestamp,
+    });
     if (input.timestamp - timeNow < ONE_HOUR) {
+      txTrace(input, 'getEvmTransactionInfoFromNetwork:notFound:recent_under_1h');
       throw new Error(
         i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
       );
     }
 
+    txTrace(input, 'getEvmTransactionInfoFromNetwork:notFound:nonce_used_and_old');
     throw new Error(
       i18n.__(
         translationErrorMessagesKeys.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
@@ -80,18 +221,257 @@ export async function getEvmTransactionInfoFromNetwork(
     );
   }
   if (!transaction) {
+    txTrace(input, 'getEvmTransactionInfoFromNetwork:notFound:generic', {
+      nonce,
+      shouldUseNonceChecks,
+      userTransactionsCount,
+    });
     throw new Error(
       i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
     );
   }
-  await validateTransactionWithInputData(transaction, input);
+  txTrace(input, 'getEvmTransactionInfoFromNetwork:resolved_final', {
+    resolvedHash: transaction.hash,
+    resolvedFrom: transaction.from,
+    resolvedTo: transaction.to,
+    resolvedAmount: transaction.amount,
+    resolvedTimestamp: transaction.timestamp,
+  });
+  try {
+    await validateTransactionWithInputData(transaction, input);
+  } catch (e) {
+    txTrace(input, 'getEvmTransactionInfoFromNetwork:validate_failed_final', {
+      error: e?.message,
+      resolvedHash: transaction.hash,
+      resolvedFrom: transaction.from,
+      resolvedTo: transaction.to,
+      resolvedAmount: transaction.amount,
+      resolvedTimestamp: transaction.timestamp,
+    });
+    throw e;
+  }
+  txTrace(input, 'getEvmTransactionInfoFromNetwork:validate_ok_final');
   return transaction;
+}
+
+const ERC20_TRANSFER_TOPIC =
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+// EIP-4337 EntryPoint (commonly used on Base and many other EVM networks)
+const ERC4337_ENTRYPOINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789';
+
+function isErc4337EntryPointTx(to?: string | null): boolean {
+  return Boolean(to && to.toLowerCase() === ERC4337_ENTRYPOINT_ADDRESS);
+}
+
+const closeTo = (a: number, b: number, delta = 0.001) => {
+  return Math.abs(1 - a / b) < delta;
+};
+
+async function getInternalTransactionsByTxHash(params: {
+  networkId: number;
+  txHash: string;
+}) {
+  try {
+    const { networkId, txHash } = params;
+    txTrace(params, 'getInternalTransactionsByTxHash:enter');
+    // https://docs.etherscan.io/api-endpoints/accounts#get-internal-transactions-by-transaction-hash
+    const result = await axios.get(getBlockExplorerApiUrl(networkId), {
+      params: {
+        module: 'account',
+        action: 'txlistinternal',
+        txhash: txHash,
+      },
+    });
+    txTrace(params, 'getInternalTransactionsByTxHash:response_meta', {
+      status: result?.data?.status,
+      message: result?.data?.message,
+      resultIsArray: Array.isArray(result?.data?.result),
+      resultLength: Array.isArray(result?.data?.result) ? result.data.result.length : undefined,
+    });
+
+    if (result?.data?.status === '0') {
+      // "No transactions found" is a common "status=0" for this endpoint; treat it as empty list.
+      if (
+        typeof result?.data?.message === 'string' &&
+        result.data.message.toLowerCase().includes('no transactions found')
+      ) {
+        txTrace(params, 'getInternalTransactionsByTxHash:no_transactions_found');
+        return [];
+      }
+      txTrace(params, 'getInternalTransactionsByTxHash:error_status_0', {
+        message: result.data?.message,
+      });
+      throw new Error(
+        result.data?.message ||
+          `Error while fetching internal txs networkId: ${networkId}`,
+      );
+    }
+
+    const internalTxs = Array.isArray(result?.data?.result) ? result.data.result : [];
+    txTrace(params, 'getInternalTransactionsByTxHash:success', {
+      internalTxsCount: internalTxs.length,
+    });
+    return internalTxs;
+  } catch (e) {
+    logger.warn('getInternalTransactionsByTxHash() err', {
+      error: e?.message,
+      networkId: params.networkId,
+      txHash: params.txHash,
+    });
+    txTrace(params, 'getInternalTransactionsByTxHash:catch_return_empty', {
+      error: e?.message,
+    });
+    return [];
+  }
+}
+
+function extractNativeTransferFromInternalTxs(params: {
+  internalTxs: any[];
+  expectedTo: string;
+  expectedFrom?: string;
+  expectedAmount?: number;
+}): { from: string; to: string; amount: number } | null {
+  const { internalTxs, expectedTo, expectedFrom, expectedAmount } = params;
+  const expectedToLower = expectedTo.toLowerCase();
+  const expectedFromLower = expectedFrom?.toLowerCase();
+  txTrace(
+    {
+      txHash: undefined,
+      networkId: undefined,
+      toAddress: expectedTo,
+      fromAddress: expectedFrom,
+      amount: expectedAmount,
+    },
+    'extractNativeTransferFromInternalTxs:enter',
+    { internalTxsCount: internalTxs?.length },
+  );
+
+  const candidates: Array<{ from: string; to: string; amount: number }> = [];
+  for (const itx of internalTxs) {
+    const to = (itx?.to || '').toLowerCase();
+    if (!to || to !== expectedToLower) continue;
+
+    const from = (itx?.from || '').toLowerCase();
+    let amount: number;
+    try {
+      // Etherscan-style internal tx `value` is in wei as a decimal string
+      const wei = ethers.BigNumber.from(itx?.value || '0');
+      amount = Number(ethers.utils.formatEther(wei));
+    } catch {
+      continue;
+    }
+    candidates.push({ from, to, amount });
+  }
+
+  if (candidates.length === 0) return null;
+
+  const scored = candidates
+    .map(c => {
+      const fromMatch = expectedFromLower
+        ? c.from === expectedFromLower
+        : false;
+      const amountMatch =
+        typeof expectedAmount === 'number'
+          ? closeTo(c.amount, expectedAmount)
+          : false;
+      const score = (amountMatch ? 2 : 0) + (fromMatch ? 1 : 0);
+      return { c, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const best = scored[0].c;
+  txTrace(
+    {
+      txHash: undefined,
+      networkId: undefined,
+      toAddress: expectedTo,
+      fromAddress: expectedFrom,
+      amount: expectedAmount,
+    },
+    'extractNativeTransferFromInternalTxs:best_candidate',
+    {
+      candidatesCount: candidates.length,
+      best,
+      expectedTo: expectedToLower,
+      expectedFrom: expectedFromLower,
+      expectedAmount,
+    },
+  );
+  return best;
+}
+
+function extractErc20TransferFromReceipt(params: {
+  receipt: any;
+  tokenAddress: string;
+  expectedTo: string;
+  expectedFrom?: string;
+  expectedAmount?: number;
+  tokenDecimals: number;
+}): { from: string; to: string; amount: number } | null {
+  const {
+    receipt,
+    tokenAddress,
+    expectedTo,
+    expectedFrom,
+    expectedAmount,
+    tokenDecimals,
+  } = params;
+  const logs: any[] = receipt?.logs || [];
+  const tokenLower = tokenAddress.toLowerCase();
+  const expectedToLower = expectedTo.toLowerCase();
+  const expectedFromLower = expectedFrom?.toLowerCase();
+
+  const candidates: Array<{ from: string; to: string; amount: number }> = [];
+  for (const log of logs) {
+    if (!log?.topics || log.topics.length < 3) continue;
+    if ((log.address || '').toLowerCase() !== tokenLower) continue;
+    if ((log.topics[0] || '').toLowerCase() !== ERC20_TRANSFER_TOPIC) continue;
+
+    const from = ('0x' + log.topics[1].slice(26)).toLowerCase();
+    const to = ('0x' + log.topics[2].slice(26)).toLowerCase();
+    if (to !== expectedToLower) continue;
+
+    let rawValue: string;
+    try {
+      // log.data is 32-byte uint256
+      rawValue = ethers.BigNumber.from(log.data).toString();
+    } catch {
+      continue;
+    }
+    const amount = normalizeAmount(rawValue, tokenDecimals);
+    candidates.push({ from, to, amount });
+  }
+
+  if (candidates.length === 0) return null;
+
+  // Prefer: (1) from matches expectedFrom (if provided) AND (2) amount close to expectedAmount (if provided)
+  const scored = candidates
+    .map(c => {
+      const fromMatch = expectedFromLower
+        ? c.from === expectedFromLower
+        : false;
+      const amountMatch =
+        typeof expectedAmount === 'number'
+          ? closeTo(c.amount, expectedAmount)
+          : false;
+      const score = (fromMatch ? 2 : 0) + (amountMatch ? 1 : 0);
+      return { c, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return scored[0].c;
 }
 
 export async function findEvmTransactionByHash(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo | null> {
   const nativeToken = getNetworkNativeToken(input.networkId);
+  txTrace(input, 'findEvmTransactionByHash:enter', {
+    nativeToken,
+    inputSymbol: input.symbol,
+    isNativeMatch: nativeToken.toLowerCase() === input.symbol.toLowerCase(),
+  });
   if (nativeToken.toLowerCase() === input.symbol.toLowerCase()) {
     return getTransactionDetailForNormalTransfer(input);
   } else {
@@ -106,17 +486,30 @@ async function findEvmTransactionByNonce(data: {
   logger.debug('findTransactionByNonce called', data);
   const { input, page = 1 } = data;
   const nonce = input.nonce as number;
+  txTrace(input, 'findEvmTransactionByNonce:enter', { page, nonce });
   const { userRecentTransactions, lastPage } =
     await getListOfTransactionsByAddress({
       address: input.fromAddress,
       page,
       networkId: input.networkId,
     });
+  txTrace(input, 'findEvmTransactionByNonce:list_fetched', {
+    page,
+    lastPage,
+    userRecentTransactionsCount: userRecentTransactions.length,
+    newestNonce: userRecentTransactions[0]?.nonce,
+    oldestNonce: userRecentTransactions[userRecentTransactions.length - 1]?.nonce,
+  });
   const foundTransaction = userRecentTransactions.find(
     tx => +tx.nonce === input.nonce,
   );
 
   if (foundTransaction) {
+    txTrace(input, 'findEvmTransactionByNonce:match_found', {
+      page,
+      matchedHash: foundTransaction.hash,
+      matchedNonce: foundTransaction.nonce,
+    });
     return findEvmTransactionByHash({
       ...input,
       txHash: foundTransaction.hash,
@@ -146,6 +539,11 @@ async function findEvmTransactionByNonce(data: {
       : undefined;
 
   if (smallestNonce !== undefined && smallestNonce < nonce) {
+    txTrace(input, 'findEvmTransactionByNonce:nonce_too_high_for_history', {
+      page,
+      smallestNonce,
+      nonce,
+    });
     logger.debug('checkIfTransactionHasBeenSpeedup', {
       smallestNonce,
       input,
@@ -260,14 +658,25 @@ async function getTransactionDetailForNormalTransfer(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId } = input;
+  txTrace(input, 'getTransactionDetailForNormalTransfer:enter');
   logger.debug(
     'NODE RPC request count - getTransactionDetailForNormalTransfer  provider.getTransaction txHash:',
     input.txHash,
   );
   const transaction = await getProvider(networkId).getTransaction(txHash);
   if (!transaction) {
+    txTrace(input, 'getTransactionDetailForNormalTransfer:tx_not_found');
     return null;
   }
+  txTrace(input, 'getTransactionDetailForNormalTransfer:tx_found', {
+    txFrom: transaction.from,
+    txTo: transaction.to,
+    txValueWei: transaction.value?.toString?.(),
+    txNonce: transaction.nonce,
+    blockNumber: transaction.blockNumber,
+    isEntryPointTx: isErc4337EntryPointTx(transaction.to),
+    safeTxHashPresent: Boolean(input.safeTxHash),
+  });
   logger.debug(
     'NODE RPC request count - getTransactionDetailForNormalTransfer  provider.getTransactionReceipt txHash:',
     input.txHash,
@@ -276,9 +685,16 @@ async function getTransactionDetailForNormalTransfer(
   if (!receipt) {
     // Transaction is not mined yet
     // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
+    txTrace(input, 'getTransactionDetailForNormalTransfer:receipt_not_found');
     return null;
   }
+  txTrace(input, 'getTransactionDetailForNormalTransfer:receipt_found', {
+    status: receipt.status,
+    logsCount: Array.isArray(receipt.logs) ? receipt.logs.length : undefined,
+    blockNumber: receipt.blockNumber,
+  });
   if (!receipt.status) {
+    txTrace(input, 'getTransactionDetailForNormalTransfer:receipt_status_failed');
     throw new Error(
       i18n.__(
         translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
@@ -292,12 +708,24 @@ async function getTransactionDetailForNormalTransfer(
   const block = await getProvider(networkId).getBlock(
     transaction.blockNumber as number,
   );
+  txTrace(input, 'getTransactionDetailForNormalTransfer:block_found', {
+    blockTimestamp: block?.timestamp,
+    blockNumber: transaction.blockNumber,
+  });
 
   let transactionTo = transaction.to;
   let transactionFrom = transaction.from;
   let amount = ethers.utils.formatEther(transaction.value);
+  txTrace(input, 'getTransactionDetailForNormalTransfer:initial_fields', {
+    transactionTo,
+    transactionFrom,
+    amount,
+  });
 
   if (input.safeTxHash && receipt) {
+    txTrace(input, 'getTransactionDetailForNormalTransfer:multisig_path_enter', {
+      safeTxHash: input.safeTxHash,
+    });
     const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
     const token = await findTokenByNetworkAndSymbol(networkId, symbol);
     const events = decodedLogs[0].events;
@@ -305,8 +733,16 @@ async function getTransactionDetailForNormalTransfer(
     transactionTo = events[0]?.value?.toLowerCase();
     transactionFrom = decodedLogs[0]?.address;
     amount = normalizeAmount(events[1]?.value, token.decimals);
+    txTrace(input, 'getTransactionDetailForNormalTransfer:multisig_decoded', {
+      transactionTo,
+      transactionFrom,
+      amount,
+      decodedLogsCount: decodedLogs?.length,
+      tokenDecimals: token?.decimals,
+    });
 
     if (!transactionTo || !transactionFrom) {
+      txTrace(input, 'getTransactionDetailForNormalTransfer:multisig_decode_missing_fields');
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
@@ -315,6 +751,54 @@ async function getTransactionDetailForNormalTransfer(
     }
   }
 
+  // Account abstraction: native token transfer happens as an internal call from the smart account,
+  // while the outer tx is to the EntryPoint and typically has `value = 0`.
+  if (!input.safeTxHash && isErc4337EntryPointTx(transaction.to)) {
+    txTrace(input, 'getTransactionDetailForNormalTransfer:aa_entrypoint_detected', {
+      entryPoint: transaction.to,
+    });
+    const internalTxs = await getInternalTransactionsByTxHash({
+      networkId,
+      txHash,
+    });
+    txTrace(input, 'getTransactionDetailForNormalTransfer:aa_internal_txs_fetched', {
+      internalTxsCount: internalTxs.length,
+    });
+    const internalTransfer = extractNativeTransferFromInternalTxs({
+      internalTxs,
+      expectedTo: input.toAddress,
+      expectedFrom: input.fromAddress,
+      expectedAmount: input.amount,
+    });
+    if (!internalTransfer) {
+      txTrace(input, 'getTransactionDetailForNormalTransfer:aa_no_matching_internal_transfer', {
+        expectedTo: input.toAddress,
+        expectedFrom: input.fromAddress,
+        expectedAmount: input.amount,
+      });
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
+        ),
+      );
+    }
+
+    transactionTo = internalTransfer.to;
+    transactionFrom = internalTransfer.from;
+    amount = internalTransfer.amount.toString();
+    txTrace(input, 'getTransactionDetailForNormalTransfer:aa_internal_transfer_selected', {
+      transactionTo,
+      transactionFrom,
+      amount,
+    });
+  }
+
+  txTrace(input, 'getTransactionDetailForNormalTransfer:return', {
+    transactionTo,
+    transactionFrom,
+    amount,
+    timestamp: block.timestamp,
+  });
   return {
     from: transactionFrom,
     timestamp: block.timestamp as number,
@@ -336,6 +820,10 @@ async function getTransactionDetailForTokenTransfer(
     input.txHash,
   );
   const transaction = await provider.getTransaction(txHash);
+  if (!transaction) {
+    return null;
+  }
+  const isEntryPointTx = isErc4337EntryPointTx(transaction.to);
   let transactionTokenAddress = transaction.to?.toLowerCase();
   let transactionTo: string;
 
@@ -350,9 +838,6 @@ async function getTransactionDetailForTokenTransfer(
     input,
     token,
   });
-  if (!transaction) {
-    return null;
-  }
   if (!receipt) {
     // Transaction is not mined yet
     // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
@@ -384,7 +869,54 @@ async function getTransactionDetailForTokenTransfer(
     transactionTokenAddress = token.address.toLowerCase();
   }
 
-  if (transaction && transactionTokenAddress !== token.address.toLowerCase()) {
+  // Account abstraction: the outer tx goes to the EntryPoint, but the actual ERC20 transfer happens
+  // inside the UserOperation. In that case we validate by inspecting ERC20 Transfer logs instead of tx.to.
+  if (isEntryPointTx) {
+    const transfer = extractErc20TransferFromReceipt({
+      receipt,
+      tokenAddress: token.address,
+      expectedTo: input.toAddress,
+      expectedFrom: input.fromAddress,
+      expectedAmount: input.amount,
+      tokenDecimals: token.decimals,
+    });
+    if (!transfer) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
+        ),
+      );
+    }
+    transactionFrom = transfer.from;
+    transactionTo = transfer.to;
+    const amount = transfer.amount;
+
+    if (!receipt.status) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+        ),
+      );
+    }
+
+    logger.debug(
+      'NODE RPC request count - getTransactionDetailForTokenTransfer provider.getBlock txHash:',
+      input.txHash,
+    );
+    const block = await getProvider(networkId).getBlock(
+      transaction.blockNumber as number,
+    );
+    return {
+      from: transactionFrom,
+      timestamp: block.timestamp as number,
+      hash: txHash,
+      to: transactionTo!,
+      amount,
+      currency: symbol,
+    };
+  }
+
+  if (transactionTokenAddress !== token.address.toLowerCase()) {
     throw new Error(
       i18n.__(
         translationErrorMessagesKeys.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
