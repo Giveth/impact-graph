@@ -1,36 +1,36 @@
 import fs from 'fs';
+import adminJs, { ValidationError } from 'adminjs';
 import {
   ActionResponse,
   After,
 } from 'adminjs/src/backend/actions/action.interface';
-import adminJs, { ValidationError } from 'adminjs';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import config from '../../../config';
 import { QfRound } from '../../../entities/qfRound';
-import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
+import { pinFile } from '../../../middleware/pinataUtils';
+import { AppDataSource } from '../../../ormconfig';
+import { NETWORK_IDS } from '../../../provider';
+import {
+  countActiveQfRounds,
+  findQfRoundById,
+  getRelatedProjectsOfQfRound,
+} from '../../../repositories/qfRoundRepository';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
+import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
 import {
   getQfRoundActualDonationDetails,
   refreshProjectActualMatchingView,
   refreshProjectEstimatedMatchingView,
 } from '../../../services/projectViewsService';
+import { isQfRoundHasEnded } from '../../../services/qfRoundService';
+import { errorMessages } from '../../../utils/errorMessages';
+import { logger } from '../../../utils/logger';
+import { messages } from '../../../utils/messages';
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
 } from '../adminJs-types';
-import { isQfRoundHasEnded } from '../../../services/qfRoundService';
-import {
-  findQfRoundById,
-  getRelatedProjectsOfQfRound,
-} from '../../../repositories/qfRoundRepository';
-import { NETWORK_IDS } from '../../../provider';
-import { logger } from '../../../utils/logger';
-import { messages } from '../../../utils/messages';
-import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
-import { errorMessages } from '../../../utils/errorMessages';
-import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
-import { pinFile } from '../../../middleware/pinataUtils';
-import { AppDataSource } from '../../../ormconfig';
-import { countActiveQfRounds } from '../../../repositories/qfRoundRepository';
-import config from '../../../config';
+import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
 
 let initialProjectIds: number[] = [];
 
@@ -480,16 +480,15 @@ export const qfRoundTab = {
     actions: {
       delete: {
         isVisible: false,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction({ currentAdmin }, ResourceActions.DELETE),
+        isAccessible: false, // Disabled - QF Rounds are now managed in v6-core admin panel
         after: refreshMaterializedViews,
       },
       bulkDelete: {
         isVisible: false,
       },
       new: {
-        isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction({ currentAdmin }, ResourceActions.NEW),
+        isAccessible: false, // Disabled - QF Rounds are now managed in v6-core admin panel
+        isVisible: false,
         handler: async (
           request: AdminJsRequestInterface,
           _response,
@@ -537,8 +536,24 @@ export const qfRoundTab = {
             await handleBannerMobile(request.payload);
             await handleHubCardImage(request.payload);
 
+            // Process array fields properly (AdminJS sometimes sends them as indexed properties even in NEW)
+            const processedPayload: any = {};
+
+            Object.keys(request.payload).forEach(key => {
+              // Handle eligibleNetworks array
+              if (key.startsWith('eligibleNetworks.')) {
+                if (!processedPayload.eligibleNetworks) {
+                  processedPayload.eligibleNetworks = [];
+                }
+                const index = parseInt(key.split('.')[1]);
+                processedPayload.eligibleNetworks[index] = request.payload[key];
+              } else {
+                processedPayload[key] = request.payload[key];
+              }
+            });
+
             // Create the record
-            const qfRound = QfRound.create(request.payload);
+            const qfRound = QfRound.create(processedPayload);
             record = await qfRound.save();
           } catch (error) {
             logger.error('Error creating QF Round:', error);
@@ -574,8 +589,8 @@ export const qfRoundTab = {
         after: fillProjects,
       },
       edit: {
-        isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
+        isAccessible: false, // Disabled - QF Rounds are now managed in v6-core admin panel
+        isVisible: false,
         handler: async (
           request: AdminJsRequestInterface,
           response,

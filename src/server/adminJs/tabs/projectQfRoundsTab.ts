@@ -1,14 +1,18 @@
+import { ActionResponse } from 'adminjs';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { ProjectQfRound } from '../../../entities/projectQfRound';
+import { findProjectById } from '../../../repositories/projectRepository';
+import { updateProjectStatistics } from '../../../services/projectService';
+import { updateUserTotalReceived } from '../../../services/userService';
+import { logger } from '../../../utils/logger';
+import {
+  AdminJsContextInterface,
+  AdminJsRequestInterface,
+} from '../adminJs-types';
 import {
   canAccessProjectQfRoundAction,
   ResourceActions,
 } from '../adminJsPermissions';
-import {
-  AdminJsRequestInterface,
-  AdminJsContextInterface,
-} from '../adminJs-types';
-import { logger } from '../../../utils/logger';
 
 const deleteProjectQfRound = async (
   request: AdminJsRequestInterface,
@@ -95,6 +99,58 @@ const deleteProjectQfRound = async (
   };
 };
 
+/**
+ * Update project and project user statistics after ProjectQfRound creation
+ *
+ * MAIN PURPOSE: to update the statistics for a given project and QF round when project has been added to a QF round
+ *
+ * @param response ActionResponse
+ * @returns Promise<ActionResponse>
+ */
+const afterCreateUpdateStatistics = async (
+  response: ActionResponse,
+): Promise<ActionResponse> => {
+  const record = response.record;
+  if (!record) return response;
+
+  try {
+    const projectId = Number(record.params?.projectId);
+    const qfRoundId = Number(record.params?.qfRoundId);
+
+    if (projectId && qfRoundId) {
+      logger.debug('Updating statistics after ProjectQfRound creation:', {
+        projectId,
+        qfRoundId,
+      });
+
+      // Update statistics for this project-round combination
+      await updateProjectStatistics(projectId, qfRoundId);
+
+      // Update project user statistics
+      const project = await findProjectById(projectId);
+      if (project?.adminUser?.id) {
+        await updateUserTotalReceived(project.adminUser.id);
+      }
+
+      logger.info(
+        'Statistics updated successfully after ProjectQfRound creation:',
+        {
+          projectId,
+          qfRoundId,
+        },
+      );
+    }
+  } catch (error) {
+    logger.error('Error updating statistics after ProjectQfRound creation:', {
+      error: error.message,
+      recordParams: record.params,
+    });
+    // Don't fail the creation, just log the error
+  }
+
+  return response;
+};
+
 export const projectQfRoundsTab = {
   resource: ProjectQfRound,
   options: {
@@ -108,23 +164,18 @@ export const projectQfRoundsTab = {
           canAccessProjectQfRoundAction({ currentAdmin }, ResourceActions.SHOW),
       },
       delete: {
-        isVisible: true,
+        isVisible: false, // Disabled - Project QF Rounds are now managed in v6-core admin panel
+        isAccessible: false,
         handler: deleteProjectQfRound,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessProjectQfRoundAction(
-            { currentAdmin },
-            ResourceActions.DELETE,
-          ),
       },
       new: {
-        isVisible: true,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessProjectQfRoundAction({ currentAdmin }, ResourceActions.NEW),
+        isVisible: false, // Disabled - Project QF Rounds are now managed in v6-core admin panel
+        isAccessible: false,
+        after: afterCreateUpdateStatistics,
       },
       edit: {
-        isVisible: true,
-        isAccessible: ({ currentAdmin }) =>
-          canAccessProjectQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
+        isVisible: false, // Disabled - Project QF Rounds are now managed in v6-core admin panel
+        isAccessible: false,
       },
       bulkDelete: {
         isVisible: false,

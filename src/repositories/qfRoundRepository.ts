@@ -117,6 +117,9 @@ export class QFArchivedRounds {
 
   @Field(_type => String, { nullable: true })
   bannerMobile: string;
+
+  @Field(_type => String, { nullable: true })
+  hubCardImage: string;
 }
 
 export const findArchivedQfRounds = async (
@@ -150,6 +153,7 @@ export const findArchivedQfRounds = async (
     .addSelect('qfRound.bannerBgImage', 'bannerBgImage')
     .addSelect('qfRound.bannerFull', 'bannerFull')
     .addSelect('qfRound.bannerMobile', 'bannerMobile')
+    .addSelect('qfRound.hubCardImage', 'hubCardImage')
     .addSelect(
       qb =>
         qb
@@ -182,9 +186,6 @@ export const findArchivedQfRounds = async (
           .andWhere('donation.status = :status', { status: 'verified' })
           .andWhere(
             'donation.createdAt BETWEEN qfRound.beginDate AND qfRound.endDate',
-          )
-          .andWhere(
-            '(user.passportScore >= qfRound.minimumPassportScore OR user.passportScore IS NULL)',
           )
           .andWhere('sybil.id IS NULL')
           .andWhere('projectFraud.id IS NULL'),
