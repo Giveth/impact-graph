@@ -34,12 +34,51 @@ export interface TransactionDetailInput {
 
 export const ONE_HOUR = 60 * 60;
 
+function txTrace(
+  inputOrCtx:
+    | TransactionDetailInput
+    | {
+        txHash?: string;
+        networkId?: number;
+        fromAddress?: string;
+        toAddress?: string;
+        amount?: number;
+        symbol?: string;
+        nonce?: number;
+        isSwap?: boolean;
+        safeTxHash?: string;
+        importedFromDraftOrBackupService?: boolean;
+      },
+  step: string,
+  extra?: Record<string, any>,
+) {
+  const input = inputOrCtx as any;
+  logger.debug('[tx-trace]', {
+    step,
+    txHash: input?.txHash,
+    networkId: input?.networkId,
+    fromAddress: input?.fromAddress,
+    toAddress: input?.toAddress,
+    symbol: input?.symbol,
+    amount: input?.amount,
+    nonce: input?.nonce,
+    safeTxHash: input?.safeTxHash,
+    isSwap: input?.isSwap,
+    importedFromDraftOrBackupService: input?.importedFromDraftOrBackupService,
+    ...extra,
+  });
+}
+
 export async function isSwapTransactionToProjectAddress(
   networkId: number,
   txHash: string,
   toAddress: string,
 ): Promise<boolean> {
   try {
+    txTrace(
+      { txHash, networkId, toAddress },
+      'isSwapTransactionToProjectAddress:enter',
+    );
     const provider = getProvider(networkId);
     const receipt = await provider.getTransactionReceipt(txHash);
 
@@ -48,8 +87,23 @@ export async function isSwapTransactionToProjectAddress(
         txHash,
         networkId,
       });
+      txTrace(
+        { txHash, networkId, toAddress },
+        'isSwapTransactionToProjectAddress:receipt_or_logs_missing',
+      );
       return false;
     }
+    txTrace(
+      { txHash, networkId, toAddress },
+      'isSwapTransactionToProjectAddress:receipt_found',
+      {
+        logsCount: Array.isArray(receipt.logs)
+          ? receipt.logs.length
+          : undefined,
+        status: (receipt as any).status,
+        blockNumber: (receipt as any).blockNumber,
+      },
+    );
 
     // For swap transactions, we need to check if there's a transfer event
     // that eventually reaches the target address
@@ -76,6 +130,11 @@ export async function isSwapTransactionToProjectAddress(
                 transferToAddress,
               },
             );
+            txTrace(
+              { txHash, networkId, toAddress },
+              'isSwapTransactionToProjectAddress:match_found',
+              { transferToAddress },
+            );
             return true;
           }
         }
@@ -84,6 +143,11 @@ export async function isSwapTransactionToProjectAddress(
           error: error.message,
           log,
         });
+        txTrace(
+          { txHash, networkId, toAddress },
+          'isSwapTransactionToProjectAddress:log_parse_error',
+          { error: error.message },
+        );
         continue;
       }
     }
@@ -92,6 +156,10 @@ export async function isSwapTransactionToProjectAddress(
       txHash,
       toAddress,
     });
+    txTrace(
+      { txHash, networkId, toAddress },
+      'isSwapTransactionToProjectAddress:no_match',
+    );
     return false;
   } catch (error) {
     logger.error('Error validating swap transaction', {
@@ -100,6 +168,11 @@ export async function isSwapTransactionToProjectAddress(
       networkId,
       toAddress,
     });
+    txTrace(
+      { txHash, networkId, toAddress },
+      'isSwapTransactionToProjectAddress:catch',
+      { error: error.message },
+    );
     return false;
   }
 }
@@ -108,6 +181,16 @@ export async function validateTransactionWithInputData(
   transaction: NetworkTransactionInfo,
   input: TransactionDetailInput,
 ): Promise<void> {
+  txTrace(input, 'validateTransactionWithInputData:enter', {
+    resolved: {
+      hash: transaction.hash,
+      from: transaction.from,
+      to: transaction.to,
+      amount: transaction.amount,
+      timestamp: transaction.timestamp,
+      currency: transaction.currency,
+    },
+  });
   if (input.isSwap) {
     const isValidSwapTransaction = await isSwapTransactionToProjectAddress(
       input.networkId,
@@ -115,14 +198,22 @@ export async function validateTransactionWithInputData(
       input.toAddress,
     );
     if (!isValidSwapTransaction) {
+      txTrace(input, 'validateTransactionWithInputData:swap_invalid', {
+        expectedTo: input.toAddress,
+      });
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.SWAP_TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
         ),
       );
     }
+    txTrace(input, 'validateTransactionWithInputData:swap_valid');
   } else {
     if (transaction.to.toLowerCase() !== input.toAddress.toLowerCase()) {
+      txTrace(input, 'validateTransactionWithInputData:to_mismatch', {
+        expectedTo: input.toAddress,
+        actualTo: transaction.to,
+      });
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
@@ -131,6 +222,10 @@ export async function validateTransactionWithInputData(
     }
 
     if (transaction.from.toLowerCase() !== input.fromAddress.toLowerCase()) {
+      txTrace(input, 'validateTransactionWithInputData:from_mismatch', {
+        expectedFrom: input.fromAddress,
+        actualFrom: transaction.from,
+      });
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
@@ -139,6 +234,10 @@ export async function validateTransactionWithInputData(
     }
     if (!closeTo(transaction.amount, input.amount)) {
       // We ignore small conflicts but for bigger amount we throw exception https://github.com/Giveth/impact-graph/issues/289
+      txTrace(input, 'validateTransactionWithInputData:amount_mismatch', {
+        expectedAmount: input.amount,
+        actualAmount: transaction.amount,
+      });
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
@@ -160,12 +259,19 @@ export async function validateTransactionWithInputData(
           input,
         },
       );
+      txTrace(input, 'validateTransactionWithInputData:timestamp_too_old', {
+        inputTimestamp: input.timestamp,
+        txTimestamp: transaction.timestamp,
+        diffSeconds: input.timestamp - transaction.timestamp,
+        thresholdSeconds: ONE_HOUR,
+      });
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
         ),
       );
     }
+    txTrace(input, 'validateTransactionWithInputData:ok');
   }
 }
 
