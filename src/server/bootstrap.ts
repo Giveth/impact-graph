@@ -83,7 +83,7 @@ const options = {
   size: Number(process.env.PROJECT_FILTERS_THREADS_POOL_SIZE || 4),
 };
 
-// Service feature toggles - default to true for backwards compatibility
+// Service feature toggles - default to true for backwards compatibility.
 const isGraphqlEnabled = process.env.ENABLE_GRAPHQL !== 'false';
 const isCronjobsEnabled = process.env.ENABLE_CRONJOBS !== 'false';
 
