@@ -39,7 +39,6 @@ export class AppDataSource {
           },
           slaves,
         },
-
         entities,
         synchronize,
         dropSchema,
