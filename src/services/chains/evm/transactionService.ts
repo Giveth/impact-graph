@@ -155,13 +155,14 @@ export async function getEvmTransactionInfoFromNetwork(
         },
       );
     } catch (e) {
-      // If `getCode` fails, fall back to legacy behavior for safety
+      // If `getCode` fails, we can't reliably determine if it's a contract.
+      // For safety with AA wallets, skip nonce checks if we also have a high nonce or detected AA tx.
       logger.warn('getTransactionInfoFromNetwork() getCode failed', {
         error: e?.message,
         fromAddress: input.fromAddress,
         networkId,
       });
-      shouldUseNonceChecks = typeof nonce === 'number';
+      // Keep shouldUseNonceChecks as is, will be overridden by high nonce check if needed
       txTrace(
         input,
         'getEvmTransactionInfoFromNetwork:nonceChecks:getCode_failed',
@@ -175,16 +176,18 @@ export async function getEvmTransactionInfoFromNetwork(
 
   // If nonce is suspiciously high (> 100000), it's likely an AA wallet's internal nonce
   // rather than an EOA nonce. Skip the check to avoid false negatives.
+  // This check MUST happen after getCode() attempt to override any previous setting.
   const isSuspiciouslyHighNonce = nonce && nonce > 100000;
 
   if (isSuspiciouslyHighNonce) {
     logger.info(
-      'Detected suspiciously high nonce (likely AA wallet), skipping nonce validation',
+      'Detected suspiciously high nonce (likely AA wallet), forcing nonce validation skip',
       {
         nonce,
         txHash: input.txHash,
         fromAddress: input.fromAddress,
         networkId,
+        previousShouldUseNonceChecks: shouldUseNonceChecks,
       },
     );
     txTrace(input, 'getEvmTransactionInfoFromNetwork:high_nonce_skip', {
@@ -491,7 +494,17 @@ function extractErc20TransferFromReceipt(params: {
   const expectedToLower = expectedTo.toLowerCase();
   const expectedFromLower = expectedFrom?.toLowerCase();
 
-  const candidates: Array<{ from: string; to: string; amount: number }> = [];
+  logger.debug('extractErc20TransferFromReceipt: starting search', {
+    tokenAddress: tokenLower,
+    expectedTo: expectedToLower,
+    expectedFrom: expectedFromLower,
+    expectedAmount,
+    totalLogsCount: logs.length,
+  });
+
+  // First pass: collect all Transfer events for this token to see what we have
+  const allTokenTransfers: Array<{ from: string; to: string; amount: number }> =
+    [];
   for (const log of logs) {
     if (!log?.topics || log.topics.length < 3) continue;
     if ((log.address || '').toLowerCase() !== tokenLower) continue;
@@ -499,22 +512,50 @@ function extractErc20TransferFromReceipt(params: {
 
     const from = ('0x' + log.topics[1].slice(26)).toLowerCase();
     const to = ('0x' + log.topics[2].slice(26)).toLowerCase();
-    if (to !== expectedToLower) continue;
 
     let rawValue: string;
+    let amount: number;
     try {
-      // log.data is 32-byte uint256
       rawValue = ethers.BigNumber.from(log.data).toString();
+      amount = normalizeAmount(rawValue, tokenDecimals);
     } catch {
       continue;
     }
-    const amount = normalizeAmount(rawValue, tokenDecimals);
-    candidates.push({ from, to, amount });
+    allTokenTransfers.push({ from, to, amount });
   }
 
-  if (candidates.length === 0) return null;
+  logger.info('extractErc20TransferFromReceipt: found token transfers', {
+    tokenAddress: tokenLower,
+    transfersCount: allTokenTransfers.length,
+    transfers: allTokenTransfers.slice(0, 10), // Log first 10 to avoid huge logs
+  });
 
-  // Prefer: (1) from matches expectedFrom (if provided) AND (2) amount close to expectedAmount (if provided)
+  // Second pass: filter for expectedTo
+  const candidates: Array<{ from: string; to: string; amount: number }> =
+    allTokenTransfers.filter(t => t.to === expectedToLower);
+
+  logger.info('extractErc20TransferFromReceipt: filtered candidates', {
+    expectedTo: expectedToLower,
+    candidatesCount: candidates.length,
+    candidates,
+  });
+
+  if (candidates.length === 0) {
+    logger.error(
+      'extractErc20TransferFromReceipt: no matching transfers found',
+      {
+        expectedTo: expectedToLower,
+        expectedAmount,
+        allTransfersCount: allTokenTransfers.length,
+        allTransfers: allTokenTransfers,
+      },
+    );
+    return null;
+  }
+
+  // Scoring: prioritize amount match (most important), then from match
+  // For AA wallets, the 'from' in Transfer events is often the smart wallet, not the user EOA
+  // So we weight amount match higher than from match
   const scored = candidates
     .map(c => {
       const fromMatch = expectedFromLower
@@ -524,12 +565,29 @@ function extractErc20TransferFromReceipt(params: {
         typeof expectedAmount === 'number'
           ? closeTo(c.amount, expectedAmount)
           : false;
-      const score = (fromMatch ? 2 : 0) + (amountMatch ? 1 : 0);
+      // Amount match = 3 points (most important), from match = 1 point
+      const score = (amountMatch ? 3 : 0) + (fromMatch ? 1 : 0);
       return { c, score };
     })
     .sort((a, b) => b.score - a.score);
 
-  return scored[0].c;
+  const best = scored[0];
+
+  // If we have multiple candidates with same score, log a warning
+  const topScore = best.score;
+  const tiedCandidates = scored.filter(s => s.score === topScore);
+  if (tiedCandidates.length > 1) {
+    logger.warn('Multiple ERC-20 transfers with same score found', {
+      tokenAddress,
+      expectedTo: expectedToLower,
+      expectedFrom: expectedFromLower,
+      expectedAmount,
+      candidatesCount: tiedCandidates.length,
+      topScore,
+    });
+  }
+
+  return best.c;
 }
 
 export async function findEvmTransactionByHash(
@@ -968,6 +1026,17 @@ async function getTransactionDetailForTokenTransfer(
   // Account abstraction: the outer tx goes to the EntryPoint, but the actual ERC20 transfer happens
   // inside the UserOperation. In that case we validate by inspecting ERC20 Transfer logs instead of tx.to.
   if (isEntryPointTx) {
+    logger.info(
+      'Detected AA EntryPoint transaction for ERC-20 token transfer',
+      {
+        txHash,
+        networkId,
+        entryPoint: transaction.to,
+        token: token.symbol,
+        tokenAddress: token.address,
+      },
+    );
+
     const transfer = extractErc20TransferFromReceipt({
       receipt,
       tokenAddress: token.address,
@@ -976,16 +1045,36 @@ async function getTransactionDetailForTokenTransfer(
       expectedAmount: input.amount,
       tokenDecimals: token.decimals,
     });
+
     if (!transfer) {
+      logger.error(
+        'No matching ERC-20 transfer found in AA transaction receipt',
+        {
+          txHash,
+          expectedTo: input.toAddress,
+          expectedFrom: input.fromAddress,
+          expectedAmount: input.amount,
+          tokenAddress: token.address,
+          logsCount: receipt.logs?.length,
+        },
+      );
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
         ),
       );
     }
+
     transactionFrom = transfer.from;
     transactionTo = transfer.to;
     const amount = transfer.amount;
+
+    logger.info('Successfully extracted ERC-20 transfer from AA transaction', {
+      txHash,
+      from: transactionFrom,
+      to: transactionTo,
+      amount,
+    });
 
     if (!receipt.status) {
       throw new Error(
