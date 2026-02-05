@@ -997,7 +997,23 @@ async function getTransactionDetailForTokenTransfer(
     // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
     return null;
   }
-  const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+
+  // For AA transactions, we'll handle logs differently, so don't decode them here
+  // Decode logs only if NOT an EntryPoint transaction to avoid ABI decoder crashes
+  let decodedLogs: any[] = [];
+  if (!isEntryPointTx) {
+    try {
+      decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+    } catch (e) {
+      logger.warn('Failed to decode logs with ERC-20 ABI', {
+        error: e?.message,
+        txHash,
+        logsCount: receipt.logs?.length,
+      });
+      // Continue without decoded logs - we can still process the transaction
+    }
+  }
+
   let transactionFrom: string = transaction.from;
 
   // Multisig Donation
