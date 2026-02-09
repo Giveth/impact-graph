@@ -544,7 +544,7 @@ export class DonationResolver {
     );
     const givPrice = await getTokenPrice(NETWORK_IDS.MAIN_NET, givToken);
 
-    const maxSentGivInRound = 1_000_000;
+    const maxSentGivInRound = 1_500_000;
     const allocatedGivTokens = Math.ceil(
       Math.min(maxSentGivInRound, usdValueSentAmountInPowerRound / givPrice),
     );
