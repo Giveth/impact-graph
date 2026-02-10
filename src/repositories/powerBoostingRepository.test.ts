@@ -988,12 +988,23 @@ function powerBoostingSnapshotTests() {
     const firstGivbackRoundTimeStamp = Number(
       process.env.FIRST_GIVBACK_ROUND_TIME_STAMP,
     );
-    const givbackRoundLength = Number(process.env.GIVPOWER_ROUND_DURATION);
 
-    const startBoundary =
-      firstGivbackRoundTimeStamp + (round - 1) * givbackRoundLength;
-    const endBoundary = startBoundary + givbackRoundLength;
-    const snapshotTime = (snapshot.time.getTime() as number) / 1000;
+    // Calculate month-based boundaries (new logic)
+    const startDate = new Date(firstGivbackRoundTimeStamp * 1000);
+
+    // Round boundaries: 1st of the round's month to 1st of next month
+    const roundStartDate = new Date(startDate);
+    roundStartDate.setUTCMonth(startDate.getUTCMonth() + (round - 1));
+    roundStartDate.setUTCDate(1);
+    roundStartDate.setUTCHours(0, 0, 0, 0);
+
+    const roundEndDate = new Date(roundStartDate);
+    roundEndDate.setUTCMonth(roundEndDate.getUTCMonth() + 1);
+
+    const startBoundary = Math.floor(roundStartDate.getTime() / 1000);
+    const endBoundary = Math.floor(roundEndDate.getTime() / 1000);
+    const snapshotTime = Math.floor(snapshot.time.getTime() / 1000);
+
     assert.isAtLeast(snapshotTime, startBoundary);
     assert.isBelow(snapshotTime, endBoundary);
 
