@@ -333,6 +333,130 @@ const closeTo = (a: number, b: number, delta = 0.001) => {
   return Math.abs(1 - a / b) < delta;
 };
 
+function parseTraceValueToWei(value: unknown) {
+  try {
+    if (
+      value === undefined ||
+      value === null ||
+      (typeof value === 'string' && value.trim() === '')
+    ) {
+      return ethers.BigNumber.from(0);
+    }
+    return ethers.BigNumber.from(value);
+  } catch {
+    return ethers.BigNumber.from(0);
+  }
+}
+
+function collectValueTransfersFromCallTrace(
+  node: any,
+  transfers: Array<{ from: string; to: string; value: string }>,
+) {
+  if (!node || typeof node !== 'object') return;
+
+  const from = typeof node.from === 'string' ? node.from.toLowerCase() : '';
+  const to = typeof node.to === 'string' ? node.to.toLowerCase() : '';
+  const value = parseTraceValueToWei(node.value);
+
+  if (from && to && value.gt(0)) {
+    transfers.push({
+      from,
+      to,
+      value: value.toString(),
+    });
+  }
+
+  if (Array.isArray(node.calls)) {
+    for (const call of node.calls) {
+      collectValueTransfersFromCallTrace(call, transfers);
+    }
+  }
+}
+
+async function getInternalTransactionsByTxHashFromRpcTrace(params: {
+  networkId: number;
+  txHash: string;
+}) {
+  const { networkId, txHash } = params;
+  const provider = getProvider(networkId);
+
+  try {
+    logger.debug(
+      'NODE RPC request count - getInternalTransactionsByTxHashFromRpcTrace provider.send debug_traceTransaction txHash:',
+      txHash,
+    );
+    const debugTraceResult = await provider.send('debug_traceTransaction', [
+      txHash,
+      { tracer: 'callTracer' },
+    ]);
+    const transfers: Array<{ from: string; to: string; value: string }> = [];
+    collectValueTransfersFromCallTrace(debugTraceResult, transfers);
+    txTrace(
+      params,
+      'getInternalTransactionsByTxHashFromRpcTrace:debug_success',
+      {
+        transfersCount: transfers.length,
+      },
+    );
+    return transfers;
+  } catch (debugError) {
+    txTrace(
+      params,
+      'getInternalTransactionsByTxHashFromRpcTrace:debug_failed',
+      {
+        error: debugError?.message,
+      },
+    );
+  }
+
+  try {
+    logger.debug(
+      'NODE RPC request count - getInternalTransactionsByTxHashFromRpcTrace provider.send trace_transaction txHash:',
+      txHash,
+    );
+    const traceResult = await provider.send('trace_transaction', [txHash]);
+    const transfers: Array<{ from: string; to: string; value: string }> = [];
+    const calls = Array.isArray(traceResult) ? traceResult : [];
+
+    for (const call of calls) {
+      const from =
+        typeof call?.action?.from === 'string'
+          ? call.action.from.toLowerCase()
+          : '';
+      const to =
+        typeof call?.action?.to === 'string'
+          ? call.action.to.toLowerCase()
+          : '';
+      const value = parseTraceValueToWei(call?.action?.value);
+      if (from && to && value.gt(0)) {
+        transfers.push({
+          from,
+          to,
+          value: value.toString(),
+        });
+      }
+    }
+
+    txTrace(
+      params,
+      'getInternalTransactionsByTxHashFromRpcTrace:trace_success',
+      {
+        transfersCount: transfers.length,
+      },
+    );
+    return transfers;
+  } catch (traceError) {
+    txTrace(
+      params,
+      'getInternalTransactionsByTxHashFromRpcTrace:trace_failed',
+      {
+        error: traceError?.message,
+      },
+    );
+    return [];
+  }
+}
+
 async function getInternalTransactionsByTxHash(params: {
   networkId: number;
   txHash: string;
@@ -391,10 +515,19 @@ async function getInternalTransactionsByTxHash(params: {
       networkId: params.networkId,
       txHash: params.txHash,
     });
-    txTrace(params, 'getInternalTransactionsByTxHash:catch_return_empty', {
-      error: e?.message,
+    txTrace(
+      params,
+      'getInternalTransactionsByTxHash:explorer_failed_fallback',
+      {
+        error: e?.message,
+      },
+    );
+    const internalTxsFromTrace =
+      await getInternalTransactionsByTxHashFromRpcTrace(params);
+    txTrace(params, 'getInternalTransactionsByTxHash:fallback_done', {
+      internalTxsCount: internalTxsFromTrace.length,
     });
-    return [];
+    return internalTxsFromTrace;
   }
 }
 
