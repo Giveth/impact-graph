@@ -3,7 +3,7 @@ import { logger } from '../utils/logger';
 
 // Hostnames that are always allowed, regardless of env.
 // NOTE: CORS check below also allows subdomains of any entry here.
-const staticWhitelistHostnames: string[] = ['base.giveth.io'];
+const staticWhitelistHostnames: string[] = ['base.giveth.io', 'qf.giveth.io'];
 
 export const whitelistHostnames: string[] = Array.from(
   new Set([
