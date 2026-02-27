@@ -78,6 +78,22 @@ export async function getEvmTransactionInfoFromNetwork(
   let transaction: NetworkTransactionInfo | null =
     await findEvmTransactionByHash(input);
   if (transaction) {
+    // If the tx is an AA bundle (to=Entry Point), the outer tx to/from don't match the donation;
+    // resolve the actual native transfer from internal txs so validation and returned info are correct.
+    if (
+      transaction.to &&
+      isErc4337EntryPointTx(transaction.to) &&
+      transaction.to.toLowerCase() !== input.toAddress.toLowerCase()
+    ) {
+      const resolved = await tryResolveAANativeTransfer(input);
+      if (resolved) {
+        txTrace(input, 'getEvmTransactionInfoFromNetwork:aa_resolved', {
+          resolvedTo: resolved.to,
+          resolvedFrom: resolved.from,
+        });
+        transaction = resolved;
+      }
+    }
     txTrace(input, 'getEvmTransactionInfoFromNetwork:foundByHash', {
       resolvedHash: transaction.hash,
       resolvedFrom: transaction.from,
@@ -482,10 +498,16 @@ async function getInternalTransactionsByTxHash(params: {
     });
 
     if (result?.data?.status === '0') {
-      // "No transactions found" is a common "status=0" for this endpoint; treat it as empty list.
+      const message = (result?.data?.message ?? '').toString().toLowerCase();
+      const resultArray = result?.data?.result;
+      const isEmptyResult =
+        !Array.isArray(resultArray) || resultArray.length === 0;
+      // Treat "no transactions found" or empty result as empty list so AA verification can use trace fallback.
       if (
-        typeof result?.data?.message === 'string' &&
-        result.data.message.toLowerCase().includes('no transactions found')
+        message.includes('no transactions found') ||
+        message.includes('no records found') ||
+        message.includes('no data') ||
+        isEmptyResult
       ) {
         txTrace(
           params,
@@ -531,6 +553,72 @@ async function getInternalTransactionsByTxHash(params: {
   }
 }
 
+/** Normalize block explorer / trace internal tx to common shape (from, to, value in wei). */
+function normalizeInternalTx(
+  itx: any,
+): { from: string; to: string; valueWei: string } | null {
+  const to = (itx?.to ?? itx?.toAddress ?? '').toString().toLowerCase();
+  const from = (itx?.from ?? itx?.fromAddress ?? '').toString().toLowerCase();
+  if (!to || !from) return null;
+  let valueWei: string;
+  try {
+    const v = itx?.value ?? itx?.valueWei ?? '0';
+    valueWei = ethers.BigNumber.from(v).toString();
+  } catch {
+    return null;
+  }
+  return { from, to, valueWei };
+}
+
+/**
+ * Fetch internal transfers for a tx using debug_traceTransaction (callTracer).
+ * Used as fallback when block explorer txlistinternal returns empty (e.g. rate limit, AA bundles).
+ * Returns array of { from, to, value } with value in wei as decimal string.
+ */
+async function getInternalTransfersFromTrace(params: {
+  networkId: number;
+  txHash: string;
+}): Promise<Array<{ from: string; to: string; value: string }>> {
+  const { networkId, txHash } = params;
+  const provider = getProvider(networkId);
+  const out: Array<{ from: string; to: string; value: string }> = [];
+  const collect = (node: any): void => {
+    if (!node) return;
+    const from = (node.from ?? '').toString().toLowerCase();
+    const to = (node.to ?? '').toString().toLowerCase();
+    const value =
+      node.value != null ? ethers.BigNumber.from(node.value).toString() : '0';
+    if (from && to && value !== '0') {
+      out.push({ from, to, value });
+    }
+    for (const c of node.calls ?? []) collect(c);
+  };
+  try {
+    const result = await (provider as any).send('debug_traceTransaction', [
+      txHash,
+      { tracer: 'callTracer' },
+    ]);
+    collect(result);
+    txTrace(params, 'getInternalTransfersFromTrace:success', {
+      count: out.length,
+    });
+    return out;
+  } catch (e) {
+    logger.debug(
+      'getInternalTransfersFromTrace failed (RPC may not support debug_traceTransaction)',
+      {
+        txHash,
+        networkId,
+        error: (e as Error)?.message,
+      },
+    );
+    txTrace(params, 'getInternalTransfersFromTrace:failed', {
+      error: (e as Error)?.message,
+    });
+    return [];
+  }
+}
+
 function extractNativeTransferFromInternalTxs(params: {
   internalTxs: any[];
   expectedTo: string;
@@ -554,15 +642,14 @@ function extractNativeTransferFromInternalTxs(params: {
 
   const candidates: Array<{ from: string; to: string; amount: number }> = [];
   for (const itx of internalTxs) {
-    const to = (itx?.to || '').toLowerCase();
-    if (!to || to !== expectedToLower) continue;
+    const normalized = normalizeInternalTx(itx);
+    if (!normalized) continue;
+    const { from, to, valueWei } = normalized;
+    if (to !== expectedToLower) continue;
 
-    const from = (itx?.from || '').toLowerCase();
     let amount: number;
     try {
-      // Etherscan-style internal tx `value` is in wei as a decimal string
-      const wei = ethers.BigNumber.from(itx?.value || '0');
-      amount = Number(ethers.utils.formatEther(wei));
+      amount = Number(ethers.utils.formatEther(valueWei));
     } catch {
       continue;
     }
@@ -721,6 +808,60 @@ function extractErc20TransferFromReceipt(params: {
   }
 
   return best.c;
+}
+
+/**
+ * When the tx is an ERC-4337 Entry Point tx (AA), resolve the actual native transfer
+ * from internal txs (block explorer + trace fallback) and return NetworkTransactionInfo.
+ * Returns null if not native, not Entry Point, or no matching internal transfer.
+ * Used so verification can succeed when the outer tx goes to Entry Point but funds reach the project.
+ */
+export async function tryResolveAANativeTransfer(
+  input: TransactionDetailInput,
+): Promise<NetworkTransactionInfo | null> {
+  const nativeToken = getNetworkNativeToken(input.networkId);
+  if (nativeToken.toLowerCase() !== input.symbol.toLowerCase()) {
+    return null;
+  }
+  const provider = getProvider(input.networkId);
+  const tx = await provider.getTransaction(input.txHash);
+  if (!tx || !isErc4337EntryPointTx(tx.to)) {
+    return null;
+  }
+  const internalTxs = await getInternalTransactionsByTxHash({
+    networkId: input.networkId,
+    txHash: input.txHash,
+  });
+  let internalTransfer = extractNativeTransferFromInternalTxs({
+    internalTxs,
+    expectedTo: input.toAddress,
+    expectedFrom: input.fromAddress,
+    expectedAmount: input.amount,
+  });
+  if (!internalTransfer && internalTxs.length === 0) {
+    const traceTransfers = await getInternalTransfersFromTrace({
+      networkId: input.networkId,
+      txHash: input.txHash,
+    });
+    internalTransfer = extractNativeTransferFromInternalTxs({
+      internalTxs: traceTransfers,
+      expectedTo: input.toAddress,
+      expectedFrom: input.fromAddress,
+      expectedAmount: input.amount,
+    });
+  }
+  if (!internalTransfer) return null;
+  const block = await getProvider(input.networkId).getBlock(
+    tx.blockNumber as number,
+  );
+  return {
+    hash: input.txHash,
+    from: internalTransfer.from,
+    to: internalTransfer.to,
+    amount: internalTransfer.amount,
+    currency: input.symbol,
+    timestamp: block.timestamp as number,
+  };
 }
 
 export async function findEvmTransactionByHash(
@@ -1043,12 +1184,32 @@ async function getTransactionDetailForNormalTransfer(
         internalTxsCount: internalTxs.length,
       },
     );
-    const internalTransfer = extractNativeTransferFromInternalTxs({
+    let internalTransfer = extractNativeTransferFromInternalTxs({
       internalTxs,
       expectedTo: input.toAddress,
       expectedFrom: input.fromAddress,
       expectedAmount: input.amount,
     });
+
+    // Fallback: when block explorer returns empty (e.g. rate limit, or AA bundle not fully indexed),
+    // try RPC debug_traceTransaction to find internal native transfer.
+    if (!internalTransfer && internalTxs.length === 0) {
+      txTrace(
+        input,
+        'getTransactionDetailForNormalTransfer:aa_trying_trace_fallback',
+      );
+      const traceTransfers = await getInternalTransfersFromTrace({
+        networkId: input.networkId,
+        txHash: input.txHash,
+      });
+      internalTransfer = extractNativeTransferFromInternalTxs({
+        internalTxs: traceTransfers,
+        expectedTo: input.toAddress,
+        expectedFrom: input.fromAddress,
+        expectedAmount: input.amount,
+      });
+    }
+
     if (!internalTransfer) {
       txTrace(
         input,
