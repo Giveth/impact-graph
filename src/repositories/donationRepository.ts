@@ -8,7 +8,6 @@ import { QfRound } from '../entities/qfRound';
 import { ChainType } from '../types/network';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { AppDataSource } from '../orm';
-import { getPowerRound } from './powerRoundRepository';
 
 export const exportClusterMatchingDonationsFormat = async (
   qfRoundId: number,
@@ -584,45 +583,94 @@ export const getRecentDonations = async (take: number): Promise<Donation[]> => {
     .getMany();
 };
 
-export const getSumOfGivbackEligibleDonationsForSpecificRound = async (params: {
-  powerRound?: number;
-}): Promise<number> => {
-  // This function calculates the total USD value of all donations that are eligible for Givback in a specific PowerRound
+export const getSumOfGivbackEligibleDonationsForSpecificRound =
+  async (_params: { powerRound?: number }): Promise<number> => {
+    // This function calculates the total USD value of all donations eligible for GIVback
+    // Uses the operational window (16:00 UTC offset) to match givbacks service
+    // Groups recurring donations and applies minimum thresholds
 
-  try {
-    // If no powerRound is passed, get the latest one from the PowerRound table
-    const powerRound = params.powerRound || (await getPowerRound())?.round;
-    if (!powerRound) {
-      throw new Error('No powerRound found in the database.');
+    try {
+      // Calculate date range for current month with 16:00 UTC offset (matches givbacks service)
+      const now = new Date();
+      const year = now.getUTCFullYear();
+      const month = now.getUTCMonth();
+
+      // Start: 1st of current month at 16:00 UTC
+      const startDate = new Date(Date.UTC(year, month, 1, 16, 0, 0));
+      // End: Last day of current month at 15:59:59 UTC (or 1st of next month at 15:59:59)
+      const endDate = new Date(Date.UTC(year, month + 1, 0, 15, 59, 59));
+
+      const startDateStr = startDate
+        .toISOString()
+        .replace('T', ' ')
+        .replace('Z', '');
+      const endDateStr = endDate
+        .toISOString()
+        .replace('T', ' ')
+        .replace('Z', '');
+
+      // Minimum threshold: $4 for most projects, $0.05 for community project
+      const minEligibleValueUsd = 4;
+      const communityMinValueUsd = 0.05;
+      const communityProjectSlug = 'the-giveth-community-of-makers';
+
+      // Execute query with:
+      // 1. Date range (operational window)
+      // 2. Group recurring donations by parent ID
+      // 3. Apply minimum threshold on grouped totals
+      // 4. Purple list exclusion
+      const result = await AppDataSource.getDataSource().query(
+        `
+      WITH grouped_donations AS (
+        SELECT 
+          COALESCE("recurringDonationId"::text, "id"::text) AS group_id,
+          SUM("valueUsd") AS total_usd,
+          SUM("valueUsd" * "givbackFactor") AS total_usd_with_factor,
+          MAX("fromWalletAddress") AS from_address,
+          MAX("projectId") AS project_id
+        FROM "donation"
+        WHERE "status" = 'verified'
+          AND "isProjectGivbackEligible" = true
+          AND "createdAt" > $1
+          AND "createdAt" < $2
+        GROUP BY COALESCE("recurringDonationId"::text, "id"::text)
+      )
+      SELECT COALESCE(SUM(gd.total_usd_with_factor), 0) AS "totalUsdWithGivbackFactor"
+      FROM grouped_donations gd
+      JOIN "project" p ON p.id = gd.project_id
+      WHERE 
+        (
+          (p.slug = $3 AND gd.total_usd > $4)
+          OR (p.slug != $3 AND gd.total_usd >= $5)
+        )
+        AND NOT EXISTS (
+          SELECT 1
+          FROM "project_address" pa
+          INNER JOIN "project" proj ON proj.id = pa."projectId"
+          WHERE LOWER(pa.address) = LOWER(gd.from_address)
+            AND pa."isRecipient" = true
+            AND proj.verified = true
+            AND proj."statusId" = 5
+        );
+      `,
+        [
+          startDateStr,
+          endDateStr,
+          communityProjectSlug,
+          communityMinValueUsd,
+          minEligibleValueUsd,
+        ],
+      );
+
+      return result?.[0]?.totalUsdWithGivbackFactor ?? 0;
+    } catch (e) {
+      logger.error(
+        'getSumOfGivbackEligibleDonationsForSpecificRound() error',
+        e,
+      );
+      return 0;
     }
-
-    // Execute the main raw SQL query with the powerRound
-    const result = await AppDataSource.getDataSource().query(
-      `
-          SELECT 
-            SUM("donation"."valueUsd" * "donation"."givbackFactor") AS "totalUsdWithGivbackFactor"
-          FROM "donation"
-          WHERE "donation"."status" = 'verified'
-            AND "donation"."isProjectGivbackEligible" = true
-            AND "donation"."powerRound" = $1
-            AND NOT EXISTS (
-                      SELECT 1
-                      FROM "project_address" "pa"
-                      INNER JOIN "project" "p" ON "p"."id" = "pa"."projectId"
-                      WHERE "pa"."address" = "donation"."fromWalletAddress"
-                        AND "pa"."isRecipient" = true
-                        AND "p"."verified" = true
-                  );
-                `,
-      [powerRound],
-    );
-
-    return result?.[0]?.totalUsdWithGivbackFactor ?? 0;
-  } catch (e) {
-    logger.error('getSumOfGivbackEligibleDonationsForSpecificRound() error', e);
-    return 0;
-  }
-};
+  };
 
 export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
   const date = moment()
