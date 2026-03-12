@@ -16,21 +16,24 @@ export const calculateGivbackFactorByRank = (params: {
   const minFactor = Math.min(minGivFactor, maxGivFactor);
   const maxFactor = Math.max(minGivFactor, maxGivFactor);
 
+  const parsedBottomRank = Number(bottomRank);
+  const parsedProjectRank = Number(projectRank);
+
   // With no ranking spread (or invalid bottom rank), avoid division by zero.
   // If project has a rank (rank 1 in this case), keep top project on max factor.
-  if (!Number.isFinite(bottomRank) || bottomRank <= 1) {
-    return Number.isFinite(projectRank) && (projectRank as number) > 0
+  if (!Number.isFinite(parsedBottomRank) || parsedBottomRank <= 1) {
+    return Number.isFinite(parsedProjectRank) && parsedProjectRank > 0
       ? maxFactor
       : minFactor;
   }
 
   // When rank is missing/invalid, default to bottom rank -> minimum factor.
   const normalizedRank =
-    Number.isFinite(projectRank) && (projectRank as number) > 0
-      ? (projectRank as number)
-      : bottomRank;
+    Number.isFinite(parsedProjectRank) && parsedProjectRank > 0
+      ? parsedProjectRank
+      : parsedBottomRank;
 
-  const step = (maxFactor - minFactor) / (bottomRank - 1);
+  const step = (maxFactor - minFactor) / (parsedBottomRank - 1);
   const rawFactor = maxFactor - (normalizedRank - 1) * step;
   const boundedFactor = Math.max(minFactor, Math.min(maxFactor, rawFactor));
   return Number.isFinite(boundedFactor) ? boundedFactor : minFactor;
