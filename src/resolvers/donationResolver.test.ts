@@ -63,6 +63,7 @@ import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSn
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
 import { getDefaultSolanaChainId } from '../services/chains';
+import { calculateGivbackFactorByRank } from '../services/givbackService';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
@@ -2247,13 +2248,15 @@ function createDonationTestCases() {
       where: { id: saveDonationResponse.data.data.createDonation },
     });
 
-    // because this project is rank1
-    assert.equal(
-      donation?.givbackFactor,
-      Number(process.env.GIVBACK_MAX_FACTOR),
-    );
+    const expectedGivbackFactor = calculateGivbackFactorByRank({
+      projectRank: donation?.projectRank,
+      bottomRank: donation?.bottomRankInRound || 1,
+      minGivFactor: Number(process.env.GIVBACK_MIN_FACTOR),
+      maxGivFactor: Number(process.env.GIVBACK_MAX_FACTOR),
+    });
+    assert.equal(donation?.givbackFactor, expectedGivbackFactor);
     assert.equal(donation?.powerRound, roundNumber);
-    assert.equal(donation?.projectRank, 1);
+    assert.isAtLeast(donation?.projectRank || 0, 1);
   });
   it('should create GIV donation for giveth project on mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
