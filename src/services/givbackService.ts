@@ -16,9 +16,12 @@ export const calculateGivbackFactorByRank = (params: {
   const minFactor = Math.min(minGivFactor, maxGivFactor);
   const maxFactor = Math.max(minGivFactor, maxGivFactor);
 
-  // With no ranking spread (or invalid bottom rank), use policy minimum factor.
+  // With no ranking spread (or invalid bottom rank), avoid division by zero.
+  // If project has a rank (rank 1 in this case), keep top project on max factor.
   if (!Number.isFinite(bottomRank) || bottomRank <= 1) {
-    return minFactor;
+    return Number.isFinite(projectRank) && (projectRank as number) > 0
+      ? maxFactor
+      : minFactor;
   }
 
   // When rank is missing/invalid, default to bottom rank -> minimum factor.
