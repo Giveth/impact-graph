@@ -1,40 +1,41 @@
-import adminJs, { ActionContext, AdminJSOptions } from 'adminjs';
 import adminJsExpress from '@adminjs/express';
 import { Database, Resource } from '@adminjs/typeorm';
+import adminJs, { ActionContext, AdminJSOptions } from 'adminjs';
 import { IncomingMessage } from 'connect';
-import { User } from '../../entities/user';
+import { AdminDataSource } from '../../adminDataSource';
 import config from '../../config';
+import { User } from '../../entities/user';
 import { redis } from '../../redis';
-import { logger } from '../../utils/logger';
 import { findUserById } from '../../repositories/userRepository';
 import { fetchAdminAndValidatePassword } from '../../services/userService';
-import { campaignsTab } from './tabs/campaignsTab';
+import { logger } from '../../utils/logger';
+import { AnchorContractAddressTab } from './tabs/anchorContractAddressTab';
 import { broadcastNotificationTab } from './tabs/broadcastNotificationTab';
-import { mainCategoryTab } from './tabs/mainCategoryTab';
+import { campaignsTab } from './tabs/campaignsTab';
 import { categoryTab } from './tabs/categoryTab';
-import { projectsTab } from './tabs/projectsTab';
+import { donationTab } from './tabs/donationTab';
+import { featuredUpdateTab } from './tabs/featuredUpdateTab';
+import { globalConfigurationTab } from './tabs/globalConfigurationTab';
+import { mainCategoryTab } from './tabs/mainCategoryTab';
 import { organizationsTab } from './tabs/organizationsTab';
-import { usersTab } from './tabs/usersTab';
+import { projectAddressTab } from './tabs/projectAddressTab';
+import { ProjectFraudTab } from './tabs/projectFraudTab';
+import { projectQfRoundsTab } from './tabs/projectQfRoundsTab';
+import { projectSocialMediaTab } from './tabs/projectSocialMediaTab';
+import { projectsTab } from './tabs/projectsTab';
 import { projectStatusHistoryTab } from './tabs/projectStatusHistoryTab';
 import { projectStatusReasonTab } from './tabs/projectStatusReasonTab';
-import { projectAddressTab } from './tabs/projectAddressTab';
 import { projectStatusTab } from './tabs/projectStatusTab';
 import { projectUpdateTab } from './tabs/projectUpdateTab';
-import { thirdPartProjectImportTab } from './tabs/thirdPartProjectImportTab';
-import { featuredUpdateTab } from './tabs/featuredUpdateTab';
-import { generateTokenTab } from './tabs/tokenTab';
-import { donationTab } from './tabs/donationTab';
 import { projectVerificationTab } from './tabs/projectVerificationTab';
-import { qfRoundTab } from './tabs/qfRoundTab';
 import { qfRoundHistoryTab } from './tabs/qfRoundHistoryTab';
-import { SybilTab } from './tabs/sybilTab';
-import { ProjectFraudTab } from './tabs/projectFraudTab';
+import { qfRoundTab } from './tabs/qfRoundTab';
 import { RecurringDonationTab } from './tabs/recurringDonationTab';
-import { AnchorContractAddressTab } from './tabs/anchorContractAddressTab';
-import { projectSocialMediaTab } from './tabs/projectSocialMediaTab';
 import { SwapTransactionTab } from './tabs/swapTransactionTab';
-import { projectQfRoundsTab } from './tabs/projectQfRoundsTab';
-import { globalConfigurationTab } from './tabs/globalConfigurationTab';
+import { SybilTab } from './tabs/sybilTab';
+import { thirdPartProjectImportTab } from './tabs/thirdPartProjectImportTab';
+import { generateTokenTab } from './tabs/tokenTab';
+import { usersTab } from './tabs/usersTab';
 
 // use redis for session data instead of in-memory storage
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -132,6 +133,8 @@ export const getCurrentAdminJsSession = async (request: IncomingMessage) => {
 type AdminJsResources = AdminJSOptions['resources'];
 
 const getResources = async (): Promise<AdminJsResources> => {
+  const adminDataSource = AdminDataSource.getDataSource();
+
   const resources: AdminJsResources = [
     projectVerificationTab,
     projectQfRoundsTab,
@@ -162,6 +165,28 @@ const getResources = async (): Promise<AdminJsResources> => {
     globalConfigurationTab,
   ];
 
+  // Ensure all resources use the AdminJS-specific DataSource
+  const resourcesWithAdminDataSource: AdminJsResources = resources.map(
+    (res: any) => {
+      const resourceDef = res?.resource ?? res;
+      // If resource is an Entity (constructor function), wrap it with a TypeORM Resource bound to dataSource
+      if (typeof resourceDef === 'function') {
+        return {
+          ...res,
+          resource: new (Resource as any)(resourceDef, adminDataSource),
+        };
+      }
+      // If resource already an object descriptor, construct a TypeORM Resource using provided model
+      if (resourceDef && typeof resourceDef === 'object' && resourceDef.model) {
+        return {
+          ...res,
+          resource: new (Resource as any)(resourceDef.model, adminDataSource),
+        };
+      }
+      return res;
+    },
+  );
+
   const loggingHook = async (response, request, context) => {
     const { action, currentAdmin, resource } = context;
     const { method, params } = request;
@@ -180,7 +205,7 @@ const getResources = async (): Promise<AdminJsResources> => {
     return response;
   };
   // Add logging hook to all resources
-  resources.forEach(resource => {
+  (resourcesWithAdminDataSource as any[]).forEach(resource => {
     const options = resource.options || {};
     const actions = options.actions || {};
     const resourceActionList = Object.keys(actions);
@@ -203,7 +228,7 @@ const getResources = async (): Promise<AdminJsResources> => {
     resource.options = options;
   });
 
-  return resources;
+  return resourcesWithAdminDataSource;
 };
 
 const getadminJsInstance = async () => {
