@@ -4,7 +4,7 @@
     "description": "Backend GraphQL server for Giveth originally forked from Topia",
     "main": "./dist/index.js",
     "dependencies": {
-        "@adminjs/design-system": "3.1.5",
+        "@adminjs/design-system": "4.1.1",
         "@adminjs/express": "5.0.1",
         "@adminjs/typeorm": "4.0.0",
         "@apollo/server": "4.10.0",
@@ -21,7 +21,7 @@
         "@stellar/stellar-sdk": "^12.2.0",
         "@uniswap/sdk": "^3.0.3",
         "abi-decoder": "^2.4.0",
-        "adminjs": "6.8.3",
+        "adminjs": "7.8.17",
         "axios": "^1.6.7",
         "axios-retry": "^3.9.1",
         "bcrypt": "^5.0.1",
