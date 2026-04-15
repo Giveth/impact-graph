@@ -35,6 +35,8 @@ import BroadcastNotification from './broadcastNotification';
 import { FeaturedUpdate } from './featuredUpdate';
 import { Campaign } from './campaign';
 import { PreviousRoundRank } from './previousRoundRank';
+import { PowerSyncOutboxEvent } from './powerSyncOutboxEvent';
+import { PowerSyncCursor } from './powerSyncCursor';
 import { InstantPowerBalance } from './instantPowerBalance';
 import { InstantPowerFetchState } from './instantPowerFetchState';
 import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
@@ -113,6 +115,8 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     Campaign,
 
     PreviousRoundRank,
+    PowerSyncOutboxEvent,
+    PowerSyncCursor,
 
     InstantPowerBalance,
     InstantPowerFetchState,
