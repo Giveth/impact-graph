@@ -5,7 +5,6 @@ import {
   savePowerSyncCursor,
 } from '../repositories/powerSyncCursorRepository';
 import { getLatestPowerSyncOutboxEventForUser } from '../repositories/powerSyncOutboxRepository';
-import { findUserPowerBoosting } from '../repositories/powerBoostingRepository';
 import { logger } from '../utils/logger';
 
 type GiveconomyPowerSyncEvent = {
@@ -102,30 +101,19 @@ const applyGiveconomyPowerSyncEvent = async (
   }
 
   const incomingUpdatedAt = new Date(event.sourceUpdatedAt);
-  const currentBoostings = await findUserPowerBoosting(event.userId);
   const latestLocalOutboxEvent = await getLatestPowerSyncOutboxEventForUser({
     sourceSystem: 'impact-graph',
     eventType: 'power-boosting.updated',
     userId: event.userId,
   });
-  const latestCurrentUpdate = currentBoostings.reduce<Date | null>(
-    (latest, boosting) =>
-      !latest || boosting.updatedAt > latest ? boosting.updatedAt : latest,
-    null,
-  );
-  const latestLocalWrite =
-    latestCurrentUpdate &&
-    latestLocalOutboxEvent?.sourceUpdatedAt &&
-    latestCurrentUpdate > latestLocalOutboxEvent.sourceUpdatedAt
-      ? latestCurrentUpdate
-      : latestLocalOutboxEvent?.sourceUpdatedAt || latestCurrentUpdate;
+  const latestLocalWrite = latestLocalOutboxEvent?.sourceUpdatedAt;
 
   if (latestLocalWrite && latestLocalWrite > incomingUpdatedAt) {
     logger.warn('Skipping stale GIVeconomy power sync event', {
       userId: event.userId,
       eventId: event.id,
       sourceUpdatedAt: event.sourceUpdatedAt,
-      latestCurrentUpdate: latestLocalWrite.toISOString(),
+      latestLocalWrite: latestLocalWrite.toISOString(),
     });
     return false;
   }
