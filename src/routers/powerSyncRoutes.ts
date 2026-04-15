@@ -10,8 +10,23 @@ powerSyncRouter.get(
   powerSyncAuthentication,
   async (request: Request, response: Response) => {
     try {
-      const afterId = Number(request.query.afterId || 0);
-      const take = Math.min(500, Number(request.query.take || 100));
+      const afterIdRaw = request.query.afterId;
+      const takeRaw = request.query.take;
+
+      const afterId =
+        afterIdRaw === undefined ? 0 : Number.parseInt(String(afterIdRaw), 10);
+      if (!Number.isInteger(afterId) || afterId < 0) {
+        response.status(400).send({ error: 'Invalid afterId' });
+        return;
+      }
+
+      const parsedTake =
+        takeRaw === undefined ? 100 : Number.parseInt(String(takeRaw), 10);
+      if (!Number.isInteger(parsedTake)) {
+        response.status(400).send({ error: 'Invalid take' });
+        return;
+      }
+      const take = Math.max(1, Math.min(500, parsedTake));
 
       const events = await getPowerSyncOutboxEventsAfterId(afterId, take);
       response.send({ data: events });

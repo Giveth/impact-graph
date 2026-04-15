@@ -25,6 +25,7 @@ type GiveconomyPowerSyncEvent = {
 };
 
 const GIVECONOMY_SOURCE_SYSTEM = 'giveconomy';
+const STALE_GIVECONOMY_POWER_SYNC_EVENT = 'STALE_GIVECONOMY_POWER_SYNC_EVENT';
 
 export const pullGiveconomyPowerSync = async (): Promise<{
   fetched: number;
@@ -101,30 +102,46 @@ const applyGiveconomyPowerSyncEvent = async (
   }
 
   const incomingUpdatedAt = new Date(event.sourceUpdatedAt);
-  const latestLocalOutboxEvent = await getLatestPowerSyncOutboxEventForUser({
-    sourceSystem: 'impact-graph',
-    eventType: 'power-boosting.updated',
-    userId: event.userId,
-  });
-  const latestLocalWrite = latestLocalOutboxEvent?.sourceUpdatedAt;
-
-  if (latestLocalWrite && latestLocalWrite > incomingUpdatedAt) {
-    logger.warn('Skipping stale GIVeconomy power sync event', {
-      userId: event.userId,
-      eventId: event.id,
-      sourceUpdatedAt: event.sourceUpdatedAt,
-      latestLocalWrite: latestLocalWrite.toISOString(),
-    });
-    return false;
-  }
-
   const boostings = event.payload.boostings || [];
-  await setMultipleBoosting({
-    userId: event.userId,
-    projectIds: boostings.map(boosting => boosting.projectId),
-    percentages: boostings.map(boosting => boosting.percentage),
-    allowZeroTotal: true,
-    emitOutboxEvent: false,
-  });
-  return true;
+  let applied = true;
+
+  try {
+    await setMultipleBoosting({
+      userId: event.userId,
+      projectIds: boostings.map(boosting => boosting.projectId),
+      percentages: boostings.map(boosting => boosting.percentage),
+      allowZeroTotal: true,
+      emitOutboxEvent: false,
+      beforeSave: async () => {
+        const latestLocalOutboxEvent =
+          await getLatestPowerSyncOutboxEventForUser({
+            sourceSystem: 'impact-graph',
+            eventType: 'power-boosting.updated',
+            userId: event.userId,
+          });
+        const latestLocalWrite = latestLocalOutboxEvent?.sourceUpdatedAt;
+
+        if (latestLocalWrite && latestLocalWrite > incomingUpdatedAt) {
+          logger.warn('Skipping stale GIVeconomy power sync event', {
+            userId: event.userId,
+            eventId: event.id,
+            sourceUpdatedAt: event.sourceUpdatedAt,
+            latestLocalWrite: latestLocalWrite.toISOString(),
+          });
+          applied = false;
+          throw new Error(STALE_GIVECONOMY_POWER_SYNC_EVENT);
+        }
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === STALE_GIVECONOMY_POWER_SYNC_EVENT
+    ) {
+      return false;
+    }
+
+    throw error;
+  }
+  return applied;
 };

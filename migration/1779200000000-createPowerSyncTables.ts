@@ -23,6 +23,11 @@ export class CreatePowerSyncTables1779200000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
+      CREATE INDEX "IDX_power_sync_outbox_event_source_event_user_id_id"
+      ON "power_sync_outbox_event" ("sourceSystem", "eventType", "userId", "id")
+    `);
+
+    await queryRunner.query(`
       CREATE TABLE "power_sync_cursor" (
         "id" SERIAL NOT NULL,
         "sourceSystem" character varying NOT NULL,
@@ -38,6 +43,9 @@ export class CreatePowerSyncTables1779200000000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE "power_sync_cursor"`);
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_power_sync_outbox_event_source_event_user_id_id"`,
+    );
     await queryRunner.query(
       `DROP INDEX "public"."IDX_power_sync_outbox_event_user_id_id"`,
     );

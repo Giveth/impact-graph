@@ -10,6 +10,7 @@ import {
 
 @Entity()
 @Index(['userId', 'id'])
+@Index(['sourceSystem', 'eventType', 'userId', 'id'])
 export class PowerSyncOutboxEvent extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;

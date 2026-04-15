@@ -17,6 +17,12 @@ export const runGiveconomyPowerSyncCronJob = () => {
     );
     return;
   }
+  if (!cron.validate(cronExpression)) {
+    logger.error('Invalid GIVeconomy power sync cron expression', {
+      cronExpression: process.env.GIVECONOMY_POWER_SYNC_CRON_EXPRESSION,
+    });
+    return;
+  }
 
   cron.schedule(cronExpression, async () => {
     if (isGiveconomyPowerSyncRunning) {

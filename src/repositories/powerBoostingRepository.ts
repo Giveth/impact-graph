@@ -23,6 +23,11 @@ const PERCENTAGE_PRECISION = Number(
 );
 const POWER_BOOSTING_USER_LOCK_KEY = 48_103;
 
+type BeforeSaveContext = {
+  queryRunnerManager: EntityManager;
+  userPowerBoostings: PowerBoosting[];
+};
+
 const formatPercentage = (p: number): number => {
   return +p.toFixed(PERCENTAGE_PRECISION);
 };
@@ -345,6 +350,7 @@ export const setMultipleBoosting = async (params: {
   percentages: number[];
   allowZeroTotal?: boolean;
   emitOutboxEvent?: boolean;
+  beforeSave?: (context: BeforeSaveContext) => Promise<void>;
 }): Promise<PowerBoosting[]> => {
   const {
     userId,
@@ -352,6 +358,7 @@ export const setMultipleBoosting = async (params: {
     percentages,
     allowZeroTotal = false,
     emitOutboxEvent = true,
+    beforeSave,
   } = params;
 
   if (percentages.length > MAX_PROJECT_BOOST_LIMIT) {
@@ -384,8 +391,12 @@ export const setMultipleBoosting = async (params: {
   // calculate 50.46+18+12.62+9.46+9.46 with calculator you would get 100 but with js you will get
   // 100.00000000000003 so we have to ignore small different changes in this webservice
   const MAX_TOTAL_PERCENTAGES = 100.00001;
+  const approxZero = total <= 0.01 * percentages.length;
   if (
     (!allowZeroTotal && total < 100 - 0.01 * percentages.length) ||
+    (allowZeroTotal &&
+      !approxZero &&
+      total < 100 - 0.01 * percentages.length) ||
     total > MAX_TOTAL_PERCENTAGES
   ) {
     throw new Error(
@@ -428,6 +439,12 @@ export const setMultipleBoosting = async (params: {
       userPowerBoostings.push(
         PowerBoosting.create({ userId, projectId, percentage }),
       );
+    }
+    if (beforeSave) {
+      await beforeSave({
+        queryRunnerManager: queryRunner.manager,
+        userPowerBoostings,
+      });
     }
     const savedBoostings = await queryRunner.manager.save(userPowerBoostings);
     const sourceUpdatedAt =

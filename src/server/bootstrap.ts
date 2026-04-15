@@ -521,6 +521,7 @@ export async function bootstrap() {
       UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE: config.get(
         'UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE',
       ),
+      ENABLE_GIVECONOMY_POWER_SYNC: process.env.ENABLE_GIVECONOMY_POWER_SYNC,
       ENABLE_INSTANT_BOOSTING_UPDATE: config.get(
         'ENABLE_INSTANT_BOOSTING_UPDATE',
       ),
@@ -533,6 +534,8 @@ export async function bootstrap() {
     });
     if (process.env.UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE === 'true') {
       runUpdatePowerRoundCronJob();
+    }
+    if (process.env.ENABLE_GIVECONOMY_POWER_SYNC === 'true') {
       runGiveconomyPowerSyncCronJob();
     }
     if (process.env.ENABLE_INSTANT_BOOSTING_UPDATE === 'true') {

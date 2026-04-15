@@ -13,15 +13,14 @@ export const savePowerSyncCursor = async (params: {
   lastEventId: number;
   lastSourceUpdatedAt?: Date | null;
 }): Promise<PowerSyncCursor> => {
-  let cursor = await getPowerSyncCursor(params.sourceSystem);
-  if (!cursor) {
-    cursor = PowerSyncCursor.create({
+  await PowerSyncCursor.upsert(
+    {
       sourceSystem: params.sourceSystem,
-    });
-  }
+      lastEventId: params.lastEventId,
+      lastSourceUpdatedAt: params.lastSourceUpdatedAt || null,
+    },
+    ['sourceSystem'],
+  );
 
-  cursor.lastEventId = params.lastEventId;
-  cursor.lastSourceUpdatedAt = params.lastSourceUpdatedAt || null;
-
-  return cursor.save();
+  return (await getPowerSyncCursor(params.sourceSystem)) as PowerSyncCursor;
 };
