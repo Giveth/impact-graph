@@ -47,6 +47,7 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
+import { powerSyncRouter } from '../routers/powerSyncRoutes';
 import { authorizationHandler } from '../services/authorizationServices';
 import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { scheduleCauseDistributionJob } from '../services/cronJobs/causeDistributionJob';
@@ -63,6 +64,7 @@ import { runProjectEvaluationCronJob } from '../services/cronJobs/projectEvaluat
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
 import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
+import { runGiveconomyPowerSyncCronJob } from '../services/cronJobs/syncGiveconomyPowerEvents';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
@@ -328,6 +330,7 @@ export async function bootstrap() {
     app.use(adminJsRootPath, await getAdminJsRouter());
     app.use(bodyParserJson);
     // app.use('/apigive', apiGivRouter);
+    app.use('/internal/power-sync', powerSyncRouter);
     app.use(SOCIAL_PROFILES_PREFIX, oauth2CallbacksRouter);
     app.post(
       '/stripe-webhook',
@@ -518,6 +521,7 @@ export async function bootstrap() {
       UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE: config.get(
         'UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE',
       ),
+      ENABLE_GIVECONOMY_POWER_SYNC: process.env.ENABLE_GIVECONOMY_POWER_SYNC,
       ENABLE_INSTANT_BOOSTING_UPDATE: config.get(
         'ENABLE_INSTANT_BOOSTING_UPDATE',
       ),
@@ -530,6 +534,9 @@ export async function bootstrap() {
     });
     if (process.env.UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE === 'true') {
       runUpdatePowerRoundCronJob();
+    }
+    if (process.env.ENABLE_GIVECONOMY_POWER_SYNC === 'true') {
+      runGiveconomyPowerSyncCronJob();
     }
     if (process.env.ENABLE_INSTANT_BOOSTING_UPDATE === 'true') {
       runInstantBoostingUpdateCronJob();

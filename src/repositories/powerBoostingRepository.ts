@@ -1,4 +1,4 @@
-import { Brackets } from 'typeorm';
+import { Brackets, EntityManager } from 'typeorm';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { Project } from '../entities/project';
 import { publicSelectionFields, User } from '../entities/user';
@@ -13,6 +13,7 @@ import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 import { getKeyByValue } from '../utils/utils';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
+import { insertPowerSyncOutboxEvent } from './powerSyncOutboxRepository';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
@@ -20,6 +21,12 @@ const MAX_PROJECT_BOOST_LIMIT = Number(
 const PERCENTAGE_PRECISION = Number(
   process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION || '2',
 );
+const POWER_BOOSTING_USER_LOCK_KEY = 48_103;
+
+type BeforeSaveContext = {
+  queryRunnerManager: EntityManager;
+  userPowerBoostings: PowerBoosting[];
+};
 
 const formatPercentage = (p: number): number => {
   return +p.toFixed(PERCENTAGE_PRECISION);
@@ -96,8 +103,10 @@ export const findUserProjectPowerBoostingsSnapshots = async (
 export const findUserPowerBoosting = async (
   userId: number,
   forceProjectIds?: number[],
+  manager?: EntityManager,
 ): Promise<PowerBoosting[]> => {
-  const query = PowerBoosting.createQueryBuilder('powerBoosting')
+  const query = (manager || AppDataSource.getDataSource().manager)
+    .createQueryBuilder(PowerBoosting, 'powerBoosting')
     .leftJoinAndSelect('powerBoosting.project', 'project')
     .leftJoinAndSelect('powerBoosting.user', 'user')
     .where(`"userId" =${userId}`);
@@ -225,7 +234,15 @@ const _setSingleBoosting = async (params: {
   let result: PowerBoosting[] = [];
 
   try {
-    const userPowerBoostings = await findUserPowerBoosting(userId, [projectId]);
+    await queryRunner.manager.query('SELECT pg_advisory_xact_lock($1, $2)', [
+      POWER_BOOSTING_USER_LOCK_KEY,
+      userId,
+    ]);
+    const userPowerBoostings = await findUserPowerBoosting(
+      userId,
+      [projectId],
+      queryRunner.manager,
+    );
 
     const otherProjectsPowerBoostings = userPowerBoostings.filter(
       pb => +pb.projectId !== projectId,
@@ -285,7 +302,28 @@ const _setSingleBoosting = async (params: {
 
     commitData.push(projectBoost);
 
-    await queryRunner.manager.save(commitData);
+    const savedBoostings = await queryRunner.manager.save(commitData);
+    const sourceUpdatedAt =
+      savedBoostings.reduce<Date | null>(
+        (latest, boosting) =>
+          !latest || boosting.updatedAt > latest ? boosting.updatedAt : latest,
+        null,
+      ) || new Date();
+
+    await insertPowerSyncOutboxEvent(queryRunner.manager, {
+      eventType: 'power-boosting.updated',
+      entityType: 'power-boosting',
+      userId,
+      sourceUpdatedAt,
+      payload: {
+        userId,
+        boostings: savedBoostings.map(boosting => ({
+          projectId: boosting.projectId,
+          percentage: boosting.percentage,
+          updatedAt: boosting.updatedAt.toISOString(),
+        })),
+      },
+    });
 
     await queryRunner.commitTransaction();
 
@@ -310,8 +348,20 @@ export const setMultipleBoosting = async (params: {
   userId: number;
   projectIds: number[];
   percentages: number[];
+  allowZeroTotal?: boolean;
+  allowPartialTotal?: boolean;
+  emitOutboxEvent?: boolean;
+  beforeSave?: (context: BeforeSaveContext) => Promise<void>;
 }): Promise<PowerBoosting[]> => {
-  const { userId, projectIds, percentages } = params;
+  const {
+    userId,
+    projectIds,
+    percentages,
+    allowZeroTotal = false,
+    allowPartialTotal = false,
+    emitOutboxEvent = true,
+    beforeSave,
+  } = params;
 
   if (percentages.length > MAX_PROJECT_BOOST_LIMIT) {
     throw new Error(
@@ -322,7 +372,7 @@ export const setMultipleBoosting = async (params: {
   }
 
   if (
-    percentages.length === 0 ||
+    (!allowZeroTotal && percentages.length === 0) ||
     percentages.length !== projectIds.length ||
     new Set(projectIds).size !== projectIds.length ||
     percentages.some(percentage => percentage < 0 || percentage > 100)
@@ -343,8 +393,15 @@ export const setMultipleBoosting = async (params: {
   // calculate 50.46+18+12.62+9.46+9.46 with calculator you would get 100 but with js you will get
   // 100.00000000000003 so we have to ignore small different changes in this webservice
   const MAX_TOTAL_PERCENTAGES = 100.00001;
+  const approxZero = total <= 0.01 * percentages.length;
   if (
-    total < 100 - 0.01 * percentages.length ||
+    (!allowPartialTotal &&
+      !allowZeroTotal &&
+      total < 100 - 0.01 * percentages.length) ||
+    (!allowPartialTotal &&
+      allowZeroTotal &&
+      !approxZero &&
+      total < 100 - 0.01 * percentages.length) ||
     total > MAX_TOTAL_PERCENTAGES
   ) {
     throw new Error(
@@ -365,7 +422,15 @@ export const setMultipleBoosting = async (params: {
   let result: PowerBoosting[] = [];
 
   try {
-    const userPowerBoostings = await findUserPowerBoosting(userId, projectIds);
+    await queryRunner.manager.query('SELECT pg_advisory_xact_lock($1, $2)', [
+      POWER_BOOSTING_USER_LOCK_KEY,
+      userId,
+    ]);
+    const userPowerBoostings = await findUserPowerBoosting(
+      userId,
+      projectIds,
+      queryRunner.manager,
+    );
     userPowerBoostings.forEach(pb => {
       const projectId = +pb.projectId;
       if (map.has(projectId)) {
@@ -380,7 +445,36 @@ export const setMultipleBoosting = async (params: {
         PowerBoosting.create({ userId, projectId, percentage }),
       );
     }
-    await queryRunner.manager.save(userPowerBoostings);
+    if (beforeSave) {
+      await beforeSave({
+        queryRunnerManager: queryRunner.manager,
+        userPowerBoostings,
+      });
+    }
+    const savedBoostings = await queryRunner.manager.save(userPowerBoostings);
+    const sourceUpdatedAt =
+      savedBoostings.reduce<Date | null>(
+        (latest, boosting) =>
+          !latest || boosting.updatedAt > latest ? boosting.updatedAt : latest,
+        null,
+      ) || new Date();
+
+    if (emitOutboxEvent) {
+      await insertPowerSyncOutboxEvent(queryRunner.manager, {
+        eventType: 'power-boosting.updated',
+        entityType: 'power-boosting',
+        userId,
+        sourceUpdatedAt,
+        payload: {
+          userId,
+          boostings: savedBoostings.map(boosting => ({
+            projectId: boosting.projectId,
+            percentage: boosting.percentage,
+            updatedAt: boosting.updatedAt.toISOString(),
+          })),
+        },
+      });
+    }
 
     await queryRunner.commitTransaction();
 
