@@ -349,6 +349,7 @@ export const setMultipleBoosting = async (params: {
   projectIds: number[];
   percentages: number[];
   allowZeroTotal?: boolean;
+  allowPartialTotal?: boolean;
   emitOutboxEvent?: boolean;
   beforeSave?: (context: BeforeSaveContext) => Promise<void>;
 }): Promise<PowerBoosting[]> => {
@@ -357,6 +358,7 @@ export const setMultipleBoosting = async (params: {
     projectIds,
     percentages,
     allowZeroTotal = false,
+    allowPartialTotal = false,
     emitOutboxEvent = true,
     beforeSave,
   } = params;
@@ -393,8 +395,11 @@ export const setMultipleBoosting = async (params: {
   const MAX_TOTAL_PERCENTAGES = 100.00001;
   const approxZero = total <= 0.01 * percentages.length;
   if (
-    (!allowZeroTotal && total < 100 - 0.01 * percentages.length) ||
-    (allowZeroTotal &&
+    (!allowPartialTotal &&
+      !allowZeroTotal &&
+      total < 100 - 0.01 * percentages.length) ||
+    (!allowPartialTotal &&
+      allowZeroTotal &&
       !approxZero &&
       total < 100 - 0.01 * percentages.length) ||
     total > MAX_TOTAL_PERCENTAGES

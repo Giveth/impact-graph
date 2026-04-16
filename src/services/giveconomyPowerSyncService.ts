@@ -111,6 +111,7 @@ const applyGiveconomyPowerSyncEvent = async (
       projectIds: boostings.map(boosting => boosting.projectId),
       percentages: boostings.map(boosting => boosting.percentage),
       allowZeroTotal: true,
+      allowPartialTotal: true,
       emitOutboxEvent: false,
       beforeSave: async () => {
         const latestLocalOutboxEvent =

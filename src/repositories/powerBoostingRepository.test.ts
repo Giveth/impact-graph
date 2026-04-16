@@ -670,6 +670,35 @@ function setMultipleBoostingTestCases() {
       ),
     );
   });
+
+  it('should allow partial totals for mirrored remote sync updates', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+
+    const userBoostings = await setMultipleBoosting({
+      userId: user.id,
+      projectIds: [firstProject.id, secondProject.id],
+      percentages: [30, 40],
+      allowPartialTotal: true,
+    });
+
+    assert.equal(userBoostings.length, 2);
+    assert.isOk(
+      userBoostings.find(
+        powerBoosting =>
+          powerBoosting.project.id === firstProject.id &&
+          powerBoosting.percentage === 30,
+      ),
+    );
+    assert.isOk(
+      userBoostings.find(
+        powerBoosting =>
+          powerBoosting.project.id === secondProject.id &&
+          powerBoosting.percentage === 40,
+      ),
+    );
+  });
 }
 
 function setSingleBoostingTestCases() {
