@@ -26,6 +26,17 @@ type GiveconomyPowerSyncEvent = {
 
 const GIVECONOMY_SOURCE_SYSTEM = 'giveconomy';
 const STALE_GIVECONOMY_POWER_SYNC_EVENT = 'STALE_GIVECONOMY_POWER_SYNC_EVENT';
+const DEFAULT_GIVPOWER_PERCENTAGE_PRECISION = 2;
+
+const roundSyncedPercentage = (percentage: number): number => {
+  const precision = Number(process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION);
+  const resolvedPrecision =
+    Number.isInteger(precision) && precision >= 0
+      ? precision
+      : DEFAULT_GIVPOWER_PERCENTAGE_PRECISION;
+
+  return Number(percentage.toFixed(resolvedPrecision));
+};
 
 export const pullGiveconomyPowerSync = async (): Promise<{
   fetched: number;
@@ -102,9 +113,12 @@ const applyGiveconomyPowerSyncEvent = async (
   }
 
   const incomingUpdatedAt = new Date(event.sourceUpdatedAt);
-  const syncedBoostings = (event.payload.boostings || []).filter(
-    boosting => boosting.percentage > 0,
-  );
+  const syncedBoostings = (event.payload.boostings || [])
+    .map(boosting => ({
+      ...boosting,
+      percentage: roundSyncedPercentage(boosting.percentage),
+    }))
+    .filter(boosting => boosting.percentage > 0);
   let applied = true;
 
   try {

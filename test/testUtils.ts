@@ -323,8 +323,9 @@ export const saveProjectDirectlyToDb = async (
   return project;
 };
 export const createProjectData = (name?: string): CreateProjectData => {
-  const title = name ? name : String(new Date().getTime());
   const walletAddress = generateRandomEtheriumAddress();
+  const title =
+    name || `test-project-${walletAddress.slice(2, 10).toLowerCase()}`;
   return {
     // title: `test project`,
     title,

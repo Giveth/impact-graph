@@ -5,15 +5,14 @@ import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
+  deleteProjectDirectlyFromDb,
   generateRandomEtheriumAddress,
   generateRandomSolanaAddress,
   generateRandomStellarAddress,
   graphqlUrl,
-  REACTION_SEED_DATA,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-  SEED_DATA,
 } from '../../test/testUtils';
 import { fetchMultiFilterAllProjectsQuery } from '../../test/graphqlQueries';
 import { Project, ReviewStatus, SortingField } from '../entities/project';
@@ -39,6 +38,7 @@ import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
 import { updateInstantBoosting } from '../services/instantBoostingServices';
 import { QfRound } from '../entities/qfRound';
+import { Reaction } from '../entities/reaction';
 // import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
@@ -56,18 +56,28 @@ function allProjectsTestCases() {
     await QfRound.update({}, { isActive: false });
   });
   it('should return projects search by title', async () => {
+    const title = `search-title-${Date.now()}`;
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title,
+      slug: title,
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        searchTerm: SEED_DATA.FIRST_PROJECT.title,
+        searchTerm: title,
       },
     });
 
     const projects = result.data.data.allProjects.projects;
+    const matchedProject = projects.find(
+      item => Number(item.id) === project.id,
+    );
 
     assert.isTrue(projects.length > 0);
-    assert.equal(projects[0]?.adminUserId, SEED_DATA.FIRST_PROJECT.adminUserId);
-    assert.isNotEmpty(projects[0].addresses);
+    assert.isOk(matchedProject);
+    assert.equal(matchedProject?.adminUserId, project.adminUserId);
+    assert.isNotEmpty(matchedProject?.addresses);
     projects.forEach(project => {
       assert.isNotOk(project.adminUser.email);
       assert.isOk(project.adminUser.firstName);
@@ -78,63 +88,80 @@ function allProjectsTestCases() {
         getHtmlTextSummary(project.description),
       );
     });
+
+    await deleteProjectDirectlyFromDb(project.id);
   });
 
   it('should return projects with correct reaction', async () => {
-    const limit = 1;
-    const USER_DATA = SEED_DATA.FIRST_USER;
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const unlikedTitle = `unliked-project-${Date.now()}`;
+    const likedTitle = `liked-project-${Date.now()}`;
+    const unlikedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: unlikedTitle,
+      slug: unlikedTitle,
+    });
+    const likedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: likedTitle,
+      slug: likedTitle,
+    });
+    const reaction = await Reaction.create({
+      userId: user.id,
+      projectId: likedProject.id,
+      reaction: 'heart',
+    }).save();
 
     // Project has not been liked
     let result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        limit,
-        searchTerm: SEED_DATA.SECOND_PROJECT.title,
-        connectedWalletUserId: USER_DATA.id,
+        searchTerm: unlikedTitle,
+        connectedWalletUserId: user.id,
       },
     });
 
     let projects = result.data.data.allProjects.projects;
-    assert.equal(projects.length, limit);
-    assert.isNull(projects[0]?.reaction);
+    let selectedProject = projects.find(({ title }) => title === unlikedTitle);
+    assert.isOk(selectedProject);
+    assert.isNull(selectedProject?.reaction);
 
     // Project has been liked, but connectedWalletUserIs is not filled
     result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        limit,
-        searchTerm: SEED_DATA.FIRST_PROJECT.title,
+        searchTerm: likedTitle,
       },
     });
 
     projects = result.data.data.allProjects.projects;
-    assert.equal(projects.length, limit);
-    assert.isNull(projects[0]?.reaction);
+    selectedProject = projects.find(({ title }) => title === likedTitle);
+    assert.isOk(selectedProject);
+    assert.isNull(selectedProject?.reaction);
 
     // Project has been liked
     result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        searchTerm: SEED_DATA.FIRST_PROJECT.title,
-        connectedWalletUserId: USER_DATA.id,
+        searchTerm: likedTitle,
+        connectedWalletUserId: user.id,
       },
     });
 
     projects = result.data.data.allProjects.projects;
-    // Find the project with the exact title
-    const selectedProject = projects.find(
-      ({ title }) => title === SEED_DATA.FIRST_PROJECT.title,
-    );
-    assert.isAtLeast(projects.length, limit);
-    assert.equal(
-      selectedProject?.reaction?.id,
-      REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION.id,
-    );
+    selectedProject = projects.find(({ title }) => title === likedTitle);
+    assert.isOk(selectedProject);
+    assert.equal(selectedProject?.reaction?.id, reaction.id);
     projects.forEach(project => {
       assert.isNotOk(project.adminUser.email);
       assert.isOk(project.adminUser.firstName);
       assert.isOk(project.adminUser.walletAddress);
     });
+
+    await Reaction.delete({ id: reaction.id });
+    await deleteProjectDirectlyFromDb(unlikedProject.id);
+    await deleteProjectDirectlyFromDb(likedProject.id);
+    await User.delete({ id: user.id });
   });
 
   it('should return projects, sort by creationDate, DESC', async () => {

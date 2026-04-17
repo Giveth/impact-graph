@@ -13,6 +13,7 @@ import {
   CauseSortField,
   SortDirection,
 } from './causeRepository';
+import { findProjectRecipientAddressByProjectId } from './projectAddressRepository';
 import {
   saveUserDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -256,6 +257,9 @@ describe('causeRepository test cases', async () => {
     it('should create cause with relations', async () => {
       const causeData = createTestCauseData(`0xuniquehash3${Date.now()}`);
       const cause = await createCause(causeData, testUser, [testProject]);
+      const recipientAddresses = await findProjectRecipientAddressByProjectId({
+        projectId: cause.id,
+      });
 
       assert.isOk(cause);
       assert.equal(cause.title, causeData.title);
@@ -269,6 +273,8 @@ describe('causeRepository test cases', async () => {
       assert.equal(cause.depositTxChainId, causeData.depositTxChainId);
       assert.equal(cause.adminUser.id, testUser.id);
       assert.equal(cause.causeProjects?.[0]?.project.id, testProject.id);
+      assert.lengthOf(recipientAddresses, 1);
+      assert.equal(recipientAddresses[0].networkId, causeData.chainId);
 
       // Check if user's ownedCausesCount was updated
       const updatedUser = await User.findOne({ where: { id: testUser.id } });
