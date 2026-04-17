@@ -13,6 +13,8 @@ describe('pullGiveconomyPowerSync', () => {
     POWER_SYNC_PASSWORD_HEADER: process.env.POWER_SYNC_PASSWORD_HEADER,
     GIVECONOMY_POWER_SYNC_TIMEOUT_MS:
       process.env.GIVECONOMY_POWER_SYNC_TIMEOUT_MS,
+    GIVPOWER_BOOSTING_PERCENTAGE_PRECISION:
+      process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION,
   };
 
   beforeEach(() => {
@@ -21,6 +23,7 @@ describe('pullGiveconomyPowerSync', () => {
     process.env.POWER_SYNC_PASSWORD = 'test-password';
     process.env.POWER_SYNC_PASSWORD_HEADER = 'x-power-sync-password';
     process.env.GIVECONOMY_POWER_SYNC_TIMEOUT_MS = '1000';
+    process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION = '2';
   });
 
   afterEach(() => {
@@ -33,9 +36,11 @@ describe('pullGiveconomyPowerSync', () => {
       originalEnv.POWER_SYNC_PASSWORD_HEADER;
     process.env.GIVECONOMY_POWER_SYNC_TIMEOUT_MS =
       originalEnv.GIVECONOMY_POWER_SYNC_TIMEOUT_MS;
+    process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION =
+      originalEnv.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION;
   });
 
-  it('filters zero percentages and bypasses the project limit for mirrored events', async () => {
+  it('rounds mirrored percentages, filters zeros, and bypasses the project limit for mirrored events', async () => {
     sinon.stub(powerSyncCursorRepository, 'getPowerSyncCursor').resolves(null);
     sinon
       .stub(powerSyncCursorRepository, 'savePowerSyncCursor')
@@ -69,17 +74,17 @@ describe('pullGiveconomyPowerSync', () => {
                 },
                 {
                   projectId: 1443,
-                  percentage: 18.6,
+                  percentage: 18.6789,
                   updatedAt: '2026-04-17T15:38:15.580Z',
                 },
                 {
                   projectId: 3173,
-                  percentage: 14.75,
+                  percentage: 14.754,
                   updatedAt: '2026-04-17T15:38:15.580Z',
                 },
                 {
                   projectId: 2001,
-                  percentage: 0,
+                  percentage: 0.004,
                   updatedAt: '2026-04-17T15:38:15.580Z',
                 },
                 {
@@ -105,7 +110,7 @@ describe('pullGiveconomyPowerSync', () => {
 
     const params = setMultipleBoostingStub.firstCall.args[0];
     assert.deepEqual(params.projectIds, [15674, 1443, 3173]);
-    assert.deepEqual(params.percentages, [50, 18.6, 14.75]);
+    assert.deepEqual(params.percentages, [50, 18.68, 14.75]);
     assert.isTrue(params.allowZeroTotal);
     assert.isTrue(params.allowPartialTotal);
     assert.isTrue(params.allowExceedProjectLimit);
