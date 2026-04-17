@@ -102,16 +102,19 @@ const applyGiveconomyPowerSyncEvent = async (
   }
 
   const incomingUpdatedAt = new Date(event.sourceUpdatedAt);
-  const boostings = event.payload.boostings || [];
+  const syncedBoostings = (event.payload.boostings || []).filter(
+    boosting => boosting.percentage > 0,
+  );
   let applied = true;
 
   try {
     await setMultipleBoosting({
       userId: event.userId,
-      projectIds: boostings.map(boosting => boosting.projectId),
-      percentages: boostings.map(boosting => boosting.percentage),
+      projectIds: syncedBoostings.map(boosting => boosting.projectId),
+      percentages: syncedBoostings.map(boosting => boosting.percentage),
       allowZeroTotal: true,
       allowPartialTotal: true,
+      allowExceedProjectLimit: true,
       emitOutboxEvent: false,
       beforeSave: async () => {
         const latestLocalOutboxEvent =
