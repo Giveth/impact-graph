@@ -83,6 +83,10 @@ export const createCause = async (
   owner: User,
   projects: Project[],
 ): Promise<Cause> => {
+  const recipientNetworkId = getAppropriateNetworkId({
+    networkId: causeData.chainId,
+    chainType: ChainType.EVM,
+  });
   const cause = Cause.create({
     ...causeData,
     adminUserId: owner.id,
@@ -97,10 +101,7 @@ export const createCause = async (
     user: owner,
     address: causeData.fundingPoolAddress,
     chainType: ChainType.EVM,
-    networkId: getAppropriateNetworkId({
-      networkId: cause.chainId,
-      chainType: ChainType.EVM,
-    }),
+    networkId: recipientNetworkId,
     isRecipient: true,
   };
 
