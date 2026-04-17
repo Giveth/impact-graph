@@ -350,6 +350,7 @@ export const setMultipleBoosting = async (params: {
   percentages: number[];
   allowZeroTotal?: boolean;
   allowPartialTotal?: boolean;
+  allowExceedProjectLimit?: boolean;
   emitOutboxEvent?: boolean;
   beforeSave?: (context: BeforeSaveContext) => Promise<void>;
 }): Promise<PowerBoosting[]> => {
@@ -359,11 +360,15 @@ export const setMultipleBoosting = async (params: {
     percentages,
     allowZeroTotal = false,
     allowPartialTotal = false,
+    allowExceedProjectLimit = false,
     emitOutboxEvent = true,
     beforeSave,
   } = params;
 
-  if (percentages.length > MAX_PROJECT_BOOST_LIMIT) {
+  if (
+    !allowExceedProjectLimit &&
+    percentages.length > MAX_PROJECT_BOOST_LIMIT
+  ) {
     throw new Error(
       i18n.__(
         translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,

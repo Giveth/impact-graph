@@ -699,6 +699,31 @@ function setMultipleBoostingTestCases() {
       ),
     );
   });
+
+  it('should allow mirrored remote sync updates to exceed project limit', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const projects = await Promise.all(
+      Array.from({ length: 6 }, () =>
+        saveProjectDirectlyToDb(createProjectData()),
+      ),
+    );
+
+    const userBoostings = await setMultipleBoosting({
+      userId: user.id,
+      projectIds: projects.map(project => project.id),
+      percentages: [95, 1, 1, 1, 1, 1],
+      allowExceedProjectLimit: true,
+    });
+
+    assert.equal(userBoostings.length, 6);
+    projects.forEach(project => {
+      assert.isOk(
+        userBoostings.find(
+          powerBoosting => powerBoosting.project.id === project.id,
+        ),
+      );
+    });
+  });
 }
 
 function setSingleBoostingTestCases() {
