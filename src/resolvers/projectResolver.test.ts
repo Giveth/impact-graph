@@ -2502,6 +2502,7 @@ function updateProjectTestCases() {
       image,
       title,
     });
+    const oldSlug = project.slug;
     const editProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -2523,7 +2524,7 @@ function updateProjectTestCases() {
     assert.equal(editProjectResult.data.data.updateProject.title, newTitle);
     assert.equal(editProjectResult.data.data.updateProject.slug, newTitle);
     assert.isTrue(
-      editProjectResult.data.data.updateProject.slugHistory.includes(title),
+      editProjectResult.data.data.updateProject.slugHistory.includes(oldSlug),
     );
   });
 }
