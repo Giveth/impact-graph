@@ -22,6 +22,20 @@ const PERCENTAGE_PRECISION = Number(
   process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION || '2',
 );
 const POWER_BOOSTING_USER_LOCK_KEY = 48_103;
+const STALE_GIVECONOMY_POWER_SYNC_EVENT = 'STALE_GIVECONOMY_POWER_SYNC_EVENT';
+
+const hasErrorMessage = (
+  error: unknown,
+): error is {
+  message: string;
+} =>
+  typeof error === 'object' &&
+  error !== null &&
+  'message' in error &&
+  typeof error.message === 'string';
+
+const isStaleGiveconomyPowerSyncError = (error: unknown): boolean =>
+  hasErrorMessage(error) && error.message === STALE_GIVECONOMY_POWER_SYNC_EVENT;
 
 type BeforeSaveContext = {
   queryRunnerManager: EntityManager;
@@ -333,6 +347,9 @@ const _setSingleBoosting = async (params: {
 
     // since we have errors let's rollback changes we made
     await queryRunner.rollbackTransaction();
+    if (isStaleGiveconomyPowerSyncError(e)) {
+      throw e;
+    }
     const errorKey = getKeyByValue(errorMessages, e.message);
     if (errorKey)
       throw new Error(i18n.__(translationErrorMessagesKeys[errorKey]));
@@ -489,6 +506,9 @@ export const setMultipleBoosting = async (params: {
 
     // since we have errors let's rollback changes we made
     await queryRunner.rollbackTransaction();
+    if (isStaleGiveconomyPowerSyncError(e)) {
+      throw e;
+    }
     const errorKey = getKeyByValue(errorMessages, e.message);
     if (errorKey)
       throw new Error(i18n.__(translationErrorMessagesKeys[errorKey]));

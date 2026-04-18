@@ -1,3 +1,4 @@
+import { runInNewContext } from 'vm';
 import { assert } from 'chai';
 import axios from 'axios';
 import sinon from 'sinon';
@@ -249,5 +250,107 @@ describe('pullGiveconomyPowerSync', () => {
     assert.equal(params.percentages[0], 12.78);
     assert.equal(params.percentages[1], 10.26);
     assert.equal(params.percentages[14], 3.75);
+  });
+
+  it('skips stale mirrored sync events without failing the pull', async () => {
+    sinon.stub(powerSyncCursorRepository, 'getPowerSyncCursor').resolves({
+      sourceSystem: 'giveconomy',
+      lastEventId: 43,
+    } as any);
+    const savePowerSyncCursorStub = sinon
+      .stub(powerSyncCursorRepository, 'savePowerSyncCursor')
+      .resolves({} as any);
+
+    sinon
+      .stub(powerBoostingRepository, 'setMultipleBoosting')
+      .rejects(new Error('STALE_GIVECONOMY_POWER_SYNC_EVENT'));
+
+    sinon.stub(axios, 'get').resolves({
+      status: 200,
+      data: {
+        data: [
+          {
+            id: 44,
+            sourceSystem: 'giveconomy',
+            eventType: 'power-boosting.updated',
+            entityType: 'power-boosting',
+            userId: 6793,
+            sourceUpdatedAt: '2026-04-17T16:42:55.129Z',
+            payload: {
+              userId: 6793,
+              boostings: [
+                {
+                  projectId: 15674,
+                  percentage: 100,
+                  updatedAt: '2026-04-17T16:42:55.129Z',
+                },
+              ],
+            },
+          },
+        ],
+      },
+    } as any);
+
+    const result = await pullGiveconomyPowerSync();
+
+    assert.deepEqual(result, {
+      fetched: 1,
+      applied: 0,
+      skipped: 1,
+    });
+    assert.equal(savePowerSyncCursorStub.callCount, 1);
+    assert.equal(savePowerSyncCursorStub.firstCall.args[0].lastEventId, 44);
+  });
+
+  it('skips cross-realm stale mirrored sync events without failing the pull', async () => {
+    sinon.stub(powerSyncCursorRepository, 'getPowerSyncCursor').resolves({
+      sourceSystem: 'giveconomy',
+      lastEventId: 43,
+    } as any);
+    const savePowerSyncCursorStub = sinon
+      .stub(powerSyncCursorRepository, 'savePowerSyncCursor')
+      .resolves({} as any);
+
+    sinon
+      .stub(powerBoostingRepository, 'setMultipleBoosting')
+      .rejects(
+        runInNewContext('new Error("STALE_GIVECONOMY_POWER_SYNC_EVENT")'),
+      );
+
+    sinon.stub(axios, 'get').resolves({
+      status: 200,
+      data: {
+        data: [
+          {
+            id: 44,
+            sourceSystem: 'giveconomy',
+            eventType: 'power-boosting.updated',
+            entityType: 'power-boosting',
+            userId: 6793,
+            sourceUpdatedAt: '2026-04-17T16:42:55.129Z',
+            payload: {
+              userId: 6793,
+              boostings: [
+                {
+                  projectId: 15674,
+                  percentage: 100,
+                  updatedAt: '2026-04-17T16:42:55.129Z',
+                },
+              ],
+            },
+          },
+        ],
+      },
+    } as any);
+
+    const result = await pullGiveconomyPowerSync();
+
+    assert.deepEqual(result, {
+      fetched: 1,
+      applied: 0,
+      skipped: 1,
+    });
+    assert.equal(savePowerSyncCursorStub.callCount, 1);
+    assert.equal(savePowerSyncCursorStub.firstCall.args[0].lastEventId, 44);
   });
 });
