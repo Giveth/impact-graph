@@ -117,4 +117,137 @@ describe('pullGiveconomyPowerSync', () => {
     assert.isFalse(params.emitOutboxEvent);
     assert.isFunction(params.beforeSave);
   });
+
+  it('normalizes rounded mirrored percentages when they overflow 100 by rounding drift', async () => {
+    sinon.stub(powerSyncCursorRepository, 'getPowerSyncCursor').resolves({
+      sourceSystem: 'giveconomy',
+      lastEventId: 41,
+    } as any);
+    sinon
+      .stub(powerSyncCursorRepository, 'savePowerSyncCursor')
+      .resolves({} as any);
+    sinon
+      .stub(powerSyncOutboxRepository, 'getLatestPowerSyncOutboxEventForUser')
+      .resolves(null);
+
+    const setMultipleBoostingStub = sinon
+      .stub(powerBoostingRepository, 'setMultipleBoosting')
+      .resolves([] as any);
+
+    sinon.stub(axios, 'get').resolves({
+      status: 200,
+      data: {
+        data: [
+          {
+            id: 42,
+            sourceSystem: 'giveconomy',
+            eventType: 'power-boosting.updated',
+            entityType: 'power-boosting',
+            userId: 80,
+            sourceUpdatedAt: '2026-04-17T16:41:41.486Z',
+            payload: {
+              userId: 80,
+              boostings: [
+                {
+                  projectId: 16152,
+                  percentage: 12.78654464506554,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 15754,
+                  percentage: 10.25772940885481,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 1,
+                  percentage: 9.830324016819194,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 15919,
+                  percentage: 8.500618352708385,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 2955,
+                  percentage: 8.310660400692552,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 2795,
+                  percentage: 7.07593371258966,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 2808,
+                  percentage: 6.88597576057383,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 2297,
+                  percentage: 5.401929260450157,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 2636,
+                  percentage: 4.927034380410584,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 1443,
+                  percentage: 4.915162008409596,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 3452,
+                  percentage: 4.84392777640366,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 3760,
+                  percentage: 4.558990848379917,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 16199,
+                  percentage: 4,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 1711,
+                  percentage: 3.953499876329457,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+                {
+                  projectId: 14863,
+                  percentage: 3.751669552312638,
+                  updatedAt: '2026-04-17T16:41:41.486Z',
+                },
+              ],
+            },
+          },
+        ],
+      },
+    } as any);
+
+    const result = await pullGiveconomyPowerSync();
+
+    assert.deepEqual(result, {
+      fetched: 1,
+      applied: 1,
+      skipped: 0,
+    });
+    assert.equal(setMultipleBoostingStub.callCount, 1);
+
+    const params = setMultipleBoostingStub.firstCall.args[0];
+    assert.equal(params.projectIds.length, 15);
+    assert.closeTo(
+      params.percentages.reduce((sum, value) => sum + value, 0),
+      100,
+      0.00001,
+    );
+    assert.equal(params.percentages[0], 12.78);
+    assert.equal(params.percentages[1], 10.26);
+    assert.equal(params.percentages[14], 3.75);
+  });
 });
