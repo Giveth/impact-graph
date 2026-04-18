@@ -28,14 +28,70 @@ const GIVECONOMY_SOURCE_SYSTEM = 'giveconomy';
 const STALE_GIVECONOMY_POWER_SYNC_EVENT = 'STALE_GIVECONOMY_POWER_SYNC_EVENT';
 const DEFAULT_GIVPOWER_PERCENTAGE_PRECISION = 2;
 
-const roundSyncedPercentage = (percentage: number): number => {
+const getSyncedPercentagePrecision = (): number => {
   const precision = Number(process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION);
-  const resolvedPrecision =
-    Number.isInteger(precision) && precision >= 0
-      ? precision
-      : DEFAULT_GIVPOWER_PERCENTAGE_PRECISION;
+  return Number.isInteger(precision) && precision >= 0
+    ? precision
+    : DEFAULT_GIVPOWER_PERCENTAGE_PRECISION;
+};
 
-  return Number(percentage.toFixed(resolvedPrecision));
+const roundSyncedPercentage = (percentage: number): number => {
+  return Number(percentage.toFixed(getSyncedPercentagePrecision()));
+};
+
+const normalizeRoundedBoostings = (
+  boostings: Array<{
+    projectId: number;
+    percentage: number;
+    updatedAt: string;
+  }>,
+): Array<{
+  projectId: number;
+  percentage: number;
+  updatedAt: string;
+}> => {
+  if (boostings.length === 0) {
+    return boostings;
+  }
+
+  const precision = getSyncedPercentagePrecision();
+  const roundingStep = 1 / 10 ** precision;
+  const total = boostings.reduce(
+    (sum, boosting) => sum + boosting.percentage,
+    0,
+  );
+  const delta = Number((100 - total).toFixed(precision));
+  const maxRoundingDrift = roundingStep * boostings.length;
+
+  if (
+    total <= 0 ||
+    delta === 0 ||
+    Math.abs(delta) > maxRoundingDrift + Number.EPSILON
+  ) {
+    return boostings;
+  }
+
+  const indexToAdjust = boostings.reduce(
+    (bestIndex, boosting, index, items) =>
+      boosting.percentage > items[bestIndex].percentage ? index : bestIndex,
+    0,
+  );
+  const adjustedPercentage = Number(
+    (boostings[indexToAdjust].percentage + delta).toFixed(precision),
+  );
+
+  if (adjustedPercentage < 0 || adjustedPercentage > 100) {
+    return boostings;
+  }
+
+  return boostings.map((boosting, index) =>
+    index === indexToAdjust
+      ? {
+          ...boosting,
+          percentage: adjustedPercentage,
+        }
+      : boosting,
+  );
 };
 
 export const pullGiveconomyPowerSync = async (): Promise<{
@@ -113,12 +169,14 @@ const applyGiveconomyPowerSyncEvent = async (
   }
 
   const incomingUpdatedAt = new Date(event.sourceUpdatedAt);
-  const syncedBoostings = (event.payload.boostings || [])
-    .map(boosting => ({
-      ...boosting,
-      percentage: roundSyncedPercentage(boosting.percentage),
-    }))
-    .filter(boosting => boosting.percentage > 0);
+  const syncedBoostings = normalizeRoundedBoostings(
+    (event.payload.boostings || [])
+      .map(boosting => ({
+        ...boosting,
+        percentage: roundSyncedPercentage(boosting.percentage),
+      }))
+      .filter(boosting => boosting.percentage > 0),
+  ).filter(boosting => boosting.percentage > 0);
   let applied = true;
 
   try {
