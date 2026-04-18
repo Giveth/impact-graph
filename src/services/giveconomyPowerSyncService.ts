@@ -28,6 +28,19 @@ const GIVECONOMY_SOURCE_SYSTEM = 'giveconomy';
 const STALE_GIVECONOMY_POWER_SYNC_EVENT = 'STALE_GIVECONOMY_POWER_SYNC_EVENT';
 const DEFAULT_GIVPOWER_PERCENTAGE_PRECISION = 2;
 
+const hasErrorMessage = (
+  error: unknown,
+): error is {
+  message: string;
+} =>
+  typeof error === 'object' &&
+  error !== null &&
+  'message' in error &&
+  typeof error.message === 'string';
+
+const isStaleGiveconomyPowerSyncError = (error: unknown): boolean =>
+  hasErrorMessage(error) && error.message === STALE_GIVECONOMY_POWER_SYNC_EVENT;
+
 const getSyncedPercentagePrecision = (): number => {
   const precision = Number(process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION);
   return Number.isInteger(precision) && precision >= 0
@@ -210,10 +223,7 @@ const applyGiveconomyPowerSyncEvent = async (
       },
     });
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === STALE_GIVECONOMY_POWER_SYNC_EVENT
-    ) {
+    if (isStaleGiveconomyPowerSyncError(error)) {
       return false;
     }
 

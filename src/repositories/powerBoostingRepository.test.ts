@@ -1,3 +1,4 @@
+import { runInNewContext } from 'vm';
 import { assert } from 'chai';
 import {
   assertThrowsAsync,
@@ -723,6 +724,44 @@ function setMultipleBoostingTestCases() {
         ),
       );
     });
+  });
+
+  it('should preserve stale mirrored sync errors thrown by beforeSave', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await assertThrowsAsync(
+      async () =>
+        setMultipleBoosting({
+          userId: user.id,
+          projectIds: [project.id],
+          percentages: [100],
+          beforeSave: async () => {
+            throw new Error('STALE_GIVECONOMY_POWER_SYNC_EVENT');
+          },
+        }),
+      'STALE_GIVECONOMY_POWER_SYNC_EVENT',
+    );
+  });
+
+  it('should preserve cross-realm stale mirrored sync errors thrown by beforeSave', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await assertThrowsAsync(
+      async () =>
+        setMultipleBoosting({
+          userId: user.id,
+          projectIds: [project.id],
+          percentages: [100],
+          beforeSave: async () => {
+            throw runInNewContext(
+              'new Error("STALE_GIVECONOMY_POWER_SYNC_EVENT")',
+            );
+          },
+        }),
+      'STALE_GIVECONOMY_POWER_SYNC_EVENT',
+    );
   });
 }
 
