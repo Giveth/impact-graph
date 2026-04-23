@@ -59,6 +59,43 @@ class CreateUserByAddressResponse {
   errorMessage?: string;
 }
 
+const CREATE_USER_BY_ADDRESS_RATE_LIMIT = 20;
+
+const getForwardedClientIp = (
+  forwardedFor: string | string[] | undefined,
+): string | null => {
+  if (!forwardedFor) {
+    return null;
+  }
+
+  const rawValue = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
+  return rawValue.split(',')[0]?.trim() || null;
+};
+
+const isTrustedCreateUserByAddressRequest = (
+  ctx: ApolloContext | undefined,
+): boolean => {
+  const vercelKey = process.env.VERCEL_KEY;
+  const headerValue = ctx?.expressReq?.headers?.vercel_key;
+  if (!vercelKey || !headerValue) {
+    return false;
+  }
+
+  return (
+    (Array.isArray(headerValue) ? headerValue[0] : headerValue) === vercelKey
+  );
+};
+
+const getCreateUserByAddressRequesterIp = (
+  ctx: ApolloContext | undefined,
+): string => {
+  return (
+    getForwardedClientIp(ctx?.expressReq?.headers?.['x-forwarded-for']) ||
+    ctx?.expressReq?.ip ||
+    'unknown'
+  );
+};
+
 @Resolver(_of => User)
 export class UserResolver {
   constructor(private readonly userRepository: Repository<User>) {
@@ -102,21 +139,22 @@ export class UserResolver {
     @Arg('address') address: string,
     @Ctx() ctx: ApolloContext,
   ): Promise<CreateUserByAddressResponse> {
-    // Simple rate limit: 20/day per IP
-    const requesterIp =
-      ctx?.expressReq?.ip ||
-      (ctx?.expressReq?.headers?.['x-forwarded-for'] as string | undefined) ||
-      'unknown';
-    const dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const rateLimitKey = `rl:createUserByAddress:${requesterIp}:${dayKey}`;
+    if (!isTrustedCreateUserByAddressRequest(ctx)) {
+      // Keep the public daily cap per client IP, but skip it for trusted SSR/internal
+      // requests that already authenticate with VERCEL_KEY and would otherwise share
+      // a single egress IP bucket.
+      const requesterIp = getCreateUserByAddressRequesterIp(ctx);
+      const dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const rateLimitKey = `rl:createUserByAddress:${requesterIp}:${dayKey}`;
 
-    const current = await redis.incr(rateLimitKey);
-    if (current === 1) {
-      // expire in 24h; "per day" approximation
-      await redis.expire(rateLimitKey, 24 * 60 * 60);
-    }
-    if (current > 20) {
-      throw new Error('Rate limit exceeded (20 per day)');
+      const current = await redis.incr(rateLimitKey);
+      if (current === 1) {
+        // expire in 24h; "per day" approximation
+        await redis.expire(rateLimitKey, 24 * 60 * 60);
+      }
+      if (current > CREATE_USER_BY_ADDRESS_RATE_LIMIT) {
+        throw new Error('Rate limit exceeded (20 per day)');
+      }
     }
 
     const existing = await User.createQueryBuilder('user')
