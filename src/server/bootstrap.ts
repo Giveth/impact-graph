@@ -35,6 +35,7 @@ import {
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
+import { isTrustedVercelRequest } from '../utils/ipWhitelist';
 import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
 // import { apiGivRouter } from '../routers/apiGivRoutes';
 import { AppDataSource, CronDataSource } from '../orm';
@@ -250,8 +251,7 @@ export async function bootstrap() {
         windowMs: 60 * 1000, // 1 minutes
         max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
         skip: (req: Request) => {
-          const vercelKey = process.env.VERCEL_KEY;
-          if (vercelKey && req.headers.vercel_key === vercelKey) {
+          if (isTrustedVercelRequest(req)) {
             // Skip rate-limit for Vercel requests because our front is SSR
             return true;
           }

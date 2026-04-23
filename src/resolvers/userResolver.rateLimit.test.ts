@@ -1,3 +1,4 @@
+import { rejects as assertRejects } from 'assert';
 import { assert } from 'chai';
 import sinon from 'sinon';
 import { User } from '../entities/user';
@@ -20,8 +21,7 @@ describe('UserResolver createUserByAddress rate limit', () => {
       id: 42,
       walletAddress: existingWalletAddress,
     } as User;
-    const incrStub = sinon.stub(redis, 'incr');
-    const expireStub = sinon.stub(redis, 'expire');
+    const evalStub = sinon.stub(redis, 'eval');
     const getOne = sinon.stub().resolves(existingUser);
     const where = sinon.stub().returns({ getOne });
     sinon.stub(User, 'createQueryBuilder').returns({ where } as never);
@@ -41,34 +41,29 @@ describe('UserResolver createUserByAddress rate limit', () => {
 
     assert.isTrue(result.existing);
     assert.equal(result.user.id, existingUser.id);
-    assert.isFalse(incrStub.called);
-    assert.isFalse(expireStub.called);
+    assert.isFalse(evalStub.called);
   });
 
   it('keeps rejecting untrusted public traffic above the daily limit', async () => {
     process.env.VERCEL_KEY = 'trusted-vercel-key';
-    sinon.stub(redis, 'incr').resolves(21);
+    sinon.stub(redis, 'eval').resolves(21);
     sinon.stub(AppDataSource, 'getDataSource').returns({
       getRepository: () => ({}),
     } as never);
     const resolver = new UserResolver({} as never);
 
-    try {
-      await resolver.createUserByAddress(
-        '0x2222222222222222222222222222222222222222',
-        {
-          expressReq: {
-            headers: {},
-            ip: '198.51.100.10',
-          },
-        } as never,
-      );
-      assert.fail('Expected createUserByAddress() to throw a rate limit error');
-    } catch (error) {
-      assert.include(
-        (error as Error).message,
-        'Rate limit exceeded (20 per day)',
-      );
-    }
+    await assertRejects(
+      () =>
+        resolver.createUserByAddress(
+          '0x2222222222222222222222222222222222222222',
+          {
+            expressReq: {
+              headers: {},
+              ip: '198.51.100.10',
+            },
+          } as never,
+        ),
+      /Rate limit exceeded \(20 per day\)/,
+    );
   });
 });
