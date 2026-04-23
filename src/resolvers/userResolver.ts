@@ -31,6 +31,7 @@ import { getLoggedInUser } from '../services/authorizationServices';
 import { syncNewImpactGraphUserToV6Core } from '../services/v6CoreUserSync';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { getClientIP, isTrustedVercelRequest } from '../utils/ipWhitelist';
 import { logger } from '../utils/logger';
 import { isSolanaAddress } from '../utils/networks';
 import { generateRandomNumericCode } from '../utils/utils';
@@ -58,6 +59,41 @@ class CreateUserByAddressResponse {
   @Field(_type => String, { nullable: true })
   errorMessage?: string;
 }
+
+const CREATE_USER_BY_ADDRESS_RATE_LIMIT = 20;
+const CREATE_USER_BY_ADDRESS_RATE_LIMIT_TTL_SECONDS = 24 * 60 * 60;
+const INCREMENT_RATE_LIMIT_WITH_TTL_SCRIPT = `
+  local current = redis.call('INCR', KEYS[1])
+  if current == 1 then
+    redis.call('EXPIRE', KEYS[1], ARGV[1])
+  end
+  return current
+`;
+
+const isTrustedCreateUserByAddressRequest = (
+  ctx: ApolloContext | undefined,
+): boolean => {
+  return isTrustedVercelRequest(ctx?.expressReq);
+};
+
+const getCreateUserByAddressRequesterIp = (
+  ctx: ApolloContext | undefined,
+): string => {
+  return getClientIP(ctx?.expressReq);
+};
+
+const incrementCreateUserByAddressRateLimit = async (
+  rateLimitKey: string,
+): Promise<number> => {
+  const current = await redis.eval(
+    INCREMENT_RATE_LIMIT_WITH_TTL_SCRIPT,
+    1,
+    rateLimitKey,
+    CREATE_USER_BY_ADDRESS_RATE_LIMIT_TTL_SECONDS.toString(),
+  );
+
+  return typeof current === 'number' ? current : Number(current);
+};
 
 @Resolver(_of => User)
 export class UserResolver {
@@ -102,21 +138,20 @@ export class UserResolver {
     @Arg('address') address: string,
     @Ctx() ctx: ApolloContext,
   ): Promise<CreateUserByAddressResponse> {
-    // Simple rate limit: 20/day per IP
-    const requesterIp =
-      ctx?.expressReq?.ip ||
-      (ctx?.expressReq?.headers?.['x-forwarded-for'] as string | undefined) ||
-      'unknown';
-    const dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const rateLimitKey = `rl:createUserByAddress:${requesterIp}:${dayKey}`;
+    if (!isTrustedCreateUserByAddressRequest(ctx)) {
+      // Keep the public daily cap per client IP, but skip it for trusted SSR/internal
+      // requests that already authenticate with VERCEL_KEY and would otherwise share
+      // a single egress IP bucket.
+      const requesterIp = getCreateUserByAddressRequesterIp(ctx);
+      const dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const rateLimitKey = `rl:createUserByAddress:${requesterIp}:${dayKey}`;
 
-    const current = await redis.incr(rateLimitKey);
-    if (current === 1) {
-      // expire in 24h; "per day" approximation
-      await redis.expire(rateLimitKey, 24 * 60 * 60);
-    }
-    if (current > 20) {
-      throw new Error('Rate limit exceeded (20 per day)');
+      const current = await incrementCreateUserByAddressRateLimit(rateLimitKey);
+      if (current > CREATE_USER_BY_ADDRESS_RATE_LIMIT) {
+        throw new Error(
+          `Rate limit exceeded (${CREATE_USER_BY_ADDRESS_RATE_LIMIT} per day)`,
+        );
+      }
     }
 
     const existing = await User.createQueryBuilder('user')

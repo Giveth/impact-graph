@@ -11,21 +11,30 @@ const getWhitelistedIPs = (): string[] => {
 };
 
 // Get client IP from request
-const getClientIP = (req: any): string => {
+const getHeaderValue = (
+  headerValue: string | string[] | undefined,
+): string | undefined => {
+  if (!headerValue) {
+    return undefined;
+  }
+  return Array.isArray(headerValue) ? headerValue[0] : headerValue;
+};
+
+export const getClientIP = (req: any): string => {
   // Handle case where req is undefined or null
   if (!req) {
     return 'unknown';
   }
 
   // Check for forwarded headers (common in proxy setups)
-  const forwardedFor = req.headers?.['x-forwarded-for'];
+  const forwardedFor = getHeaderValue(req.headers?.['x-forwarded-for']);
   if (forwardedFor) {
     // x-forwarded-for can contain multiple IPs, take the first one
     return forwardedFor.split(',')[0].trim();
   }
 
   // Check for real IP header
-  const realIP = req.headers?.['x-real-ip'];
+  const realIP = getHeaderValue(req.headers?.['x-real-ip']);
   if (realIP) {
     return realIP;
   }
@@ -37,6 +46,16 @@ const getClientIP = (req: any): string => {
     req.ip ||
     'unknown'
   );
+};
+
+export const isTrustedVercelRequest = (req: any): boolean => {
+  const vercelKey = process.env.VERCEL_KEY;
+  const headerValue = getHeaderValue(req?.headers?.vercel_key);
+  if (!vercelKey || !headerValue) {
+    return false;
+  }
+
+  return headerValue === vercelKey;
 };
 
 // Check if IP is whitelisted
