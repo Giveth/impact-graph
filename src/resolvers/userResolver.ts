@@ -31,6 +31,7 @@ import { getLoggedInUser } from '../services/authorizationServices';
 import { syncNewImpactGraphUserToV6Core } from '../services/v6CoreUserSync';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { getClientIP, isTrustedVercelRequest } from '../utils/ipWhitelist';
 import { logger } from '../utils/logger';
 import { isSolanaAddress } from '../utils/networks';
 import { generateRandomNumericCode } from '../utils/utils';
@@ -60,40 +61,38 @@ class CreateUserByAddressResponse {
 }
 
 const CREATE_USER_BY_ADDRESS_RATE_LIMIT = 20;
-
-const getForwardedClientIp = (
-  forwardedFor: string | string[] | undefined,
-): string | null => {
-  if (!forwardedFor) {
-    return null;
-  }
-
-  const rawValue = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
-  return rawValue.split(',')[0]?.trim() || null;
-};
+const CREATE_USER_BY_ADDRESS_RATE_LIMIT_TTL_SECONDS = 24 * 60 * 60;
+const INCREMENT_RATE_LIMIT_WITH_TTL_SCRIPT = `
+  local current = redis.call('INCR', KEYS[1])
+  if current == 1 then
+    redis.call('EXPIRE', KEYS[1], ARGV[1])
+  end
+  return current
+`;
 
 const isTrustedCreateUserByAddressRequest = (
   ctx: ApolloContext | undefined,
 ): boolean => {
-  const vercelKey = process.env.VERCEL_KEY;
-  const headerValue = ctx?.expressReq?.headers?.vercel_key;
-  if (!vercelKey || !headerValue) {
-    return false;
-  }
-
-  return (
-    (Array.isArray(headerValue) ? headerValue[0] : headerValue) === vercelKey
-  );
+  return isTrustedVercelRequest(ctx?.expressReq);
 };
 
 const getCreateUserByAddressRequesterIp = (
   ctx: ApolloContext | undefined,
 ): string => {
-  return (
-    getForwardedClientIp(ctx?.expressReq?.headers?.['x-forwarded-for']) ||
-    ctx?.expressReq?.ip ||
-    'unknown'
+  return getClientIP(ctx?.expressReq);
+};
+
+const incrementCreateUserByAddressRateLimit = async (
+  rateLimitKey: string,
+): Promise<number> => {
+  const current = await redis.eval(
+    INCREMENT_RATE_LIMIT_WITH_TTL_SCRIPT,
+    1,
+    rateLimitKey,
+    CREATE_USER_BY_ADDRESS_RATE_LIMIT_TTL_SECONDS.toString(),
   );
+
+  return typeof current === 'number' ? current : Number(current);
 };
 
 @Resolver(_of => User)
@@ -147,13 +146,11 @@ export class UserResolver {
       const dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
       const rateLimitKey = `rl:createUserByAddress:${requesterIp}:${dayKey}`;
 
-      const current = await redis.incr(rateLimitKey);
-      if (current === 1) {
-        // expire in 24h; "per day" approximation
-        await redis.expire(rateLimitKey, 24 * 60 * 60);
-      }
+      const current = await incrementCreateUserByAddressRateLimit(rateLimitKey);
       if (current > CREATE_USER_BY_ADDRESS_RATE_LIMIT) {
-        throw new Error('Rate limit exceeded (20 per day)');
+        throw new Error(
+          `Rate limit exceeded (${CREATE_USER_BY_ADDRESS_RATE_LIMIT} per day)`,
+        );
       }
     }
 
