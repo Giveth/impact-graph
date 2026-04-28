@@ -1,25 +1,27 @@
 import { assert } from 'chai';
 import {
-  isWalletAddressSmartContract,
-  isWalletAddressValid,
-  validateProjectTitle,
-  validateProjectWalletAddress,
-} from './projectValidator';
-import {
   assertThrowsAsync,
   createProjectData,
   generateRandomCardanoAddress,
   generateRandomEtheriumAddress,
   generateRandomSolanaAddress,
   saveProjectDirectlyToDb,
+  saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../../test/testUtils';
+import { addNewProjectAddress } from '../../repositories/projectAddressRepository';
+import { ChainType } from '../../types/network';
 import {
   errorMessages,
   i18n,
   translationErrorMessagesKeys,
 } from '../errorMessages';
-import { ChainType } from '../../types/network';
+import {
+  isWalletAddressSmartContract,
+  isWalletAddressValid,
+  validateProjectTitle,
+  validateProjectWalletAddress,
+} from './projectValidator';
 
 describe('isWalletAddressValid() test cases', isWalletAddressValidTestCases);
 
@@ -169,6 +171,26 @@ function validateProjectWalletAddressTestCases() {
     const valid = await validateProjectWalletAddress(
       generateRandomCardanoAddress(),
     );
+    assert.isTrue(valid);
+  });
+
+  it('should return true when address exists but isRecipient is false', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData(), user);
+    const nonRecipientAddress = generateRandomEtheriumAddress();
+
+    // Create an address with isRecipient = false
+    await addNewProjectAddress({
+      project,
+      user,
+      address: nonRecipientAddress,
+      networkId: 1,
+      isRecipient: false,
+      chainType: ChainType.EVM,
+    });
+
+    // Should return true because isRecipient is false
+    const valid = await validateProjectWalletAddress(nonRecipientAddress);
     assert.isTrue(valid);
   });
 }
