@@ -1,9 +1,9 @@
-import { ProjectAddress } from '../entities/projectAddress';
 import { Project } from '../entities/project';
+import { ProjectAddress } from '../entities/projectAddress';
 import { User } from '../entities/user';
+import SentryLogger from '../sentryLogger';
 import { ChainType } from '../types/network';
 import { logger } from '../utils/logger';
-import SentryLogger from '../sentryLogger';
 
 export const getPurpleListAddresses = async (): Promise<
   { projectAddress: string }[]
@@ -77,7 +77,10 @@ export const findRelatedAddressByWalletAddress = async (
       });
       break;
   }
-  return query.leftJoinAndSelect('projectAddress.project', 'project').getOne();
+  return query
+    .andWhere(`"isRecipient" = true`)
+    .leftJoinAndSelect('projectAddress.project', 'project')
+    .getOne();
 };
 export const findAllRelatedAddressByWalletAddress = async (
   walletAddress: string,
