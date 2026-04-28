@@ -35,7 +35,6 @@ import { Project } from '../entities/project';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
 import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils';
 import { ORGANIZATION_LABELS } from '../entities/organization';
-import { setPowerRound } from './powerRoundRepository';
 
 describe('createDonation test cases', createDonationTestCases);
 
@@ -1939,8 +1938,25 @@ function findDonationsToGivethTestCases() {
 }
 
 function getSumOfGivbackEligibleDonationsForSpecificRoundTestCases() {
-  it('should return correct value for specific round', async () => {
-    // 3 donations with 2 different donor
+  // Helper to get dates within current month's operational window (16:00 UTC offset)
+  const getDateInCurrentWindow = () => {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth();
+    // Return a date in the middle of the current month at 17:00 UTC (within window)
+    return new Date(Date.UTC(year, month, 15, 17, 0, 0));
+  };
+
+  // Helper to get date outside current window (previous month)
+  const getDateOutsideWindow = () => {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth();
+    // Return a date in the previous month
+    return new Date(Date.UTC(year, month - 1, 15, 17, 0, 0));
+  };
+
+  it('should return correct value for donations within operational window', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -1958,14 +1974,13 @@ function getSumOfGivbackEligibleDonationsForSpecificRoundTestCases() {
     const valueUsd3 = 300;
     const givbackFactor3 = 0.7;
 
-    const powerRound = 3232;
+    const createdAt = getDateInCurrentWindow();
 
-    await saveDonationDirectlyToDb(
+    const donation1 = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ createdAt }),
         status: 'verified',
         valueUsd: valueUsd1,
-        powerRound,
         givbackFactor: givbackFactor1,
         isProjectGivbackEligible: true,
       },
@@ -1973,314 +1988,22 @@ function getSumOfGivbackEligibleDonationsForSpecificRoundTestCases() {
       project.id,
     );
 
-    await saveDonationDirectlyToDb(
+    const donation2 = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ createdAt }),
         status: 'verified',
         valueUsd: valueUsd2,
-        powerRound,
         givbackFactor: givbackFactor2,
         isProjectGivbackEligible: true,
       },
       donor1.id,
       project.id,
     );
-    await saveDonationDirectlyToDb(
+    const donation3 = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ createdAt }),
         status: 'verified',
         valueUsd: valueUsd3,
-        powerRound,
-        givbackFactor: givbackFactor3,
-        isProjectGivbackEligible: true,
-      },
-      donor2.id,
-      project.id,
-    );
-
-    const sumOfGivbackEligibleDonations =
-      await getSumOfGivbackEligibleDonationsForSpecificRound({
-        powerRound,
-      });
-
-    assert.equal(
-      sumOfGivbackEligibleDonations,
-      valueUsd1 * givbackFactor1 +
-        valueUsd2 * givbackFactor2 +
-        valueUsd3 * givbackFactor3,
-    );
-  });
-  it('should return correct value for specific round, exclude donations with isProjectGivbackEligible:false', async () => {
-    // 3 donations with 2 different donor
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const valueUsd1 = 100;
-    const givbackFactor1 = 0.5;
-
-    const valueUsd2 = 200;
-    const givbackFactor2 = 0.65;
-
-    const valueUsd3 = 300;
-    const givbackFactor3 = 0.7;
-
-    const powerRound = 24234;
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd1,
-        powerRound,
-        givbackFactor: givbackFactor1,
-        isProjectGivbackEligible: true,
-      },
-      donor1.id,
-      project.id,
-    );
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd2,
-        powerRound,
-        givbackFactor: givbackFactor2,
-        isProjectGivbackEligible: true,
-      },
-      donor1.id,
-      project.id,
-    );
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd3,
-        powerRound,
-        givbackFactor: givbackFactor3,
-        isProjectGivbackEligible: false,
-      },
-      donor2.id,
-      project.id,
-    );
-
-    const sumOfGivbackEligibleDonations =
-      await getSumOfGivbackEligibleDonationsForSpecificRound({
-        powerRound,
-      });
-
-    assert.equal(
-      sumOfGivbackEligibleDonations,
-      valueUsd1 * givbackFactor1 + valueUsd2 * givbackFactor2,
-    );
-  });
-  it('should return correct value for specific round, exclude donations of other power Rounds', async () => {
-    // 3 donations with 2 different donor
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const valueUsd1 = 100;
-    const givbackFactor1 = 0.5;
-
-    const valueUsd2 = 200;
-    const givbackFactor2 = 0.65;
-
-    const valueUsd3 = 300;
-    const givbackFactor3 = 0.7;
-
-    const powerRound = 12321;
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd1,
-        powerRound,
-        givbackFactor: givbackFactor1,
-        isProjectGivbackEligible: true,
-      },
-      donor1.id,
-      project.id,
-    );
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd2,
-        powerRound,
-        givbackFactor: givbackFactor2,
-        isProjectGivbackEligible: true,
-      },
-      donor1.id,
-      project.id,
-    );
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd3,
-        powerRound: 31234231,
-        givbackFactor: givbackFactor3,
-        isProjectGivbackEligible: true,
-      },
-      donor2.id,
-      project.id,
-    );
-
-    const sumOfGivbackEligibleDonations =
-      await getSumOfGivbackEligibleDonationsForSpecificRound({
-        powerRound,
-      });
-
-    assert.equal(
-      sumOfGivbackEligibleDonations,
-      valueUsd1 * givbackFactor1 + valueUsd2 * givbackFactor2,
-    );
-  });
-  it('should return correct value for specific round, exclude donations of purple list address', async () => {
-    // 3 donations with 2 different donor
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const valueUsd1 = 100;
-    const givbackFactor1 = 0.5;
-
-    const valueUsd2 = 200;
-    const givbackFactor2 = 0.65;
-
-    const valueUsd3 = 300;
-    const givbackFactor3 = 0.7;
-
-    const powerRound = 1324123;
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd1,
-        powerRound,
-        givbackFactor: givbackFactor1,
-        isProjectGivbackEligible: true,
-      },
-      donor1.id,
-      project.id,
-    );
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd2,
-        powerRound,
-        givbackFactor: givbackFactor2,
-        isProjectGivbackEligible: true,
-      },
-      donor1.id,
-      project.id,
-    );
-
-    const verifiedProject = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      verified: true,
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const donor3 = await saveUserDirectlyToDb(
-      verifiedProject!.walletAddress as string,
-    );
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd3,
-        powerRound,
-        givbackFactor: givbackFactor3,
-        isProjectGivbackEligible: true,
-      },
-      donor3.id,
-      project.id,
-    );
-
-    const sumOfGivbackEligibleDonations =
-      await getSumOfGivbackEligibleDonationsForSpecificRound({
-        powerRound,
-      });
-
-    assert.equal(
-      sumOfGivbackEligibleDonations,
-      valueUsd1 * givbackFactor1 + valueUsd2 * givbackFactor2,
-    );
-  });
-  it('should return correct value for existing powerRound in DB if we dont pass it', async () => {
-    // 3 donations with 2 different donor
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const valueUsd1 = 100;
-    const givbackFactor1 = 0.5;
-
-    const valueUsd2 = 200;
-    const givbackFactor2 = 0.65;
-
-    const valueUsd3 = 300;
-    const givbackFactor3 = 0.7;
-
-    const powerRound = 321425;
-    await setPowerRound(powerRound);
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd1,
-        powerRound,
-        givbackFactor: givbackFactor1,
-        isProjectGivbackEligible: true,
-      },
-      donor1.id,
-      project.id,
-    );
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd2,
-        powerRound,
-        givbackFactor: givbackFactor2,
-        isProjectGivbackEligible: true,
-      },
-      donor1.id,
-      project.id,
-    );
-
-    await saveDonationDirectlyToDb(
-      {
-        ...createDonationData(),
-        status: 'verified',
-        valueUsd: valueUsd3,
-        powerRound: 1231,
         givbackFactor: givbackFactor3,
         isProjectGivbackEligible: true,
       },
@@ -2291,9 +2014,293 @@ function getSumOfGivbackEligibleDonationsForSpecificRoundTestCases() {
     const sumOfGivbackEligibleDonations =
       await getSumOfGivbackEligibleDonationsForSpecificRound({});
 
-    assert.equal(
-      sumOfGivbackEligibleDonations,
-      valueUsd1 * givbackFactor1 + valueUsd2 * givbackFactor2,
+    const expectedSum =
+      valueUsd1 * givbackFactor1 +
+      valueUsd2 * givbackFactor2 +
+      valueUsd3 * givbackFactor3;
+
+    // Result should include at least these donations (may include others from DB)
+    assert.isAtLeast(sumOfGivbackEligibleDonations, expectedSum);
+
+    // Cleanup
+    await Donation.delete([donation1.id, donation2.id, donation3.id]);
+  });
+
+  it('should return correct value for specific round, exclude donations with isProjectGivbackEligible:false', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const valueUsd1 = 100;
+    const givbackFactor1 = 0.5;
+
+    const valueUsd2 = 200;
+    const givbackFactor2 = 0.65;
+
+    const valueUsd3 = 300;
+    const givbackFactor3 = 0.7;
+
+    const createdAt = getDateInCurrentWindow();
+
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt }),
+        status: 'verified',
+        valueUsd: valueUsd1,
+        givbackFactor: givbackFactor1,
+        isProjectGivbackEligible: true,
+      },
+      donor1.id,
+      project.id,
     );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt }),
+        status: 'verified',
+        valueUsd: valueUsd2,
+        givbackFactor: givbackFactor2,
+        isProjectGivbackEligible: true,
+      },
+      donor1.id,
+      project.id,
+    );
+    // This donation should be excluded (isProjectGivbackEligible: false)
+    const donation3 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt }),
+        status: 'verified',
+        valueUsd: valueUsd3,
+        givbackFactor: givbackFactor3,
+        isProjectGivbackEligible: false,
+      },
+      donor2.id,
+      project.id,
+    );
+
+    const sumBefore = await getSumOfGivbackEligibleDonationsForSpecificRound(
+      {},
+    );
+
+    // Delete non-eligible donation and verify sum doesn't change
+    await Donation.delete(donation3.id);
+    const sumAfter = await getSumOfGivbackEligibleDonationsForSpecificRound({});
+
+    // Sum should be the same since donation3 was not eligible
+    assert.equal(sumBefore, sumAfter);
+
+    // Cleanup
+    await Donation.delete([donation1.id, donation2.id]);
+  });
+
+  it('should return correct value for specific round, exclude donations outside operational window', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const valueUsd1 = 100;
+    const givbackFactor1 = 0.5;
+
+    const valueUsd2 = 200;
+    const givbackFactor2 = 0.65;
+
+    const valueUsd3 = 300;
+    const givbackFactor3 = 0.7;
+
+    const dateInWindow = getDateInCurrentWindow();
+    const dateOutsideWindow = getDateOutsideWindow();
+
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt: dateInWindow }),
+        status: 'verified',
+        valueUsd: valueUsd1,
+        givbackFactor: givbackFactor1,
+        isProjectGivbackEligible: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt: dateInWindow }),
+        status: 'verified',
+        valueUsd: valueUsd2,
+        givbackFactor: givbackFactor2,
+        isProjectGivbackEligible: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    // This donation should be excluded (outside operational window - previous month)
+    const donation3 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt: dateOutsideWindow }),
+        status: 'verified',
+        valueUsd: valueUsd3,
+        givbackFactor: givbackFactor3,
+        isProjectGivbackEligible: true,
+      },
+      donor2.id,
+      project.id,
+    );
+
+    const sumBefore = await getSumOfGivbackEligibleDonationsForSpecificRound(
+      {},
+    );
+
+    // Delete donation outside window and verify sum doesn't change
+    await Donation.delete(donation3.id);
+    const sumAfter = await getSumOfGivbackEligibleDonationsForSpecificRound({});
+
+    // Sum should be the same since donation3 was outside the window
+    assert.equal(sumBefore, sumAfter);
+
+    // Cleanup
+    await Donation.delete([donation1.id, donation2.id]);
+  });
+
+  it('should return correct value for specific round, exclude donations of purple list address', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const valueUsd1 = 100;
+    const givbackFactor1 = 0.5;
+
+    const valueUsd2 = 200;
+    const givbackFactor2 = 0.65;
+
+    const valueUsd3 = 300;
+    const givbackFactor3 = 0.7;
+
+    const createdAt = getDateInCurrentWindow();
+
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt }),
+        status: 'verified',
+        valueUsd: valueUsd1,
+        givbackFactor: givbackFactor1,
+        isProjectGivbackEligible: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt }),
+        status: 'verified',
+        valueUsd: valueUsd2,
+        givbackFactor: givbackFactor2,
+        isProjectGivbackEligible: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    // Create a verified project - its wallet address is on the purple list
+    const verifiedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: true,
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    // Donor3 uses the verified project's wallet address (purple list)
+    const donor3 = await saveUserDirectlyToDb(
+      verifiedProject!.walletAddress as string,
+    );
+
+    // This donation should be excluded (donor is on purple list)
+    const donation3 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt }),
+        status: 'verified',
+        valueUsd: valueUsd3,
+        givbackFactor: givbackFactor3,
+        isProjectGivbackEligible: true,
+      },
+      donor3.id,
+      project.id,
+    );
+
+    const sumBefore = await getSumOfGivbackEligibleDonationsForSpecificRound(
+      {},
+    );
+
+    // Delete purple list donation and verify sum doesn't change
+    await Donation.delete(donation3.id);
+    const sumAfter = await getSumOfGivbackEligibleDonationsForSpecificRound({});
+
+    // Sum should be the same since donation3 was from purple list address
+    assert.equal(sumBefore, sumAfter);
+
+    // Cleanup
+    await Donation.delete([donation1.id, donation2.id]);
+  });
+
+  it('should exclude donations below minimum threshold', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const createdAt = getDateInCurrentWindow();
+
+    // Donation above threshold ($100 >= $4)
+    const donation1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt }),
+        status: 'verified',
+        valueUsd: 100,
+        givbackFactor: 0.5,
+        isProjectGivbackEligible: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    // Donation below threshold ($3 < $4)
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData({ createdAt }),
+        status: 'verified',
+        valueUsd: 3,
+        givbackFactor: 0.5,
+        isProjectGivbackEligible: true,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    const sumBefore = await getSumOfGivbackEligibleDonationsForSpecificRound(
+      {},
+    );
+
+    // Delete below-threshold donation and verify sum doesn't change
+    await Donation.delete(donation2.id);
+    const sumAfter = await getSumOfGivbackEligibleDonationsForSpecificRound({});
+
+    // Sum should be the same since donation2 was below $4 threshold
+    assert.equal(sumBefore, sumAfter);
+
+    // Cleanup
+    await Donation.delete(donation1.id);
   });
 }

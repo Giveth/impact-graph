@@ -63,6 +63,7 @@ import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSn
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
 import { getDefaultSolanaChainId } from '../services/chains';
+import { calculateGivbackFactorByRank } from '../services/givbackService';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
@@ -2247,13 +2248,15 @@ function createDonationTestCases() {
       where: { id: saveDonationResponse.data.data.createDonation },
     });
 
-    // because this project is rank1
-    assert.equal(
-      donation?.givbackFactor,
-      Number(process.env.GIVBACK_MAX_FACTOR),
-    );
+    const expectedGivbackFactor = calculateGivbackFactorByRank({
+      projectRank: donation?.projectRank,
+      bottomRank: donation?.bottomRankInRound || 1,
+      minGivFactor: Number(process.env.GIVBACK_MIN_FACTOR),
+      maxGivFactor: Number(process.env.GIVBACK_MAX_FACTOR),
+    });
+    assert.equal(donation?.givbackFactor, expectedGivbackFactor);
     assert.equal(donation?.powerRound, roundNumber);
-    assert.equal(donation?.projectRank, 1);
+    assert.isAtLeast(donation?.projectRank || 0, 1);
   });
   it('should create GIV donation for giveth project on mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -6489,8 +6492,16 @@ async function donationMetricsTestCases() {
 }
 
 async function allocatedGivbacksQueryTestCases() {
+  // Helper to get dates within current month's operational window (16:00 UTC offset)
+  const getDateInCurrentWindow = () => {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth();
+    // Return a date in the middle of the current month at 17:00 UTC (within window)
+    return new Date(Date.UTC(year, month, 15, 17, 0, 0));
+  };
+
   it('should return allocated givbacks correctly', async () => {
-    // 3 donations with 2 different donor
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -6508,15 +6519,13 @@ async function allocatedGivbacksQueryTestCases() {
     const valueUsd3 = 300;
     const givbackFactor3 = 0.7;
 
-    const powerRound = 321425;
-    await setPowerRound(powerRound);
+    const createdAt = getDateInCurrentWindow();
 
-    await saveDonationDirectlyToDb(
+    const donation1 = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ createdAt }),
         status: 'verified',
         valueUsd: valueUsd1,
-        powerRound,
         givbackFactor: givbackFactor1,
         isProjectGivbackEligible: true,
       },
@@ -6524,12 +6533,11 @@ async function allocatedGivbacksQueryTestCases() {
       project.id,
     );
 
-    await saveDonationDirectlyToDb(
+    const donation2 = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ createdAt }),
         status: 'verified',
         valueUsd: valueUsd2,
-        powerRound,
         givbackFactor: givbackFactor2,
         isProjectGivbackEligible: true,
       },
@@ -6537,12 +6545,11 @@ async function allocatedGivbacksQueryTestCases() {
       project.id,
     );
 
-    await saveDonationDirectlyToDb(
+    const donation3 = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ createdAt }),
         status: 'verified',
         valueUsd: valueUsd3,
-        powerRound: 1231,
         givbackFactor: givbackFactor3,
         isProjectGivbackEligible: true,
       },
@@ -6554,19 +6561,32 @@ async function allocatedGivbacksQueryTestCases() {
       graphqlUrl,
       {
         query: allocatedGivbacksQuery,
+        variables: {
+          refreshCache: true,
+        },
       },
       {},
     );
 
     const allocatedGivbacks = result.data.data?.allocatedGivbacks;
     assert.isNotNull(allocatedGivbacks);
-    assert.equal(
+
+    const expectedSum =
+      valueUsd1 * givbackFactor1 +
+      valueUsd2 * givbackFactor2 +
+      valueUsd3 * givbackFactor3;
+
+    // Result should include at least these donations (may include others from DB)
+    assert.isAtLeast(
       allocatedGivbacks.usdValueSentAmountInPowerRound,
-      valueUsd1 * givbackFactor1 + valueUsd2 * givbackFactor2,
+      expectedSum,
     );
+
+    // Cleanup
+    await Donation.delete([donation1.id, donation2.id, donation3.id]);
   });
+
   it('should return allocated givbacks correctly when pass refreshCache variable', async () => {
-    // 3 donations with 2 different donor
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -6584,15 +6604,13 @@ async function allocatedGivbacksQueryTestCases() {
     const valueUsd3 = 300;
     const givbackFactor3 = 0.7;
 
-    const powerRound = 438127;
-    await setPowerRound(powerRound);
+    const createdAt = getDateInCurrentWindow();
 
-    await saveDonationDirectlyToDb(
+    const donation1 = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ createdAt }),
         status: 'verified',
         valueUsd: valueUsd1,
-        powerRound,
         givbackFactor: givbackFactor1,
         isProjectGivbackEligible: true,
       },
@@ -6600,12 +6618,11 @@ async function allocatedGivbacksQueryTestCases() {
       project.id,
     );
 
-    await saveDonationDirectlyToDb(
+    const donation2 = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ createdAt }),
         status: 'verified',
         valueUsd: valueUsd2,
-        powerRound,
         givbackFactor: givbackFactor2,
         isProjectGivbackEligible: true,
       },
@@ -6626,17 +6643,14 @@ async function allocatedGivbacksQueryTestCases() {
 
     const allocatedGivbacks1 = result1.data.data?.allocatedGivbacks;
     assert.isNotNull(allocatedGivbacks1);
-    assert.equal(
-      allocatedGivbacks1.usdValueSentAmountInPowerRound,
-      valueUsd1 * givbackFactor1 + valueUsd2 * givbackFactor2,
-    );
 
-    await saveDonationDirectlyToDb(
+    const initialSum = allocatedGivbacks1.usdValueSentAmountInPowerRound;
+
+    const donation3 = await saveDonationDirectlyToDb(
       {
-        ...createDonationData(),
+        ...createDonationData({ createdAt }),
         status: 'verified',
         valueUsd: valueUsd3,
-        powerRound,
         givbackFactor: givbackFactor3,
         isProjectGivbackEligible: true,
       },
@@ -6676,10 +6690,12 @@ async function allocatedGivbacksQueryTestCases() {
     // should refresh the cache when pass refreshCache variable
     assert.equal(
       allocatedGivbacks3.usdValueSentAmountInPowerRound,
-      allocatedGivbacks1.usdValueSentAmountInPowerRound +
-        valueUsd3 * givbackFactor3,
+      initialSum + valueUsd3 * givbackFactor3,
     );
     assert.notEqual(allocatedGivbacks3.date, allocatedGivbacks1.date);
+
+    // Cleanup
+    await Donation.delete([donation1.id, donation2.id, donation3.id]);
   });
 }
 

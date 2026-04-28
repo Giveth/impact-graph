@@ -4,6 +4,41 @@ import {
   getBottomGivbackRank,
 } from '../repositories/projectGivbackViewRepository';
 
+export const calculateGivbackFactorByRank = (params: {
+  projectRank?: number;
+  bottomRank: number;
+  minGivFactor: number;
+  maxGivFactor: number;
+}): number => {
+  const { projectRank, bottomRank, minGivFactor, maxGivFactor } = params;
+
+  // Keep configured bounds stable even if env values are swapped.
+  const minFactor = Math.min(minGivFactor, maxGivFactor);
+  const maxFactor = Math.max(minGivFactor, maxGivFactor);
+
+  const parsedBottomRank = Number(bottomRank);
+  const parsedProjectRank = Number(projectRank);
+
+  // With no ranking spread (or invalid bottom rank), avoid division by zero.
+  // If project has a rank (rank 1 in this case), keep top project on max factor.
+  if (!Number.isFinite(parsedBottomRank) || parsedBottomRank <= 1) {
+    return Number.isFinite(parsedProjectRank) && parsedProjectRank > 0
+      ? maxFactor
+      : minFactor;
+  }
+
+  // When rank is missing/invalid, default to bottom rank -> minimum factor.
+  const normalizedRank =
+    Number.isFinite(parsedProjectRank) && parsedProjectRank > 0
+      ? parsedProjectRank
+      : parsedBottomRank;
+
+  const step = (maxFactor - minFactor) / (parsedBottomRank - 1);
+  const rawFactor = maxFactor - (normalizedRank - 1) * step;
+  const boundedFactor = Math.max(minFactor, Math.min(maxFactor, rawFactor));
+  return Number.isFinite(boundedFactor) ? boundedFactor : minFactor;
+};
+
 export const calculateGivbackFactor = async (
   projectId: number,
 ): Promise<{
@@ -12,24 +47,31 @@ export const calculateGivbackFactor = async (
   projectRank?: number;
   powerRound: number;
 }> => {
-  const minGivFactor = Number(process.env.GIVBACK_MIN_FACTOR);
-  const maxGivFactor = Number(process.env.GIVBACK_MAX_FACTOR);
+  const minGivFactorRaw = Number(process.env.GIVBACK_MIN_FACTOR);
+  const maxGivFactorRaw = Number(process.env.GIVBACK_MAX_FACTOR);
+  const minGivFactor = Number.isFinite(minGivFactorRaw) ? minGivFactorRaw : 0;
+  const maxGivFactor = Number.isFinite(maxGivFactorRaw)
+    ? maxGivFactorRaw
+    : minGivFactor;
+
   const [projectGivbackRankView, bottomRank, powerRound] = await Promise.all([
     findProjectGivbackRankViewByProjectId(projectId),
     getBottomGivbackRank(),
     getPowerRound(),
   ]);
 
-  const eachRoundImpact = (maxGivFactor - minGivFactor) / (bottomRank - 1);
-  const givbackFactor = projectGivbackRankView?.powerRank
-    ? minGivFactor +
-      eachRoundImpact * (bottomRank - projectGivbackRankView?.powerRank)
-    : minGivFactor;
+  const givbackFactor = calculateGivbackFactorByRank({
+    projectRank: projectGivbackRankView?.powerRank,
+    bottomRank,
+    minGivFactor,
+    maxGivFactor,
+  });
 
   return {
-    givbackFactor: givbackFactor || 0,
+    givbackFactor,
     projectRank: projectGivbackRankView?.powerRank,
-    bottomRankInRound: bottomRank,
+    bottomRankInRound:
+      Number.isFinite(bottomRank) && bottomRank > 0 ? bottomRank : 1,
     powerRound: powerRound?.round as number,
   };
 };
