@@ -1,26 +1,25 @@
 import { assert } from 'chai';
 import {
-  addBulkNewProjectAddress,
-  addNewProjectAddress,
-  findAllRelatedAddressByWalletAddress,
-  findProjectRecipientAddressByNetworkId,
-  findProjectRecipientAddressByProjectId,
-  findRelatedAddressByWalletAddress,
-  getPurpleListAddresses,
-  isWalletAddressInPurpleList,
-  removeRecipientAddressOfProject,
-} from './projectAddressRepository';
-import {
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomSolanaAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { NETWORK_IDS } from '../provider';
-import { ProjectStatus } from '../entities/projectStatus';
 import { ProjStatus } from '../entities/project';
+import { ProjectStatus } from '../entities/projectStatus';
+import { NETWORK_IDS } from '../provider';
 import { ChainType } from '../types/network';
+import {
+  addBulkNewProjectAddress,
+  addNewProjectAddress,
+  findAllRelatedAddressByWalletAddress,
+  findProjectRecipientAddressByNetworkId,
+  findProjectRecipientAddressByProjectId,
+  getPurpleListAddresses,
+  isWalletAddressInPurpleList,
+  removeRecipientAddressOfProject,
+} from './projectAddressRepository';
 
 describe('getPurpleListAddresses test cases', getPurpleListAddressesTestCases);
 describe(
@@ -211,11 +210,12 @@ function addBulkNewProjectAddressTestCases() {
         user,
       },
     ]);
-    const newRelatedAddress =
-      await findRelatedAddressByWalletAddress(newAddress);
-    assert.isOk(newRelatedAddress);
-    assert.equal(newRelatedAddress?.address, newAddress);
-    assert.isFalse(newRelatedAddress?.isRecipient);
+    const newRelatedAddresses =
+      await findAllRelatedAddressByWalletAddress(newAddress);
+    assert.equal(newRelatedAddresses.length, 1);
+    const newRelatedAddress = newRelatedAddresses[0];
+    assert.equal(newRelatedAddress.address, newAddress);
+    assert.isFalse(newRelatedAddress.isRecipient);
   });
   it('should add two related address ', async () => {
     const walletAddress = generateRandomEtheriumAddress();
@@ -252,18 +252,20 @@ function addBulkNewProjectAddressTestCases() {
         user,
       },
     ]);
-    const newRelatedAddress1 =
-      await findRelatedAddressByWalletAddress(newAddress1);
-    assert.isOk(newRelatedAddress1);
-    assert.equal(newRelatedAddress1?.address, newAddress1);
-    assert.equal(newRelatedAddress1?.project?.id, project.id);
-    assert.isFalse(newRelatedAddress1?.isRecipient);
-    const newRelatedAddress2 =
-      await findRelatedAddressByWalletAddress(newAddress2);
-    assert.isOk(newRelatedAddress2);
-    assert.equal(newRelatedAddress2?.address, newAddress2);
-    assert.equal(newRelatedAddress2?.project?.id, project.id);
-    assert.isFalse(newRelatedAddress2?.isRecipient);
+    const newRelatedAddresses1 =
+      await findAllRelatedAddressByWalletAddress(newAddress1);
+    assert.equal(newRelatedAddresses1.length, 1);
+    const newRelatedAddress1 = newRelatedAddresses1[0];
+    assert.equal(newRelatedAddress1.address, newAddress1);
+    assert.equal(newRelatedAddress1.project?.id, project.id);
+    assert.isFalse(newRelatedAddress1.isRecipient);
+    const newRelatedAddresses2 =
+      await findAllRelatedAddressByWalletAddress(newAddress2);
+    assert.equal(newRelatedAddresses2.length, 1);
+    const newRelatedAddress2 = newRelatedAddresses2[0];
+    assert.equal(newRelatedAddress2.address, newAddress2);
+    assert.equal(newRelatedAddress2.project?.id, project.id);
+    assert.isFalse(newRelatedAddress2.isRecipient);
   });
 }
 function findProjectRecipientAddressByNetworkIdTestCases() {
