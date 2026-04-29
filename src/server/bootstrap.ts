@@ -38,6 +38,7 @@ import { logger } from '../utils/logger';
 import { isTrustedVercelRequest } from '../utils/ipWhitelist';
 import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
 // import { apiGivRouter } from '../routers/apiGivRoutes';
+import { AdminDataSource } from '../adminDataSource';
 import { AppDataSource, CronDataSource } from '../orm';
 import {
   dropDbCronExtension,
@@ -105,6 +106,9 @@ export async function bootstrap() {
     logger.debug('bootstrap() before CronDataSource.initialize()', new Date());
     await CronDataSource.initialize();
     logger.debug('bootstrap() after CronDataSource.initialize()', new Date());
+
+    // Initialize dedicated AdminJS DataSource (master-only)
+    await AdminDataSource.initialize();
 
     Container.set(DataSource, AppDataSource.getDataSource());
 
