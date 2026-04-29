@@ -7,7 +7,7 @@
         "@adminjs/design-system": "3.1.5",
         "@adminjs/express": "5.0.1",
         "@adminjs/typeorm": "4.0.0",
-        "@apollo/server": "4.10.0",
+        "@apollo/server": "4.13.0",
         "@apollo/server-plugin-landing-page-graphql-playground": "^4.0.1",
         "@blockfrost/blockfrost-js": "^6.0.0",
         "@chainvine/sdk": "1.1.10",
