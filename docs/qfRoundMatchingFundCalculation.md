@@ -1,7 +1,7 @@
 # how our Actual matching fund is calculated
 
 ## Formula
-We use Gitcoin formula you can see the detail https://qf.gitcoin.co/?grant=1,2,3&grant=4,5,6&grant=12,1&grant=8&match=1000
+We use Gitcoin formula you can see the details https://qf.gitcoin.co/?grant=1,2,3&grant=4,5,6&grant=12,1&grant=8&match=1000
 and play it with different amounts to see what happens
 
 ## Edge Cases
@@ -31,7 +31,7 @@ whether they have donations or not. If they have no donations, the amount will b
 * Ensures pending and failed donation statuses are **excluded** from both pre-analysis and post-analysis totals
 
 ## Estimated Matching
-Estimated Matching is like actual matching except we **dont ignore** donations in these cases :
+Estimated Matching is like actual matching except we **don't ignore** donations in these cases :
 * donations from recipients of verified projects
 * donations from users with low passport scores
 * donations from sybil users
