@@ -11,6 +11,7 @@ export interface AdminJsContextInterface {
 }
 
 export interface AdminJsRequestInterface {
+  method?: string;
   payload?: any;
   record?: any;
   rawHeaders?: any;
