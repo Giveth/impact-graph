@@ -799,15 +799,27 @@ export const exportDonationsWithFiltersToCsv = async (
   }
 };
 
-const parseOptionalPositiveInteger = (value: unknown): number | undefined => {
-  if (typeof value !== 'string' || value.trim().length === 0) {
+const parseOptionalPositiveInteger = (
+  value: unknown,
+  fieldName: string,
+): number | undefined => {
+  if (value === null || value === undefined) {
     return undefined;
   }
 
-  const parsedValue = Number(value);
-  return Number.isInteger(parsedValue) && parsedValue > 0
-    ? parsedValue
-    : undefined;
+  const normalizedValue = String(value).trim();
+  if (normalizedValue.length === 0) {
+    return undefined;
+  }
+
+  const parsedValue = Number(normalizedValue);
+  if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+    throw new Error(
+      `Invalid ${fieldName} value "${normalizedValue}". Expected a positive integer.`,
+    );
+  }
+
+  return parsedValue;
 };
 
 const parseOptionalBoolean = (value: unknown): boolean | undefined => {
@@ -824,6 +836,9 @@ const parseOptionalBoolean = (value: unknown): boolean | undefined => {
 const readOptionalString = (value: unknown): string | undefined =>
   typeof value === 'string' && value.trim().length > 0 ? value : undefined;
 
+const getErrorMessage = (error: unknown): string =>
+  (error instanceof Error ? error.message : String(error)) || 'Unknown error';
+
 export const exportGivbacksEligibleDonations = async (
   request: AdminJsRequestInterface,
 ) => {
@@ -839,9 +854,9 @@ export const exportGivbacksEligibleDonations = async (
       await exportEligibleDonations({
         fromDate: readOptionalString(payload.fromDate),
         toDate: readOptionalString(payload.toDate),
-        networkId: parseOptionalPositiveInteger(payload.networkId),
-        projectId: parseOptionalPositiveInteger(payload.projectId),
-        userId: parseOptionalPositiveInteger(payload.userId),
+        networkId: parseOptionalPositiveInteger(payload.networkId, 'networkId'),
+        projectId: parseOptionalPositiveInteger(payload.projectId, 'projectId'),
+        userId: parseOptionalPositiveInteger(payload.userId, 'userId'),
         isEligibleForGivbacks: parseOptionalBoolean(
           payload.isEligibleForGivbacks,
         ),
@@ -857,10 +872,11 @@ export const exportGivbacksEligibleDonations = async (
       },
     };
   } catch (e) {
+    const message = getErrorMessage(e);
     logger.error('exportGivbacksEligibleDonations() error', e);
     return {
       notice: {
-        message: e.message,
+        message,
         type: 'danger',
       },
     };

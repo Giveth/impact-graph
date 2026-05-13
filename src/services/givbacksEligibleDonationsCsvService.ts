@@ -622,7 +622,7 @@ const generateCsv = (rows: DonationExportRow[]): string => {
     csvRows.push(values.join(','));
   }
 
-  return csvRows.join('\n');
+  return csvRows.join('\r\n');
 };
 
 const escapeCsvValue = (value: CsvValue): string => {

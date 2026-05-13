@@ -16,15 +16,67 @@ import {
 import { exportEligibleDonations } from './givbacksEligibleDonationsCsvService';
 
 const parseCsv = (csvContent: string): Record<string, string>[] => {
-  const [headerLine, ...rowLines] = csvContent.split('\n');
-  const headers = headerLine.split(',');
+  const parsedRows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentValue = '';
+  let isInsideQuotes = false;
 
-  return rowLines
-    .filter(row => row.trim().length > 0)
+  for (let index = 0; index < csvContent.length; index += 1) {
+    const character = csvContent[index];
+
+    if (isInsideQuotes) {
+      if (character === '"') {
+        if (csvContent[index + 1] === '"') {
+          currentValue += '"';
+          index += 1;
+        } else {
+          isInsideQuotes = false;
+        }
+      } else {
+        currentValue += character;
+      }
+
+      continue;
+    }
+
+    if (character === '"') {
+      isInsideQuotes = true;
+      continue;
+    }
+
+    if (character === ',') {
+      currentRow.push(currentValue);
+      currentValue = '';
+      continue;
+    }
+
+    if (character === '\n' || character === '\r') {
+      if (character === '\r' && csvContent[index + 1] === '\n') {
+        index += 1;
+      }
+
+      currentRow.push(currentValue);
+      parsedRows.push(currentRow);
+      currentRow = [];
+      currentValue = '';
+      continue;
+    }
+
+    currentValue += character;
+  }
+
+  if (currentRow.length > 0 || currentValue.length > 0) {
+    currentRow.push(currentValue);
+    parsedRows.push(currentRow);
+  }
+
+  const [headers, ...rows] = parsedRows;
+
+  return rows
+    .filter(row => row.some(value => value.trim().length > 0))
     .map(row => {
-      const values = row.split(',');
       return headers.reduce<Record<string, string>>((record, header, index) => {
-        record[header] = values[index] || '';
+        record[header] = row[index] || '';
         return record;
       }, {});
     });
@@ -55,7 +107,7 @@ function givbacksEligibleDonationsCsvServiceTestCases() {
       isGivbackEligible: true,
     }).save();
 
-    await Donation.create({
+    const regularDonation = await Donation.create({
       ...createDonationData({
         status: DONATION_STATUS.VERIFIED,
         valueUsd: 5,
@@ -158,24 +210,34 @@ function givbacksEligibleDonationsCsvServiceTestCases() {
     const recurringRow = rows.find(
       row => row.transactionId === `recurring-${recurringDonation.id}`,
     );
+    const regularRow = rows.find(
+      row => row.transactionId === regularDonation.transactionId,
+    );
 
     assert.equal(result.totalDonations, 2);
-    assert.equal(recurringRow?.amount, '4.25');
-    assert.equal(recurringRow?.valueUsd, '4.25');
-    assert.equal(recurringRow?.valueUsdAfterGivbackFactor, '8.5');
+    if (!recurringRow) assert.fail('recurring row not found');
+    assert.equal(recurringRow.amount, '4.25');
+    assert.equal(recurringRow.valueUsd, '4.25');
+    assert.equal(recurringRow.valueUsdAfterGivbackFactor, '8.5');
     assert.equal(
-      recurringRow?.legacyRecurringDonationId,
+      recurringRow.legacyRecurringDonationId,
       String(recurringDonation.id),
     );
-    assert.equal(recurringRow?.parentRecurringDonationTxHash, parentHash);
+    assert.equal(recurringRow.parentRecurringDonationTxHash, parentHash);
     assert.equal(
-      recurringRow?.legacyVirtualPeriodStart,
+      recurringRow.legacyVirtualPeriodStart,
       '2026-04-01T00:00:00.000Z',
     );
     assert.equal(
-      recurringRow?.legacyVirtualPeriodEnd,
+      recurringRow.legacyVirtualPeriodEnd,
       '2026-04-03T00:00:00.000Z',
     );
-    assert.equal(recurringRow?.isEligibleForGivbacks, 'true');
+    assert.equal(recurringRow.isEligibleForGivbacks, 'true');
+
+    if (!regularRow) assert.fail('regular row not found');
+    assert.equal(regularRow.amount, '5');
+    assert.equal(regularRow.valueUsd, '5');
+    assert.equal(regularRow.valueUsdAfterGivbackFactor, '10');
+    assert.equal(regularRow.isEligibleForGivbacks, 'true');
   });
 }
