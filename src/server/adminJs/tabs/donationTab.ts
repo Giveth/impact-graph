@@ -1,4 +1,5 @@
 import { ActionContext } from 'adminjs';
+import adminJs from 'adminjs';
 import moment from 'moment';
 import { ILike, SelectQueryBuilder } from 'typeorm';
 import { CoingeckoPriceAdapter } from '../../../adapters/price/CoingeckoPriceAdapter';
@@ -29,6 +30,10 @@ import {
   addDonationsSheetToSpreadsheet,
   initExportSpreadsheet,
 } from '../../../services/googleSheets';
+import {
+  exportEligibleDonations,
+  getCurrentEligibilityThresholds,
+} from '../../../services/givbacksEligibleDonationsCsvService';
 import { updateProjectStatistics } from '../../../services/projectService';
 import {
   updateUserTotalDonated,
@@ -794,6 +799,74 @@ export const exportDonationsWithFiltersToCsv = async (
   }
 };
 
+const parseOptionalPositiveInteger = (value: unknown): number | undefined => {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return undefined;
+  }
+
+  const parsedValue = Number(value);
+  return Number.isInteger(parsedValue) && parsedValue > 0
+    ? parsedValue
+    : undefined;
+};
+
+const parseOptionalBoolean = (value: unknown): boolean | undefined => {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return undefined;
+  }
+
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+
+  throw new Error('Invalid isEligibleForGivbacks value');
+};
+
+const readOptionalString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+
+export const exportGivbacksEligibleDonations = async (
+  request: AdminJsRequestInterface,
+) => {
+  try {
+    if (request.method !== 'post') {
+      return {
+        thresholds: await getCurrentEligibilityThresholds(),
+      };
+    }
+
+    const payload = request.payload || {};
+    const { csvContent, fileName, totalDonations } =
+      await exportEligibleDonations({
+        fromDate: readOptionalString(payload.fromDate),
+        toDate: readOptionalString(payload.toDate),
+        networkId: parseOptionalPositiveInteger(payload.networkId),
+        projectId: parseOptionalPositiveInteger(payload.projectId),
+        userId: parseOptionalPositiveInteger(payload.userId),
+        isEligibleForGivbacks: parseOptionalBoolean(
+          payload.isEligibleForGivbacks,
+        ),
+      });
+
+    return {
+      csvContent,
+      fileName,
+      totalDonations,
+      notice: {
+        message: `Exported ${totalDonations} GivBack-eligible donations`,
+        type: 'success',
+      },
+    };
+  } catch (e) {
+    logger.error('exportGivbacksEligibleDonations() error', e);
+    return {
+      notice: {
+        message: e.message,
+        type: 'danger',
+      },
+    };
+  }
+};
+
 // Spreadsheet filters included
 const sendDonationsToGoogleSheet = async (
   donations: Donation[],
@@ -1385,6 +1458,19 @@ export const donationTab = {
           ),
         handler: exportDonationsWithFiltersToCsv,
         component: false,
+      },
+      exportGivbacksEligibleDonations: {
+        actionType: 'resource',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessDonationAction(
+            { currentAdmin },
+            ResourceActions.EXPORT_FILTER_TO_CSV,
+          ),
+        handler: exportGivbacksEligibleDonations,
+        component: adminJs.bundle(
+          './components/GivbacksEligibleDonationsExport',
+        ),
       },
       importIdrissDonations: {
         actionType: 'resource',
