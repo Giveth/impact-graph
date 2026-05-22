@@ -1509,6 +1509,12 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
 
+    if (newProjectData.description) {
+      newProjectData.description = sanitizeProjectRichText(
+        newProjectData.description,
+      );
+    }
+
     for (const field in newProjectData) {
       if (field === 'addresses' || field === 'socialMedia') {
         // We will take care of addresses and relations manually
@@ -1775,7 +1781,13 @@ export class ProjectResolver {
     @Ctx() ctx: ApolloContext,
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx);
-    const { image, description } = projectInput;
+    const { image } = projectInput;
+    if (projectInput.description) {
+      projectInput.description = sanitizeProjectRichText(
+        projectInput.description,
+      );
+    }
+    const { description } = projectInput;
 
     const dbUser = await findUserById(user.id);
 
