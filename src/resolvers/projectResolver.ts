@@ -97,6 +97,7 @@ import {
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { sanitizeProjectRichText } from '../utils/htmlSanitizer';
 import { NETWORK_IDS } from '../provider';
 import { getVerificationFormStatusByProjectId } from '../repositories/projectVerificationRepository';
 import {
@@ -1985,6 +1986,8 @@ export class ProjectResolver {
       );
     }
 
+    const sanitizedContent = sanitizeProjectRichText(content);
+
     const owner = await findUserById(user.userId);
 
     if (!owner)
@@ -2007,7 +2010,7 @@ export class ProjectResolver {
     const update = ProjectUpdate.create({
       userId: user.userId,
       projectId: project.id,
-      content,
+      content: sanitizedContent,
       title,
       createdAt: new Date(),
       isMain: false,
@@ -2075,7 +2078,7 @@ export class ProjectResolver {
       );
 
     update.title = title;
-    update.content = content;
+    update.content = sanitizeProjectRichText(content);
     await update.save();
     await update.reload();
 
