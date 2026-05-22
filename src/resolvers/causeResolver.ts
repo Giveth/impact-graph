@@ -39,6 +39,7 @@ import {
   creteSlugFromProject,
   titleWithoutSpecialCharacters,
 } from '../utils/utils';
+import { sanitizeProjectRichText } from '../utils/htmlSanitizer';
 import { Category } from '../entities/category';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -261,6 +262,12 @@ export class CauseResolver {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
+
+    if (newProjectData.description) {
+      newProjectData.description = sanitizeProjectRichText(
+        newProjectData.description,
+      );
+    }
 
     for (const field in newProjectData) {
       if (field === 'addresses' || field === 'socialMedia') {
@@ -592,7 +599,7 @@ export class CauseResolver {
 
       const causeData = {
         title: convert(title.trim()),
-        description: description.trim(),
+        description: sanitizeProjectRichText(description.trim()),
         chainId,
         slug,
         slugHistory: [],
