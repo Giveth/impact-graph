@@ -1,5 +1,8 @@
 import { assert } from 'chai';
-import { sanitizeProjectRichText } from './htmlSanitizer';
+import {
+  getRichTextPlainLength,
+  sanitizeProjectRichText,
+} from './htmlSanitizer';
 
 describe('sanitizeProjectRichText', () => {
   it('preserves benign Quill-style markup', () => {
@@ -71,6 +74,35 @@ describe('sanitizeProjectRichText', () => {
     assert.notInclude(out, 'background');
   });
 
+  it('strips IE expression() payloads from img style', () => {
+    const input =
+      '<img src="https://example.com/x.png" style="width: 100px; width: expression(alert(1));">';
+    const out = sanitizeProjectRichText(input);
+    assert.notInclude(out, 'expression');
+    assert.notInclude(out, 'alert(1)');
+  });
+
+  it('rejects malformed margin values like "autopx"', () => {
+    const input =
+      '<img src="https://example.com/x.png" style="margin: autopx; width: 100px;">';
+    const out = sanitizeProjectRichText(input);
+    assert.notInclude(out, 'autopx');
+    assert.include(out, 'width:100px');
+  });
+
+  it('keeps well-formed margin shorthand (1–4 tokens)', () => {
+    const inputs = [
+      '<img src="https://example.com/x.png" style="margin: auto;">',
+      '<img src="https://example.com/x.png" style="margin: 0px auto;">',
+      '<img src="https://example.com/x.png" style="margin: 10px 5%;">',
+      '<img src="https://example.com/x.png" style="margin: 1px 2px 3px 4px;">',
+    ];
+    for (const input of inputs) {
+      const out = sanitizeProjectRichText(input);
+      assert.include(out, 'margin:', `expected margin preserved for: ${input}`);
+    }
+  });
+
   it('strips svg/use exfiltration vectors', () => {
     const input = '<svg><use href="data:image/svg+xml;base64,xxx"/></svg>';
     const out = sanitizeProjectRichText(input);
@@ -125,5 +157,26 @@ describe('sanitizeProjectRichText', () => {
     const once = sanitizeProjectRichText(input);
     const twice = sanitizeProjectRichText(once);
     assert.equal(once, twice);
+  });
+});
+
+describe('getRichTextPlainLength', () => {
+  it('returns 0 for empty or undefined input', () => {
+    assert.equal(getRichTextPlainLength(''), 0);
+    assert.equal(getRichTextPlainLength(undefined as unknown as string), 0);
+  });
+
+  it('counts only text content, ignoring tags and attributes', () => {
+    assert.equal(getRichTextPlainLength('<p>hello</p>'), 5);
+    assert.equal(
+      getRichTextPlainLength('<a href="https://giveth.io">link</a>'),
+      4,
+    );
+  });
+
+  it('handles unclosed and partial tags safely (no regex pitfalls)', () => {
+    // A naive /<[^>]+>/g regex would leave "<script alert(1)" intact and
+    // miscount. sanitize-html parses HTML properly so the count is correct.
+    assert.equal(getRichTextPlainLength('hello <script alert(1)'), 6);
   });
 });

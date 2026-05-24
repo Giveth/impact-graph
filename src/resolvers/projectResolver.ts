@@ -97,7 +97,10 @@ import {
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { sanitizeProjectRichText } from '../utils/htmlSanitizer';
+import {
+  getRichTextPlainLength,
+  sanitizeProjectRichText,
+} from '../utils/htmlSanitizer';
 import { NETWORK_IDS } from '../provider';
 import { getVerificationFormStatusByProjectId } from '../repositories/projectVerificationRepository';
 import {
@@ -1787,7 +1790,7 @@ export class ProjectResolver {
     const { image } = projectInput;
     if (projectInput.description) {
       if (
-        projectInput.description.replace(/<[^>]+>/g, '').length >
+        getRichTextPlainLength(projectInput.description) >
         PROJECT_DESCRIPTION_MAX_LENGTH
       ) {
         throw new Error(

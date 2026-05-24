@@ -39,7 +39,10 @@ import {
   creteSlugFromProject,
   titleWithoutSpecialCharacters,
 } from '../utils/utils';
-import { sanitizeProjectRichText } from '../utils/htmlSanitizer';
+import {
+  getRichTextPlainLength,
+  sanitizeProjectRichText,
+} from '../utils/htmlSanitizer';
 import { PROJECT_DESCRIPTION_MAX_LENGTH } from '../constants/validators';
 import { Category } from '../entities/category';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
@@ -486,8 +489,7 @@ export class CauseResolver {
       }
 
       if (
-        description.replace(/<[^>]+>/g, '').length >
-        PROJECT_DESCRIPTION_MAX_LENGTH
+        getRichTextPlainLength(description) > PROJECT_DESCRIPTION_MAX_LENGTH
       ) {
         throw new Error(
           i18n.__(

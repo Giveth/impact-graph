@@ -6339,6 +6339,19 @@ function editProjectUpdateTestCases() {
     assert.notInclude(returned, 'onerror');
     assert.notInclude(returned, 'javascript:');
     assert.include(returned, '<p>hello</p>');
+
+    // Persistence-level check: the @AfterLoad hook also sanitizes on read,
+    // so a regression that skipped write-time sanitization could be hidden
+    // by the GraphQL response. Read the row directly from the database to
+    // verify the payload was sanitized *before* being persisted.
+    const [storedRow] = await AppDataSource.getDataSource().query(
+      'SELECT content FROM public.project_update WHERE id = $1',
+      [updateProject.id],
+    );
+    assert.notInclude(storedRow.content, '<script');
+    assert.notInclude(storedRow.content, 'onerror');
+    assert.notInclude(storedRow.content, 'javascript:');
+    assert.include(storedRow.content, '<p>hello</p>');
   });
 }
 

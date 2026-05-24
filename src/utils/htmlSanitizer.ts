@@ -61,6 +61,10 @@ const PROJECT_RICH_TEXT_ALLOWED_ATTRIBUTES: sanitizeHtml.IOptions['allowedAttrib
     li: ['data-list'],
   };
 
+// A single CSS length value: a number with an optional unit (px or %), or 0,
+// or the keyword `auto`. Used to build the multi-token `margin` matcher.
+const CSS_LENGTH_TOKEN = '(?:auto|0|\\d+(?:\\.\\d+)?(?:px|%))';
+
 // Inline `style` is allowed only on <img>, and only for the specific CSS
 // properties Quill's ImageResize plugin uses to persist sizing and layout.
 // Values are validated by regex so url(javascript:...), expression(), etc.
@@ -72,7 +76,13 @@ const PROJECT_RICH_TEXT_ALLOWED_STYLES: sanitizeHtml.IOptions['allowedStyles'] =
       height: [/^\d+(?:\.\d+)?(?:px|%)?$/],
       float: [/^(?:left|right|none)$/],
       display: [/^(?:block|inline|inline-block)$/],
-      margin: [/^[\d.\s%pxauto]+$/],
+      // 1–4 space-separated CSS length tokens, matching the standard
+      // `margin: <top> [<right> [<bottom> [<left>]]]` shorthand. Values like
+      // "autopx" or "12pxauto4" are rejected — only valid CSS shorthand
+      // passes.
+      margin: [
+        new RegExp(`^${CSS_LENGTH_TOKEN}(?:\\s+${CSS_LENGTH_TOKEN}){0,3}$`),
+      ],
       cursor: [/^[a-z-]+$/],
     },
   };
@@ -108,4 +118,14 @@ export const sanitizeProjectRichText = (html: string = ''): string => {
       }),
     },
   });
+};
+
+// Strip every tag and return only the text content. Used for length
+// validation on rich-text fields — sanitize-html is a proper HTML parser, so
+// this handles unclosed tags, nested tags, and other edge cases that a naive
+// `.replace(/<[^>]+>/g, '')` regex misses (and that CodeQL flags as
+// "incomplete multi-character sanitization").
+export const getRichTextPlainLength = (html: string = ''): number => {
+  if (!html) return 0;
+  return sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} }).length;
 };
