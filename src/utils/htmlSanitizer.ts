@@ -133,11 +133,17 @@ export const sanitizeProjectRichText = (html: string = ''): string => {
       // only let through data URLs that declare an image MIME type. This
       // blocks data:text/html or data:application/javascript payloads that
       // could otherwise piggyback on the data: allowance.
+      //
+      // sanitize-html itself lowercases the scheme for the allowedSchemes
+      // check (so `DATA:`/`Data:` pass scheme filtering), so the
+      // `data:`-prefix detection here has to be case-insensitive too —
+      // otherwise a mixed-case `DATA:text/html,<script>…</script>` would
+      // skip MIME validation entirely.
       img: (tagName, attribs) => {
+        const src = attribs.src ?? '';
         if (
-          attribs.src &&
-          attribs.src.startsWith('data:') &&
-          !SAFE_DATA_IMAGE_URL.test(attribs.src)
+          src.slice(0, 5).toLowerCase() === 'data:' &&
+          !SAFE_DATA_IMAGE_URL.test(src)
         ) {
           delete attribs.src;
         }

@@ -159,7 +159,7 @@ describe('sanitizeProjectRichText', () => {
     assert.equal(once, twice);
   });
 
-  it('preserves legacy base64 image src on <img> (PNG, JPEG, GIF, WebP, SVG)', () => {
+  it('preserves legacy base64 image src on <img> (every allowed MIME)', () => {
     const inputs = [
       '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB">',
       '<img src="data:image/jpeg;base64,/9j/4AAQSkZJRgAB">',
@@ -167,6 +167,8 @@ describe('sanitizeProjectRichText', () => {
       '<img src="data:image/gif;base64,R0lGODlhAQABAIAAAP">',
       '<img src="data:image/webp;base64,UklGRiQAAABXRUJQ">',
       '<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0i">',
+      '<img src="data:image/bmp;base64,Qk0=">',
+      '<img src="data:image/x-icon;base64,AAABAA==">',
     ];
     for (const input of inputs) {
       const out = sanitizeProjectRichText(input);
@@ -203,6 +205,42 @@ describe('sanitizeProjectRichText', () => {
     const input = '<a href="data:text/html,<script>alert(1)</script>">x</a>';
     const out = sanitizeProjectRichText(input);
     assert.notInclude(out, 'data:');
+  });
+
+  it('strips mixed-case DATA: URLs that try to bypass MIME validation', () => {
+    // sanitize-html lowercases scheme for the allowedSchemes check, so
+    // `DATA:`/`dAtA:` URLs reach transformTags.img. A case-sensitive
+    // startsWith('data:') guard would let non-image payloads through.
+    const inputs = [
+      '<img src="DATA:text/html,<script>alert(1)</script>">',
+      '<img src="dAtA:application/javascript;base64,YWxlcnQoMSk=">',
+      '<img src="Data:text/plain,hello">',
+    ];
+    for (const input of inputs) {
+      const out = sanitizeProjectRichText(input);
+      assert.notInclude(
+        out.toLowerCase(),
+        'text/html',
+        `should strip text/html data URL: ${input}`,
+      );
+      assert.notInclude(
+        out.toLowerCase(),
+        'application/javascript',
+        `should strip application/javascript data URL: ${input}`,
+      );
+      assert.notInclude(
+        out.toLowerCase(),
+        'text/plain',
+        `should strip text/plain data URL: ${input}`,
+      );
+    }
+  });
+
+  it('preserves mixed-case DATA: URLs when MIME is a valid image', () => {
+    const input =
+      '<img src="DATA:image/PNG;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB">';
+    const out = sanitizeProjectRichText(input);
+    assert.match(out, /data:image\/png/i);
   });
 });
 
