@@ -15,6 +15,9 @@ const PROJECT_RICH_TEXT_ALLOWED_TAGS = [
   'i',
   'u',
   's',
+  // Older Quill versions emit <strike> for the strikethrough format
+  // (newer ones emit <s>) — keep both.
+  'strike',
   'sub',
   'sup',
   'blockquote',
@@ -34,10 +37,16 @@ const PROJECT_RICH_TEXT_ALLOWED_TAGS = [
   'iframe',
 ];
 
+// Attributes that are safe on any tag in the allowlist. `id` lets Quill emit
+// stable anchors for headings; `class` is what Quill uses for alignment,
+// indent, video wrapper, emoji blot, etc.; `title` is the standard tooltip.
+const GLOBAL_ATTRIBUTES = ['id', 'class', 'title'];
+
 const PROJECT_RICH_TEXT_ALLOWED_ATTRIBUTES: sanitizeHtml.IOptions['allowedAttributes'] =
   {
+    '*': GLOBAL_ATTRIBUTES,
     a: ['href', 'name', 'target', 'rel'],
-    img: ['src', 'alt', 'width', 'height'],
+    img: ['src', 'alt', 'width', 'height', 'style'],
     iframe: [
       'src',
       'width',
@@ -46,14 +55,26 @@ const PROJECT_RICH_TEXT_ALLOWED_ATTRIBUTES: sanitizeHtml.IOptions['allowedAttrib
       'allow',
       'allowfullscreen',
     ],
-    span: ['class'],
-    div: ['class'],
-    p: ['class'],
-    ol: ['class'],
-    ul: ['class'],
-    li: ['class', 'data-list'],
-    pre: ['class'],
-    code: ['class'],
+    // Quill's emoji blot persists the emoji shortname via data-name on a span,
+    // and its mention-style blots use data-id / data-value the same way.
+    span: ['data-name', 'data-id', 'data-value'],
+    li: ['data-list'],
+  };
+
+// Inline `style` is allowed only on <img>, and only for the specific CSS
+// properties Quill's ImageResize plugin uses to persist sizing and layout.
+// Values are validated by regex so url(javascript:...), expression(), etc.
+// cannot slip through.
+const PROJECT_RICH_TEXT_ALLOWED_STYLES: sanitizeHtml.IOptions['allowedStyles'] =
+  {
+    img: {
+      width: [/^\d+(?:\.\d+)?(?:px|%)?$/],
+      height: [/^\d+(?:\.\d+)?(?:px|%)?$/],
+      float: [/^(?:left|right|none)$/],
+      display: [/^(?:block|inline|inline-block)$/],
+      margin: [/^[\d.\s%pxauto]+$/],
+      cursor: [/^[a-z-]+$/],
+    },
   };
 
 const PROJECT_RICH_TEXT_ALLOWED_SCHEMES = ['http', 'https', 'mailto', 'tel'];
@@ -74,13 +95,11 @@ export const sanitizeProjectRichText = (html: string = ''): string => {
   return sanitizeHtml(html, {
     allowedTags: PROJECT_RICH_TEXT_ALLOWED_TAGS,
     allowedAttributes: PROJECT_RICH_TEXT_ALLOWED_ATTRIBUTES,
+    allowedStyles: PROJECT_RICH_TEXT_ALLOWED_STYLES,
     allowedSchemes: PROJECT_RICH_TEXT_ALLOWED_SCHEMES,
     allowedSchemesAppliedToAttributes: ['href', 'src'],
     allowProtocolRelative: false,
     allowedIframeHostnames: PROJECT_RICH_TEXT_ALLOWED_IFRAME_HOSTNAMES,
-    // Strip inline style entirely — it is a frequent XSS vector via
-    // expression(), url(javascript:...), and CSS-based exfiltration.
-    allowedStyles: {},
     disallowedTagsMode: 'discard',
     transformTags: {
       a: sanitizeHtml.simpleTransform('a', {

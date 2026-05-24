@@ -40,6 +40,7 @@ import {
   titleWithoutSpecialCharacters,
 } from '../utils/utils';
 import { sanitizeProjectRichText } from '../utils/htmlSanitizer';
+import { PROJECT_DESCRIPTION_MAX_LENGTH } from '../constants/validators';
 import { Category } from '../entities/category';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -482,6 +483,17 @@ export class CauseResolver {
       // Validate required fields
       if (!title?.trim() || !description?.trim() || !chainId) {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_INPUT));
+      }
+
+      if (
+        description.replace(/<[^>]+>/g, '').length >
+        PROJECT_DESCRIPTION_MAX_LENGTH
+      ) {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_DESCRIPTION_LENGTH_SIZE_EXCEEDED,
+          ),
+        );
       }
 
       // Validate chainId is a polygon chain id

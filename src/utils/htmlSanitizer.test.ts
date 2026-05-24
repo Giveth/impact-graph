@@ -46,11 +46,29 @@ describe('sanitizeProjectRichText', () => {
     assert.include(out, 'youtube.com/embed/abc');
   });
 
-  it('strips inline style attributes', () => {
+  it('strips inline style on non-image tags', () => {
     const input = '<p style="background:url(javascript:alert(1))">styled</p>';
     const out = sanitizeProjectRichText(input);
     assert.notInclude(out, 'javascript');
     assert.notInclude(out, 'style=');
+  });
+
+  it('keeps Quill ImageResize sizing styles on img', () => {
+    const input =
+      '<img src="https://example.com/x.png" style="cursor: nwse-resize; display: block; margin: 0px auto; width: 300px;">';
+    const out = sanitizeProjectRichText(input);
+    assert.include(out, 'width:300px');
+    assert.include(out, 'display:block');
+    assert.include(out, 'cursor:nwse-resize');
+  });
+
+  it('strips dangerous style values on img even when style is allowed', () => {
+    const input =
+      '<img src="https://example.com/x.png" style="width: 100px; background: url(javascript:alert(1));">';
+    const out = sanitizeProjectRichText(input);
+    assert.include(out, 'width:100px');
+    assert.notInclude(out, 'javascript');
+    assert.notInclude(out, 'background');
   });
 
   it('strips svg/use exfiltration vectors', () => {
@@ -70,5 +88,42 @@ describe('sanitizeProjectRichText', () => {
   it('returns empty string for empty input', () => {
     assert.equal(sanitizeProjectRichText(''), '');
     assert.equal(sanitizeProjectRichText(undefined as unknown as string), '');
+  });
+
+  it('keeps <strike> alongside <s> for legacy Quill output', () => {
+    const input = '<strike>old price</strike><s>new price</s>';
+    assert.equal(sanitizeProjectRichText(input), input);
+  });
+
+  it('keeps id on heading tags for anchor links', () => {
+    const input = '<h2 id="my-section">Section</h2>';
+    assert.equal(sanitizeProjectRichText(input), input);
+  });
+
+  it('keeps Quill emoji blot data-name on span', () => {
+    const input = '<span class="ql-emojiblot" data-name="grinning">😀</span>';
+    const out = sanitizeProjectRichText(input);
+    assert.include(out, 'data-name="grinning"');
+    assert.include(out, 'class="ql-emojiblot"');
+  });
+
+  it('keeps title attribute on anchors, images, and iframes', () => {
+    const inputs = [
+      '<a href="https://giveth.io" title="home">link</a>',
+      '<img src="https://example.com/x.png" title="hero">',
+      '<iframe src="https://www.youtube.com/embed/abc" title="video"></iframe>',
+    ];
+    for (const input of inputs) {
+      const out = sanitizeProjectRichText(input);
+      assert.include(out, 'title=');
+    }
+  });
+
+  it('is idempotent — sanitizing twice yields the same output', () => {
+    const input =
+      '<p>hello <strong>world</strong></p><img src="https://example.com/x.png" style="width: 300px;"><a href="https://giveth.io">link</a>';
+    const once = sanitizeProjectRichText(input);
+    const twice = sanitizeProjectRichText(once);
+    assert.equal(once, twice);
   });
 });

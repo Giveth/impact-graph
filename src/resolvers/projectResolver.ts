@@ -115,7 +115,10 @@ import { creteSlugFromProject, isSocialMediaEqual } from '../utils/utils';
 import { findCampaignBySlug } from '../repositories/campaignRepository';
 import { Campaign } from '../entities/campaign';
 import { FeaturedUpdate } from '../entities/featuredUpdate';
-import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
+import {
+  PROJECT_DESCRIPTION_MAX_LENGTH,
+  PROJECT_UPDATE_CONTENT_MAX_LENGTH,
+} from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
@@ -1783,6 +1786,16 @@ export class ProjectResolver {
     const user = await getLoggedInUser(ctx);
     const { image } = projectInput;
     if (projectInput.description) {
+      if (
+        projectInput.description.replace(/<[^>]+>/g, '').length >
+        PROJECT_DESCRIPTION_MAX_LENGTH
+      ) {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_DESCRIPTION_LENGTH_SIZE_EXCEEDED,
+          ),
+        );
+      }
       projectInput.description = sanitizeProjectRichText(
         projectInput.description,
       );
