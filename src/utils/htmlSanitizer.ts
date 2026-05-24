@@ -89,6 +89,18 @@ const PROJECT_RICH_TEXT_ALLOWED_STYLES: sanitizeHtml.IOptions['allowedStyles'] =
 
 const PROJECT_RICH_TEXT_ALLOWED_SCHEMES = ['http', 'https', 'mailto', 'tel'];
 
+// <img src> is the only place we allow `data:` URLs, and only when the MIME
+// type is one of these image formats. Legacy project / cause / project_update
+// rows contain base64-encoded inline images from before the editor uploaded
+// to a CDN, and we need to preserve them on read and edit. Browsers do not
+// execute scripts inside SVG loaded via <img>, so data:image/svg+xml is safe
+// in this context.
+const PROJECT_RICH_TEXT_ALLOWED_SCHEMES_BY_TAG = {
+  img: ['http', 'https', 'data'],
+};
+const SAFE_DATA_IMAGE_URL =
+  /^data:image\/(?:png|jpe?g|gif|webp|svg\+xml|bmp|x-icon)(?:;[^,]*)?,/i;
+
 // Only allow iframe embeds from hostnames Giveth already uses for embedded
 // media. Anything else (e.g. attacker-controlled iframe src) is dropped.
 const PROJECT_RICH_TEXT_ALLOWED_IFRAME_HOSTNAMES = [
@@ -107,6 +119,7 @@ export const sanitizeProjectRichText = (html: string = ''): string => {
     allowedAttributes: PROJECT_RICH_TEXT_ALLOWED_ATTRIBUTES,
     allowedStyles: PROJECT_RICH_TEXT_ALLOWED_STYLES,
     allowedSchemes: PROJECT_RICH_TEXT_ALLOWED_SCHEMES,
+    allowedSchemesByTag: PROJECT_RICH_TEXT_ALLOWED_SCHEMES_BY_TAG,
     allowedSchemesAppliedToAttributes: ['href', 'src'],
     allowProtocolRelative: false,
     allowedIframeHostnames: PROJECT_RICH_TEXT_ALLOWED_IFRAME_HOSTNAMES,
@@ -116,6 +129,20 @@ export const sanitizeProjectRichText = (html: string = ''): string => {
         rel: 'noopener noreferrer',
         target: '_blank',
       }),
+      // Final guard on img: even though `data:` is in allowedSchemesByTag,
+      // only let through data URLs that declare an image MIME type. This
+      // blocks data:text/html or data:application/javascript payloads that
+      // could otherwise piggyback on the data: allowance.
+      img: (tagName, attribs) => {
+        if (
+          attribs.src &&
+          attribs.src.startsWith('data:') &&
+          !SAFE_DATA_IMAGE_URL.test(attribs.src)
+        ) {
+          delete attribs.src;
+        }
+        return { tagName, attribs };
+      },
     },
   });
 };

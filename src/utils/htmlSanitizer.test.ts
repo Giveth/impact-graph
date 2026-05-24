@@ -158,6 +158,52 @@ describe('sanitizeProjectRichText', () => {
     const twice = sanitizeProjectRichText(once);
     assert.equal(once, twice);
   });
+
+  it('preserves legacy base64 image src on <img> (PNG, JPEG, GIF, WebP, SVG)', () => {
+    const inputs = [
+      '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB">',
+      '<img src="data:image/jpeg;base64,/9j/4AAQSkZJRgAB">',
+      '<img src="data:image/jpg;base64,/9j/4AAQSkZJRgAB">',
+      '<img src="data:image/gif;base64,R0lGODlhAQABAIAAAP">',
+      '<img src="data:image/webp;base64,UklGRiQAAABXRUJQ">',
+      '<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0i">',
+    ];
+    for (const input of inputs) {
+      const out = sanitizeProjectRichText(input);
+      assert.include(
+        out,
+        'data:image/',
+        `expected data: image preserved for: ${input}`,
+      );
+    }
+  });
+
+  it('strips non-image data: URLs on <img>', () => {
+    const inputs = [
+      '<img src="data:text/html,<script>alert(1)</script>">',
+      '<img src="data:application/javascript;base64,YWxlcnQoMSk=">',
+      '<img src="data:text/plain,hello">',
+    ];
+    for (const input of inputs) {
+      const out = sanitizeProjectRichText(input);
+      assert.notInclude(
+        out,
+        'data:text',
+        `expected text data: stripped from: ${input}`,
+      );
+      assert.notInclude(
+        out,
+        'data:application',
+        `expected application data: stripped from: ${input}`,
+      );
+    }
+  });
+
+  it('does not allow data: URLs on anchors', () => {
+    const input = '<a href="data:text/html,<script>alert(1)</script>">x</a>';
+    const out = sanitizeProjectRichText(input);
+    assert.notInclude(out, 'data:');
+  });
 });
 
 describe('getRichTextPlainLength', () => {

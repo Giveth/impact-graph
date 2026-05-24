@@ -2003,10 +2003,7 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    if (
-      content?.replace(/<[^>]+>/g, '')?.length >
-      PROJECT_UPDATE_CONTENT_MAX_LENGTH
-    ) {
+    if (getRichTextPlainLength(content) > PROJECT_UPDATE_CONTENT_MAX_LENGTH) {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED,
@@ -2070,16 +2067,11 @@ export class ProjectResolver {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
-    if (
-      content?.replace(/<[^>]+>/g, '')?.length >
-      PROJECT_UPDATE_CONTENT_MAX_LENGTH
-    ) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED,
-        ),
-      );
-    }
+
+    // Intentionally no length check here: legacy project_update rows can
+    // exceed the current max, and rejecting on edit would block owners from
+    // fixing or trimming long content. New content is still capped via
+    // addProjectUpdate. (Per RamRamez's review on PR #2324.)
 
     const owner = await findUserById(user.userId);
 
