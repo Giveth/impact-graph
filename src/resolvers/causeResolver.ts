@@ -39,6 +39,11 @@ import {
   creteSlugFromProject,
   titleWithoutSpecialCharacters,
 } from '../utils/utils';
+import {
+  getRichTextPlainLength,
+  sanitizeProjectRichText,
+} from '../utils/htmlSanitizer';
+import { PROJECT_DESCRIPTION_MAX_LENGTH } from '../constants/validators';
 import { Category } from '../entities/category';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -262,6 +267,12 @@ export class CauseResolver {
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
 
+    if (newProjectData.description) {
+      newProjectData.description = sanitizeProjectRichText(
+        newProjectData.description,
+      );
+    }
+
     for (const field in newProjectData) {
       if (field === 'addresses' || field === 'socialMedia') {
         // We will take care of addresses and relations manually
@@ -477,6 +488,16 @@ export class CauseResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_INPUT));
       }
 
+      if (
+        getRichTextPlainLength(description) > PROJECT_DESCRIPTION_MAX_LENGTH
+      ) {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_DESCRIPTION_LENGTH_SIZE_EXCEEDED,
+          ),
+        );
+      }
+
       // Validate chainId is a polygon chain id
       if (typeof chainId !== 'number' || isNaN(chainId) || chainId !== 137) {
         throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_CHAIN_ID));
@@ -592,7 +613,7 @@ export class CauseResolver {
 
       const causeData = {
         title: convert(title.trim()),
-        description: description.trim(),
+        description: sanitizeProjectRichText(description.trim()),
         chainId,
         slug,
         slugHistory: [],

@@ -6298,6 +6298,61 @@ function editProjectUpdateTestCases() {
       errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
+  it('should strip XSS payloads from edited project update content', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      adminUserId: user.id,
+    });
+    const updateProject = await ProjectUpdate.create({
+      userId: user.id,
+      projectId: project.id,
+      content: 'safe original',
+      title: 'safe original title',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+
+    const maliciousContent =
+      '<p>hello</p><script>alert(1)</script><img src="x" onerror="alert(2)"><a href="javascript:alert(3)">x</a>';
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: editProjectUpdateQuery,
+        variables: {
+          updateId: updateProject.id,
+          content: maliciousContent,
+          title: 'still safe title',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const returned = result.data.data.editProjectUpdate.content;
+    assert.notInclude(returned, '<script');
+    assert.notInclude(returned, 'onerror');
+    assert.notInclude(returned, 'javascript:');
+    assert.include(returned, '<p>hello</p>');
+
+    // Persistence-level check: the @AfterLoad hook also sanitizes on read,
+    // so a regression that skipped write-time sanitization could be hidden
+    // by the GraphQL response. Read the row directly from the database to
+    // verify the payload was sanitized *before* being persisted.
+    const [storedRow] = await AppDataSource.getDataSource().query(
+      'SELECT content FROM public.project_update WHERE id = $1',
+      [updateProject.id],
+    );
+    assert.notInclude(storedRow.content, '<script');
+    assert.notInclude(storedRow.content, 'onerror');
+    assert.notInclude(storedRow.content, 'javascript:');
+    assert.include(storedRow.content, '<p>hello</p>');
+  });
 }
 
 function deleteProjectUpdateTestCases() {
