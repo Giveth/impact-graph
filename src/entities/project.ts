@@ -1,6 +1,7 @@
 import { Field, Float, ID, ObjectType } from 'type-graphql';
 import {
   AfterInsert,
+  AfterLoad,
   AfterUpdate,
   BaseEntity,
   BeforeInsert,
@@ -32,6 +33,7 @@ import { findUserById } from '../repositories/userRepository';
 import { EstimatedMatchingByQfRound } from '../types/qfTypes';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { getHtmlTextSummary } from '../utils/utils';
+import { sanitizeProjectRichText } from '../utils/htmlSanitizer';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { ProjectPowerView } from '../views/projectPowerView';
@@ -640,6 +642,16 @@ export class Project extends BaseEntity {
     this.descriptionSummary = getHtmlTextSummary(this.description);
   }
 
+  // Defense in depth for rows persisted before sanitize-on-write was added.
+  // Sanitizing here is idempotent on already-clean content, so newly written
+  // rows pay only a small CPU cost on read.
+  @AfterLoad()
+  sanitizeProjectDescriptionOnLoad() {
+    if (this.description) {
+      this.description = sanitizeProjectRichText(this.description);
+    }
+  }
+
   // we should not expose this field to the client
   @Column('text', { nullable: true })
   fundingPoolHdPath?: string;
@@ -838,6 +850,16 @@ export class ProjectUpdate extends BaseEntity {
   @BeforeInsert()
   setProjectUpdateContentSummary() {
     this.contentSummary = getHtmlTextSummary(this.content);
+  }
+
+  // Defense in depth for rows persisted before sanitize-on-write was added
+  // (the original stored-XSS path was via featuredProjectUpdate.content).
+  // Sanitizing here is idempotent on already-clean content.
+  @AfterLoad()
+  sanitizeProjectUpdateContentOnLoad() {
+    if (this.content) {
+      this.content = sanitizeProjectRichText(this.content);
+    }
   }
 }
 

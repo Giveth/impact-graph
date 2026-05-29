@@ -700,10 +700,14 @@ export const totalProjectsPerDateByMonthAndYear = async (
 };
 
 export const makeProjectListed = async (id: number): Promise<void> => {
+  // updatedAt bump is required so giveth-v6-core's legacy sync recognizes this
+  // change as newer than its mirror row. Without it, the v6 row's updated_at
+  // stays ahead and the next v5→v6 pull skips the update.
   await Project.createQueryBuilder('broadcast_notification')
     .update<Project>(Project, {
       listed: true,
       reviewStatus: ReviewStatus.Listed,
+      updatedAt: new Date(),
     })
     .where(`id =${id}`)
     .updateEntity(true)

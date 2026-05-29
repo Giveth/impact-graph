@@ -97,6 +97,10 @@ import {
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import {
+  getRichTextPlainLength,
+  sanitizeProjectRichText,
+} from '../utils/htmlSanitizer';
 import { NETWORK_IDS } from '../provider';
 import { getVerificationFormStatusByProjectId } from '../repositories/projectVerificationRepository';
 import {
@@ -114,7 +118,10 @@ import { creteSlugFromProject, isSocialMediaEqual } from '../utils/utils';
 import { findCampaignBySlug } from '../repositories/campaignRepository';
 import { Campaign } from '../entities/campaign';
 import { FeaturedUpdate } from '../entities/featuredUpdate';
-import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
+import {
+  PROJECT_DESCRIPTION_MAX_LENGTH,
+  PROJECT_UPDATE_CONTENT_MAX_LENGTH,
+} from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
@@ -1508,6 +1515,12 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
 
+    if (newProjectData.description) {
+      newProjectData.description = sanitizeProjectRichText(
+        newProjectData.description,
+      );
+    }
+
     for (const field in newProjectData) {
       if (field === 'addresses' || field === 'socialMedia') {
         // We will take care of addresses and relations manually
@@ -1774,7 +1787,23 @@ export class ProjectResolver {
     @Ctx() ctx: ApolloContext,
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx);
-    const { image, description } = projectInput;
+    const { image } = projectInput;
+    if (projectInput.description) {
+      if (
+        getRichTextPlainLength(projectInput.description) >
+        PROJECT_DESCRIPTION_MAX_LENGTH
+      ) {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_DESCRIPTION_LENGTH_SIZE_EXCEEDED,
+          ),
+        );
+      }
+      projectInput.description = sanitizeProjectRichText(
+        projectInput.description,
+      );
+    }
+    const { description } = projectInput;
 
     const dbUser = await findUserById(user.id);
 
@@ -1974,16 +2003,15 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    if (
-      content?.replace(/<[^>]+>/g, '')?.length >
-      PROJECT_UPDATE_CONTENT_MAX_LENGTH
-    ) {
+    if (getRichTextPlainLength(content) > PROJECT_UPDATE_CONTENT_MAX_LENGTH) {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED,
         ),
       );
     }
+
+    const sanitizedContent = sanitizeProjectRichText(content);
 
     const owner = await findUserById(user.userId);
 
@@ -2007,7 +2035,7 @@ export class ProjectResolver {
     const update = ProjectUpdate.create({
       userId: user.userId,
       projectId: project.id,
-      content,
+      content: sanitizedContent,
       title,
       createdAt: new Date(),
       isMain: false,
@@ -2039,16 +2067,11 @@ export class ProjectResolver {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
-    if (
-      content?.replace(/<[^>]+>/g, '')?.length >
-      PROJECT_UPDATE_CONTENT_MAX_LENGTH
-    ) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED,
-        ),
-      );
-    }
+
+    // Intentionally no length check here: legacy project_update rows can
+    // exceed the current max, and rejecting on edit would block owners from
+    // fixing or trimming long content. New content is still capped via
+    // addProjectUpdate. (Per RamRamez's review on PR #2324.)
 
     const owner = await findUserById(user.userId);
 
@@ -2075,7 +2098,7 @@ export class ProjectResolver {
       );
 
     update.title = title;
-    update.content = content;
+    update.content = sanitizeProjectRichText(content);
     await update.save();
     await update.reload();
 

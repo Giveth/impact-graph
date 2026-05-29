@@ -487,8 +487,8 @@ export const qfRoundTab = {
         isVisible: false,
       },
       new: {
-        isAccessible: false, // Disabled - QF Rounds are now managed in v6-core admin panel
-        isVisible: false,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction({ currentAdmin }, ResourceActions.NEW),
         handler: async (
           request: AdminJsRequestInterface,
           _response,

@@ -262,7 +262,10 @@ export const verifyProjects = async (
       }
     }
 
-    const updateParams = { verified: vouchedStatus };
+    // updatedAt bump keeps giveth-v6-core's legacy sync timestamp guard
+    // aligned; .createQueryBuilder().update() bypasses TypeORM entity hooks
+    // so we set it explicitly here.
+    const updateParams = { verified: vouchedStatus, updatedAt: new Date() };
 
     // Perform the update
     await Project.createQueryBuilder('project')
@@ -352,7 +355,10 @@ export const updateStatusOfProjects = async (
     where: { id: status },
   });
   if (projectStatus) {
-    const updateData: any = { status: projectStatus };
+    // updatedAt bump keeps giveth-v6-core's legacy sync timestamp guard
+    // aligned; .createQueryBuilder().update() bypasses TypeORM entity hooks
+    // so we set it explicitly here.
+    const updateData: any = { status: projectStatus, updatedAt: new Date() };
     if (status === ProjStatus.cancelled || status === ProjStatus.deactive) {
       updateData.listed = false;
       updateData.reviewStatus = ReviewStatus.NotListed;
@@ -600,8 +606,11 @@ export const listDelist = async (
       ?.split(',')
       ?.map(strId => Number(strId)) as number[];
     const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
+    // updatedAt bump keeps giveth-v6-core's legacy sync timestamp guard
+    // aligned; .createQueryBuilder().update() bypasses TypeORM entity hooks
+    // so we set it explicitly here.
     const projects = await Project.createQueryBuilder('project')
-      .update<Project>(Project, { reviewStatus, listed })
+      .update<Project>(Project, { reviewStatus, listed, updatedAt: new Date() })
       .where('project.id IN (:...ids)')
       .setParameter('ids', projectIds)
       .returning('*')
@@ -1121,6 +1130,7 @@ export const projectsTab = {
                 where: { id: request?.record?.params?.newAdminId },
               });
               project.adminUser = adminUser!;
+              project.updatedAt = new Date();
               await project.save();
 
               // Update project verification form owner if it has been changed
@@ -1234,6 +1244,7 @@ export const projectsTab = {
               statusChanges?.includes(NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED)
             ) {
               project.listed = true;
+              project.updatedAt = new Date();
               await project.save();
             }
 
@@ -1243,6 +1254,7 @@ export const projectsTab = {
               )
             ) {
               project.listed = false;
+              project.updatedAt = new Date();
               await project.save();
             }
 
@@ -1252,6 +1264,7 @@ export const projectsTab = {
               )
             ) {
               project.listed = null;
+              project.updatedAt = new Date();
               await project.save();
             }
 
@@ -1424,5 +1437,6 @@ async function saveCategories(project: Project, categoryIds?: string[]) {
     .getMany();
 
   project.categories = categories;
+  project.updatedAt = new Date();
   await project.save();
 }
