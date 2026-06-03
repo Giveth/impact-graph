@@ -212,8 +212,12 @@ async function validateQfRound(payload: {
   const currentProjectIds = payload.projectIdsList
     ? payload.projectIdsList
         .split(',')
-        .map(id => Number(id.trim()))
-        .filter(id => !Number.isNaN(id))
+        .map(id => id.trim())
+        .filter(id => id !== '')
+        .map(id => Number(id))
+        // Drop NaN and non-positive ids so empty/whitespace/comma-only tokens
+        // don't turn into project id 0 (Number('') === 0).
+        .filter(id => !Number.isNaN(id) && id > 0)
     : [];
 
   // Use the new endDate from payload if provided, otherwise use the existing one
@@ -618,6 +622,15 @@ export const qfRoundTab = {
           // round's current related projects so the admin can edit the list.
           if (request.method === 'get') {
             const qfRoundId = Number(request.params?.recordId);
+            // getRelatedProjectsOfQfRound interpolates qfRoundId directly into
+            // raw SQL, so guard against NaN/invalid ids before querying.
+            if (!qfRoundId || Number.isNaN(qfRoundId)) {
+              logger.error(
+                'Invalid qfRoundId in QF Round edit GET request:',
+                request.params?.recordId,
+              );
+              return { record: record.toJSON(currentAdmin) };
+            }
             const projects = await getRelatedProjectsOfQfRound(qfRoundId);
             record.params.projectIdsList = projects
               .map(project => project.id)
