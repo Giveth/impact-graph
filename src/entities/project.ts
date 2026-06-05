@@ -34,6 +34,7 @@ import { EstimatedMatchingByQfRound } from '../types/qfTypes';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { getHtmlTextSummary } from '../utils/utils';
 import { sanitizeProjectRichText } from '../utils/htmlSanitizer';
+import { logger } from '../utils/logger';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { ProjectPowerView } from '../views/projectPowerView';
@@ -645,10 +646,21 @@ export class Project extends BaseEntity {
   // Defense in depth for rows persisted before sanitize-on-write was added.
   // Sanitizing here is idempotent on already-clean content, so newly written
   // rows pay only a small CPU cost on read.
+  //
+  // This runs on EVERY load of a Project (AdminJS, cron, legacy sync, GraphQL),
+  // so it must never throw: a failure in the sanitizer would otherwise reject
+  // the whole TypeORM query and e.g. break the AdminJS edit/show pages. On
+  // error we log and keep the original value rather than fail the load.
   @AfterLoad()
   sanitizeProjectDescriptionOnLoad() {
-    if (this.description) {
+    if (!this.description) return;
+    try {
       this.description = sanitizeProjectRichText(this.description);
+    } catch (e) {
+      logger.error(
+        `sanitizeProjectDescriptionOnLoad failed for project id=${this.id}`,
+        e,
+      );
     }
   }
 
@@ -855,10 +867,20 @@ export class ProjectUpdate extends BaseEntity {
   // Defense in depth for rows persisted before sanitize-on-write was added
   // (the original stored-XSS path was via featuredProjectUpdate.content).
   // Sanitizing here is idempotent on already-clean content.
+  //
+  // Runs on every load, so it must never throw (see the note on
+  // Project.sanitizeProjectDescriptionOnLoad). On error we log and keep the
+  // original value rather than fail the entity load.
   @AfterLoad()
   sanitizeProjectUpdateContentOnLoad() {
-    if (this.content) {
+    if (!this.content) return;
+    try {
       this.content = sanitizeProjectRichText(this.content);
+    } catch (e) {
+      logger.error(
+        `sanitizeProjectUpdateContentOnLoad failed for project_update id=${this.id}`,
+        e,
+      );
     }
   }
 }
