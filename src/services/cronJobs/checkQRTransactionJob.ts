@@ -120,7 +120,7 @@ export async function checkTransactions(
             }
           } else if (memo !== id.toString()) {
             logger.debug(
-              `Transaction memo does not match donation ID for donation ID ${donation.id}`,
+              `Transaction memo does not match draft id for donation ID ${donation.id}`,
             );
             continue;
           }
