@@ -78,11 +78,16 @@ export async function checkTransactions(
     const transactions = response.data._embedded.records;
     if (!transactions.length) return;
 
+    // Only consider payments made at/after this draft was created (with a small
+    // clock-skew allowance). The memo + amount already uniquely identify the
+    // donation, so we match across the whole draft lifetime instead of a narrow
+    // 2-minute window — otherwise a valid payment is lost whenever the cron
+    // doesn't inspect it within 120s (e.g. when the jobs worker lags).
+    const CLOCK_SKEW = 60 * 1000;
+    const draftCreatedAt = new Date(donation.createdAt).getTime();
+
     for (const transaction of transactions) {
       const transactionCreatedAt = new Date(transaction.created_at).getTime();
-      const transactionAge = Date.now() - transactionCreatedAt;
-
-      const TWO_MINUTES = 2 * 60 * 1000;
 
       const isNativePayment =
         transaction.asset_type === 'native' &&
@@ -96,7 +101,8 @@ export async function checkTransactions(
         Number(transaction.starting_balance) === amount;
 
       const isMatchingTransaction =
-        (isNativePayment || isCreateAccount) && transactionAge < TWO_MINUTES;
+        (isNativePayment || isCreateAccount) &&
+        transactionCreatedAt >= draftCreatedAt - CLOCK_SKEW;
 
       if (isMatchingTransaction) {
         const memo = transaction.transaction.memo;
@@ -107,13 +113,16 @@ export async function checkTransactions(
               logger.debug(
                 `Transaction memo does not match donation memo for donation ID ${donation.id}`,
               );
-              return;
+              // Skip this payment and keep scanning: another donation to the
+              // same address may carry a different memo. Bailing here (return)
+              // would abandon the search before reaching this donation's payment.
+              continue;
             }
           } else if (memo !== id.toString()) {
             logger.debug(
-              `Transaction memo matches donation memo for donation ID ${donation.id}`,
+              `Transaction memo does not match draft id for donation ID ${donation.id}`,
             );
-            return;
+            continue;
           }
         }
 
