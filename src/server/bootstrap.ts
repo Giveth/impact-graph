@@ -35,6 +35,7 @@ import {
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
+import { flushSentryAndExit } from '../utils/globalErrorHandlers';
 import { isTrustedVercelRequest } from '../utils/ipWhitelist';
 import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
 // import { apiGivRouter } from '../routers/apiGivRoutes';
@@ -426,6 +427,17 @@ export async function bootstrap() {
     });
   } catch (err) {
     logger.fatal('bootstrap() error', err);
+    SentryLogger.captureException(err as Error);
+    // A failure during startup (e.g. the database/pooler being unreachable when
+    // AppDataSource.initialize() runs) leaves the process with no HTTP listener
+    // on port 4000 — a zombie that `restart: always` never recovers, because the
+    // restart policy only fires on process exit. Exit so the container is
+    // recreated cleanly and self-heals once the dependency is reachable again.
+    // Skipped under tests so a failed bootstrap is reported by the test runner
+    // instead of abruptly terminating it.
+    if (!isTestEnv) {
+      flushSentryAndExit();
+    }
   }
 
   async function continueDbSetup() {
