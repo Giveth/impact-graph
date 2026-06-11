@@ -53,9 +53,18 @@ export class AppDataSource {
         },
         poolSize,
         extra: {
-          maxWaitingClients: 10,
-          evictionRunIntervalMillis: 500,
-          idleTimeoutMillis: 500,
+          // The service runs behind a Postgres connection pooler (DigitalOcean
+          // managed Postgres / PgBouncer). Recycling idle connections every
+          // 500ms (the previous idleTimeoutMillis) caused constant reconnect +
+          // login churn against the pooler, surfacing in production as
+          // "server login has been failing ... (server_login_retry)" errors.
+          idleTimeoutMillis: 30000,
+          // Fail fast instead of hanging forever when a connection cannot be
+          // acquired during a pooler stall, so requests error out quickly and
+          // the pool can recover.
+          connectionTimeoutMillis: 10000,
+          // (maxWaitingClients / evictionRunIntervalMillis were generic-pool
+          // options that node-postgres ignores, so they were removed.)
         },
       });
       await AppDataSource.datasource.initialize();
@@ -82,9 +91,18 @@ export class CronDataSource {
         synchronize: false,
         dropSchema: false,
         extra: {
-          maxWaitingClients: 10,
-          evictionRunIntervalMillis: 500,
-          idleTimeoutMillis: 500,
+          // The service runs behind a Postgres connection pooler (DigitalOcean
+          // managed Postgres / PgBouncer). Recycling idle connections every
+          // 500ms (the previous idleTimeoutMillis) caused constant reconnect +
+          // login churn against the pooler, surfacing in production as
+          // "server login has been failing ... (server_login_retry)" errors.
+          idleTimeoutMillis: 30000,
+          // Fail fast instead of hanging forever when a connection cannot be
+          // acquired during a pooler stall, so requests error out quickly and
+          // the pool can recover.
+          connectionTimeoutMillis: 10000,
+          // (maxWaitingClients / evictionRunIntervalMillis were generic-pool
+          // options that node-postgres ignores, so they were removed.)
         },
       });
       await CronDataSource.datasource.initialize();
