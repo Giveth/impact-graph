@@ -211,8 +211,17 @@ export async function bootstrap() {
 
     // To download email addresses of projects in AdminJS projects tab
     app.get('/admin/download/:filename', (req, res) => {
-      const filename = req.params.filename;
-      const filePath = path.join(__dirname, '/adminJs/tabs/exports', filename);
+      const exportsDir = path.join(__dirname, '/adminJs/tabs/exports');
+      // Prevent path traversal: reduce to a bare filename (strips any `../`),
+      // then confirm the resolved path is directly inside the exports dir.
+      const filePath = path.join(
+        exportsDir,
+        path.basename(req.params.filename),
+      );
+      if (path.dirname(filePath) !== exportsDir) {
+        res.status(400).send('Invalid filename');
+        return;
+      }
       res.download(filePath);
     });
 
