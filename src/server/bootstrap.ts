@@ -75,6 +75,7 @@ import { ApolloContext } from '../types/ApolloContext';
 import { isTestEnv } from '../utils/utils';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 import { corsOptions, whitelistHostnames } from './cors';
+import { expressErrorHandler } from './expressErrorHandler';
 
 Resource.validate = validate;
 
@@ -210,8 +211,17 @@ export async function bootstrap() {
 
     // To download email addresses of projects in AdminJS projects tab
     app.get('/admin/download/:filename', (req, res) => {
-      const filename = req.params.filename;
-      const filePath = path.join(__dirname, '/adminJs/tabs/exports', filename);
+      const exportsDir = path.join(__dirname, '/adminJs/tabs/exports');
+      // Prevent path traversal: reduce to a bare filename (strips any `../`),
+      // then confirm the resolved path is directly inside the exports dir.
+      const filePath = path.join(
+        exportsDir,
+        path.basename(req.params.filename),
+      );
+      if (path.dirname(filePath) !== exportsDir) {
+        res.status(400).send('Invalid filename');
+        return;
+      }
       res.download(filePath);
     });
 
@@ -402,6 +412,12 @@ export async function bootstrap() {
     app.get('/events', (_req: Request, res: Response) => {
       addClient(res);
     });
+
+    // Centralized error handler — must be registered after all routes so that
+    // malformed/aborted requests (and any unhandled route error) are turned
+    // into clean responses + concise logs instead of raw stack-trace noise,
+    // and genuine 5xx failures are reported to Sentry.
+    app.use(expressErrorHandler);
 
     const httpServer = http.createServer(app);
 
