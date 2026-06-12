@@ -1,6 +1,5 @@
 // @ts-check
 import http from 'http';
-import path from 'path';
 import { Resource } from '@adminjs/typeorm';
 import { ApolloServer } from '@apollo/server';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
@@ -37,7 +36,12 @@ import {
 import { logger } from '../utils/logger';
 import { flushSentryAndExit } from '../utils/globalErrorHandlers';
 import { isTrustedVercelRequest } from '../utils/ipWhitelist';
-import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
+import {
+  adminJsRootPath,
+  getAdminJsRouter,
+  getCurrentAdminJsSession,
+} from './adminJs/adminJs';
+import { createDownloadAdminJsExportHandler } from './adminJsExportDownload';
 // import { apiGivRouter } from '../routers/apiGivRoutes';
 import { AppDataSource, CronDataSource } from '../orm';
 import {
@@ -209,21 +213,14 @@ export async function bootstrap() {
       limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
     });
 
-    // To download email addresses of projects in AdminJS projects tab
-    app.get('/admin/download/:filename', (req, res) => {
-      const exportsDir = path.join(__dirname, '/adminJs/tabs/exports');
-      // Prevent path traversal: reduce to a bare filename (strips any `../`),
-      // then confirm the resolved path is directly inside the exports dir.
-      const filePath = path.join(
-        exportsDir,
-        path.basename(req.params.filename),
-      );
-      if (path.dirname(filePath) !== exportsDir) {
-        res.status(400).send('Invalid filename');
-        return;
-      }
-      res.download(filePath);
-    });
+    // Download email-address CSV exports generated from the AdminJS projects
+    // tab. These contain PII and this route lives outside the AdminJS
+    // authenticated router, so the handler enforces a valid admin session
+    // itself (see createDownloadAdminJsExportHandler).
+    app.get(
+      '/admin/download/:filename',
+      createDownloadAdminJsExportHandler(getCurrentAdminJsSession),
+    );
 
     // Lightweight "hello world" health check for deploy verification.
     // Defined BEFORE global CORS middleware so it's always reachable from any origin.
