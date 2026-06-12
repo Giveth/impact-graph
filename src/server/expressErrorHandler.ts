@@ -31,7 +31,6 @@ interface HttpError extends Error {
  *    requests. Process-level fatal errors are handled separately by the global
  *    handlers in utils/globalErrorHandlers.ts (which exit for a clean restart).
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function expressErrorHandler(
   err: unknown,
   req: Request,
