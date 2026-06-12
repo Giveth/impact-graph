@@ -23,25 +23,37 @@ interface HttpError extends Error {
  *
  * Policy:
  *  - Client errors (4xx): expected noise. Respond cleanly, log a single concise
- *    line (no stack trace), and DO NOT crash — otherwise any scanner could take
- *    the API down with one malformed request.
+ *    line (no stack, no message — 4xx messages can echo back user input/PII),
+ *    and DO NOT crash — otherwise any scanner could take the API down with one
+ *    malformed request.
  *  - Server errors (5xx): genuine server-side failures. Make them loud (bunyan
  *    error + Sentry) so they can't fail silently, while still serving other
- *    requests. Process-level fatal errors are handled separately by the
- *    global handlers in utils/globalErrorHandlers.ts (which exit for a clean
- *    container restart).
+ *    requests. Process-level fatal errors are handled separately by the global
+ *    handlers in utils/globalErrorHandlers.ts (which exit for a clean restart).
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function expressErrorHandler(
-  err: HttpError,
+  err: unknown,
   req: Request,
   res: Response,
   _next: NextFunction,
 ): void {
-  const status = err.status || err.statusCode || 500;
+  // Anything can be passed to next() (a string, null, a plain object). Coerce
+  // to an Error so the property access below can never crash the handler.
+  const error: HttpError =
+    err instanceof Error
+      ? err
+      : new Error(typeof err === 'string' ? err : 'Unknown error');
+
+  // Derive a valid HTTP status; fall back to 500 for anything out of range.
+  const candidate = error.status ?? error.statusCode ?? 500;
+  const status =
+    Number.isInteger(candidate) && candidate >= 100 && candidate <= 599
+      ? candidate
+      : 500;
 
   // Client disconnected mid-request: there is nothing to respond to.
-  if (err.type === 'request.aborted') {
+  if (error.type === 'request.aborted') {
     logger.debug('Request aborted by client', {
       method: req.method,
       path: req.path,
@@ -52,10 +64,9 @@ export function expressErrorHandler(
   if (status < 500) {
     logger.debug('Rejected bad request', {
       status,
-      type: err.type,
+      type: error.type,
       method: req.method,
       path: req.path,
-      message: err.message,
     });
     if (!res.headersSent) {
       res.sendStatus(status);
@@ -64,8 +75,8 @@ export function expressErrorHandler(
   }
 
   // Genuine server error — surface it loudly so it is never silent.
-  logger.error('Unhandled server error', err);
-  SentryLogger.captureException(err);
+  logger.error('Unhandled server error', error);
+  SentryLogger.captureException(error);
   if (!res.headersSent) {
     res.sendStatus(500);
   }
