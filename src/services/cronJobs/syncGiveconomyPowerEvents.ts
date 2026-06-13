@@ -7,6 +7,10 @@ let isGiveconomyPowerSyncRunning = false;
 export const runGiveconomyPowerSyncCronJob = () => {
   const cronExpression =
     process.env.GIVECONOMY_POWER_SYNC_CRON_EXPRESSION || '*/1 * * * *';
+  if (process.env.DISABLE_GIVECONOMY_POWER_SYNC_JOB !== 'false') {
+    logger.info('GIVeconomy power sync cron job is disabled by configuration');
+    return;
+  }
   if (!process.env.GIVECONOMY_POWER_SYNC_URL) {
     logger.info('GIVeconomy power sync cron job is disabled');
     return;
