@@ -132,8 +132,31 @@ jobs:
             
             echo "✅ Verified image pulled: ghcr.io/giveth/impact-graph@${{ needs.publish.outputs.image-digest }}"
 
-  rollout-deploy-1:
+  migrate:
     needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: none      # Minimal - only for actions to work
+    steps:
+      - name: SSH and Run DB Migrations (one-shot)
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.STAGING_HOST_ALL }}
+          username: ${{ secrets.STAGING_USERNAME_ALL }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd giveth-all
+            # Load the verified image SHA so migrations run on the exact image being deployed
+            export $(cat .env.impact-graph | xargs)
+            echo "🗃️  Running database migrations using verified image: $IMPACT_GRAPH_IMAGE"
+            # One-shot container: runs migrations, then exits. Non-zero exit fails the deploy.
+            docker compose run --rm impact-graph-migrations
+            echo "✅ Migrations complete"
+
+  rollout-deploy-1:
+    needs: migrate
     runs-on: ubuntu-latest
     permissions:
       contents: none      # Minimal - only for actions to work
