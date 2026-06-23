@@ -152,7 +152,7 @@ jobs:
             export $(cat .env.impact-graph | xargs)
             echo "🗃️  Running database migrations using verified image: $IMPACT_GRAPH_IMAGE"
             # One-shot container: runs migrations, then exits. Non-zero exit fails the deploy.
-            docker compose -f docker-compose-staging.yml run --rm impact-graph-migrations
+            docker compose -f docker-compose.staging.yml run --rm impact-graph-migrations
             echo "✅ Migrations complete"
 
   rollout-deploy-1:
@@ -175,8 +175,8 @@ jobs:
 
             ## Update each backend service one by one
             ## First Deployment - uses IMPACT_GRAPH_IMAGE with verified SHA
-            docker compose -f docker-compose-staging.yml up -d --no-deps --force-recreate impact-graph-ql1
-            docker compose -f docker-compose-staging.yml up -d --no-deps --force-recreate impact-graph-jobs
+            docker compose -f docker-compose.staging.yml up -d --no-deps --force-recreate impact-graph-ql1
+            docker compose -f docker-compose.staging.yml up -d --no-deps --force-recreate impact-graph-jobs
             echo "First deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
   rollout-deploy-2:
@@ -199,7 +199,7 @@ jobs:
 
             ## Update each backend service one by one
             ## Second Deployment - uses IMPACT_GRAPH_IMAGE with verified SHA
-            docker compose -f docker-compose-staging.yml up -d --no-deps --force-recreate impact-graph-ql2
+            docker compose -f docker-compose.staging.yml up -d --no-deps --force-recreate impact-graph-ql2
             echo "Second deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
   rollout-deploy-3:
@@ -222,7 +222,7 @@ jobs:
 
             ## Update each backend service one by one
             ## Third Deployment - uses IMPACT_GRAPH_IMAGE with verified SHA
-            docker compose -f docker-compose-staging.yml up -d --no-deps --force-recreate impact-graph-ql3
+            docker compose -f docker-compose.staging.yml up -d --no-deps --force-recreate impact-graph-ql3
             echo "Third deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
   rollout-deploy-4:
@@ -246,7 +246,7 @@ jobs:
 
             ## Update each backend service one by one
             ## Fourth Deployment - uses IMPACT_GRAPH_IMAGE with verified SHA
-            docker compose -f docker-compose-staging.yml up -d --no-deps --force-recreate impact-graph-ql4
+            docker compose -f docker-compose.staging.yml up -d --no-deps --force-recreate impact-graph-ql4
             echo "Fourth deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
   verify-health:
