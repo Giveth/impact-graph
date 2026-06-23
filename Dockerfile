@@ -25,6 +25,6 @@ COPY migration ./migration
 RUN npm run build
 
 # Default startup runs the app WITHOUT migrations. Database migrations are run by a
-# dedicated one-shot container/CI step (npm run start:docker:migrate) to avoid multiple
+# dedicated one-shot container/CI step (npm run db:migrate:run:production) to avoid multiple
 # replicas racing to migrate on boot. Compose services may override this command.
 CMD ["npm", "run", "production"]

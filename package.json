@@ -63,6 +63,7 @@
     "moment": "^2.29.4",
     "node-cron": "^3.0.2",
     "patch-package": "^6.5.1",
+    "pg": "^8.22.0",
     "rate-limit-redis": "^4.2.0",
     "reflect-metadata": "^0.1.13",
     "sanitize-html": "^2.17.4",
@@ -242,7 +243,6 @@
     "dev": "NODE_ENV=development node ./build/src/index.js",
     "production": "NODE_ENV=production node ./build/src/index.js",
     "start:docker:server": "npm run db:migrate:run:production && npm run production",
-    "start:docker:migrate": "npm run db:migrate:run:production",
     "start:docker:locally": "npm run db:migrate:run:local && npm run dev",
     "postinstall": "patch-package"
   },
