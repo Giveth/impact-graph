@@ -59,7 +59,7 @@ export class AppDataSource {
         logger: 'advanced-console',
         logging: ['error'],
         cache: {
-          type: 'redis',
+          type: 'ioredis',
           options: {
             ...redisConfig,
             db: 1, // Query Caching
