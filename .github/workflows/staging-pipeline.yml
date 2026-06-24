@@ -176,7 +176,6 @@ jobs:
             ## Update each backend service one by one
             ## First Deployment - uses IMPACT_GRAPH_IMAGE with verified SHA
             docker compose -f docker-compose.staging.yml up -d --no-deps --force-recreate impact-graph-ql1
-            docker compose -f docker-compose.staging.yml up -d --no-deps --force-recreate impact-graph-jobs
             echo "First deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
   rollout-deploy-2:
@@ -249,6 +248,41 @@ jobs:
             docker compose -f docker-compose.staging.yml up -d --no-deps --force-recreate impact-graph-ql4
             echo "Fourth deployment phase triggered using verified image: $IMPACT_GRAPH_IMAGE"
 
+  deploy-jobs:
+    needs: [publish, migrate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: none # Minimal - only for actions to work
+    steps:
+      - name: SSH and Rolling-Redeploy Jobs (dedicated jobs server)
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.STAGING_JOBS_HOST }}
+          username: ${{ secrets.STAGING_JOBS_USERNAME }}
+          key: ${{ secrets.STAGING_JOBS_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd giveth-all
+            IMG="ghcr.io/giveth/impact-graph@${{ needs.publish.outputs.image-digest }}"
+            echo "🗃️  Pulling verified image on jobs server: $IMG"
+            docker pull "$IMG"
+            # Recreate ONLY the staging jobs worker. Image var is scoped inline (not written to a shared
+            # .env.impact-graph) so a staging deploy never repins the prod jobs worker on this same box.
+            IMPACT_GRAPH_IMAGE="$IMG" docker compose -f docker-compose.jobs.yml up -d --no-deps --force-recreate impact-graph-jobs-staging
+            # Confirm it stayed up (not crash-looping)
+            sleep 10
+            status=$(docker inspect --format='{{.State.Status}}' impact-graph-jobs-staging 2>/dev/null || echo "missing")
+            restarts=$(docker inspect --format='{{.RestartCount}}' impact-graph-jobs-staging 2>/dev/null || echo "?")
+            echo "impact-graph-jobs-staging status=$status restarts=$restarts"
+            if [ "$status" != "running" ]; then
+              echo "::error::impact-graph-jobs-staging is not running (status: $status)"
+              docker logs --tail 120 impact-graph-jobs-staging || true
+              exit 1
+            fi
+            docker image prune -f
+            echo "✅ Jobs (staging) redeployed on dedicated server with $IMG"
+
   verify-health:
     needs:
       - rollout-deploy-1
@@ -296,11 +330,6 @@ jobs:
               fi
             done
 
-            echo "Checking impact-graph-jobs is running ..."
-            job_status=$(docker inspect --format='{{json .State.Status}}' impact-graph-jobs 2>/dev/null || echo '""')
-            if [ "$job_status" != "\"running\"" ]; then
-              echo "::error::impact-graph-jobs is not running (status: $job_status)"
-              exit 1
-            fi
-            echo "All services healthy."
+            # impact-graph-jobs now runs on the dedicated jobs server and is verified in the deploy-jobs job.
+            echo "All ql services healthy."
             docker image prune -f
