@@ -353,4 +353,66 @@ describe('pullGiveconomyPowerSync', () => {
     assert.equal(savePowerSyncCursorStub.callCount, 1);
     assert.equal(savePowerSyncCursorStub.firstCall.args[0].lastEventId, 44);
   });
+
+  it('skips events that hit a foreign key violation and advances the cursor', async () => {
+    sinon.stub(powerSyncCursorRepository, 'getPowerSyncCursor').resolves({
+      sourceSystem: 'giveconomy',
+      lastEventId: 193,
+    } as any);
+    const savePowerSyncCursorStub = sinon
+      .stub(powerSyncCursorRepository, 'savePowerSyncCursor')
+      .resolves({} as any);
+    sinon
+      .stub(powerSyncOutboxRepository, 'getLatestPowerSyncOutboxEventForUser')
+      .resolves(null);
+
+    // Mirrors a QueryFailedError raised when a boosting references a project
+    // that does not exist in this environment (Postgres foreign_key_violation).
+    const foreignKeyError = Object.assign(
+      new Error(
+        'insert or update on table "power_boosting" violates foreign key ' +
+          'constraint "FK_e22ae58004aa092dcb637bedd09"',
+      ),
+      { code: '23503' },
+    );
+    sinon
+      .stub(powerBoostingRepository, 'setMultipleBoosting')
+      .rejects(foreignKeyError);
+
+    sinon.stub(axios, 'get').resolves({
+      status: 200,
+      data: {
+        data: [
+          {
+            id: 194,
+            sourceSystem: 'giveconomy',
+            eventType: 'power-boosting.updated',
+            entityType: 'power-boosting',
+            userId: 266,
+            sourceUpdatedAt: '2026-07-20T18:37:32.003Z',
+            payload: {
+              userId: 266,
+              boostings: [
+                {
+                  projectId: 235268,
+                  percentage: 100,
+                  updatedAt: '2026-07-20T18:37:32.003Z',
+                },
+              ],
+            },
+          },
+        ],
+      },
+    } as any);
+
+    const result = await pullGiveconomyPowerSync();
+
+    assert.deepEqual(result, {
+      fetched: 1,
+      applied: 0,
+      skipped: 1,
+    });
+    assert.equal(savePowerSyncCursorStub.callCount, 1);
+    assert.equal(savePowerSyncCursorStub.firstCall.args[0].lastEventId, 194);
+  });
 });
