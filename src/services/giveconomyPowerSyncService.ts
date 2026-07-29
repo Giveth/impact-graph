@@ -41,6 +41,20 @@ const hasErrorMessage = (
 const isStaleGiveconomyPowerSyncError = (error: unknown): boolean =>
   hasErrorMessage(error) && error.message === STALE_GIVECONOMY_POWER_SYNC_EVENT;
 
+// Postgres foreign_key_violation error code.
+const PG_FOREIGN_KEY_VIOLATION = '23503';
+
+const isForeignKeyViolation = (error: unknown): boolean => {
+  const err = error as {
+    code?: string;
+    driverError?: { code?: string };
+  };
+  return (
+    err?.code === PG_FOREIGN_KEY_VIOLATION ||
+    err?.driverError?.code === PG_FOREIGN_KEY_VIOLATION
+  );
+};
+
 const getSyncedPercentagePrecision = (): number => {
   const precision = Number(process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION);
   return Number.isInteger(precision) && precision >= 0
@@ -224,6 +238,24 @@ const applyGiveconomyPowerSyncEvent = async (
     });
   } catch (error) {
     if (isStaleGiveconomyPowerSyncError(error)) {
+      return false;
+    }
+
+    if (isForeignKeyViolation(error)) {
+      // A boosting referenced a project/user that does not exist in this
+      // environment (e.g. a project never imported into staging). Skip the
+      // event so the cursor advances instead of failing on every run and
+      // permanently wedging the whole sync pipeline for all users. Transient
+      // errors (e.g. DB connection timeouts) still bubble up so the event is
+      // retried on the next run.
+      logger.warn(
+        'Skipping GIVeconomy power sync event: foreign key violation',
+        {
+          eventId: event.id,
+          userId: event.userId,
+          error: hasErrorMessage(error) ? error.message : undefined,
+        },
+      );
       return false;
     }
 
