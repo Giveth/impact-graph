@@ -189,7 +189,7 @@ export const updateDraftDonationStatus = async (params: {
     return !skipped;
   } catch (e) {
     logger.error(
-      `Error in updateDraftDonationStatus - params: ${params} - error: ${e.message}`,
+      `Error in updateDraftDonationStatus - params: ${JSON.stringify(params)} - error: ${e.message}`,
     );
     return false;
   }

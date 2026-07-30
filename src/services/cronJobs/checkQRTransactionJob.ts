@@ -292,6 +292,15 @@ export async function checkTransactions(
         }
 
         const txHash = transaction.transaction_hash?.toLowerCase();
+        if (!txHash) {
+          // A payment without a transaction hash can neither be deduplicated
+          // nor recorded as a donation. Skip it and keep scanning, so other
+          // payments and the expiry handling below stay reachable.
+          logger.debug(
+            `Skipping payment without transaction hash for draft donation ID ${donation.id}`,
+          );
+          continue;
+        }
         let createdDonationId: number | undefined;
 
         const matchUnderLocks = async () => {
@@ -516,28 +525,19 @@ export async function checkTransactions(
         //   amount must not both turn this payment into a donation;
         // - per draft: overlapping cron runs and concurrent GraphQL
         //   verifications must not match this draft twice.
-        if (txHash) {
-          await withQrAdvisoryLock(
-            QR_TX_LOCK_NAMESPACE,
-            txHashToLockId(txHash),
-            QR_DRAFT_LOCK_WAIT_MS,
-            async () => {
-              await withQrAdvisoryLock(
-                QR_DRAFT_DONATION_LOCK_NAMESPACE,
-                donation.id,
-                QR_DRAFT_LOCK_WAIT_MS,
-                matchUnderLocks,
-              );
-            },
-          );
-        } else {
-          await withQrAdvisoryLock(
-            QR_DRAFT_DONATION_LOCK_NAMESPACE,
-            donation.id,
-            QR_DRAFT_LOCK_WAIT_MS,
-            matchUnderLocks,
-          );
-        }
+        await withQrAdvisoryLock(
+          QR_TX_LOCK_NAMESPACE,
+          txHashToLockId(txHash),
+          QR_DRAFT_LOCK_WAIT_MS,
+          async () => {
+            await withQrAdvisoryLock(
+              QR_DRAFT_DONATION_LOCK_NAMESPACE,
+              donation.id,
+              QR_DRAFT_LOCK_WAIT_MS,
+              matchUnderLocks,
+            );
+          },
+        );
 
         // Outside the advisory locks: slow external calls that don't touch
         // lock-protected draft state must not extend the lock hold time.

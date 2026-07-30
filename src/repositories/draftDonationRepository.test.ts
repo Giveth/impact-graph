@@ -304,8 +304,9 @@ function updateDraftDonationStatusTestCases() {
 }
 
 function reconcileFailedQrDraftsSqlTestCases() {
-  // Only the UPDATE statement is executed here; the file's leading SELECT is
-  // the manual inspection step for staging/production runs.
+  // The whole script (BEGIN, inspection SELECT ... FOR UPDATE, repair UPDATE,
+  // COMMIT) is executed as one multi-statement query, exactly as it would run
+  // on staging/production.
   // Resolved from the repo root (not __dirname): CI compiles tests to
   // build/src/... and runs them from there, but scripts/ is not copied into
   // the build output.
@@ -313,7 +314,6 @@ function reconcileFailedQrDraftsSqlTestCases() {
     path.resolve(process.cwd(), 'scripts', 'reconcile-failed-qr-drafts.sql'),
     'utf8',
   );
-  const updateSql = sql.slice(sql.indexOf('UPDATE draft_donation'));
 
   beforeEach(async () => {
     await DraftDonation.clear();
@@ -371,9 +371,9 @@ function reconcileFailedQrDraftsSqlTestCases() {
       matchedDonationId: verifiedDonation.id,
     });
 
-    await AppDataSource.getDataSource().query(updateSql);
+    await AppDataSource.getDataSource().query(sql);
     // Idempotency: a second run changes nothing further.
-    await AppDataSource.getDataSource().query(updateSql);
+    await AppDataSource.getDataSource().query(sql);
 
     const freshRepairable = await DraftDonation.findOne({
       where: { id: repairable.id },
