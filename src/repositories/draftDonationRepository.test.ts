@@ -306,14 +306,11 @@ function updateDraftDonationStatusTestCases() {
 function reconcileFailedQrDraftsSqlTestCases() {
   // Only the UPDATE statement is executed here; the file's leading SELECT is
   // the manual inspection step for staging/production runs.
+  // Resolved from the repo root (not __dirname): CI compiles tests to
+  // build/src/... and runs them from there, but scripts/ is not copied into
+  // the build output.
   const sql = fs.readFileSync(
-    path.join(
-      __dirname,
-      '..',
-      '..',
-      'scripts',
-      'reconcile-failed-qr-drafts.sql',
-    ),
+    path.resolve(process.cwd(), 'scripts', 'reconcile-failed-qr-drafts.sql'),
     'utf8',
   );
   const updateSql = sql.slice(sql.indexOf('UPDATE draft_donation'));
