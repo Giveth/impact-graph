@@ -80,11 +80,36 @@ export async function findDraftDonationByMatchedDonationId(
   });
 }
 
+// Single definition of the invariant "this draft references no live donation",
+// as a SQL predicate over the draft_donation row being updated. Callers must
+// bind `:failedDonationStatus`. Every guarded transition and the renew
+// mutation share it, so what counts as a live donation is defined once.
+export const noLiveMatchedDonationSql = (
+  matchedDonationIdColumn: string,
+): string => `(${matchedDonationIdColumn} IS NULL OR NOT EXISTS (
+      SELECT 1 FROM donation d
+      WHERE d.id = ${matchedDonationIdColumn}
+        AND d.status != :failedDonationStatus
+    ))`;
+
+// True only when matchedDonationId points at a donation that genuinely
+// failed, as opposed to one that is missing: the single case in which an
+// already-matched draft may be moved back to failed.
+const matchedDonationFailedSql = (
+  matchedDonationIdColumn: string,
+): string => `EXISTS (
+      SELECT 1 FROM donation d
+      WHERE d.id = ${matchedDonationIdColumn}
+        AND d.status = :failedDonationStatus
+    )`;
+
 // Atomic, guarded status transition for draft donations.
-// - `failed` is never applied to a matched draft, nor to a draft whose
-//   matchedDonationId references a live (non-failed) donation, so a stale job
-//   can never overwrite a successful match. A draft linked to a failed or
-//   deleted donation may still be failed (or re-linked while failing).
+// - `failed` is never applied to a draft whose matchedDonationId references a
+//   live (non-failed) donation, so a stale job can never overwrite a
+//   successful match. A draft linked to a failed or deleted donation may still
+//   be failed (or re-linked while failing). A matched draft is only failed
+//   when its donation actually failed — the repair path for a donation that
+//   fails on-chain after the draft was already matched.
 // - `matched` is applied to any draft that isn't already matched (this allows
 //   reconciling a wrongly-failed draft back to matched).
 // - `expiresBefore` additionally requires the draft's expiresAt to be older
@@ -112,26 +137,6 @@ export const updateDraftDonationStatus = async (params: {
     errorMessage,
   } = params;
   try {
-    // Loaded only to log the previous status; the update below is conditional
-    // on the database state, not on this read.
-    const current = await DraftDonation.createQueryBuilder('draftDonation')
-      .select([
-        'draftDonation.id',
-        'draftDonation.status',
-        'draftDonation.matchedDonationId',
-      ])
-      .where('draftDonation.id = :id', { id: donationId })
-      .getOne();
-
-    if (!current) {
-      logger.info('draftDonationStatusTransition skipped, draft not found', {
-        draftDonationId: donationId,
-        requestedStatus: status,
-        source,
-      });
-      return false;
-    }
-
     const updateValues: Record<string, unknown> = { status };
     if (fromWalletAddress !== undefined) {
       updateValues.fromWalletAddress = fromWalletAddress;
@@ -149,18 +154,20 @@ export const updateDraftDonationStatus = async (params: {
       .where('id = :id', { id: donationId });
 
     if (status === DRAFT_DONATION_STATUS.FAILED) {
+      const matchedDonationIdColumn = 'draft_donation."matchedDonationId"';
       queryBuilder
-        .andWhere('status != :matchedStatus', {
-          matchedStatus: DRAFT_DONATION_STATUS.MATCHED,
-        })
         .andWhere(
-          `("matchedDonationId" IS NULL OR NOT EXISTS (
-            SELECT 1 FROM donation d
-            WHERE d.id = draft_donation."matchedDonationId"
-              AND d.status != :failedDonationStatus
-          ))`,
-          { failedDonationStatus: DONATION_STATUS.FAILED },
-        );
+          `(status != :matchedStatus OR ${matchedDonationFailedSql(
+            matchedDonationIdColumn,
+          )})`,
+          {
+            matchedStatus: DRAFT_DONATION_STATUS.MATCHED,
+            failedDonationStatus: DONATION_STATUS.FAILED,
+          },
+        )
+        .andWhere(noLiveMatchedDonationSql(matchedDonationIdColumn), {
+          failedDonationStatus: DONATION_STATUS.FAILED,
+        });
       if (expiresBefore) {
         queryBuilder.andWhere(
           '("expiresAt" IS NULL OR "expiresAt" < :expiresBefore)',
@@ -178,11 +185,12 @@ export const updateDraftDonationStatus = async (params: {
 
     logger.info('draftDonationStatusTransition', {
       draftDonationId: donationId,
-      previousStatus: current.status,
       requestedStatus: status,
-      matchedDonationId: matchedDonationId ?? current.matchedDonationId,
+      matchedDonationId,
       txHash,
       source,
+      // Skipped means the draft is gone or a guard clause did not hold; the
+      // stored state is authoritative, so no pre-read is taken to log it.
       skipped,
     });
 

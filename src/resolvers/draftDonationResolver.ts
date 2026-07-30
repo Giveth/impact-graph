@@ -33,7 +33,10 @@ import {
 } from '../services/cronJobs/checkQRTransactionJob';
 import { findProjectById } from '../repositories/projectRepository';
 import { notifyDonationFailed } from '../services/sse/sse';
-import { updateDraftDonationStatus } from '../repositories/draftDonationRepository';
+import {
+  noLiveMatchedDonationSql,
+  updateDraftDonationStatus,
+} from '../repositories/draftDonationRepository';
 import { DONATION_STATUS } from '../entities/donation';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
@@ -450,6 +453,13 @@ export class DraftDonationResolver {
         draftDonation.fromWalletAddress = matchedDonation.fromWalletAddress;
         return draftDonation;
       }
+      if (draftDonation.status === DRAFT_DONATION_STATUS.MATCHED) {
+        // The donation this draft was matched to has failed since, and the
+        // reconciliation above moved the draft to failed: report the stored
+        // state rather than the success we read a moment ago.
+        const repaired = await DraftDonation.findOne({ where: { id } });
+        if (repaired) return repaired;
+      }
     }
 
     if (
@@ -560,11 +570,7 @@ export class DraftDonationResolver {
           status: DRAFT_DONATION_STATUS.MATCHED,
         })
         .andWhere(
-          `("draftDonation"."matchedDonationId" IS NULL OR NOT EXISTS (
-            SELECT 1 FROM donation d
-            WHERE d.id = "draftDonation"."matchedDonationId"
-              AND d.status != :failedDonationStatus
-          ))`,
+          noLiveMatchedDonationSql('"draftDonation"."matchedDonationId"'),
           { failedDonationStatus: DONATION_STATUS.FAILED },
         )
         .getOne();
@@ -585,11 +591,7 @@ export class DraftDonationResolver {
           status: DRAFT_DONATION_STATUS.MATCHED,
         })
         .andWhere(
-          `("matchedDonationId" IS NULL OR NOT EXISTS (
-            SELECT 1 FROM donation d
-            WHERE d.id = draft_donation."matchedDonationId"
-              AND d.status != :failedDonationStatus
-          ))`,
+          noLiveMatchedDonationSql('draft_donation."matchedDonationId"'),
           { failedDonationStatus: DONATION_STATUS.FAILED },
         )
         .execute();

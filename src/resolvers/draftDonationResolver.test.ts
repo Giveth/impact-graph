@@ -46,12 +46,11 @@ import { Token } from '../entities/token';
 import {
   checkTransactions,
   processPendingQRDraftDonations,
-  QR_CRON_RUN_LOCK_ID,
-  QR_DRAFT_DONATION_LOCK_NAMESPACE,
+  QR_CRON_RUN_LOCK_KEY,
 } from '../services/cronJobs/checkQRTransactionJob';
 import * as donationService from '../services/donationService';
 import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
-import { AppDataSource } from '../orm';
+import { redis } from '../redis';
 
 describe('createDraftDonation() test cases', createDraftDonationTestCases);
 describe(
@@ -1596,19 +1595,14 @@ function stellarQRDraftRaceConditionTestCases() {
     expect(untouched!.matchedDonationId).to.be.null;
   });
 
-  it('should skip the cron run while another execution holds the lock, then process normally', async () => {
+  it('should skip the cron run while another execution holds the run lease, then process normally', async () => {
     const draft = await createStellarDraft({
       createdAt: new Date(Date.now() - 30 * 60 * 1000),
       expiresAt: new Date(Date.now() - 10 * 60 * 1000),
     });
     stubHorizonPayments([]);
 
-    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.query('SELECT pg_advisory_lock($1, $2)', [
-      QR_DRAFT_DONATION_LOCK_NAMESPACE,
-      QR_CRON_RUN_LOCK_ID,
-    ]);
+    await redis.set(QR_CRON_RUN_LOCK_KEY, 'another-runner', 'PX', 60 * 1000);
     try {
       await processPendingQRDraftDonations();
       const untouched = await DraftDonation.findOne({
@@ -1616,15 +1610,118 @@ function stellarQRDraftRaceConditionTestCases() {
       });
       expect(untouched!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
     } finally {
-      await queryRunner.query('SELECT pg_advisory_unlock($1, $2)', [
-        QR_DRAFT_DONATION_LOCK_NAMESPACE,
-        QR_CRON_RUN_LOCK_ID,
-      ]);
-      await queryRunner.release();
+      await redis.del(QR_CRON_RUN_LOCK_KEY);
     }
 
     await processPendingQRDraftDonations();
     const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
     expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.FAILED);
+  });
+
+  it('should match a draft via its own older payment when a newer payment already belongs to another draft', async () => {
+    // Same project address, same project-level memo, same amount: donor A's
+    // newer payment appears first in Horizon's desc list, is already claimed
+    // by draft A, and must not stop draft B's scan from reaching B's own
+    // older payment.
+    const draftA = await createStellarDraft();
+    const draftB = await createStellarDraft({
+      toWalletAddress: draftA.toWalletAddress,
+    });
+
+    const paymentA = stellarPayment(draftA, { createdAt: new Date() });
+    const donationA = await saveDonationDirectlyToDb(
+      {
+        transactionId: paymentA.transaction_hash.toLowerCase(),
+        transactionNetworkId: NETWORK_IDS.STELLAR_MAINNET,
+        toWalletAddress: draftA.toWalletAddress,
+        fromWalletAddress: paymentA.source_account,
+        currency: 'XLM',
+        anonymous: false,
+        amount: draftA.amount,
+        createdAt: new Date(),
+        status: DONATION_STATUS.VERIFIED,
+        projectId: project.id,
+      },
+      undefined,
+      project.id,
+    );
+    await DraftDonation.update(
+      { id: draftA.id },
+      {
+        status: DRAFT_DONATION_STATUS.MATCHED,
+        matchedDonationId: donationA.id,
+      },
+    );
+
+    const paymentB = stellarPayment(draftB, {
+      createdAt: new Date(Date.now() - 2 * 60 * 1000),
+    });
+    stubHorizonPayments([paymentA, paymentB]);
+
+    await checkTransactions(draftB, 'stellar-cron');
+
+    const donationB = await Donation.findOne({
+      where: { transactionId: paymentB.transaction_hash.toLowerCase() },
+    });
+    expect(donationB).to.not.be.null;
+
+    const freshB = await DraftDonation.findOne({ where: { id: draftB.id } });
+    expect(freshB!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+    expect(freshB!.matchedDonationId).to.equal(donationB!.id);
+
+    // Draft A keeps its own donation
+    const freshA = await DraftDonation.findOne({ where: { id: draftA.id } });
+    expect(freshA!.matchedDonationId).to.equal(donationA.id);
+  });
+
+  it('should fail an expired draft whose only candidate payment belongs to another draft', async () => {
+    const draftA = await createStellarDraft();
+    const draftB = await createStellarDraft({
+      toWalletAddress: draftA.toWalletAddress,
+      createdAt: new Date(Date.now() - 30 * 60 * 1000),
+      expiresAt: new Date(Date.now() - 10 * 60 * 1000),
+    });
+
+    // A payment inside draft B's window, but already claimed by draft A: it
+    // must neither match draft B nor leave it pending forever.
+    const paymentA = stellarPayment(draftA, {
+      createdAt: new Date(Date.now() - 15 * 60 * 1000),
+    });
+    const donationA = await saveDonationDirectlyToDb(
+      {
+        transactionId: paymentA.transaction_hash.toLowerCase(),
+        transactionNetworkId: NETWORK_IDS.STELLAR_MAINNET,
+        toWalletAddress: draftA.toWalletAddress,
+        fromWalletAddress: paymentA.source_account,
+        currency: 'XLM',
+        anonymous: false,
+        amount: draftA.amount,
+        createdAt: new Date(Date.now() - 15 * 60 * 1000),
+        status: DONATION_STATUS.VERIFIED,
+        projectId: project.id,
+      },
+      undefined,
+      project.id,
+    );
+    await DraftDonation.update(
+      { id: draftA.id },
+      {
+        status: DRAFT_DONATION_STATUS.MATCHED,
+        matchedDonationId: donationA.id,
+      },
+    );
+    stubHorizonPayments([paymentA]);
+
+    await checkTransactions(draftB, 'stellar-cron');
+
+    const freshB = await DraftDonation.findOne({ where: { id: draftB.id } });
+    expect(freshB!.status).to.equal(DRAFT_DONATION_STATUS.FAILED);
+    expect(freshB!.matchedDonationId).to.be.null;
+
+    // No second donation was created for the claimed payment
+    const donations = await Donation.find({
+      where: { transactionId: paymentA.transaction_hash.toLowerCase() },
+    });
+    expect(donations.length).to.equal(1);
   });
 }
