@@ -1,6 +1,5 @@
 import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { WorkerModule } from 'threads/dist/types/worker';
-import { DRAFT_DONATION_STATUS } from '../../../entities/draftDonation';
 import { ApolloContext } from '../../../types/ApolloContext';
 import { logger } from '../../../utils/logger';
 import {
@@ -68,6 +67,33 @@ export async function matchDraftRecurringDonations(
   }
 }
 
+// Atomic, guarded failure transition: only applied while the draft is still in
+// `requiredStatus` (or, by default, anything but matched), so a concurrent
+// match can never be overwritten by a late failure.
+async function failDraftRecurringDonation(
+  draftRecurringDonationId: number,
+  errorMessage: string,
+  requiredStatus?: string,
+): Promise<void> {
+  const queryBuilder = DraftRecurringDonation.createQueryBuilder()
+    .update()
+    .set({
+      status: DRAFT_RECURRING_DONATION_STATUS.FAILED,
+      errorMessage,
+    })
+    .where('id = :id', { id: draftRecurringDonationId });
+
+  if (requiredStatus) {
+    queryBuilder.andWhere('status = :requiredStatus', { requiredStatus });
+  } else {
+    queryBuilder.andWhere('status != :matchedStatus', {
+      matchedStatus: DRAFT_RECURRING_DONATION_STATUS.MATCHED,
+    });
+  }
+
+  await queryBuilder.execute();
+}
+
 async function submitMatchedDraftRecurringDonation(
   draftRecurringDonation: DraftRecurringDonation,
   tx: FlowUpdatedEvent,
@@ -87,13 +113,13 @@ async function submitMatchedDraftRecurringDonation(
   });
 
   if (existingRecurringDonation) {
-    // Check whether the donation has not been saved during matching procedure
-    await draftRecurringDonation.reload();
-    if (draftRecurringDonation.status === DRAFT_DONATION_STATUS.PENDING) {
-      draftRecurringDonation.status = DRAFT_DONATION_STATUS.FAILED;
-      draftRecurringDonation.errorMessage = `Recurring donation with same networkId and txHash with ID ${existingRecurringDonation.id} already exists`;
-      await draftRecurringDonation.save();
-    }
+    // Guarded update instead of reload-check-save: a draft that got matched
+    // between the read and the write must not be overwritten to failed.
+    await failDraftRecurringDonation(
+      draftRecurringDonation.id,
+      `Recurring donation with same networkId and txHash with ID ${existingRecurringDonation.id} already exists`,
+      DRAFT_RECURRING_DONATION_STATUS.PENDING,
+    );
     return;
   }
 
@@ -169,9 +195,7 @@ async function submitMatchedDraftRecurringDonation(
       `Error on creating donation for draftDonation with ID ${draftRecurringDonation.id}`,
       e,
     );
-    draftRecurringDonation.status = DRAFT_RECURRING_DONATION_STATUS.FAILED;
-    draftRecurringDonation.errorMessage = e.message;
-    await draftRecurringDonation.save();
+    await failDraftRecurringDonation(draftRecurringDonation.id, e.message);
   }
 }
 

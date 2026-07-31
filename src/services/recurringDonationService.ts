@@ -34,13 +34,8 @@ import {
 import { calculateGivbackFactor } from './givbackService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 import { User } from '../entities/user';
-import { QfRound } from '../entities/qfRound';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
-import { relatedActiveQfRoundForProject } from './qfRoundService';
-import {
-  selectQfRoundForProject,
-  QfRoundSmartSelectError,
-} from './qfRoundSmartSelectService';
+import { selectQfRoundForProjectWithFallback } from './qfRoundSmartSelectService';
 import { updateProjectStatistics } from './projectService';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 
@@ -219,50 +214,17 @@ export const createRelatedDonationsToStream = async (
       });
 
       // Use smart select logic to find the best QF round for this project and network
-      try {
-        const smartSelectedQfRound = await selectQfRoundForProject(
-          networkId,
-          project.id,
-        );
-
-        // Find the actual QfRound entity to assign to the donation
-        const qfRound = await QfRound.findOneBy({
-          id: smartSelectedQfRound.qfRoundId,
+      const qfRound = await selectQfRoundForProjectWithFallback(
+        networkId,
+        project.id,
+        { recurringDonationId: recurringDonation.id },
+      );
+      if (qfRound) {
+        const projectOwner = await User.findOneBy({
+          id: project.adminUserId,
         });
-        if (qfRound) {
-          const projectOwner = await User.findOneBy({
-            id: project.adminUserId,
-          });
-          donation.qfRound = qfRound;
-          donation.qfRoundUserScore = projectOwner?.passportScore;
-        }
-      } catch (error) {
-        // If smart select fails (no eligible QF rounds), fall back to the old logic
-        if (error instanceof QfRoundSmartSelectError) {
-          logger.debug(
-            `Smart select failed for recurring donation, falling back to old logic: ${error.message}`,
-            {
-              projectId: project.id,
-              networkId,
-              recurringDonationId: recurringDonation.id,
-            },
-          );
-
-          const activeQfRoundForProject = await relatedActiveQfRoundForProject(
-            project.id,
-          );
-
-          if (
-            activeQfRoundForProject &&
-            activeQfRoundForProject.isEligibleNetwork(networkId)
-          ) {
-            const projectOwner = await User.findOneBy({
-              id: project.adminUserId,
-            });
-            donation.qfRound = activeQfRoundForProject;
-            donation.qfRoundUserScore = projectOwner?.passportScore;
-          }
-        }
+        donation.qfRound = qfRound;
+        donation.qfRoundUserScore = projectOwner?.passportScore;
       }
 
       const { givbackFactor, projectRank, bottomRankInRound, powerRound } =

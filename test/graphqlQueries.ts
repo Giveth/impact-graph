@@ -172,6 +172,20 @@ export const renewDraftDonationExpirationDateMutation = `
   }
 `;
 
+export const getDraftDonationByIdQuery = `
+  query (
+    $id: Int!
+  ) {
+    getDraftDonationById(
+      id: $id
+    ) {
+      id
+      status
+      matchedDonationId
+    }
+  }
+`;
+
 export const markDraftDonationAsFailedDateMutation = `
   mutation (
     $id: Int!
