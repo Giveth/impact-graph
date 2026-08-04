@@ -269,7 +269,8 @@ jobs:
             docker pull "$IMG"
             # Recreate ONLY the staging jobs worker. Image var is scoped inline (not written to a shared
             # .env.impact-graph) so a staging deploy never repins the prod jobs worker on this same box.
-            IMPACT_GRAPH_IMAGE="$IMG" docker compose -f docker-compose.jobs.yml up -d --no-deps --force-recreate impact-graph-jobs-staging
+            # The prod worker lives in a separate clone (~/giveth-all-prod) with its own compose file.
+            IMPACT_GRAPH_IMAGE="$IMG" docker compose -f docker-compose.jobs.staging.yml up -d --no-deps --force-recreate impact-graph-jobs-staging
             # Confirm it stayed up (not crash-looping)
             sleep 10
             status=$(docker inspect --format='{{.State.Status}}' impact-graph-jobs-staging 2>/dev/null || echo "missing")

@@ -203,7 +203,7 @@ jobs:
             # Recreate ONLY the prod jobs worker. Image is scoped inline so a prod
             # deploy never repins the staging worker on this same box.
             IMPACT_GRAPH_IMAGE="$IMG" \
-              docker compose -f docker-compose.jobs.yml up -d --no-deps --force-recreate impact-graph-jobs-prod
+              docker compose -f docker-compose.jobs.prod.yml up -d --no-deps --force-recreate impact-graph-jobs-prod
             # Confirm it stayed up (not crash-looping). No healthcheck on this
             # service, so assert on container state instead.
             sleep 10
