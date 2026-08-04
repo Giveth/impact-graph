@@ -13,7 +13,6 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
-  dbIndependentTests,
 } from '../../test/testUtils';
 import {
   insertSinglePowerBoosting,
@@ -32,33 +31,31 @@ import { PowerRound } from '../entities/powerRound';
 import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from './powerSnapshotRepository';
 
-describe(
-  'copyProjectRanksToPreviousRoundRankTable test cases',
-  copyProjectRanksToPreviousRoundRankTableTestCases,
-);
-describe(
-  'deleteAllPreviousRoundRanks test cases',
-  deleteAllPreviousRoundRanksTestCases,
-);
-describe(
-  'projectsThatTheirRanksHaveChanged test cases',
-  projectsThatTheirRanksHaveChangedTestCases,
-);
+describe('previousRoundRankRepository test cases', () => {
+  beforeEach(async () => {
+    await AppDataSource.getDataSource().query(
+      'TRUNCATE power_snapshot CASCADE',
+    );
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+    await PreviousRoundRank.clear();
+    await PowerRound.clear();
 
-beforeEach(async function () {
-  const { title } = this.currentTest?.parent || {};
+    await createSomeSampleProjectsAndPowerViews();
+  });
 
-  if (title && dbIndependentTests.includes(title)) {
-    return;
-  }
-
-  await AppDataSource.getDataSource().query('TRUNCATE power_snapshot CASCADE');
-  await PowerBalanceSnapshot.clear();
-  await PowerBoostingSnapshot.clear();
-  await PreviousRoundRank.clear();
-  await PowerRound.clear();
-
-  await createSomeSampleProjectsAndPowerViews();
+  describe(
+    'copyProjectRanksToPreviousRoundRankTable test cases',
+    copyProjectRanksToPreviousRoundRankTableTestCases,
+  );
+  describe(
+    'deleteAllPreviousRoundRanks test cases',
+    deleteAllPreviousRoundRanksTestCases,
+  );
+  describe(
+    'projectsThatTheirRanksHaveChanged test cases',
+    projectsThatTheirRanksHaveChangedTestCases,
+  );
 });
 
 const createSomeSampleProjectsAndPowerViews = async () => {
