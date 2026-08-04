@@ -73,8 +73,27 @@ jobs:
             cd giveth-all
             docker compose pull
 
-  rollout-deploy-1:
+  migrate:
     needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Run DB Migrations (one-shot)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST_ALL }}
+          username: ${{ secrets.PROD_USERNAME_ALL }}
+          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd giveth-all
+            echo "Running database migrations (one-shot) before rollout"
+            # One-shot container: runs migrations, then exits. Non-zero exit fails the deploy.
+            docker compose run --rm impact-graph-migrations
+            echo "Migrations complete"
+
+  rollout-deploy-1:
+    needs: migrate
     runs-on: ubuntu-latest
     steps:
       - name: SSH and Redeploy

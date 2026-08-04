@@ -16,6 +16,7 @@ import { ApolloContext } from '../../../types/ApolloContext';
 import { logger } from '../../../utils/logger';
 import { DraftDonationWorker } from '../../../workers/draftDonationMatchWorker';
 import { normalizeAmount } from '../../../utils/utils';
+import { updateDraftDonationStatus } from '../../../repositories/draftDonationRepository';
 
 export const isAmountWithinTolerance = (
   transactionInput,
@@ -245,13 +246,14 @@ async function submitMatchedDraftDonation(
   });
 
   if (existingDonation) {
-    // Check whether the donation has not been saved during matching procedure
-    await draftDonation.reload();
-    if (draftDonation.status === DRAFT_DONATION_STATUS.PENDING) {
-      draftDonation.status = DRAFT_DONATION_STATUS.FAILED;
-      draftDonation.errorMessage = `Donation with same networkId and txHash with ID ${existingDonation.id} already exists`;
-      await draftDonation.save();
-    }
+    // Guarded conditional update: skipped if the draft was matched during
+    // the matching procedure, so failed never overwrites matched.
+    await updateDraftDonationStatus({
+      donationId: draftDonation.id,
+      status: DRAFT_DONATION_STATUS.FAILED,
+      errorMessage: `Donation with same networkId and txHash with ID ${existingDonation.id} already exists`,
+      source: 'evm-matcher',
+    });
     return;
   }
 
@@ -311,9 +313,14 @@ async function submitMatchedDraftDonation(
       `Error on creating donation for draftDonation with ID ${draftDonation.id}`,
       e,
     );
-    draftDonation.status = DRAFT_DONATION_STATUS.FAILED;
-    draftDonation.errorMessage = e.message;
-    await draftDonation.save();
+    // Guarded conditional update: createDonation may already have marked the
+    // draft matched before the error, and that must never be overwritten.
+    await updateDraftDonationStatus({
+      donationId: draftDonation.id,
+      status: DRAFT_DONATION_STATUS.FAILED,
+      errorMessage: e.message,
+      source: 'evm-matcher',
+    });
   }
 }
 

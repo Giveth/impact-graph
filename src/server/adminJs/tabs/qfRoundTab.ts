@@ -32,14 +32,12 @@ import {
 } from '../adminJs-types';
 import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
 
-let initialProjectIds: number[] = [];
-
 export const refreshMaterializedViews: After<
   ActionResponse
 > = async response => {
   const record: RecordJSON = response.record || {};
   const qfRoundId = record.params.id;
-  const projectIds = await getRelatedProjectsOfQfRound(qfRoundId);
+  const projects = await getRelatedProjectsOfQfRound(qfRoundId);
 
   // Clear the cache of the active qf round
   await AppDataSource.queryResultCache?.remove(['findActiveQfRound']);
@@ -47,12 +45,11 @@ export const refreshMaterializedViews: After<
   await refreshProjectEstimatedMatchingView();
   await refreshProjectActualMatchingView();
 
-  initialProjectIds = [...projectIds.map(project => project.id)];
   response.record = {
     ...record,
     params: {
       ...record.params,
-      projectIdsList: initialProjectIds.join(','),
+      projectIdsList: projects.map(project => project.id).join(','),
     },
   };
 
@@ -213,11 +210,15 @@ async function validateQfRound(payload: {
   }
 
   const currentProjectIds = payload.projectIdsList
-    ? payload.projectIdsList.split(',').map(Number)
+    ? payload.projectIdsList
+        .split(',')
+        .map(id => id.trim())
+        .filter(id => id !== '')
+        .map(id => Number(id))
+        // Drop NaN and non-positive ids so empty/whitespace/comma-only tokens
+        // don't turn into project id 0 (Number('') === 0).
+        .filter(id => !Number.isNaN(id) && id > 0)
     : [];
-  const removedProjectIds = initialProjectIds.filter(
-    id => !currentProjectIds.includes(id),
-  );
 
   // Use the new endDate from payload if provided, otherwise use the existing one
   const effectiveEndDate = payload.endDate || qfRound.endDate;
@@ -225,27 +226,44 @@ async function validateQfRound(payload: {
   if (isQfRoundHasEnded({ endDate: effectiveEndDate })) {
     // When qf round is ended we should not be able to edit begin date and end date
     // https://github.com/Giveth/giveth-dapps-v2/issues/3864
+    // Project relations are also locked for ended rounds.
     payload.endDate = qfRound.endDate;
     payload.beginDate = qfRound.beginDate;
     payload.isActive = qfRound.isActive;
-  } else if (qfRound.isActive) {
-    if (currentProjectIds.length > 0) {
-      await relateManyProjectsToQfRound({
-        projectIds: currentProjectIds,
-        qfRound,
-        add: true,
-      });
-    }
-    if (removedProjectIds.length > 0) {
-      await relateManyProjectsToQfRound({
-        projectIds: removedProjectIds,
-        qfRound,
-        add: false,
-      });
-    }
-    if (payload.isDataAnalysisDone) {
-      payload.isDataAnalysisDone = false;
-    }
+    return;
+  }
+
+  // For any round that hasn't ended (active or upcoming), sync project
+  // relations by diffing the submitted list against the round's CURRENT
+  // related projects in the DB. This targets THIS specific round, so it works
+  // correctly even when multiple qf rounds are active simultaneously.
+  const existingProjectIds = (await getRelatedProjectsOfQfRound(qfRoundId)).map(
+    project => project.id,
+  );
+
+  const addedProjectIds = currentProjectIds.filter(
+    id => !existingProjectIds.includes(id),
+  );
+  const removedProjectIds = existingProjectIds.filter(
+    id => !currentProjectIds.includes(id),
+  );
+
+  if (addedProjectIds.length > 0) {
+    await relateManyProjectsToQfRound({
+      projectIds: addedProjectIds,
+      qfRound,
+      add: true,
+    });
+  }
+  if (removedProjectIds.length > 0) {
+    await relateManyProjectsToQfRound({
+      projectIds: removedProjectIds,
+      qfRound,
+      add: false,
+    });
+  }
+  if (qfRound.isActive && payload.isDataAnalysisDone) {
+    payload.isDataAnalysisDone = false;
   }
 }
 
@@ -600,6 +618,26 @@ export const qfRoundTab = {
           let message = 'QF Round updated successfully';
           let type = 'success';
 
+          // On form load (GET) pre-fill the projectIdsList textarea with the
+          // round's current related projects so the admin can edit the list.
+          if (request.method === 'get') {
+            const qfRoundId = Number(request.params?.recordId);
+            // getRelatedProjectsOfQfRound interpolates qfRoundId directly into
+            // raw SQL, so guard against NaN/invalid ids before querying.
+            if (!qfRoundId || Number.isNaN(qfRoundId)) {
+              logger.error(
+                'Invalid qfRoundId in QF Round edit GET request:',
+                request.params?.recordId,
+              );
+              return { record: record.toJSON(currentAdmin) };
+            }
+            const projects = await getRelatedProjectsOfQfRound(qfRoundId);
+            record.params.projectIdsList = projects
+              .map(project => project.id)
+              .join(',');
+            return { record: record.toJSON(currentAdmin) };
+          }
+
           try {
             // Check max active rounds limit before processing
             if (request.payload.isActive === true) {
@@ -655,7 +693,10 @@ export const qfRoundTab = {
             const processedPayload: any = {};
 
             Object.keys(updatePayload).forEach(key => {
-              if (key.startsWith('eligibleNetworks.')) {
+              if (key === 'projectIdsList') {
+                // Virtual field handled in validateQfRound, not a DB column
+                return;
+              } else if (key.startsWith('eligibleNetworks.')) {
                 // Handle eligibleNetworks array
                 if (!processedPayload.eligibleNetworks) {
                   processedPayload.eligibleNetworks = [];
@@ -697,6 +738,26 @@ export const qfRoundTab = {
               message = error.message || 'Error updating QF Round';
             }
             type = 'danger';
+          }
+
+          // After a successful save, project relations and/or round fields may
+          // have changed. Clear the active-round cache and refresh the matching
+          // views so the cached active round and estimated/actual matching
+          // numbers don't go stale until the next cron run.
+          // (GET form-loads return early above, so this only runs on save.)
+          if (type === 'success') {
+            try {
+              await AppDataSource.queryResultCache?.remove([
+                'findActiveQfRound',
+              ]);
+              await refreshProjectEstimatedMatchingView();
+              await refreshProjectActualMatchingView();
+            } catch (refreshError) {
+              logger.error(
+                'Error refreshing QF Round views/cache after edit:',
+                refreshError,
+              );
+            }
           }
 
           return {

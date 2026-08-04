@@ -26,9 +26,18 @@ import {
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
 } from '../repositories/recurringDonationRepository';
 import { RecurringDonation } from '../entities/recurringDonation';
-import { checkTransactions } from '../services/cronJobs/checkQRTransactionJob';
+import {
+  checkTransactions,
+  reconcileDraftWithMatchedDonation,
+  DRAFT_DONATION_EXPIRY_GRACE_MS,
+} from '../services/cronJobs/checkQRTransactionJob';
 import { findProjectById } from '../repositories/projectRepository';
 import { notifyDonationFailed } from '../services/sse/sse';
+import {
+  noLiveMatchedDonationSql,
+  updateDraftDonationStatus,
+} from '../repositories/draftDonationRepository';
+import { DONATION_STATUS } from '../entities/donation';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 const draftRecurringDonationEnabled =
@@ -431,12 +440,46 @@ export class DraftDonationResolver {
 
     if (!draftDonation) return null;
 
+    // Repair inconsistent state: a draft that references a non-failed
+    // donation is a successful donation, whatever its stored status says.
+    if (draftDonation.matchedDonationId) {
+      const matchedDonation = await reconcileDraftWithMatchedDonation(
+        draftDonation,
+        'graphql-get',
+      );
+      if (matchedDonation) {
+        draftDonation.status = DRAFT_DONATION_STATUS.MATCHED;
+        draftDonation.matchedDonationId = matchedDonation.id;
+        draftDonation.fromWalletAddress = matchedDonation.fromWalletAddress;
+        return draftDonation;
+      }
+      if (draftDonation.status === DRAFT_DONATION_STATUS.MATCHED) {
+        // The donation this draft was matched to has failed since, and the
+        // reconciliation above moved the draft to failed: report the stored
+        // state rather than the success we read a moment ago.
+        const repaired = await DraftDonation.findOne({ where: { id } });
+        if (repaired) return repaired;
+      }
+    }
+
     if (
+      draftDonation.status === DRAFT_DONATION_STATUS.PENDING &&
       draftDonation.expiresAt &&
-      new Date(draftDonation.expiresAt).getTime < new Date().getTime
+      new Date(draftDonation.expiresAt).getTime() +
+        DRAFT_DONATION_EXPIRY_GRACE_MS <
+        Date.now()
     ) {
-      await DraftDonation.update({ id }, { status: 'failed' });
-      draftDonation.status = 'failed';
+      // Conditional update, with the same grace minute the matcher gives a
+      // late payment: skipped if the draft got matched or renewed meanwhile.
+      const failed = await updateDraftDonationStatus({
+        donationId: id,
+        status: DRAFT_DONATION_STATUS.FAILED,
+        expiresBefore: new Date(Date.now() - DRAFT_DONATION_EXPIRY_GRACE_MS),
+        source: 'graphql-get',
+      });
+      if (failed) {
+        draftDonation.status = DRAFT_DONATION_STATUS.FAILED;
+      }
     }
 
     return draftDonation;
@@ -455,6 +498,18 @@ export class DraftDonationResolver {
 
       if (!draftDonation) return false;
 
+      // A draft referencing a live donation is a successful donation,
+      // whatever its stored status says; repair it instead of confirming
+      // the failure. A failed or deleted referenced donation falls through
+      // to the normal failure handling below.
+      if (draftDonation.matchedDonationId) {
+        const matchedDonation = await reconcileDraftWithMatchedDonation(
+          draftDonation,
+          'graphql-timeout',
+        );
+        if (matchedDonation) return false;
+      }
+
       if (draftDonation.status === DRAFT_DONATION_STATUS.FAILED) {
         return true;
       }
@@ -465,10 +520,20 @@ export class DraftDonationResolver {
       )
         return false;
 
-      await DraftDonation.update(
-        { id },
-        { status: DRAFT_DONATION_STATUS.FAILED },
-      );
+      // Conditional update: refuses to fail a draft that got matched (or
+      // linked to a live donation) after the read above.
+      const updated = await updateDraftDonationStatus({
+        donationId: id,
+        status: DRAFT_DONATION_STATUS.FAILED,
+        source: 'graphql-timeout',
+      });
+
+      if (!updated) {
+        const freshDraftDonation = await DraftDonation.findOne({
+          where: { id },
+        });
+        return freshDraftDonation?.status === DRAFT_DONATION_STATUS.FAILED;
+      }
 
       // Notify clients of new donation
       notifyDonationFailed({
@@ -504,16 +569,40 @@ export class DraftDonationResolver {
         .andWhere('draftDonation.status != :status', {
           status: DRAFT_DONATION_STATUS.MATCHED,
         })
+        .andWhere(
+          noLiveMatchedDonationSql('"draftDonation"."matchedDonationId"'),
+          { failedDonationStatus: DONATION_STATUS.FAILED },
+        )
         .getOne();
 
       if (!draftDonation) {
         throw new Error(translationErrorMessagesKeys.DRAFT_DONATION_NOT_FOUND);
       }
 
-      await DraftDonation.update({ id }, { expiresAt, status: 'pending' });
+      // Conditional update: if the draft got matched (or linked to a live
+      // donation) between the read above and this write, the match wins and
+      // the renewal is rejected. A draft whose referenced donation failed
+      // may be renewed so the donor can retry the payment.
+      const result = await DraftDonation.createQueryBuilder()
+        .update()
+        .set({ expiresAt, status: DRAFT_DONATION_STATUS.PENDING })
+        .where('id = :id', { id })
+        .andWhere('status != :status', {
+          status: DRAFT_DONATION_STATUS.MATCHED,
+        })
+        .andWhere(
+          noLiveMatchedDonationSql('draft_donation."matchedDonationId"'),
+          { failedDonationStatus: DONATION_STATUS.FAILED },
+        )
+        .execute();
+
+      if (!result.affected) {
+        throw new Error(translationErrorMessagesKeys.DRAFT_DONATION_NOT_FOUND);
+      }
 
       return {
         ...draftDonation,
+        status: DRAFT_DONATION_STATUS.PENDING,
         expiresAt,
       } as DraftDonation;
     } catch (e) {
@@ -538,7 +627,7 @@ export class DraftDonationResolver {
       if (!draftDonation) return null;
 
       if (draftDonation.isQRDonation) {
-        await checkTransactions(draftDonation);
+        await checkTransactions(draftDonation, 'graphql-verify');
       }
 
       return await DraftDonation.createQueryBuilder('draftDonation')

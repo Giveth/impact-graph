@@ -1,5 +1,5 @@
 #https://hub.docker.com/_/node?tab=tags&page=1
-FROM node:20.11.0-alpine3.18
+FROM node:22.18.0-alpine3.21
 
 WORKDIR /usr/src/app
 
@@ -11,7 +11,7 @@ COPY tsconfig.json .
 
 RUN apk add --update alpine-sdk
 RUN apk add git python3
-RUN apk add --no-cache  chromium --repository=http://dl-cdn.alpinelinux.org/alpine/v3.18/main
+RUN apk add --no-cache  chromium --repository=http://dl-cdn.alpinelinux.org/alpine/v3.21/main
 RUN npm ci
 RUN npm i -g ts-node
 
@@ -23,3 +23,8 @@ COPY test ./test
 COPY migration ./migration
 
 RUN npm run build
+
+# Default startup runs the app WITHOUT migrations. Database migrations are run by a
+# dedicated one-shot container/CI step (npm run db:migrate:run:production) to avoid multiple
+# replicas racing to migrate on boot. Compose services may override this command.
+CMD ["npm", "run", "production"]

@@ -1,5 +1,7 @@
 import { QfRound } from '../entities/qfRound';
 import { getProjectQfRoundStats } from '../repositories/donationRepository';
+import { logger } from '../utils/logger';
+import { relatedActiveQfRoundForProject } from './qfRoundService';
 
 export interface QfRoundSmartSelectResult {
   qfRoundId: number;
@@ -131,4 +133,46 @@ export async function selectQfRoundForProject(
     uniqueDonors: projectStats.uniqueDonorsCount,
     donationsCount: projectStats.donationsCount,
   };
+}
+
+/**
+ * selectQfRoundForProject plus the historical fallback, so every caller that
+ * needs a QfRound for a donation shares one definition of the rules: when
+ * smart select finds no eligible round, fall back to the project's active QF
+ * round, and only if that round is eligible for the network.
+ * @returns the selected QfRound, or undefined when neither path yields one
+ */
+export async function selectQfRoundForProjectWithFallback(
+  networkId: number,
+  projectId: number,
+  logContext: Record<string, unknown> = {},
+): Promise<QfRound | undefined> {
+  try {
+    const smartSelectedQfRound = await selectQfRoundForProject(
+      networkId,
+      projectId,
+    );
+    return (
+      (await QfRound.findOneBy({ id: smartSelectedQfRound.qfRoundId })) ||
+      undefined
+    );
+  } catch (error) {
+    if (error instanceof QfRoundSmartSelectError) {
+      logger.debug(
+        `Smart select failed, falling back to old logic: ${error.message}`,
+        { projectId, networkId, ...logContext },
+      );
+
+      const activeQfRoundForProject =
+        await relatedActiveQfRoundForProject(projectId);
+
+      if (
+        activeQfRoundForProject &&
+        activeQfRoundForProject.isEligibleNetwork(networkId)
+      ) {
+        return activeQfRoundForProject;
+      }
+    }
+    return undefined;
+  }
 }
