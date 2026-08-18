@@ -66,7 +66,6 @@ import { runProjectEvaluationCronJob } from '../services/cronJobs/projectEvaluat
 import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
 import { runCheckPendingSwapsCronJob } from '../services/cronJobs/syncSwapTransactions';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
-import { runGiveconomyPowerSyncCronJob } from '../services/cronJobs/syncGiveconomyPowerEvents';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
 import { refreshProjectEstimatedMatchingView } from '../services/projectViewsService';
@@ -549,7 +548,6 @@ export async function bootstrap() {
       UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE: config.get(
         'UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE',
       ),
-      ENABLE_GIVECONOMY_POWER_SYNC: process.env.ENABLE_GIVECONOMY_POWER_SYNC,
       ENABLE_INSTANT_BOOSTING_UPDATE: config.get(
         'ENABLE_INSTANT_BOOSTING_UPDATE',
       ),
@@ -562,9 +560,6 @@ export async function bootstrap() {
     });
     if (process.env.UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE === 'true') {
       runUpdatePowerRoundCronJob();
-    }
-    if (process.env.ENABLE_GIVECONOMY_POWER_SYNC === 'true') {
-      runGiveconomyPowerSyncCronJob();
     }
     if (process.env.ENABLE_INSTANT_BOOSTING_UPDATE === 'true') {
       runInstantBoostingUpdateCronJob();

@@ -33,22 +33,3 @@ export const getPowerSyncOutboxEventsAfterId = async (
     .take(take)
     .getMany();
 };
-
-export const getLatestPowerSyncOutboxEventForUser = async (params: {
-  sourceSystem: string;
-  eventType: string;
-  userId: number;
-}): Promise<PowerSyncOutboxEvent | null> => {
-  return PowerSyncOutboxEvent.createQueryBuilder('powerSyncOutboxEvent')
-    .where('powerSyncOutboxEvent.sourceSystem = :sourceSystem', {
-      sourceSystem: params.sourceSystem,
-    })
-    .andWhere('powerSyncOutboxEvent.eventType = :eventType', {
-      eventType: params.eventType,
-    })
-    .andWhere('powerSyncOutboxEvent.userId = :userId', {
-      userId: params.userId,
-    })
-    .orderBy('powerSyncOutboxEvent.id', 'DESC')
-    .getOne();
-};
