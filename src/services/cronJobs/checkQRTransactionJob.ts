@@ -29,6 +29,10 @@ import { QfRound } from '../../entities/qfRound';
 import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
 import { notifyClients } from '../sse/sse';
 import { calculateGivbackFactor } from '../givbackService';
+import {
+  isNativeStellarDeposit,
+  stellarOperationAmount,
+} from '../chains/stellar/stellarOperations';
 
 const STELLAR_HORIZON_API =
   (config.get('STELLAR_HORIZON_API_URL') as string) ||
@@ -67,12 +71,31 @@ export const DRAFT_DONATION_EXPIRY_GRACE_MS = 60 * 1000;
 // its expiry, so a payment Horizon indexed late (after the frontend timed
 // the draft out via markDraftDonationAsFailed) can still be reconciled to
 // matched. Bounded so failed drafts are not Horizon-scanned forever.
+// NOTE: the CASE 1 payment-acceptance window below is derived from this
+// value — tuning this constant changes both scanning cost and which late
+// payments are accepted.
 export const QR_FAILED_DRAFT_RECONCILIATION_WINDOW_MS = 30 * 60 * 1000;
+// How long after expiry (plus grace) a memo-identified (CASE 1, see
+// checkTransactions) payment is still accepted. Deliberately the same span
+// as the reconciliation window: the cron stops scanning a draft when that
+// window closes, so a longer acceptance window would be unreachable there —
+// but verifyQRDonationTransaction has no scannability filter, so this bound
+// is what limits late matches on the user-triggered verify path.
+export const QR_LATE_PAYMENT_ACCEPTANCE_WINDOW_MS =
+  QR_FAILED_DRAFT_RECONCILIATION_WINDOW_MS;
 // How long a matcher waits for another execution's per-draft or per-tx lock,
 // and the cap on any single Horizon request. Bounded so a hung execution can
 // only delay a draft, never pin connections or wedge the cron indefinitely.
 const QR_DRAFT_LOCK_WAIT_MS = 30 * 1000;
 const HORIZON_REQUEST_TIMEOUT_MS = 30 * 1000;
+
+// DraftDonation.amount and Donation.amount are Postgres `real` (float4)
+// columns, so an amount with more than float4's ~7 significant digits reads
+// back as a slightly different double than the exact on-chain value. Compare
+// amounts at float4 precision so a donor's exact payment still matches such
+// a draft.
+const amountsMatchAtFloat4Precision = (a: number, b: number): boolean =>
+  Math.fround(a) === Math.fround(b);
 
 // Only the cron waits for a contended lock: it is a single sequential runner,
 // and waiting lets it finish a draft this tick. The public
@@ -414,6 +437,45 @@ export async function checkTransactions(
     const CLOCK_SKEW = 60 * 1000;
     const draftCreatedAt = new Date(donation.createdAt).getTime();
 
+    // Two matching regimes, depending on whether the recipient address
+    // requires its own memo (toWalletMemo). This block is the single source
+    // of truth for the regime; the identification pass, the candidate
+    // ordering, and the under-lock re-check below all point back here.
+    // - CASE 1 (no recipient memo): the Stellar memo carries this draft's
+    //   unique id, so memo + destination identify the payment — for every
+    //   operation type, create_account included. The amount is whatever
+    //   actually arrived (exchanges like Binance deduct their withdrawal fee
+    //   before broadcasting), and because the memo identifies the draft, a
+    //   payment broadcast after expiry stays acceptable for
+    //   QR_LATE_PAYMENT_ACCEPTANCE_WINDOW_MS.
+    // - CASE 2 (recipient requires its own memo): several drafts to the same
+    //   project can share destination and memo, so the draft amount remains
+    //   the only disambiguator (compared at float4 precision, the column
+    //   type) and the validity window stays tight: without a unique
+    //   identifier a late payment must not be guessed at. create_account has
+    //   no memo to distinguish it with, so it keeps amount-only matching.
+    // Known limitation, accepted with issue #2347: CASE 1 deliberately has
+    // no amount condition — an exact, tolerance or minimum-amount rule would
+    // reject legitimately fee-reduced payments. Because the memo is the
+    // draft's sequential id (public via the QR and enumerable), a third
+    // party can send a dust payment carrying a pending draft's memo. The
+    // candidate ordering below picks the real payment whenever both are on
+    // the Horizon page, but a dust payment scanned on a tick before the real
+    // one exists still claims the draft, and the real payment then needs
+    // manual reconciliation. Fully closing this needs a product change — an
+    // unguessable memo token instead of the draft id, or crediting every
+    // memo-matching payment — not a matching-rule tweak.
+    // Known limitation (pre-existing): donations are keyed by transaction
+    // hash, so one exchange batch transaction carrying payments for TWO
+    // CASE 2 drafts (same address and memo, different amounts) can only ever
+    // credit one of them — the second draft skips the already-claimed hash
+    // until it fails at expiry. Crediting both needs per-(hash, operation)
+    // donation keying, a schema/product decision.
+    const requiresRecipientMemo = Boolean(toWalletMemo);
+    const paymentWindowEndMs = requiresRecipientMemo
+      ? expiresAtDate
+      : expiresAtDate + QR_LATE_PAYMENT_ACCEPTANCE_WINDOW_MS;
+
     // Prepared at most once per draft (it depends only on the draft), so a
     // payment that turns out to belong to another draft does not repeat the
     // Coingecko price call and the token/project/user/QF-round queries.
@@ -423,267 +485,314 @@ export async function checkTransactions(
     // failed insert). Scanning stops for this tick; see the handling below.
     let abortReason: string | undefined;
 
+    // First pass — identification only, pure and in-memory: which operations
+    // on the page belong to this draft at all (operation shape, destination,
+    // validity window, memo). The matching flow below then runs over these
+    // candidates only.
+    const candidates: { transaction: any; opAmount: number }[] = [];
     for (const transaction of transactions) {
       const transactionCreatedAt = new Date(transaction.created_at).getTime();
+      // What this operation transferred on-chain — the one number the amount
+      // check, the ranking, and the recorded donation amount all judge.
+      // (isNativeStellarDeposit guarantees it is finite for candidates.)
+      const opAmount = stellarOperationAmount(transaction);
 
-      const isNativePayment =
-        transaction.asset_type === 'native' &&
-        transaction.type === 'payment' &&
-        transaction.to === toWalletAddress &&
-        Number(transaction.amount) === amount;
+      // CASE 1 waives the amount for every operation type (identification is
+      // the memo check below); CASE 2 requires the draft amount.
+      const amountMatches =
+        !requiresRecipientMemo ||
+        amountsMatchAtFloat4Precision(opAmount, amount);
 
-      const isCreateAccount =
-        transaction.type === 'create_account' &&
-        transaction.account === toWalletAddress &&
-        Number(transaction.starting_balance) === amount;
-
-      // The payment must fall inside the draft's validity window: not before
-      // creation (minus clock skew) and not after expiry (plus the same grace
-      // minute the expiry check uses).
+      // Validity window: not before creation (minus clock skew) and not
+      // after the case-dependent end (see paymentWindowEndMs above).
       const isMatchingTransaction =
-        (isNativePayment || isCreateAccount) &&
+        isNativeStellarDeposit(transaction, toWalletAddress) &&
+        amountMatches &&
         transactionCreatedAt >= draftCreatedAt - CLOCK_SKEW &&
-        transactionCreatedAt <= expiresAtDate;
+        transactionCreatedAt <= paymentWindowEndMs;
 
-      if (isMatchingTransaction) {
-        const memo = transaction.transaction.memo;
+      if (!isMatchingTransaction) continue;
 
-        if (transaction.type === 'payment') {
-          if (toWalletMemo) {
-            if (memo !== toWalletMemo) {
-              logger.debug(
-                `Transaction memo does not match donation memo for donation ID ${donation.id}`,
-              );
-              // Skip this payment and keep scanning: another donation to the
-              // same address may carry a different memo. Bailing here (return)
-              // would abandon the search before reaching this donation's payment.
-              continue;
-            }
-          } else if (memo !== id.toString()) {
-            logger.debug(
-              `Transaction memo does not match draft id for donation ID ${donation.id}`,
-            );
-            continue;
-          }
-        }
-
-        const txHash = transaction.transaction_hash?.toLowerCase();
-        if (!txHash) {
-          // A payment without a transaction hash can neither be deduplicated
-          // nor recorded as a donation. Skip it and keep scanning, so other
-          // payments and the expiry handling below stay reachable.
+      const memo = transaction.transaction?.memo;
+      if (requiresRecipientMemo) {
+        // CASE 2: payments must carry the recipient's own memo
+        // (create_account has none to check — see the regime notes above).
+        if (transaction.type === 'payment' && memo !== toWalletMemo) {
           logger.debug(
-            `Skipping payment without transaction hash for draft donation ID ${donation.id}`,
+            `Transaction memo does not match donation memo for donation ID ${donation.id}`,
           );
           continue;
         }
-        let createdDonationId: number | undefined;
-        // What this payment amounted to for this draft:
-        // - created: a donation was created and the draft updated — stop
-        //   scanning and run the post-creation side effects.
-        // - settled: the draft already references a live donation (or a
-        //   concurrent execution matched it) — nothing left to do.
-        // - skip: this payment cannot serve this draft (it belongs to
-        //   another draft, or its donation mismatches) — keep scanning older
-        //   payments and leave the expiry handling below reachable.
-        // - abort: environmental or lock failure (missing token/project,
-        //   lock wait timeout, donation insert failure) — stop scanning
-        //   without failing the draft; the next tick retries from scratch.
-        // (an object property, not a let, so TypeScript doesn't narrow the
-        // value across the lock closure that mutates it)
-        const matchOutcome: {
-          verdict: 'created' | 'settled' | 'skip' | 'abort';
-        } = { verdict: 'abort' };
+      } else if (memo !== id.toString()) {
+        // CASE 1: every operation type must name this very draft — including
+        // create_account, which historically matched on exact amount with no
+        // memo at all. That memo-less acceptance path was removed with issue
+        // #2347 (once the amount condition is waived, a memo-less rule would
+        // accept any deposit): a donor funding a fresh address without a
+        // memo now needs manual reconciliation. Not logged: with no amount
+        // prefilter, every other payment on a shared address takes this
+        // branch on every tick — expected, not an event.
+        continue;
+      }
 
-        // Slow externals run before the locks so the critical section is
-        // only the existence re-checks and the insert itself. This unlocked
-        // existing-donation pre-check merely skips the preparation when the
-        // donation obviously exists already; the authoritative check runs
-        // under the locks below.
-        let creationContext: QrDonationCreationContext | null = null;
-        if (!(await findDonationsByTransactionId(txHash))) {
-          if (!preparedContext) {
-            preparedContext = await prepareQrDonationCreationContext(donation);
-          }
-          creationContext = preparedContext;
-          // Missing token/project configuration: nothing can be created this
-          // tick, and the draft must not be failed on that evidence alone.
-          if (!creationContext) {
-            abortReason =
-              'QR donation configuration unavailable (missing token or project)';
-            break;
-          }
+      // A record without a transaction hash can neither be deduplicated nor
+      // recorded as a donation.
+      if (!transaction.transaction_hash) {
+        logger.debug(
+          `Skipping malformed payment record for draft donation ID ${donation.id}`,
+        );
+        continue;
+      }
+
+      candidates.push({ transaction, opAmount });
+    }
+
+    // Several payments can identify the same draft — in CASE 1 anyone can
+    // send a payment carrying its memo — so order the attempts: successful
+    // transactions before failed ones (a donor's failed full-amount attempt
+    // must not outrank their successful retry), then by on-chain amount,
+    // largest first, so a dust payment cannot outrank the real one when both
+    // are already on the page (see the limitation note above). Ordering
+    // never rejects a payment; ties keep Horizon's newest-first order
+    // (Array.prototype.sort is stable), so CASE 2 — where every candidate
+    // equals the draft amount — behaves as before.
+    candidates.sort(
+      (a, b) =>
+        Number(Boolean(b.transaction.transaction_successful)) -
+          Number(Boolean(a.transaction.transaction_successful)) ||
+        b.opAmount - a.opAmount,
+    );
+
+    // One attempt per transaction: sibling operations of a multi-op tx share
+    // the hash, and the match verdict depends only on the hash, so only the
+    // best-ranked operation per transaction is worth the lock cycle.
+    const seenTxHashes = new Set<string>();
+    const rankedCandidates = candidates.filter(candidate => {
+      const hash = candidate.transaction.transaction_hash.toLowerCase();
+      if (seenTxHashes.has(hash)) return false;
+      seenTxHashes.add(hash);
+      return true;
+    });
+
+    // The donation records what the matched operation actually transferred
+    // (opAmount), not the draft's requested amount (see the CASE 1 notes).
+    for (const {
+      transaction,
+      opAmount: actualOnChainAmount,
+    } of rankedCandidates) {
+      const txHash = transaction.transaction_hash.toLowerCase();
+      let createdDonationId: number | undefined;
+      // What this payment amounted to for this draft:
+      // - created: a donation was created and the draft updated — stop
+      //   scanning and run the post-creation side effects.
+      // - settled: the draft already references a live donation (or a
+      //   concurrent execution matched it) — nothing left to do.
+      // - skip: this payment cannot serve this draft (it belongs to
+      //   another draft, or its donation mismatches) — keep trying the
+      //   remaining candidates and leave the expiry handling below reachable.
+      // - abort: environmental or lock failure (missing token/project,
+      //   lock wait timeout, donation insert failure) — stop scanning
+      //   without failing the draft; the next tick retries from scratch.
+      // (an object property, not a let, so TypeScript doesn't narrow the
+      // value across the lock closure that mutates it)
+      const matchOutcome: {
+        verdict: 'created' | 'settled' | 'skip' | 'abort';
+      } = { verdict: 'abort' };
+
+      // Slow externals run before the locks so the critical section is
+      // only the existence re-checks and the insert itself. This unlocked
+      // existing-donation pre-check merely skips the preparation when the
+      // donation obviously exists already; the authoritative check runs
+      // under the locks below.
+      let creationContext: QrDonationCreationContext | null = null;
+      if (!(await findDonationsByTransactionId(txHash))) {
+        if (!preparedContext) {
+          preparedContext = await prepareQrDonationCreationContext(donation);
         }
+        creationContext = preparedContext;
+        // Missing token/project configuration: nothing can be created this
+        // tick, and the draft must not be failed on that evidence alone.
+        if (!creationContext) {
+          abortReason =
+            'QR donation configuration unavailable (missing token or project)';
+          break;
+        }
+      }
 
-        const matchUnderLocks = async () => {
-          // Re-check under the locks: another execution may have already
-          // created the donation for this transaction. Reconcile the draft
-          // with it only when the donation is positively this draft's: other
-          // pending drafts to the same project can share address, memo and
-          // amount, and a donation already claimed by another draft must not
-          // be claimed here too.
-          const existingDonation = await findDonationsByTransactionId(txHash);
-          if (existingDonation) {
-            const claimingDraft = await findDraftDonationByMatchedDonationId(
-              existingDonation.id,
-            );
-            if (
-              (claimingDraft && claimingDraft.id !== donation.id) ||
-              existingDonation.toWalletAddress !== donation.toWalletAddress ||
-              Number(existingDonation.amount) !== amount
-            ) {
-              // This payment is spoken for by another draft; an older
-              // payment further down the list may still be this draft's own.
-              matchOutcome.verdict = 'skip';
-              return;
-            }
-            const liveDonation = await reconcileDraftWithMatchedDonation(
-              donation,
-              source,
-              { donation: existingDonation, linkFailedDonation: true },
-            );
-            // When the linked donation failed on-chain, keep scanning: the
-            // donor may have retried with another payment.
-            matchOutcome.verdict = liveDonation ? 'settled' : 'skip';
+      const matchUnderLocks = async () => {
+        // Re-check under the locks: another execution may have already
+        // created the donation for this transaction. Reconcile the draft
+        // with it only when the donation is positively this draft's: a
+        // donation already claimed by another draft must not be claimed
+        // here too, and for CASE 2 the amount must also match, mirroring
+        // the identification pass (see the CASE 1/CASE 2 notes above).
+        const existingDonation = await findDonationsByTransactionId(txHash);
+        if (existingDonation) {
+          const claimingDraft = await findDraftDonationByMatchedDonationId(
+            existingDonation.id,
+          );
+          if (
+            (claimingDraft && claimingDraft.id !== donation.id) ||
+            existingDonation.toWalletAddress !== donation.toWalletAddress ||
+            (requiresRecipientMemo &&
+              !amountsMatchAtFloat4Precision(
+                Number(existingDonation.amount),
+                amount,
+              ))
+          ) {
+            // This payment is spoken for by another draft; another
+            // candidate further down the list may still be this draft's own.
+            matchOutcome.verdict = 'skip';
             return;
           }
+          const liveDonation = await reconcileDraftWithMatchedDonation(
+            donation,
+            source,
+            { donation: existingDonation, linkFailedDonation: true },
+          );
+          // When the linked donation failed on-chain, keep scanning: the
+          // donor may have retried with another payment.
+          matchOutcome.verdict = liveDonation ? 'settled' : 'skip';
+          return;
+        }
 
-          // Re-read the draft under the lock; the in-memory entity may be
-          // stale if another execution matched it meanwhile. A draft linked
-          // to a failed donation may still be re-matched by a retry payment.
-          const freshDraft = await DraftDonation.findOne({
-            where: { id: donation.id },
-          });
+        // Re-read the draft under the lock; the in-memory entity may be
+        // stale if another execution matched it meanwhile. A draft linked
+        // to a failed donation may still be re-matched by a retry payment.
+        const freshDraft = await DraftDonation.findOne({
+          where: { id: donation.id },
+        });
+        if (
+          !freshDraft ||
+          freshDraft.status === DRAFT_DONATION_STATUS.MATCHED
+        ) {
+          matchOutcome.verdict = 'settled';
+          return;
+        }
+        if (freshDraft.matchedDonationId) {
+          const linkedDonation = await findDonationById(
+            freshDraft.matchedDonationId,
+          );
           if (
-            !freshDraft ||
-            freshDraft.status === DRAFT_DONATION_STATUS.MATCHED
+            linkedDonation &&
+            linkedDonation.status !== DONATION_STATUS.FAILED
           ) {
             matchOutcome.verdict = 'settled';
             return;
           }
-          if (freshDraft.matchedDonationId) {
-            const linkedDonation = await findDonationById(
-              freshDraft.matchedDonationId,
-            );
-            if (
-              linkedDonation &&
-              linkedDonation.status !== DONATION_STATUS.FAILED
-            ) {
-              matchOutcome.verdict = 'settled';
-              return;
-            }
-          }
+        }
 
-          if (!creationContext) {
-            // The unlocked pre-check saw a donation for this hash, but it is
-            // gone now and nothing was prepared to create one. Leave the
-            // 'abort' verdict: the next tick retries with a clean view.
-            return;
-          }
+        if (!creationContext) {
+          // The unlocked pre-check saw a donation for this hash, but it is
+          // gone now and nothing was prepared to create one. Leave the
+          // 'abort' verdict: the next tick retries with a clean view.
+          return;
+        }
 
-          const returnedDonation = await createDonation({
-            amount: donation.amount,
-            project: creationContext.project,
-            transactionNetworkId: donation.networkId,
-            fromWalletAddress: transaction.source_account,
-            transactionId: transaction.transaction_hash,
-            tokenAddress: donation.tokenAddress,
-            isProjectGivbackEligible: creationContext.project.isGivbackEligible,
-            donorUser: creationContext.donor,
-            isTokenEligibleForGivback: creationContext.token.isGivbackEligible,
-            segmentNotified: false,
-            toWalletAddress: donation.toWalletAddress,
-            donationAnonymous: false,
-            transakId: '',
-            token: donation.currency,
-            valueUsd: donation.amount * creationContext.tokenPrice,
-            priceUsd: creationContext.tokenPrice,
-            status: transaction.transaction_successful ? 'verified' : 'failed',
-            isQRDonation: true,
-            toWalletMemo,
-            qfRound: creationContext.qfRound,
-            chainType: creationContext.token.chainType,
-            givbackFactor: creationContext.givbackFactor,
-            projectRank: creationContext.projectRank,
-            bottomRankInRound: creationContext.bottomRankInRound,
-            powerRound: creationContext.powerRound,
-          });
+        const returnedDonation = await createDonation({
+          amount: actualOnChainAmount,
+          project: creationContext.project,
+          transactionNetworkId: donation.networkId,
+          fromWalletAddress: transaction.source_account,
+          transactionId: transaction.transaction_hash,
+          tokenAddress: donation.tokenAddress,
+          isProjectGivbackEligible: creationContext.project.isGivbackEligible,
+          donorUser: creationContext.donor,
+          isTokenEligibleForGivback: creationContext.token.isGivbackEligible,
+          segmentNotified: false,
+          toWalletAddress: donation.toWalletAddress,
+          donationAnonymous: false,
+          transakId: '',
+          token: donation.currency,
+          valueUsd: actualOnChainAmount * creationContext.tokenPrice,
+          priceUsd: creationContext.tokenPrice,
+          status: transaction.transaction_successful ? 'verified' : 'failed',
+          isQRDonation: true,
+          toWalletMemo,
+          qfRound: creationContext.qfRound,
+          chainType: creationContext.token.chainType,
+          givbackFactor: creationContext.givbackFactor,
+          projectRank: creationContext.projectRank,
+          bottomRankInRound: creationContext.bottomRankInRound,
+          powerRound: creationContext.powerRound,
+        });
 
-          if (!returnedDonation) {
-            // info, not debug: a real payment matched this draft but no
-            // donation row could be created — that needs eyes in production.
-            logger.info(
-              `Error creating donation for draft donation ID ${donation.id}`,
-            );
-            return;
-          }
+        if (!returnedDonation) {
+          // info, not debug: a real payment matched this draft but no
+          // donation row could be created — that needs eyes in production.
+          logger.info(
+            `Error creating donation for draft donation ID ${donation.id}`,
+          );
+          return;
+        }
 
-          // Update draft donation status to matched and add matched donation ID with source address
-          await updateDraftDonationStatus({
-            donationId: donation.id,
-            status: transaction.transaction_successful
-              ? DRAFT_DONATION_STATUS.MATCHED
-              : DRAFT_DONATION_STATUS.FAILED,
-            fromWalletAddress: transaction.source_account,
-            matchedDonationId: returnedDonation.id,
-            txHash,
-            source,
-          });
+        // Update draft donation status to matched and add matched donation ID with source address
+        await updateDraftDonationStatus({
+          donationId: donation.id,
+          status: transaction.transaction_successful
+            ? DRAFT_DONATION_STATUS.MATCHED
+            : DRAFT_DONATION_STATUS.FAILED,
+          fromWalletAddress: transaction.source_account,
+          matchedDonationId: returnedDonation.id,
+          txHash,
+          source,
+        });
 
-          createdDonationId = returnedDonation.id;
-          matchOutcome.verdict = 'created';
-        };
+        createdDonationId = returnedDonation.id;
+        matchOutcome.verdict = 'created';
+      };
 
-        // Serialize the match across processes at two levels, acquired in a
-        // single lock transaction, always in this order (tx first, then
-        // draft — a fixed order plus bounded try-lock polling means no
-        // deadlock):
-        // - per transaction: two different drafts sharing address, memo and
-        //   amount must not both turn this payment into a donation;
-        // - per draft: overlapping cron runs and concurrent GraphQL
-        //   verifications must not match this draft twice.
-        await withQrXactLocks(
-          [
-            {
-              namespace: QR_TX_LOCK_NAMESPACE,
-              lockId: txHashToLockId(txHash),
-            },
-            {
-              namespace: QR_DRAFT_DONATION_LOCK_NAMESPACE,
-              lockId: donation.id,
-            },
-          ],
-          lockWaitMsForSource(source),
-          matchUnderLocks,
-        );
+      // Serialize the match across processes at two levels, acquired in a
+      // single lock transaction, always in this order (tx first, then
+      // draft — a fixed order plus bounded try-lock polling means no
+      // deadlock):
+      // - per transaction: two different drafts sharing address, memo and
+      //   amount must not both turn this payment into a donation;
+      // - per draft: overlapping cron runs and concurrent GraphQL
+      //   verifications must not match this draft twice.
+      await withQrXactLocks(
+        [
+          {
+            namespace: QR_TX_LOCK_NAMESPACE,
+            lockId: txHashToLockId(txHash),
+          },
+          {
+            namespace: QR_DRAFT_DONATION_LOCK_NAMESPACE,
+            lockId: donation.id,
+          },
+        ],
+        lockWaitMsForSource(source),
+        matchUnderLocks,
+      );
 
-        // Outside the advisory locks: slow external calls that don't touch
-        // lock-protected draft state must not extend the lock hold time.
-        if (createdDonationId) {
-          await syncDonationStatusWithBlockchainNetwork({
+      // Outside the advisory locks: slow external calls that don't touch
+      // lock-protected draft state must not extend the lock hold time.
+      if (createdDonationId) {
+        // Notify clients first: the donor's QR screen is waiting for this
+        // event, it needs nothing from the sync below, and the sync can take
+        // seconds (Horizon fetch, statistics, materialized-view refresh).
+        notifyClients({
+          type: 'new-donation',
+          data: {
             donationId: createdDonationId,
-          });
+            draftDonationId: donation.id,
+          },
+        });
 
-          // Notify clients of new donation
-          notifyClients({
-            type: 'new-donation',
-            data: {
-              donationId: createdDonationId,
-              draftDonationId: donation.id,
-            },
-          });
-        }
-
-        // Only 'skip' keeps scanning older payments (and leaves the expiry
-        // handling below reachable): 'created' and 'settled' mean the draft
-        // is resolved, 'abort' means the environment must recover before
-        // anything is decided — see the abort handling below.
-        if (matchOutcome.verdict === 'abort') {
-          abortReason = 'no donation could be created for the matched payment';
-          break;
-        }
-        if (matchOutcome.verdict !== 'skip') return;
+        await syncDonationStatusWithBlockchainNetwork({
+          donationId: createdDonationId,
+        });
       }
+
+      // Only 'skip' keeps trying remaining candidates (and leaves the expiry
+      // handling below reachable): 'created' and 'settled' mean the draft
+      // is resolved, 'abort' means the environment must recover before
+      // anything is decided — see the abort handling below.
+      if (matchOutcome.verdict === 'abort') {
+        abortReason = 'no donation could be created for the matched payment';
+        break;
+      }
+      if (matchOutcome.verdict !== 'skip') return;
     }
 
     if (abortReason) {

@@ -482,3 +482,16 @@ export const generateRandomNumericCode = (digits: number = 6): number => {
   const max = Math.pow(10, digits) - 1;
   return Math.floor(min + Math.random() * (max - min + 1));
 };
+
+export function generateHexNumber(len: number): string {
+  const hex = '0123456789abcdef';
+  let output = '';
+  for (let i = 0; i < len; i++) {
+    output += hex.charAt(Math.floor(Math.random() * hex.length));
+  }
+  return output;
+}
+
+export function generateRandomEtheriumAddress(): string {
+  return `0x${generateHexNumber(40)}`;
+}
