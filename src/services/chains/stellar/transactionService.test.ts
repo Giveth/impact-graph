@@ -3,6 +3,7 @@ import sinon from 'sinon';
 import { getStellarTransactionInfoFromNetwork } from './transactionService';
 import { ChainType } from '../../../types/network';
 import { NETWORK_IDS } from '../../../provider';
+import { errorMessages } from '../../../utils/errorMessages';
 import {
   assertThrowsAsync,
   generateRandomStellarAddress,
@@ -158,7 +159,7 @@ function getStellarTransactionInfoFromNetworkTestCases() {
 
     await assertThrowsAsync(
       () => getStellarTransactionInfoFromNetwork(input as any),
-      undefined,
+      errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
   });
 
@@ -175,7 +176,7 @@ function getStellarTransactionInfoFromNetworkTestCases() {
 
     await assertThrowsAsync(
       () => getStellarTransactionInfoFromNetwork(input as any),
-      undefined,
+      errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
     );
   });
 

@@ -539,10 +539,9 @@ export const createDonation = async (request: AdminJsRequestInterface) => {
         isProjectGivbackEligible: project.isGivbackEligible,
         donationType,
         isQRDonation: chainType === ChainType.STELLAR,
-        createdAt:
-          chainType === ChainType.STELLAR
-            ? new Date(transactionInfo?.timestamp)
-            : new Date(transactionInfo?.timestamp * 1000),
+        // transactionInfo.timestamp is epoch seconds on every chain (Stellar
+        // included — getStellarTransactionInfo converts Horizon's ISO string)
+        createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous,
         isTokenEligibleForGivback,
         qfRoundId: qfRoundId ? Number(qfRoundId) : undefined,
