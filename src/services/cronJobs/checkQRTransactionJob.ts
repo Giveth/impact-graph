@@ -75,12 +75,12 @@ export const DRAFT_DONATION_EXPIRY_GRACE_MS = 60 * 1000;
 // value — tuning this constant changes both scanning cost and which late
 // payments are accepted.
 export const QR_FAILED_DRAFT_RECONCILIATION_WINDOW_MS = 30 * 60 * 1000;
-// How long after expiry (plus grace) a memo-identified (CASE 1, see
-// checkTransactions) payment is still accepted. Deliberately the same span
-// as the reconciliation window: the cron stops scanning a draft when that
-// window closes, so a longer acceptance window would be unreachable there —
-// but verifyQRDonationTransaction has no scannability filter, so this bound
-// is what limits late matches on the user-triggered verify path.
+// How long after expiry a memo-identified (CASE 1, see checkTransactions)
+// payment is still accepted. Deliberately the same span AND the same base
+// (raw expiresAt, no grace term) as the reconciliation window, so a payment
+// is acceptable exactly as long as the cron still scans the draft.
+// verifyQRDonationTransaction has no scannability filter, so on that path
+// this bound alone limits late matches.
 export const QR_LATE_PAYMENT_ACCEPTANCE_WINDOW_MS =
   QR_FAILED_DRAFT_RECONCILIATION_WINDOW_MS;
 // How long a matcher waits for another execution's per-draft or per-tx lock,
@@ -96,6 +96,15 @@ const HORIZON_REQUEST_TIMEOUT_MS = 30 * 1000;
 // a draft.
 const amountsMatchAtFloat4Precision = (a: number, b: number): boolean =>
   Math.fround(a) === Math.fround(b);
+
+// A CASE 1 (memo-identified) payment must carry at least this fraction of
+// the draft amount. Exchange withdrawal fees only ever reduce the amount,
+// and by tiny fractions (Binance's XLM fee is ~0.002 XLM: 19.996/20 =
+// 0.9998), so this one-sided floor accepts every fee-reduced payment with
+// orders of magnitude of headroom while rejecting dust sent with a guessed
+// draft-id memo to claim someone else's pending draft. Deliberately no
+// upper bound: an overpayment is still the donor's payment.
+export const QR_CASE1_MIN_AMOUNT_FACTOR = 0.9;
 
 // Only the cron waits for a contended lock: it is a single sequential runner,
 // and waiting lets it finish a draft this tick. The public
@@ -443,28 +452,24 @@ export async function checkTransactions(
     // ordering, and the under-lock re-check below all point back here.
     // - CASE 1 (no recipient memo): the Stellar memo carries this draft's
     //   unique id, so memo + destination identify the payment — for every
-    //   operation type, create_account included. The amount is whatever
-    //   actually arrived (exchanges like Binance deduct their withdrawal fee
-    //   before broadcasting), and because the memo identifies the draft, a
-    //   payment broadcast after expiry stays acceptable for
-    //   QR_LATE_PAYMENT_ACCEPTANCE_WINDOW_MS.
+    //   operation type, create_account included. The amount only needs to
+    //   clear QR_CASE1_MIN_AMOUNT_FACTOR of the draft: exchanges deduct
+    //   tiny withdrawal fees before broadcasting, and the one-sided floor
+    //   accepts every fee-reduced payment while rejecting dust carrying a
+    //   guessed draft-id memo (the id is sequential and printed in the QR).
+    //   Because the memo identifies the draft, a payment broadcast after
+    //   expiry stays acceptable for QR_LATE_PAYMENT_ACCEPTANCE_WINDOW_MS.
+    //   Additionally, a create_account funding with the float4-exact draft
+    //   amount inside the normal validity window is accepted without a memo
+    //   — the pre-#2347 behavior some wallets rely on (no memo field on
+    //   account funding), safe to keep because it demands the exact amount
+    //   and the tight window.
     // - CASE 2 (recipient requires its own memo): several drafts to the same
     //   project can share destination and memo, so the draft amount remains
     //   the only disambiguator (compared at float4 precision, the column
     //   type) and the validity window stays tight: without a unique
     //   identifier a late payment must not be guessed at. create_account has
     //   no memo to distinguish it with, so it keeps amount-only matching.
-    // Known limitation, accepted with issue #2347: CASE 1 deliberately has
-    // no amount condition — an exact, tolerance or minimum-amount rule would
-    // reject legitimately fee-reduced payments. Because the memo is the
-    // draft's sequential id (public via the QR and enumerable), a third
-    // party can send a dust payment carrying a pending draft's memo. The
-    // candidate ordering below picks the real payment whenever both are on
-    // the Horizon page, but a dust payment scanned on a tick before the real
-    // one exists still claims the draft, and the real payment then needs
-    // manual reconciliation. Fully closing this needs a product change — an
-    // unguessable memo token instead of the draft id, or crediting every
-    // memo-matching payment — not a matching-rule tweak.
     // Known limitation (pre-existing): donations are keyed by transaction
     // hash, so one exchange batch transaction carrying payments for TWO
     // CASE 2 drafts (same address and memo, different amounts) can only ever
@@ -472,9 +477,12 @@ export async function checkTransactions(
     // until it fails at expiry. Crediting both needs per-(hash, operation)
     // donation keying, a schema/product decision.
     const requiresRecipientMemo = Boolean(toWalletMemo);
-    const paymentWindowEndMs = requiresRecipientMemo
-      ? expiresAtDate
-      : expiresAtDate + QR_LATE_PAYMENT_ACCEPTANCE_WINDOW_MS;
+    // CASE 1's extended acceptance window shares the reconciliation window's
+    // base (raw expiresAt, no grace term), so it ends exactly when the cron
+    // stops scanning the draft — see getScannableDraftDonations.
+    const caseOneWindowEndMs =
+      (expiresAt ? new Date(expiresAt).getTime() : 0) +
+      QR_LATE_PAYMENT_ACCEPTANCE_WINDOW_MS;
 
     // Prepared at most once per draft (it depends only on the draft), so a
     // payment that turns out to belong to another draft does not repeat the
@@ -491,48 +499,46 @@ export async function checkTransactions(
     // candidates only.
     const candidates: { transaction: any; opAmount: number }[] = [];
     for (const transaction of transactions) {
+      if (!isNativeStellarDeposit(transaction, toWalletAddress)) continue;
+
+      // Never consider payments made before the draft (minus clock skew).
       const transactionCreatedAt = new Date(transaction.created_at).getTime();
+      if (transactionCreatedAt < draftCreatedAt - CLOCK_SKEW) continue;
+
       // What this operation transferred on-chain — the one number the amount
-      // check, the ranking, and the recorded donation amount all judge.
-      // (isNativeStellarDeposit guarantees it is finite for candidates.)
+      // checks, the ranking, and the recorded donation amount all judge.
+      // (isNativeStellarDeposit guarantees it is finite.)
       const opAmount = stellarOperationAmount(transaction);
-
-      // CASE 1 waives the amount for every operation type (identification is
-      // the memo check below); CASE 2 requires the draft amount.
-      const amountMatches =
-        !requiresRecipientMemo ||
-        amountsMatchAtFloat4Precision(opAmount, amount);
-
-      // Validity window: not before creation (minus clock skew) and not
-      // after the case-dependent end (see paymentWindowEndMs above).
-      const isMatchingTransaction =
-        isNativeStellarDeposit(transaction, toWalletAddress) &&
-        amountMatches &&
-        transactionCreatedAt >= draftCreatedAt - CLOCK_SKEW &&
-        transactionCreatedAt <= paymentWindowEndMs;
-
-      if (!isMatchingTransaction) continue;
-
       const memo = transaction.transaction?.memo;
+
       if (requiresRecipientMemo) {
-        // CASE 2: payments must carry the recipient's own memo
-        // (create_account has none to check — see the regime notes above).
+        // CASE 2: float4-exact amount, tight window, and payments must carry
+        // the recipient's own memo (see the regime notes above).
+        if (
+          !amountsMatchAtFloat4Precision(opAmount, amount) ||
+          transactionCreatedAt > expiresAtDate
+        ) {
+          continue;
+        }
         if (transaction.type === 'payment' && memo !== toWalletMemo) {
           logger.debug(
             `Transaction memo does not match donation memo for donation ID ${donation.id}`,
           );
           continue;
         }
-      } else if (memo !== id.toString()) {
-        // CASE 1: every operation type must name this very draft — including
-        // create_account, which historically matched on exact amount with no
-        // memo at all. That memo-less acceptance path was removed with issue
-        // #2347 (once the amount condition is waived, a memo-less rule would
-        // accept any deposit): a donor funding a fresh address without a
-        // memo now needs manual reconciliation. Not logged: with no amount
-        // prefilter, every other payment on a shared address takes this
-        // branch on every tick — expected, not an event.
-        continue;
+      } else {
+        // CASE 1 (see the regime notes above). Memo mismatches are not
+        // logged: every other payment on a shared address fails that check
+        // on every tick — expected, not an event.
+        const memoIdentified =
+          memo === id.toString() &&
+          opAmount >= amount * QR_CASE1_MIN_AMOUNT_FACTOR &&
+          transactionCreatedAt <= caseOneWindowEndMs;
+        const isExactCreateAccount =
+          transaction.type === 'create_account' &&
+          amountsMatchAtFloat4Precision(opAmount, amount) &&
+          transactionCreatedAt <= expiresAtDate;
+        if (!memoIdentified && !isExactCreateAccount) continue;
       }
 
       // A record without a transaction hash can neither be deduplicated nor
@@ -547,15 +553,13 @@ export async function checkTransactions(
       candidates.push({ transaction, opAmount });
     }
 
-    // Several payments can identify the same draft — in CASE 1 anyone can
-    // send a payment carrying its memo — so order the attempts: successful
+    // Several payments can identify the same draft (a donor's double-send,
+    // or a failed attempt plus its retry), so order the attempts: successful
     // transactions before failed ones (a donor's failed full-amount attempt
     // must not outrank their successful retry), then by on-chain amount,
-    // largest first, so a dust payment cannot outrank the real one when both
-    // are already on the page (see the limitation note above). Ordering
-    // never rejects a payment; ties keep Horizon's newest-first order
-    // (Array.prototype.sort is stable), so CASE 2 — where every candidate
-    // equals the draft amount — behaves as before.
+    // largest first. Ordering never rejects a payment; ties keep Horizon's
+    // newest-first order (Array.prototype.sort is stable), so CASE 2 — where
+    // every candidate equals the draft amount — behaves as before.
     candidates.sort(
       (a, b) =>
         Number(Boolean(b.transaction.transaction_successful)) -

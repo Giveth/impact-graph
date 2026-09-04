@@ -10,10 +10,6 @@ import {
   EnterpriseAddress,
   Credential,
 } from '@emurgo/cardano-serialization-lib-nodejs';
-import {
-  generateHexNumber,
-  generateRandomEtheriumAddress,
-} from '../src/utils/utils';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
@@ -2113,7 +2109,18 @@ export const saveMainCategoryDirectlyToDb = async (
   }).save();
 };
 
-export { generateHexNumber, generateRandomEtheriumAddress };
+export function generateHexNumber(len: number): string {
+  const hex = '0123456789abcdef';
+  let output = '';
+  for (let i = 0; i < len; i++) {
+    output += hex.charAt(Math.floor(Math.random() * hex.length));
+  }
+  return output;
+}
+
+export function generateRandomEtheriumAddress(): string {
+  return `0x${generateHexNumber(40)}`;
+}
 
 export function generateRandomSolanaAddress(): string {
   return Keypair.generate().publicKey.toString();

@@ -1773,13 +1773,14 @@ function stellarQRMatchingTestCases() {
   // A Horizon create_account operation record funding the draft's address.
   function stellarCreateAccount(
     draft: DraftDonation,
-    opts: { amount?: number; memo?: string } = {},
+    opts: { amount?: number; memo?: string; createdAt?: Date } = {},
   ) {
     return horizonPaymentRecord({
       type: 'create_account',
       to: draft.toWalletAddress,
       amount: opts.amount ?? draft.amount,
       memo: opts.memo ?? String(draft.id),
+      createdAt: opts.createdAt,
     });
   }
 
@@ -1980,8 +1981,9 @@ function stellarQRMatchingTestCases() {
 
   it('CASE 1: should credit the largest memo-carrying payment when a dust payment with the same memo is also on the page', async () => {
     const draft = await createStellarDraft({ amount: 20 });
-    // A newer dust payment front-running the real one; both carry the
-    // draft-id memo, so both identify the draft — the larger must win.
+    // A newer dust payment front-running the real one, both carrying the
+    // draft-id memo: the dust is rejected by the minimum-amount floor and
+    // the real payment must be the one credited.
     const dust = stellarPayment(draft, { amount: 0.0000001 });
     const real = stellarPayment(draft, {
       amount: 19.996,
@@ -2039,7 +2041,9 @@ function stellarQRMatchingTestCases() {
     expect(fresh!.matchedDonationId).to.equal(created!.id);
   });
 
-  it('CASE 1: should not match a create_account with the exact draft amount but without the draft-id memo', async () => {
+  it('CASE 1: should match a create_account with the exact draft amount even without the draft-id memo (legacy path)', async () => {
+    // Some wallets expose no memo field on account funding; the exact
+    // amount inside the tight validity window is accepted without one
     const draft = await createStellarDraft({ amount: 20 });
     const funding = stellarCreateAccount(draft, {
       amount: 20,
@@ -2050,9 +2054,52 @@ function stellarQRMatchingTestCases() {
     await checkTransactions(draft, 'stellar-cron');
 
     const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
-    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(funding.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.equal(20);
+  });
+
+  it('CASE 1: should not match a memo-less create_account after expiry, even with the exact amount', async () => {
+    // The extended post-expiry window is justified by the memo alone; the
+    // memo-less legacy path keeps the tight window
+    const draft = await createStellarDraft({
+      amount: 20,
+      createdAt: new Date(Date.now() - 40 * 60 * 1000),
+      expiresAt: new Date(Date.now() - 24 * 60 * 1000),
+    });
+    const funding = stellarCreateAccount(draft, {
+      amount: 20,
+      memo: 'unrelated',
+      createdAt: new Date(Date.now() - 10 * 60 * 1000),
+    });
+    stubHorizonPayments([funding]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.FAILED);
     expect(fresh!.matchedDonationId).to.be.null;
     expect(await findDonationByTxHash(funding.transaction_hash)).to.not.exist;
+  });
+
+  it('CASE 1: should not match a payment below the minimum amount factor even with the correct memo', async () => {
+    // Dust (or a heavy underpayment) carrying a guessed draft-id memo must
+    // not claim the draft; the floor still passes any fee-reduced payment
+    const draft = await createStellarDraft({ amount: 20 });
+    const dust = stellarPayment(draft, { amount: 0.0000001 });
+    const underpayment = stellarPayment(draft, { amount: 17 });
+    stubHorizonPayments([dust, underpayment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
+    expect(fresh!.matchedDonationId).to.be.null;
+    expect(await findDonationByTxHash(dust.transaction_hash)).to.not.exist;
+    expect(await findDonationByTxHash(underpayment.transaction_hash)).to.not
+      .exist;
   });
 
   it('CASE 1: should credit the successful retry over a larger failed payment attempt', async () => {

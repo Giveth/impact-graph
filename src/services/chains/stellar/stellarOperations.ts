@@ -8,10 +8,8 @@
 // Addresses are compared case-insensitively deliberately: Stellar strkeys
 // are canonically uppercase, but stored wallet addresses are user-supplied
 // and must mean the same account in every layer regardless of casing.
-export const stellarOperationPaysAddress = (
-  record: any,
-  address: string,
-): boolean => {
+// Module-private: callers go through isNativeStellarDeposit below.
+const stellarOperationPaysAddress = (record: any, address: string): boolean => {
   const recipient =
     record?.type === 'payment'
       ? record.to
