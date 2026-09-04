@@ -1,5 +1,7 @@
 import { randomBytes } from 'crypto';
 import { assert } from 'chai';
+import sinon from 'sinon';
+import axios from 'axios';
 import * as jwt from 'jsonwebtoken';
 import { Keypair } from '@solana/web3.js';
 import { Keypair as StellarKeypair } from '@stellar/stellar-sdk';
@@ -2107,6 +2109,15 @@ export const saveMainCategoryDirectlyToDb = async (
   }).save();
 };
 
+export function generateHexNumber(len: number): string {
+  const hex = '0123456789abcdef';
+  let output = '';
+  for (let i = 0; i < len; i++) {
+    output += hex.charAt(Math.floor(Math.random() * hex.length));
+  }
+  return output;
+}
+
 export function generateRandomEtheriumAddress(): string {
   return `0x${generateHexNumber(40)}`;
 }
@@ -2141,14 +2152,53 @@ export function generateRandomStellarTxHash(): string {
   return generateRandomAlphanumeric(64);
 }
 
-export function generateHexNumber(len): string {
-  const hex = '0123456789abcdef';
-  let output = '';
-  /* eslint-disable no-plusplus */
-  for (let i = 0; i < len; i++) {
-    output += hex.charAt(Math.floor(Math.random() * hex.length));
-  }
-  return output;
+// Stubs every axios.get with a Stellar Horizon payments-page envelope. The
+// single definition of the mocked envelope shape — shared by the QR matcher
+// and transaction-service test suites.
+export function stubStellarHorizonPayments(
+  records: any[],
+): sinon.SinonStub<any[], any> {
+  return sinon
+    .stub(axios, 'get')
+    .resolves({ data: { _embedded: { records } } });
+}
+
+// One canonical Stellar Horizon operation-record shape for tests, shared by
+// the QR matcher and transaction-service suites so their fixtures cannot
+// drift from each other.
+export function horizonPaymentRecord(opts: {
+  type?: 'payment' | 'create_account';
+  to: string;
+  from?: string;
+  amount: number | string;
+  txHash?: string;
+  memo?: string;
+  successful?: boolean;
+  createdAt?: Date;
+}) {
+  const from = opts.from ?? generateRandomStellarAddress();
+  const base = {
+    transaction_hash: opts.txHash ?? generateRandomStellarTxHash(),
+    source_account: from,
+    created_at: (opts.createdAt ?? new Date()).toISOString(),
+    transaction_successful: opts.successful ?? true,
+    transaction: { memo: opts.memo },
+  };
+  return opts.type === 'create_account'
+    ? {
+        ...base,
+        type: 'create_account',
+        account: opts.to,
+        starting_balance: String(opts.amount),
+      }
+    : {
+        ...base,
+        type: 'payment',
+        asset_type: 'native',
+        to: opts.to,
+        from,
+        amount: String(opts.amount),
+      };
 }
 
 function generateRandomAlphanumeric(length) {
