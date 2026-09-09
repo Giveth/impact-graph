@@ -4,6 +4,7 @@ import config from './config';
 import { CronJob } from './entities/CronJob';
 import { getEntities } from './entities/entities';
 import { redisConfig } from './redis';
+import { logger } from './utils/logger';
 
 // Shared connection-pool tuning for DataSources that run behind a Postgres
 // connection pooler (DigitalOcean managed Postgres / PgBouncer).
@@ -43,7 +44,7 @@ export class AppDataSource {
         schema: 'public',
         type: 'postgres',
         replication: {
-          defaultMode: 'master',
+          defaultMode: slaves.length > 0 ? 'slave' : 'master',
           master: {
             database: config.get('TYPEORM_DATABASE_NAME') as string,
             username: config.get('TYPEORM_DATABASE_USER') as string,
@@ -69,6 +70,19 @@ export class AppDataSource {
         extra: poolerExtraConfig,
       });
       await AppDataSource.datasource.initialize();
+
+      // Log replication configuration
+      if (slaves.length > 0) {
+        logger.info(
+          `✅ AppDataSource initialized with ${slaves.length} read replica(s)`,
+        );
+        logger.info(`   Master: ${config.get('TYPEORM_DATABASE_HOST')}`);
+        slaves.forEach((slave, idx) => {
+          logger.info(`   Replica ${idx + 1}: ${slave.host}`);
+        });
+      } else {
+        logger.info('✅ AppDataSource initialized (No replicas configured)');
+      }
     }
   }
 
