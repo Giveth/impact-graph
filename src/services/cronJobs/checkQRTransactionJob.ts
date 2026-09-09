@@ -97,14 +97,92 @@ const HORIZON_REQUEST_TIMEOUT_MS = 30 * 1000;
 const amountsMatchAtFloat4Precision = (a: number, b: number): boolean =>
   Math.fround(a) === Math.fround(b);
 
-// A CASE 1 (memo-identified) payment must carry at least this fraction of
-// the draft amount. Exchange withdrawal fees only ever reduce the amount,
-// and by tiny fractions (Binance's XLM fee is ~0.002 XLM: 19.996/20 =
-// 0.9998), so this one-sided floor accepts every fee-reduced payment with
-// orders of magnitude of headroom while rejecting dust sent with a guessed
-// draft-id memo to claim someone else's pending draft. Deliberately no
-// upper bound: an overpayment is still the donor's payment.
-export const QR_CASE1_MIN_AMOUNT_FACTOR = 0.9;
+// A matched payment must carry at least this fraction of the draft amount.
+// Exchange withdrawal fees only ever reduce the amount, and by tiny
+// fractions (Binance's XLM fee is ~0.002 XLM: 19.996/20 = 0.9998), so this
+// one-sided floor accepts every fee-reduced payment with orders of magnitude
+// of headroom while rejecting dust sent with a guessed memo to claim someone
+// else's pending draft. CASE 1 (memo-identified) has no upper bound: the
+// memo proves whose payment it is, so an overpayment is still the donor's
+// payment. CASE 2 additionally caps at the draft amount — see
+// caseTwoAmountEligible.
+export const QR_MIN_AMOUNT_FACTOR = 0.9;
+
+// CASE 2 (recipient requires its own memo) amount eligibility: with the
+// recipient's memo occupying the memo field, the amount is the only draft
+// identifier, so a payment may be the draft amount (at float4 precision) or
+// fee-reduced down to the floor — but never above the draft amount, where it
+// could be a same-memo sibling draft's payment credited to the wrong donor.
+const caseTwoAmountEligible = (
+  opAmount: number,
+  draftAmount: number,
+): boolean =>
+  opAmount >= draftAmount * QR_MIN_AMOUNT_FACTOR &&
+  Math.fround(opAmount) <= Math.fround(draftAmount);
+
+// Payments are never considered from before a draft's creation, minus this
+// allowance for clock skew between Horizon's timestamps and our DB clock.
+const QR_PAYMENT_CLOCK_SKEW_MS = 60 * 1000;
+
+// How strongly a draft claims a given CASE 2 operation:
+// - 2: the operation carries the draft amount at float4 precision — the
+//   strongest identity CASE 2 has;
+// - 1: fee-reduced within the floor (payment operations only: a
+//   create_account carries no memo check, so a reduced amount is not
+//   attributable);
+// - 0: outside the draft's validity window, or amount-ineligible.
+// The operation's destination and memo are not re-checked here: every draft
+// this is called for shares them by construction (getCompetingSameMemoDrafts).
+const caseTwoClaimScore = (
+  draft: Pick<DraftDonation, 'amount' | 'createdAt' | 'expiresAt'>,
+  operation: { type: string; opAmount: number; createdAtMs: number },
+): number => {
+  const windowStartMs =
+    new Date(draft.createdAt).getTime() - QR_PAYMENT_CLOCK_SKEW_MS;
+  // A missing expiresAt (legacy rows) counts as already expired, mirroring
+  // checkTransactions' own expiry handling.
+  const windowEndMs = draft.expiresAt
+    ? new Date(draft.expiresAt).getTime() + DRAFT_DONATION_EXPIRY_GRACE_MS
+    : 0;
+  if (
+    operation.createdAtMs < windowStartMs ||
+    operation.createdAtMs > windowEndMs
+  ) {
+    return 0;
+  }
+  const draftAmount = Number(draft.amount);
+  if (amountsMatchAtFloat4Precision(operation.opAmount, draftAmount)) return 2;
+  if (
+    operation.type !== 'create_account' &&
+    caseTwoAmountEligible(operation.opAmount, draftAmount)
+  ) {
+    return 1;
+  }
+  return 0;
+};
+
+// Among several same-memo drafts able to claim the same payment, an exact
+// amount beats a fee-reduced claim, and equally-strong claims go to the
+// LATEST draft — the most recent donor intent (createdAt, id as tiebreak for
+// same-millisecond rows). Deterministic across executions, so every runner
+// defers to the same winner; if the winner later leaves the scannable set
+// unmatched, the deferring draft simply claims the payment on a later tick.
+const outranksForCaseTwoOperation = (
+  competitor: DraftDonation,
+  draft: DraftDonation,
+  operation: { type: string; opAmount: number; createdAtMs: number },
+): boolean => {
+  const competitorScore = caseTwoClaimScore(competitor, operation);
+  if (competitorScore === 0) return false;
+  const draftScore = caseTwoClaimScore(draft, operation);
+  if (competitorScore !== draftScore) return competitorScore > draftScore;
+  const competitorCreatedAt = new Date(competitor.createdAt).getTime();
+  const draftCreatedAt = new Date(draft.createdAt).getTime();
+  return (
+    competitorCreatedAt > draftCreatedAt ||
+    (competitorCreatedAt === draftCreatedAt && competitor.id > draft.id)
+  );
+};
 
 // Only the cron waits for a contended lock: it is a single sequential runner,
 // and waiting lets it finish a draft this tick. The public
@@ -249,27 +327,51 @@ export async function reconcileDraftWithMatchedDonation(
   return matchedDonation;
 }
 
-// Pending QR drafts, plus recently-failed ones still inside the
-// reconciliation window: their payment may have reached Horizon only after
-// the frontend timed the draft out, and checkTransactions can then reconcile
-// failed -> matched. Failed drafts older than the window (and legacy failed
-// rows without expiresAt) stay failed and are no longer scanned.
+// The single definition of "this QR draft is still being scanned": pending,
+// or recently failed and still inside the reconciliation window — its payment
+// may have reached Horizon only after the frontend timed the draft out, and
+// checkTransactions can then reconcile failed -> matched. Failed drafts older
+// than the window (and legacy failed rows without expiresAt) stay failed and
+// are no longer scanned. Used by the cron's draft listing and by the CASE 2
+// competing-drafts lookup, so both always agree on what is scannable.
+const scannableQrDraftPredicate = () => ({
+  sql: `draftDonation.isQRDonation = true AND
+        (draftDonation.status = :pendingStatus OR
+          (draftDonation.status = :failedStatus AND
+           draftDonation.expiresAt > :reconcileAfter))`,
+  params: {
+    pendingStatus: DRAFT_DONATION_STATUS.PENDING,
+    failedStatus: DRAFT_DONATION_STATUS.FAILED,
+    reconcileAfter: new Date(
+      Date.now() - QR_FAILED_DRAFT_RECONCILIATION_WINDOW_MS,
+    ),
+  },
+});
+
 const getScannableDraftDonations = async () => {
-  const reconcileAfter = new Date(
-    Date.now() - QR_FAILED_DRAFT_RECONCILIATION_WINDOW_MS,
-  );
+  const { sql, params } = scannableQrDraftPredicate();
   return await DraftDonation.createQueryBuilder('draftDonation')
-    .where('draftDonation.isQRDonation = true')
-    .andWhere(
-      `(draftDonation.status = :pendingStatus OR
-        (draftDonation.status = :failedStatus AND
-         draftDonation.expiresAt > :reconcileAfter))`,
-      {
-        pendingStatus: DRAFT_DONATION_STATUS.PENDING,
-        failedStatus: DRAFT_DONATION_STATUS.FAILED,
-        reconcileAfter,
-      },
-    )
+    .where(sql, params)
+    .getMany();
+};
+
+// The other scannable drafts competing for the same CASE 2 payments: same
+// destination and same recipient memo, so any payment carrying that memo
+// could belong to any of them. Ordering between them is decided per payment
+// by caseTwoClaimScore/outranksForCaseTwoPayment.
+const getCompetingSameMemoDrafts = async (
+  draftDonation: DraftDonation,
+): Promise<DraftDonation[]> => {
+  const { sql, params } = scannableQrDraftPredicate();
+  return await DraftDonation.createQueryBuilder('draftDonation')
+    .where(sql, params)
+    .andWhere('draftDonation.id != :selfId', { selfId: draftDonation.id })
+    .andWhere('draftDonation.toWalletAddress = :competingAddress', {
+      competingAddress: draftDonation.toWalletAddress,
+    })
+    .andWhere('draftDonation.toWalletMemo = :competingMemo', {
+      competingMemo: draftDonation.toWalletMemo,
+    })
     .getMany();
 };
 
@@ -443,7 +545,6 @@ export async function checkTransactions(
     // donation, so we match across the whole draft lifetime instead of a narrow
     // 2-minute window — otherwise a valid payment is lost whenever the cron
     // doesn't inspect it within 120s (e.g. when the jobs worker lags).
-    const CLOCK_SKEW = 60 * 1000;
     const draftCreatedAt = new Date(donation.createdAt).getTime();
 
     // Two matching regimes, depending on whether the recipient address
@@ -453,10 +554,10 @@ export async function checkTransactions(
     // - CASE 1 (no recipient memo): the Stellar memo carries this draft's
     //   unique id, so memo + destination identify the payment — for every
     //   operation type, create_account included. The amount only needs to
-    //   clear QR_CASE1_MIN_AMOUNT_FACTOR of the draft: exchanges deduct
-    //   tiny withdrawal fees before broadcasting, and the one-sided floor
-    //   accepts every fee-reduced payment while rejecting dust carrying a
-    //   guessed draft-id memo (the id is sequential and printed in the QR).
+    //   clear QR_MIN_AMOUNT_FACTOR of the draft: exchanges deduct tiny
+    //   withdrawal fees before broadcasting, and the one-sided floor accepts
+    //   every fee-reduced payment while rejecting dust carrying a guessed
+    //   draft-id memo (the id is sequential and printed in the QR).
     //   Because the memo identifies the draft, a payment broadcast after
     //   expiry stays acceptable for QR_LATE_PAYMENT_ACCEPTANCE_WINDOW_MS.
     //   Additionally, a create_account funding with the float4-exact draft
@@ -464,12 +565,21 @@ export async function checkTransactions(
     //   — the pre-#2347 behavior some wallets rely on (no memo field on
     //   account funding), safe to keep because it demands the exact amount
     //   and the tight window.
-    // - CASE 2 (recipient requires its own memo): several drafts to the same
-    //   project can share destination and memo, so the draft amount remains
-    //   the only disambiguator (compared at float4 precision, the column
-    //   type) and the validity window stays tight: without a unique
-    //   identifier a late payment must not be guessed at. create_account has
-    //   no memo to distinguish it with, so it keeps amount-only matching.
+    // - CASE 2 (recipient requires its own memo): payments must carry the
+    //   recipient's memo and an amount between QR_MIN_AMOUNT_FACTOR of the
+    //   draft and the draft amount itself (caseTwoAmountEligible) — exchanges
+    //   fee-reduce amounts here too, and only ever downward, so a payment
+    //   above the draft amount could only be a same-memo sibling draft's and
+    //   is never claimed. Several drafts to the same project can share
+    //   destination and memo, so a payment more than one scannable draft
+    //   could claim goes to the strongest claim: float4-exact amount first,
+    //   then the LATEST draft (caseTwoClaimScore /
+    //   outranksForCaseTwoOperation) — a weaker-placed draft defers and
+    //   re-evaluates next tick, so a deferred payment is claimed as soon as
+    //   the winner leaves the scannable set. The validity window stays tight:
+    //   without a unique identifier a late payment must not be guessed at.
+    //   create_account has no memo to distinguish it with, so it keeps
+    //   float4-exact amount-only matching.
     // Known limitation (pre-existing): donations are keyed by transaction
     // hash, so one exchange batch transaction carrying payments for TWO
     // CASE 2 drafts (same address and memo, different amounts) can only ever
@@ -477,6 +587,12 @@ export async function checkTransactions(
     // until it fails at expiry. Crediting both needs per-(hash, operation)
     // donation keying, a schema/product decision.
     const requiresRecipientMemo = Boolean(toWalletMemo);
+    // Fetched once per scan: the other scannable drafts a CASE 2 payment to
+    // this address+memo could belong to (empty for CASE 1 — its memo is
+    // per-draft, so no other draft can claim its payments).
+    const competingDrafts = requiresRecipientMemo
+      ? await getCompetingSameMemoDrafts(donation)
+      : [];
     // CASE 1's extended acceptance window shares the reconciliation window's
     // base (raw expiresAt, no grace term), so it ends exactly when the cron
     // stops scanning the draft — see getScannableDraftDonations.
@@ -503,7 +619,8 @@ export async function checkTransactions(
 
       // Never consider payments made before the draft (minus clock skew).
       const transactionCreatedAt = new Date(transaction.created_at).getTime();
-      if (transactionCreatedAt < draftCreatedAt - CLOCK_SKEW) continue;
+      if (transactionCreatedAt < draftCreatedAt - QR_PAYMENT_CLOCK_SKEW_MS)
+        continue;
 
       // What this operation transferred on-chain — the one number the amount
       // checks, the ranking, and the recorded donation amount all judge.
@@ -512,18 +629,30 @@ export async function checkTransactions(
       const memo = transaction.transaction?.memo;
 
       if (requiresRecipientMemo) {
-        // CASE 2: float4-exact amount, tight window, and payments must carry
-        // the recipient's own memo (see the regime notes above).
-        if (
-          !amountsMatchAtFloat4Precision(opAmount, amount) ||
-          transactionCreatedAt > expiresAtDate
-        ) {
-          continue;
-        }
+        // CASE 2 (see the regime notes above): payments must carry the
+        // recipient's own memo; the window and amount checks live in
+        // caseTwoClaimScore, shared with the competing-drafts comparison so
+        // this draft judges itself by exactly the rule it is judged by.
         if (transaction.type === 'payment' && memo !== toWalletMemo) {
           logger.debug(
             `Transaction memo does not match donation memo for donation ID ${donation.id}`,
           );
+          continue;
+        }
+        const operation = {
+          type: transaction.type,
+          opAmount,
+          createdAtMs: transactionCreatedAt,
+        };
+        if (caseTwoClaimScore(donation, operation) === 0) continue;
+        // Another same-memo draft has a stronger claim on this payment
+        // (exact amount, or equal strength but created later): leave it for
+        // that draft and keep scanning for this draft's own payment.
+        if (
+          competingDrafts.some(competitor =>
+            outranksForCaseTwoOperation(competitor, donation, operation),
+          )
+        ) {
           continue;
         }
       } else {
@@ -532,7 +661,7 @@ export async function checkTransactions(
         // on every tick — expected, not an event.
         const memoIdentified =
           memo === id.toString() &&
-          opAmount >= amount * QR_CASE1_MIN_AMOUNT_FACTOR &&
+          opAmount >= amount * QR_MIN_AMOUNT_FACTOR &&
           transactionCreatedAt <= caseOneWindowEndMs;
         const isExactCreateAccount =
           transaction.type === 'create_account' &&
@@ -557,9 +686,10 @@ export async function checkTransactions(
     // or a failed attempt plus its retry), so order the attempts: successful
     // transactions before failed ones (a donor's failed full-amount attempt
     // must not outrank their successful retry), then by on-chain amount,
-    // largest first. Ordering never rejects a payment; ties keep Horizon's
-    // newest-first order (Array.prototype.sort is stable), so CASE 2 — where
-    // every candidate equals the draft amount — behaves as before.
+    // largest first — for CASE 2, whose candidates are capped at the draft
+    // amount, that is closest-to-the-draft-amount first. Ordering never
+    // rejects a payment; ties keep Horizon's newest-first order
+    // (Array.prototype.sort is stable).
     candidates.sort(
       (a, b) =>
         Number(Boolean(b.transaction.transaction_successful)) -
@@ -628,8 +758,9 @@ export async function checkTransactions(
         // created the donation for this transaction. Reconcile the draft
         // with it only when the donation is positively this draft's: a
         // donation already claimed by another draft must not be claimed
-        // here too, and for CASE 2 the amount must also match, mirroring
-        // the identification pass (see the CASE 1/CASE 2 notes above).
+        // here too, and for CASE 2 the amount must also be eligible (the
+        // draft amount, or fee-reduced within the floor), mirroring the
+        // identification pass (see the CASE 1/CASE 2 notes above).
         const existingDonation = await findDonationsByTransactionId(txHash);
         if (existingDonation) {
           const claimingDraft = await findDraftDonationByMatchedDonationId(
@@ -639,10 +770,7 @@ export async function checkTransactions(
             (claimingDraft && claimingDraft.id !== donation.id) ||
             existingDonation.toWalletAddress !== donation.toWalletAddress ||
             (requiresRecipientMemo &&
-              !amountsMatchAtFloat4Precision(
-                Number(existingDonation.amount),
-                amount,
-              ))
+              !caseTwoAmountEligible(Number(existingDonation.amount), amount))
           ) {
             // This payment is spoken for by another draft; another
             // candidate further down the list may still be this draft's own.
