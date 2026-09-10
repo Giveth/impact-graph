@@ -15,6 +15,8 @@ import {
   generateRandomStellarAddress,
   saveDonationDirectlyToDb,
   saveUserDirectlyToDb,
+  stubStellarHorizonPayments as stubHorizonPayments,
+  horizonPaymentRecord,
 } from '../../test/testUtils';
 import {
   createDraftDonationMutation,
@@ -72,6 +74,10 @@ describe(
 describe(
   'stellar QR draft donation race condition test cases',
   stellarQRDraftRaceConditionTestCases,
+);
+describe(
+  'stellar QR donation matching test cases (memo-identified vs recipient-memo)',
+  stellarQRMatchingTestCases,
 );
 
 function createDraftDonationTestCases() {
@@ -1143,96 +1149,115 @@ function markDraftDonationAsFailedTestCases() {
   });
 }
 
+// ---- Shared Stellar QR test fixtures, used by the race-condition and the
+// ---- matching suites below (keep one copy; the suites only differ in the
+// ---- draft defaults they layer on top).
+
+const STELLAR_TEST_TOKEN_PRICE = 0.5;
+
+// The QR matcher requires a Stellar XLM token flagged with isQR
+async function ensureStellarQrXlmToken() {
+  const existingToken = await Token.findOne({
+    where: { symbol: 'XLM', networkId: NETWORK_IDS.STELLAR_MAINNET },
+  });
+  if (!existingToken) {
+    await Token.create({
+      name: 'Stellar Lumens',
+      symbol: 'XLM',
+      address: 'native',
+      networkId: NETWORK_IDS.STELLAR_MAINNET,
+      decimals: 7,
+      chainType: ChainType.STELLAR,
+      isQR: true,
+      coingeckoId: 'stellar',
+    }).save();
+  } else if (!existingToken.isQR) {
+    existingToken.isQR = true;
+    await existingToken.save();
+  }
+}
+
+async function setupStellarQrSuiteState() {
+  const project = await saveProjectDirectlyToDb(createProjectData());
+  const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+  sinon
+    .stub(CoingeckoPriceAdapter.prototype, 'getTokenPrice')
+    .resolves(STELLAR_TEST_TOKEN_PRICE);
+  sinon
+    .stub(donationService, 'syncDonationStatusWithBlockchainNetwork')
+    .resolves({} as any);
+  return { project, user };
+}
+
+async function createStellarDraftFor(
+  project: { id: number },
+  user: { id: number },
+  overrides: Partial<DraftDonation> = {},
+): Promise<DraftDonation> {
+  return DraftDonation.create({
+    networkId: NETWORK_IDS.STELLAR_MAINNET,
+    chainType: ChainType.STELLAR,
+    status: DRAFT_DONATION_STATUS.PENDING,
+    toWalletAddress: generateRandomStellarAddress(),
+    fromWalletAddress: '',
+    currency: 'XLM',
+    anonymous: false,
+    amount: 10,
+    projectId: project.id,
+    userId: user.id,
+    qrCodeDataUrl: 'data:image/png;base64,123',
+    isQRDonation: true,
+    createdAt: new Date(Date.now() - 5 * 60 * 1000),
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    ...overrides,
+  }).save();
+}
+
+// A Horizon payment-operation record for `draft`, delegating to the shared
+// horizonPaymentRecord shape. The memo defaults to the draft's recipient
+// memo when it has one (CASE 2) and to the draft id otherwise (CASE 1);
+// tests probing memo behavior pass `memo` explicitly.
+function stellarPayment(
+  draft: DraftDonation,
+  opts: {
+    txHash?: string;
+    createdAt?: Date;
+    memo?: string;
+    successful?: boolean;
+    amount?: number;
+    to?: string;
+  } = {},
+) {
+  return horizonPaymentRecord({
+    to: opts.to ?? draft.toWalletAddress,
+    amount: opts.amount ?? draft.amount,
+    txHash: opts.txHash,
+    createdAt: opts.createdAt,
+    successful: opts.successful,
+    memo: opts.memo ?? draft.toWalletMemo ?? String(draft.id),
+  });
+}
+
 function stellarQRDraftRaceConditionTestCases() {
   let project;
   let user;
 
-  before(async () => {
-    // The QR matcher requires a Stellar XLM token flagged with isQR
-    const existingToken = await Token.findOne({
-      where: { symbol: 'XLM', networkId: NETWORK_IDS.STELLAR_MAINNET },
-    });
-    if (!existingToken) {
-      await Token.create({
-        name: 'Stellar Lumens',
-        symbol: 'XLM',
-        address: 'native',
-        networkId: NETWORK_IDS.STELLAR_MAINNET,
-        decimals: 7,
-        chainType: ChainType.STELLAR,
-        isQR: true,
-        coingeckoId: 'stellar',
-      }).save();
-    } else if (!existingToken.isQR) {
-      existingToken.isQR = true;
-      await existingToken.save();
-    }
-  });
+  before(ensureStellarQrXlmToken);
 
   beforeEach(async () => {
-    project = await saveProjectDirectlyToDb(createProjectData());
-    user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    sinon.stub(CoingeckoPriceAdapter.prototype, 'getTokenPrice').resolves(0.5);
-    sinon
-      .stub(donationService, 'syncDonationStatusWithBlockchainNetwork')
-      .resolves({} as any);
+    ({ project, user } = await setupStellarQrSuiteState());
   });
 
   afterEach(() => {
     sinon.restore();
   });
 
-  async function createStellarDraft(
-    overrides: Partial<DraftDonation> = {},
-  ): Promise<DraftDonation> {
-    return DraftDonation.create({
-      networkId: NETWORK_IDS.STELLAR_MAINNET,
-      chainType: ChainType.STELLAR,
-      status: DRAFT_DONATION_STATUS.PENDING,
-      toWalletAddress: generateRandomStellarAddress(),
-      fromWalletAddress: '',
-      currency: 'XLM',
-      anonymous: false,
-      amount: 10,
-      projectId: project.id,
-      userId: user.id,
+  // Race-condition drafts default to a recipient-required memo (CASE 2).
+  const createStellarDraft = (overrides: Partial<DraftDonation> = {}) =>
+    createStellarDraftFor(project, user, {
       toWalletMemo: '123321',
-      qrCodeDataUrl: 'data:image/png;base64,123',
-      isQRDonation: true,
-      createdAt: new Date(Date.now() - 5 * 60 * 1000),
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       ...overrides,
-    }).save();
-  }
-
-  function stellarPayment(
-    draft: DraftDonation,
-    opts: {
-      txHash?: string;
-      createdAt?: Date;
-      memo?: string;
-      successful?: boolean;
-      amount?: number;
-    } = {},
-  ) {
-    return {
-      type: 'payment',
-      asset_type: 'native',
-      to: draft.toWalletAddress,
-      amount: String(opts.amount ?? draft.amount),
-      source_account: generateRandomStellarAddress(),
-      transaction_hash: opts.txHash ?? generateRandomStellarTxHash(),
-      created_at: (opts.createdAt ?? new Date()).toISOString(),
-      transaction_successful: opts.successful ?? true,
-      transaction: { memo: opts.memo ?? draft.toWalletMemo },
-    };
-  }
-
-  function stubHorizonPayments(records: any[]) {
-    return sinon
-      .stub(axios, 'get')
-      .resolves({ data: { _embedded: { records } } });
-  }
+    });
 
   it('should mark a pending draft as failed after expiration', async () => {
     const draft = await createStellarDraft({
@@ -1723,5 +1748,562 @@ function stellarQRDraftRaceConditionTestCases() {
       where: { transactionId: paymentA.transaction_hash.toLowerCase() },
     });
     expect(donations.length).to.equal(1);
+  });
+}
+
+function stellarQRMatchingTestCases() {
+  let project;
+  let user;
+
+  before(ensureStellarQrXlmToken);
+
+  beforeEach(async () => {
+    ({ project, user } = await setupStellarQrSuiteState());
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  // Matching-suite drafts default to CASE 1: no recipient-required memo, so
+  // the Stellar memo carries the draft donation id.
+  const createStellarDraft = (overrides: Partial<DraftDonation> = {}) =>
+    createStellarDraftFor(project, user, { amount: 20, ...overrides });
+
+  // A Horizon create_account operation record funding the draft's address.
+  function stellarCreateAccount(
+    draft: DraftDonation,
+    opts: { amount?: number; memo?: string; createdAt?: Date } = {},
+  ) {
+    return horizonPaymentRecord({
+      type: 'create_account',
+      to: draft.toWalletAddress,
+      amount: opts.amount ?? draft.amount,
+      memo: opts.memo ?? String(draft.id),
+      createdAt: opts.createdAt,
+    });
+  }
+
+  async function findDonationByTxHash(txHash: string) {
+    return Donation.findOne({ where: { transactionId: txHash.toLowerCase() } });
+  }
+
+  it('CASE 1: should match a payment with the exact draft amount', async () => {
+    const draft = await createStellarDraft();
+    const payment = stellarPayment(draft);
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(payment.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.equal(20);
+    expect(fresh!.matchedDonationId).to.equal(created!.id);
+  });
+
+  it('CASE 1: should match a payment whose amount was reduced by an exchange withdrawal fee and store the actual on-chain amount', async () => {
+    // Draft asks for 20 XLM, Binance deducts its fee and broadcasts 19.996
+    const draft = await createStellarDraft({ amount: 20 });
+    const payment = stellarPayment(draft, { amount: 19.996 });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+    // The draft keeps the originally requested amount
+    expect(Number(fresh!.amount)).to.equal(20);
+
+    // The donation records what actually arrived on-chain, and derived
+    // values are computed from that actual amount
+    const created = await findDonationByTxHash(payment.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.be.closeTo(19.996, 1e-9);
+    expect(created!.priceUsd).to.equal(STELLAR_TEST_TOKEN_PRICE);
+    expect(created!.valueUsd).to.be.closeTo(
+      19.996 * STELLAR_TEST_TOKEN_PRICE,
+      1e-9,
+    );
+    expect(fresh!.matchedDonationId).to.equal(created!.id);
+  });
+
+  it('CASE 1: should not match a payment with the correct memo but a wrong destination', async () => {
+    const draft = await createStellarDraft();
+    const payment = stellarPayment(draft, {
+      to: generateRandomStellarAddress(),
+    });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
+    expect(fresh!.matchedDonationId).to.be.null;
+    expect(await findDonationByTxHash(payment.transaction_hash)).to.not.exist;
+  });
+
+  it('CASE 1: should not match a payment with a wrong draft-id memo', async () => {
+    const draft = await createStellarDraft();
+    const payment = stellarPayment(draft, { memo: String(draft.id + 1) });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
+    expect(fresh!.matchedDonationId).to.be.null;
+    expect(await findDonationByTxHash(payment.transaction_hash)).to.not.exist;
+  });
+
+  it('CASE 2: should keep matching on the exact amount when the recipient requires its own memo', async () => {
+    const draft = await createStellarDraft({ toWalletMemo: '424242' });
+    const payment = stellarPayment(draft, { memo: '424242' });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(payment.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.equal(20);
+    expect(created!.toWalletMemo).to.equal('424242');
+  });
+
+  it('CASE 2: should match a fee-reduced amount and store the actual on-chain amount', async () => {
+    // The staging draft-2288 scenario: 0.001 XLM requested, the wallet or
+    // exchange deducted its fee and broadcast 0.00098 with the recipient's
+    // memo — must match, recording what actually arrived.
+    const draft = await createStellarDraft({
+      toWalletMemo: '4545',
+      amount: 0.001,
+    });
+    const payment = stellarPayment(draft, { memo: '4545', amount: 0.00098 });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+    expect(Number(fresh!.amount)).to.be.closeTo(0.001, 1e-9);
+
+    const created = await findDonationByTxHash(payment.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.be.closeTo(0.00098, 1e-9);
+    expect(created!.valueUsd).to.be.closeTo(
+      0.00098 * STELLAR_TEST_TOKEN_PRICE,
+      1e-9,
+    );
+    expect(fresh!.matchedDonationId).to.equal(created!.id);
+  });
+
+  it('CASE 2: should not match a payment below the minimum-amount floor', async () => {
+    const draft = await createStellarDraft({
+      toWalletMemo: '424242',
+      amount: 0.001,
+    });
+    // Correct memo and destination, but only 10% of the draft amount — dust,
+    // not a fee-reduced payment.
+    const payment = stellarPayment(draft, { memo: '424242', amount: 0.0001 });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
+    expect(fresh!.matchedDonationId).to.be.null;
+    expect(await findDonationByTxHash(payment.transaction_hash)).to.not.exist;
+  });
+
+  it('CASE 2: should not match a payment above the draft amount', async () => {
+    // Fees only ever reduce an amount, so a larger payment carrying the
+    // shared recipient memo can only be some other draft's — claiming it
+    // would credit the wrong donor.
+    const draft = await createStellarDraft({
+      toWalletMemo: '424242',
+      amount: 20,
+    });
+    const payment = stellarPayment(draft, { memo: '424242', amount: 25 });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
+    expect(fresh!.matchedDonationId).to.be.null;
+    expect(await findDonationByTxHash(payment.transaction_hash)).to.not.exist;
+  });
+
+  it('CASE 2: should give a fee-reduced payment to the latest of the drafts able to claim it', async () => {
+    // Two donors, same address, same recipient memo, same amount: the
+    // fee-reduced payment satisfies both drafts, so the LATEST draft wins
+    // and the older one defers — regardless of processing order.
+    const older = await createStellarDraft({
+      toWalletMemo: '424242',
+      amount: 20,
+      createdAt: new Date(Date.now() - 6 * 60 * 1000),
+    });
+    const newer = await createStellarDraft({
+      toWalletMemo: '424242',
+      toWalletAddress: older.toWalletAddress,
+      amount: 20,
+      createdAt: new Date(Date.now() - 4 * 60 * 1000),
+    });
+    const payment = stellarPayment(older, { memo: '424242', amount: 19.996 });
+    stubHorizonPayments([payment]);
+
+    // The older draft is processed first and must leave the payment alone
+    await checkTransactions(older, 'stellar-cron');
+    expect(await findDonationByTxHash(payment.transaction_hash)).to.not.exist;
+    const freshOlder = await DraftDonation.findOne({
+      where: { id: older.id },
+    });
+    expect(freshOlder!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
+
+    await checkTransactions(newer, 'stellar-cron');
+    const created = await findDonationByTxHash(payment.transaction_hash);
+    expect(created).to.exist;
+    const freshNewer = await DraftDonation.findOne({
+      where: { id: newer.id },
+    });
+    expect(freshNewer!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+    expect(freshNewer!.matchedDonationId).to.equal(created!.id);
+  });
+
+  it('CASE 2: should give a payment to an older draft with the exact amount over a newer fee-reduced claim', async () => {
+    // The exact amount is the strongest identity CASE 2 has: an older draft
+    // asking for exactly what arrived beats a newer draft for which the
+    // payment would merely be fee-reduced-eligible.
+    const exactOlder = await createStellarDraft({
+      toWalletMemo: '424242',
+      amount: 19.996,
+      createdAt: new Date(Date.now() - 6 * 60 * 1000),
+    });
+    const reducedNewer = await createStellarDraft({
+      toWalletMemo: '424242',
+      toWalletAddress: exactOlder.toWalletAddress,
+      amount: 20,
+      createdAt: new Date(Date.now() - 4 * 60 * 1000),
+    });
+    const payment = stellarPayment(exactOlder, {
+      memo: '424242',
+      amount: 19.996,
+    });
+    stubHorizonPayments([payment]);
+
+    // The newer draft is processed first and must defer to the exact claim
+    await checkTransactions(reducedNewer, 'stellar-cron');
+    expect(await findDonationByTxHash(payment.transaction_hash)).to.not.exist;
+    const freshNewer = await DraftDonation.findOne({
+      where: { id: reducedNewer.id },
+    });
+    expect(freshNewer!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
+
+    await checkTransactions(exactOlder, 'stellar-cron');
+    const created = await findDonationByTxHash(payment.transaction_hash);
+    expect(created).to.exist;
+    const freshOlder = await DraftDonation.findOne({
+      where: { id: exactOlder.id },
+    });
+    expect(freshOlder!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+    expect(freshOlder!.matchedDonationId).to.equal(created!.id);
+  });
+
+  it('CASE 2: should let the deferring draft claim the payment once the preferred draft is matched by another payment', async () => {
+    // The deferral self-heals: when the latest draft gets settled by its own
+    // (exact) payment, the older draft's next scan finds the fee-reduced
+    // payment unclaimed and unopposed, and takes it.
+    const older = await createStellarDraft({
+      toWalletMemo: '424242',
+      amount: 20,
+      createdAt: new Date(Date.now() - 6 * 60 * 1000),
+    });
+    const newer = await createStellarDraft({
+      toWalletMemo: '424242',
+      toWalletAddress: older.toWalletAddress,
+      amount: 20,
+      createdAt: new Date(Date.now() - 4 * 60 * 1000),
+    });
+    const reducedPayment = stellarPayment(older, {
+      memo: '424242',
+      amount: 19.996,
+      createdAt: new Date(Date.now() - 3 * 60 * 1000),
+    });
+    const exactPayment = stellarPayment(newer, {
+      memo: '424242',
+      amount: 20,
+    });
+    stubHorizonPayments([exactPayment, reducedPayment]);
+
+    // Tick 1: the older draft defers the reduced payment to the newer draft
+    // (the exact payment is above nobody's amount — both could claim it, and
+    // the newer draft wins both), so the older draft matches nothing yet.
+    await checkTransactions(older, 'stellar-cron');
+    expect(await findDonationByTxHash(reducedPayment.transaction_hash)).to.not
+      .exist;
+
+    // The newer draft takes its exact payment.
+    await checkTransactions(newer, 'stellar-cron');
+    const newerDonation = await findDonationByTxHash(
+      exactPayment.transaction_hash,
+    );
+    expect(newerDonation).to.exist;
+
+    // Tick 2: the newer draft is matched (no longer scannable), so the older
+    // draft now claims the fee-reduced payment.
+    const rescanned = await DraftDonation.findOne({ where: { id: older.id } });
+    await checkTransactions(rescanned!, 'stellar-cron');
+    const olderDonation = await findDonationByTxHash(
+      reducedPayment.transaction_hash,
+    );
+    expect(olderDonation).to.exist;
+    const freshOlder = await DraftDonation.findOne({
+      where: { id: older.id },
+    });
+    expect(freshOlder!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+    expect(freshOlder!.matchedDonationId).to.equal(olderDonation!.id);
+  });
+
+  it('CASE 1: should match a payment an exchange broadcast only after the draft expired (delayed withdrawal)', async () => {
+    // Draft created 40 minutes ago and expired 24 minutes ago; the exchange
+    // broadcast the withdrawal only 10 minutes ago — long after the old
+    // 2-minute window and after the draft expiry, but within the
+    // reconciliation window during which the draft is still scanned.
+    const draft = await createStellarDraft({
+      createdAt: new Date(Date.now() - 40 * 60 * 1000),
+      expiresAt: new Date(Date.now() - 24 * 60 * 1000),
+    });
+    const payment = stellarPayment(draft, {
+      amount: 19.996,
+      createdAt: new Date(Date.now() - 10 * 60 * 1000),
+    });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(payment.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.be.closeTo(19.996, 1e-9);
+  });
+
+  it('CASE 2: should not match a payment broadcast after expiry when the recipient requires its own memo', async () => {
+    const draft = await createStellarDraft({
+      toWalletMemo: '424242',
+      createdAt: new Date(Date.now() - 40 * 60 * 1000),
+      expiresAt: new Date(Date.now() - 24 * 60 * 1000),
+    });
+    const payment = stellarPayment(draft, {
+      memo: '424242',
+      createdAt: new Date(Date.now() - 10 * 60 * 1000),
+    });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.FAILED);
+    expect(fresh!.matchedDonationId).to.be.null;
+    expect(await findDonationByTxHash(payment.transaction_hash)).to.not.exist;
+  });
+
+  it('CASE 1: should not create a duplicate donation when the same transaction is seen again on a later run', async () => {
+    const draft = await createStellarDraft();
+    const payment = stellarPayment(draft, { amount: 19.996 });
+    stubHorizonPayments([payment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    // Next cron tick re-reads the draft and sees the same Horizon page
+    const rescanned = await DraftDonation.findOne({ where: { id: draft.id } });
+    await checkTransactions(rescanned!, 'stellar-cron');
+
+    const donations = await Donation.find({
+      where: { transactionId: payment.transaction_hash.toLowerCase() },
+    });
+    expect(donations.length).to.equal(1);
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+    expect(fresh!.matchedDonationId).to.equal(donations[0].id);
+  });
+
+  it("CASE 1: should pick this draft's own payment out of several payments to the same address", async () => {
+    const draft = await createStellarDraft();
+    // A newer unrelated payment (wrong memo) and an older one that is ours
+    const ownPayment = stellarPayment(draft, {
+      amount: 19.996,
+      createdAt: new Date(Date.now() - 3 * 60 * 1000),
+    });
+    stubHorizonPayments([
+      stellarPayment(draft, { memo: 'unrelated', amount: 5 }),
+      ownPayment,
+    ]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(ownPayment.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.be.closeTo(19.996, 1e-9);
+    expect(fresh!.matchedDonationId).to.equal(created!.id);
+  });
+
+  it('CASE 1: should credit the largest memo-carrying payment when a dust payment with the same memo is also on the page', async () => {
+    const draft = await createStellarDraft({ amount: 20 });
+    // A newer dust payment front-running the real one, both carrying the
+    // draft-id memo: the dust is rejected by the minimum-amount floor and
+    // the real payment must be the one credited.
+    const dust = stellarPayment(draft, { amount: 0.0000001 });
+    const real = stellarPayment(draft, {
+      amount: 19.996,
+      createdAt: new Date(Date.now() - 2 * 60 * 1000),
+    });
+    stubHorizonPayments([dust, real]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(real.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.be.closeTo(19.996, 1e-9);
+    expect(fresh!.matchedDonationId).to.equal(created!.id);
+    expect(await findDonationByTxHash(dust.transaction_hash)).to.not.exist;
+  });
+
+  it('CASE 1: should credit the largest operation when one transaction pays the address more than once', async () => {
+    const draft = await createStellarDraft({ amount: 20 });
+    // One Stellar transaction (one tx-level memo) carrying two payment
+    // operations to the same address; the donation must record the larger.
+    const txHash = generateRandomStellarTxHash();
+    stubHorizonPayments([
+      stellarPayment(draft, { amount: 0.1, txHash }),
+      stellarPayment(draft, { amount: 19.9, txHash }),
+    ]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(txHash);
+    expect(created).to.exist;
+    expect(created!.amount).to.be.closeTo(19.9, 1e-9);
+  });
+
+  it('CASE 1: should match a fee-reduced create_account funding that carries the draft-id memo', async () => {
+    // First-ever payment to an unfunded address: the exchange broadcasts a
+    // create_account op with the fee already deducted from starting_balance
+    const draft = await createStellarDraft({ amount: 20 });
+    const funding = stellarCreateAccount(draft, { amount: 19.996 });
+    stubHorizonPayments([funding]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(funding.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.be.closeTo(19.996, 1e-9);
+    expect(fresh!.matchedDonationId).to.equal(created!.id);
+  });
+
+  it('CASE 1: should match a create_account with the exact draft amount even without the draft-id memo (legacy path)', async () => {
+    // Some wallets expose no memo field on account funding; the exact
+    // amount inside the tight validity window is accepted without one
+    const draft = await createStellarDraft({ amount: 20 });
+    const funding = stellarCreateAccount(draft, {
+      amount: 20,
+      memo: 'unrelated',
+    });
+    stubHorizonPayments([funding]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(funding.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.equal(20);
+  });
+
+  it('CASE 1: should not match a memo-less create_account after expiry, even with the exact amount', async () => {
+    // The extended post-expiry window is justified by the memo alone; the
+    // memo-less legacy path keeps the tight window
+    const draft = await createStellarDraft({
+      amount: 20,
+      createdAt: new Date(Date.now() - 40 * 60 * 1000),
+      expiresAt: new Date(Date.now() - 24 * 60 * 1000),
+    });
+    const funding = stellarCreateAccount(draft, {
+      amount: 20,
+      memo: 'unrelated',
+      createdAt: new Date(Date.now() - 10 * 60 * 1000),
+    });
+    stubHorizonPayments([funding]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.FAILED);
+    expect(fresh!.matchedDonationId).to.be.null;
+    expect(await findDonationByTxHash(funding.transaction_hash)).to.not.exist;
+  });
+
+  it('CASE 1: should not match a payment below the minimum amount factor even with the correct memo', async () => {
+    // Dust (or a heavy underpayment) carrying a guessed draft-id memo must
+    // not claim the draft; the floor still passes any fee-reduced payment
+    const draft = await createStellarDraft({ amount: 20 });
+    const dust = stellarPayment(draft, { amount: 0.0000001 });
+    const underpayment = stellarPayment(draft, { amount: 17 });
+    stubHorizonPayments([dust, underpayment]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.PENDING);
+    expect(fresh!.matchedDonationId).to.be.null;
+    expect(await findDonationByTxHash(dust.transaction_hash)).to.not.exist;
+    expect(await findDonationByTxHash(underpayment.transaction_hash)).to.not
+      .exist;
+  });
+
+  it('CASE 1: should credit the successful retry over a larger failed payment attempt', async () => {
+    const draft = await createStellarDraft({ amount: 20 });
+    // The donor's direct 20 XLM attempt failed on-chain; their exchange
+    // retry landed 19.996 successfully. Both carry the draft-id memo.
+    const failedAttempt = stellarPayment(draft, {
+      amount: 20,
+      successful: false,
+    });
+    const retry = stellarPayment(draft, {
+      amount: 19.996,
+      createdAt: new Date(Date.now() - 2 * 60 * 1000),
+    });
+    stubHorizonPayments([failedAttempt, retry]);
+
+    await checkTransactions(draft, 'stellar-cron');
+
+    const fresh = await DraftDonation.findOne({ where: { id: draft.id } });
+    expect(fresh!.status).to.equal(DRAFT_DONATION_STATUS.MATCHED);
+
+    const created = await findDonationByTxHash(retry.transaction_hash);
+    expect(created).to.exist;
+    expect(created!.amount).to.be.closeTo(19.996, 1e-9);
+    expect(fresh!.matchedDonationId).to.equal(created!.id);
+    expect(await findDonationByTxHash(failedAttempt.transaction_hash)).to.not
+      .exist;
   });
 }
