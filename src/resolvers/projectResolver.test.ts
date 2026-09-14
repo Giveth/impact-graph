@@ -3861,7 +3861,8 @@ function projectByIdTestCases() {
     assert.equal(Number(project.id), draftedProject.id);
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
-    assert.isNotOk(project.adminUser.email);
+    // signed-in caller is the project owner, so the private email is visible
+    assert.equal(project.adminUser.email, SEED_DATA.FIRST_USER.email);
   });
   it('should not return drafted project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
@@ -3945,7 +3946,8 @@ function projectByIdTestCases() {
     assert.equal(Number(project.id), cancelledProject.id);
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
-    assert.isNotOk(project.adminUser.email);
+    // signed-in caller is the project owner, so the private email is visible
+    assert.equal(project.adminUser.email, SEED_DATA.FIRST_USER.email);
   });
   it('should not return cancelled project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
