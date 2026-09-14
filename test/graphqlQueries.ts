@@ -1423,7 +1423,9 @@ export const fetchProjectBySlugQuery = `
         email
         firstName
         walletAddress
-        email
+        twitterName
+        telegramName
+        location
       }
       totalReactions
       totalDonations
@@ -3120,6 +3122,7 @@ export const causesQuery = `
         id
         walletAddress
         name
+        email
       }
       projects {
         id
@@ -3165,6 +3168,10 @@ export const causeByIdQuery = `
         id
         walletAddress
         name
+        email
+        twitterName
+        telegramName
+        location
       }
       projects {
         id
@@ -3330,6 +3337,10 @@ export const causeProjectsQuery = `
         id
         title
         description
+        adminUser {
+          id
+          email
+        }
       }
     }
   }
@@ -3361,6 +3372,30 @@ export const globalScoreSettingsQuery = `
     globalScoreSettings {
       globalMinimumPassportScore
       globalMinimumMBDScore
+    }
+  }
+`;
+
+// adminUser without `id`: the owner-only guard must not depend on the client
+// requesting it
+export const fetchProjectBySlugAdminUserWithoutIdQuery = `
+  query ($slug: String!) {
+    projectBySlug(slug: $slug) {
+      id
+      adminUser {
+        walletAddress
+        email
+      }
+    }
+  }
+`;
+
+export const meQuery = `
+  query {
+    me {
+      id
+      email
+      walletAddress
     }
   }
 `;
