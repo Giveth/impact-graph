@@ -8,13 +8,19 @@ import {
   deleteProjectDirectlyFromDb,
   graphqlUrl,
   generateRandomEvmTxHash,
+  generateRandomEtheriumAddress,
   createCauseData,
 } from '../../test/testUtils';
 import {
+  causeByIdQuery,
+  causeProjectsQuery,
+  causesQuery,
   createCauseQuery,
   isValidCauseTitleQuery,
 } from '../../test/graphqlQueries';
-import { Cause, CauseProject, Project } from '../entities/project';
+import { Cause, CauseProject, ProjStatus, Project } from '../entities/project';
+import { User } from '../entities/user';
+import { createCause } from '../repositories/causeRepository';
 import * as verifyTransactionModule from '../utils/transactionVerification';
 import { MainCategory } from '../entities/mainCategory';
 import { Category } from '../entities/category';
@@ -1098,3 +1104,137 @@ describe('createCause() test cases', () => {
 //     assert.isNotNull(cause.projects);
 //   });
 // });
+
+describe('User.email visibility on cause queries', () => {
+  // adminUser is loaded with the full user row on the cause paths, so the
+  // field-level guard on User.email is what keeps it private here.
+  let owner: User;
+  let otherUser: User;
+  let projects: Project[];
+  let causeId: number;
+
+  before(async () => {
+    owner = await saveUserDirectlyToDb(`0xcause-owner-${Date.now()}`);
+    owner.twitterName = 'owner_twitter';
+    owner.telegramName = 'owner_telegram';
+    owner.location = 'Zagreb';
+    await owner.save();
+    otherUser = await saveUserDirectlyToDb(`0xcause-other-${Date.now()}`);
+    projects = await Promise.all(
+      Array(5)
+        .fill(null)
+        .map((_, index) =>
+          saveProjectDirectlyToDb({
+            ...createCauseData(
+              `email-visibility-project-${Date.now()}-${index}`,
+            ),
+            slug: `email-visibility-project-${Date.now()}-${index}`,
+          }),
+        ),
+    );
+    const cause = await createCause(
+      {
+        ...createCauseData(`email-visibility-cause-${Date.now()}`),
+        statusId: ProjStatus.active,
+        chainId: 137,
+        fundingPoolAddress: generateRandomEtheriumAddress(),
+      },
+      owner,
+      projects,
+    );
+    causeId = cause.id;
+  });
+
+  after(async () => {
+    if (causeId) {
+      await ProjectAddress.getRepository().query(
+        'DELETE FROM "project_address" WHERE "projectId" = $1',
+        [causeId],
+      );
+      await CauseProject.getRepository().query(
+        'DELETE FROM "cause_project" WHERE "causeId" = $1',
+        [causeId],
+      );
+      await Cause.getRepository().query('DELETE FROM "project" WHERE id = $1', [
+        causeId,
+      ]);
+    }
+    for (const project of projects ?? []) {
+      // cause_project -> project is ON DELETE NO ACTION; clear it even when
+      // createCause failed midway and causeId was never assigned
+      await CauseProject.getRepository().query(
+        'DELETE FROM "cause_project" WHERE "projectId" = $1',
+        [project.id],
+      );
+      await deleteProjectDirectlyFromDb(project.id);
+    }
+  });
+
+  it('cause(): hides adminUser.email from anonymous callers', async () => {
+    const response = await axios.post(graphqlUrl, {
+      query: causeByIdQuery,
+      variables: { id: causeId },
+    });
+    const cause = response.data.data.cause;
+    assert.equal(Number(cause.adminUser.id), owner.id);
+    assert.isNull(cause.adminUser.email);
+    assert.isNull(cause.adminUser.twitterName);
+    assert.isNull(cause.adminUser.telegramName);
+    assert.isNull(cause.adminUser.location);
+  });
+
+  it('cause(): hides adminUser.email from a signed-in non-owner', async () => {
+    const token = await generateTestAccessToken(otherUser.id);
+    const response = await axios.post(
+      graphqlUrl,
+      { query: causeByIdQuery, variables: { id: causeId } },
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+    const adminUser = response.data.data.cause.adminUser;
+    assert.isNull(adminUser.email);
+    assert.isNull(adminUser.twitterName);
+    assert.isNull(adminUser.telegramName);
+    assert.isNull(adminUser.location);
+  });
+
+  it('cause(): shows adminUser.email to the signed-in owner', async () => {
+    const token = await generateTestAccessToken(owner.id);
+    const response = await axios.post(
+      graphqlUrl,
+      { query: causeByIdQuery, variables: { id: causeId } },
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+    const adminUser = response.data.data.cause.adminUser;
+    assert.equal(adminUser.email, owner.email);
+    assert.equal(adminUser.twitterName, owner.twitterName);
+    assert.equal(adminUser.telegramName, owner.telegramName);
+    assert.equal(adminUser.location, owner.location);
+  });
+
+  it('causes(): hides every adminUser.email from anonymous callers', async () => {
+    const response = await axios.post(graphqlUrl, {
+      query: causesQuery,
+      variables: { listingStatus: 'all' },
+    });
+    const causes = response.data.data.causes;
+    const target = causes.find(c => Number(c.id) === causeId);
+    assert.isOk(target);
+    assert.equal(Number(target.adminUser.id), owner.id);
+    for (const cause of causes) {
+      assert.isNull(cause.adminUser.email);
+    }
+  });
+
+  it('causeProjects(): hides project.adminUser.email from anonymous callers', async () => {
+    const response = await axios.post(graphqlUrl, {
+      query: causeProjectsQuery,
+      variables: { causeId },
+    });
+    const causeProjects = response.data.data.causeProjects;
+    assert.equal(causeProjects.length, 5);
+    for (const cp of causeProjects) {
+      assert.isOk(cp.project.adminUser.id);
+      assert.isNull(cp.project.adminUser.email);
+    }
+  });
+});

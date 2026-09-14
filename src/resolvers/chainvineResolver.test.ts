@@ -48,13 +48,20 @@ function registerClickOnChainvineTestCases() {
     referrerUser.chainvineId = generateHexNumber(10);
     await referrerUser.save();
 
-    const result = await axios.post(graphqlUrl, {
-      query: registerClickOnChainvineQuery,
-      variables: {
-        referrerId: referrerUser.chainvineId,
-        walletAddress: user.walletAddress,
+    // chainvineId / wasReferred / isReferrer are owner-only User fields
+    // (OwnerOnlyUserField), so call as the wallet owner like the dapp does
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: registerClickOnChainvineQuery,
+        variables: {
+          referrerId: referrerUser.chainvineId,
+          walletAddress: user.walletAddress,
+        },
       },
-    });
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
     const updatedUser = result.data.data.registerClickEvent;
     assert.isTrue(updatedUser.wasReferred);
     assert.isFalse(updatedUser.isReferrer);

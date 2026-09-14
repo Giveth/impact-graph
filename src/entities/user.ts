@@ -1,4 +1,4 @@
-import { Field, Float, ID, Int, ObjectType } from 'type-graphql';
+import { Field, Float, ID, Int, ObjectType, UseMiddleware } from 'type-graphql';
 import {
   BaseEntity,
   Column,
@@ -21,6 +21,7 @@ import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRe
 import { ReferredEvent } from './referredEvent';
 import { RecurringDonation } from './recurringDonation';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
+import { OwnerOnlyUserField } from '../middleware/ownerOnlyUserField';
 
 export const publicSelectionFields = [
   'user.id',
@@ -40,6 +41,20 @@ export const publicSelectionFields = [
   'user.totalCausesDistributed',
   'user.causesTotalEarned',
   'user.causesTotalEarnedUsdValue',
+];
+
+// Columns that are @Field-exposed but private: resolved only for the owner
+// (OwnerOnlyUserField). Repositories may select these for signed-in callers.
+// Must list exactly the columns decorated with @UseMiddleware(OwnerOnlyUserField)
+// below; src/middleware/ownerOnlyUserField.test.ts asserts that.
+export const ownerOnlySelectionFields = [
+  'user.email',
+  'user.twitterName',
+  'user.telegramName',
+  'user.location',
+  'user.chainvineId',
+  'user.wasReferred',
+  'user.isReferrer',
 ];
 
 export enum UserRole {
@@ -78,7 +93,13 @@ export class User extends BaseEntity {
   )
   accountVerifications?: AccountVerification[];
 
+  // Private columns (every @Field-exposed column that publicSelectionFields
+  // omits) carry @UseMiddleware(OwnerOnlyUserField): resolved only for the
+  // signed-in owner, null for everyone else. Keep the guard even though
+  // repositories try to omit these columns via publicSelectionFields -
+  // eager/joined loads bypass that.
   @Field(_type => String, { nullable: true })
+  @UseMiddleware(OwnerOnlyUserField)
   @Column({ nullable: true })
   email?: string;
 
@@ -120,10 +141,12 @@ export class User extends BaseEntity {
   url?: string;
 
   @Field(_type => String, { nullable: true })
+  @UseMiddleware(OwnerOnlyUserField)
   @Column({ nullable: true })
   twitterName?: string;
 
   @Field(_type => String, { nullable: true })
+  @UseMiddleware(OwnerOnlyUserField)
   @Column({ nullable: true })
   telegramName?: string;
 
@@ -136,6 +159,7 @@ export class User extends BaseEntity {
   passportStamps?: number;
 
   @Field(_type => String, { nullable: true })
+  @UseMiddleware(OwnerOnlyUserField)
   @Column({ nullable: true })
   location?: string;
 
@@ -149,14 +173,17 @@ export class User extends BaseEntity {
   confirmed: boolean;
 
   @Field(_type => String, { nullable: true })
+  @UseMiddleware(OwnerOnlyUserField)
   @Column({ nullable: true })
   chainvineId?: string;
 
   @Field(_type => Boolean, { nullable: true })
+  @UseMiddleware(OwnerOnlyUserField)
   @Column('bool', { default: false })
   wasReferred: boolean;
 
   @Field(_type => Boolean, { nullable: true })
+  @UseMiddleware(OwnerOnlyUserField)
   @Column('bool', { default: false })
   isReferrer: boolean;
 

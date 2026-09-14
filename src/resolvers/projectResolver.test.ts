@@ -8,6 +8,7 @@ import { removeProjectAndRelatedEntities } from '../repositories/projectReposito
 import {
   createDonationData,
   createProjectData,
+  deleteProjectDirectlyFromDb,
   generateRandomEtheriumAddress,
   generateRandomSolanaAddress,
   generateTestAccessToken,
@@ -35,6 +36,7 @@ import {
   fetchNewProjectsPerDate,
   fetchOptimizedAllProjectsQuery,
   fetchProjectBySlugQuery,
+  fetchProjectBySlugAdminUserWithoutIdQuery,
   fetchProjectUpdatesQuery,
   fetchSimilarProjectsBySlugQuery,
   getProjectsAcceptTokensQuery,
@@ -3859,7 +3861,8 @@ function projectByIdTestCases() {
     assert.equal(Number(project.id), draftedProject.id);
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
-    assert.isNotOk(project.adminUser.email);
+    // signed-in caller is the project owner, so the private email is visible
+    assert.equal(project.adminUser.email, SEED_DATA.FIRST_USER.email);
   });
   it('should not return drafted project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
@@ -3943,7 +3946,8 @@ function projectByIdTestCases() {
     assert.equal(Number(project.id), cancelledProject.id);
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
-    assert.isNotOk(project.adminUser.email);
+    // signed-in caller is the project owner, so the private email is visible
+    assert.equal(project.adminUser.email, SEED_DATA.FIRST_USER.email);
   });
   it('should not return cancelled project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
@@ -7956,3 +7960,112 @@ function projectResolverQfRoundsPrioritySortingTestCases() {
     assert.include(qfRoundIds, qfRound3.id.toString());
   });
 }
+
+describe('User.email visibility on projectBySlug', () => {
+  // projectBySlug joins adminUser for the requested fields; the join must only
+  // select public columns and User.email must only resolve for its owner.
+  let owner: User;
+  let otherUser: User;
+  let project: Project;
+
+  before(async () => {
+    owner = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    owner.twitterName = 'owner_twitter';
+    owner.telegramName = 'owner_telegram';
+    owner.location = 'Zagreb';
+    await owner.save();
+    otherUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: `email-visibility-${Date.now()}`,
+      slug: `email-visibility-${Date.now()}`,
+      adminUserId: owner.id,
+    });
+    assert.isOk(owner.email, 'test owner should have an email');
+  });
+
+  after(async () => {
+    await deleteProjectDirectlyFromDb(project.id);
+  });
+
+  const query = async (token?: string) =>
+    axios.post(
+      graphqlUrl,
+      {
+        query: fetchProjectBySlugQuery,
+        variables: { slug: project.slug },
+      },
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    );
+
+  it('hides adminUser.email from anonymous callers', async () => {
+    const result = await query();
+    const adminUser = result.data.data.projectBySlug.adminUser;
+    assert.equal(Number(adminUser.id), owner.id);
+    assert.isOk(adminUser.walletAddress);
+    assert.isNull(adminUser.email);
+    assert.isNull(adminUser.twitterName);
+    assert.isNull(adminUser.telegramName);
+    assert.isNull(adminUser.location);
+  });
+
+  it('hides adminUser.email from a signed-in non-owner', async () => {
+    const result = await query(await generateTestAccessToken(otherUser.id));
+    const adminUser = result.data.data.projectBySlug.adminUser;
+    assert.isNull(adminUser.email);
+    assert.isNull(adminUser.twitterName);
+    assert.isNull(adminUser.telegramName);
+    assert.isNull(adminUser.location);
+  });
+
+  it('shows adminUser.email to the signed-in owner', async () => {
+    const result = await query(await generateTestAccessToken(owner.id));
+    const adminUser = result.data.data.projectBySlug.adminUser;
+    assert.equal(adminUser.email, owner.email);
+    assert.equal(adminUser.twitterName, owner.twitterName);
+    assert.equal(adminUser.telegramName, owner.telegramName);
+    assert.equal(adminUser.location, owner.location);
+  });
+
+  it('shows adminUser.email to the owner even when adminUser.id is not requested', async () => {
+    const token = await generateTestAccessToken(owner.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchProjectBySlugAdminUserWithoutIdQuery,
+        variables: { slug: project.slug },
+      },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    const adminUser = result.data.data.projectBySlug.adminUser;
+    assert.equal(adminUser.walletAddress, owner.walletAddress);
+    assert.equal(adminUser.email, owner.email);
+  });
+
+  it('projectById(): shows adminUser.email to the owner and hides it from others', async () => {
+    const ownerResult = await axios.post(
+      graphqlUrl,
+      { query: projectByIdQuery, variables: { id: project.id } },
+      {
+        headers: {
+          Authorization: `Bearer ${await generateTestAccessToken(owner.id)}`,
+        },
+      },
+    );
+    assert.equal(
+      ownerResult.data.data.projectById.adminUser.email,
+      owner.email,
+    );
+
+    const otherResult = await axios.post(
+      graphqlUrl,
+      { query: projectByIdQuery, variables: { id: project.id } },
+      {
+        headers: {
+          Authorization: `Bearer ${await generateTestAccessToken(otherUser.id)}`,
+        },
+      },
+    );
+    assert.isNull(otherResult.data.data.projectById.adminUser.email);
+  });
+});
