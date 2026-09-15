@@ -39,6 +39,7 @@ import { flushSentryAndExit } from '../utils/globalErrorHandlers';
 import { isTrustedVercelRequest } from '../utils/ipWhitelist';
 import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
 import { adminSessionAuthentication } from '../middleware/adminSessionAuthentication';
+import { createAdminDownloadRateLimiter } from '../middleware/adminDownloadRateLimiter';
 // import { apiGivRouter } from '../routers/apiGivRoutes';
 import { AppDataSource, CronDataSource } from '../orm';
 import {
@@ -215,6 +216,15 @@ export async function bootstrap() {
     // PII and must never be downloadable by anonymous or non-admin callers.
     app.get(
       '/admin/download/:filename',
+      // Limit attempts before session lookup and file access, independently of
+      // the global limiter's /admin exemption. Share counts across instances.
+      createAdminDownloadRateLimiter(
+        new RedisStore({
+          prefix: 'rate-limit:admin-download:',
+          // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+          sendCommand: (...args: string[]) => redis.call(...args),
+        }),
+      ),
       adminSessionAuthentication,
       (req, res) => {
         const exportsDir = path.join(__dirname, '/adminJs/tabs/exports');
