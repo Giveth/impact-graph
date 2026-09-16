@@ -1,18 +1,18 @@
-import { ActionResponse } from 'adminjs';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import { ActionResponse } from 'adminjs';
 import { ProjectQfRound } from '../../../entities/projectQfRound';
-import { findProjectById } from '../../../repositories/projectRepository';
-import { updateProjectStatistics } from '../../../services/projectService';
-import { updateUserTotalReceived } from '../../../services/userService';
-import { logger } from '../../../utils/logger';
-import {
-  AdminJsContextInterface,
-  AdminJsRequestInterface,
-} from '../adminJs-types';
 import {
   canAccessProjectQfRoundAction,
   ResourceActions,
 } from '../adminJsPermissions';
+import {
+  AdminJsRequestInterface,
+  AdminJsContextInterface,
+} from '../adminJs-types';
+import { logger } from '../../../utils/logger';
+import { updateProjectStatistics } from '../../../services/projectService';
+import { updateUserTotalReceived } from '../../../services/userService';
+import { findProjectById } from '../../../repositories/projectRepository';
 
 const deleteProjectQfRound = async (
   request: AdminJsRequestInterface,
@@ -164,18 +164,24 @@ export const projectQfRoundsTab = {
           canAccessProjectQfRoundAction({ currentAdmin }, ResourceActions.SHOW),
       },
       delete: {
-        isVisible: false, // Disabled - Project QF Rounds are now managed in v6-core admin panel
-        isAccessible: false,
+        isVisible: true,
         handler: deleteProjectQfRound,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectQfRoundAction(
+            { currentAdmin },
+            ResourceActions.DELETE,
+          ),
       },
       new: {
-        isVisible: false, // Disabled - Project QF Rounds are now managed in v6-core admin panel
-        isAccessible: false,
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectQfRoundAction({ currentAdmin }, ResourceActions.NEW),
         after: afterCreateUpdateStatistics,
       },
       edit: {
-        isVisible: false, // Disabled - Project QF Rounds are now managed in v6-core admin panel
-        isAccessible: false,
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
       },
       bulkDelete: {
         isVisible: false,
