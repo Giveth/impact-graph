@@ -150,6 +150,12 @@ export class GivPowerSubgraphAdapter implements IGivPowerSubgraphAdapter {
       }
   }`,
     });
-    return response.data.data._meta.block;
+    const block = response.data?.data?._meta?.block;
+    if (response.data?.errors?.length || !block) {
+      throw new Error(
+        'GIVpower subgraph failed to return indexed block metadata',
+      );
+    }
+    return block;
   }
 }
