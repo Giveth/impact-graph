@@ -41,6 +41,10 @@ const networksConfig = {
   '84532': { blockExplorer: 'https://sepolia.basescan.org/' },
   '1101': { blockExplorer: 'https://zkevm.polygonscan.com/' },
   '2442': { blockExplorer: 'https://cardona-zkevm.polygonscan.com/' },
+  // Robinhood Chain mainnet - Etherscan-hosted explorer; the Blockscout
+  // instance is behind a Cloudflare bot challenge
+  '4663': { blockExplorer: 'https://robin.etherscan.io/' },
+  '46630': { blockExplorer: 'https://explorer.testnet.chain.robinhood.com/' },
 };
 
 export default networksConfig;

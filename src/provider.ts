@@ -38,6 +38,10 @@ export const NETWORK_IDS = {
   // Cardano (Blockfrost uses projectId not numeric chain id, but we map one for consistency)
   CARDANO_MAINNET: 3000,
   CARDANO_PREPROD: 3001,
+
+  // Robinhood Chain (Arbitrum Orbit L2, ETH is the native token)
+  ROBINHOOD_CHAIN_MAINNET: 4663,
+  ROBINHOOD_CHAIN_TESTNET: 46630,
 };
 
 export const superTokensToToken = {
@@ -266,6 +270,9 @@ export const NETWORKS_IDS_TO_NAME = {
 
   3000: 'CARDANO_MAINNET',
   3001: 'CARDANO_PREPROD',
+
+  4663: 'ROBINHOOD_CHAIN_MAINNET',
+  46630: 'ROBINHOOD_CHAIN_TESTNET',
 };
 
 const NETWORK_NAMES = {
@@ -293,6 +300,9 @@ const NETWORK_NAMES = {
 
   CARDANO_MAINNET: 'Cardano Mainnet',
   CARDANO_PREPROD: 'Cardano Preprod',
+
+  ROBINHOOD_CHAIN_MAINNET: 'Robinhood Chain Mainnet',
+  ROBINHOOD_CHAIN_TESTNET: 'Robinhood Chain Testnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -318,6 +328,8 @@ const NETWORK_NATIVE_TOKENS = {
 
   CARDANO_MAINNET: 'ADA',
   CARDANO_PREPROD: 'ADA',
+  ROBINHOOD_CHAIN_MAINNET: 'ETH',
+  ROBINHOOD_CHAIN_TESTNET: 'ETH',
 };
 
 const networkNativeTokensList = [
@@ -425,6 +437,16 @@ const networkNativeTokensList = [
     networkName: NETWORK_NAMES.CARDANO_PREPROD,
     networkId: NETWORK_IDS.CARDANO_PREPROD,
     nativeToken: NETWORK_NATIVE_TOKENS.CARDANO_PREPROD,
+  },
+  {
+    networkName: NETWORK_NAMES.ROBINHOOD_CHAIN_MAINNET,
+    networkId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.ROBINHOOD_CHAIN_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.ROBINHOOD_CHAIN_TESTNET,
+    networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.ROBINHOOD_CHAIN_TESTNET,
   },
 ];
 
@@ -536,6 +558,23 @@ export function getProvider(networkId: number) {
       url = process.env.STELLAR_HORIZON_API_URL as string;
       break;
 
+    // Infura doesn't support Robinhood Chain
+    case NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET:
+      url = process.env.ROBINHOOD_CHAIN_NODE_HTTP_URL as string;
+      options = {
+        name: NETWORK_NAMES.ROBINHOOD_CHAIN_MAINNET,
+        chainId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+      };
+      break;
+
+    case NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET:
+      url = process.env.ROBINHOOD_CHAIN_TESTNET_NODE_HTTP_URL as string;
+      options = {
+        name: NETWORK_NAMES.ROBINHOOD_CHAIN_TESTNET,
+        chainId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+      };
+      break;
+
     default: {
       // Use infura
       const connectionInfo = ethers.providers.InfuraProvider.getUrl(
@@ -620,6 +659,14 @@ export function getBlockExplorerApiUrl(networkId: number): string {
     case NETWORK_IDS.STELLAR_MAINNET:
       // Stellar network doesn't need API key
       return config.get('STELLAR_SCAN_API_URL') as string;
+    case NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET:
+      // The mainnet Blockscout instance sits behind a Cloudflare bot challenge
+      // for server-to-server requests, so we go through Etherscan V2 like Base
+      apiUrl = config.get('ROBINHOOD_CHAIN_SCAN_API_URL');
+      break;
+    case NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET:
+      // Robinhood Chain testnet explorer (Blockscout) doesn't need API key
+      return config.get('ROBINHOOD_CHAIN_TESTNET_SCAN_API_URL') as string;
     default:
       logger.error(
         'getBlockExplorerApiUrl() no url found for networkId',
