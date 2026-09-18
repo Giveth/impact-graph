@@ -2092,6 +2092,72 @@ const seedTokens: ITokenData[] = [
     chainType: ChainType.STELLAR,
     isQR: true,
   },
+
+  // Robinhood Chain Testnet (46630) - seeded in every non-production env
+  {
+    name: 'Robinhood Chain Testnet native token',
+    symbol: 'ETH',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    coingeckoId: 'ethereum',
+    // Optimism Sepolia precedent: flag wins over the feed id and pins a
+    // deterministic $1 so donation USD assertions do not depend on live prices
+    isStableCoin: true,
+  },
+  // WETH - https://explorer.testnet.chain.robinhood.com/token/0x7943e237c7F95DA44E0301572D358911207852Fa
+  {
+    name: 'Wrapped Ether',
+    symbol: 'WETH',
+    address: '0x7943e237c7f95da44e0301572d358911207852fa',
+    decimals: 18,
+    networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    coingeckoId: 'weth',
+  },
+  // USDC.e (canonical bridged USDC via testnet router) - https://explorer.testnet.chain.robinhood.com/token/0x71c6e1c209A4e3d4bd9911B2d53c98023A56C32F
+  {
+    name: 'Bridged USDC',
+    symbol: 'USDC.e',
+    address: '0x71c6e1c209a4e3d4bd9911b2d53c98023a56c32f',
+    decimals: 6,
+    networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    isStableCoin: true,
+  },
+
+  // Robinhood Chain Mainnet (4663) - seeded only in production
+  {
+    name: 'Robinhood Chain native token',
+    symbol: 'ETH',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    networkId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    coingeckoId: 'ethereum',
+    isGivbackEligible: false,
+  },
+  // USDG - https://robin.etherscan.io/token/0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168
+  // (impostor USDG at 0x8218d73C00567A01481495Ad6c5143e00D5BB5b4 must NOT be used)
+  {
+    name: 'Global Dollar',
+    symbol: 'USDG',
+    address: '0x5fc5360d0400a0fd4f2af552add042d716f1d168',
+    decimals: 6,
+    networkId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    coingeckoId: 'global-dollar',
+    isGivbackEligible: false,
+    isStableCoin: true,
+  },
+  // Bridged USDC (canonical Arbitrum-bridge L2 address for L1 USDC) - https://robin.etherscan.io/token/0x80e0e24718dbFcad49ECAA6F1e6C89A190586cA8
+  // (impostor 18-decimal USDC at 0x367673f6C5DaeeB27E3498583DD292582142CEC8 must NOT be used)
+  {
+    name: 'USD Coin',
+    symbol: 'USDC',
+    address: '0x80e0e24718dbfcad49ecaa6f1e6c89a190586ca8',
+    decimals: 6,
+    networkId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    coingeckoId: 'usd-coin',
+    isGivbackEligible: false,
+    isStableCoin: true,
+  },
 ];
 
 export default seedTokens;
