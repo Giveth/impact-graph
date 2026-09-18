@@ -62,15 +62,32 @@ export class AddRobinhoodChainTokens1789776000000
         ? NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET
         : NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET;
 
+    // Roll back only the rows this migration seeded: the address list comes
+    // from the same seedTokens filter up() applies (same lowercasing), so the
+    // two can never drift apart and tokens added to the network independently
+    // of this migration survive a rollback.
+    const seededAddresses = seedTokens
+      .filter(token => token.networkId === networkId)
+      .map(token => `'${token.address?.toLowerCase()}'`)
+      .join(', ');
+
+    if (!seededAddresses) {
+      return;
+    }
+
     await queryRunner.query(`
       DELETE FROM organization_tokens_token
       WHERE "tokenId" IN (
-        SELECT id FROM token WHERE "networkId" = ${networkId}
+        SELECT id FROM token
+        WHERE "networkId" = ${networkId}
+          AND address IN (${seededAddresses})
       );
     `);
 
     await queryRunner.query(`
-      DELETE FROM token WHERE "networkId" = ${networkId};
+      DELETE FROM token
+      WHERE "networkId" = ${networkId}
+        AND address IN (${seededAddresses});
     `);
   }
 }

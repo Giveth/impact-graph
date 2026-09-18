@@ -14,6 +14,7 @@ import {
 import { addNewProjectAddress } from '../../src/repositories/projectAddressRepository';
 import { getTokensDetailsQuery } from '../../test/graphqlQueries';
 import { ChainType } from '../../src/types/network';
+import { Token } from '../../src/entities/token';
 
 // The migration branches on config.get('ENVIRONMENT'), which reads
 // process.env.ENVIRONMENT directly (config wraps process.env by reference),
@@ -105,6 +106,61 @@ const getAcceptedTokens = async (projectId: number) => {
     variables: { projectId },
   });
   return result.data.data.getProjectAcceptTokens;
+};
+
+// A token that exists on a Robinhood network but is NOT one of the migration's
+// seeded rows — down() must leave it (and its organization joins) in place.
+const insertUnrelatedTokenWithOrgJoins = async (
+  queryRunner: QueryRunner,
+  networkId: number,
+  address: string,
+): Promise<Token> => {
+  const token = await queryRunner.manager.save(Token, {
+    name: 'Unrelated rollback-scope token',
+    symbol: 'UNREL',
+    address,
+    decimals: 18,
+    networkId,
+  });
+  const givethOrganization = (
+    await queryRunner.query(`SELECT * FROM organization
+        WHERE label='giveth'`)
+  )[0];
+  const traceOrganization = (
+    await queryRunner.query(`SELECT * FROM organization
+        WHERE label='trace'`)
+  )[0];
+  await queryRunner.query(`INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
+        (${token.id}, ${givethOrganization.id}),
+        (${token.id}, ${traceOrganization.id})
+        ON CONFLICT DO NOTHING
+      ;`);
+  return token;
+};
+
+// After down() the only rows left on the rolled-back network must be the
+// unrelated token and its own joins — the seeded rows and their joins are gone
+const assertOnlyUnrelatedTokenRemains = async (
+  queryRunner: QueryRunner,
+  networkId: number,
+  unrelatedToken: Token,
+) => {
+  const remainingTokens: { id: number; address: string }[] =
+    await queryRunner.query(
+      `SELECT * FROM token WHERE "networkId" = ${networkId}`,
+    );
+  assert.equal(remainingTokens.length, 1);
+  assert.equal(remainingTokens[0].id, unrelatedToken.id);
+  assert.equal(remainingTokens[0].address, unrelatedToken.address);
+
+  const remainingJoins: { tokenId: number }[] = await queryRunner.query(
+    `SELECT ott."tokenId" FROM organization_tokens_token ott
+     JOIN token t ON t.id = ott."tokenId"
+     WHERE t."networkId" = ${networkId}`,
+  );
+  // giveth + trace joins, both still pointing at the unrelated token
+  assert.equal(remainingJoins.length, 2);
+  remainingJoins.forEach(join => assert.equal(join.tokenId, unrelatedToken.id));
 };
 
 const assertOrgJoins = async (
@@ -345,6 +401,106 @@ describe('AddRobinhoodChainTokens migration', () => {
       ROBINHOOD_NETWORK_IDS.includes(token.networkId),
     );
     assert.isEmpty(robinhoodTokens);
+  });
+
+  it('down() in a non-production environment removes only the seeded testnet tokens, preserving unrelated and mainnet tokens', async () => {
+    await deleteRobinhoodTokens(queryRunner);
+
+    // Seed the opposite (mainnet) network so the test proves down() leaves it
+    // untouched
+    process.env.ENVIRONMENT = 'production';
+    try {
+      await migration.up(queryRunner);
+    } finally {
+      process.env.ENVIRONMENT = originalEnvironment;
+    }
+
+    // An unrelated token on the same (testnet) network, with organization
+    // joins of its own — it predates the migration and must survive rollback
+    const unrelatedToken = await insertUnrelatedTokenWithOrgJoins(
+      queryRunner,
+      NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+      '0x1111111111111111111111111111111111111111',
+    );
+
+    process.env.ENVIRONMENT = '';
+    try {
+      await migration.up(queryRunner);
+      await migration.down(queryRunner);
+    } finally {
+      process.env.ENVIRONMENT = originalEnvironment;
+    }
+
+    await assertOnlyUnrelatedTokenRemains(
+      queryRunner,
+      NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+      unrelatedToken,
+    );
+
+    // The opposite network is untouched: seeded mainnet rows + joins intact
+    const mainnetRows = await queryRunner.query(
+      `SELECT * FROM token WHERE "networkId" = ${NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET}`,
+    );
+    assertTokenRows(
+      mainnetRows,
+      EXPECTED_MAINNET_TOKENS,
+      NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    );
+    await assertOrgJoins(
+      queryRunner,
+      NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+      EXPECTED_MAINNET_TOKENS.length,
+    );
+  });
+
+  it('down() in production removes only the seeded mainnet tokens, preserving unrelated and testnet tokens', async () => {
+    await deleteRobinhoodTokens(queryRunner);
+
+    // Seed the opposite (testnet) network so the test proves down() leaves it
+    // untouched
+    process.env.ENVIRONMENT = '';
+    try {
+      await migration.up(queryRunner);
+    } finally {
+      process.env.ENVIRONMENT = originalEnvironment;
+    }
+
+    // An unrelated token on the same (mainnet) network, with organization
+    // joins of its own — it predates the migration and must survive rollback
+    const unrelatedToken = await insertUnrelatedTokenWithOrgJoins(
+      queryRunner,
+      NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+      '0x2222222222222222222222222222222222222222',
+    );
+
+    process.env.ENVIRONMENT = 'production';
+    try {
+      await migration.up(queryRunner);
+      await migration.down(queryRunner);
+    } finally {
+      process.env.ENVIRONMENT = originalEnvironment;
+    }
+
+    await assertOnlyUnrelatedTokenRemains(
+      queryRunner,
+      NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+      unrelatedToken,
+    );
+
+    // The opposite network is untouched: seeded testnet rows + joins intact
+    const testnetRows = await queryRunner.query(
+      `SELECT * FROM token WHERE "networkId" = ${NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET}`,
+    );
+    assertTokenRows(
+      testnetRows,
+      EXPECTED_TESTNET_TOKENS,
+      NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    );
+    await assertOrgJoins(
+      queryRunner,
+      NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+      EXPECTED_TESTNET_TOKENS.length,
+    );
   });
 
   it('getTokensDetails spot-checks a seeded token by address and network id', async () => {
