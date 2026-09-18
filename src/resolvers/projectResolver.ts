@@ -789,6 +789,10 @@ export class ProjectResolver {
         case FilterField.AcceptFundOnSolana:
           acceptFundOnSolanaSeen = true;
           return;
+        case FilterField.AcceptFundOnRobinhood:
+          networkIds.push(NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET);
+          networkIds.push(NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET);
+          return;
 
         default:
           return query.andWhere(`project.${filter} = true`);
