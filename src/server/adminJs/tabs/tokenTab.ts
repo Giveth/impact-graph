@@ -260,6 +260,14 @@ export const generateTokenTab = async () => {
               value: NETWORK_IDS.SOLANA_DEVNET,
               label: 'SOLANA DEVNET',
             },
+            {
+              value: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+              label: 'ROBINHOOD CHAIN MAINNET',
+            },
+            {
+              value: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+              label: 'ROBINHOOD CHAIN TESTNET',
+            },
           ],
         },
         symbol: { isVisible: true },

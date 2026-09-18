@@ -1486,6 +1486,61 @@ function createProjectTestCases() {
     assert.equal(project.ownerTotalEarned, 0);
     assert.equal(project.ownerTotalEarnedUsdValue, 0);
   });
+
+  it('Should create project with recipient addresses on Robinhood Chain mainnet and testnet', async () => {
+    const robinhoodMainnetAddress = generateRandomEtheriumAddress();
+    const robinhoodTestnetAddress = generateRandomEtheriumAddress();
+    const sampleProject: CreateProjectInput = {
+      title: 'robinhoodChainTitle ' + new Date().getTime(),
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
+      description: 'description',
+      image:
+        'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
+      adminUserId: SEED_DATA.FIRST_USER.id,
+      addresses: [
+        {
+          address: robinhoodMainnetAddress,
+          networkId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+        },
+        {
+          address: robinhoodTestnetAddress,
+          networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data.data);
+    assert.exists(result.data.data.createProject);
+    const addresses = result.data.data.createProject.addresses;
+    const mainnetAddress = addresses.find(
+      address => address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    );
+    const testnetAddress = addresses.find(
+      address => address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    );
+    assert.isOk(mainnetAddress);
+    assert.equal(mainnetAddress.address, robinhoodMainnetAddress.toLowerCase());
+    assert.equal(mainnetAddress.chainType, ChainType.EVM);
+    assert.isTrue(mainnetAddress.isRecipient);
+    assert.isOk(testnetAddress);
+    assert.equal(testnetAddress.address, robinhoodTestnetAddress.toLowerCase());
+    assert.equal(testnetAddress.chainType, ChainType.EVM);
+    assert.isTrue(testnetAddress.isRecipient);
+  });
 }
 
 function updateProjectTestCases() {
@@ -1797,6 +1852,62 @@ function updateProjectTestCases() {
       assert.equal(address.address, newWalletAddress);
       assert.equal(address.chainType, ChainType.EVM);
     });
+  });
+  it('Should update addresses successfully - Robinhood Chain', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      adminUserId: user.id,
+    });
+    const robinhoodMainnetAddress = generateRandomEtheriumAddress();
+    const robinhoodTestnetAddress = generateRandomEtheriumAddress();
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            addresses: [
+              {
+                address: robinhoodMainnetAddress,
+                networkId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+              },
+              {
+                address: robinhoodTestnetAddress,
+                networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+              },
+            ],
+            title: `test title update addresses` + new Date().getTime(),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const { updateProject } = editProjectResult.data.data;
+    assert.isOk(updateProject);
+
+    const { addresses } = updateProject;
+    assert.lengthOf(addresses, 2);
+    const mainnetAddress = addresses.find(
+      address => address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    );
+    const testnetAddress = addresses.find(
+      address => address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    );
+    assert.isOk(mainnetAddress);
+    assert.equal(mainnetAddress.address, robinhoodMainnetAddress);
+    assert.equal(mainnetAddress.chainType, ChainType.EVM);
+    assert.isTrue(mainnetAddress.isRecipient);
+    assert.isOk(testnetAddress);
+    assert.equal(testnetAddress.address, robinhoodTestnetAddress);
+    assert.equal(testnetAddress.chainType, ChainType.EVM);
+    assert.isTrue(testnetAddress.isRecipient);
   });
   it('Should update addresses successfully - Solana', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

@@ -353,6 +353,8 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.STELLAR_MAINNET,
         NETWORK_IDS.CARDANO_MAINNET,
         NETWORK_IDS.CARDANO_PREPROD,
+        NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+        NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
       ),
       chainType: Joi.string()
         .valid(

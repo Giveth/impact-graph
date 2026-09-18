@@ -295,6 +295,11 @@ const availableNetworkValues = [
   { value: NETWORK_IDS.BSC, label: 'BSC' },
   { value: NETWORK_IDS.SOLANA_MAINNET, label: 'SOLANA' },
   { value: NETWORK_IDS.SOLANA_TESTNET, label: 'SOLALAN TESTNET' },
+  { value: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET, label: 'ROBINHOOD CHAIN' },
+  {
+    value: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    label: 'ROBINHOOD CHAIN TESTNET',
+  },
 ];
 
 export const qfRoundTab = {
