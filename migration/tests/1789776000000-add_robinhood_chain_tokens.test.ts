@@ -503,6 +503,76 @@ describe('AddRobinhoodChainTokens migration', () => {
     );
   });
 
+  it('up() does not create organization joins for unrelated tokens already on the network', async () => {
+    await deleteRobinhoodTokens(queryRunner);
+
+    // An unrelated token on the testnet network with NO organization joins —
+    // up() must leave it unassociated rather than adopt it into the org token
+    // lists (which would make it an accepted donation token)
+    const unrelatedToken = await queryRunner.manager.save(Token, {
+      name: 'Unrelated unassociated token',
+      symbol: 'NOJOIN',
+      address: '0x3333333333333333333333333333333333333333',
+      decimals: 18,
+      networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    });
+
+    process.env.ENVIRONMENT = '';
+    try {
+      await migration.up(queryRunner);
+    } finally {
+      process.env.ENVIRONMENT = originalEnvironment;
+    }
+
+    const unrelatedJoins: { tokenId: number }[] = await queryRunner.query(
+      `SELECT "tokenId" FROM organization_tokens_token WHERE "tokenId" = ${unrelatedToken.id}`,
+    );
+    assert.isEmpty(unrelatedJoins);
+
+    // The seeded rows still received their joins
+    await assertOrgJoins(
+      queryRunner,
+      NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+      EXPECTED_TESTNET_TOKENS.length,
+    );
+
+    // ...and accepted-tokens serves only the seeded rows, not the unrelated one
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    });
+    const tokens = await getAcceptedTokens(project.id);
+    const acceptedSymbols = tokens.map(
+      (token: { symbol: string }) => token.symbol,
+    );
+    assert.notInclude(acceptedSymbols, 'NOJOIN');
+    assert.sameMembers(
+      acceptedSymbols,
+      EXPECTED_TESTNET_TOKENS.map(token => token.symbol),
+    );
+
+    // down() removes the seeded rows but leaves the unrelated token in place
+    // and still unassociated
+    process.env.ENVIRONMENT = '';
+    try {
+      await migration.down(queryRunner);
+    } finally {
+      process.env.ENVIRONMENT = originalEnvironment;
+    }
+
+    const remainingTokens: { id: number }[] = await queryRunner.query(
+      `SELECT id FROM token WHERE "networkId" = ${NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET}`,
+    );
+    assert.deepEqual(
+      remainingTokens.map(row => row.id),
+      [unrelatedToken.id],
+    );
+    const joinsAfterDown: { tokenId: number }[] = await queryRunner.query(
+      `SELECT "tokenId" FROM organization_tokens_token WHERE "tokenId" = ${unrelatedToken.id}`,
+    );
+    assert.isEmpty(joinsAfterDown);
+  });
+
   it('getTokensDetails spot-checks a seeded token by address and network id', async () => {
     await deleteRobinhoodTokens(queryRunner);
     process.env.ENVIRONMENT = '';
