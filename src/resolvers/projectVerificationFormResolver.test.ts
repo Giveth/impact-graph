@@ -808,6 +808,85 @@ function updateProjectVerificationFormMutationTestCases() {
       false,
     );
   });
+  it('should update project verification managingFunds with Robinhood Chain related addresses', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      adminUserId: user.id,
+      verified: false,
+      listed: false,
+      reviewStatus: ReviewStatus.NotListed,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
+    }).save();
+    const robinhoodManagingFunds: ManagingFunds = {
+      description: 'robinhood chain addresses',
+      relatedAddresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+          title: 'robinhood mainnet address',
+          chainType: ChainType.EVM,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+          title: 'robinhood testnet address',
+          chainType: ChainType.EVM,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
+            managingFunds: robinhoodManagingFunds,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data);
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.managingFunds.description,
+      robinhoodManagingFunds.description,
+    );
+    const relatedAddresses =
+      result.data.data.updateProjectVerificationForm.managingFunds
+        .relatedAddresses;
+    assert.lengthOf(relatedAddresses, 2);
+    const mainnetAddress = relatedAddresses.find(
+      address => address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    );
+    const testnetAddress = relatedAddresses.find(
+      address => address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    );
+    assert.isOk(mainnetAddress);
+    assert.equal(
+      mainnetAddress.address,
+      robinhoodManagingFunds.relatedAddresses[0].address,
+    );
+    assert.isOk(testnetAddress);
+    assert.equal(
+      testnetAddress.address,
+      robinhoodManagingFunds.relatedAddresses[1].address,
+    );
+  });
   it('should update project verification with termAndConditions form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({

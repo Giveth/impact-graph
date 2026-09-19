@@ -106,6 +106,7 @@ export enum FilterField {
   AcceptFundOnOptimism = 'acceptFundOnOptimism',
   AcceptFundOnSolana = 'acceptFundOnSolana',
   AcceptFundOnStellar = 'acceptFundOnStellar',
+  AcceptFundOnRobinhood = 'acceptFundOnRobinhood',
   Endaoment = 'fromEndaoment',
   BoostedWithGivPower = 'boostedWithGivPower',
   ActiveQfRound = 'ActiveQfRound',

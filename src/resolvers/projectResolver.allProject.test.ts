@@ -18,7 +18,10 @@ import { fetchMultiFilterAllProjectsQuery } from '../../test/graphqlQueries';
 import { Project, ReviewStatus, SortingField } from '../entities/project';
 import { User } from '../entities/user';
 import { NETWORK_IDS } from '../provider';
-import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
+import {
+  addNewProjectAddress,
+  findProjectRecipientAddressByNetworkId,
+} from '../repositories/projectAddressRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import {
   insertSinglePowerBoosting,
@@ -1965,6 +1968,145 @@ function allProjectsTestCases() {
     });
     const { projects } = result.data.data.allProjects;
     assert.lengthOf(projects, 0);
+  });
+  it('should return projects, filter by accept donation on Robinhood Chain', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnRobinhood'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET ||
+              address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on Robinhood Chain, match testnet address too', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnRobinhood'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET ||
+              address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should not return a project when it does not accept donation on Robinhood Chain', async () => {
+    const ethereumOnlyProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.MAIN_NET,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnRobinhood'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET ||
+              address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(ethereumOnlyProject.id),
+      ),
+    );
+  });
+  it('should not return a project when its only Robinhood Chain address is not a recipient', async () => {
+    const projectWithNonRecipientRobinhoodAddress =
+      await saveProjectDirectlyToDb({
+        ...createProjectData(),
+        title: String(new Date().getTime()),
+        slug: String(new Date().getTime()),
+        networkId: NETWORK_IDS.MAIN_NET,
+      });
+    // The project's only Robinhood Chain address is not a recipient, so the
+    // AcceptFundOnRobinhood filter must exclude the project
+    await addNewProjectAddress({
+      project: projectWithNonRecipientRobinhoodAddress,
+      user: projectWithNonRecipientRobinhoodAddress.adminUser,
+      isRecipient: false,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+      chainType: ChainType.EVM,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnRobinhood'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET ||
+              address.networkId === NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET) &&
+            address.chainType === ChainType.EVM,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project =>
+          Number(project.id) ===
+          Number(projectWithNonRecipientRobinhoodAddress.id),
+      ),
+    );
   });
   it('should return projects, filter by campaignSlug and limit, skip', async () => {
     const project1 = await saveProjectDirectlyToDb({

@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import sinon from 'sinon';
 import {
   assertThrowsAsync,
   createProjectData,
@@ -9,6 +10,7 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../../test/testUtils';
+import * as provider from '../../provider';
 import { addNewProjectAddress } from '../../repositories/projectAddressRepository';
 import { ChainType } from '../../types/network';
 import {
@@ -37,6 +39,13 @@ describe('validateProjectTitleTestCases', validateProjectTitleTestCases);
 describe.skip(
   'isWalletAddressSmartContract() test cases',
   isWalletAddressSmartContractTestCases,
+);
+
+// Deterministic variant of the skipped live-network suite above: getProvider
+// is stubbed so no RPC calls are made
+describe(
+  'isWalletAddressSmartContract() Robinhood Chain test cases',
+  isWalletAddressSmartContractRobinhoodTestCases,
 );
 
 function validateProjectTitleTestCases() {
@@ -96,6 +105,54 @@ function isWalletAddressSmartContractTestCases() {
   it.skip('should return true for smart contract address in arbitrum sepolia', async () => {
     const walletAddress = '0x6b7860b66c0124e8d8c079b279c126ce58c442a2';
     const isSmartContract = await isWalletAddressSmartContract(walletAddress);
+    assert.isTrue(isSmartContract);
+  });
+}
+
+function isWalletAddressSmartContractRobinhoodTestCases() {
+  const contractAddress = '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168';
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('should query Robinhood Chain networks when detecting a smart contract', async () => {
+    const queriedNetworkIds: number[] = [];
+    sinon.stub(provider, 'getProvider').callsFake((networkId: number) => {
+      queriedNetworkIds.push(networkId);
+      return { getCode: async () => '0x' };
+    });
+    const isSmartContract = await isWalletAddressSmartContract(contractAddress);
+    assert.isFalse(isSmartContract);
+    assert.include(
+      queriedNetworkIds,
+      provider.NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+    );
+    assert.include(
+      queriedNetworkIds,
+      provider.NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+    );
+  });
+
+  it('should return true for a contract address on Robinhood Chain mainnet', async () => {
+    sinon.stub(provider, 'getProvider').callsFake((networkId: number) => ({
+      getCode: async () =>
+        networkId === provider.NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET
+          ? '0x6080'
+          : '0x',
+    }));
+    const isSmartContract = await isWalletAddressSmartContract(contractAddress);
+    assert.isTrue(isSmartContract);
+  });
+
+  it('should return true for a contract address on Robinhood Chain testnet', async () => {
+    sinon.stub(provider, 'getProvider').callsFake((networkId: number) => ({
+      getCode: async () =>
+        networkId === provider.NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET
+          ? '0x6080'
+          : '0x',
+    }));
+    const isSmartContract = await isWalletAddressSmartContract(contractAddress);
     assert.isTrue(isSmartContract);
   });
 }

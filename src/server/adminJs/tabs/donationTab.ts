@@ -1201,6 +1201,14 @@ export const donationTab = {
           { value: NETWORK_IDS.SOLANA_DEVNET, label: 'Solana Devnet' },
           { value: NETWORK_IDS.CARDANO_MAINNET, label: 'Cardano Mainnet' },
           { value: NETWORK_IDS.CARDANO_PREPROD, label: 'Cardano Preprod' },
+          {
+            value: NETWORK_IDS.ROBINHOOD_CHAIN_MAINNET,
+            label: 'Robinhood Chain',
+          },
+          {
+            value: NETWORK_IDS.ROBINHOOD_CHAIN_TESTNET,
+            label: 'Robinhood Chain Testnet',
+          },
         ],
         isVisible: {
           list: true,
