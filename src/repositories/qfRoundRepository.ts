@@ -324,7 +324,7 @@ export const findQfRoundBySlug = async (
   slug: string,
 ): Promise<QfRound | null> => {
   return QfRound.createQueryBuilder('qf_round')
-    .where(`slug = '${slug}'`)
+    .where('qf_round.slug = :slug', { slug })
     .getOne();
 };
 
@@ -470,10 +470,10 @@ export const getRelatedProjectsOfQfRound = async (
     SELECT "p"."slug", "p"."title" , p.id
     FROM "project" "p"
     INNER JOIN "project_qf_rounds_qf_round" "qp" ON "qp"."projectId" = "p"."id"
-    WHERE "qp"."qfRoundId" = ${qfRoundId}
+    WHERE "qp"."qfRoundId" = $1
   `;
 
-  return QfRound.query(query);
+  return QfRound.query(query, [qfRoundId]);
 };
 
 export const getUserMBDScore = async (
