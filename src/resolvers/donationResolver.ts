@@ -338,7 +338,7 @@ export class DonationResolver {
 
   @Query(_returns => [Donation], { nullable: true })
   async donations(
-    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    // fromDate and toDate should be in this format YYYY-MM-DD[THH:mm:ss[Z]]
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
   ) {
@@ -439,7 +439,7 @@ export class DonationResolver {
 
   @Query(_returns => ResourcePerDateRange, { nullable: true })
   async donationsTotalUsdPerDate(
-    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    // fromDate and toDate should be in this format YYYY-MM-DD[THH:mm:ss[Z]]
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
@@ -479,7 +479,7 @@ export class DonationResolver {
 
   @Query(_returns => ResourcePerDateRange, { nullable: true })
   async totalDonationsNumberPerDate(
-    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    // fromDate and toDate should be in this format YYYY-MM-DD[THH:mm:ss[Z]]
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,
@@ -575,7 +575,7 @@ export class DonationResolver {
 
   @Query(_returns => ResourcePerDateRange, { nullable: true })
   async totalDonorsCountPerDate(
-    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    // fromDate and toDate should be in this format YYYY-MM-DD[THH:mm:ss[Z]]
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('networkId', { nullable: true }) networkId?: number,

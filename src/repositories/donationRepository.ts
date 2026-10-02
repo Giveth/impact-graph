@@ -8,6 +8,7 @@ import { QfRound } from '../entities/qfRound';
 import { ChainType } from '../types/network';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { AppDataSource } from '../orm';
+import { applyDateRangeFilter } from '../utils/dateRangeFilter';
 
 export const exportClusterMatchingDonationsFormat = async (
   qfRoundId: number,
@@ -199,14 +200,7 @@ export const donationsTotalAmountPerDateRange = async (
     .select(`COALESCE(SUM(donation."valueUsd"), 0)`, 'sum')
     .where(`donation.status = 'verified'`);
 
-  // Optimize: Use parameterized queries instead of string interpolation
-  if (fromDate) {
-    query.andWhere(`donation."createdAt" >= :fromDate`, { fromDate });
-  }
-
-  if (toDate) {
-    query.andWhere(`donation."createdAt" <= :toDate`, { toDate });
-  }
+  applyDateRangeFilter(query, 'donation."createdAt"', fromDate, toDate);
 
   if (networkId) {
     query.andWhere(`donation."transactionNetworkId" = :networkId`, {
@@ -257,14 +251,7 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
     .where(`donation.status = 'verified'`)
     .andWhere('donation."valueUsd" IS NOT NULL');
 
-  // Optimize: Use parameterized queries instead of string interpolation
-  if (fromDate) {
-    query.andWhere(`donation."createdAt" >= :fromDate`, { fromDate });
-  }
-
-  if (toDate) {
-    query.andWhere(`donation."createdAt" <= :toDate`, { toDate });
-  }
+  applyDateRangeFilter(query, 'donation."createdAt"', fromDate, toDate);
 
   if (networkId) {
     query.andWhere(`donation."transactionNetworkId" = :networkId`, {
@@ -314,14 +301,7 @@ export const donationsNumberPerDateRange = async (
     .select(`COALESCE(COUNT(donation.id), 0)`, 'count')
     .where(`donation.status = 'verified'`);
 
-  // Optimize: Use parameterized queries instead of string interpolation
-  if (fromDate) {
-    query.andWhere(`donation."createdAt" >= :fromDate`, { fromDate });
-  }
-
-  if (toDate) {
-    query.andWhere(`donation."createdAt" <= :toDate`, { toDate });
-  }
+  applyDateRangeFilter(query, 'donation."createdAt"', fromDate, toDate);
 
   if (networkId) {
     query.andWhere(`donation."transactionNetworkId" = :networkId`, {
@@ -371,16 +351,12 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
     )
     .where(`donation.status = 'verified'`);
 
-  if (fromDate) {
-    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
-  }
-
-  if (toDate) {
-    query.andWhere(`donation."createdAt" <= '${toDate}'`);
-  }
+  applyDateRangeFilter(query, 'donation."createdAt"', fromDate, toDate);
 
   if (networkId) {
-    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
+    query.andWhere(`donation."transactionNetworkId" = :networkId`, {
+      networkId,
+    });
   }
 
   if (onlyVerified) {
@@ -427,16 +403,12 @@ export const donorsCountPerDate = async (
     )
     .where(`donation.status = 'verified'`);
 
-  if (fromDate) {
-    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
-  }
-
-  if (toDate) {
-    query.andWhere(`donation."createdAt" <= '${toDate}'`);
-  }
+  applyDateRangeFilter(query, 'donation."createdAt"', fromDate, toDate);
 
   if (networkId) {
-    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
+    query.andWhere(`donation."transactionNetworkId" = :networkId`, {
+      networkId,
+    });
   }
   if (onlyEndaoment) {
     query.leftJoin('donation.project', 'project');
@@ -528,16 +500,12 @@ export const donorsCountPerDateByMonthAndYear = async (
     )
     .where(`donation.status = 'verified'`);
 
-  if (fromDate) {
-    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
-  }
-
-  if (toDate) {
-    query.andWhere(`donation."createdAt" <= '${toDate}'`);
-  }
+  applyDateRangeFilter(query, 'donation."createdAt"', fromDate, toDate);
 
   if (networkId) {
-    query.andWhere(`donation."transactionNetworkId" = ${networkId}`);
+    query.andWhere(`donation."transactionNetworkId" = :networkId`, {
+      networkId,
+    });
   }
 
   if (onlyEndaoment) {

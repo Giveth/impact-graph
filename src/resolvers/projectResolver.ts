@@ -1744,7 +1744,7 @@ export class ProjectResolver {
 
   @Query(_returns => ResourcePerDateRange, { nullable: true })
   async projectsPerDate(
-    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    // fromDate and toDate should be in this format YYYY-MM-DD[THH:mm:ss[Z]]
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('onlyListed', { nullable: true }) onlyListed?: boolean,

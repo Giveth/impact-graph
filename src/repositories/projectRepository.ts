@@ -27,6 +27,7 @@ import { PreviousRoundRank } from '../entities/previousRoundRank';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjectQfRound } from '../entities/projectQfRound';
 import { DraftDonation } from '../entities/draftDonation';
+import { applyDateRangeFilter } from '../utils/dateRangeFilter';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -615,13 +616,7 @@ export const totalProjectsPerDate = async (
 
   query.andWhere(`project.statusId = ${ProjStatus.active}`);
 
-  if (fromDate) {
-    query.andWhere(`project."creationDate" >= '${fromDate}'`);
-  }
-
-  if (toDate) {
-    query.andWhere(`project."creationDate" <= '${toDate}'`);
-  }
+  applyDateRangeFilter(query, 'project."creationDate"', fromDate, toDate);
 
   if (onlyVerified) {
     query.andWhere('project."verified" = true');
@@ -637,7 +632,8 @@ export const totalProjectsPerDate = async (
     query.innerJoin(
       `project.addresses`,
       'addresses',
-      `addresses."networkId" = ${networkId}`,
+      'addresses."networkId" = :networkId',
+      { networkId },
     );
   }
 
@@ -662,13 +658,7 @@ export const totalProjectsPerDateByMonthAndYear = async (
     `COUNT(project.id) as total, EXTRACT(YEAR from project."creationDate") as year, EXTRACT(MONTH from project."creationDate") as month, CONCAT(CAST(EXTRACT(YEAR from project."creationDate") as VARCHAR), '/', CAST(EXTRACT(MONTH from project."creationDate") as VARCHAR)) as date`,
   );
 
-  if (fromDate) {
-    query.andWhere(`project."creationDate" >= '${fromDate}'`);
-  }
-
-  if (toDate) {
-    query.andWhere(`project."creationDate" <= '${toDate}'`);
-  }
+  applyDateRangeFilter(query, 'project."creationDate"', fromDate, toDate);
 
   if (onlyVerified) {
     query.andWhere('project."verified" = true');
@@ -682,7 +672,8 @@ export const totalProjectsPerDateByMonthAndYear = async (
     query.innerJoin(
       `project.addresses`,
       'addresses',
-      `addresses."networkId" = ${networkId}`,
+      'addresses."networkId" = :networkId',
+      { networkId },
     );
   }
 

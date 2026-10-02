@@ -10,6 +10,7 @@ import {
   findQfRoundProjects,
   projectsWithoutUpdateAfterTimeFrame,
   removeProjectAndRelatedEntities,
+  totalProjectsPerDate,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
@@ -98,6 +99,27 @@ describe(
 );
 
 describe('findQfRoundProjects test cases', findQfRoundProjectsTestCases);
+describe('totalProjectsPerDate test cases', totalProjectsPerDateTestCases);
+
+function totalProjectsPerDateTestCases() {
+  it('should bind dates as values, not SQL', async () => {
+    for (const [fromDate, toDate] of [
+      ["2020-01-01' OR '1'='1", undefined],
+      [undefined, "2020-01-01' OR '1'='1"],
+    ]) {
+      let error: Error | undefined;
+      try {
+        await totalProjectsPerDate(fromDate, toDate);
+      } catch (e) {
+        error = e as Error;
+      }
+      assert.match(
+        error?.message || '',
+        /invalid input syntax for type timestamp/,
+      );
+    }
+  });
+}
 
 function projectsWithoutUpdateAfterTimeFrameTestCases() {
   it('should return projects created a long time ago', async () => {
