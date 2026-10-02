@@ -338,7 +338,7 @@ export class DonationResolver {
 
   @Query(_returns => [Donation], { nullable: true })
   async donations(
-    // fromDate and toDate should be in this format YYYY-MM-DD[THH:mm:ss[Z]]
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
   ) {
