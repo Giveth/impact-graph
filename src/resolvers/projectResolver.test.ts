@@ -272,6 +272,21 @@ function projectsPerDateTestCases() {
       );
     assert.equal(projectsResponse.data.data.projectsPerDate.total, total);
   });
+  it('should reject dates with trailing content', async () => {
+    for (const variables of [
+      { fromDate: "2020-01-01' OR (SELECT 1 FROM pg_sleep(5))='1" },
+      { toDate: "2020-01-01' OR '1'='1" },
+    ]) {
+      const projectsResponse = await axios.post(graphqlUrl, {
+        query: fetchNewProjectsPerDate,
+        variables,
+      });
+      assert.equal(
+        projectsResponse.data.errors[0].message,
+        errorMessages.INVALID_DATE_FORMAT,
+      );
+    }
+  });
 }
 
 function getProjectsAcceptTokensTestCases() {

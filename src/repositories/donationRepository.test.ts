@@ -19,6 +19,7 @@ import {
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
   donationsTotalNumberPerDateRangeByMonth,
+  donorsCountPerDate,
   donorsCountPerDateByMonthAndYear,
   fillQfRoundDonationsUserScores,
   findDonationById,
@@ -189,6 +190,18 @@ function donorsCountPerDateByMonthAndYearTestCase() {
 }
 
 function donorsCountPerDateTestCases() {
+  it('should bind fromDate as a value, not SQL', async () => {
+    let error: Error | undefined;
+    try {
+      await donorsCountPerDate("2020-01-01' OR '1'='1");
+    } catch (e) {
+      error = e as Error;
+    }
+    assert.match(
+      error?.message || '',
+      /invalid input syntax for type timestamp/,
+    );
+  });
   it('should return total donations amount for endaoment projects', async () => {
     const endaomentProject = await saveProjectDirectlyToDb({
       ...createProjectData(),

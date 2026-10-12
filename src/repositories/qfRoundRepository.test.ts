@@ -513,6 +513,20 @@ function findQfRoundBySlugTestCases() {
     qfRound.isActive = false;
     await qfRound.save();
   });
+  it('should treat slug as a literal value, not SQL', async () => {
+    const qfRound = QfRound.create({
+      isActive: false,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      beginDate: new Date(),
+      endDate: moment().add(1, 'days').toDate(),
+    });
+    await qfRound.save();
+    const result = await findQfRoundBySlug("' OR '1'='1");
+    assert.isNull(result);
+  });
   it('should return inactive qfRound with slug', async () => {
     const qfRound = QfRound.create({
       isActive: false,

@@ -1,4 +1,4 @@
-import { ObjectSchema, ValidationResult } from 'joi';
+import { CustomHelpers, ObjectSchema, ValidationResult } from 'joi';
 import {
   errorMessages,
   i18n,
@@ -13,9 +13,24 @@ import { ChainType } from '../../types/network';
 const Joi = require('joi');
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
+// YYYY-MM-DD with an optional time part and zone, e.g. 2022-01-31T10:00:00.000Z,
+// 2022-01-31 10:00:00+00 or 2022-01-31 00:00:00 UTC
 const resourcePerDateRegex = new RegExp(
-  '((?:19|20)\\d\\d)-(0?[1-9]|1[012])-([12][0-9]|3[01]|0?[1-9])',
+  '^((?:19|20)\\d\\d)-(0?[1-9]|1[012])-([12][0-9]|3[01]|0?[1-9])' +
+    '(?:[ T]([01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?' +
+    '(?:Z|[+-](?:0\\d|1[0-4])(?::?[0-5]\\d)?| UTC)?)?$',
 );
+
+// The regex allows days up to 31 in every month; reject e.g. 2022-02-31
+const validateResourcePerDate = (value: string, helpers: CustomHelpers) => {
+  const [, year, month, day] = value.match(resourcePerDateRegex)!;
+  const daysInMonth = new Date(
+    Date.UTC(Number(year), Number(month), 0),
+  ).getUTCDate();
+  return Number(day) <= daysInMonth
+    ? value
+    : helpers.error('string.pattern.base');
+};
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const solanaWalletAddressRegex = /^[A-Za-z0-9]{43,44}$/;
@@ -70,15 +85,20 @@ export const resourcePerDateReportValidator = Joi.object({
   fromDate: Joi.string()
     .allow(null, '')
     .pattern(resourcePerDateRegex)
+    .custom(validateResourcePerDate)
     .messages({
       'string.base': errorMessages.INVALID_FROM_DATE,
       'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
     }),
 
-  toDate: Joi.string().allow(null, '').pattern(resourcePerDateRegex).messages({
-    'string.base': errorMessages.INVALID_TO_DATE,
-    'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
-  }),
+  toDate: Joi.string()
+    .allow(null, '')
+    .pattern(resourcePerDateRegex)
+    .custom(validateResourcePerDate)
+    .messages({
+      'string.base': errorMessages.INVALID_TO_DATE,
+      'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
+    }),
 });
 
 const swapTransactionValidator = Joi.object({
