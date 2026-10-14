@@ -12,8 +12,8 @@ import { logger } from '../../utils/logger';
  * contact while it runs, and its activity data — round tags, donation stats —
  * is still wanted there. Its identity data is not: a v5 profile email written
  * back onto a claimed contact would silently undo v6's canonical address. A
- * genuine v5 email change still lands, by another route: the legacy data
- * bridge copies it into the v6 profile, and v6 re-points the contact.
+ * v5 email change no longer reaches a claimed contact at all: the v5 ↔ v6
+ * data sync is off and v5 is being retired, so the person changes it in v6.
  *
  * So before v5 writes, it asks Ortto which of the contacts it is about to
  * touch carry the marker, and strips the identity fields from those. Contacts
