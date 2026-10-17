@@ -29,6 +29,11 @@ import {
   ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { buildProjectLink } from './NotificationCenterUtils';
+import {
+  findV6ClaimedKeys,
+  OrttoPersonPayload,
+  splitPeopleByV6Claim,
+} from './orttoV6ClaimGuard';
 
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
@@ -198,32 +203,33 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       return;
     }
 
-    const merge_by: string[] = [];
-    if (isProduction) {
-      merge_by.push('str:cm:user-id');
-    } else {
-      merge_by.push('str::email');
+    const mergeKey = isProduction ? 'str:cm:user-id' : 'str::email';
+    const merge_by = [mergeKey];
+
+    // impact-graph#2348: contacts v6 has claimed still get the stats and tags,
+    // but never v5's email or name — see orttoV6ClaimGuard.
+    const claimedKeys = await findV6ClaimedKeys(
+      mergeKey,
+      peopleWithEmail.map(person => person.fields[mergeKey]),
+    );
+    const { unclaimed, claimed } = splitPeopleByV6Claim(
+      peopleWithEmail,
+      mergeKey,
+      claimedKeys,
+    );
+
+    if (unclaimed.length > 0) {
+      await mergeOrttoPeople({ people: unclaimed, async: false, merge_by });
     }
-    try {
-      const data = {
-        people: peopleWithEmail,
+    if (claimed.length > 0) {
+      await mergeOrttoPeople({
+        people: claimed,
         async: false,
         merge_by,
-      };
-      logger.debug('updateOrttoPeople has been called:', peopleWithEmail);
-      const orttoConfig = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: process.env.ORTTO_PERSON_API!,
-        headers: {
-          'X-Api-Key': process.env.ORTTO_API_KEY as string,
-          'Content-Type': 'application/json',
-        },
-        data,
-      };
-      await axios.request(orttoConfig);
-    } catch (e) {
-      logger.error('updateOrttoPeople >> error', e);
+        // A claimed person carries no address any more, so never let this
+        // create a contact; it only updates the one v6 claimed.
+        skip_non_existing: true,
+      });
     }
   }
 
@@ -1158,6 +1164,30 @@ const getEmailDataProjectAttributes = async (params: { project: Project }) => {
     OwnerId: project?.adminUser?.id,
     slug: project.slug,
   };
+};
+
+const mergeOrttoPeople = async (data: {
+  people: OrttoPersonPayload[];
+  async: boolean;
+  merge_by: string[];
+  skip_non_existing?: boolean;
+}): Promise<void> => {
+  try {
+    logger.debug('updateOrttoPeople has been called:', data.people);
+    const orttoConfig = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: process.env.ORTTO_PERSON_API!,
+      headers: {
+        'X-Api-Key': process.env.ORTTO_API_KEY as string,
+        'Content-Type': 'application/json',
+      },
+      data,
+    };
+    await axios.request(orttoConfig);
+  } catch (e) {
+    logger.error('updateOrttoPeople >> error', e);
+  }
 };
 
 export const getOrttoPersonAttributes = (params: {
