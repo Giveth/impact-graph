@@ -1,6 +1,7 @@
 import { schedule } from 'node-cron';
 import config from '../../config';
 import { logger } from '../../utils/logger';
+import { isCronJobEnabledOrLog } from '../../utils/cronJobEnabled';
 import { cacheProjectCampaigns } from '../campaignService';
 
 // every 10 minutes
@@ -14,6 +15,14 @@ const cronJobTime =
 //   () => spawn(new Worker('../../workers/cacheProjectCampaignsWorker')), // create the worker,
 // );
 export const runUpdateProjectCampaignsCacheJob = async () => {
+  if (
+    !isCronJobEnabledOrLog(
+      'ENABLE_CACHE_PROJECT_CAMPAIGNS_CRONJOB',
+      'Cache project campaigns',
+    )
+  ) {
+    return;
+  }
   logger.debug(
     'runUpdateProjectCampaignsCacheJob() has been called, cronJobTime',
     cronJobTime,

@@ -1,6 +1,7 @@
 import { schedule } from 'node-cron';
 import config from '../../config';
 import { logger } from '../../utils/logger';
+import { isCronJobEnabledOrLog } from '../../utils/cronJobEnabled';
 import { isTestEnv } from '../../utils/utils';
 import {
   deactivateExpiredQfRounds,
@@ -19,6 +20,14 @@ const cronJobTime =
   '*/10 * * * *';
 
 export const runCheckActiveStatusOfQfRounds = () => {
+  if (
+    !isCronJobEnabledOrLog(
+      'ENABLE_CHECK_QF_ROUND_ACTIVE_STATUS_CRONJOB',
+      'Check QF round active status',
+    )
+  ) {
+    return;
+  }
   if (isTestEnv) {
     // we dont want it get executed in test env because it may cause some problems
     return;

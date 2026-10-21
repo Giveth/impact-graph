@@ -1,7 +1,11 @@
 import { assert } from 'chai';
 import sinon from 'sinon';
 import { Cause, CauseProject, Project } from '../../entities/project';
-import { getActiveCausesWithProjects } from './projectEvaluationService';
+import {
+  getActiveCausesWithProjects,
+  runProjectEvaluationCronJob,
+} from './projectEvaluationService';
+import { cronJobGateTestCases } from '../../../test/cronJobGateTestUtils';
 import { MainCategory } from '../../entities/mainCategory';
 import { Category } from '../../entities/category';
 import { ProjStatus } from '../../entities/project';
@@ -348,3 +352,11 @@ describe('projectEvaluationService', () => {
     });
   });
 });
+
+describe(
+  'runProjectEvaluationCronJob ENABLE_PROJECT_EVALUATION_CRONJOB gate',
+  cronJobGateTestCases({
+    envKey: 'ENABLE_PROJECT_EVALUATION_CRONJOB',
+    run: runProjectEvaluationCronJob,
+  }),
+);

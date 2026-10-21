@@ -511,13 +511,8 @@ export async function bootstrap() {
       runCheckProjectVerificationStatus();
     }
 
-    // if (process.env.SITEMAP_CRON_SECRET !== '') {
-    //   runGenerateSitemapOnFrontend();
-    // }
-
-    if (process.env.GENERATE_SITEMAP_CRONJOB_EXPRESSION !== '') {
-      runGenerateSitemapOnFrontend();
-    }
+    // Gated inside the job by ENABLE_GENERATE_SITEMAP_CRONJOB
+    runGenerateSitemapOnFrontend();
 
     // If we need to deactivate the process use the env var NO MORE
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
@@ -566,8 +561,10 @@ export async function bootstrap() {
     }
     if (process.env.ENABLE_UPDATE_RECURRING_DONATION_STREAM === 'true') {
       runUpdateRecurringDonationStream();
-      runCheckUserSuperTokenBalancesJob();
     }
+    // Gated inside the job by ENABLE_CHECK_USERS_SUPER_TOKEN_BALANCES_CRONJOB,
+    // independent of ENABLE_UPDATE_RECURRING_DONATION_STREAM
+    runCheckUserSuperTokenBalancesJob();
     logger.debug(
       'initializeCronJobs() before runCheckActiveStatusOfQfRounds() ',
       new Date(),

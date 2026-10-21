@@ -1,6 +1,7 @@
 import { schedule } from 'node-cron';
 import config from '../../config';
 import { logger } from '../../utils/logger';
+import { isCronJobEnabledOrLog } from '../../utils/cronJobEnabled';
 import {
   processRecurringDonationBalancesJobs,
   runCheckUserSuperTokenBalances,
@@ -11,6 +12,14 @@ const cronJobTime =
   '0 0 * * *'; // one day at 00:00
 
 export const runCheckUserSuperTokenBalancesJob = () => {
+  if (
+    !isCronJobEnabledOrLog(
+      'ENABLE_CHECK_USERS_SUPER_TOKEN_BALANCES_CRONJOB',
+      'Check users super token balances',
+    )
+  ) {
+    return;
+  }
   logger.debug(
     'runCheckUserSuperTokenBalancesJob() has been called, cronJobTime',
     cronJobTime,
