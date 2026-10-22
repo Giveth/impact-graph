@@ -22,25 +22,6 @@ const PERCENTAGE_PRECISION = Number(
   process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION || '2',
 );
 const POWER_BOOSTING_USER_LOCK_KEY = 48_103;
-const STALE_GIVECONOMY_POWER_SYNC_EVENT = 'STALE_GIVECONOMY_POWER_SYNC_EVENT';
-
-const hasErrorMessage = (
-  error: unknown,
-): error is {
-  message: string;
-} =>
-  typeof error === 'object' &&
-  error !== null &&
-  'message' in error &&
-  typeof error.message === 'string';
-
-const isStaleGiveconomyPowerSyncError = (error: unknown): boolean =>
-  hasErrorMessage(error) && error.message === STALE_GIVECONOMY_POWER_SYNC_EVENT;
-
-type BeforeSaveContext = {
-  queryRunnerManager: EntityManager;
-  userPowerBoostings: PowerBoosting[];
-};
 
 const formatPercentage = (p: number): number => {
   return +p.toFixed(PERCENTAGE_PRECISION);
@@ -347,9 +328,6 @@ const _setSingleBoosting = async (params: {
 
     // since we have errors let's rollback changes we made
     await queryRunner.rollbackTransaction();
-    if (isStaleGiveconomyPowerSyncError(e)) {
-      throw e;
-    }
     const errorKey = getKeyByValue(errorMessages, e.message);
     if (errorKey)
       throw new Error(i18n.__(translationErrorMessagesKeys[errorKey]));
@@ -365,27 +343,10 @@ export const setMultipleBoosting = async (params: {
   userId: number;
   projectIds: number[];
   percentages: number[];
-  allowZeroTotal?: boolean;
-  allowPartialTotal?: boolean;
-  allowExceedProjectLimit?: boolean;
-  emitOutboxEvent?: boolean;
-  beforeSave?: (context: BeforeSaveContext) => Promise<void>;
 }): Promise<PowerBoosting[]> => {
-  const {
-    userId,
-    projectIds,
-    percentages,
-    allowZeroTotal = false,
-    allowPartialTotal = false,
-    allowExceedProjectLimit = false,
-    emitOutboxEvent = true,
-    beforeSave,
-  } = params;
+  const { userId, projectIds, percentages } = params;
 
-  if (
-    !allowExceedProjectLimit &&
-    percentages.length > MAX_PROJECT_BOOST_LIMIT
-  ) {
+  if (percentages.length > MAX_PROJECT_BOOST_LIMIT) {
     throw new Error(
       i18n.__(
         translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
@@ -394,7 +355,7 @@ export const setMultipleBoosting = async (params: {
   }
 
   if (
-    (!allowZeroTotal && percentages.length === 0) ||
+    percentages.length === 0 ||
     percentages.length !== projectIds.length ||
     new Set(projectIds).size !== projectIds.length ||
     percentages.some(percentage => percentage < 0 || percentage > 100)
@@ -415,15 +376,8 @@ export const setMultipleBoosting = async (params: {
   // calculate 50.46+18+12.62+9.46+9.46 with calculator you would get 100 but with js you will get
   // 100.00000000000003 so we have to ignore small different changes in this webservice
   const MAX_TOTAL_PERCENTAGES = 100.00001;
-  const approxZero = total <= 0.01 * percentages.length;
   if (
-    (!allowPartialTotal &&
-      !allowZeroTotal &&
-      total < 100 - 0.01 * percentages.length) ||
-    (!allowPartialTotal &&
-      allowZeroTotal &&
-      !approxZero &&
-      total < 100 - 0.01 * percentages.length) ||
+    total < 100 - 0.01 * percentages.length ||
     total > MAX_TOTAL_PERCENTAGES
   ) {
     throw new Error(
@@ -467,12 +421,6 @@ export const setMultipleBoosting = async (params: {
         PowerBoosting.create({ userId, projectId, percentage }),
       );
     }
-    if (beforeSave) {
-      await beforeSave({
-        queryRunnerManager: queryRunner.manager,
-        userPowerBoostings,
-      });
-    }
     const savedBoostings = await queryRunner.manager.save(userPowerBoostings);
     const sourceUpdatedAt =
       savedBoostings.reduce<Date | null>(
@@ -481,22 +429,20 @@ export const setMultipleBoosting = async (params: {
         null,
       ) || new Date();
 
-    if (emitOutboxEvent) {
-      await insertPowerSyncOutboxEvent(queryRunner.manager, {
-        eventType: 'power-boosting.updated',
-        entityType: 'power-boosting',
+    await insertPowerSyncOutboxEvent(queryRunner.manager, {
+      eventType: 'power-boosting.updated',
+      entityType: 'power-boosting',
+      userId,
+      sourceUpdatedAt,
+      payload: {
         userId,
-        sourceUpdatedAt,
-        payload: {
-          userId,
-          boostings: savedBoostings.map(boosting => ({
-            projectId: boosting.projectId,
-            percentage: boosting.percentage,
-            updatedAt: boosting.updatedAt.toISOString(),
-          })),
-        },
-      });
-    }
+        boostings: savedBoostings.map(boosting => ({
+          projectId: boosting.projectId,
+          percentage: boosting.percentage,
+          updatedAt: boosting.updatedAt.toISOString(),
+        })),
+      },
+    });
 
     await queryRunner.commitTransaction();
 
@@ -506,9 +452,6 @@ export const setMultipleBoosting = async (params: {
 
     // since we have errors let's rollback changes we made
     await queryRunner.rollbackTransaction();
-    if (isStaleGiveconomyPowerSyncError(e)) {
-      throw e;
-    }
     const errorKey = getKeyByValue(errorMessages, e.message);
     if (errorKey)
       throw new Error(i18n.__(translationErrorMessagesKeys[errorKey]));

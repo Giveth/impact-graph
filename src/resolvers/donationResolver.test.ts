@@ -454,6 +454,18 @@ function donorsCountPerDateTestCases() {
       errorMessages.INVALID_DATE_FORMAT,
     );
   });
+  it('should not return data if the date has trailing content', async () => {
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonors,
+      variables: {
+        fromDate: "2020-01-01' OR '1'='1",
+      },
+    });
+    assert.equal(
+      donationsResponse.data.errors[0].message,
+      errorMessages.INVALID_DATE_FORMAT,
+    );
+  });
   it('should return donors unique total count in a time range', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();

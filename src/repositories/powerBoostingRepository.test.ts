@@ -1,4 +1,3 @@
-import { runInNewContext } from 'vm';
 import { assert } from 'chai';
 import {
   assertThrowsAsync,
@@ -669,98 +668,6 @@ function setMultipleBoostingTestCases() {
           powerBoosting.project.id === thirdProject.id &&
           powerBoosting.percentage === 80,
       ),
-    );
-  });
-
-  it('should allow partial totals for mirrored remote sync updates', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const secondProject = await saveProjectDirectlyToDb(createProjectData());
-
-    const userBoostings = await setMultipleBoosting({
-      userId: user.id,
-      projectIds: [firstProject.id, secondProject.id],
-      percentages: [30, 40],
-      allowPartialTotal: true,
-    });
-
-    assert.equal(userBoostings.length, 2);
-    assert.isOk(
-      userBoostings.find(
-        powerBoosting =>
-          powerBoosting.project.id === firstProject.id &&
-          powerBoosting.percentage === 30,
-      ),
-    );
-    assert.isOk(
-      userBoostings.find(
-        powerBoosting =>
-          powerBoosting.project.id === secondProject.id &&
-          powerBoosting.percentage === 40,
-      ),
-    );
-  });
-
-  it('should allow mirrored remote sync updates to exceed project limit', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projects = await Promise.all(
-      Array.from({ length: 6 }, () =>
-        saveProjectDirectlyToDb(createProjectData()),
-      ),
-    );
-
-    const userBoostings = await setMultipleBoosting({
-      userId: user.id,
-      projectIds: projects.map(project => project.id),
-      percentages: [95, 1, 1, 1, 1, 1],
-      allowExceedProjectLimit: true,
-    });
-
-    assert.equal(userBoostings.length, 6);
-    projects.forEach(project => {
-      assert.isOk(
-        userBoostings.find(
-          powerBoosting => powerBoosting.project.id === project.id,
-        ),
-      );
-    });
-  });
-
-  it('should preserve stale mirrored sync errors thrown by beforeSave', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project = await saveProjectDirectlyToDb(createProjectData());
-
-    await assertThrowsAsync(
-      async () =>
-        setMultipleBoosting({
-          userId: user.id,
-          projectIds: [project.id],
-          percentages: [100],
-          beforeSave: async () => {
-            throw new Error('STALE_GIVECONOMY_POWER_SYNC_EVENT');
-          },
-        }),
-      'STALE_GIVECONOMY_POWER_SYNC_EVENT',
-    );
-  });
-
-  it('should preserve cross-realm stale mirrored sync errors thrown by beforeSave', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project = await saveProjectDirectlyToDb(createProjectData());
-
-    await assertThrowsAsync(
-      async () =>
-        setMultipleBoosting({
-          userId: user.id,
-          projectIds: [project.id],
-          percentages: [100],
-          beforeSave: async () => {
-            throw runInNewContext(
-              'new Error("STALE_GIVECONOMY_POWER_SYNC_EVENT")',
-            );
-          },
-        }),
-      'STALE_GIVECONOMY_POWER_SYNC_EVENT',
     );
   });
 }

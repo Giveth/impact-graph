@@ -3,6 +3,7 @@ import { Project } from '../../entities/project';
 
 import config from '../../config';
 import { logger } from '../../utils/logger';
+import { isCronJobEnabledOrLog } from '../../utils/cronJobEnabled';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { makeProjectListed } from '../../repositories/projectRepository';
 
@@ -14,6 +15,14 @@ const maximumDaysForListing =
   Number(config.get('MAXIMUM_DAYS_FOR_LISTING_PROJECTS')) || 21;
 
 export const runCheckPendingProjectListingCronJob = () => {
+  if (
+    !isCronJobEnabledOrLog(
+      'ENABLE_MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB',
+      'Make unreviewed project listed',
+    )
+  ) {
+    return;
+  }
   logger.debug(
     'runCheckPendingProjectListingCronJob() has been called, cronJobTime',
     cronJobTime,

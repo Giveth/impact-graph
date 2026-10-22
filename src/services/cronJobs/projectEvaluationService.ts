@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ethers } from 'ethers';
 import config from '../../config';
 import { logger } from '../../utils/logger';
+import { isCronJobEnabledOrLog } from '../../utils/cronJobEnabled';
 import { Cause } from '../../entities/project';
 import { erc20ABI } from '../../assets/erc20ABI';
 import { getProvider } from '../../provider';
@@ -70,6 +71,14 @@ export const checkBalance = async (
 };
 
 export const runProjectEvaluationCronJob = () => {
+  if (
+    !isCronJobEnabledOrLog(
+      'ENABLE_PROJECT_EVALUATION_CRONJOB',
+      'Project evaluation',
+    )
+  ) {
+    return;
+  }
   logger.debug(
     'runProjectEvaluationCronJob() has been called, cronJobTime',
     cronJobTime,
