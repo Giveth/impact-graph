@@ -102,14 +102,6 @@ jobs:
         with:
           fetch-depth: 1
       
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5.1.0
-        with:
-          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_S3_REGION }}
-          mask-aws-account-id: true  # Security: Hide account ID in logs
-
       # Performance: Get current week for cache key (caches DB backup for the week)
       - name: Get current week
         id: date
@@ -117,7 +109,7 @@ jobs:
           # Get ISO week number (e.g., 2025-W44)
           WEEK=$(date +'%Y-W%V')
           echo "week=$WEEK" >> $GITHUB_OUTPUT
-          echo "Cache key will be: db-backup-staging-$WEEK"
+          echo "Cache key will be: db-backup-$WEEK"
 
       # Performance: Cache database backup to avoid repeated downloads
       # Cache is shared across all runs in the same week (7 days)
@@ -127,24 +119,37 @@ jobs:
         with:
           path: /tmp/db_backup.zip
           # Cache key: week-based so all runs same week share cache
-          # Format: db-backup-staging-2025-W44 (changes every Monday)
-          key: db-backup-staging-${{ steps.date.outputs.week }}
+          # Format: db-backup-2025-W44 (changes every Monday)
+          key: db-backup-${{ steps.date.outputs.week }}
           restore-keys: |
-            db-backup-staging-
+            db-backup-
 
       # Only download if cache miss
-      - name: Download latest DB backup from S3
+      # Backups are written nightly by the db-backup container on the prod
+      # server (giveth-all/docker-compose.prod.yml).
+      # Security: this key is scoped Read-only to the backup Space.
+      - name: Download latest DB backup from DigitalOcean Spaces
         if: steps.cache-db.outputs.cache-hit != 'true'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_BACKUP_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_BACKUP_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1  # required by the CLI, ignored by Spaces
+          # Recent aws-cli v2 sends CRC checksums by default, which Spaces rejects
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          BACKUP_PATH: ${{ secrets.DO_SPACES_BACKUP_PATH }}
         run: |
           set -e
-          echo "📥 Cache miss - downloading fresh backup from S3..."
-          FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ | sort | tail -n 1 | awk '{print $4}')
+          echo "📥 Cache miss - downloading fresh backup from Spaces..."
+          # Object names embed a UTC timestamp, so the newest sorts last
+          FILENAME=$(aws --endpoint-url "$SPACES_ENDPOINT" s3 ls "$BACKUP_PATH/" | awk '{print $4}' | grep '\.zip$' | sort | tail -n 1)
           if [ -z "$FILENAME" ]; then
-            echo "Error: No backup file found in S3"
+            echo "Error: No backup file found in Spaces"
             exit 1
           fi
           echo "Downloading backup: $FILENAME"
-          aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.zip
+          aws --endpoint-url "$SPACES_ENDPOINT" s3 cp "$BACKUP_PATH/$FILENAME" /tmp/db_backup.zip
           echo "✅ Download complete: $(du -h /tmp/db_backup.zip | cut -f1)"
 
       - name: Verify cached backup exists
@@ -160,14 +165,14 @@ jobs:
           unzip -q /tmp/db_backup.zip -d /tmp
           
           # Security: Validate the backup file exists and is readable
-          SQL_FILE=$(find /tmp/backups/givethio-staging/*.sql -type f -print -quit 2>/dev/null)
+          SQL_FILE=$(find /tmp/backups -name '*.sql' -type f -print -quit 2>/dev/null)
           if [ ! -f "$SQL_FILE" ]; then
             echo "Error: SQL backup file not found"
             exit 1
           fi
           
-          mv "$SQL_FILE" /tmp/backups/givethio-staging/db_backup.sql
-          echo "✅ Database backup prepared: $(du -h /tmp/backups/givethio-staging/db_backup.sql | cut -f1)"
+          mv "$SQL_FILE" /tmp/db_backup.sql
+          echo "✅ Database backup prepared: $(du -h /tmp/db_backup.sql | cut -f1)"
 
       - name: Wait for PostgreSQL to become ready
         run: |
@@ -230,7 +235,7 @@ jobs:
           set -e
           echo "📦 Restoring initial database backup..."
           PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio \
-            < /tmp/backups/givethio-staging/db_backup.sql
+            < /tmp/db_backup.sql
           echo "✅ Initial database restored"
 
       # Restore from cached migrated database if available (SKIP initial restore)
