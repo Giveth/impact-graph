@@ -126,5 +126,8 @@
     "QF_ROUND_NOT_ACTIVE": "La ronda QF no está activa",
     "QF_ROUND_NOT_CURRENTLY_ACTIVE": "La ronda QF no está actualmente activa",
     "QF_ROUND_NOT_ELIGIBLE_FOR_NETWORK": "La ronda QF no es elegible para esta red",
-    "PROJECT_NOT_PART_OF_QF_ROUND": "El proyecto no es parte de la ronda QF especificada"
+    "PROJECT_NOT_PART_OF_QF_ROUND": "El proyecto no es parte de la ronda QF especificada",
+    "RECURRING_DONATION_NOT_FOUND": "Donación recurrente no encontrada.",
+    "RECURRING_DONATION_STREAM_NOT_VERIFIABLE": "No se pudo verificar el stream de la donación recurrente en la cadena, inténtalo de nuevo más tarde.",
+    "RECURRING_DONATION_STREAM_MISMATCH": "El stream en la cadena no coincide con esta donación recurrente."
 }

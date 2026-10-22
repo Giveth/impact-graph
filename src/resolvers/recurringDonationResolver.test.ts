@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { assert } from 'chai';
 import axios from 'axios';
+import sinon from 'sinon';
 import { NETWORK_IDS } from '../provider';
 import {
   createProjectData,
@@ -20,7 +21,11 @@ import {
   updateRecurringDonationQuery,
   updateRecurringDonationQueryById,
   updateRecurringDonationStatusMutation,
+  reconcileRecurringDonationStatusMutation,
 } from '../../test/graphqlQueries';
+import { SuperFluidAdapter } from '../adapters/superFluid/superFluidAdapter';
+import { SuperFluidMockAdapter } from '../adapters/superFluid/superFluidMockAdapter';
+import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
 
 import { errorMessages } from '../utils/errorMessages';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
@@ -66,6 +71,11 @@ describe(
 describe(
   'recurringDonationsByProjectDate test cases',
   recurringDonationsByProjectDateTestCases,
+);
+
+describe(
+  'reconcileRecurringDonationStatus test cases',
+  reconcileRecurringDonationStatusTestCases,
 );
 
 function recurringDonationEligibleProjectsTestCases() {
@@ -3263,5 +3273,184 @@ function recurringDonationsByProjectDateTestCases() {
 
     // Assertions
     assert.equal(donations.length, 0, 'No donations should be returned');
+  });
+}
+
+function reconcileRecurringDonationStatusTestCases() {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  const createOwnedRecurringDonation = async (
+    overrides: { anonymous?: boolean } = {},
+  ) => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: donor,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const saved = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        donorId: donor.id,
+        anchorContractAddressId: anchorContractAddress.id,
+        currency: 'USDC',
+        networkId: NETWORK_IDS.OPTIMISTIC,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        anonymous: overrides.anonymous || false,
+        txHash: generateRandomEvmTxHash(),
+        flowRate: '1902587519025',
+      },
+    });
+    const recurringDonation = (await findRecurringDonationById(saved.id))!;
+    return { recurringDonation, donor };
+  };
+
+  // Mirrors the accounting API period for the stored stream.
+  const stubStreamPeriods = (
+    recurringDonation: Awaited<
+      ReturnType<typeof createOwnedRecurringDonation>
+    >['recurringDonation'],
+    overrides: Record<string, unknown> = {},
+  ) => {
+    const impl = async () => ({
+      id: 'period',
+      flowRate: recurringDonation.flowRate,
+      startedAtTimestamp: String(
+        Math.floor(recurringDonation.createdAt.getTime() / 1000),
+      ),
+      stoppedAtTimestamp: null,
+      chainId: recurringDonation.networkId,
+      token: { id: '0x', symbol: 'USDCx' },
+      sender: recurringDonation.donor.walletAddress,
+      receiver: recurringDonation.anchorContractAddress.address,
+      startedAtEvent: recurringDonation.txHash,
+      stoppedAtEvent: null,
+      virtualPeriods: [],
+      ...overrides,
+    });
+    sinon.stub(SuperFluidAdapter.prototype, 'streamPeriods').callsFake(impl);
+    sinon
+      .stub(SuperFluidMockAdapter.prototype, 'streamPeriods')
+      .callsFake(impl);
+  };
+
+  const callReconcile = (recurringDonationId: number, accessToken?: string) =>
+    axios.post(
+      graphqlUrl,
+      {
+        query: reconcileRecurringDonationStatusMutation,
+        variables: { recurringDonationId },
+      },
+      accessToken
+        ? { headers: { Authorization: `Bearer ${accessToken}` } }
+        : undefined,
+    );
+
+  it('should reject unauthenticated requests', async () => {
+    const { recurringDonation } = await createOwnedRecurringDonation();
+    const result = await callReconcile(recurringDonation.id);
+    assert.equal(result.data.errors[0].message, errorMessages.UN_AUTHORIZED);
+  });
+
+  it('should reject a user who is not the donor', async () => {
+    const { recurringDonation } = await createOwnedRecurringDonation();
+    const otherUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const accessToken = await generateTestAccessToken(otherUser.id);
+    const result = await callReconcile(recurringDonation.id, accessToken);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_ARE_NOT_OWNER_OF_THIS_DONATION,
+    );
+    const fromDb = await findRecurringDonationById(recurringDonation.id);
+    assert.equal(fromDb?.status, RECURRING_DONATION_STATUS.ACTIVE);
+  });
+
+  it('should fail for an unknown recurring donation id', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await callReconcile(999999999, accessToken);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.RECURRING_DONATION_NOT_FOUND,
+    );
+  });
+
+  it('should keep an active stream ACTIVE', async () => {
+    const { recurringDonation, donor } = await createOwnedRecurringDonation();
+    stubStreamPeriods(recurringDonation);
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await callReconcile(recurringDonation.id, accessToken);
+    assert.isUndefined(result.data.errors);
+    assert.equal(
+      result.data.data.reconcileRecurringDonationStatus.status,
+      RECURRING_DONATION_STATUS.ACTIVE,
+    );
+    assert.isFalse(result.data.data.reconcileRecurringDonationStatus.finished);
+  });
+
+  it('should mark a stream that ended on-chain as ENDED for its donor', async () => {
+    const { recurringDonation, donor } = await createOwnedRecurringDonation();
+    stubStreamPeriods(recurringDonation, {
+      stoppedAtTimestamp: String(Math.floor(Date.now() / 1000) - 60),
+      stoppedAtEvent: generateRandomEvmTxHash(),
+    });
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await callReconcile(recurringDonation.id, accessToken);
+    assert.isUndefined(result.data.errors);
+    assert.equal(
+      result.data.data.reconcileRecurringDonationStatus.status,
+      RECURRING_DONATION_STATUS.ENDED,
+    );
+    assert.isTrue(result.data.data.reconcileRecurringDonationStatus.finished);
+    const fromDb = await findRecurringDonationById(recurringDonation.id);
+    assert.equal(fromDb?.status, RECURRING_DONATION_STATUS.ENDED);
+  });
+
+  it('should reconcile anonymous recurring donations for their donor', async () => {
+    const { recurringDonation, donor } = await createOwnedRecurringDonation({
+      anonymous: true,
+    });
+    stubStreamPeriods(recurringDonation, {
+      stoppedAtTimestamp: String(Math.floor(Date.now() / 1000) - 60),
+      stoppedAtEvent: generateRandomEvmTxHash(),
+    });
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await callReconcile(recurringDonation.id, accessToken);
+    assert.isUndefined(result.data.errors);
+    assert.equal(
+      result.data.data.reconcileRecurringDonationStatus.status,
+      RECURRING_DONATION_STATUS.ENDED,
+    );
+  });
+
+  it('should return an error and keep the status when the stream cannot be verified', async () => {
+    const { recurringDonation, donor } = await createOwnedRecurringDonation();
+    const impl = async () => undefined;
+    sinon.stub(SuperFluidAdapter.prototype, 'streamPeriods').callsFake(impl);
+    sinon
+      .stub(SuperFluidMockAdapter.prototype, 'streamPeriods')
+      .callsFake(impl);
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await callReconcile(recurringDonation.id, accessToken);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.RECURRING_DONATION_STREAM_NOT_VERIFIABLE,
+    );
+    const fromDb = await findRecurringDonationById(recurringDonation.id);
+    assert.equal(fromDb?.status, RECURRING_DONATION_STATUS.ACTIVE);
   });
 }

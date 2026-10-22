@@ -3376,6 +3376,20 @@ export const globalScoreSettingsQuery = `
   }
 `;
 
+export const reconcileRecurringDonationStatusMutation = `
+  mutation (
+    $recurringDonationId: Int!
+  ) {
+    reconcileRecurringDonationStatus(
+      recurringDonationId: $recurringDonationId
+    ){
+      id
+      status
+      finished
+    }
+  }
+`;
+
 // adminUser without `id`: the owner-only guard must not depend on the client
 // requesting it
 export const fetchProjectBySlugAdminUserWithoutIdQuery = `

@@ -117,6 +117,10 @@ export const errorMessages = {
     'Project doesnt have recipient address on this network',
   PROJECT_IS_NOT_ACTIVE: 'Project is not active.',
   RECURRING_DONATION_NOT_FOUND: 'Recurring donation not found.',
+  RECURRING_DONATION_STREAM_NOT_VERIFIABLE:
+    'Could not verify the recurring donation stream on-chain, please try again later.',
+  RECURRING_DONATION_STREAM_MISMATCH:
+    'The on-chain stream does not match this recurring donation.',
   INVALID_FUNCTION: 'Invalid function name of transaction',
   PROJECT_UPDATE_NOT_FOUND: 'Project update not found.',
   DONATION_NOT_FOUND: 'donation not found',
@@ -316,7 +320,10 @@ export const translationErrorMessagesKeys = {
   PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
   PROJECT_DOESNT_ACCEPT_RECURRING_DONATION:
     'Project does not accept recurring donation',
-  RECURRING_DONATION_NOT_FOUND: 'Recurring donation not found.',
+  RECURRING_DONATION_NOT_FOUND: 'RECURRING_DONATION_NOT_FOUND',
+  RECURRING_DONATION_STREAM_NOT_VERIFIABLE:
+    'RECURRING_DONATION_STREAM_NOT_VERIFIABLE',
+  RECURRING_DONATION_STREAM_MISMATCH: 'RECURRING_DONATION_STREAM_MISMATCH',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
   THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
