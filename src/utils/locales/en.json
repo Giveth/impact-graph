@@ -137,5 +137,8 @@
     "QF_ROUND_NOT_ACTIVE": "QF round is not active",
     "QF_ROUND_NOT_CURRENTLY_ACTIVE": "QF round is not currently active",
     "QF_ROUND_NOT_ELIGIBLE_FOR_NETWORK": "QF round is not eligible for this network",
-    "PROJECT_NOT_PART_OF_QF_ROUND": "Project is not part of the specified QF round"
+    "PROJECT_NOT_PART_OF_QF_ROUND": "Project is not part of the specified QF round",
+    "RECURRING_DONATION_NOT_FOUND": "Recurring donation not found.",
+    "RECURRING_DONATION_STREAM_NOT_VERIFIABLE": "Could not verify the recurring donation stream on-chain, please try again later.",
+    "RECURRING_DONATION_STREAM_MISMATCH": "The on-chain stream does not match this recurring donation."
 }

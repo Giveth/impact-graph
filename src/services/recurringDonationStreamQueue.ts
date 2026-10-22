@@ -6,8 +6,12 @@ import {
 } from '../repositories/recurringDonationRepository';
 import { redisConfig } from '../redis';
 import config from '../config';
-import { getCurrentDateFormatted } from '../utils/utils';
-import { createRelatedDonationsToStream } from './recurringDonationService';
+import { getCurrentDateFormatted, sleep } from '../utils/utils';
+import {
+  createRelatedDonationsToStream,
+  isRecurringDonationFinal,
+  withRecurringDonationSyncLock,
+} from './recurringDonationService';
 
 const updateRecurringDonationsStreamQueue = new Bull(
   'update-recurring-donations-stream-queue',
@@ -20,6 +24,9 @@ const updateRecurringDonationsStreamQueue = new Bull(
   },
 );
 const TWO_MINUTES = 1000 * 60 * 2;
+// Bull-level retries after in-process lock retries are exhausted.
+const STREAM_SYNC_JOB_ATTEMPTS = 3;
+const STREAM_SYNC_JOB_BACKOFF_MS = 60_000;
 setInterval(async () => {
   const updateRecurringDonationsStreamQueueCount =
     await updateRecurringDonationsStreamQueue.count();
@@ -52,6 +59,11 @@ export const updateRecurringDonationsStream = async () => {
         jobId: `update-recurring-donations-stream-queue-${getCurrentDateFormatted()}-${
           recurringDonation.id
         }`,
+        // Only a RecurringDonationSyncLockedError is reported to Bull as a
+        // failure (see processRecurringDonationStreamJobs), so these retries
+        // are for lock contention alone; other errors keep today's behaviour.
+        attempts: STREAM_SYNC_JOB_ATTEMPTS,
+        backoff: { type: 'fixed', delay: STREAM_SYNC_JOB_BACKOFF_MS },
         removeOnComplete: true,
         removeOnFail: true,
       },
@@ -74,7 +86,10 @@ export function processRecurringDonationStreamJobs() {
           'processRecurringDonationStreamJobs >> updateRecurringDonationStream error',
           e,
         );
-        done();
+        // Lock contention is the one error worth a Bull retry (the job
+        // options above set attempts/backoff); everything else completes the
+        // job as before so a persistent error does not loop.
+        done(e instanceof RecurringDonationSyncLockedError ? e : undefined);
       }
     },
   );
@@ -83,6 +98,24 @@ export function processRecurringDonationStreamJobs() {
 const numberOfUpdateRecurringDonationsStreamConcurrentJob =
   Number(config.get('NUMBER_OF_UPDATE_RECURRING_DONATION_CONCURRENT_JOB')) || 1;
 
+// When another sync (the on-demand reconciliation, or a previous run of this
+// job) holds the per-donation lease, wait a little and try again instead of
+// treating "locked" as a successful sync: the queue adds each donation once a
+// day (jobId carries the date), so a silently skipped job would leave the
+// donation without stream-period donations until tomorrow. Between attempts
+// the donation is re-read so work the other sync already finished is skipped.
+export const STREAM_SYNC_LOCK_RETRY_ATTEMPTS = 3;
+export const STREAM_SYNC_LOCK_RETRY_DELAY_MS = 2_000;
+
+export class RecurringDonationSyncLockedError extends Error {
+  constructor(recurringDonationId: number) {
+    super(
+      `recurring donation ${recurringDonationId} is still locked by another sync after ${STREAM_SYNC_LOCK_RETRY_ATTEMPTS} attempts`,
+    );
+    this.name = 'RecurringDonationSyncLockedError';
+  }
+}
+
 export const updateRecurringDonationStream = async (params: {
   recurringDonationId: number;
 }) => {
@@ -90,10 +123,33 @@ export const updateRecurringDonationStream = async (params: {
     'updateRecurringDonationStream() has been called for id',
     params.recurringDonationId,
   );
-  const recurringDonation = await findRecurringDonationById(
-    params.recurringDonationId,
-  );
-
-  if (!recurringDonation) return;
-  await createRelatedDonationsToStream(recurringDonation);
+  for (let attempt = 1; attempt <= STREAM_SYNC_LOCK_RETRY_ATTEMPTS; attempt++) {
+    const recurringDonation = await findRecurringDonationById(
+      params.recurringDonationId,
+    );
+    if (!recurringDonation) return;
+    if (attempt > 1 && isRecurringDonationFinal(recurringDonation)) {
+      // The sync that held the lock finished this donation meanwhile.
+      logger.info(
+        'updateRecurringDonationStream() donation was finished by another sync, nothing to do',
+        { recurringDonationId: recurringDonation.id },
+      );
+      return;
+    }
+    const outcome = await withRecurringDonationSyncLock(
+      recurringDonation.id,
+      () => createRelatedDonationsToStream(recurringDonation),
+    );
+    if (outcome.acquired) return;
+    logger.info(
+      'updateRecurringDonationStream() donation is being synced elsewhere, will retry',
+      { recurringDonationId: recurringDonation.id, attempt },
+    );
+    if (attempt < STREAM_SYNC_LOCK_RETRY_ATTEMPTS) {
+      await sleep(STREAM_SYNC_LOCK_RETRY_DELAY_MS);
+    }
+  }
+  // Surfaced as a job failure (logged by processRecurringDonationStreamJobs)
+  // rather than a silent success.
+  throw new RecurringDonationSyncLockedError(params.recurringDonationId);
 };

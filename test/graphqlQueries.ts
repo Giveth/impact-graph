@@ -3364,3 +3364,17 @@ export const globalScoreSettingsQuery = `
     }
   }
 `;
+
+export const reconcileRecurringDonationStatusMutation = `
+  mutation (
+    $recurringDonationId: Int!
+  ) {
+    reconcileRecurringDonationStatus(
+      recurringDonationId: $recurringDonationId
+    ){
+      id
+      status
+      finished
+    }
+  }
+`;
