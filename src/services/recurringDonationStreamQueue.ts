@@ -123,22 +123,30 @@ export const updateRecurringDonationStream = async (params: {
     'updateRecurringDonationStream() has been called for id',
     params.recurringDonationId,
   );
+  const recurringDonation = await findRecurringDonationById(
+    params.recurringDonationId,
+  );
+  if (!recurringDonation) return;
   for (let attempt = 1; attempt <= STREAM_SYNC_LOCK_RETRY_ATTEMPTS; attempt++) {
-    const recurringDonation = await findRecurringDonationById(
-      params.recurringDonationId,
-    );
-    if (!recurringDonation) return;
-    if (attempt > 1 && isRecurringDonationFinal(recurringDonation)) {
-      // The sync that held the lock finished this donation meanwhile.
-      logger.info(
-        'updateRecurringDonationStream() donation was finished by another sync, nothing to do',
-        { recurringDonationId: recurringDonation.id },
-      );
-      return;
-    }
     const outcome = await withRecurringDonationSyncLock(
       recurringDonation.id,
-      () => createRelatedDonationsToStream(recurringDonation),
+      async () => {
+        // Re-read inside the lock: the on-demand reconciliation (or an earlier
+        // run) may have finished this donation after it was loaded above, and
+        // syncing that stale snapshot would mark it ENDED a second time and
+        // resend the stream-ended notification.
+        const current =
+          (await findRecurringDonationById(recurringDonation.id)) ||
+          recurringDonation;
+        if (isRecurringDonationFinal(current)) {
+          logger.info(
+            'updateRecurringDonationStream() donation was finished by another sync, nothing to do',
+            { recurringDonationId: current.id },
+          );
+          return;
+        }
+        await createRelatedDonationsToStream(current);
+      },
     );
     if (outcome.acquired) return;
     logger.info(

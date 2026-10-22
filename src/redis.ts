@@ -80,6 +80,20 @@ export type RedisLeaseOutcome<T> =
  *   slow, `fn` still runs (unlocked) and the error is logged; the caller cannot
  *   tell the two apart on purpose, since both mean "the work was done".
  */
+const releaseLease = async (key: string, token: string): Promise<void> => {
+  try {
+    await withTimeout(
+      redis.eval(RELEASE_LEASE_SCRIPT, 1, key, token),
+      `withRedisLease(${key}) release`,
+    );
+  } catch (e) {
+    // The key expires on its own after ttlMs.
+    logger.error(
+      `withRedisLease(${key}) could not release the lease: ${e.message}`,
+    );
+  }
+};
+
 export const withRedisLease = async <T>(
   key: string,
   ttlMs: number,
@@ -87,13 +101,15 @@ export const withRedisLease = async <T>(
 ): Promise<RedisLeaseOutcome<T>> => {
   const token = `${process.pid}:${Date.now()}:${Math.random()}`;
   let leaseHeld = false;
+  let setPromise: Promise<'OK' | null> | undefined;
   try {
     if (redis.status !== 'ready') {
       // Do not queue behind a reconnect; treat it like any other Redis error.
       throw new Error(`redis status is ${redis.status}`);
     }
+    setPromise = redis.set(key, token, 'PX', ttlMs, 'NX');
     const acquired = await withTimeout(
-      redis.set(key, token, 'PX', ttlMs, 'NX'),
+      setPromise,
       `withRedisLease(${key}) acquire`,
     );
     if (acquired !== 'OK') {
@@ -104,22 +120,18 @@ export const withRedisLease = async <T>(
     logger.error(
       `withRedisLease(${key}) could not acquire the lease, running without it: ${e.message}`,
     );
+    // A SET that only timed out may still reach Redis later. The work below
+    // runs unlocked either way, so give such a late lease back as soon as it
+    // lands instead of leaving the key held (by nobody) until ttlMs.
+    setPromise
+      ?.then(result => (result === 'OK' ? releaseLease(key, token) : undefined))
+      .catch(() => undefined);
   }
   try {
     return { acquired: true, result: await fn() };
   } finally {
     if (leaseHeld) {
-      try {
-        await withTimeout(
-          redis.eval(RELEASE_LEASE_SCRIPT, 1, key, token),
-          `withRedisLease(${key}) release`,
-        );
-      } catch (e) {
-        // The key expires on its own after ttlMs.
-        logger.error(
-          `withRedisLease(${key}) could not release the lease: ${e.message}`,
-        );
-      }
+      await releaseLease(key, token);
     }
   }
 };

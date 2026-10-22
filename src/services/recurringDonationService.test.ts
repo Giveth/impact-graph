@@ -1338,6 +1338,33 @@ function withRecurringDonationSyncLockTestCases() {
     );
     assert.deepEqual(outcome, { acquired: true, result: 'ran' });
   });
+
+  it('gives back a lease that Redis only granted after the acquire timed out', async () => {
+    const lockKey = getStreamSyncLockKey(987654325);
+    // The SET lands LEASE_REDIS_OP_TIMEOUT_MS + 200ms later, i.e. after the
+    // helper gave up waiting and ran the callback unlocked.
+    sinon
+      .stub(redis, 'set')
+      .callsFake(
+        () =>
+          new Promise(resolve =>
+            setTimeout(() => resolve('OK'), LEASE_REDIS_OP_TIMEOUT_MS + 200),
+          ) as any,
+      );
+    const evalSpy = sinon.spy(redis, 'eval');
+
+    const outcome = await withRecurringDonationSyncLock(
+      987654325,
+      async () => 'ran',
+    );
+    assert.deepEqual(outcome, { acquired: true, result: 'ran' });
+    assert.equal(evalSpy.callCount, 0);
+
+    await sleep(600);
+    // The late lease was released with the token-checked script.
+    assert.equal(evalSpy.callCount, 1);
+    assert.equal(evalSpy.firstCall.args[2], lockKey);
+  });
 }
 
 function updateRecurringDonationStreamTestCases() {
@@ -1359,6 +1386,24 @@ function updateRecurringDonationStreamTestCases() {
     assert.equal(stub.callCount, 1);
     const fromDb = await findRecurringDonationById(recurringDonation.id);
     assert.equal(fromDb?.status, RECURRING_DONATION_STATUS.ENDED);
+  });
+
+  it('does not re-sync a donation that is already finished', async () => {
+    const recurringDonation = await createRecurringDonationForReconcile({
+      status: RECURRING_DONATION_STATUS.ENDED,
+    });
+    recurringDonation.finished = true;
+    await recurringDonation.save();
+    const stub = stubStreamPeriods(async () =>
+      streamPeriodFor(recurringDonation, {
+        stoppedAtTimestamp: String(Math.floor(Date.now() / 1000) - 60),
+      }),
+    );
+    await updateRecurringDonationStream({
+      recurringDonationId: recurringDonation.id,
+    });
+    // No second ENDED transition and no second stream-ended notification.
+    assert.equal(stub.callCount, 0);
   });
 
   it('leaves the donation untouched when the accounting API returns nothing', async () => {
