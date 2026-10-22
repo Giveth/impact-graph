@@ -160,6 +160,16 @@ jobs:
             IMPACT_GRAPH_IMAGE="ghcr.io/giveth/impact-graph:${{ github.sha }}" \
               docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate impact-graph-jobs
             echo "Jobs deployment triggered. Health checks deferred to verify-health job."
+            # Nightly DB backup to Spaces (feeds the PR pipeline's migration-check).
+            # Built on the host, not pulled. No --force-recreate: it is only recreated
+            # when its config or image changes, so deploys don't trigger extra dumps.
+            # Never fails the app deploy.
+            if docker compose -f docker-compose.prod.yml up -d --build --no-deps db-backup \
+              && [ "$(docker inspect -f '{{.State.Running}}' db-backup 2>/dev/null)" = "true" ]; then
+              echo "db-backup running"
+            else
+              echo "::warning::db-backup is not running; DB backups are not being made"
+            fi
 
   verify-health:
     needs:
