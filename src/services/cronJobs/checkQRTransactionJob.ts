@@ -19,7 +19,7 @@ import {
   updateDraftDonationStatus,
 } from '../../repositories/draftDonationRepository';
 import { AppDataSource } from '../../orm';
-import { redis } from '../../redis';
+import { withRedisLease } from '../../redis';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter';
@@ -59,10 +59,6 @@ export const QR_CRON_RUN_LOCK_KEY = 'checkQRTransactionJob:run-lock';
 // A run longer than this may overlap the next tick, which is safe (see
 // above); a crashed runner blocks the cron for at most this long.
 const QR_CRON_RUN_LEASE_TTL_MS = 10 * 60 * 1000;
-// Delete-if-owner, atomically: never release a lease that has expired and
-// been re-acquired by another runner.
-const RELEASE_QR_CRON_RUN_LEASE_SCRIPT =
-  "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
 // One minute of grace after expiresAt during which a payment is still
 // accepted and the draft is not yet failed. Shared with the resolver so the
 // read path can never fail a draft the matcher would still accept.
@@ -977,52 +973,31 @@ export async function checkTransactions(
 // updates keep the outcome correct.
 export const processPendingQRDraftDonations = async (): Promise<void> => {
   try {
-    const leaseToken = `${process.pid}:${Date.now()}:${Math.random()}`;
-    let leaseHeld = false;
-    try {
-      const acquired = await redis.set(
-        QR_CRON_RUN_LOCK_KEY,
-        leaseToken,
-        'PX',
-        QR_CRON_RUN_LEASE_TTL_MS,
-        'NX',
-      );
-      if (acquired !== 'OK') {
-        // A previous run is still going, or a crashed runner's lease has not
-        // expired yet (self-heals within QR_CRON_RUN_LEASE_TTL_MS).
-        logger.info(
-          'checkQRTransactionJob skipped, another execution is still running',
-        );
-        return;
-      }
-      leaseHeld = true;
-    } catch (e) {
-      // The lease is an efficiency guard only, so a Redis outage must not stop
-      // matching: drafts paid during the outage would otherwise age out of the
-      // reconciliation window and stay failed with the payment on-chain.
-      // Correctness still comes from the advisory locks and guarded updates.
-      logger.error(
-        `checkQRTransactionJob could not acquire its Redis lease, running without it: ${e.message}`,
-      );
-    }
-    try {
-      const scannableDonations = await getScannableDraftDonations();
-      // Shared across this run only: drafts for one project reuse a single
-      // Horizon page instead of re-fetching it per draft.
-      const paymentsByAddress = new Map<string, any[]>();
+    // The lease is an efficiency guard only, so a Redis outage must not stop
+    // matching (withRedisLease then runs the work unlocked): drafts paid
+    // during the outage would otherwise age out of the reconciliation window
+    // and stay failed with the payment on-chain. Correctness still comes from
+    // the advisory locks and guarded updates.
+    const outcome = await withRedisLease(
+      QR_CRON_RUN_LOCK_KEY,
+      QR_CRON_RUN_LEASE_TTL_MS,
+      async () => {
+        const scannableDonations = await getScannableDraftDonations();
+        // Shared across this run only: drafts for one project reuse a single
+        // Horizon page instead of re-fetching it per draft.
+        const paymentsByAddress = new Map<string, any[]>();
 
-      for (const donation of scannableDonations) {
-        await checkTransactions(donation, 'stellar-cron', paymentsByAddress);
-      }
-    } finally {
-      if (leaseHeld) {
-        await redis.eval(
-          RELEASE_QR_CRON_RUN_LEASE_SCRIPT,
-          1,
-          QR_CRON_RUN_LOCK_KEY,
-          leaseToken,
-        );
-      }
+        for (const donation of scannableDonations) {
+          await checkTransactions(donation, 'stellar-cron', paymentsByAddress);
+        }
+      },
+    );
+    if (!outcome.acquired) {
+      // A previous run is still going, or a crashed runner's lease has not
+      // expired yet (self-heals within QR_CRON_RUN_LEASE_TTL_MS).
+      logger.info(
+        'checkQRTransactionJob skipped, another execution is still running',
+      );
     }
   } catch (e) {
     logger.error(`Error in processPendingQRDraftDonations: ${e.message}`);

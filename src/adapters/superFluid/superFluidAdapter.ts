@@ -3,6 +3,7 @@ import { logger } from '../../utils/logger';
 import {
   FlowUpdatedEvent,
   SuperFluidAdapterInterface,
+  SuperFluidStreamPeriod,
 } from './superFluidAdapterInterface';
 import { NETWORK_IDS } from '../../provider';
 
@@ -119,7 +120,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
     virtualization: string;
     currency: string;
     recurringDonationTxHash: string;
-  }) {
+  }): Promise<SuperFluidStreamPeriod | undefined> {
     const {
       address,
       chain,
@@ -146,14 +147,16 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
         },
       );
       // Fetch the stream table with the recurringDonation TxHash
-      const filteredData = response.data.filter(streamTable =>
-        streamTable.startedAtEvent
-          .toLowerCase()
-          .includes(recurringDonationTxHash.toLowerCase()),
+      const filteredData = (response.data as SuperFluidStreamPeriod[]).filter(
+        streamTable =>
+          streamTable.startedAtEvent
+            .toLowerCase()
+            .includes(recurringDonationTxHash.toLowerCase()),
       );
       return filteredData[0];
     } catch (e) {
       logger.error('superFluidAdaptor.streamPeriods error', e);
+      return undefined;
     }
   }
 
