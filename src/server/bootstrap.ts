@@ -38,6 +38,8 @@ import { logger } from '../utils/logger';
 import { flushSentryAndExit } from '../utils/globalErrorHandlers';
 import { isTrustedVercelRequest } from '../utils/ipWhitelist';
 import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
+import { adminSessionAuthentication } from '../middleware/adminSessionAuthentication';
+import { createAdminDownloadRateLimiter } from '../middleware/adminDownloadRateLimiter';
 // import { apiGivRouter } from '../routers/apiGivRoutes';
 import { AppDataSource, CronDataSource } from '../orm';
 import {
@@ -208,21 +210,36 @@ export async function bootstrap() {
       limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
     });
 
-    // To download email addresses of projects in AdminJS projects tab
-    app.get('/admin/download/:filename', (req, res) => {
-      const exportsDir = path.join(__dirname, '/adminJs/tabs/exports');
-      // Prevent path traversal: reduce to a bare filename (strips any `../`),
-      // then confirm the resolved path is directly inside the exports dir.
-      const filePath = path.join(
-        exportsDir,
-        path.basename(req.params.filename),
-      );
-      if (path.dirname(filePath) !== exportsDir) {
-        res.status(400).send('Invalid filename');
-        return;
-      }
-      res.download(filePath);
-    });
+    // To download email addresses of projects in AdminJS projects tab.
+    // Authenticated with the AdminJS session: the exported CSV contains user
+    // PII and must never be downloadable by anonymous or non-admin callers.
+    app.get(
+      '/admin/download/:filename',
+      // Limit attempts before session lookup and file access, independently of
+      // the global limiter's /admin exemption. Share counts across instances.
+      createAdminDownloadRateLimiter(
+        new RedisStore({
+          prefix: 'rate-limit:admin-download:',
+          // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+          sendCommand: (...args: string[]) => redis.call(...args),
+        }),
+      ),
+      adminSessionAuthentication,
+      (req, res) => {
+        const exportsDir = path.join(__dirname, '/adminJs/tabs/exports');
+        // Prevent path traversal: reduce to a bare filename (strips any `../`),
+        // then confirm the resolved path is directly inside the exports dir.
+        const filePath = path.join(
+          exportsDir,
+          path.basename(req.params.filename),
+        );
+        if (path.dirname(filePath) !== exportsDir) {
+          res.status(400).send('Invalid filename');
+          return;
+        }
+        res.download(filePath);
+      },
+    );
 
     // Lightweight "hello world" health check for deploy verification.
     // Defined BEFORE global CORS middleware so it's always reachable from any origin.
@@ -511,13 +528,8 @@ export async function bootstrap() {
       runCheckProjectVerificationStatus();
     }
 
-    // if (process.env.SITEMAP_CRON_SECRET !== '') {
-    //   runGenerateSitemapOnFrontend();
-    // }
-
-    if (process.env.GENERATE_SITEMAP_CRONJOB_EXPRESSION !== '') {
-      runGenerateSitemapOnFrontend();
-    }
+    // Gated inside the job by ENABLE_GENERATE_SITEMAP_CRONJOB
+    runGenerateSitemapOnFrontend();
 
     // If we need to deactivate the process use the env var NO MORE
     // if (process.env.GIVING_BLOCKS_SERVICE_ACTIVE === 'true') {
@@ -566,8 +578,10 @@ export async function bootstrap() {
     }
     if (process.env.ENABLE_UPDATE_RECURRING_DONATION_STREAM === 'true') {
       runUpdateRecurringDonationStream();
-      runCheckUserSuperTokenBalancesJob();
     }
+    // Gated inside the job by ENABLE_CHECK_USERS_SUPER_TOKEN_BALANCES_CRONJOB,
+    // independent of ENABLE_UPDATE_RECURRING_DONATION_STREAM
+    runCheckUserSuperTokenBalancesJob();
     logger.debug(
       'initializeCronJobs() before runCheckActiveStatusOfQfRounds() ',
       new Date(),

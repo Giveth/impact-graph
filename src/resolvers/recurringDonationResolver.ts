@@ -46,6 +46,7 @@ import {
 import { sleep } from '../utils/utils';
 import SentryLogger from '../sentryLogger';
 import {
+  reconcileRecurringDonationStatusWithNetwork,
   updateRecurringDonationStatusWithNetwork,
   recurringDonationsCountPerDateRange,
   recurringDonationsCountPerDateRangePerMonth,
@@ -750,6 +751,55 @@ export class RecurringDonationResolver {
     } catch (e) {
       SentryLogger.captureException(e);
       logger.error('updateRecurringDonationStatus() error ', e);
+      throw e;
+    }
+  }
+
+  // Re-checks one of the caller's recurring donations against the on-chain
+  // Superfluid stream and marks it ended when the stream no longer exists
+  // (ended from another app or liquidated). No status is accepted from the
+  // client and no new transaction is required; an active stream is left as is.
+  @Mutation(_returns => RecurringDonation)
+  async reconcileRecurringDonationStatus(
+    @Arg('recurringDonationId', () => Int) recurringDonationId: number,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<RecurringDonation> {
+    try {
+      const userId = ctx?.req?.user?.userId;
+      if (!userId) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+      }
+      const recurringDonation =
+        await findRecurringDonationById(recurringDonationId);
+      if (!recurringDonation) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.RECURRING_DONATION_NOT_FOUND),
+        );
+      }
+      if (recurringDonation.donorId !== userId) {
+        logger.error(
+          'reconcileRecurringDonationStatus error because requester is not owner of recurringDonation',
+          {
+            user: ctx?.req?.user,
+            donationInfo: {
+              id: recurringDonationId,
+              userId: recurringDonation.donorId,
+              status: recurringDonation.status,
+            },
+          },
+        );
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.YOU_ARE_NOT_OWNER_OF_THIS_DONATION,
+          ),
+        );
+      }
+      return await reconcileRecurringDonationStatusWithNetwork({
+        recurringDonation,
+      });
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('reconcileRecurringDonationStatus() error ', e);
       throw e;
     }
   }

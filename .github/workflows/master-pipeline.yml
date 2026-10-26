@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20.11.0
+          node-version: 22.18.0
 
       # ESLint and Prettier must be in `package.json`
       - name: Install Node.js dependencies
@@ -112,118 +112,69 @@ jobs:
           script: |
             set -e
             cd giveth-all
-            ## Update each backend service one by one
-            ## First Deployment (images were pulled earlier)
+            ## Single ql service (images were pulled earlier)
             IMPACT_GRAPH_IMAGE="ghcr.io/giveth/impact-graph:${{ github.sha }}" \
               docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate impact-graph-ql1
-            echo "First deployment phase triggered. Deep health checks deferred to verify-health job."
+            echo "Deployment triggered. Health checks deferred to verify-health job."
 
-  rollout-deploy-2:
-    needs: rollout-deploy-1
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PROD_HOST_ALL }}
-          username: ${{ secrets.PROD_USERNAME_ALL }}
-          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            set -e
-            cd giveth-all
-            ## Update each backend service one by one
-            ## Second Deployment (images were pulled earlier)
-            IMPACT_GRAPH_IMAGE="ghcr.io/giveth/impact-graph:${{ github.sha }}" \
-              docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate impact-graph-ql2
-            echo "Second deployment phase triggered. Health checks deferred to verify-health job."
-
-  rollout-deploy-3:
-    needs: rollout-deploy-2
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PROD_HOST_ALL }}
-          username: ${{ secrets.PROD_USERNAME_ALL }}
-          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            set -e
-            cd giveth-all
-            ## Update each backend service one by one
-            ## Third Deployment (images were pulled earlier)
-            IMPACT_GRAPH_IMAGE="ghcr.io/giveth/impact-graph:${{ github.sha }}" \
-              docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate impact-graph-ql3
-            echo "Third deployment phase triggered. Health checks deferred to verify-health job."
-
-  rollout-deploy-4:
-    needs: rollout-deploy-3
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH and Redeploy
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PROD_HOST_ALL }}
-          username: ${{ secrets.PROD_USERNAME_ALL }}
-          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            set -e
-            cd giveth-all
-            ## Update each backend service one by one
-            ## Fourth Deployment (images were pulled earlier)
-            IMPACT_GRAPH_IMAGE="ghcr.io/giveth/impact-graph:${{ github.sha }}" \
-              docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate impact-graph-ql4
-            echo "Fourth deployment phase triggered. Health checks deferred to verify-health job."
-
-  deploy-jobs:
+  retire-remote-jobs:
     needs: migrate
     runs-on: ubuntu-latest
     steps:
-      - name: SSH and Redeploy Jobs (dedicated jobs server)
+      - name: SSH and Stop Old Prod Jobs Worker (dedicated jobs droplet)
         uses: appleboy/ssh-action@v1.0.0
         with:
-          # Both environments' workers live on the SAME jobs droplet, so prod reuses
-          # the STAGING_JOBS_* credentials — they identify the box, not the env. The
-          # environments are separated by clone directory and service name below.
+          # The prod worker used to run on the shared jobs droplet (reached with the
+          # STAGING_JOBS_* credentials). Cron must run in EXACTLY ONE place, so make
+          # sure it is gone before starting the worker on the main server. Idempotent;
+          # this job can be removed once the droplet worker is confirmed decommissioned.
+          # The staging worker on that droplet is left untouched.
           host: ${{ secrets.STAGING_JOBS_HOST }}
           username: ${{ secrets.STAGING_JOBS_USERNAME }}
           key: ${{ secrets.STAGING_JOBS_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -e
-            # Prod lives in its own clone so it never shares a root .env with the
-            # staging worker running on this same droplet.
-            cd giveth-all-prod
-            IMG="ghcr.io/giveth/impact-graph:${{ github.sha }}"
-            echo "Pulling image on jobs server: $IMG"
-            docker pull "$IMG"
-            # Recreate ONLY the prod jobs worker. Image is scoped inline so a prod
-            # deploy never repins the staging worker on this same box.
-            IMPACT_GRAPH_IMAGE="$IMG" \
-              docker compose -f docker-compose.jobs.prod.yml up -d --no-deps --force-recreate impact-graph-jobs-prod
-            # Confirm it stayed up (not crash-looping). No healthcheck on this
-            # service, so assert on container state instead.
-            sleep 10
-            status=$(docker inspect --format='{{.State.Status}}' impact-graph-jobs-prod 2>/dev/null || echo "missing")
-            restarts=$(docker inspect --format='{{.RestartCount}}' impact-graph-jobs-prod 2>/dev/null || echo "?")
-            echo "impact-graph-jobs-prod status=$status restarts=$restarts"
-            if [ "$status" != "running" ]; then
-              echo "::error::impact-graph-jobs-prod is not running (status: $status)"
-              docker logs --tail 120 impact-graph-jobs-prod || true
-              exit 1
+            if docker inspect impact-graph-jobs-prod >/dev/null 2>&1; then
+              echo "Removing impact-graph-jobs-prod from the jobs droplet"
+              docker rm -f impact-graph-jobs-prod
+            else
+              echo "impact-graph-jobs-prod not present on the jobs droplet; nothing to do"
             fi
-            docker image prune -f
-            echo "Jobs (prod) redeployed on dedicated server with $IMG"
+
+  deploy-jobs:
+    needs: retire-remote-jobs
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Redeploy Jobs (main server)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST_ALL }}
+          username: ${{ secrets.PROD_USERNAME_ALL }}
+          key: ${{ secrets.PROD_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd giveth-all
+            # Image was pulled in the deploy job.
+            IMPACT_GRAPH_IMAGE="ghcr.io/giveth/impact-graph:${{ github.sha }}" \
+              docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate impact-graph-jobs
+            echo "Jobs deployment triggered. Health checks deferred to verify-health job."
+            # Nightly DB backup to Spaces (feeds the PR pipeline's migration-check).
+            # Built on the host, not pulled. No --force-recreate: it is only recreated
+            # when its config or image changes, so deploys don't trigger extra dumps.
+            # Never fails the app deploy.
+            if docker compose -f docker-compose.prod.yml up -d --build --no-deps db-backup \
+              && [ "$(docker inspect -f '{{.State.Running}}' db-backup 2>/dev/null)" = "true" ]; then
+              echo "db-backup running"
+            else
+              echo "::warning::db-backup is not running; DB backups are not being made"
+            fi
 
   verify-health:
     needs:
       - rollout-deploy-1
-      - rollout-deploy-2
-      - rollout-deploy-3
-      - rollout-deploy-4
+      - deploy-jobs
     runs-on: ubuntu-latest
     steps:
       - name: Wait for services to stabilize
@@ -238,7 +189,7 @@ jobs:
           script: |
             set -e
             cd giveth-all
-            services=("impact-graph-ql1" "impact-graph-ql2" "impact-graph-ql3" "impact-graph-ql4")
+            services=("impact-graph-ql1" "impact-graph-jobs")
             for svc in "${services[@]}"; do
               echo "Checking health for $svc ..."
               ok=0
@@ -258,7 +209,5 @@ jobs:
               fi
             done
 
-            # impact-graph-jobs now runs on the dedicated jobs server and is verified
-            # in the deploy-jobs job.
-            echo "All ql services healthy."
+            echo "ql and jobs services healthy."
             docker image prune -f

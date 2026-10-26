@@ -7,13 +7,24 @@ import {
   SEED_DATA,
 } from '../../../test/testUtils';
 import { Donation, DONATION_STATUS } from '../../entities/donation';
-import { notifyMissingDonationsWithSegment } from './notifyDonationsWithSegment';
+import {
+  notifyMissingDonationsWithSegment,
+  runNotifyMissingDonationsCronJob,
+} from './notifyDonationsWithSegment';
+import { cronJobGateTestCases } from '../../../test/cronJobGateTestUtils';
 import * as utils from '../../utils/utils';
 import { findDonationById } from '../../repositories/donationRepository';
 
 describe(
   'notifyMissingDonationsWithSegment() test cases',
   notifyMissingDonationsWithSegmentTestCases,
+);
+describe(
+  'runNotifyMissingDonationsCronJob ENABLE_NOTIFY_SEGMENT_OF_MISSED_DONATIONS_CRONJOB gate',
+  cronJobGateTestCases({
+    envKey: 'ENABLE_NOTIFY_SEGMENT_OF_MISSED_DONATIONS_CRONJOB',
+    run: runNotifyMissingDonationsCronJob,
+  }),
 );
 
 function notifyMissingDonationsWithSegmentTestCases() {

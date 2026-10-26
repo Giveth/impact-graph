@@ -7,6 +7,7 @@ import fs from 'fs';
 import { schedule } from 'node-cron';
 import config from '../../config';
 import { logger } from '../../utils/logger';
+import { isCronJobEnabledOrLog } from '../../utils/cronJobEnabled';
 import { Project, ProjStatus } from '../../entities/project';
 import { User } from '../../entities/user';
 import { QfRound } from '../../entities/qfRound';
@@ -28,6 +29,14 @@ const cronJobTime =
 const FRONTEND_URL = process.env.FRONTEND_URL || '';
 
 export const runGenerateSitemapOnFrontend = () => {
+  if (
+    !isCronJobEnabledOrLog(
+      'ENABLE_GENERATE_SITEMAP_CRONJOB',
+      'Generate sitemap',
+    )
+  ) {
+    return;
+  }
   logger.debug(
     'runGenerateSitemapOnFrontend() has been called, cronJobTime:',
     cronJobTime,

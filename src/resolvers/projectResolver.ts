@@ -47,7 +47,11 @@ import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { ApolloContext } from '../types/ApolloContext';
-import { publicSelectionFields, User } from '../entities/user';
+import {
+  ownerOnlySelectionFields,
+  publicSelectionFields,
+  User,
+} from '../entities/user';
 import { Context } from '../context';
 import SentryLogger from '../sentryLogger';
 import { ProjectAddress } from '../entities/projectAddress';
@@ -854,6 +858,37 @@ export class ProjectResolver {
     return query;
   }
 
+  /**
+   * Joins project.adminUser selecting only the requested public columns, plus
+   * the requested owner-only columns when the caller is signed in
+   * (OwnerOnlyUserField nulls those for anyone who is not that user, so this
+   * cannot expose them). `user.id` is always selected: the owner check and
+   * canUserVisitProject both key on it.
+   */
+  static addAdminUserSelection<T extends ObjectLiteral>(
+    query: SelectQueryBuilder<T>,
+    requestedAdminUserFields: Record<string, unknown>,
+    ctxUserId?: number,
+  ): SelectQueryBuilder<T> {
+    const adminUserFields = Object.keys(requestedAdminUserFields).map(
+      field => `user.${field}`,
+    );
+    const selectable = ctxUserId
+      ? [...publicSelectionFields, ...ownerOnlySelectionFields]
+      : publicSelectionFields;
+    const adminUserSelection = [
+      'user.id',
+      ...selectable.filter(
+        field => field !== 'user.id' && adminUserFields.includes(field),
+      ),
+    ];
+    // leftJoin (not leftJoinAndSelect): selecting the whole alias would pull
+    // every user column, including private ones, regardless of addSelect
+    return query
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(adminUserSelection); // aliased selection
+  }
+
   static addUserReaction<T extends ObjectLiteral>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
@@ -1234,19 +1269,11 @@ export class ProjectResolver {
       );
     }
     if (fields.adminUser) {
-      const adminUserFields = Object.keys(fields.adminUser).map(
-        field => `user.${field}`,
+      query = ProjectResolver.addAdminUserSelection(
+        query,
+        fields.adminUser,
+        user?.userId,
       );
-      const filterByPublicFields = publicSelectionFields.filter(field =>
-        adminUserFields.includes(field),
-      );
-      query = query
-        .leftJoin('project.adminUser', 'user')
-        .addSelect(
-          filterByPublicFields.length > 0
-            ? filterByPublicFields
-            : publicSelectionFields,
-        ); // aliased selection
     }
     if (fields.reaction) {
       query = ProjectResolver.addUserReaction(
@@ -1420,19 +1447,11 @@ export class ProjectResolver {
       );
     }
     if (fields.adminUser) {
-      const adminUserFields = Object.keys(fields.adminUser).map(
-        field => `user.${field}`,
+      query = ProjectResolver.addAdminUserSelection(
+        query,
+        fields.adminUser,
+        user?.userId,
       );
-      const filterByPublicFields = publicSelectionFields.filter(field =>
-        adminUserFields.includes(field),
-      );
-      query = query
-        .leftJoinAndSelect('project.adminUser', 'user')
-        .addSelect(
-          filterByPublicFields.length > 0
-            ? filterByPublicFields
-            : publicSelectionFields,
-        ); // aliased selection
     }
     if (fields.reaction) {
       query = ProjectResolver.addUserReaction(

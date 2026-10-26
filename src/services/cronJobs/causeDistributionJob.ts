@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { Cause, CauseProject, ProjStatus } from '../../entities/project';
 import { NETWORK_IDS } from '../../provider';
 import { logger } from '../../utils/logger';
+import { isCronJobEnabledOrLog } from '../../utils/cronJobEnabled';
 import config from '../../config';
 import {
   AgentDistributionService,
@@ -185,11 +186,12 @@ export const getEligibleProjectsForCauses = async (
 };
 
 export const scheduleCauseDistributionJob = (): void => {
-  const enableCauseDistributionJob =
-    config.get('ENABLE_CAUSE_DISTRIBUTION_JOB') === 'true';
-
-  if (!enableCauseDistributionJob) {
-    logger.info('Cause distribution job is disabled');
+  if (
+    !isCronJobEnabledOrLog(
+      'ENABLE_CAUSE_DISTRIBUTION_JOB',
+      'Cause distribution',
+    )
+  ) {
     return;
   }
 

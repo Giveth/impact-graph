@@ -1,6 +1,7 @@
 import { schedule } from 'node-cron';
 import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { logger } from '../../utils/logger';
+import { isCronJobEnabledOrLog } from '../../utils/cronJobEnabled';
 import { sleep } from '../../utils/utils';
 import config from '../../config';
 import { sendNotificationForDonation } from '../donationService';
@@ -11,6 +12,14 @@ const cronJobTime =
   ) as string) || '0 0 * * *';
 
 export const runNotifyMissingDonationsCronJob = () => {
+  if (
+    !isCronJobEnabledOrLog(
+      'ENABLE_NOTIFY_SEGMENT_OF_MISSED_DONATIONS_CRONJOB',
+      'Notify segment of missed donations',
+    )
+  ) {
+    return;
+  }
   logger.debug('runNotifyMissingDonationsCronJob() has been called');
   schedule(cronJobTime, async () => {
     await notifyMissingDonationsWithSegment();

@@ -20,6 +20,7 @@ import {
   refreshUserScores,
   updateUser,
   userByAddress,
+  meQuery,
 } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
@@ -1221,3 +1222,17 @@ function userEmailVerification() {
 //     });
 //   });
 // }
+
+describe('me() email visibility test cases', () => {
+  it('returns the email of the signed-in user', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      { query: meQuery },
+      { headers: { authorization: `Bearer ${accessToken}` } },
+    );
+    assert.equal(Number(result.data.data.me.id), user.id);
+    assert.equal(result.data.data.me.email, user.email);
+  });
+});

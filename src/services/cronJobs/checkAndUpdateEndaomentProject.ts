@@ -5,6 +5,7 @@ import config from '../../config';
 import { Project, ProjStatus } from '../../entities/project';
 import { Organization } from '../../entities/organization';
 import { logger } from '../../utils/logger';
+import { isCronJobEnabledOrLog } from '../../utils/cronJobEnabled';
 
 // Runs once a month
 const cronJobTime =
@@ -13,6 +14,14 @@ const cronJobTime =
   ) as string) || '0 0 1 * *';
 
 export const runCheckAndUpdateEndaomentProject = async () => {
+  if (
+    !isCronJobEnabledOrLog(
+      'ENABLE_CHECK_AND_UPDATE_ENDAOMENT_PROJECTS',
+      'Check and update Endaoment projects',
+    )
+  ) {
+    return;
+  }
   logger.debug(
     'runCheckAndUpdateEndaomentProject() has been called, cronJobTime',
     cronJobTime,

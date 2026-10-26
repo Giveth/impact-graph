@@ -4,12 +4,23 @@ import {
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
 import { Project, ProjStatus, ReviewStatus } from '../../entities/project';
-import { updateProjectListing } from './syncProjectsRequiredForListing';
+import {
+  runCheckPendingProjectListingCronJob,
+  updateProjectListing,
+} from './syncProjectsRequiredForListing';
+import { cronJobGateTestCases } from '../../../test/cronJobGateTestUtils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 describe('updateProjectListing() test cases', updateProjectListingTestCases);
+describe(
+  'runCheckPendingProjectListingCronJob ENABLE_MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB gate',
+  cronJobGateTestCases({
+    envKey: 'ENABLE_MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB',
+    run: runCheckPendingProjectListingCronJob,
+  }),
+);
 
 function updateProjectListingTestCases() {
   it('should make project listed if last updated time is for more than 21 days ago', async () => {
