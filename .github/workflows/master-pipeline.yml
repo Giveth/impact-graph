@@ -117,33 +117,8 @@ jobs:
               docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate impact-graph-ql1
             echo "Deployment triggered. Health checks deferred to verify-health job."
 
-  retire-remote-jobs:
-    needs: migrate
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH and Stop Old Prod Jobs Worker (dedicated jobs droplet)
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          # The prod worker used to run on the shared jobs droplet (reached with the
-          # STAGING_JOBS_* credentials). Cron must run in EXACTLY ONE place, so make
-          # sure it is gone before starting the worker on the main server. Idempotent;
-          # this job can be removed once the droplet worker is confirmed decommissioned.
-          # The staging worker on that droplet is left untouched.
-          host: ${{ secrets.STAGING_JOBS_HOST }}
-          username: ${{ secrets.STAGING_JOBS_USERNAME }}
-          key: ${{ secrets.STAGING_JOBS_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            set -e
-            if docker inspect impact-graph-jobs-prod >/dev/null 2>&1; then
-              echo "Removing impact-graph-jobs-prod from the jobs droplet"
-              docker rm -f impact-graph-jobs-prod
-            else
-              echo "impact-graph-jobs-prod not present on the jobs droplet; nothing to do"
-            fi
-
   deploy-jobs:
-    needs: retire-remote-jobs
+    needs: migrate
     runs-on: ubuntu-latest
     steps:
       - name: SSH and Redeploy Jobs (main server)
